@@ -1,11 +1,12 @@
 <resources>
     <style name="Theme.NightWave" parent="android:style/Theme.Material.NoActionBar">
         <item name="android:fontFamily">sans</item>
-        <item name="android:colorAccent">#B2F369</item>
+        <item name="android:colorAccent">#B7A2FF</item>
         <item name="android:windowLightStatusBar">false</item>
-        <item name="android:statusBarColor">#0B0D0F</item>
-        <item name="android:navigationBarColor">#0B0D0F</item>
+        <item name="android:statusBarColor">#080B15</item>
+        <item name="android:navigationBarColor">#101325</item>
         <item name="android:windowActionModeOverlay">true</item>
-        <item name="android:windowBackground">#0B0D0F</item>
+        <item name="android:windowBackground">#080B15</item>
+        <item name="android:windowLightNavigationBar">false</item>
     </style>
 </resources>
