@@ -11,8 +11,8 @@ android {
         applicationId = "com.nightwave.player"
         minSdk = 26
         targetSdk = 35
-        versionCode = 6
-        versionName = "0.6.0"
+        versionCode = 7
+        versionName = "0.7.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -41,4 +41,5 @@ dependencies {
     implementation("com.github.TeamNewPipe:NewPipeExtractor:v0.26.5")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs_nio:2.1.5")
     testImplementation("junit:junit:4.13.2")
+    testImplementation("org.json:json:20240303")
 }
