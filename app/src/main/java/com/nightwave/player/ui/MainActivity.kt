@@ -574,7 +574,23 @@ class MainActivity : Activity() {
             Page.SEARCH -> {
                 binding.resultsHeading.text = if (searchMode == SearchMode.SONGS) "Explore songs" else "Explore videos"
                 showStatus(if (results.isEmpty()) "Search any song, album or artist to start listening." else "Tap a song to play. Hold for more options.")
-                results.forEach { addVideoCard(it, results) }
+                if (results.isEmpty()) {
+                    sectionTitle("Try one of these")
+                    labelAction("♫  Baby shark") {
+                        binding.searchBox.setText("Baby shark")
+                        search("Baby shark")
+                    }
+                    labelAction("✦  Lofi for deep focus") {
+                        binding.searchBox.setText("lofi for deep focus")
+                        search("lofi for deep focus")
+                    }
+                    labelAction("◉  Songs for a night drive") {
+                        binding.searchBox.setText("night drive music")
+                        search("night drive music")
+                    }
+                } else {
+                    results.forEach { addVideoCard(it, results) }
+                }
             }
             Page.LIBRARY -> showLibrary()
         }
