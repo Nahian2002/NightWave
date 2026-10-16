@@ -1,14 +1,26 @@
 # NightWave
-### A personal Android music player · v0.7.0
+### A personal Android music player · v0.8.0
 
 NightWave is an experimental, independent Android music app. Explore public YouTube videos by song or artist name, maintain a local music library, and listen using Android's Media3 background player. **NightWave is not Spotify or YouTube, and it is not affiliated with either company.**
 
-**Release status:** v0.7 source is uploaded, but the new search providers and UI have **not yet been verified on a physical phone**. An earlier version compiled on Windows and successfully played audio with the screen locked. See [TEST_REPORT.md](TEST_REPORT.md).
+**Release status:** v0.8 source is uploaded. The new YouTube website search and video-selection workflow still need to be compiled and tested on an Android device; do **not** treat this as a confirmed fix until those tests pass. A previous version's direct-link playback passed on the owner's phone. See [TEST_REPORT.md](TEST_REPORT.md).
+
+## v0.8 — Direct YouTube search without failing public API servers
+
+**Why this changed:** v0.6 native search yielded \`raw=0, streams=0, errors=4\`, and the community Invidious search provider in v0.7 also failed on the owner's phone. More retries against unavailable endpoints won't produce music.
+
+NightWave's **main Search button now opens YouTube's real search-result website in an Android WebView**, using only the song or artist name. Tap a public video to return its link to NightWave's existing media player. The app intercepts standard video URL navigation and YouTube's JavaScript-driven thumbnail clicks; **▶ PLAY** also lets you select the currently opened YouTube video manually if automatic interception fails. An **↗ BROWSER** fallback opens the same query in your browser/YouTube app; choose a video there and use **Share → NightWave** if necessary.
+
+**Native song lists are now clearly labeled experimental** rather than being presented as a working primary search engine. The six Home discovery categories open direct YouTube web searches. The optional API-based native list may still fail because upstream services are unavailable.
+
+The in-app YouTube browser does not expose a privileged JavaScript interface to websites, restricts navigation to known HTTPS YouTube hosts, disables WebView file access and blocks other-site navigation inside the app. Avoid signing into Google within the embedded search browser; use the external-browser button if an account is required.
+
+**Limitations:** YouTube may block pages in embedded WebViews; this has not yet been device-tested. The website browser can show results without an API key, but selecting a video does **not** guarantee playback—NewPipe stream resolution is still needed. Private, restricted, protected, and otherwise unsupported videos may fail. Official YouTube APIs prohibit background playing through their player, and unofficial extraction remains subject to platform changes.
 
 ## Features
 
-- **Discover:** song/artist keyword search, video search, six tappable genres and moods (Bangla, Bollywood, Chill & Lofi, Night Drive, Workout, Acoustic).
-- **More resilient search:** use current NewPipe extraction, then attempt documented independent Invidious public search APIs when its search parser returns no results. Results include title, creator, duration and artwork.
+- **Discover:** song-name search through YouTube's own website, plus six tappable genres and moods (Bangla, Bollywood, Chill & Lofi, Night Drive, Workout, Acoustic).
+- **Experimental native results:** optional NewPipe/Invidious-based lists; these may fail and are no longer the default. Website search uses real YouTube results.
 - **Library:** Liked Songs, local playlists (create/rename/delete), recent listening history, saved playback queue, and adding a public YouTube link to a playlist.
 - **Player:** audio-focused streaming, lock-screen/notification media controls, Bluetooth play/pause/next/previous, seek, shuffle/repeat, immersive Now Playing, and automatic next-song playback from the background service.
 - **Visual identity:** Midnight Sessions — navy, violet, aqua, layered cover art and native lightweight motion.
@@ -34,18 +46,18 @@ You **do not** need GitHub billing or a payment card. Builds run on your own PC.
 
 ## Test checklist on your phone
 
-1. Search \`Baby shark\`, \`saiyara\`, \`Adele Hello\` and \`Bangla songs\`, then try switching **Songs** and **Videos**.
-2. Confirm real thumbnails/titles/creators appear. Tap a result and lock the screen to check audio continuity.
+1. Search \`Baby shark\`, \`saiyara\`, or \`Adele Hello\`. The main search arrow should open YouTube's search website **inside NightWave** (not a blank native result page).
+2. Confirm YouTube displays matching video thumbnails; tap a video. If it opens in the embedded browser, press **▶ PLAY**. Then lock the screen to check playback.
 3. Use **Home** mood cards; create and rename a playlist; like a song; add one via a full YouTube URL.
 4. Queue multiple tracks and verify next/previous, shuffle/repeat and Bluetooth media buttons.
 5. Visit **Now Playing** and test artwork, seeking, and the expanded controls.
-6. If searching fails, open **Connection details** to see the direct and independent search failures. Optional filtered log: \`adb logcat -d -s NightWaveSearch:D\`.
+6. If the embedded website does not load, press **↗ BROWSER**, select a YouTube video, and choose **Share → NightWave**. Report what the embedded browser shows. Optional filtered log: \`adb logcat -d -s NightWaveSearch:D\`.
 
 ### Search privacy
 
 Direct search uses the NewPipe Extractor. If it fails, the app may send the **query text** to one of several public [Invidious instances](https://docs.invidious.io/instances/), which are independent servers not controlled by NightWave. Avoid submitting personal or sensitive search strings. NightWave does not send Google login credentials or signed playback URLs to those search instances. Instance availability and privacy practices may vary.
 
-The search fallback uses the Invidious [public search endpoint](https://docs.invidious.io/api/) and locally cached results for up to 10 minutes during the app process lifetime.
+The optional native search fallback uses the Invidious [public search endpoint](https://docs.invidious.io/api/) and locally cached results for up to 10 minutes during the app process lifetime.
 
 ## Development notes
 
