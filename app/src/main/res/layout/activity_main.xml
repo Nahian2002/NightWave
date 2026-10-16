@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root" android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:fitsSystemWindows="true" android:background="#0B0D0F">
+    <ScrollView android:layout_width="match_parent" android:layout_height="0dp"
+        android:layout_weight="1" android:fillViewport="true" android:clipToPadding="false">
+        <LinearLayout android:orientation="vertical" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:paddingLeft="20dp" android:paddingRight="20dp"
+            android:paddingTop="26dp" android:paddingBottom="25dp">
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="N I G H T W A V E" android:textColor="#B2F369" android:textStyle="bold"
+                android:textSize="13sp" android:letterSpacing="0.14" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="7dp" android:text="Your sound.\nYour screen off."
+                android:textColor="#F3F6F3" android:textSize="37sp" android:textStyle="bold" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="8dp" android:text="Find public YouTube videos. Stream their audio while your phone rests."
+                android:textColor="#AAB4B0" android:textSize="14sp" android:lineSpacingExtra="3dp" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="24dp" android:padding="19dp" android:orientation="vertical"
+                android:background="@drawable/bg_hero">
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="◉  BACKGROUND AUDIO" android:textColor="#B2F369"
+                    android:textSize="12sp" android:textStyle="bold" android:letterSpacing="0.09"/>
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="9dp" android:text="Made for listening,\nnot staring at a screen."
+                    android:textColor="#FFFFFF" android:textSize="19sp" android:textStyle="bold"/>
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp" android:text="Lock-screen controls  •  Bluetooth  •  No account needed"
+                    android:textColor="#C2CCC4" android:textSize="12sp" />
+            </LinearLayout>
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="29dp" android:text="Discover" android:textColor="#F3F6F3"
+                android:textSize="22sp" android:textStyle="bold"/>
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="5dp" android:text="Search any topic or paste a YouTube video link"
+                android:textColor="#9BA7A1" android:textSize="13sp"/>
+            <EditText android:id="@+id/searchBox" android:layout_width="match_parent"
+                android:layout_height="56dp" android:layout_marginTop="16dp" android:padding="15dp"
+                android:background="@drawable/bg_search" android:singleLine="true"
+                android:hint="Songs, artists, video links..." android:textColor="#F4F6F4"
+                android:textColorHint="#79857D" android:textSize="15sp"
+                android:imeOptions="actionSearch" android:inputType="textUri|textAutoCorrect"/>
+            <TextView android:id="@+id/searchButton" android:layout_width="match_parent"
+                android:layout_height="51dp" android:layout_marginTop="11dp"
+                android:background="@drawable/bg_action" android:gravity="center"
+                android:text="SEARCH / PLAY LINK  →" android:textColor="#111911"
+                android:textSize="13sp" android:textStyle="bold" />
+            <TextView android:id="@+id/statusText" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="15dp"
+                android:text="Ready. Try searching for a song or paste a video link."
+                android:textColor="#A7B2AB" android:textSize="12sp" />
+            <LinearLayout android:id="@+id/resultsContainer" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:orientation="vertical"
+                android:layout_marginTop="15dp" />
+        </LinearLayout>
+    </ScrollView>
+    <LinearLayout android:id="@+id/playerPanel" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:layout_marginLeft="12dp"
+        android:layout_marginRight="12dp" android:layout_marginBottom="12dp"
+        android:orientation="vertical" android:background="@drawable/bg_player"
+        android:paddingLeft="16dp" android:paddingRight="16dp" android:paddingTop="13dp"
+        android:paddingBottom="10dp" android:visibility="gone">
+        <TextView android:id="@+id/currentTitle" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:textColor="#F1F6EA"
+            android:textSize="14sp" android:textStyle="bold" android:maxLines="1"
+            android:ellipsize="end" android:text="Not playing"/>
+        <TextView android:id="@+id/currentCreator" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="3dp"
+            android:textColor="#AABBA4" android:textSize="11sp"/>
+        <SeekBar android:id="@+id/progress" android:layout_width="match_parent"
+            android:layout_height="29dp" android:layout_marginTop="4dp"
+            android:max="1000" android:progressTint="#B2F369" android:thumbTint="#B2F369"
+            android:progressBackgroundTint="#3D4F41"/>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center_vertical">
+            <TextView android:id="@+id/timeText" android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="wrap_content" android:text="0:00 / 0:00"
+                android:textColor="#B9C9B1" android:textSize="11sp" />
+            <TextView android:id="@+id/backButton" android:layout_width="46dp"
+                android:layout_height="44dp" android:gravity="center" android:text="↶15"
+                android:textColor="#ECF5E9" android:textSize="15sp"/>
+            <TextView android:id="@+id/toggleButton" android:layout_width="54dp"
+                android:layout_height="46dp" android:gravity="center" android:text="▶"
+                android:textColor="#B2F369" android:textSize="25sp"/>
+            <TextView android:id="@+id/forwardButton" android:layout_width="46dp"
+                android:layout_height="44dp" android:gravity="center" android:text="15↷"
+                android:textColor="#ECF5E9" android:textSize="15sp"/>
+            <TextView android:id="@+id/openButton" android:layout_width="52dp"
+                android:layout_height="44dp" android:gravity="center" android:text="↗"
+                android:textColor="#B2F369" android:textSize="22sp"/>
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>
