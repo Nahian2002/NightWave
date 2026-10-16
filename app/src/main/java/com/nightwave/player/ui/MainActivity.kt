@@ -61,6 +61,7 @@ class MainActivity : Activity() {
     private var results = emptyList<VideoPreview>()
     private var lastRecordedUrl: String? = null
     private var lastArtworkUri: String? = null
+    private var websiteDialog: android.app.Dialog? = null
     private var shuffle = false
     private var repeat = 0
     private var future: ListenableFuture<MediaController>? = null
@@ -227,6 +228,8 @@ class MainActivity : Activity() {
 
     override fun onDestroy() {
         token++
+        websiteDialog?.dismiss()
+        websiteDialog = null
         worker.shutdownNow()
         thumbs.shutdown()
         super.onDestroy()
@@ -255,7 +258,8 @@ class MainActivity : Activity() {
         }
         binding.resultsHeading.text = "Searching YouTube"
         showStatus("Choose a video in the YouTube search screen. NightWave will handle playback.")
-        YouTubeSearchBrowser(this).show(clean) { videoUrl ->
+        websiteDialog?.dismiss()
+        websiteDialog = YouTubeSearchBrowser(this).show(clean) { videoUrl ->
             binding.resultsHeading.text = "Now listening"
             playUrl(videoUrl)
         }
