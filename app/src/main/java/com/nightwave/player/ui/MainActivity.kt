@@ -245,7 +245,7 @@ class MainActivity : Activity() {
         worker.execute {
             val outcome = runCatching { gateway.search(query, selectedMode) }
             main.post {
-                if (!active || id != token) return@post
+                if (!active || id != token || page != Page.SEARCH) return@post
                 binding.searchProgress.visibility = View.GONE
                 outcome.fold(
                     onSuccess = { result ->
@@ -355,91 +355,70 @@ class MainActivity : Activity() {
         player.seekTo((player.currentPosition + offset).coerceIn(0L, end))
     }
 
-    /** Large YouTube-style thumbnail card. Tap to resolve and play with the existing service. */
-    private fun addVideoCard(video: VideoPreview) {
+    /** Compact music-first track row. Long-press or tap ⋮ for queue and playlist actions. */
+    private fun addVideoCard(
+        video: VideoPreview,
+        collection: List<VideoPreview> = results,
+        playlist: String? = null
+    ) {
         val card = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(4), dp(8), dp(3), dp(8))
             isClickable = true
             isFocusable = true
             contentDescription = "Play " + video.title + " by " + video.author
-            setOnClickListener { playUrl(video.url) }
-        }
-        val thumbnailWidth = resources.displayMetrics.widthPixels - dp(28)
-        val thumbnailHeight = (thumbnailWidth * 9f / 16f).toInt()
-        val artwork = FrameLayout(this).apply {
-            layoutParams = LinearLayout.LayoutParams(-1, thumbnailHeight)
-            background = GradientDrawable().apply {
-                setColor(Color.rgb(34, 39, 42))
-                cornerRadius = dp(13).toFloat()
-            }
-            clipToOutline = true
+            setOnClickListener { playCollection(video, collection) }
+            setOnLongClickListener { showSongActions(video, playlist); true }
         }
         val image = ImageView(this).apply {
             scaleType = ImageView.ScaleType.CENTER_CROP
             setImageResource(R.drawable.ic_nightwave)
-            layoutParams = FrameLayout.LayoutParams(-1, -1)
-        }
-        artwork.addView(image)
-        thumbs.load(video.thumbnail, image)
-        if (video.durationSeconds > 0) {
-            val label = TextView(this).apply {
-                text = TimeLabel.format(video.durationSeconds * 1_000)
-                textSize = 12f
-                setTextColor(Color.WHITE)
-                setPadding(dp(7), dp(3), dp(7), dp(3))
-                background = GradientDrawable().apply {
-                    setColor(Color.argb(225, 0, 0, 0))
-                    cornerRadius = dp(5).toFloat()
-                }
-                layoutParams = FrameLayout.LayoutParams(-2, -2, Gravity.END or Gravity.BOTTOM).apply {
-                    setMargins(0, 0, dp(10), dp(10))
-                }
-            }
-            artwork.addView(label)
-        }
-        card.addView(artwork)
-        val meta = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.TOP
-            setPadding(dp(3), dp(11), dp(3), dp(13))
-        }
-        meta.addView(TextView(this).apply {
-            val letter = video.author.trim().firstOrNull()?.uppercaseChar() ?: '♫'
-            text = letter.toString()
-            textSize = 17f
-            typeface = Typeface.DEFAULT_BOLD
-            gravity = Gravity.CENTER
-            setTextColor(Color.rgb(17, 23, 18))
             background = GradientDrawable().apply {
-                setColor(Color.rgb(178, 243, 105))
-                shape = GradientDrawable.OVAL
+                setColor(Color.rgb(33, 40, 37))
+                cornerRadius = dp(10).toFloat()
             }
-            layoutParams = LinearLayout.LayoutParams(dp(38), dp(38))
-        })
+            clipToOutline = true
+            layoutParams = LinearLayout.LayoutParams(dp(74), dp(74))
+        }
+        thumbs.load(video.thumbnail, image)
+        card.addView(image)
         val details = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(11), 0, 0, 0)
-            layoutParams = LinearLayout.LayoutParams(0, -2, 1f)
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(13), 0, dp(6), 0)
+            layoutParams = LinearLayout.LayoutParams(0, dp(74), 1f)
         }
         details.addView(TextView(this).apply {
             text = video.title
-            setTextColor(Color.rgb(240, 245, 240))
+            setTextColor(Color.rgb(242, 247, 242))
             textSize = 15f
             typeface = Typeface.DEFAULT_BOLD
             maxLines = 2
             ellipsize = android.text.TextUtils.TruncateAt.END
         })
         details.addView(TextView(this).apply {
-            text = video.author + "  •  YouTube"
-            setTextColor(Color.rgb(155, 168, 160))
+            text = video.author + (if (video.durationSeconds > 0) "  •  " + TimeLabel.format(video.durationSeconds * 1_000) else "")
+            setTextColor(Color.rgb(159, 173, 164))
             textSize = 12f
             maxLines = 1
             ellipsize = android.text.TextUtils.TruncateAt.END
             layoutParams = LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(5) }
         })
-        meta.addView(details)
-        card.addView(meta)
-        binding.resultsContainer.addView(card, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(9) })
+        card.addView(details)
+        card.addView(TextView(this).apply {
+            text = "⋮"
+            gravity = Gravity.CENTER
+            textSize = 25f
+            setTextColor(Color.rgb(185, 201, 177))
+            contentDescription = "More options for " + video.title
+            isClickable = true
+            isFocusable = true
+            setOnClickListener { showSongActions(video, playlist) }
+        }, LinearLayout.LayoutParams(dp(42), dp(54)))
+        binding.resultsContainer.addView(card, LinearLayout.LayoutParams(-1, -2).apply {
+            bottomMargin = dp(2)
+        })
     }
 
     private fun currentVideo(): VideoPreview? {
