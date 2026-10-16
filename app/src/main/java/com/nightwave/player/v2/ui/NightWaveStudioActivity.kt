@@ -415,8 +415,15 @@ private fun StudioProfile(modifier: Modifier, profile: ProfileSettings, save: (P
                     horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     Box(Modifier.size(67.dp).background(MaterialTheme.colorScheme.primary,
                         CircleShape), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Outlined.PersonOutline, contentDescription = "Guest avatar",
-                            tint = MaterialTheme.colorScheme.onPrimary)
+                        Text(when (profile.avatarStyle) {
+                            "moon" -> "☾"
+                            "spark" -> "✦"
+                            "prism" -> "◇"
+                            "vinyl" -> "◎"
+                            "wave" -> "〰"
+                            else -> "◉"
+                        }, style = MaterialTheme.typography.headlineLarge,
+                            color = MaterialTheme.colorScheme.onPrimary)
                     }
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text(profile.displayName, style = MaterialTheme.typography.titleLarge)
@@ -436,6 +443,23 @@ private fun StudioProfile(modifier: Modifier, profile: ProfileSettings, save: (P
             Button(onClick = { save(profile.copy(displayName = name)) },
                 modifier = Modifier.fillMaxWidth().height(50.dp)) {
                 Text("SAVE PROFILE NAME")
+            }
+        }
+        item { SectionHeading("Profile icon", "Choose a look without uploading personal photos") }
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                for (styles in ProfileSettings.allowedAvatars.sorted().chunked(3)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                        for (style in styles) {
+                            FilterChip(
+                                selected = profile.avatarStyle == style,
+                                onClick = { save(profile.copy(avatarStyle = style)) },
+                                label = { Text(style.replaceFirstChar { it.titlecase() }) },
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+                }
             }
         }
         item { SectionHeading("App appearance", "Your chosen theme persists across restarts") }
