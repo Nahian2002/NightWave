@@ -276,22 +276,25 @@ class MainActivity : Activity() {
                     onSuccess = { result ->
                         val videos = result.videos
                         results = videos
-                        showStatus(when {
-                            videos.isEmpty() -> "No tracks returned. Try a different title or artist."
-                            else -> videos.size.toString() + " tracks  ·  Tap to play, hold for options"
-                        })
+                        binding.resultsHeading.text = "Results for “" + query.take(34) + "”"
+                        showStatus(videos.size.toString() + " videos  ·  " +
+                            result.note + "  ·  Tap to listen")
                         videos.forEach { addVideoCard(it, videos) }
                         animatePage()
                     },
                     onFailure = {
-                        binding.resultsHeading.text = "Search needs attention"
-                        showStatus(searchErrorText(it), true)
-                        labelAction("↻   Retry search") { search(query) }
-                        labelAction("▹   Try Videos") {
-                            searchMode = SearchMode.VIDEOS
-                            updateSearchChips()
-                            search(query)
+                        binding.resultsHeading.text = "Couldn't load search"
+                        showStatus("Both direct and independent search providers are unavailable. " +
+                            "Please retry when connected.", true)
+                        labelAction("↻  Try searching again") { search(query) }
+                        labelAction("ⓘ  Connection details") {
+                            AlertDialog.Builder(this@MainActivity)
+                                .setTitle("Search diagnostics")
+                                .setMessage(searchErrorText(it))
+                                .setPositiveButton("OK", null).show()
                         }
+                        sectionTitle("Browse another vibe")
+                        showMoodGrid()
                     }
                 )
             }
@@ -573,7 +576,9 @@ class MainActivity : Activity() {
             Page.HOME -> showHome()
             Page.SEARCH -> {
                 binding.resultsHeading.text = if (searchMode == SearchMode.SONGS) "Explore songs" else "Explore videos"
-                showStatus(if (results.isEmpty()) "Search any song, album or artist to start listening." else "Tap a song to play. Hold for more options.")
+                showStatus(if (results.isEmpty())
+                    "Explore by mood, or type any artist or song. Public community search may be used when needed."
+                    else "Tap a song to play, or hold for more options.")
                 if (results.isEmpty()) {
                     sectionTitle("Pick a vibe")
                     showMoodGrid()
