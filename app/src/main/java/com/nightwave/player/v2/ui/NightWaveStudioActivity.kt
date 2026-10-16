@@ -1,5 +1,7 @@
 package com.nightwave.player.v2.ui
 
+import android.app.AlertDialog
+import android.widget.EditText
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -10,14 +12,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -62,7 +62,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberSaveable
 import androidx.compose.runtime.LaunchedEffect
@@ -138,6 +137,76 @@ class NightWaveStudioActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         if (::library.isInitialized) refresh()
+    }
+
+    private fun saveCurrentToPlaylist() {
+        val now = playback.state
+        if (!now.hasTrack) return
+        val video = VideoPreview(
+            now.title.ifBlank { "YouTube video" }, now.artist, now.videoUrl,
+            now.thumbnail, now.durationMs / 1000L
+        )
+        val names = library.playlistNames()
+        val choices = names + "＋ Create playlist"
+        AlertDialog.Builder(this).setTitle("Save to playlist")
+            .setItems(choices.toTypedArray()) { _, option ->
+                if (option < names.size) {
+                    if (library.addToPlaylist(names[option], video)) refresh()
+                    else showMessage("Already saved or the playlist is full.")
+                } else promptPlaylistName { created ->
+                    if (library.createPlaylist(created)) {
+                        library.addToPlaylist(created, video)
+                        refresh()
+                    } else showMessage("Choose a different playlist name.")
+                }
+            }.setNegativeButton("Cancel", null).show()
+    }
+
+    private fun promptPlaylistName(initial: String = "", onSave: (String) -> Unit) {
+        val name = EditText(this).apply {
+            setSingleLine(true)
+            hint = "Playlist name"
+            setText(initial)
+        }
+        AlertDialog.Builder(this).setTitle(if (initial.isBlank()) "New playlist" else "Rename playlist")
+            .setView(name)
+            .setNegativeButton("Cancel", null)
+            .setPositiveButton("Save") { _, _ -> onSave(name.text.toString().trim()) }
+            .show()
+    }
+
+    private fun showMessage(message: String) {
+        android.widget.Toast.makeText(this, message, android.widget.Toast.LENGTH_SHORT).show()
+    }
+
+    private fun manageLibrary() {
+        val names = library.playlistNames()
+        val choices = arrayOf("＋ Create playlist", *names.toTypedArray())
+        AlertDialog.Builder(this).setTitle("Manage your playlists")
+            .setItems(choices) { _, selected ->
+                if (selected == 0) {
+                    promptPlaylistName { name ->
+                        if (library.createPlaylist(name)) refresh()
+                        else showMessage("That playlist name is unavailable.")
+                    }
+                } else {
+                    val name = names[selected - 1]
+                    AlertDialog.Builder(this).setTitle(name)
+                        .setItems(arrayOf("Rename", "Delete")) { _, action ->
+                            if (action == 0) promptPlaylistName(name) { updated ->
+                                if (library.renamePlaylist(name, updated)) refresh()
+                                else showMessage("That playlist name is unavailable.")
+                            } else AlertDialog.Builder(this)
+                                .setTitle("Delete " + name + "?")
+                                .setMessage("Songs remain in your favorites and listening history.")
+                                .setNegativeButton("Cancel", null)
+                                .setPositiveButton("Delete") { _, _ ->
+                                    library.deletePlaylist(name)
+                                    refresh()
+                                }.show()
+                        }.show()
+                }
+            }.setNegativeButton("Close", null).show()
     }
 
     private fun refresh() {
@@ -438,7 +507,7 @@ private fun StudioLibrary(
         }
         item {
             OutlinedButton(onClick = onManage, modifier = Modifier.fillMaxWidth()) {
-                Text("Manage playlists in the current player")
+                Text("CREATE, RENAME OR DELETE PLAYLISTS")
             }
         }
     }
