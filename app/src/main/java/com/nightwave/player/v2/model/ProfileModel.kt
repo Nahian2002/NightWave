@@ -54,9 +54,15 @@ object ProfilePolicy {
         "session_cookie", "audio_url", "stream_url", "oauth_code"
     )
 
+    /** Explicit allowlist; newly added fields stay LOCAL until reviewed. */
+    val allowedBackupFields = setOf(
+        "format_version", "revision", "timestamp", "display_name", "avatar_style",
+        "theme", "motion", "quality", "history_privacy", "crossfade_seconds",
+        "lockscreen_artwork", "stay_awake", "playlist_order", "playlist_tracks",
+        "favorites", "queue", "playback_state", "history_opt_in"
+    )
+
     fun isBackupFieldAllowed(key: String): Boolean =
-        key.lowercase() !in prohibitedBackupFields &&
-            !key.contains("token", ignoreCase = true) &&
-            !key.contains("password", ignoreCase = true) &&
-            !key.contains("cookie", ignoreCase = true)
+        key.lowercase() in allowedBackupFields &&
+            key.lowercase() !in prohibitedBackupFields
 }
