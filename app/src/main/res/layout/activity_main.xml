@@ -54,7 +54,7 @@
                 android:text="↗" android:textSize="28sp"
                 android:textColor="#10142A" android:fontFamily="sans-serif-black"
                 android:clickable="true" android:focusable="true"
-                android:contentDescription="Search YouTube music"/>
+                android:contentDescription="Browse YouTube search results"/>
         </LinearLayout>
 
         <LinearLayout android:id="@+id/filtersRow"
@@ -75,6 +75,14 @@
                 android:text="▷  Videos" android:textSize="13sp" android:fontFamily="sans-serif-medium"
                 android:textColor="#C0C5D9" android:clickable="true" android:focusable="true"/>
         </LinearLayout>
+        <TextView android:id="@+id/nativeSearchButton"
+            android:layout_width="match_parent" android:layout_height="41dp"
+            android:layout_marginTop="8dp" android:gravity="center"
+            android:text="↗  SEARCH NATIVE LIST (EXPERIMENTAL)"
+            android:textSize="11sp" android:letterSpacing="0.05"
+            android:fontFamily="sans-serif-medium" android:textColor="#ADB6D5"
+            android:clickable="true" android:focusable="true"
+            android:contentDescription="Try experimental native music results"/>
     </LinearLayout>
 
     <ScrollView android:id="@+id/resultsScroll"
