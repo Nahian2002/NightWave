@@ -3,6 +3,7 @@ package com.nightwave.player.playback
 import android.app.PendingIntent
 import android.content.Intent
 import android.net.Uri
+import android.view.KeyEvent
 import android.os.Handler
 import android.os.Looper
 import androidx.media3.common.AudioAttributes
@@ -77,7 +78,23 @@ class PlaybackService : MediaSessionService() {
             this, 0, Intent(this, MainActivity::class.java),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
-        mediaSession = MediaSession.Builder(this, player).setSessionActivity(openApp).build()
+        mediaSession = MediaSession.Builder(this, player).setSessionActivity(openApp)
+            .setCallback(object : MediaSession.Callback {
+                override fun onMediaButtonEvent(
+                    session: MediaSession,
+                    controllerInfo: MediaSession.ControllerInfo,
+                    intent: Intent
+                ): Boolean {
+                    @Suppress("DEPRECATION")
+                    val event = intent.getParcelableExtra<KeyEvent>(Intent.EXTRA_KEY_EVENT)
+                    if (event?.action != KeyEvent.ACTION_DOWN) return false
+                    return when (event.keyCode) {
+                        KeyEvent.KEYCODE_MEDIA_NEXT -> { playNext(false); true }
+                        KeyEvent.KEYCODE_MEDIA_PREVIOUS -> { playPrevious(); true }
+                        else -> false // Media3 still handles play/pause/headset buttons.
+                    }
+                }
+            }).build()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
