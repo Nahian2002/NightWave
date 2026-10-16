@@ -50,7 +50,9 @@ class YouTubeGateway {
         )
         for (filter in filters) {
             val attempt = runCatching { searchWithFilter(text, filter) }
-            attempt.onSuccess { (videos, report) ->
+            val data = attempt.getOrNull()
+            if (data != null) {
+                val (videos, report) = data
                 diagnostics.add(report)
                 if (videos.isNotEmpty()) {
                     val ranked = if (mode == SearchMode.SONGS) sortMusicMatches(videos, text) else videos
@@ -62,9 +64,10 @@ class YouTubeGateway {
                     android.util.Log.w("NightWaveSearch", "Extractor parsing failed: " + report)
                     break
                 }
-            }.onFailure { error ->
-                diagnostics.add(filter + ": " + error.javaClass.simpleName)
-                android.util.Log.w("NightWaveSearch", "Direct search failed, trying alternate provider", error)
+            } else {
+                val error = attempt.exceptionOrNull()
+                diagnostics.add(filter + ": " + error?.javaClass?.simpleName)
+                android.util.Log.w("NightWaveSearch", "Direct search failed; using alternate provider", error)
             }
         }
 
