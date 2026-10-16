@@ -593,6 +593,7 @@ class MainActivity : Activity() {
         binding.topSearchArea.visibility = View.VISIBLE
         binding.searchRow.visibility = if (page == Page.SEARCH) View.VISIBLE else View.GONE
         binding.filtersRow.visibility = if (page == Page.SEARCH) View.VISIBLE else View.GONE
+        binding.nativeSearchButton.visibility = if (page == Page.SEARCH) View.VISIBLE else View.GONE
         binding.searchProgress.visibility = View.GONE
     }
 
@@ -604,7 +605,7 @@ class MainActivity : Activity() {
         when (destination) {
             Page.HOME -> showHome()
             Page.SEARCH -> {
-                binding.resultsHeading.text = if (searchMode == SearchMode.SONGS) "Explore songs" else "Explore videos"
+                binding.resultsHeading.text = "Search YouTube by name"
                 showStatus(if (results.isEmpty())
                     "Search on YouTube's own website or choose a mood to browse music."
                     else "Tap a song to play, or hold for more options.")
