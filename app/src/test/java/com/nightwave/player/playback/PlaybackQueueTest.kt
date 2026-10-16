@@ -24,13 +24,27 @@ class PlaybackQueueTest {
         assertEquals(e(2), q.next(false))
     }
 
-    @Test fun shuffleNeverPicksSameTrackWithMultipleChoices() {
+    @Test fun shuffleExhaustsTracksWithoutRepeat() {
         val q = PlaybackQueue { 0 }
         q.replace(listOf(e(1), e(2), e(3)), 1)
         q.shuffle = true
-        repeat(10) {
+        val played = mutableSetOf(q.current)
+        repeat(2) {
+            val next = q.next(true)
+            assertNotNull(next)
+            assertTrue(played.add(next))
+        }
+        assertNull(q.next(true))
+    }
+
+    @Test fun shuffleRepeatAllReshufflesWithoutImmediateDuplicate() {
+        val q = PlaybackQueue { 0 }
+        q.replace(listOf(e(1), e(2), e(3)), 1)
+        q.shuffle = true
+        q.repeat = PlaybackQueue.Repeat.ALL
+        repeat(12) {
             val previous = q.current
-            assertNotEquals(previous, q.next(false))
+            assertNotEquals(previous, q.next(true))
         }
     }
 
