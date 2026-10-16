@@ -777,35 +777,126 @@ class MainActivity : Activity() {
         labelAction("Search for an exact song or artist") { openPage(Page.SEARCH) }
     }
 
+    /** Library with real saved state and working actions, including a link-import recovery path. */
     private fun showLibrary() {
-        binding.resultsHeading.text = "Your Library"
-        showStatus("Saved locally on this device • No sign-in needed")
         val favorites = library.favorites()
-        labelAction("♥  Liked Songs  •  " + favorites.size + " tracks") {
-            showCollection("Liked Songs", favorites)
-        }
-        labelAction("＋  Create a playlist") { createPlaylistDialog() }
-        sectionTitle("Your playlists")
         val names = library.playlistNames()
+        val recent = library.recent()
+        binding.resultsHeading.text = "Your collection."
+        showStatus(favorites.size.toString() + " liked  ·  " + names.size +
+            " playlists  ·  " + recent.size + " recently played")
+        val header = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        fun libraryTile(
+            title: String,
+            subtitle: String,
+            glyph: String,
+            colors: IntArray,
+            tap: () -> Unit
+        ): LinearLayout {
+            val tile = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(dp(17), dp(16), dp(15), dp(15))
+                background = GradientDrawable(
+                    GradientDrawable.Orientation.TL_BR, colors
+                ).apply { cornerRadius = dp(21).toFloat() }
+                elevation = dp(4).toFloat()
+                isClickable = true
+                isFocusable = true
+                setOnClickListener { tap() }
+            }
+            tile.addView(TextView(this).apply {
+                text = glyph
+                textSize = 40f
+                setTextColor(Color.WHITE)
+                gravity = Gravity.START
+            }, LinearLayout.LayoutParams(-1, dp(60)))
+            tile.addView(TextView(this).apply {
+                text = title
+                textSize = 19f
+                typeface = Typeface.create("sans-serif-black", Typeface.BOLD)
+                setTextColor(Color.WHITE)
+                maxLines = 1
+            })
+            tile.addView(TextView(this).apply {
+                text = subtitle
+                textSize = 12f
+                setTextColor(Color.rgb(218, 220, 245))
+                setPadding(0, dp(6), 0, 0)
+            })
+            return tile
+        }
+        header.addView(libraryTile(
+            "Liked Songs", favorites.size.toString() + " tracks", "♥",
+            intArrayOf(0xFF78498F.toInt(), 0xFF35315D.toInt())
+        ) { showCollection("Liked Songs", favorites) }, LinearLayout.LayoutParams(0, dp(166), 1f).apply {
+            marginEnd = dp(10)
+        })
+        header.addView(libraryTile(
+            "New playlist", "Create a collection", "＋",
+            intArrayOf(0xFF196C81.toInt(), 0xFF293C68.toInt())
+        ) { createPlaylistDialog() }, LinearLayout.LayoutParams(0, dp(166), 1f))
+        binding.resultsContainer.addView(header, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(9) })
+        labelAction("Paste a YouTube link to save a track") { addVideoLinkDialog() }
+        labelAction("See your playing queue") { showQueueDialog() }
+        sectionTitle("Your playlists")
         if (names.isEmpty()) {
             binding.resultsContainer.addView(TextView(this).apply {
-                text = "No playlists yet. Create one to save music for later."
-                textSize = 13f
-                setTextColor(Color.rgb(166, 181, 172))
-                setPadding(dp(7), dp(8), dp(7), dp(16))
+                text = "Start a playlist for your late-night mixes, favorite artists, or study sessions."
+                textSize = 14f
+                setTextColor(Color.rgb(165, 174, 205))
+                setPadding(dp(12), dp(10), dp(12), dp(20))
             })
-        }
-        names.forEach { name ->
-            labelAction("▤  " + name + "   •   " + library.playlist(name).size + " songs") {
-                showCollection(name, library.playlist(name), name)
+        } else {
+            names.forEach { name ->
+                labelAction("▤  " + name + "   ·   " + library.playlist(name).size + " songs") {
+                    showCollection(name, library.playlist(name), name)
+                }
             }
+            labelAction("Manage playlists") { managePlaylists() }
         }
-        if (names.isNotEmpty()) labelAction("⋮  Manage playlists") { managePlaylists() }
-        if (library.recent().isNotEmpty()) {
-            sectionTitle("Listening history")
-            val recent = library.recent()
-            recent.take(20).forEach { addVideoCard(it, recent) }
+        if (recent.isNotEmpty()) {
+            sectionTitle("Recently on repeat")
+            recent.take(12).forEach { addVideoCard(it, recent) }
+        } else {
+            sectionTitle("Start listening")
+            labelAction("Explore music by mood") { openPage(Page.SEARCH) }
         }
+    }
+
+    private fun addVideoLinkDialog() {
+        val input = EditText(this).apply {
+            hint = "https://youtu.be/..."
+            setSingleLine(true)
+            inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_URI
+            setPadding(dp(22), dp(14), dp(22), dp(14))
+        }
+        AlertDialog.Builder(this).setTitle("Save a song from YouTube")
+            .setMessage("Paste a public YouTube video URL to add it to your playlist, even if search is unavailable.")
+            .setView(input)
+            .setNegativeButton("Cancel", null)
+            .setPositiveButton("Find song") { _, _ ->
+                val url = VideoLink.normalize(input.text.toString())
+                if (url == null) {
+                    showStatus("Please enter a valid public YouTube video link.", true)
+                } else {
+                    showStatus("Checking song details…")
+                    worker.execute {
+                        val lookup = runCatching { gateway.resolve(url).video }
+                        main.post {
+                            if (!active) return@post
+                            lookup.fold(
+                                onSuccess = { showPlaylistPicker(it) },
+                                onFailure = {
+                                    showStatus("Couldn't retrieve this video. Try opening its link in Search.", true)
+                                }
+                            )
+                        }
+                    }
+                }
+            }.show()
     }
 
     private fun managePlaylists() {
