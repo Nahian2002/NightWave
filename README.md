@@ -1,8 +1,39 @@
-# NightWave v0.6 — Midnight Sessions
+# NightWave v0.7 — Music Discovery & Library
 
 An independently developed **Android app source project** for searching public videos and listening to supported audio streams with the phone locked. Built with native Kotlin UI, [NewPipeExtractor](https://github.com/TeamNewPipe/NewPipeExtractor), and AndroidX Media3.
 
 > **Status:** v0.6 has been uploaded as source; its Android APK build and live song-name search remain unverified. A previous NightWave version built successfully on the owner's Windows PC and passed five S24 Ultra playback checks. Install the new version only after building and testing it.
+
+## New in v0.7 — search reliability and a useful music library
+
+### Why previous keyword searches returned no songs
+An on-phone diagnostic showed the NewPipe video extractor returned **raw=0, streams=0, errors=4** for a valid song query. The earlier video/music filter switching could not recover because the upstream extraction itself returned no content. The song was not necessarily absent from YouTube.
+
+### What has changed
+- **Two independent search mechanisms.** Try the existing YouTube/NewPipe extractor first. If it returns zero content with errors, use the independent [Invidious video search API](https://docs.invidious.io/api/) with fallback among public instances listed by its maintainers.
+- **Correct and testable JSON parsing:** valid video IDs, playable public video entries, actual artist/title/duration, duplicate removal and thumbnail URLs. Invalid responses are rejected. Songs are ranked by artist and title match.
+- **Real local tests** are included for JSON parsing, query URL-encoding and failover between fake HTTP servers, so running \`build-windows.cmd\` tests these routines **without relying on external search availability**.
+- **Short-term in-memory search cache**, provider identification, diagnostic logs and a concise error state with an expandable technical details panel.
+- **Home/Search:** six colorful, functional music mood categories (Bangla, Bollywood, Night Drive, Lofi, Workout, Acoustic) that perform real searches; no fabricated song titles or fake trending charts.
+- **Library:** visual Liked Songs and New Playlist tiles, saved playlists, listening history, current queue access, plus **Save from YouTube link** to add tracks even during a search outage.
+- Existing screen-off Media3 playback, Bluetooth controls and saved playlist/queue behavior remain in place. The Android package ID remains unchanged.
+
+### Privacy and limitations
+- When the default extractor fails, NightWave may send your **search text** to a public third-party Invidious server. These servers are not controlled by NightWave; read the [maintainers' current instance list](https://docs.invidious.io/instances/). Don't type private information into music searches. The app sends no Google login or password to the search endpoints.
+- Servers can change, throttle, or become inaccessible without warning. **Neither NewPipe nor Invidious guarantees every YouTube search or playback**, and restricted videos remain unavailable.
+- Cached results last up to 10 minutes only while the process stays alive; they are not offline music files.
+- This remains a private experimental Android app with unofficial YouTube integration. Platform restrictions and policies may affect use.
+
+### Install v0.7 (no GitHub billing)
+1. Signed into GitHub, download the current **main branch** ZIP from \`https://github.com/Nahian2002/NightWave/archive/refs/heads/main.zip\`.
+2. Extract to a **new folder**. Run \`build-windows.cmd\` from that new copy.
+3. The script runs Android JVM tests and \`assembleDebug\`; wait for **BUILD SUCCESS**. If compilation fails, do **not** uninstall the working version.
+4. Install \`dist\NightWave-debug.apk\` over NightWave on your phone. **Do not clear storage** or uninstall the old app if you have saved playlists.
+5. Test search \`saiyara\`, \`Baby shark\`, \`Adele Hello\`, \`Bangla songs\`; verify covers appear, songs resolve, and background audio continues when the screen locks.
+6. Check Home's mood cards, Library > Create Playlist, Add from YouTube link, Next Track, shuffle and queue.
+7. If search still fails, open the **Connection details** action in the app and share its message. It will distinguish direct-extractor failures from community-provider failures.
+
+**Verification status:** New v0.7 source and tests are committed. Static repository checks have been performed; neither the full v0.7 Android Gradle build nor live external-provider responses have been verified in this environment.
 
 ## What's new — v0.6 search repair + Midnight Sessions UI
 
