@@ -43,6 +43,14 @@ class PlaybackQueueTest {
         assertEquals(e(1), q.previous())
     }
 
+    @Test fun jumpHandlesBoundsAndPreservesPrevious() {
+        val q = PlaybackQueue()
+        q.replace(listOf(e(1), e(2), e(3)), 0)
+        assertNull(q.jump(9))
+        assertEquals(e(3), q.jump(2))
+        assertEquals(e(1), q.previous())
+    }
+
     @Test fun queueCapsAt100AndDoesNotDuplicate() {
         val q = PlaybackQueue()
         q.replace((0..150).map(::e), 10)
