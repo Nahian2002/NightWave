@@ -58,6 +58,7 @@ class MainActivity : Activity() {
     private var page = Page.HOME
     private var results = emptyList<VideoPreview>()
     private var lastRecordedUrl: String? = null
+    private var lastArtworkUri: String? = null
     private var shuffle = false
     private var repeat = 0
     private var future: ListenableFuture<MediaController>? = null
@@ -96,19 +97,25 @@ class MainActivity : Activity() {
         if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 100)
         }
-        binding.searchButton.setOnClickListener { searchOrPlay() }
+        binding.searchButton.setOnClickListener {
+            binding.searchButton.animate().scaleX(0.89f).scaleY(0.89f).setDuration(85)
+                .withEndAction {
+                    binding.searchButton.animate().scaleX(1f).scaleY(1f).setDuration(130).start()
+                }.start()
+            searchOrPlay()
+        }
         binding.homeTab.setOnClickListener { openPage(Page.HOME) }
         binding.searchTab.setOnClickListener { openPage(Page.SEARCH) }
         binding.libraryTab.setOnClickListener { openPage(Page.LIBRARY) }
         binding.prevTrackButton.setOnClickListener { sendQueueAction(PlaybackService.ACTION_PREVIOUS) }
         binding.nextTrackButton.setOnClickListener { sendQueueAction(PlaybackService.ACTION_NEXT) }
         binding.shuffleButton.setTextColor(
-            if (shuffle) Color.rgb(178, 243, 105) else Color.rgb(185, 201, 177)
+            if (shuffle) Color.rgb(193, 175, 255) else Color.rgb(195, 194, 217)
         )
         binding.shuffleButton.setOnClickListener {
             shuffle = !shuffle
             sendQueueAction(PlaybackService.ACTION_SHUFFLE)
-            binding.shuffleButton.setTextColor(if (shuffle) Color.rgb(178, 243, 105) else Color.rgb(185, 201, 177))
+            binding.shuffleButton.setTextColor(if (shuffle) Color.rgb(193, 175, 255) else Color.rgb(195, 194, 217))
         }
         binding.favoriteButton.setOnClickListener {
             currentVideo()?.let {
@@ -123,6 +130,10 @@ class MainActivity : Activity() {
         binding.songsChip.setOnClickListener { changeSearchMode(SearchMode.SONGS) }
         binding.videosChip.setOnClickListener { changeSearchMode(SearchMode.VIDEOS) }
         updateSearchChips()
+        binding.searchBox.setOnFocusChangeListener { view, focused ->
+            view.animate().scaleX(if (focused) 1.015f else 1f)
+                .scaleY(if (focused) 1.015f else 1f).setDuration(175).start()
+        }
         binding.searchBox.setOnEditorActionListener { _, action, _ ->
             if (action == EditorInfo.IME_ACTION_SEARCH) { searchOrPlay(); true } else false
         }
@@ -235,8 +246,12 @@ class MainActivity : Activity() {
         val songs = searchMode == SearchMode.SONGS
         binding.songsChip.setBackgroundResource(if (songs) R.drawable.bg_chip_selected else R.drawable.bg_chip_normal)
         binding.videosChip.setBackgroundResource(if (songs) R.drawable.bg_chip_normal else R.drawable.bg_chip_selected)
-        binding.songsChip.setTextColor(if (songs) Color.rgb(11, 13, 15) else Color.WHITE)
-        binding.videosChip.setTextColor(if (songs) Color.WHITE else Color.rgb(11, 13, 15))
+        binding.songsChip.setTextColor(if (songs) Color.rgb(21, 20, 41) else Color.rgb(215, 216, 234))
+        binding.videosChip.setTextColor(if (songs) Color.rgb(215, 216, 234) else Color.rgb(21, 20, 41))
+        val selected = if (songs) binding.songsChip else binding.videosChip
+        selected.animate().scaleX(1.035f).scaleY(1.035f).setDuration(125).start()
+        (if (songs) binding.videosChip else binding.songsChip).animate()
+            .scaleX(1f).scaleY(1f).setDuration(125).start()
     }
 
     private fun search(query: String) {
@@ -246,10 +261,10 @@ class MainActivity : Activity() {
         updateTabs()
         waitingToPlay = null
         binding.resultsContainer.removeAllViews()
-        binding.resultsHeading.text = if (selectedMode == SearchMode.SONGS) "Song results" else "Video results"
+        binding.resultsHeading.text = if (selectedMode == SearchMode.SONGS) "Discover your sound" else "Explore videos"
         binding.searchProgress.visibility = View.VISIBLE
         binding.resultsScroll.scrollTo(0, 0)
-        showStatus("Searching for “" + query + "”…")
+        showStatus("Finding the best matches for “" + query + "”…")
         worker.execute {
             val outcome = runCatching { gateway.search(query, selectedMode) }
             main.post {
@@ -260,13 +275,22 @@ class MainActivity : Activity() {
                         val videos = result.videos
                         results = videos
                         showStatus(when {
-                            videos.isEmpty() -> "No matches found. Try a different song or artist name."
-                            result.usedVideoFallback -> "Music results unavailable; showing " + videos.size + " YouTube videos. Tap to play."
-                            else -> videos.size.toString() + " results • Tap a thumbnail to listen"
+                            videos.isEmpty() -> "No tracks returned. Try a different title or artist."
+                            else -> videos.size.toString() + " tracks  ·  Tap to play, hold for options"
                         })
                         videos.forEach { addVideoCard(it, videos) }
+                        animatePage()
                     },
-                    onFailure = { showStatus("Search failed: " + errorText(it), true) }
+                    onFailure = {
+                        binding.resultsHeading.text = "Search needs attention"
+                        showStatus(searchErrorText(it), true)
+                        labelAction("↻   Retry search") { search(query) }
+                        labelAction("▹   Try Videos") {
+                            searchMode = SearchMode.VIDEOS
+                            updateSearchChips()
+                            search(query)
+                        }
+                    }
                 )
             }
         }
@@ -328,7 +352,11 @@ class MainActivity : Activity() {
         player.play()
         binding.currentTitle.text = video.title
         binding.currentCreator.text = video.author
+        setPlayerArtwork(video.thumbnail)
         binding.playerPanel.visibility = View.VISIBLE
+        binding.playerPanel.alpha = 0f
+        binding.playerPanel.translationY = dp(28).toFloat()
+        binding.playerPanel.animate().alpha(1f).translationY(0f).setDuration(320).start()
         showStatus("Now playing • You can lock your screen")
     }
 
@@ -339,6 +367,7 @@ class MainActivity : Activity() {
         currentVideoUrl = item?.mediaId?.takeIf { VideoLink.normalize(it) != null } ?: currentVideoUrl
         binding.currentTitle.text = item?.mediaMetadata?.title ?: "Playing"
         binding.currentCreator.text = item?.mediaMetadata?.artist ?: ""
+        setPlayerArtwork(item?.mediaMetadata?.artworkUri?.toString().orEmpty())
         binding.toggleButton.text = if (player.isPlaying) "Ⅱ" else "▶"
         val current = currentVideo()
         if (current != null && lastRecordedUrl != current.url) {
@@ -354,6 +383,34 @@ class MainActivity : Activity() {
             binding.progress.progress = if (duration > 0) ((position.coerceAtMost(duration) * 1000) / duration).toInt() else 0
         }
         binding.progress.isEnabled = duration > 0
+    }
+
+    private fun setPlayerArtwork(uri: String) {
+        if (lastArtworkUri == uri) return
+        lastArtworkUri = uri
+        binding.playerArtwork.setImageResource(R.drawable.ic_nightwave)
+        if (uri.isNotBlank()) thumbs.load(uri, binding.playerArtwork)
+        binding.playerArtwork.animate().alpha(0.48f).setDuration(90).withEndAction {
+            binding.playerArtwork.animate().alpha(1f).setDuration(260).start()
+        }.start()
+    }
+
+    private fun animatePage() {
+        binding.resultsContainer.alpha = 0f
+        binding.resultsContainer.translationY = dp(15).toFloat()
+        binding.resultsContainer.animate().alpha(1f).translationY(0f)
+            .setDuration(260).start()
+    }
+
+    private fun searchErrorText(error: Throwable): String {
+        var root = error
+        while (root.cause != null && root.cause !== root) root = root.cause!!
+        return when (root) {
+            is java.net.UnknownHostException -> "You're offline. Connect to the internet and retry."
+            is java.net.SocketTimeoutException -> "YouTube didn't respond in time. Try again."
+            else -> "YouTube search could not load results. Try Videos or retry. " +
+                (error.message?.take(190) ?: "The extractor may need an update.")
+        }
     }
 
     private fun seekBy(offset: Long) {
@@ -445,7 +502,7 @@ class MainActivity : Activity() {
         val video = currentVideo()
         val liked = video != null && library.isFavorite(video.url)
         binding.favoriteButton.text = if (liked) "♥" else "♡"
-        binding.favoriteButton.setTextColor(if (liked) Color.rgb(178, 243, 105) else Color.WHITE)
+        binding.favoriteButton.setTextColor(if (liked) Color.rgb(255, 169, 197) else Color.rgb(222, 221, 237))
     }
 
     private fun sendQueueAction(action: String, extras: (Intent.() -> Unit)? = null) {
@@ -488,8 +545,8 @@ class MainActivity : Activity() {
     }
 
     private fun updateTabs() {
-        val activeColor = Color.rgb(178, 243, 105)
-        val inactive = Color.rgb(166, 181, 172)
+        val activeColor = Color.rgb(193, 175, 255)
+        val inactive = Color.rgb(159, 164, 194)
         binding.homeTab.setTextColor(if (page == Page.HOME) activeColor else inactive)
         binding.searchTab.setTextColor(if (page == Page.SEARCH) activeColor else inactive)
         binding.libraryTab.setTextColor(if (page == Page.LIBRARY) activeColor else inactive)
@@ -513,6 +570,7 @@ class MainActivity : Activity() {
             }
             Page.LIBRARY -> showLibrary()
         }
+        animatePage()
     }
 
     private fun sectionTitle(title: String) {
@@ -802,7 +860,7 @@ class MainActivity : Activity() {
 
     private fun showStatus(message: String, isError: Boolean = false) {
         binding.statusText.text = message
-        binding.statusText.setTextColor(if (isError) Color.rgb(255, 169, 154) else Color.rgb(167, 178, 171))
+        binding.statusText.setTextColor(if (isError) Color.rgb(255, 175, 187) else Color.rgb(153, 161, 197))
     }
 
     private fun errorText(error: Throwable): String = when (error) {
