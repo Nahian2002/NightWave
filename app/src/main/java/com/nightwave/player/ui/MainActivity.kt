@@ -2,6 +2,7 @@ package com.nightwave.player.ui
 
 import android.Manifest
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -17,6 +18,7 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.content.Context
+import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -40,6 +42,7 @@ import com.nightwave.player.net.PlayableAudio
 import com.nightwave.player.net.SearchMode
 import com.nightwave.player.net.VideoPreview
 import com.nightwave.player.net.YouTubeGateway
+import com.nightwave.player.library.MusicLibrary
 import com.nightwave.player.playback.PlaybackService
 import java.util.concurrent.Executors
 
@@ -49,6 +52,13 @@ class MainActivity : Activity() {
     private val worker = Executors.newSingleThreadExecutor()
     private val main = Handler(Looper.getMainLooper())
     private lateinit var thumbs: ThumbnailLoader
+    private lateinit var library: MusicLibrary
+    private enum class Page { HOME, SEARCH, LIBRARY }
+    private var page = Page.HOME
+    private var results = emptyList<VideoPreview>()
+    private var lastRecordedUrl: String? = null
+    private var shuffle = false
+    private var repeat = 0
     private var future: ListenableFuture<MediaController>? = null
     private var controller: MediaController? = null
     private var active = false
@@ -78,10 +88,30 @@ class MainActivity : Activity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         thumbs = ThumbnailLoader(this)
+        library = MusicLibrary(this)
         if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 100)
         }
         binding.searchButton.setOnClickListener { searchOrPlay() }
+        binding.homeTab.setOnClickListener { openPage(Page.HOME) }
+        binding.searchTab.setOnClickListener { openPage(Page.SEARCH) }
+        binding.libraryTab.setOnClickListener { openPage(Page.LIBRARY) }
+        binding.prevTrackButton.setOnClickListener { sendQueueAction(PlaybackService.ACTION_PREVIOUS) }
+        binding.nextTrackButton.setOnClickListener { sendQueueAction(PlaybackService.ACTION_NEXT) }
+        binding.shuffleButton.setOnClickListener {
+            shuffle = !shuffle
+            sendQueueAction(PlaybackService.ACTION_SHUFFLE)
+            binding.shuffleButton.setTextColor(if (shuffle) Color.rgb(178, 243, 105) else Color.rgb(185, 201, 177))
+        }
+        binding.favoriteButton.setOnClickListener {
+            currentVideo()?.let {
+                library.toggleFavorite(it)
+                updateFavoriteButton()
+                if (page != Page.SEARCH) openPage(page)
+            }
+        }
+        binding.playlistButton.setOnClickListener { currentVideo()?.let(::showPlaylistPicker) }
+        binding.nowPlayingButton.setOnClickListener { openNowPlayingDialog() }
         binding.songsChip.setOnClickListener { changeSearchMode(SearchMode.SONGS) }
         binding.videosChip.setOnClickListener { changeSearchMode(SearchMode.VIDEOS) }
         updateSearchChips()
@@ -110,6 +140,7 @@ class MainActivity : Activity() {
             }
         })
         handleIncoming(intent)
+        openPage(Page.HOME)
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -175,6 +206,7 @@ class MainActivity : Activity() {
         (getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)
             ?.hideSoftInputFromWindow(binding.searchBox.windowToken, 0)
         binding.searchBox.clearFocus()
+        openPage(Page.SEARCH)
         when (val parsed = SearchInputResolver.resolve(input)) {
             is SearchInput.VideoUrl -> playUrl(parsed.url)
             is SearchInput.Keywords -> search(parsed.query)
@@ -202,6 +234,8 @@ class MainActivity : Activity() {
     private fun search(query: String) {
         val id = ++token
         val selectedMode = searchMode
+        page = Page.SEARCH
+        updateTabs()
         waitingToPlay = null
         binding.resultsContainer.removeAllViews()
         binding.resultsHeading.text = if (selectedMode == SearchMode.SONGS) "Song results" else "Video results"
@@ -216,12 +250,13 @@ class MainActivity : Activity() {
                 outcome.fold(
                     onSuccess = { result ->
                         val videos = result.videos
+                        results = videos
                         showStatus(when {
                             videos.isEmpty() -> "No matches found. Try a different song or artist name."
                             result.usedVideoFallback -> "Music results unavailable; showing " + videos.size + " YouTube videos. Tap to play."
                             else -> videos.size.toString() + " results • Tap a thumbnail to listen"
                         })
-                        videos.forEach { addVideoCard(it) }
+                        videos.forEach { addVideoCard(it, videos) }
                     },
                     onFailure = { showStatus("Search failed: " + errorText(it), true) }
                 )
@@ -229,7 +264,13 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun playUrl(url: String) {
+    private fun playUrl(url: String, replaceQueue: Boolean = true) {
+        if (replaceQueue) {
+            val preview = results.firstOrNull { it.url == url }
+                ?: library.recent().firstOrNull { it.url == url }
+                ?: VideoPreview("YouTube video", "YouTube", url, "", 0)
+            setQueue(listOf(preview), 0)
+        }
         val id = ++token
         binding.searchProgress.visibility = View.GONE
         waitingToPlay = null
@@ -260,6 +301,9 @@ class MainActivity : Activity() {
         }
         val video = playable.video
         currentVideoUrl = video.url
+        library.addRecent(video)
+        lastRecordedUrl = video.url
+        updateFavoriteButton()
         val metadata = MediaMetadata.Builder()
             .setTitle(video.title)
             .setArtist(video.author)
@@ -288,6 +332,13 @@ class MainActivity : Activity() {
         binding.currentTitle.text = item?.mediaMetadata?.title ?: "Playing"
         binding.currentCreator.text = item?.mediaMetadata?.artist ?: ""
         binding.toggleButton.text = if (player.isPlaying) "Ⅱ" else "▶"
+        val current = currentVideo()
+        if (current != null && lastRecordedUrl != current.url) {
+            library.addRecent(current)
+            lastRecordedUrl = current.url
+            if (page == Page.HOME || page == Page.LIBRARY) openPage(page)
+        }
+        updateFavoriteButton()
         val duration = player.duration.takeIf { it > 0 && it != C.TIME_UNSET } ?: 0
         val position = player.currentPosition.coerceAtLeast(0)
         binding.timeText.text = "${TimeLabel.format(position)} / ${TimeLabel.format(duration)}"
