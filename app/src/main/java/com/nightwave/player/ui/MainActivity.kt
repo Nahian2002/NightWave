@@ -17,9 +17,11 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.content.Context
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.SeekBar
+import android.graphics.drawable.GradientDrawable
 import android.widget.TextView
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -30,9 +32,12 @@ import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.nightwave.player.R
 import com.nightwave.player.core.TimeLabel
+import com.nightwave.player.core.SearchInput
+import com.nightwave.player.core.SearchInputResolver
 import com.nightwave.player.core.VideoLink
 import com.nightwave.player.databinding.ActivityMainBinding
 import com.nightwave.player.net.PlayableAudio
+import com.nightwave.player.net.SearchMode
 import com.nightwave.player.net.VideoPreview
 import com.nightwave.player.net.YouTubeGateway
 import com.nightwave.player.playback.PlaybackService
@@ -48,6 +53,7 @@ class MainActivity : Activity() {
     private var controller: MediaController? = null
     private var active = false
     private var seekInProgress = false
+    private var searchMode = SearchMode.SONGS
     private var token = 0
     private var currentVideoUrl: String? = null
     private var pendingLink: String? = null
@@ -76,6 +82,9 @@ class MainActivity : Activity() {
             requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 100)
         }
         binding.searchButton.setOnClickListener { searchOrPlay() }
+        binding.songsChip.setOnClickListener { changeSearchMode(SearchMode.SONGS) }
+        binding.videosChip.setOnClickListener { changeSearchMode(SearchMode.VIDEOS) }
+        updateSearchChips()
         binding.searchBox.setOnEditorActionListener { _, action, _ ->
             if (action == EditorInfo.IME_ACTION_SEARCH) { searchOrPlay(); true } else false
         }
@@ -162,34 +171,59 @@ class MainActivity : Activity() {
     }
 
     private fun searchOrPlay() {
-        val input = binding.searchBox.text.toString().trim()
-        if (input.isBlank()) { showStatus("Type a search or paste a YouTube video link.", true); return }
+        val input = binding.searchBox.text.toString()
         (getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)
             ?.hideSoftInputFromWindow(binding.searchBox.windowToken, 0)
         binding.searchBox.clearFocus()
-        val url = VideoLink.normalize(input)
-        when {
-            url != null -> playUrl(url)
-            VideoLink.resemblesLink(input) -> showStatus("This is not a valid public YouTube video link.", true)
-            else -> search(input)
+        when (val parsed = SearchInputResolver.resolve(input)) {
+            is SearchInput.VideoUrl -> playUrl(parsed.url)
+            is SearchInput.Keywords -> search(parsed.query)
+            SearchInput.BadLink -> showStatus("This is not a valid public YouTube video link.", true)
+            SearchInput.Blank -> showStatus("Type a song or artist name to search.", true)
         }
+    }
+
+    private fun changeSearchMode(mode: SearchMode) {
+        if (mode == searchMode) return
+        searchMode = mode
+        updateSearchChips()
+        val input = binding.searchBox.text.toString().trim()
+        if (SearchInputResolver.resolve(input) is SearchInput.Keywords) search(input)
+    }
+
+    private fun updateSearchChips() {
+        val songs = searchMode == SearchMode.SONGS
+        binding.songsChip.setBackgroundResource(if (songs) R.drawable.bg_chip_selected else R.drawable.bg_chip_normal)
+        binding.videosChip.setBackgroundResource(if (songs) R.drawable.bg_chip_normal else R.drawable.bg_chip_selected)
+        binding.songsChip.setTextColor(if (songs) Color.rgb(11, 13, 15) else Color.WHITE)
+        binding.videosChip.setTextColor(if (songs) Color.WHITE else Color.rgb(11, 13, 15))
     }
 
     private fun search(query: String) {
         val id = ++token
+        val selectedMode = searchMode
         waitingToPlay = null
         binding.resultsContainer.removeAllViews()
-        showStatus("Searching YouTube for “$query”…")
+        binding.resultsHeading.text = if (selectedMode == SearchMode.SONGS) "Song results" else "Video results"
+        binding.searchProgress.visibility = View.VISIBLE
+        binding.resultsScroll.scrollTo(0, 0)
+        showStatus("Searching for “" + query + "”…")
         worker.execute {
-            val outcome = runCatching { gateway.search(query) }
+            val outcome = runCatching { gateway.search(query, selectedMode) }
             main.post {
                 if (!active || id != token) return@post
+                binding.searchProgress.visibility = View.GONE
                 outcome.fold(
-                    onSuccess = { videos ->
-                        showStatus(if (videos.isEmpty()) "No videos found. Try another search." else "${videos.size} videos found • Tap one to listen")
+                    onSuccess = { result ->
+                        val videos = result.videos
+                        showStatus(when {
+                            videos.isEmpty() -> "No matches found. Try a different song or artist name."
+                            result.usedVideoFallback -> "Music results unavailable; showing " + videos.size + " YouTube videos. Tap to play."
+                            else -> videos.size.toString() + " results • Tap a thumbnail to listen"
+                        })
                         videos.forEach { addVideoCard(it) }
                     },
-                    onFailure = { showStatus(errorText(it), true) }
+                    onFailure = { showStatus("Search failed: " + errorText(it), true) }
                 )
             }
         }
@@ -197,6 +231,7 @@ class MainActivity : Activity() {
 
     private fun playUrl(url: String) {
         val id = ++token
+        binding.searchProgress.visibility = View.GONE
         waitingToPlay = null
         showStatus("Finding an audio stream…")
         binding.playerPanel.visibility = View.VISIBLE
@@ -269,52 +304,91 @@ class MainActivity : Activity() {
         player.seekTo((player.currentPosition + offset).coerceIn(0L, end))
     }
 
+    /** Large YouTube-style thumbnail card. Tap to resolve and play with the existing service. */
     private fun addVideoCard(video: VideoPreview) {
         val card = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            setPadding(dp(11), dp(11), dp(11), dp(11))
-            background = getDrawable(R.drawable.bg_card)
+            orientation = LinearLayout.VERTICAL
             isClickable = true
             isFocusable = true
-            contentDescription = "Play ${video.title} by ${video.author}"
+            contentDescription = "Play " + video.title + " by " + video.author
             setOnClickListener { playUrl(video.url) }
+        }
+        val thumbnailWidth = resources.displayMetrics.widthPixels - dp(28)
+        val thumbnailHeight = (thumbnailWidth * 9f / 16f).toInt()
+        val artwork = FrameLayout(this).apply {
+            layoutParams = LinearLayout.LayoutParams(-1, thumbnailHeight)
+            background = GradientDrawable().apply {
+                setColor(Color.rgb(34, 39, 42))
+                cornerRadius = dp(13).toFloat()
+            }
+            clipToOutline = true
         }
         val image = ImageView(this).apply {
             scaleType = ImageView.ScaleType.CENTER_CROP
             setImageResource(R.drawable.ic_nightwave)
-            layoutParams = LinearLayout.LayoutParams(dp(109), dp(76))
+            layoutParams = FrameLayout.LayoutParams(-1, -1)
         }
-        card.addView(image)
+        artwork.addView(image)
         thumbs.load(video.thumbnail, image)
+        if (video.durationSeconds > 0) {
+            val label = TextView(this).apply {
+                text = TimeLabel.format(video.durationSeconds * 1_000)
+                textSize = 12f
+                setTextColor(Color.WHITE)
+                setPadding(dp(7), dp(3), dp(7), dp(3))
+                background = GradientDrawable().apply {
+                    setColor(Color.argb(225, 0, 0, 0))
+                    cornerRadius = dp(5).toFloat()
+                }
+                layoutParams = FrameLayout.LayoutParams(-2, -2, Gravity.END or Gravity.BOTTOM).apply {
+                    setMargins(0, 0, dp(10), dp(10))
+                }
+            }
+            artwork.addView(label)
+        }
+        card.addView(artwork)
+        val meta = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.TOP
+            setPadding(dp(3), dp(11), dp(3), dp(13))
+        }
+        meta.addView(TextView(this).apply {
+            val letter = video.author.trim().firstOrNull()?.uppercaseChar() ?: '♫'
+            text = letter.toString()
+            textSize = 17f
+            typeface = Typeface.DEFAULT_BOLD
+            gravity = Gravity.CENTER
+            setTextColor(Color.rgb(17, 23, 18))
+            background = GradientDrawable().apply {
+                setColor(Color.rgb(178, 243, 105))
+                shape = GradientDrawable.OVAL
+            }
+            layoutParams = LinearLayout.LayoutParams(dp(38), dp(38))
+        })
         val details = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(12), 0, dp(3), 0)
-            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            setPadding(dp(11), 0, 0, 0)
+            layoutParams = LinearLayout.LayoutParams(0, -2, 1f)
         }
         details.addView(TextView(this).apply {
             text = video.title
-            setTextColor(Color.rgb(236, 243, 236))
-            textSize = 14f
+            setTextColor(Color.rgb(240, 245, 240))
+            textSize = 15f
             typeface = Typeface.DEFAULT_BOLD
             maxLines = 2
             ellipsize = android.text.TextUtils.TruncateAt.END
         })
         details.addView(TextView(this).apply {
-            text = video.author
-            setTextColor(Color.rgb(152, 167, 155))
+            text = video.author + "  •  YouTube"
+            setTextColor(Color.rgb(155, 168, 160))
             textSize = 12f
             maxLines = 1
+            ellipsize = android.text.TextUtils.TruncateAt.END
             layoutParams = LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(5) }
         })
-        details.addView(TextView(this).apply {
-            text = if (video.durationSeconds > 0) "${TimeLabel.format(video.durationSeconds * 1000)}  •  Tap to play" else "Tap to play"
-            setTextColor(Color.rgb(178, 243, 105))
-            textSize = 11f
-            layoutParams = LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(6) }
-        })
-        card.addView(details)
-        binding.resultsContainer.addView(card, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(10) })
+        meta.addView(details)
+        card.addView(meta)
+        binding.resultsContainer.addView(card, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(9) })
     }
 
     private fun showStatus(message: String, isError: Boolean = false) {
