@@ -609,11 +609,47 @@ class MainActivity : Activity() {
                 showCollection(name, library.playlist(name), name)
             }
         }
+        if (names.isNotEmpty()) labelAction("⋮  Manage playlists") { managePlaylists() }
         if (library.recent().isNotEmpty()) {
             sectionTitle("Listening history")
             val recent = library.recent()
             recent.take(20).forEach { addVideoCard(it, recent) }
         }
+    }
+
+    private fun managePlaylists() {
+        val names = library.playlistNames()
+        if (names.isEmpty()) return
+        AlertDialog.Builder(this).setTitle("Manage playlists")
+            .setItems(names.toTypedArray()) { _, selected ->
+                val chosen = names[selected]
+                AlertDialog.Builder(this).setTitle(chosen)
+                    .setItems(arrayOf("Rename", "Delete")) { _, action ->
+                        when (action) {
+                            0 -> {
+                                val input = EditText(this).apply {
+                                    setText(chosen)
+                                    setSingleLine(true)
+                                }
+                                AlertDialog.Builder(this).setTitle("Rename playlist").setView(input)
+                                    .setNegativeButton("Cancel", null)
+                                    .setPositiveButton("Save") { _, _ ->
+                                        if (library.renamePlaylist(chosen, input.text.toString()))
+                                            openPage(Page.LIBRARY)
+                                        else showStatus("Playlist name is already used or invalid.", true)
+                                    }.show()
+                            }
+                            1 -> AlertDialog.Builder(this)
+                                .setTitle("Delete “" + chosen + "”?")
+                                .setMessage("This removes the playlist, not your liked songs or listening history.")
+                                .setNegativeButton("Keep", null)
+                                .setPositiveButton("Delete") { _, _ ->
+                                    library.deletePlaylist(chosen)
+                                    openPage(Page.LIBRARY)
+                                }.show()
+                        }
+                    }.show()
+            }.show()
     }
 
     private fun showCollection(title: String, items: List<VideoPreview>, playlist: String? = null) {
