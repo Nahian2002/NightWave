@@ -133,7 +133,7 @@ class YouTubeSearchBrowser(private val context: Context) {
             }
 
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean =
-                handle(request.url.toString())
+                if (request.isForMainFrame) handle(request.url.toString()) else false
 
             override fun onPageStarted(view: WebView, url: String?, favicon: android.graphics.Bitmap?) {
                 if (url != null && select(url)) return
