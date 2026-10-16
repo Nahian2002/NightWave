@@ -26,6 +26,23 @@ fun main() {
     listOf(0L to "0:00", 62_000L to "1:02", 3_600_000L to "1:00:00", -8L to "0:00").forEach {
         expect(TimeLabel.format(it.first), it.second)
     }
+    val validSearchEntries = listOf(
+        "/watch?v=dQw4w9WgXcQ",
+        "watch?v=dQw4w9WgXcQ",
+        "/shorts/dQw4w9WgXcQ",
+        "dQw4w9WgXcQ",
+        "https://music.youtube.com/watch?v=dQw4w9WgXcQ"
+    )
+    validSearchEntries.forEach { expect(VideoLink.normalizeSearchResult(it), known) }
+    val invalidSearchEntries = listOf(
+        "https://youtube.com.evil.example/watch?v=dQw4w9WgXcQ",
+        "../watch?v=dQw4w9WgXcQ",
+        "/watch?v=wrong",
+        "file:///etc/passwd"
+    )
+    invalidSearchEntries.forEach { expect(VideoLink.normalizeSearchResult(it), null) }
+    println("PASS: search extraction URL normalization (" + validSearchEntries.size +
+        " accepted, " + invalidSearchEntries.size + " rejected)")
     val nameQueries = listOf("shape of you", "Adele Hello", "আকাশ", "Punjabi songs 2026", "lofi hip hop")
     nameQueries.forEach { check(SearchInputResolver.resolve(it) == SearchInput.Keywords(it)) }
     check(SearchInputResolver.resolve(" https://youtu.be/dQw4w9WgXcQ ") == SearchInput.VideoUrl(known))
