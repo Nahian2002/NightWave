@@ -44,6 +44,7 @@ import com.nightwave.player.net.VideoPreview
 import com.nightwave.player.net.YouTubeGateway
 import com.nightwave.player.library.MusicLibrary
 import com.nightwave.player.playback.PlaybackService
+import com.nightwave.player.playback.QueueStateStore
 import java.util.concurrent.Executors
 
 class MainActivity : Activity() {
@@ -111,6 +112,7 @@ class MainActivity : Activity() {
             }
         }
         binding.playlistButton.setOnClickListener { currentVideo()?.let(::showPlaylistPicker) }
+        binding.queueButton.setOnClickListener { showQueueDialog() }
         binding.nowPlayingButton.setOnClickListener { openNowPlayingDialog() }
         binding.songsChip.setOnClickListener { changeSearchMode(SearchMode.SONGS) }
         binding.videosChip.setOnClickListener { changeSearchMode(SearchMode.VIDEOS) }
@@ -692,6 +694,28 @@ class MainActivity : Activity() {
                     }
                 }
             }.show()
+    }
+
+    private fun showQueueDialog() {
+        val state = QueueStateStore(this).read()
+        if (state.tracks.isEmpty()) {
+            AlertDialog.Builder(this).setTitle("Playing queue")
+                .setMessage("Search a song and tap Play to create a queue. You can also add tracks using ⋮.")
+                .setPositiveButton("Got it", null).show()
+            return
+        }
+        val labels = state.tracks.mapIndexed { index, song ->
+            (if (index == state.index) "▶  " else "    ") + song.title.take(55) +
+                "\n    " + song.creator.take(50)
+        }.toTypedArray()
+        AlertDialog.Builder(this)
+            .setTitle("Up next  •  " + state.tracks.size + " tracks")
+            .setSingleChoiceItems(labels, state.index) { dialog, selected ->
+                sendQueueAction(PlaybackService.ACTION_JUMP) { putExtra(PlaybackService.EXTRA_INDEX, selected) }
+                dialog.dismiss()
+            }
+            .setNegativeButton("Close", null)
+            .show()
     }
 
     private fun openNowPlayingDialog() {
