@@ -35,6 +35,29 @@ class VideoLinkTest {
         invalid.forEach { assertNull(it, VideoLink.normalize(it)) }
     }
 
+    @Test fun acceptsExtractorSearchResultUrls() {
+        val items = listOf(
+            "/watch?v=dQw4w9WgXcQ",
+            "watch?v=dQw4w9WgXcQ&list=demo",
+            "/shorts/dQw4w9WgXcQ",
+            "https://music.youtube.com/watch?v=dQw4w9WgXcQ",
+            "https://youtube.com/watch?v=dQw4w9WgXcQ&amp;t=10",
+            "dQw4w9WgXcQ"
+        )
+        items.forEach { assertEquals(it, expected, VideoLink.normalizeSearchResult(it)) }
+    }
+
+    @Test fun rejectsUntrustedSearchResultUrls() {
+        listOf(
+            "https://youtube.com.attacker.test/watch?v=dQw4w9WgXcQ",
+            "https://www.youtube.com/playlist?list=abc",
+            "file:///etc/passwd",
+            "/watch?v=too-short",
+            "../watch?v=dQw4w9WgXcQ",
+            "javascript:alert(1)"
+        ).forEach { assertNull(it, VideoLink.normalizeSearchResult(it)) }
+    }
+
     @Test fun linkDetection() {
         assertTrue(VideoLink.resemblesLink("https://www.youtube.com/playlist?list=foo"))
         assertTrue(VideoLink.resemblesLink("youtu.be/invalid"))
