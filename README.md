@@ -1,4 +1,11 @@
 # NightWave
+
+> **Preview branch:** NightWave 2.0 Phase 1 is staged separately from the current v0.8 app. It adds an **opt-in Jetpack Compose design preview** without switching the launcher, deleting existing playlists, or pretending Google sign-in is live. The preview's four screens are Home, Search, Library and Guest Profile. Themes, display name, avatar style and reduced-motion settings persist locally. Real saved songs are read from the existing library.
+>
+> **Testing required:** This branch has passed source-level checks only. It has **not** completed an Android Gradle build or real-device UI tests. Download the [phase-1 branch ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase1-foundation.zip), extract to a new folder, and run \`build-windows.cmd\`. On success, open NightWave **Home → Explore the new premium interface**. Your old player remains accessible. On build failure, leave your existing app installed and send the first compiler error.
+>
+> [NightWave 2.0 phased development plan](docs/NIGHTWAVE_2_PHASES.md) · [Phase 1 static verification](tools/verify_v2_phase1.py)
+
 ### A personal Android music player · v0.8.0
 
 NightWave is an experimental, independent Android music app. Explore public YouTube videos by song or artist name, maintain a local music library, and listen using Android's Media3 background player. **NightWave is not Spotify or YouTube, and it is not affiliated with either company.**
