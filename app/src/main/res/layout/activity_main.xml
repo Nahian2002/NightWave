@@ -1,163 +1,226 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/root" android:layout_width="match_parent" android:layout_height="match_parent"
-    android:orientation="vertical" android:fitsSystemWindows="true" android:background="#0B0D0F">
-    <LinearLayout android:id="@+id/topSearchArea" android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:paddingStart="16dp" android:paddingEnd="16dp" android:paddingTop="13dp"
-        android:paddingBottom="12dp" android:orientation="vertical">
+    android:id="@+id/root"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:fitsSystemWindows="true"
+    android:background="@drawable/bg_root">
+    <!-- Stable branded header -->
+    <LinearLayout android:id="@+id/topSearchArea"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="20dp" android:paddingEnd="20dp"
+        android:paddingTop="16dp" android:paddingBottom="14dp">
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
             android:gravity="center_vertical" android:orientation="horizontal">
-            <ImageView android:layout_width="38dp" android:layout_height="38dp"
-                android:src="@drawable/ic_nightwave" android:contentDescription="NightWave logo" />
-            <TextView android:layout_width="0dp" android:layout_weight="1"
-                android:layout_height="wrap_content" android:layout_marginStart="10dp"
-                android:text="NightWave" android:textColor="#F3F6F3" android:textSize="23sp"
-                android:textStyle="bold" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="SCREEN-OFF MUSIC" android:textSize="10sp" android:textStyle="bold"
-                android:textColor="#B2F369" android:letterSpacing="0.08" />
+            <ImageView android:layout_width="43dp" android:layout_height="43dp"
+                android:src="@drawable/ic_nightwave"
+                android:contentDescription="NightWave icon"/>
+            <LinearLayout android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="wrap_content" android:orientation="vertical"
+                android:layout_marginStart="12dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="nightwave." android:textSize="25sp"
+                    android:fontFamily="sans-serif-black" android:letterSpacing="-0.04"
+                    android:textColor="#F9FAFF" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="MUSIC, WITHOUT THE NOISE"
+                    android:layout_marginTop="-2dp" android:textSize="9sp"
+                    android:fontFamily="sans-serif-medium" android:letterSpacing="0.17"
+                    android:textColor="#AAA7D4" />
+            </LinearLayout>
+            <TextView android:layout_width="wrap_content" android:layout_height="34dp"
+                android:gravity="center" android:paddingStart="14dp" android:paddingEnd="14dp"
+                android:background="@drawable/bg_chip_normal"
+                android:text="✦  NIGHT MODE" android:textSize="10sp"
+                android:fontFamily="sans-serif-medium" android:textColor="#A8E5E4"/>
         </LinearLayout>
-        <LinearLayout android:id="@+id/searchRow" android:layout_width="match_parent" android:layout_height="52dp"
-            android:layout_marginTop="16dp" android:orientation="horizontal" android:gravity="center_vertical">
+
+        <LinearLayout android:id="@+id/searchRow" android:layout_width="match_parent"
+            android:layout_height="55dp" android:orientation="horizontal"
+            android:gravity="center_vertical" android:layout_marginTop="20dp">
             <EditText android:id="@+id/searchBox" android:layout_width="0dp"
                 android:layout_weight="1" android:layout_height="match_parent"
-                android:paddingStart="17dp" android:paddingEnd="12dp"
-                android:background="@drawable/bg_search" android:singleLine="true"
-                android:hint="Search songs, artists, videos" android:textColor="#F4F6F4"
-                android:textColorHint="#97A29A" android:textSize="15sp"
+                android:background="@drawable/bg_search"
+                android:hint="Songs, artists, moods..."
+                android:textColor="#FCFCFF" android:textColorHint="#8B93AF"
+                android:paddingStart="18dp" android:paddingEnd="10dp"
+                android:singleLine="true" android:textSize="15sp"
                 android:imeOptions="actionSearch" android:inputType="text|textAutoCorrect"
-                android:drawableStart="@android:drawable/ic_menu_search" android:drawablePadding="8dp" />
-            <TextView android:id="@+id/searchButton" android:layout_width="76dp"
-                android:layout_height="match_parent" android:layout_marginStart="9dp"
+                android:drawableStart="@android:drawable/ic_menu_search"
+                android:drawablePadding="11dp"/>
+            <TextView android:id="@+id/searchButton" android:layout_width="59dp"
+                android:layout_height="55dp" android:layout_marginStart="10dp"
                 android:background="@drawable/bg_action" android:gravity="center"
-                android:text="SEARCH" android:textColor="#111911"
-                android:textSize="12sp" android:textStyle="bold"
-                android:clickable="true" android:focusable="true" android:contentDescription="Search YouTube" />
+                android:text="↗" android:textSize="28sp"
+                android:textColor="#10142A" android:fontFamily="sans-serif-black"
+                android:clickable="true" android:focusable="true"
+                android:contentDescription="Search YouTube music"/>
         </LinearLayout>
-        <LinearLayout android:id="@+id/filtersRow" android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="horizontal" android:layout_marginTop="15dp" android:gravity="center_vertical">
+
+        <LinearLayout android:id="@+id/filtersRow"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center_vertical"
+            android:layout_marginTop="15dp">
             <TextView android:id="@+id/songsChip" android:layout_width="wrap_content"
-                android:layout_height="38dp" android:minWidth="88dp" android:gravity="center"
-                android:paddingStart="16dp" android:paddingEnd="16dp"
-                android:background="@drawable/bg_chip_selected" android:text="Songs"
-                android:textSize="13sp" android:textStyle="bold" android:textColor="#0B0D0F"
-                android:clickable="true" android:focusable="true" />
+                android:layout_height="38dp" android:minWidth="94dp"
+                android:paddingStart="19dp" android:paddingEnd="19dp" android:gravity="center"
+                android:background="@drawable/bg_chip_selected"
+                android:text="♫  Songs" android:textSize="13sp" android:fontFamily="sans-serif-medium"
+                android:textColor="#13132A" android:clickable="true" android:focusable="true"/>
             <TextView android:id="@+id/videosChip" android:layout_width="wrap_content"
-                android:layout_height="38dp" android:minWidth="88dp" android:gravity="center"
-                android:layout_marginStart="9dp" android:paddingStart="16dp" android:paddingEnd="16dp"
-                android:background="@drawable/bg_chip_normal" android:text="Videos"
-                android:textSize="13sp" android:textStyle="bold" android:textColor="#F3F6F3"
-                android:clickable="true" android:focusable="true" />
+                android:layout_height="38dp" android:minWidth="94dp"
+                android:layout_marginStart="10dp"
+                android:paddingStart="19dp" android:paddingEnd="19dp" android:gravity="center"
+                android:background="@drawable/bg_chip_normal"
+                android:text="▷  Videos" android:textSize="13sp" android:fontFamily="sans-serif-medium"
+                android:textColor="#C0C5D9" android:clickable="true" android:focusable="true"/>
         </LinearLayout>
     </LinearLayout>
-    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#22282A" />
-    <ScrollView android:id="@+id/resultsScroll" android:layout_width="match_parent"
-        android:layout_height="0dp" android:layout_weight="1" android:fillViewport="true"
-        android:clipToPadding="false" android:focusableInTouchMode="true">
+
+    <ScrollView android:id="@+id/resultsScroll"
+        android:layout_width="match_parent" android:layout_height="0dp"
+        android:layout_weight="1" android:fillViewport="true"
+        android:clipToPadding="false" android:focusableInTouchMode="true"
+        android:scrollbars="none">
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="vertical" android:paddingStart="14dp" android:paddingEnd="14dp"
-            android:paddingTop="17dp" android:paddingBottom="24dp">
-            <TextView android:id="@+id/resultsHeading" android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:text="Find your next favorite song"
-                android:textSize="19sp" android:textStyle="bold" android:textColor="#F3F6F3" />
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginTop="8dp" android:orientation="horizontal" android:gravity="center_vertical">
-                <ProgressBar android:id="@+id/searchProgress" style="?android:attr/progressBarStyleSmall"
-                    android:layout_width="23dp" android:layout_height="23dp" android:visibility="gone"
-                    android:indeterminateTint="#B2F369" />
+            android:orientation="vertical" android:paddingStart="18dp"
+            android:paddingEnd="18dp" android:paddingTop="15dp"
+            android:paddingBottom="28dp">
+            <TextView android:id="@+id/resultsHeading"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Find your rhythm" android:textColor="#F8F8FF"
+                android:textSize="26sp" android:letterSpacing="-0.035"
+                android:fontFamily="sans-serif-black"/>
+            <LinearLayout android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:orientation="horizontal"
+                android:gravity="center_vertical" android:layout_marginTop="7dp">
+                <ProgressBar android:id="@+id/searchProgress"
+                    style="?android:attr/progressBarStyleSmall"
+                    android:layout_width="22dp" android:layout_height="22dp"
+                    android:visibility="gone" android:indeterminateTint="#B7A2FF"/>
                 <TextView android:id="@+id/statusText" android:layout_width="0dp"
                     android:layout_weight="1" android:layout_height="wrap_content"
-                    android:layout_marginStart="2dp" android:text="Type a song name above and press Search."
-                    android:textColor="#A7B2AB" android:textSize="13sp" />
+                    android:text="Search for your favorite sounds."
+                    android:textColor="#929CB9" android:textSize="13sp"
+                    android:lineSpacingExtra="2dp" android:paddingStart="2dp"/>
             </LinearLayout>
-            <LinearLayout android:id="@+id/resultsContainer" android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:orientation="vertical"
-                android:layout_marginTop="16dp" />
+            <LinearLayout android:id="@+id/resultsContainer"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:layout_marginTop="17dp"/>
         </LinearLayout>
     </ScrollView>
+
+    <!-- Floating glass-style playback deck -->
     <LinearLayout android:id="@+id/playerPanel" android:layout_width="match_parent"
-        android:layout_height="wrap_content" android:layout_marginLeft="12dp"
-        android:layout_marginRight="12dp" android:layout_marginBottom="12dp"
+        android:layout_height="wrap_content" android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp" android:layout_marginBottom="8dp"
         android:orientation="vertical" android:background="@drawable/bg_player"
-        android:paddingLeft="16dp" android:paddingRight="16dp" android:paddingTop="13dp"
-        android:paddingBottom="10dp" android:visibility="gone">
-        <TextView android:id="@+id/currentTitle" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:textColor="#F1F6EA"
-            android:textSize="14sp" android:textStyle="bold" android:maxLines="1"
-            android:ellipsize="end" android:text="Not playing"/>
-        <TextView android:id="@+id/currentCreator" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:layout_marginTop="3dp"
-            android:textColor="#AABBA4" android:textSize="11sp"/>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="horizontal" android:gravity="center_vertical"
-            android:layout_marginTop="8dp">
-            <TextView android:id="@+id/favoriteButton" android:layout_width="44dp"
-                android:layout_height="42dp" android:gravity="center" android:text="♡"
-                android:textColor="#F4F6F4" android:textSize="28sp"
-                android:clickable="true" android:focusable="true" android:contentDescription="Like current song" />
-            <TextView android:id="@+id/playlistButton" android:layout_width="0dp"
-                android:layout_weight="1" android:layout_height="42dp" android:gravity="center"
-                android:text="+ Playlist" android:textColor="#B2F369" android:textSize="13sp"
-                android:clickable="true" android:focusable="true" />
-            <TextView android:id="@+id/queueButton" android:layout_width="0dp"
-                android:layout_weight="1" android:layout_height="42dp" android:gravity="center"
-                android:text="≡ Queue" android:textColor="#F2F6F2" android:textSize="13sp"
-                android:clickable="true" android:focusable="true"/>
-            <TextView android:id="@+id/nowPlayingButton" android:layout_width="0dp"
-                android:layout_weight="1" android:layout_height="42dp" android:gravity="center"
-                android:text="NOW PLAYING ↗" android:textColor="#F2F6F2"
-                android:textStyle="bold" android:textSize="11sp"
-                android:clickable="true" android:focusable="true"/>
-        </LinearLayout>
-        <SeekBar android:id="@+id/progress" android:layout_width="match_parent"
-            android:layout_height="29dp" android:layout_marginTop="4dp"
-            android:max="1000" android:progressTint="#B2F369" android:thumbTint="#B2F369"
-            android:progressBackgroundTint="#3D4F41"/>
+        android:elevation="9dp" android:paddingStart="14dp" android:paddingEnd="14dp"
+        android:paddingTop="11dp" android:paddingBottom="7dp" android:visibility="gone">
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
             android:orientation="horizontal" android:gravity="center_vertical">
-            <TextView android:id="@+id/timeText" android:layout_width="0dp" android:layout_weight="1"
-                android:layout_height="wrap_content" android:text="0:00 / 0:00"
-                android:textColor="#B9C9B1" android:textSize="11sp" />
-            <TextView android:id="@+id/shuffleButton" android:layout_width="40dp"
-                android:layout_height="44dp" android:gravity="center" android:text="⇄"
-                android:textColor="#B9C9B1" android:textSize="22sp"
-                android:clickable="true" android:focusable="true" android:contentDescription="Toggle shuffle" />
+            <ImageView android:id="@+id/playerArtwork" android:layout_width="49dp"
+                android:layout_height="49dp" android:background="@drawable/bg_result_item"
+                android:src="@drawable/ic_nightwave" android:scaleType="centerCrop"
+                android:contentDescription="Now playing artwork"/>
+            <LinearLayout android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="wrap_content" android:layout_marginStart="12dp"
+                android:orientation="vertical">
+                <TextView android:id="@+id/currentTitle" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:text="Not playing"
+                    android:textSize="14sp" android:textColor="#FFFFFF"
+                    android:fontFamily="sans-serif-medium" android:ellipsize="end" android:maxLines="1"/>
+                <TextView android:id="@+id/currentCreator" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:text="Ready to play"
+                    android:textSize="12sp" android:textColor="#B0ADCF"
+                    android:layout_marginTop="4dp" android:ellipsize="end" android:maxLines="1"/>
+            </LinearLayout>
+            <TextView android:id="@+id/favoriteButton" android:layout_width="37dp"
+                android:layout_height="48dp" android:gravity="center"
+                android:text="♡" android:textSize="27sp" android:textColor="#D8D9E8"
+                android:clickable="true" android:focusable="true"
+                android:contentDescription="Like current song"/>
+            <TextView android:id="@+id/toggleButton" android:layout_width="47dp"
+                android:layout_height="47dp" android:gravity="center"
+                android:background="@drawable/bg_action"
+                android:text="▶" android:textSize="22sp" android:textColor="#1A1831"
+                android:clickable="true" android:focusable="true"
+                android:contentDescription="Pause or resume"/>
+        </LinearLayout>
+        <SeekBar android:id="@+id/progress" android:layout_width="match_parent"
+            android:layout_height="25dp" android:layout_marginTop="6dp"
+            android:max="1000" android:progressTint="#B7A2FF"
+            android:progressBackgroundTint="#52526F" android:thumbTint="#C8B6FF"/>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center_vertical">
+            <TextView android:id="@+id/timeText" android:layout_width="0dp"
+                android:layout_weight="1" android:layout_height="wrap_content"
+                android:text="0:00 / 0:00" android:textColor="#B2B3D0" android:textSize="10sp"/>
+            <TextView android:id="@+id/shuffleButton" android:layout_width="38dp"
+                android:layout_height="40dp" android:gravity="center"
+                android:text="⇄" android:textColor="#C7C7DC" android:textSize="22sp"
+                android:clickable="true" android:focusable="true"
+                android:contentDescription="Shuffle"/>
             <TextView android:id="@+id/prevTrackButton" android:layout_width="38dp"
-                android:layout_height="44dp" android:gravity="center" android:text="|◀"
-                android:textColor="#F3F6F3" android:textSize="17sp"
-                android:clickable="true" android:focusable="true" android:contentDescription="Previous song" />
-            <TextView android:id="@+id/backButton" android:layout_width="46dp"
-                android:layout_height="44dp" android:gravity="center" android:text="↶15"
-                android:textColor="#ECF5E9" android:textSize="15sp"/>
-            <TextView android:id="@+id/toggleButton" android:layout_width="54dp"
-                android:layout_height="46dp" android:gravity="center" android:text="▶"
-                android:textColor="#B2F369" android:textSize="25sp"/>
+                android:layout_height="40dp" android:gravity="center"
+                android:text="|◀" android:textColor="#F4F2FF" android:textSize="16sp"
+                android:clickable="true" android:focusable="true"
+                android:contentDescription="Previous track"/>
+            <TextView android:id="@+id/backButton" android:layout_width="39dp"
+                android:layout_height="40dp" android:gravity="center"
+                android:text="↶15" android:textColor="#C7C7DC" android:textSize="13sp"
+                android:clickable="true" android:focusable="true"
+                android:contentDescription="Rewind fifteen seconds"/>
             <TextView android:id="@+id/nextTrackButton" android:layout_width="38dp"
-                android:layout_height="44dp" android:gravity="center" android:text="▶|"
-                android:textColor="#F3F6F3" android:textSize="17sp"
-                android:clickable="true" android:focusable="true" android:contentDescription="Next song" />
-            <TextView android:id="@+id/forwardButton" android:layout_width="46dp"
-                android:layout_height="44dp" android:gravity="center" android:text="15↷"
-                android:textColor="#ECF5E9" android:textSize="15sp"/>
-            <TextView android:id="@+id/openButton" android:layout_width="32dp"
-                android:layout_height="44dp" android:gravity="center" android:text="↗"
-                android:textColor="#B2F369" android:textSize="22sp"/>
+                android:layout_height="40dp" android:gravity="center"
+                android:text="▶|" android:textColor="#F4F2FF" android:textSize="16sp"
+                android:clickable="true" android:focusable="true"
+                android:contentDescription="Next track"/>
+            <TextView android:id="@+id/forwardButton" android:layout_width="39dp"
+                android:layout_height="40dp" android:gravity="center"
+                android:text="15↷" android:textColor="#C7C7DC" android:textSize="13sp"
+                android:clickable="true" android:focusable="true"
+                android:contentDescription="Forward fifteen seconds"/>
+        </LinearLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="40dp"
+            android:orientation="horizontal" android:gravity="center_vertical">
+            <TextView android:id="@+id/playlistButton" android:layout_width="0dp"
+                android:layout_weight="1" android:layout_height="match_parent"
+                android:gravity="center" android:text="+  Save" android:textSize="12sp"
+                android:textColor="#C8BDFF" android:clickable="true" android:focusable="true"/>
+            <TextView android:id="@+id/queueButton" android:layout_width="0dp"
+                android:layout_weight="1" android:layout_height="match_parent"
+                android:gravity="center" android:text="≡  Queue" android:textSize="12sp"
+                android:textColor="#C8BDFF" android:clickable="true" android:focusable="true"/>
+            <TextView android:id="@+id/nowPlayingButton" android:layout_width="0dp"
+                android:layout_weight="1" android:layout_height="match_parent"
+                android:gravity="center" android:text="EXPAND  ↗" android:textSize="11sp"
+                android:textColor="#A8E5E4" android:clickable="true" android:focusable="true"/>
+            <TextView android:id="@+id/openButton" android:layout_width="0dp"
+                android:layout_weight="1" android:layout_height="match_parent"
+                android:gravity="center" android:text="YouTube  ↗" android:textSize="11sp"
+                android:textColor="#C8BDFF" android:clickable="true" android:focusable="true"/>
         </LinearLayout>
     </LinearLayout>
-    <LinearLayout android:id="@+id/navigationBar" android:layout_width="match_parent"
-        android:layout_height="61dp" android:orientation="horizontal" android:gravity="center"
-        android:background="#131719" android:paddingStart="12dp" android:paddingEnd="12dp">
-        <TextView android:id="@+id/homeTab" android:layout_width="0dp" android:layout_weight="1"
-            android:layout_height="match_parent" android:gravity="center" android:text="⌂  Home"
-            android:textSize="14sp" android:textStyle="bold" android:textColor="#B2F369"
-            android:clickable="true" android:focusable="true" />
-        <TextView android:id="@+id/searchTab" android:layout_width="0dp" android:layout_weight="1"
-            android:layout_height="match_parent" android:gravity="center" android:text="⌕  Search"
-            android:textSize="14sp" android:textColor="#A6B5AC"
-            android:clickable="true" android:focusable="true" />
-        <TextView android:id="@+id/libraryTab" android:layout_width="0dp" android:layout_weight="1"
-            android:layout_height="match_parent" android:gravity="center" android:text="▤  Library"
-            android:textSize="14sp" android:textColor="#A6B5AC"
-            android:clickable="true" android:focusable="true" />
+    <LinearLayout android:id="@+id/navigationBar"
+        android:layout_width="match_parent" android:layout_height="67dp"
+        android:orientation="horizontal" android:gravity="center_vertical"
+        android:background="@drawable/bg_nav"
+        android:paddingStart="13dp" android:paddingEnd="13dp">
+        <TextView android:id="@+id/homeTab" android:layout_width="0dp"
+            android:layout_weight="1" android:layout_height="match_parent"
+            android:gravity="center" android:text="⌂  HOME" android:textSize="13sp"
+            android:textColor="#C8B6FF" android:fontFamily="sans-serif-medium"
+            android:clickable="true" android:focusable="true"/>
+        <TextView android:id="@+id/searchTab" android:layout_width="0dp"
+            android:layout_weight="1" android:layout_height="match_parent"
+            android:gravity="center" android:text="⌕  SEARCH" android:textSize="13sp"
+            android:textColor="#9A9EBB" android:fontFamily="sans-serif-medium"
+            android:clickable="true" android:focusable="true"/>
+        <TextView android:id="@+id/libraryTab" android:layout_width="0dp"
+            android:layout_weight="1" android:layout_height="match_parent"
+            android:gravity="center" android:text="▤  LIBRARY" android:textSize="13sp"
+            android:textColor="#9A9EBB" android:fontFamily="sans-serif-medium"
+            android:clickable="true" android:focusable="true"/>
     </LinearLayout>
 </LinearLayout>
