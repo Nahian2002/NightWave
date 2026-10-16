@@ -1,45 +1,46 @@
-# NightWave v0.7 — QA & regression status
+# NightWave v0.8 — Verification and open issues
 Date: 2026-10-17
 
-## Confirmed on the user's device before v0.7
-- A prior debug APK compiled with the free Windows toolchain.
-- Direct YouTube-link streaming, locked-screen background playback and Bluetooth controls were reported working.
-- Song-name searches in v0.6 failed: the screenshot showed \`videos: raw=0, streams=0, errors=4\` and \`all: raw=0\`. Filtering or ranking empty lists was not the solution.
+## User-verified evidence
+- An earlier NightWave APK built successfully on Windows.
+- Direct YouTube link playback and screen-off listening passed on a Samsung phone.
+- Native keyword search (v0.5/v0.6) returned no usable content: NewPipe search reported raw=0, errors=4.
+- v0.7's additional public community search providers also failed on the user's device. Further retries alone are not a reliable solution.
 
-## v0.7 changes committed
-- Public community-search provider uses documented Invidious \`/api/v1/search?q=...&type=video&sort=relevance\`.
-- Multiple maintained public instances from the official list, short HTTPS requests with no redirects, and strict JSON video parsing.
-- Existing NewPipe video search is tried first. Empty+error returns switch to the independent provider.
-- Search results cache for 10 minutes; 11-character video ID validation; public videos only; premium/paid entries filtered.
-- Android JVM tests added: parser fixtures, rejecting invalid JSON, dedupe, query encoding, HTTP 503 failover with local MockWebServer.
-- Home and Search now offer six genuine discovery search actions: Night Drive, Lofi, Bangla, Workout, Bollywood, Acoustic.
-- Library has visual collection tiles, playlists, queue, listening history, and manual YouTube link save path.
-- Search errors present concise retry text and an expandable diagnostics panel. Community-provider usage is stated in UI and README.
-- Existing Media3 playback service, playlists and queue remain in place.
-- VersionCode 7 / versionName 0.7.0.
+## Changes uploaded in v0.8
+- Direct YouTube website results shown using an Android WebView when pressing NightWave's main Search arrow.
+- The input text is URL-encoded as an official YouTube search query; no API key or Invidious service is needed for this path.
+- Main-frame YouTube watch/shorts/live video navigation routes a selected video back to the existing NightWave player.
+- DOM click listener captures JavaScript navigation on video links; browser exposes **no** JavascriptInterface bridge.
+- **▶ PLAY** manual button selects the current YouTube video if a click is not intercepted.
+- **↗ BROWSER** fallback opens the same search in an external app, from which the video can be shared to NightWave.
+- Home mood cards now use the same website-based search.
+- Existing native NewPipe/Invidious result lists are demoted to clearly labeled experimental mode.
+- WebView lifecycle cleanup added, non-YouTube navigation restricted, third-party cookies disabled, file/content URL access disabled.
+- Version bumped to 0.8.0, versionCode=8; same applicationId so in-place upgrade is intended.
 
-## Checks performed in this environment
-- Search defect diagnosis from the user's exact screenshot: completed.
-- Upstream API documentation/schema and public-instance list checked: completed.
-- Static inspection of the core code paths and Kotlin constructs: completed.
-- Tests written in repository: YES (but not executed by Android Gradle here).
-- Full Android Gradle compilation: NOT RUN HERE (no Android SDK/Gradle dependency download capability).
-- Live search across community servers: NOT VERIFIED HERE (runtime has no outbound networking).
-- Android UI/animation testing: NOT RUN HERE.
+## Checks done
+- Static review of the connected GitHub repository's Android view IDs, search routes and media service.
+- Kotlin 1.9/JDK 21 standalone smoke compilation: PASS (14 assertions for query encoding, public video URL selection, and rejection of dangerous/other-host URLs).
+- Live YouTube WebView rendering: **NOT TESTED** here.
+- Full Android Gradle build: **NOT RUN** here.
+- Click-to-player and locked-screen playback regression: **NOT TESTED** on this version.
+- Existing queued and local library code: unchanged.
 
-## Acceptance test before treating v0.7 as working
-1. Download fresh GitHub repository ZIP, extract, run build-windows.cmd.
-2. Ensure \`:app:testDebugUnitTest\` and \`:app:assembleDebug\` both pass. Don't uninstall your working version on failure.
-3. Install new \`dist\NightWave-debug.apk\` in place on Samsung.
-4. Search "Baby shark", "saiyara", "Bangla music", "Adele Hello" and test Songs/Videos.
-5. Tap any real result, lock screen, verify audio continues.
-6. Test mood tiles, local playlists, queue, favorites, history, and manual YouTube link saving.
-7. On failure open **Connection details**; report provider errors. Logs (optional): \`adb logcat -d -s NightWaveSearch:D\`.
+## Acceptance steps on Windows and Android
+1. Download a fresh NightWave repository ZIP and extract to a NEW folder. Do not reuse the old v0.7 directory.
+2. Run build-windows.cmd. It runs Android JVM tests and :app:assembleDebug; wait for BUILD SUCCESS.
+3. Install dist\NightWave-debug.apk over your existing version without clearing app data.
+4. Search 'saiyara' from the search bar and press the main arrow. Confirm an embedded YouTube results website appears.
+5. Tap a real video thumbnail; if it opens inside the browser, press ▶ PLAY. Verify NightWave audio plays with screen off.
+6. If YouTube blocks the embedded WebView, tap ↗ BROWSER. Choose a video and Share → NightWave; report any failure.
+7. Test Favorites, Library, queue, Bluetooth controls, and history.
+8. If compilation fails, send the first e: Kotlin compiler error or Gradle FAILURE lines; DO NOT uninstall the working app.
 
-## Risks
-- Independent public instances may be blocked, rate-limited or unavailable in a given location.
-- NewPipe stream resolution is still required for playback: a returned video may be unplayable if YouTube changes playback extraction.
-- Saved playlists must not be erased while installing; use in-place debug APK update signed by the same PC.
-- Avoid private search text: a third-party community instance can receive search queries.
+## Remaining limitations
+- Google's YouTube site may block an embedded WebView or use DOM navigation not intercepted by this prototype.
+- Search browsing is not a native Spotify-style song index: it opens YouTube's own actual results, intentionally.
+- Stream resolution for a selected video still relies on NewPipe, and not every video works.
+- The alternative public API endpoints are not reliable enough to promise automatic keyword result lists.
 
-**Result: source update complete. v0.7 APK build and actual search/playback regressions PENDING.**
+**Status: v0.8 source uploaded; Windows compile and phone acceptance pending.**
