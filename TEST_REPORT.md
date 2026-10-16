@@ -20,6 +20,14 @@ Date: 2026-10-17
 - JitPack and Google Maven dependencies have **not** been remotely resolved.
 - No live YouTube search or stream playback could be tested in this runtime.
 - No Android phone/emulator was connected; lock-screen and Bluetooth behavior unverified.
-- The GitHub repository has **not** been created or uploaded; the current GitHub integration does not expose repository creation.
+- The private GitHub repository **exists** at `Nahian2002/NightWave`, and the source plus Windows no-billing local build scripts were uploaded.
+- GitHub Actions jobs failed **before startup** with an account-level billing/spending limit restriction; the Android project was not compiled by those runs.
+- The Windows build bootstrap is untested on Windows because this environment cannot access Gradle/SDK downloads or execute Windows batch/PowerShell.
 
 The checks above are not a replacement for a successful GitHub Actions run and physical Android validation.
+
+## No-billing local build route
+
+- `build-windows.cmd` invokes `tools/build-windows.ps1`.
+- On a 64-bit Windows PC the script checks for JDK 17+, installs build tools from Google/Gradle/Adoptium, accepts SDK licenses interactively, runs `:app:testDebugUnitTest` and `:app:assembleDebug`, and copies a successful artifact to `dist/NightWave-debug.apk`.
+- The script has been reviewed statically; **actual successful APK compilation is still pending**. GitHub Actions was changed to manual-only to avoid known-blocked automatic attempts.
