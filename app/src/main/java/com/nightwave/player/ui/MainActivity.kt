@@ -575,19 +575,8 @@ class MainActivity : Activity() {
                 binding.resultsHeading.text = if (searchMode == SearchMode.SONGS) "Explore songs" else "Explore videos"
                 showStatus(if (results.isEmpty()) "Search any song, album or artist to start listening." else "Tap a song to play. Hold for more options.")
                 if (results.isEmpty()) {
-                    sectionTitle("Try one of these")
-                    labelAction("♫  Baby shark") {
-                        binding.searchBox.setText("Baby shark")
-                        search("Baby shark")
-                    }
-                    labelAction("✦  Lofi for deep focus") {
-                        binding.searchBox.setText("lofi for deep focus")
-                        search("lofi for deep focus")
-                    }
-                    labelAction("◉  Songs for a night drive") {
-                        binding.searchBox.setText("night drive music")
-                        search("night drive music")
-                    }
+                    sectionTitle("Pick a vibe")
+                    showMoodGrid()
                 } else {
                     results.forEach { addVideoCard(it, results) }
                 }
@@ -595,6 +584,78 @@ class MainActivity : Activity() {
             Page.LIBRARY -> showLibrary()
         }
         animatePage()
+    }
+
+    /** Functional discovery cards, not fake song listings or invented recommendations. */
+    private fun showMoodGrid() {
+        val moods = listOf(
+            arrayOf("MIDNIGHT", "Night Drive", "night drive music", "✦"),
+            arrayOf("SLOW DOWN", "Chill & Lofi", "lofi chill music", "◌"),
+            arrayOf("BENGAL BEATS", "Bangla Hits", "popular bangla songs", "♫"),
+            arrayOf("HIGH ENERGY", "Workout", "workout music mix", "ϟ"),
+            arrayOf("YOUR ERA", "Bollywood", "popular hindi songs", "♡"),
+            arrayOf("LATE HOURS", "Soft & Acoustic", "acoustic love songs", "☾")
+        )
+        val palettes = listOf(
+            intArrayOf(0xFF5B447B.toInt(), 0xFF222E5E.toInt()),
+            intArrayOf(0xFF175B6B.toInt(), 0xFF263565.toInt()),
+            intArrayOf(0xFF8C476A.toInt(), 0xFF462852.toInt()),
+            intArrayOf(0xFF915C38.toInt(), 0xFF47325D.toInt()),
+            intArrayOf(0xFF6658A6.toInt(), 0xFF2F3E69.toInt()),
+            intArrayOf(0xFF276A64.toInt(), 0xFF283A68.toInt())
+        )
+        for (rowIndex in 0..2) {
+            val row = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                layoutParams = LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(12) }
+            }
+            for (column in 0..1) {
+                val idx = rowIndex * 2 + column
+                val (eyebrow, title, query, symbol) = moods[idx].toList()
+                val card = LinearLayout(this).apply {
+                    orientation = LinearLayout.VERTICAL
+                    gravity = Gravity.CENTER_VERTICAL
+                    setPadding(dp(15), dp(12), dp(12), dp(12))
+                    background = GradientDrawable(
+                        GradientDrawable.Orientation.TL_BR, palettes[idx]
+                    ).apply { cornerRadius = dp(19).toFloat() }
+                    elevation = dp(3).toFloat()
+                    isClickable = true
+                    isFocusable = true
+                    contentDescription = "Search " + title
+                    setOnClickListener {
+                        binding.searchBox.setText(query)
+                        search(query)
+                    }
+                }
+                card.addView(TextView(this).apply {
+                    text = symbol
+                    textSize = 34f
+                    gravity = Gravity.END
+                    setTextColor(Color.rgb(226, 229, 255))
+                }, LinearLayout.LayoutParams(-1, dp(47)))
+                card.addView(TextView(this).apply {
+                    text = eyebrow
+                    textSize = 10f
+                    letterSpacing = 0.09f
+                    typeface = Typeface.DEFAULT_BOLD
+                    setTextColor(Color.rgb(205, 220, 239))
+                })
+                card.addView(TextView(this).apply {
+                    text = title
+                    textSize = 19f
+                    typeface = Typeface.create("sans-serif-black", Typeface.BOLD)
+                    setTextColor(Color.WHITE)
+                    setPadding(0, dp(5), 0, 0)
+                    maxLines = 1
+                    ellipsize = android.text.TextUtils.TruncateAt.END
+                })
+                row.addView(card, LinearLayout.LayoutParams(0, dp(147), 1f).apply {
+                    if (column == 0) marginEnd = dp(10)
+                })
+            }
+            binding.resultsContainer.addView(row)
+        }
     }
 
     private fun sectionTitle(title: String) {
@@ -706,8 +767,9 @@ class MainActivity : Activity() {
         } else {
             favorites.take(5).forEach { addVideoCard(it, favorites) }
         }
-        sectionTitle("Find something new")
-        labelAction("Explore songs, artists and videos") { openPage(Page.SEARCH) }
+        sectionTitle("Browse by mood")
+        showMoodGrid()
+        labelAction("Search for an exact song or artist") { openPage(Page.SEARCH) }
     }
 
     private fun showLibrary() {
