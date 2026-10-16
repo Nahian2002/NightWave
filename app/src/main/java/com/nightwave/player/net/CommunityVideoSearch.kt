@@ -40,7 +40,7 @@ class CommunityVideoSearch(
                 val url = (base + "/api/v1/search").toHttpUrl().newBuilder()
                     .addQueryParameter("q", query)
                     .addQueryParameter("type", "video")
-                    .addQueryParameter("sort_by", "relevance")
+                    .addQueryParameter("sort", "relevance")
                     .build()
                 val request = Request.Builder()
                     .url(url)
@@ -77,6 +77,7 @@ object InvidiousResults {
         for (i in 0 until minOf(data.length(), 100)) {
             val item = data.optJSONObject(i) ?: continue
             if (item.optString("type") != "video") continue
+            if (item.optBoolean("paid") || item.optBoolean("premium")) continue
             val id = item.optString("videoId")
             val canonical = VideoLink.normalizeSearchResult(id) ?: continue
             if (!ids.add(canonical)) continue
