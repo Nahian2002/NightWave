@@ -1031,6 +1031,27 @@ class MainActivity : Activity() {
             showQueueDialog()
         })
         container.addView(actions)
+        val repeatAction = TextView(this).apply {
+            text = "↻  REPEAT: " + listOf("OFF", "ALL", "ONE")[repeat]
+            textSize = 13f
+            typeface = Typeface.DEFAULT_BOLD
+            gravity = Gravity.CENTER
+            setTextColor(Color.rgb(193, 175, 255))
+            setBackgroundResource(R.drawable.bg_chip_normal)
+            isClickable = true
+            isFocusable = true
+            contentDescription = "Change repeat mode"
+            setOnClickListener {
+                repeat = (repeat + 1) % 3
+                sendQueueAction(PlaybackService.ACTION_REPEAT)
+                text = "↻  REPEAT: " + listOf("OFF", "ALL", "ONE")[repeat]
+            }
+            layoutParams = LinearLayout.LayoutParams(-1, dp(42)).apply {
+                topMargin = dp(14)
+                bottomMargin = dp(12)
+            }
+        }
+        container.addView(repeatAction)
         val scroll = ScrollView(this).apply {
             isFillViewport = true
             addView(container)
