@@ -44,7 +44,7 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
             repeat == Repeat.ALL -> 0
             else -> return null
         }
-        if (index >= 0) visited.addLast(index)
+        if (index >= 0) visited.add(index)
         if (visited.size > 100) visited.removeFirst()
         index = target
         return current
@@ -52,7 +52,7 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
 
     fun jump(to: Int): QueueEntry? {
         if (to !in entries.indices) return null
-        if (index >= 0 && index != to) visited.addLast(index)
+        if (index >= 0 && index != to) visited.add(index)
         index = to
         return current
     }
