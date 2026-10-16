@@ -50,17 +50,17 @@ class CommunityVideoSearch(
                     .build()
                 client.newCall(request).execute().use { response ->
                     if (!response.isSuccessful) {
-                        failures.add(base.substringAfter("https://") + ": HTTP " + response.code)
+                        failures.add(base.substringAfter("://") + ": HTTP " + response.code)
                         return@use
                     }
                     val payload = response.body?.string().orEmpty()
                     if (payload.length > 3_000_000) throw IOException("Search response exceeded limit")
                     val parsed = InvidiousResults.parse(payload)
-                    if (parsed.isNotEmpty()) return Result(parsed, base.substringAfter("https://"))
-                    failures.add(base.substringAfter("https://") + ": empty response")
+                    if (parsed.isNotEmpty()) return Result(parsed, base.substringAfter("://"))
+                    failures.add(base.substringAfter("://") + ": empty response")
                 }
             } catch (e: Exception) {
-                failures.add(base.substringAfter("https://") + ": " + e.javaClass.simpleName)
+                failures.add(base.substringAfter("://") + ": " + e.javaClass.simpleName)
             }
         }
         throw IOException("All independent search endpoints failed (" +
