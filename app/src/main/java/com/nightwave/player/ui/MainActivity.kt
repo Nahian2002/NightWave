@@ -99,6 +99,16 @@ class MainActivity : Activity() {
         if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 100)
         }
+        binding.nativeSearchButton.setOnClickListener {
+            val typed = binding.searchBox.text.toString().trim()
+            if (typed.isNotEmpty()) {
+                when (val parsed = SearchInputResolver.resolve(typed)) {
+                    is SearchInput.Keywords -> search(parsed.query)
+                    is SearchInput.VideoUrl -> playUrl(parsed.url)
+                    else -> showStatus("Enter a song or artist to search.", true)
+                }
+            } else showStatus("Enter a song or artist to search.", true)
+        }
         binding.searchButton.setOnClickListener {
             binding.searchButton.animate().scaleX(0.89f).scaleY(0.89f).setDuration(85)
                 .withEndAction {
@@ -230,9 +240,24 @@ class MainActivity : Activity() {
         openPage(Page.SEARCH)
         when (val parsed = SearchInputResolver.resolve(input)) {
             is SearchInput.VideoUrl -> playUrl(parsed.url)
-            is SearchInput.Keywords -> search(parsed.query)
+            is SearchInput.Keywords -> openYouTubeWebsite(parsed.query)
             SearchInput.BadLink -> showStatus("This is not a valid public YouTube video link.", true)
             SearchInput.Blank -> showStatus("Type a song or artist name to search.", true)
+        }
+    }
+
+    /** YouTube's own result browser avoids the fragile third-party search index. */
+    private fun openYouTubeWebsite(query: String) {
+        val clean = query.trim()
+        if (clean.isEmpty()) {
+            showStatus("Type a song or artist name.", true)
+            return
+        }
+        binding.resultsHeading.text = "Searching YouTube"
+        showStatus("Choose a video in the YouTube search screen. NightWave will handle playback.")
+        YouTubeSearchBrowser(this).show(clean) { videoUrl ->
+            binding.resultsHeading.text = "Now listening"
+            playUrl(videoUrl)
         }
     }
 
@@ -241,7 +266,8 @@ class MainActivity : Activity() {
         searchMode = mode
         updateSearchChips()
         val input = binding.searchBox.text.toString().trim()
-        if (SearchInputResolver.resolve(input) is SearchInput.Keywords) search(input)
+        // Selecting Songs/Videos doesn't retry a known-failing external search backend.
+        // The main search button always opens YouTube's own search page.
     }
 
     private fun updateSearchChips() {
@@ -286,7 +312,10 @@ class MainActivity : Activity() {
                         binding.resultsHeading.text = "Couldn't load search"
                         showStatus("Both direct and independent search providers are unavailable. " +
                             "Please retry when connected.", true)
-                        labelAction("↻  Try searching again") { search(query) }
+                        labelAction("▶  Browse YouTube results directly") {
+                            openYouTubeWebsite(query)
+                        }
+                        labelAction("↻  Retry native results") { search(query) }
                         labelAction("ⓘ  Connection details") {
                             AlertDialog.Builder(this@MainActivity)
                                 .setTitle("Search diagnostics")
@@ -577,7 +606,7 @@ class MainActivity : Activity() {
             Page.SEARCH -> {
                 binding.resultsHeading.text = if (searchMode == SearchMode.SONGS) "Explore songs" else "Explore videos"
                 showStatus(if (results.isEmpty())
-                    "Explore by mood, or type any artist or song. Public community search may be used when needed."
+                    "Search on YouTube's own website or choose a mood to browse music."
                     else "Tap a song to play, or hold for more options.")
                 if (results.isEmpty()) {
                     sectionTitle("Pick a vibe")
@@ -630,7 +659,7 @@ class MainActivity : Activity() {
                     contentDescription = "Search " + title
                     setOnClickListener {
                         binding.searchBox.setText(query)
-                        search(query)
+                        openYouTubeWebsite(query)
                     }
                 }
                 card.addView(TextView(this).apply {
