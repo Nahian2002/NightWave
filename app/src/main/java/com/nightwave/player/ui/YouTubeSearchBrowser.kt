@@ -99,6 +99,10 @@ class YouTubeSearchBrowser(private val context: Context) {
             gravity = Gravity.CENTER_VERTICAL
             typeface = android.graphics.Typeface.DEFAULT_BOLD
         }, LinearLayout.LayoutParams(0, -1, 1f))
+        header.addView(control("▶ PLAY") {
+            val url = browser.url.orEmpty()
+            if (!select(url)) status.text = "Open a YouTube video first, then tap ▶ PLAY."
+        })
         header.addView(control("↗ BROWSER") {
             try {
                 context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(pageUrl)))
@@ -111,7 +115,7 @@ class YouTubeSearchBrowser(private val context: Context) {
         root.addView(status)
         root.addView(browser, LinearLayout.LayoutParams(-1, 0, 1f))
         root.addView(TextView(context).apply {
-            text = "Tap a video to listen in NightWave  ·  YouTube website"
+            text = "Tap a video to listen. If it opens here, tap ▶ PLAY. No sign-in needed."
             textSize = 11f
             gravity = Gravity.CENTER
             setTextColor(Color.rgb(168, 176, 203))
@@ -132,10 +136,7 @@ class YouTubeSearchBrowser(private val context: Context) {
                 handle(request.url.toString())
 
             override fun onPageStarted(view: WebView, url: String?, favicon: android.graphics.Bitmap?) {
-                if (url != null && select(url)) {
-                    view.stopLoading()
-                    return
-                }
+                if (url != null && select(url)) return
                 progress.visibility = View.VISIBLE
             }
 
