@@ -493,7 +493,9 @@ class MainActivity : Activity() {
         binding.homeTab.setTextColor(if (page == Page.HOME) activeColor else inactive)
         binding.searchTab.setTextColor(if (page == Page.SEARCH) activeColor else inactive)
         binding.libraryTab.setTextColor(if (page == Page.LIBRARY) activeColor else inactive)
-        binding.topSearchArea.visibility = if (page == Page.SEARCH) View.VISIBLE else View.GONE
+        binding.topSearchArea.visibility = View.VISIBLE
+        binding.searchRow.visibility = if (page == Page.SEARCH) View.VISIBLE else View.GONE
+        binding.filtersRow.visibility = if (page == Page.SEARCH) View.VISIBLE else View.GONE
         binding.searchProgress.visibility = View.GONE
     }
 
