@@ -1,42 +1,45 @@
-# NightWave v0.5 — Build & QA status
-
+# NightWave v0.6 — verification and regression report
 Date: 2026-10-17
 
-## Existing, user-confirmed baseline
-- A previous NightWave debug APK built on 64-bit Windows using \`build-windows.cmd\`.
-- All five initial S24 Ultra playback checks passed (including screen-off and Bluetooth play/pause).
-- These prior tests do not establish that new v0.5 behavior has passed.
+## Verified user observations
+- Previous NightWave Android APK built successfully with the provided Windows \`build-windows.cmd\`.
+- User confirmed screen-off playback and Bluetooth play/pause on Samsung S24 Ultra.
+- User reported the v0.5 song-name search displays **No matches found** for \`Baby shark\`. This is a real observed defect, not a misspelled query.
 
-## Newly implemented in v0.5
-- Home/Search/Library navigation, track rows and now-playing dialog.
-- Favorites, recent history, named playlists, save/remove/rename/delete actions stored on-device.
-- Playing queue, per-track jump, next/previous, shuffle/repeat and queue snapshot recovery.
-- Service-owned auto-advance after \`Player.STATE_ENDED\`, resolved on a worker thread with request-generation invalidation.
-- Bluetooth NEXT/PREVIOUS key handling, preserving existing Media3 play/pause handling.
-- Version bump to 0.5.0 (versionCode 5) and preserved Android application ID.
+## Changes committed
+- Normal public YouTube video search is tried first for both Songs and Videos.
+- Only after empty/unparseable results are the ALL and MUSIC_SONGS filters tried.
+- Relative \`/watch?v=...\` and \`/shorts/...\` result URLs are normalized safely; other domains are rejected.
+- Music matches are scored and sorted without deleting otherwise-usable results.
+- Search diagnostic logs count returned elements, stream elements, parse success and errors.
+- Search errors include Retry and Try Videos actions. No false "song does not exist" claim.
+- New original Midnight Sessions visual identity with violet/aqua/navy palette, Home hero, music cards, full-height Now Playing, mini-player artwork and animations.
+- Foreground Media3 playback service, YouTube stream resolver, saved library and queue code preserved.
+- Version bumped to 0.6.0, versionCode 6.
 
-## Completed checks
-- Kotlin 1.9 JVM compilation of the queue engine: PASS after fixing an unsupported deque append call.
-- Kotlin 1.9 smoke harness: PASS (38 queue transitions/edge cases, including shuffle exhaustion, repeat one/all/off, navigation history, jump bounds, 100-item cap).
-- GitHub verification: all new Kotlin files, queue persistence, UI and resources confirmed uploaded.
-- Post-upgrade ViewBinding static check: 33 unique layout IDs, all referenced UI bindings present, and paired Kotlin brace counts match. PASS.
-- MediaSessionService, audio stream resolver and foreground media service remain installed.
+## Source checks performed
+- Current GitHub main inspected for required files, drawables and ID references.
+- 34 unique view IDs; no missing ActivityMainBinding references.
+- All additionally referenced drawable names found or confirmed present in the repo.
+- Activity and gateway braces balanced in static source inspection.
+- Search fallback order and diagnostics paths reviewed.
+- Existing media-session foreground player and automatic next-song logic still present.
+- Kotlin smoke-test attempt in this isolated container timed out; **not counted as passed**.
 
-## Not yet verified
-- Full Android Gradle APK build from current v0.5 source: **PENDING WINDOWS BUILD**.
-- Android instrumentation / on-device UI smoke test: **PENDING**.
-- Live YouTube search following v0.4/v0.5 modifications: **PENDING**.
-- Playlist auto-next across multiple songs while screen locked: **PENDING**.
-- Media notification/Bluetooth NEXT/PREVIOUS behavior across manufacturers: **PENDING**.
-- Saved library upgrade/data persistence across reinstall: **NOT PROMISED**.
+## Not verified / open risks
+- Android build of v0.6: **NOT RUN HERE** (no configured Android SDK / dependency network in this environment).
+- Live \`Baby shark\` search: **NOT VERIFIED**.
+- UI transitions, full-screen dialog, device sizes and window insets: **NOT DEVICE TESTED**.
+- Screen-off playlist auto-next after this revision: **NOT DEVICE TESTED**.
+- YouTube's upstream search implementation can change; code-level fallback cannot promise results from every query.
 
-## User validation required
-1. Download a fresh ZIP from GitHub and build with \`build-windows.cmd\`.
-2. Install the new \`dist\NightWave-debug.apk\` over the old app without uninstalling.
-3. Search \`Adele Hello\` in Songs and Videos, then tap a result.
-4. Like it; create a playlist and add 3–4 results. Switch between Home and Library.
-5. Play the playlist, lock the display, and let two consecutive songs finish.
-6. Test next/previous with Bluetooth and the queue dialog. Reopen the app and verify saved favorites/queue.
-7. Report the first compiler error if the build fails; don't remove the working app until validated.
+## Test on Windows + S24 Ultra
+1. Download a fresh main-branch repository ZIP, extract to a clean folder, run \`build-windows.cmd\`.
+2. If compilation fails, leave the old APK installed; report first Gradle \`e:\`/FAILURE section.
+3. Install newly generated \`dist\NightWave-debug.apk\` without uninstalling.
+4. Search \`Baby shark\`, \`Adele Hello\`, \`lofi hip hop\` in Songs, then in Videos. Expect usable results or an explanatory error with retry options.
+5. Open 3 songs, test playback, screen-off continuity, queue progression, shuffle, favorites and playlists.
+6. Test all 3 navigation tabs, rotating device, screen locked, Bluetooth controls and Now Playing seek.
+7. If search still fails, capture app error and \`adb logcat -d -s NightWaveSearch:D\` if available. Do not upload private tokens or device-wide unfiltered logs.
 
-No GitHub-hosted runner is used for the free local build.
+Build/release is **pending local compilation and user validation**.
