@@ -1,33 +1,28 @@
-# NightWave v0.2 — Verification report
+# NightWave v0.4 — verification status
 
 Date: 2026-10-17
 
-## Passed locally
+## Verified baseline
+- User completed a successful Windows Gradle APK build of the previous NightWave version.
+- User reports all five S24 Ultra playback checks passed, including screen-off music and Bluetooth controls.
+- Those results are not proof that the new v0.4 search UI works.
 
-- Kotlin parser smoke runner compiled with `kotlinc` and executed: **PASS**.
-- 10 accepted YouTube video links: **PASS**.
-- 9 invalid/deceptive link samples rejected: **PASS**.
-- 4 duration-formatting cases: **PASS**.
-- 10 Android XML documents parse: **PASS**.
-- 14 view IDs exist; all 13 referenced view properties are declared: **PASS**.
-- Media session/service declaration, required permissions, no-cleartext flag: **PASS**.
-- Build configuration pinned to `com.github.TeamNewPipe:NewPipeExtractor:v0.26.5` (upstream case): **PASS static check only**.
-- GitHub Actions workflow includes static checks, Android unit tests, debug APK build, and artifact upload: **PASS static check only**.
+## v0.4 changes
+- Search-first layout with 16:9 thumbnail results and metadata.
+- Free-form song and artist searches with Songs and Videos tabs.
+- YouTube Music songs filter with regular video-search fallback.
+- Link parsing and Media3 playback service preserved.
 
-## Not verified
+## Source checks
+- Kotlin smoke tests: 10 valid URLs, 9 rejected URLs, 4 time labels, 5 song-name queries plus URL/blank/bad-link classification: PASS.
+- Offline XML parser: 12 XML documents and view-binding IDs: PASS.
+- Android manifest, Media3 foreground service and CI wiring: PASS.
 
-- **APK has not been built**: Android SDK and Gradle are not installed here and outbound access to install them is unavailable.
-- JitPack and Google Maven dependencies have **not** been remotely resolved.
-- No live YouTube search or stream playback could be tested in this runtime.
-- No Android phone/emulator was connected; lock-screen and Bluetooth behavior unverified.
-- The private GitHub repository **exists** at `Nahian2002/NightWave`, and the source plus Windows no-billing local build scripts were uploaded.
-- GitHub Actions jobs failed **before startup** with an account-level billing/spending limit restriction; the Android project was not compiled by those runs.
-- The Windows build bootstrap is untested on Windows because this environment cannot access Gradle/SDK downloads or execute Windows batch/PowerShell.
+## Pending
+- This environment cannot compile the Android app; v0.4 still needs a Windows APK build.
+- Live network search and physical-device playback need verification.
+- YouTube can change its search/stream implementations, so success is not guaranteed.
 
-The checks above are not a replacement for a successful GitHub Actions run and physical Android validation.
-
-## No-billing local build route
-
-- `build-windows.cmd` invokes `tools/build-windows.ps1`.
-- On a 64-bit Windows PC the script checks for JDK 17+, installs build tools from Google/Gradle/Adoptium, accepts SDK licenses interactively, runs `:app:testDebugUnitTest` and `:app:assembleDebug`, and copies a successful artifact to `dist/NightWave-debug.apk`.
-- The script has been reviewed statically; **actual successful APK compilation is still pending**. GitHub Actions was changed to manual-only to avoid known-blocked automatic attempts.
+## Next step
+Download a fresh GitHub NightWave ZIP; extract; run build-windows.cmd; install dist/NightWave-debug.apk.
+Search `Adele Hello`, try Songs and Videos, tap a result, lock the screen, and verify audio continues.
