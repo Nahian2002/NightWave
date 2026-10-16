@@ -1,45 +1,45 @@
-# NightWave v0.6 — verification and regression report
+# NightWave v0.7 — QA & regression status
 Date: 2026-10-17
 
-## Verified user observations
-- Previous NightWave Android APK built successfully with the provided Windows \`build-windows.cmd\`.
-- User confirmed screen-off playback and Bluetooth play/pause on Samsung S24 Ultra.
-- User reported the v0.5 song-name search displays **No matches found** for \`Baby shark\`. This is a real observed defect, not a misspelled query.
+## Confirmed on the user's device before v0.7
+- A prior debug APK compiled with the free Windows toolchain.
+- Direct YouTube-link streaming, locked-screen background playback and Bluetooth controls were reported working.
+- Song-name searches in v0.6 failed: the screenshot showed \`videos: raw=0, streams=0, errors=4\` and \`all: raw=0\`. Filtering or ranking empty lists was not the solution.
 
-## Changes committed
-- Normal public YouTube video search is tried first for both Songs and Videos.
-- Only after empty/unparseable results are the ALL and MUSIC_SONGS filters tried.
-- Relative \`/watch?v=...\` and \`/shorts/...\` result URLs are normalized safely; other domains are rejected.
-- Music matches are scored and sorted without deleting otherwise-usable results.
-- Search diagnostic logs count returned elements, stream elements, parse success and errors.
-- Search errors include Retry and Try Videos actions. No false "song does not exist" claim.
-- New original Midnight Sessions visual identity with violet/aqua/navy palette, Home hero, music cards, full-height Now Playing, mini-player artwork and animations.
-- Foreground Media3 playback service, YouTube stream resolver, saved library and queue code preserved.
-- Version bumped to 0.6.0, versionCode 6.
+## v0.7 changes committed
+- Public community-search provider uses documented Invidious \`/api/v1/search?q=...&type=video&sort=relevance\`.
+- Multiple maintained public instances from the official list, short HTTPS requests with no redirects, and strict JSON video parsing.
+- Existing NewPipe video search is tried first. Empty+error returns switch to the independent provider.
+- Search results cache for 10 minutes; 11-character video ID validation; public videos only; premium/paid entries filtered.
+- Android JVM tests added: parser fixtures, rejecting invalid JSON, dedupe, query encoding, HTTP 503 failover with local MockWebServer.
+- Home and Search now offer six genuine discovery search actions: Night Drive, Lofi, Bangla, Workout, Bollywood, Acoustic.
+- Library has visual collection tiles, playlists, queue, listening history, and manual YouTube link save path.
+- Search errors present concise retry text and an expandable diagnostics panel. Community-provider usage is stated in UI and README.
+- Existing Media3 playback service, playlists and queue remain in place.
+- VersionCode 7 / versionName 0.7.0.
 
-## Source checks performed
-- Current GitHub main inspected for required files, drawables and ID references.
-- 34 unique view IDs; no missing ActivityMainBinding references.
-- All additionally referenced drawable names found or confirmed present in the repo.
-- Activity and gateway braces balanced in static source inspection.
-- Search fallback order and diagnostics paths reviewed.
-- Existing media-session foreground player and automatic next-song logic still present.
-- Kotlin smoke-test attempt in this isolated container timed out; **not counted as passed**.
+## Checks performed in this environment
+- Search defect diagnosis from the user's exact screenshot: completed.
+- Upstream API documentation/schema and public-instance list checked: completed.
+- Static inspection of the core code paths and Kotlin constructs: completed.
+- Tests written in repository: YES (but not executed by Android Gradle here).
+- Full Android Gradle compilation: NOT RUN HERE (no Android SDK/Gradle dependency download capability).
+- Live search across community servers: NOT VERIFIED HERE (runtime has no outbound networking).
+- Android UI/animation testing: NOT RUN HERE.
 
-## Not verified / open risks
-- Android build of v0.6: **NOT RUN HERE** (no configured Android SDK / dependency network in this environment).
-- Live \`Baby shark\` search: **NOT VERIFIED**.
-- UI transitions, full-screen dialog, device sizes and window insets: **NOT DEVICE TESTED**.
-- Screen-off playlist auto-next after this revision: **NOT DEVICE TESTED**.
-- YouTube's upstream search implementation can change; code-level fallback cannot promise results from every query.
+## Acceptance test before treating v0.7 as working
+1. Download fresh GitHub repository ZIP, extract, run build-windows.cmd.
+2. Ensure \`:app:testDebugUnitTest\` and \`:app:assembleDebug\` both pass. Don't uninstall your working version on failure.
+3. Install new \`dist\NightWave-debug.apk\` in place on Samsung.
+4. Search "Baby shark", "saiyara", "Bangla music", "Adele Hello" and test Songs/Videos.
+5. Tap any real result, lock screen, verify audio continues.
+6. Test mood tiles, local playlists, queue, favorites, history, and manual YouTube link saving.
+7. On failure open **Connection details**; report provider errors. Logs (optional): \`adb logcat -d -s NightWaveSearch:D\`.
 
-## Test on Windows + S24 Ultra
-1. Download a fresh main-branch repository ZIP, extract to a clean folder, run \`build-windows.cmd\`.
-2. If compilation fails, leave the old APK installed; report first Gradle \`e:\`/FAILURE section.
-3. Install newly generated \`dist\NightWave-debug.apk\` without uninstalling.
-4. Search \`Baby shark\`, \`Adele Hello\`, \`lofi hip hop\` in Songs, then in Videos. Expect usable results or an explanatory error with retry options.
-5. Open 3 songs, test playback, screen-off continuity, queue progression, shuffle, favorites and playlists.
-6. Test all 3 navigation tabs, rotating device, screen locked, Bluetooth controls and Now Playing seek.
-7. If search still fails, capture app error and \`adb logcat -d -s NightWaveSearch:D\` if available. Do not upload private tokens or device-wide unfiltered logs.
+## Risks
+- Independent public instances may be blocked, rate-limited or unavailable in a given location.
+- NewPipe stream resolution is still required for playback: a returned video may be unplayable if YouTube changes playback extraction.
+- Saved playlists must not be erased while installing; use in-place debug APK update signed by the same PC.
+- Avoid private search text: a third-party community instance can receive search queries.
 
-Build/release is **pending local compilation and user validation**.
+**Result: source update complete. v0.7 APK build and actual search/playback regressions PENDING.**
