@@ -90,6 +90,9 @@ class MainActivity : Activity() {
         setContentView(binding.root)
         thumbs = ThumbnailLoader(this)
         library = MusicLibrary(this)
+        val restoredQueue = QueueStateStore(this).read()
+        shuffle = restoredQueue.shuffle
+        repeat = restoredQueue.repeat.ordinal
         if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 100)
         }
@@ -99,6 +102,9 @@ class MainActivity : Activity() {
         binding.libraryTab.setOnClickListener { openPage(Page.LIBRARY) }
         binding.prevTrackButton.setOnClickListener { sendQueueAction(PlaybackService.ACTION_PREVIOUS) }
         binding.nextTrackButton.setOnClickListener { sendQueueAction(PlaybackService.ACTION_NEXT) }
+        binding.shuffleButton.setTextColor(
+            if (shuffle) Color.rgb(178, 243, 105) else Color.rgb(185, 201, 177)
+        )
         binding.shuffleButton.setOnClickListener {
             shuffle = !shuffle
             sendQueueAction(PlaybackService.ACTION_SHUFFLE)
