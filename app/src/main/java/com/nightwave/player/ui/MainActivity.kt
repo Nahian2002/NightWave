@@ -173,6 +173,11 @@ class MainActivity : Activity() {
         })
         handleIncoming(intent)
         openPage(Page.HOME)
+        intent?.getStringExtra("nightwave_web_search")?.takeIf { it.isNotBlank() }?.let { term ->
+            openPage(Page.SEARCH)
+            binding.searchBox.setText(term)
+            openYouTubeWebsite(term)
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -809,6 +814,10 @@ class MainActivity : Activity() {
         sectionTitle("Browse by mood")
         showMoodGrid()
         labelAction("Search for an exact song or artist") { openPage(Page.SEARCH) }
+        sectionTitle("NightWave 2.0 · Design preview")
+        labelAction("✦  Explore the new premium interface") {
+            startActivity(Intent(this, com.nightwave.player.v2.ui.NightWaveStudioActivity::class.java))
+        }
     }
 
     /** Library with real saved state and working actions, including a link-import recovery path. */
