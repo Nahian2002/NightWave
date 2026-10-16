@@ -9,6 +9,7 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
     enum class Repeat { OFF, ALL, ONE }
     private val entries = mutableListOf<QueueEntry>()
     private val visited = ArrayDeque<Int>()
+    private val shuffledSeen = mutableSetOf<Int>()
     var index: Int = -1
         private set
     var shuffle: Boolean = false
@@ -21,6 +22,7 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
         entries.clear()
         entries.addAll(items.distinctBy { it.url }.take(100))
         visited.clear()
+        shuffledSeen.clear()
         index = if (entries.isEmpty()) -1 else selected.coerceIn(0, entries.lastIndex)
         return current
     }
@@ -37,7 +39,13 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
         if (automatic && repeat == Repeat.ONE) return current
         val target = when {
             shuffle && entries.size > 1 -> {
-                val candidates = entries.indices.filter { it != index }
+                if (index >= 0) shuffledSeen.add(index)
+                var candidates = entries.indices.filter { it !in shuffledSeen }
+                if (candidates.isEmpty() && repeat == Repeat.ALL) {
+                    shuffledSeen.clear()
+                    candidates = entries.indices.filter { it != index }
+                }
+                if (candidates.isEmpty()) return null
                 candidates[pick(candidates.size).coerceIn(0, candidates.lastIndex)]
             }
             index < entries.lastIndex -> index + 1
@@ -70,6 +78,7 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
     fun reset() {
         entries.clear()
         visited.clear()
+        shuffledSeen.clear()
         index = -1
     }
 }
