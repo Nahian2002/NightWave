@@ -99,6 +99,10 @@
                 android:layout_weight="1" android:layout_height="42dp" android:gravity="center"
                 android:text="+ Playlist" android:textColor="#B2F369" android:textSize="13sp"
                 android:clickable="true" android:focusable="true" />
+            <TextView android:id="@+id/queueButton" android:layout_width="0dp"
+                android:layout_weight="1" android:layout_height="42dp" android:gravity="center"
+                android:text="≡ Queue" android:textColor="#F2F6F2" android:textSize="13sp"
+                android:clickable="true" android:focusable="true"/>
             <TextView android:id="@+id/nowPlayingButton" android:layout_width="0dp"
                 android:layout_weight="1" android:layout_height="42dp" android:gravity="center"
                 android:text="NOW PLAYING ↗" android:textColor="#F2F6F2"
