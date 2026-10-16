@@ -39,6 +39,32 @@ class MusicLibrary(context: Context) {
         return true
     }
 
+    fun deletePlaylist(name: String): Boolean {
+        val names = playlistNames()
+        if (!names.contains(name)) return false
+        prefs.edit()
+            .putString("playlist_names", JSONArray(names.filter { it != name }).toString())
+            .remove("list_" + name)
+            .apply()
+        return true
+    }
+
+    fun renamePlaylist(old: String, newName: String): Boolean {
+        val names = playlistNames()
+        val nextName = newName.trim().take(60)
+        if (!names.contains(old) || nextName.isEmpty() ||
+            names.any { it.equals(nextName, true) && it != old }) return false
+        if (old == nextName) return true
+        val songs = playlist(old)
+        val nextNames = names.map { if (it == old) nextName else it }
+        write("list_" + nextName, songs)
+        prefs.edit()
+            .putString("playlist_names", JSONArray(nextNames).toString())
+            .remove("list_" + old)
+            .apply()
+        return true
+    }
+
     fun playlist(name: String): List<VideoPreview> =
         if (playlistNames().contains(name)) read("list_" + name) else emptyList()
 
