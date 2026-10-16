@@ -3,6 +3,7 @@ package com.nightwave.player.net
 import com.nightwave.player.core.VideoLink
 import org.schabi.newpipe.extractor.NewPipe
 import org.schabi.newpipe.extractor.search.SearchInfo
+import org.schabi.newpipe.extractor.services.youtube.linkHandler.YoutubeSearchQueryHandlerFactory
 import org.schabi.newpipe.extractor.stream.DeliveryMethod
 import org.schabi.newpipe.extractor.stream.StreamInfo
 import org.schabi.newpipe.extractor.stream.StreamInfoItem
@@ -11,19 +12,41 @@ import org.schabi.newpipe.extractor.stream.StreamInfoItem
 data class VideoPreview(val title: String, val author: String, val url: String, val thumbnail: String, val durationSeconds: Long)
 data class PlayableAudio(val video: VideoPreview, val audioUrl: String, val mimeType: String? = null)
 
+enum class SearchMode { SONGS, VIDEOS }
+data class VideoSearchResults(val videos: List<VideoPreview>, val usedVideoFallback: Boolean)
+
 class YouTubeGateway {
-    fun search(query: String): List<VideoPreview> {
+    /** Prefer song-name matches, fall back to public YouTube videos when music search fails. */
+    fun search(query: String, mode: SearchMode): VideoSearchResults {
+        val trimmed = query.trim()
+        require(trimmed.isNotEmpty()) { "Enter a song or artist name" }
+        if (mode == SearchMode.VIDEOS) return VideoSearchResults(searchWithFilter(trimmed, YoutubeSearchQueryHandlerFactory.VIDEOS), false)
+        val songs = runCatching { searchWithFilter(trimmed, YoutubeSearchQueryHandlerFactory.MUSIC_SONGS) }
+        if (songs.isSuccess && songs.getOrThrow().isNotEmpty()) {
+            return VideoSearchResults(songs.getOrThrow(), false)
+        }
+        return try {
+            VideoSearchResults(searchWithFilter(trimmed, YoutubeSearchQueryHandlerFactory.VIDEOS), true)
+        } catch (fallbackError: Exception) {
+            songs.exceptionOrNull()?.let { throw it }
+            throw fallbackError
+        }
+    }
+
+    private fun searchWithFilter(query: String, filter: String): List<VideoPreview> {
         val service = NewPipe.getService("YouTube")
-        val result = SearchInfo.getInfo(service.getSearchExtractor(query))
-        return result.relatedItems.filterIsInstance<StreamInfoItem>().map { item ->
+        val extractor = service.getSearchExtractor(query, listOf(filter), "")
+        val info = SearchInfo.getInfo(extractor)
+        return info.relatedItems.filterIsInstance<StreamInfoItem>().mapNotNull { item ->
+            val url = VideoLink.normalize(item.url) ?: return@mapNotNull null
             VideoPreview(
                 title = item.name,
                 author = item.uploaderName ?: "YouTube creator",
-                url = item.url,
+                url = url,
                 thumbnail = item.thumbnails.firstOrNull()?.url ?: "",
                 durationSeconds = item.duration
             )
-        }
+        }.distinctBy { it.url }
     }
 
     fun resolve(url: String): PlayableAudio {
