@@ -1,5 +1,7 @@
 import com.nightwave.player.core.TimeLabel
 import com.nightwave.player.core.VideoLink
+import com.nightwave.player.core.SearchInput
+import com.nightwave.player.core.SearchInputResolver
 
 fun main() {
     fun expect(actual: String?, expected: String?) { check(actual == expected) { "Got $actual, expected $expected" } }
@@ -24,5 +26,11 @@ fun main() {
     listOf(0L to "0:00", 62_000L to "1:02", 3_600_000L to "1:00:00", -8L to "0:00").forEach {
         expect(TimeLabel.format(it.first), it.second)
     }
+    val nameQueries = listOf("shape of you", "Adele Hello", "আকাশ", "Punjabi songs 2026", "lofi hip hop")
+    nameQueries.forEach { check(SearchInputResolver.resolve(it) == SearchInput.Keywords(it)) }
+    check(SearchInputResolver.resolve(" https://youtu.be/dQw4w9WgXcQ ") == SearchInput.VideoUrl(known))
+    check(SearchInputResolver.resolve(" ") == SearchInput.Blank)
+    check(SearchInputResolver.resolve("https://youtube.com/watch?v=bad") == SearchInput.BadLink)
+    println("PASS: ${nameQueries.size} free-form song names route to search; direct link, blank and malformed links classified")
     println("PASS: ${good.size} valid links, ${bad.size} rejected links, 4 duration labels")
 }
