@@ -576,72 +576,114 @@ class MainActivity : Activity() {
     private fun sectionTitle(title: String) {
         binding.resultsContainer.addView(TextView(this).apply {
             text = title
-            setTextColor(Color.rgb(242, 246, 242))
-            textSize = 19f
-            typeface = Typeface.DEFAULT_BOLD
-            setPadding(dp(4), dp(22), dp(4), dp(12))
+            setTextColor(Color.rgb(248, 248, 255))
+            textSize = 20f
+            letterSpacing = -0.022f
+            typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+            setPadding(dp(4), dp(24), dp(4), dp(13))
         })
     }
 
     private fun labelAction(label: String, tap: () -> Unit) {
         binding.resultsContainer.addView(TextView(this).apply {
-            text = label
-            setTextColor(Color.rgb(178, 243, 105))
-            textSize = 15f
-            typeface = Typeface.DEFAULT_BOLD
-            setPadding(dp(16), dp(15), dp(16), dp(15))
-            background = GradientDrawable().apply {
-                setColor(Color.rgb(26, 34, 27))
-                cornerRadius = dp(14).toFloat()
+            text = label + "   ↗"
+            setTextColor(Color.rgb(210, 204, 255))
+            textSize = 14f
+            typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+            setPadding(dp(18), dp(17), dp(16), dp(17))
+            setBackgroundResource(R.drawable.bg_result_item)
+            elevation = dp(2).toFloat()
+            isClickable = true
+            isFocusable = true
+            setOnClickListener {
+                animate().scaleX(0.97f).scaleY(0.97f).setDuration(75).withEndAction {
+                    animate().scaleX(1f).scaleY(1f).setDuration(125).start()
+                }.start()
+                tap()
             }
-            setOnClickListener { tap() }
         }, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(11) })
     }
 
     private fun showHome() {
-        binding.resultsHeading.text = "Good to have you back"
-        showStatus("Your music, your mood. No account required.")
+        binding.resultsHeading.text = "Made for your mood."
+        showStatus("Your own listening space, always on.")
         val hero = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(20), dp(24), dp(14), dp(24))
+            setBackgroundResource(R.drawable.bg_hero)
+            elevation = dp(4).toFloat()
+            isClickable = true
+            isFocusable = true
+            contentDescription = "Explore music"
+        }
+        val copy = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(22), dp(23), dp(22), dp(23))
+            layoutParams = LinearLayout.LayoutParams(0, -2, 1f)
+        }
+        copy.addView(TextView(this).apply {
+            text = "✦  YOUR NEXT OBSESSION"
+            textSize = 10f
+            letterSpacing = 0.12f
+            typeface = Typeface.DEFAULT_BOLD
+            setTextColor(Color.rgb(183, 232, 233))
+        })
+        copy.addView(TextView(this).apply {
+            text = "Press play.\nFade away."
+            textSize = 28f
+            typeface = Typeface.create("sans-serif-black", Typeface.BOLD)
+            letterSpacing = -0.04f
+            setTextColor(Color.WHITE)
+            setPadding(0, dp(14), 0, dp(14))
+        })
+        copy.addView(TextView(this).apply {
+            text = "Millions of public videos to explore.\nYour soundtrack, your rules."
+            textSize = 12f
+            setTextColor(Color.rgb(216, 215, 241))
+            setLineSpacing(dp(3).toFloat(), 1f)
+        })
+        copy.addView(TextView(this).apply {
+            text = "EXPLORE  ↗"
+            textSize = 12f
+            typeface = Typeface.DEFAULT_BOLD
+            setTextColor(Color.rgb(199, 192, 255))
+            setPadding(0, dp(21), 0, 0)
+        })
+        hero.addView(copy)
+        val emblem = TextView(this).apply {
+            text = "◉"
+            gravity = Gravity.CENTER
+            textSize = 78f
+            setTextColor(Color.rgb(173, 226, 238))
+            rotation = -18f
             background = GradientDrawable(
                 GradientDrawable.Orientation.TL_BR,
-                intArrayOf(Color.rgb(51, 86, 57), Color.rgb(27, 39, 35), Color.rgb(19, 25, 27))
-            ).apply { cornerRadius = dp(22).toFloat() }
+                intArrayOf(Color.rgb(82, 74, 159), Color.rgb(35, 130, 151))
+            ).apply { cornerRadius = dp(19).toFloat() }
+            elevation = dp(8).toFloat()
+            layoutParams = LinearLayout.LayoutParams(dp(102), dp(124)).apply {
+                marginStart = dp(13)
+            }
         }
-        hero.addView(TextView(this).apply {
-            text = "JUST PRESS PLAY"
-            textSize = 11f
-            typeface = Typeface.DEFAULT_BOLD
-            setTextColor(Color.rgb(178, 243, 105))
-        })
-        hero.addView(TextView(this).apply {
-            text = "Find the sound\nfor right now."
-            textSize = 30f
-            typeface = Typeface.DEFAULT_BOLD
-            setTextColor(Color.WHITE)
-            setPadding(0, dp(10), 0, dp(10))
-        })
-        hero.addView(TextView(this).apply {
-            text = "Search songs, build playlists and listen with the screen off."
-            textSize = 13f
-            setTextColor(Color.rgb(207, 222, 210))
-        })
+        hero.addView(emblem)
         hero.setOnClickListener { openPage(Page.SEARCH) }
-        binding.resultsContainer.addView(hero, LinearLayout.LayoutParams(-1, -2))
+        binding.resultsContainer.addView(hero, LinearLayout.LayoutParams(-1, -2).apply {
+            bottomMargin = dp(8)
+        })
         val recent = library.recent()
         if (recent.isNotEmpty()) {
-            sectionTitle("Recently played")
-            recent.take(6).forEach { addVideoCard(it, recent) }
+            sectionTitle("↺  Back in rotation")
+            recent.take(5).forEach { addVideoCard(it, recent) }
         }
         val favorites = library.favorites()
-        sectionTitle("Liked songs  ♥")
+        sectionTitle("♥  On repeat")
         if (favorites.isEmpty()) {
-            labelAction("♡  Save your favorite songs while listening") { openPage(Page.SEARCH) }
+            labelAction("Save your favorites here") { openPage(Page.SEARCH) }
         } else {
             favorites.take(5).forEach { addVideoCard(it, favorites) }
         }
-        labelAction("⌕  Search more music") { openPage(Page.SEARCH) }
+        sectionTitle("Find something new")
+        labelAction("Explore songs, artists and videos") { openPage(Page.SEARCH) }
     }
 
     private fun showLibrary() {
