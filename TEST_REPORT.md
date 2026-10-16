@@ -9,7 +9,7 @@ Date: 2026-10-17
 
 ## Newly implemented in v0.5
 - Home/Search/Library navigation, track rows and now-playing dialog.
-- Favorites, recent history, named playlists, save/remove actions stored on-device.
+- Favorites, recent history, named playlists, save/remove/rename/delete actions stored on-device.
 - Playing queue, per-track jump, next/previous, shuffle/repeat and queue snapshot recovery.
 - Service-owned auto-advance after \`Player.STATE_ENDED\`, resolved on a worker thread with request-generation invalidation.
 - Bluetooth NEXT/PREVIOUS key handling, preserving existing Media3 play/pause handling.
@@ -17,9 +17,9 @@ Date: 2026-10-17
 
 ## Completed checks
 - Kotlin 1.9 JVM compilation of the queue engine: PASS after fixing an unsupported deque append call.
-- Kotlin smoke harness: PASS (38 transitions/edge cases, including shuffle, repeat one/all/off, history, jump bounds, 100-item cap).
+- Kotlin 1.9 smoke harness: PASS (38 queue transitions/edge cases, including shuffle exhaustion, repeat one/all/off, navigation history, jump bounds, 100-item cap).
 - GitHub verification: all new Kotlin files, queue persistence, UI and resources confirmed uploaded.
-- ViewBinding static check: 30 layout IDs, all referenced UI bindings present. PASS.
+- Post-upgrade ViewBinding static check: 32 unique layout IDs, all referenced UI bindings present, and paired Kotlin brace counts match. PASS.
 - MediaSessionService, audio stream resolver and foreground media service remain installed.
 
 ## Not yet verified
