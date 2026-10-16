@@ -1,10 +1,39 @@
-# NightWave — YouTube-style Android audio player (v0.4)
+# NightWave v0.5 — personal streaming music player for Android
 
 An independently developed **Android app source project** for searching public videos and listening to supported audio streams with the phone locked. Built with native Kotlin UI, [NewPipeExtractor](https://github.com/TeamNewPipe/NewPipeExtractor), and AndroidX Media3.
 
-> **Status:** The user successfully built the previous NightWave APK on Windows and reported all five real-phone playback checks passed on a Samsung Galaxy S24 Ultra. v0.4 keyword search and new layout are not yet compiled or tested on Android. This is an unofficial YouTube client.
+> **Status:** v0.5 is uploaded as source and has not yet passed an Android APK build or physical-phone regression test. A previous NightWave version built successfully on the owner's Windows PC and passed five S24 Ultra playback checks. Install the new version only after building and testing it.
 
-## What's new in v0.4
+## NightWave v0.5 — music app upgrade
+
+**Spotify-inspired, not a Spotify clone or Spotify catalog client.** NightWave uses its own identity and streams extraction-supported *public YouTube* videos. It does not integrate Spotify accounts, Spotify recommendations, DRM media, licensed catalog sync or offline downloads.
+
+- **Home / Search / Library** tabs, an editorial welcome panel and music-first track rows.
+- **Search by any song name or artist**; Songs and Videos filters, public YouTube fallback, result thumbnails.
+- **Liked Songs** saved locally, including restoring favorites after restarting the app.
+- **Create personal playlists**, save tracks with ⋮ and remove entries from playlists.
+- **Listening history** and a home screen with recently played songs.
+- **Up Next queue**, from search results or saved playlists. Add more tracks via ⋮; jump to one from the queue view.
+- **Shuffle, repeat off/all/one**, next/previous in the player, plus Bluetooth next/previous interception.
+- **Auto-next with the screen locked**: the existing media playback service owns playlist advancement and resolves the next track when playback ends. Stream URLs are resolved just-in-time rather than stored.
+- **Persisted queue state**: current index and shuffle/repeat settings are kept on-device so a service restart can restore the list.
+- Retains Media3 lock-screen/notification play/pause, seeking, Bluetooth controls and audio-only stream preference.
+- No root, login, payment, paid GitHub runner, or broad file storage permission needed.
+
+**Important limitations:** NightWave cannot promise access to every YouTube video or Spotify parity. Extractor failures, ads, copyright, restrictions, region blocks, service changes and background behavior on individual devices can affect playback. Queue recovery restores the list, not guaranteed automatic restart of audio after a force-stop or reboot.
+
+## Rebuild on Windows without GitHub billing
+
+1. Visit the **private** repository \`https://github.com/Nahian2002/NightWave\` and choose **Code → Download ZIP**. Extract into a **new** folder, not the old v0.4 folder.
+2. Double-click \`build-windows.cmd\`. It downloads required free toolchain components only on the first run and uses cached downloads later.
+3. Wait until \`BUILD SUCCESS\`; copy \`dist\NightWave-debug.apk\` to your Android phone.
+4. Because \`applicationId\` and signing setup remain unchanged for the local debug build, it should install over the previous NightWave debug build. If Android reports a signing conflict, **back up anything important before uninstalling** — locally saved favorites and playlists are deleted by uninstall.
+5. Open NightWave, tap Search, search a song, open ⋮ on any track to like/add to playlist/add to queue, and try Home and Library.
+6. Play a 3–4 song list, lock the screen, leave it playing through multiple tracks, and test next/previous with Bluetooth.
+
+**If a build fails, do not delete the installed version.** Save the terminal output, especially the first \`e:\` Kotlin error or \`FAILURE:\` Gradle section. No APK is verified until a successful build.
+
+## Previous v0.4 search upgrade
 
 - **Type any song or artist name** (e.g., `Adele Hello`); full video links are not needed.
 - Search bar at the top, familiar large thumbnails, titles, channels and duration labels.
@@ -62,9 +91,9 @@ The script uses only local Windows resources; it **does not** use GitHub-hosted 
 
 - Does not and cannot promise **literally every** YouTube video. Age-gated, private, region-restricted, premium, DRM-protected, or extractor-incompatible videos may fail.
 - The app prefers progressive HTTP audio streams, with fallback to combined audio/video and HLS/DASH manifests when available. Some videos still use unsupported formats, and signed stream URLs expire. Re-select the video to refresh an expired URL.
-- Search covers videos but not playlists/channels or a signed-in watch history. No queue, downloads or login in v0.4.
+- Search covers videos but not playlists/channels or a signed-in watch history. No downloads or Spotify login; queues and playlists are included in v0.5.
 - YouTube's API policies disallow background playing/separating streams. This prototype uses an unofficial extractor rather than the YouTube API and may conflict with platform terms. It is not intended for distribution on the Play Store without a full legal/policy review.
-- v0.4 passed source-level checks and Kotlin input-routing tests, but **v0.4 has not been compiled or live-tested** in this environment. The user confirmed a previous version compiled and played with the screen off.
+- v0.5 passed source-level inspections and a standalone Kotlin queue regression suite. A full v0.5 Gradle build, on-device queue auto-advance and locked-screen regression tests are still required.
 
 ## Testing after you build
 
@@ -95,4 +124,4 @@ The implementation is intended as a private experimental app and uses NewPipeExt
 
 ## Repository publication status
 
-The repository exists at https://github.com/Nahian2002/NightWave. GitHub Actions runs were blocked *before a runner started* by a GitHub account billing restriction. Use `build-windows.cmd` to compile without GitHub billing. The previous APK build and screen-off playback passed on the user's device; new v0.4 search still needs rebuild and validation.
+The repository exists at https://github.com/Nahian2002/NightWave. GitHub Actions runs were blocked *before a runner started* by a GitHub account billing restriction. Use `build-windows.cmd` to compile without GitHub billing. The prior APK build and screen-off playback passed on the user's device; new v0.5 library, queue and search still need rebuild and validation.
