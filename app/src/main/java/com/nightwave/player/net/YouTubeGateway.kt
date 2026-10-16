@@ -22,49 +22,77 @@ data class VideoSearchResults(
 /** Public video search; never hides extraction failures as an ordinary empty result. */
 class YouTubeGateway {
     private val maxResults = 55
+    private val alternate = CommunityVideoSearch()
+    private val memoryCache = LinkedHashMap<String, Pair<Long, VideoSearchResults>>(12, .75f, true)
+
+    @Synchronized private fun cached(key: String): VideoSearchResults? {
+        val item = memoryCache[key] ?: return null
+        return item.second.takeIf { android.os.SystemClock.elapsedRealtime() - item.first < 600_000 }
+    }
+    @Synchronized private fun remember(key: String, result: VideoSearchResults) {
+        memoryCache[key] = android.os.SystemClock.elapsedRealtime() to result
+        while (memoryCache.size > 12) memoryCache.remove(memoryCache.keys.first())
+    }
 
     fun search(query: String, mode: SearchMode): VideoSearchResults {
-        val text = query.trim()
+        val text = query.trim().take(160)
         require(text.isNotBlank()) { "Please enter a song name or artist" }
-        val diagnostics = mutableListOf<String>()
-        val errors = mutableListOf<Throwable>()
+        val key = mode.name + "|" + text.lowercase(java.util.Locale.ROOT)
+        cached(key)?.let { return it }
 
-        // Normal video search is primary. YouTube Music filters may return no playable streams.
+        val diagnostics = mutableListOf<String>()
+        // Existing extractor first. If a source returns no items *and* parsing
+        // exceptions, don't retry three equivalent queries against the same
+        // failing backend. Use the independent provider instead.
         val filters = listOf(
             YoutubeSearchQueryHandlerFactory.VIDEOS,
-            YoutubeSearchQueryHandlerFactory.ALL,
-            YoutubeSearchQueryHandlerFactory.MUSIC_SONGS
+            YoutubeSearchQueryHandlerFactory.ALL
         )
-        var found = emptyList<VideoPreview>()
-        var winningFilter = ""
         for (filter in filters) {
             val attempt = runCatching { searchWithFilter(text, filter) }
             attempt.onSuccess { (videos, report) ->
                 diagnostics.add(report)
                 if (videos.isNotEmpty()) {
-                    found = videos
-                    winningFilter = filter
+                    val ranked = if (mode == SearchMode.SONGS) sortMusicMatches(videos, text) else videos
+                    val result = VideoSearchResults(ranked.take(maxResults), false, "YouTube search")
+                    remember(key, result)
+                    return result
+                }
+                if (report.contains("raw=0") && !report.contains("errors=0")) {
+                    android.util.Log.w("NightWaveSearch", "Extractor parsing failed: " + report)
+                    break
                 }
             }.onFailure { error ->
-                errors.add(error)
-                diagnostics.add(filter + ": " + error.javaClass.simpleName + ": " + error.message?.take(110))
+                diagnostics.add(filter + ": " + error.javaClass.simpleName)
+                android.util.Log.w("NightWaveSearch", "Direct search failed, trying alternate provider", error)
             }
-            if (found.isNotEmpty()) break
         }
 
-        if (found.isEmpty()) {
-            android.util.Log.w("NightWaveSearch", "No results for: " + text + " | " + diagnostics.joinToString(" | "))
-            val reason = if (errors.size == filters.size) "YouTube search is unavailable right now."
-                else "Search returned no playable video entries."
-            throw IllegalStateException(reason + " Try again or update NightWave. Details: " +
-                diagnostics.take(2).joinToString(" • ").take(185), errors.firstOrNull())
+        // Only public title/artist search text is sent to one of the
+        // documented independent Invidious community servers. No login data.
+        val alternateResult = runCatching { alternate.search(text) }
+        alternateResult.onSuccess { fallback ->
+            if (fallback.videos.isNotEmpty()) {
+                val ranked = if (mode == SearchMode.SONGS) sortMusicMatches(fallback.videos, text)
+                    else fallback.videos
+                val result = VideoSearchResults(
+                    ranked.take(maxResults), true,
+                    "Results via independent community search (" + fallback.server + ")"
+                )
+                remember(key, result)
+                android.util.Log.i("NightWaveSearch", "Recovered " + ranked.size +
+                    " search results through " + fallback.server)
+                return result
+            }
         }
-        android.util.Log.i("NightWaveSearch", "Search success: " + text + " " + winningFilter + " | " + diagnostics.joinToString(" | "))
-        val ranked = if (mode == SearchMode.SONGS) sortMusicMatches(found, text) else found
-        return VideoSearchResults(
-            ranked.take(maxResults),
-            winningFilter != YoutubeSearchQueryHandlerFactory.MUSIC_SONGS,
-            if (mode == SearchMode.SONGS) "Top song and video matches" else "Public YouTube videos"
+        val failure = alternateResult.exceptionOrNull()
+        android.util.Log.e("NightWaveSearch",
+            "All search providers unavailable. Extractor: " + diagnostics.joinToString(" | "), failure)
+        throw IllegalStateException(
+            "Search providers are unavailable. Check your connection and retry. " +
+                "Extractor: " + diagnostics.take(1).joinToString().take(105) +
+                "; community: " + (failure?.message ?: "no results").take(125),
+            failure
         )
     }
 
