@@ -21,14 +21,14 @@ class CommunityVideoSearch(
         .callTimeout(6, TimeUnit.SECONDS)
         .connectTimeout(4, TimeUnit.SECONDS)
         .readTimeout(5, TimeUnit.SECONDS)
-        .build()
-) {
-    private val instances = listOf(
+        .build(),
+    private val instances: List<String> = listOf(
         "https://inv.nadeko.net",
         "https://invidious.nerdvpn.de",
         "https://invidious.tiekoetter.com",
         "https://yt.chocolatemoo53.com"
     )
+) {
 
     data class Result(val videos: List<VideoPreview>, val server: String)
 
