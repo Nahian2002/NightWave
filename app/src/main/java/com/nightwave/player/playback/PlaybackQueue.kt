@@ -50,6 +50,13 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
         return current
     }
 
+    fun jump(to: Int): QueueEntry? {
+        if (to !in entries.indices) return null
+        if (index >= 0 && index != to) visited.addLast(index)
+        index = to
+        return current
+    }
+
     fun previous(): QueueEntry? {
         if (visited.isNotEmpty()) {
             index = visited.removeLast()
