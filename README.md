@@ -1,185 +1,65 @@
-# NightWave v0.7 — Music Discovery & Library
+# NightWave
+### A personal Android music player · v0.7.0
 
-An independently developed **Android app source project** for searching public videos and listening to supported audio streams with the phone locked. Built with native Kotlin UI, [NewPipeExtractor](https://github.com/TeamNewPipe/NewPipeExtractor), and AndroidX Media3.
+NightWave is an experimental, independent Android music app. Explore public YouTube videos by song or artist name, maintain a local music library, and listen using Android's Media3 background player. **NightWave is not Spotify or YouTube, and it is not affiliated with either company.**
 
-> **Status:** v0.6 has been uploaded as source; its Android APK build and live song-name search remain unverified. A previous NightWave version built successfully on the owner's Windows PC and passed five S24 Ultra playback checks. Install the new version only after building and testing it.
+**Release status:** v0.7 source is uploaded, but the new search providers and UI have **not yet been verified on a physical phone**. An earlier version compiled on Windows and successfully played audio with the screen locked. See [TEST_REPORT.md](TEST_REPORT.md).
 
-## New in v0.7 — search reliability and a useful music library
+## Features
 
-### Why previous keyword searches returned no songs
-An on-phone diagnostic showed the NewPipe video extractor returned **raw=0, streams=0, errors=4** for a valid song query. The earlier video/music filter switching could not recover because the upstream extraction itself returned no content. The song was not necessarily absent from YouTube.
+- **Discover:** song/artist keyword search, video search, six tappable genres and moods (Bangla, Bollywood, Chill & Lofi, Night Drive, Workout, Acoustic).
+- **More resilient search:** use current NewPipe extraction, then attempt documented independent Invidious public search APIs when its search parser returns no results. Results include title, creator, duration and artwork.
+- **Library:** Liked Songs, local playlists (create/rename/delete), recent listening history, saved playback queue, and adding a public YouTube link to a playlist.
+- **Player:** audio-focused streaming, lock-screen/notification media controls, Bluetooth play/pause/next/previous, seek, shuffle/repeat, immersive Now Playing, and automatic next-song playback from the background service.
+- **Visual identity:** Midnight Sessions — navy, violet, aqua, layered cover art and native lightweight motion.
+- No root, YouTube/Spotify login, or payment required for this locally built personal prototype.
 
-### What has changed
-- **Two independent search mechanisms.** Try the existing YouTube/NewPipe extractor first. If it returns zero content with errors, use the independent [Invidious video search API](https://docs.invidious.io/api/) with fallback among public instances listed by its maintainers.
-- **Correct and testable JSON parsing:** valid video IDs, playable public video entries, actual artist/title/duration, duplicate removal and thumbnail URLs. Invalid responses are rejected. Songs are ranked by artist and title match.
-- **Real local tests** are included for JSON parsing, query URL-encoding and failover between fake HTTP servers, so running \`build-windows.cmd\` tests these routines **without relying on external search availability**.
-- **Short-term in-memory search cache**, provider identification, diagnostic logs and a concise error state with an expandable technical details panel.
-- **Home/Search:** six colorful, functional music mood categories (Bangla, Bollywood, Night Drive, Lofi, Workout, Acoustic) that perform real searches; no fabricated song titles or fake trending charts.
-- **Library:** visual Liked Songs and New Playlist tiles, saved playlists, listening history, current queue access, plus **Save from YouTube link** to add tracks even during a search outage.
-- Existing screen-off Media3 playback, Bluetooth controls and saved playlist/queue behavior remain in place. The Android package ID remains unchanged.
+### Limitations
 
-### Privacy and limitations
-- When the default extractor fails, NightWave may send your **search text** to a public third-party Invidious server. These servers are not controlled by NightWave; read the [maintainers' current instance list](https://docs.invidious.io/instances/). Don't type private information into music searches. The app sends no Google login or password to the search endpoints.
-- Servers can change, throttle, or become inaccessible without warning. **Neither NewPipe nor Invidious guarantees every YouTube search or playback**, and restricted videos remain unavailable.
-- Cached results last up to 10 minutes only while the process stays alive; they are not offline music files.
-- This remains a private experimental Android app with unofficial YouTube integration. Platform restrictions and policies may affect use.
+A result appearing in search **does not guarantee it will play**. Age gates, region restrictions, private/paid videos, DRM, extractor failures, platform changes and network problems can prevent streaming. NightWave does not have Spotify's licensed catalog, algorithms, account sync or offline downloads. The current queue can restore its list after a service restart, but cannot promise seamless resumption after a force-stop or device reboot.
 
-### Install v0.7 (no GitHub billing)
-1. Signed into GitHub, download the current **main branch** ZIP from \`https://github.com/Nahian2002/NightWave/archive/refs/heads/main.zip\`.
-2. Extract to a **new folder**. Run \`build-windows.cmd\` from that new copy.
-3. The script runs Android JVM tests and \`assembleDebug\`; wait for **BUILD SUCCESS**. If compilation fails, do **not** uninstall the working version.
-4. Install \`dist\NightWave-debug.apk\` over NightWave on your phone. **Do not clear storage** or uninstall the old app if you have saved playlists.
-5. Test search \`saiyara\`, \`Baby shark\`, \`Adele Hello\`, \`Bangla songs\`; verify covers appear, songs resolve, and background audio continues when the screen locks.
-6. Check Home's mood cards, Library > Create Playlist, Add from YouTube link, Next Track, shuffle and queue.
-7. If search still fails, open the **Connection details** action in the app and share its message. It will distinguish direct-extractor failures from community-provider failures.
+YouTube's API policies prohibit separating audio from video or background playback through the official API. This unofficial approach can conflict with platform terms and may break when YouTube changes its services. Do not redistribute without appropriate policy and license review.
 
-**Verification status:** New v0.7 source and tests are committed. Static repository checks have been performed; neither the full v0.7 Android Gradle build nor live external-provider responses have been verified in this environment.
+## Download and build for free on Windows
 
-## What's new — v0.6 search repair + Midnight Sessions UI
+You **do not** need GitHub billing or a payment card. Builds run on your own PC.
 
-### Search behavior
-- Searching **Baby shark**, **Adele Hello**, and any free-form song or artist name uses normal YouTube **Videos** extraction first. Song mode then ranks the videos by title/artist match and music-like duration; the UI does not depend exclusively on the often-empty YouTube Music song filter.
-- If the primary search yields no usable video entries, the extractor attempts **All** and **Music songs** filters instead. Search-result links accept trusted relative paths such as \`/watch?v=...\`, without accepting lookalike phishing hosts.
-- Empty results from the extractor are now shown as a **search error** with diagnostic counts and real Retry / Try Videos actions, rather than claiming the requested song does not exist.
-- Source logs have tag \`NightWaveSearch\` and show raw item count, stream item count and rejected link count. Sensitive stream signatures are **not** logged.
-- No website or unofficial extractor can guarantee that every video is accessible. Live search still requires a physical-device regression test.
+1. While signed into the private GitHub repo, select **Code → Download ZIP**, or [download the current main-branch ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/main.zip).
+2. Extract into a **new folder** rather than overwriting an old extracted version.
+3. Double-click **build-windows.cmd**. The script uses cached JDK/Gradle/Android SDK downloads when possible; the first run can take several minutes and several GB of space. Accept Google SDK licenses only if you agree.
+4. It runs Android unit tests and assembles a debug APK. Wait for **BUILD SUCCESS**.
+5. Copy **dist\NightWave-debug.apk** to your Android device and install it **over the old debug APK**. Do not uninstall or clear the current app if you have saved playlists and favorites.
 
-### NightWave's new premium visual direction
-- **Midnight Sessions:** dark navy/ink surfaces, violet gradient buttons, cool aqua artwork accents and soft contrasts, replacing the original flat neon-lime visuals.
-- Reworked branded header, spacious search field, active song/video filters, clear content typography, elevated album-art music rows, atmospheric Home hero and refined Library cards.
-- Floating gradient mini-player with cover art, animated entrance, lightweight navigation transitions, tactile card/button feedback and artwork cross-fade.
-- Immersive **Now Playing** view with large album cover, live seek progress, shuffle, next/previous, play/pause, Liked Songs, playlist and queue actions.
-- All display effects use native Android resources and animations. There are **no external UI image packs, ad SDKs, accounts or new graphics dependencies**.
+**If the build fails:** keep the existing phone app and send the first Gradle \`e:\` Kotlin error or \`FAILURE:\` section. The new version has not been verified until that build succeeds.
 
-### Build and installation
-1. [Download the current private repository ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/main.zip) while signed into GitHub.
-2. Extract into a **new** folder. Do not run the old v0.5 build script folder.
-3. Double-click \`build-windows.cmd\`. Cached Android and Gradle tools are reused; no GitHub billing is required.
-4. After \`BUILD SUCCESS\`, find \`dist\NightWave-debug.apk\`. **Install over the existing NightWave build; do not uninstall or clear app data** if you want to preserve local liked songs and playlists.
-5. Search \`Baby shark\` in Songs and Videos. Check thumbnails, tap a result and test lock-screen audio, queue auto-next, and Bluetooth controls.
-6. If Gradle fails, keep the old installed app and send the **first Kotlin compiler error** shown in the console.
-7. If search still returns zero, capture the app error and optionally run \`adb logcat -d -s NightWaveSearch:D\` to collect the non-sensitive extraction diagnostics.
+## Test checklist on your phone
 
-**Verification status:** v0.6 is committed and passed GitHub source-level inspection (binding IDs, resources and background-service presence). A complete v0.6 Android build and real YouTube search **have not yet been verified** here.
+1. Search \`Baby shark\`, \`saiyara\`, \`Adele Hello\` and \`Bangla songs\`, then try switching **Songs** and **Videos**.
+2. Confirm real thumbnails/titles/creators appear. Tap a result and lock the screen to check audio continuity.
+3. Use **Home** mood cards; create and rename a playlist; like a song; add one via a full YouTube URL.
+4. Queue multiple tracks and verify next/previous, shuffle/repeat and Bluetooth media buttons.
+5. Visit **Now Playing** and test artwork, seeking, and the expanded controls.
+6. If searching fails, open **Connection details** to see the direct and independent search failures. Optional filtered log: \`adb logcat -d -s NightWaveSearch:D\`.
 
-## NightWave v0.5 — music app upgrade
+### Search privacy
 
-**Spotify-inspired, not a Spotify clone or Spotify catalog client.** NightWave uses its own identity and streams extraction-supported *public YouTube* videos. It does not integrate Spotify accounts, Spotify recommendations, DRM media, licensed catalog sync or offline downloads.
+Direct search uses the NewPipe Extractor. If it fails, the app may send the **query text** to one of several public [Invidious instances](https://docs.invidious.io/instances/), which are independent servers not controlled by NightWave. Avoid submitting personal or sensitive search strings. NightWave does not send Google login credentials or signed playback URLs to those search instances. Instance availability and privacy practices may vary.
 
-- **Home / Search / Library** tabs, an editorial welcome panel and music-first track rows.
-- **Search by any song name or artist**; Songs and Videos filters, public YouTube fallback, result thumbnails.
-- **Liked Songs** saved locally, including restoring favorites after restarting the app.
-- **Create personal playlists**, save tracks with ⋮ and remove entries from playlists.
-- **Listening history** and a home screen with recently played songs.
-- **Up Next queue**, from search results or saved playlists. Add more tracks via ⋮; jump to one from the queue view.
-- **Shuffle, repeat off/all/one**, next/previous in the player, plus Bluetooth next/previous interception.
-- **Auto-next with the screen locked**: the existing media playback service owns playlist advancement and resolves the next track when playback ends. Stream URLs are resolved just-in-time rather than stored.
-- **Persisted queue state**: current index and shuffle/repeat settings are kept on-device so a service restart can restore the list.
-- Retains Media3 lock-screen/notification play/pause, seeking, Bluetooth controls and audio-only stream preference.
-- No root, login, payment, paid GitHub runner, or broad file storage permission needed.
+The search fallback uses the Invidious [public search endpoint](https://docs.invidious.io/api/) and locally cached results for up to 10 minutes during the app process lifetime.
 
-**Important limitations:** NightWave cannot promise access to every YouTube video or Spotify parity. Extractor failures, ads, copyright, restrictions, region blocks, service changes and background behavior on individual devices can affect playback. Queue recovery restores the list, not guaranteed automatic restart of audio after a force-stop or reboot.
+## Development notes
 
-## Rebuild on Windows without GitHub billing
+- Kotlin, Android Gradle Plugin, Media3, NewPipeExtractor, OkHttp, Android local preferences.
+- \`app/src/main/java/com/nightwave/player/net/YouTubeGateway.kt\`: main search, ranking, stream resolution and caching.
+- \`app/src/main/java/com/nightwave/player/net/CommunityVideoSearch.kt\`: independent search and strict JSON parsing.
+- \`app/src/main/java/com/nightwave/player/ui/MainActivity.kt\`: home, search, library, animations, and player controller UI.
+- \`app/src/main/java/com/nightwave/player/playback/PlaybackService.kt\`: background MediaSessionService and automatic queue advancement.
+- \`app/src/main/java/com/nightwave/player/library/MusicLibrary.kt\`: local favorites, history and playlists.
+- \`app/src/test\`: keyword routing, queue tests, search parser and fake-server failover tests.
+- \`tools/build-windows.ps1\`: local no-billing Windows build bootstrap.
 
-1. Visit the **private** repository \`https://github.com/Nahian2002/NightWave\` and choose **Code → Download ZIP**. Extract into a **new** folder, not the old v0.4 folder.
-2. Double-click \`build-windows.cmd\`. It downloads required free toolchain components only on the first run and uses cached downloads later.
-3. Wait until \`BUILD SUCCESS\`; copy \`dist\NightWave-debug.apk\` to your Android phone.
-4. Because \`applicationId\` and signing setup remain unchanged for the local debug build, it should install over the previous NightWave debug build. If Android reports a signing conflict, **back up anything important before uninstalling** — locally saved favorites and playlists are deleted by uninstall.
-5. Open NightWave, tap Search, search a song, open ⋮ on any track to like/add to playlist/add to queue, and try Home and Library.
-6. Play a 3–4 song list, lock the screen, leave it playing through multiple tracks, and test next/previous with Bluetooth.
+The current GitHub-hosted Actions runner has an account billing/spending restriction. The local builder avoids those hosted runners. No remote APK build is claimed.
 
-**If a build fails, do not delete the installed version.** Save the terminal output, especially the first \`e:\` Kotlin error or \`FAILURE:\` Gradle section. No APK is verified until a successful build.
+## License and upstream acknowledgement
 
-## Previous v0.4 search upgrade
-
-- **Type any song or artist name** (e.g., `Adele Hello`); full video links are not needed.
-- Search bar at the top, familiar large thumbnails, titles, channels and duration labels.
-- **Songs** searches YouTube Music song results first; if empty or unavailable, the app retries regular video search.
-- **Videos** searches regular public YouTube videos.
-- Tap a result to start audio. Pasted video links, screen-off playback, Bluetooth and lock-screen controls are preserved.
-- The existing playback service was not changed.
-
-## Included
-
-- Search public YouTube songs and videos by name; tap any supported result to play its audio.
-- Paste YouTube, YouTube Music, Shorts, Live and youtu.be video links, including links shared from another Android app.
-- Media3 foreground media session: continue streaming with display off, headset connected, or another app open.
-- Android lock-screen/notification controls (play/pause) and Bluetooth/media-key controls.
-- Seekbar, jump ±15 seconds, artist/title/album artwork, open the source video in YouTube.
-- Dark native Android interface; no login, no root, no storage permission, no local content downloads.
-
-## Build on your Windows PC without any GitHub billing (recommended for private repos)
-
-1. Open the private NightWave repository. Click **Code → Download ZIP**, then extract it.
-2. Double-click **build-windows.cmd** in the extracted folder. No terminal commands or Android Studio are needed.
-3. The first run downloads Java 17 if needed, Gradle 8.11.1, and Google's Android SDK tools. Downloads are free but need internet and several GB of disk space.
-4. Review Google's Android SDK license prompts and type **y** if you accept the terms.
-5. After tests and compilation succeed, the APK will be at **dist\NightWave-debug.apk**. Copy the APK to your Android phone and tap to install.
-
-The script uses only local Windows resources; it **does not** use GitHub-hosted runners, need any billing settings, or require a payment method. It caches tools in %LOCALAPPDATA%\NightWaveBuild. Download sources are visible in tools/build-windows.ps1.
-
-**v0.4 test:** Download a fresh GitHub ZIP (old extracted folders do not update), run the same `build-windows.cmd`, then install the newly built APK and search a song name. Share the exact error if compilation or live search fails.
-
-## Build an APK with GitHub Actions (only if GitHub permits jobs)
-
-1. Open the existing private NightWave repository and confirm `.github/workflows/android.yml` is present.
-2. Under GitHub **Actions**, select **Android debug APK** and click **Run workflow** (or push to `main`).
-3. After the workflow finishes, download the **NightWave-debug-apk** artifact and extract `app-debug.apk`.
-4. Transfer APK to your Samsung phone. Open the APK and allow installation from the app you used to open it (if Android asks).
-5. Launch NightWave, allow notifications, search a video, tap it and lock the screen.
-
-## Build in Android Studio
-
-1. Install Android Studio, JDK 17 and Android SDK 35. Gradle 8.11.1 is used by the included GitHub Actions workflow.
-2. Import this **NightWave** folder as an existing Gradle project.
-3. Because this archive intentionally does **not** contain a binary Gradle wrapper JAR, install Gradle 8.11.1 and run `gradle :app:assembleDebug` from a terminal, or create a normal Gradle wrapper with `gradle wrapper --gradle-version 8.11.1` before importing if your IDE requires one.
-4. APK: `app/build/outputs/apk/debug/app-debug.apk`.
-
-## Architecture
-
-- `net/YouTubeGateway.kt` — discovery and resolving playable public audio stream URLs
-- `net/ExtractorDownloader.kt` — OkHttp transport required by the extractor
-- `playback/PlaybackService.kt` — ExoPlayer inside `MediaSessionService`, owns background playback
-- `ui/MainActivity.kt` — playback controller/UI and search requests (I/O off main thread)
-- `core/VideoLink.kt` — URL normalization and strict host matching
-- `core/TimeLabel.kt` — clock formatting
-
-## Limitations
-
-- Does not and cannot promise **literally every** YouTube video. Age-gated, private, region-restricted, premium, DRM-protected, or extractor-incompatible videos may fail.
-- The app prefers progressive HTTP audio streams, with fallback to combined audio/video and HLS/DASH manifests when available. Some videos still use unsupported formats, and signed stream URLs expire. Re-select the video to refresh an expired URL.
-- Search covers videos but not playlists/channels or a signed-in watch history. No downloads or Spotify login; queues and playlists are included in v0.5.
-- YouTube's API policies disallow background playing/separating streams. This prototype uses an unofficial extractor rather than the YouTube API and may conflict with platform terms. It is not intended for distribution on the Play Store without a full legal/policy review.
-- v0.5 passed source-level inspections and a standalone Kotlin queue regression suite. A full v0.5 Gradle build, on-device queue auto-advance and locked-screen regression tests are still required.
-
-## Testing after you build
-
-1. Install and launch. Enter `Adele Hello` or `Shape of You` (NOT a link) into the top search bar. Tap Search and confirm thumbnails appear.
-2. Tap a search result and test playback. Switch between Songs and Videos and repeat; paste a `youtu.be` link to check backward compatibility.
-3. Play an item, press Home, then lock the screen for several minutes. Test Bluetooth pause/resume and notification controls.
-4. Reopen the app; check playback continuity, the seekbar, ±15s and external YouTube link.
-5. Confirm that invalid URLs, airplane mode, unsupported videos and empty searches show readable errors and do not crash.
-6. If Samsung's battery controls stop music, Settings → Apps → NightWave → Battery → Unrestricted.
-
-## Local source checks (no Android SDK required)
-
-```sh
-python3 tools/verify_source.py
-kotlinc app/src/main/java/com/nightwave/player/core/{VideoLink,TimeLabel,SearchInputResolver}.kt tools/SmokeTests.kt -include-runtime -d /tmp/nightwave-test.jar
-java -jar /tmp/nightwave-test.jar
-```
-
-## License and attribution
-
-The implementation is intended as a private experimental app and uses NewPipeExtractor, which is GPL-3.0-or-later. Comply with the extractor's GPL obligations if redistributing derivative binaries/source; its upstream notices are here: https://github.com/TeamNewPipe/NewPipeExtractor. No affiliation with Google or YouTube.
-
-## Upstream references
-
-- JitPack coordinates are case sensitive; the pinned artifact is `com.github.TeamNewPipe:NewPipeExtractor:v0.26.5` per the upstream NewPipe naming convention.
-- Android Gradle Plugin 8.9.2 is paired with Gradle 8.11.1 and JDK 17; see https://developer.android.com/build/releases/agp-8-9-0-release-notes
-- Android foreground media service setup: https://developer.android.com/media/media3/session/background-playback
-
-## Repository publication status
-
-The repository exists at https://github.com/Nahian2002/NightWave. GitHub Actions runs were blocked *before a runner started* by a GitHub account billing restriction. Use `build-windows.cmd` to compile without GitHub billing. The prior APK build and screen-off playback passed on the user's device; new v0.5 library, queue and search still need rebuild and validation.
+See [LICENSE](LICENSE) and [NOTICE](NOTICE). This project incorporates NewPipeExtractor, GPL-3.0-or-later. Respect its copyright/license obligations, particularly if distributing binaries. This is an independent, privately developed experimental client and does not claim affiliation with YouTube, Google, NewPipe or Spotify.
