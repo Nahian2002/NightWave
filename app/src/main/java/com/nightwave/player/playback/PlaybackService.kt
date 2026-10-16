@@ -30,6 +30,7 @@ class PlaybackService : MediaSessionService() {
         const val ACTION_ENQUEUE = "com.nightwave.player.ENQUEUE"
         const val ACTION_NEXT = "com.nightwave.player.NEXT"
         const val ACTION_PREVIOUS = "com.nightwave.player.PREVIOUS"
+        const val ACTION_JUMP = "com.nightwave.player.JUMP"
         const val ACTION_SHUFFLE = "com.nightwave.player.SHUFFLE"
         const val ACTION_REPEAT = "com.nightwave.player.REPEAT"
         const val EXTRA_URLS = "urls"
@@ -42,6 +43,7 @@ class PlaybackService : MediaSessionService() {
     private var mediaSession: MediaSession? = null
     private var exoPlayer: ExoPlayer? = null
     private val queue = PlaybackQueue()
+    private lateinit var savedQueue: QueueStateStore
     private val main = Handler(Looper.getMainLooper())
     private val resolver = Executors.newSingleThreadExecutor()
     private val gateway = YouTubeGateway()
@@ -55,6 +57,8 @@ class PlaybackService : MediaSessionService() {
 
     override fun onCreate() {
         super.onCreate()
+        savedQueue = QueueStateStore(this)
+        savedQueue.restore(queue)
         val networkSource = DefaultHttpDataSource.Factory()
             .setUserAgent("Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 Chrome/121.0 Mobile Safari/537.36")
             .setAllowCrossProtocolRedirects(true)
@@ -111,6 +115,7 @@ class PlaybackService : MediaSessionService() {
                 }
                 queue.replace(entries, intent.getIntExtra(EXTRA_INDEX, 0))
                 generation++ // invalidate unresolved previous track jobs
+                savedQueue.save(queue)
             }
             ACTION_ENQUEUE -> {
                 val url = intent.getStringExtra(EXTRA_URLS)
@@ -118,26 +123,31 @@ class PlaybackService : MediaSessionService() {
                     queue.add(QueueEntry(url, intent.getStringExtra(EXTRA_TITLES).orEmpty(),
                         intent.getStringExtra(EXTRA_CREATORS).orEmpty(),
                         intent.getStringExtra(EXTRA_ARTWORKS).orEmpty()))
+                    savedQueue.save(queue)
                 }
             }
             ACTION_NEXT -> playNext(false)
             ACTION_PREVIOUS -> playPrevious()
-            ACTION_SHUFFLE -> queue.shuffle = !queue.shuffle
-            ACTION_REPEAT -> queue.repeat = when (queue.repeat) {
-                PlaybackQueue.Repeat.OFF -> PlaybackQueue.Repeat.ALL
-                PlaybackQueue.Repeat.ALL -> PlaybackQueue.Repeat.ONE
-                PlaybackQueue.Repeat.ONE -> PlaybackQueue.Repeat.OFF
+            ACTION_JUMP -> queue.jump(intent.getIntExtra(EXTRA_INDEX, -1))?.let { savedQueue.save(queue); resolveAndPlay(it) }
+            ACTION_SHUFFLE -> { queue.shuffle = !queue.shuffle; savedQueue.save(queue) }
+            ACTION_REPEAT -> {
+                queue.repeat = when (queue.repeat) {
+                    PlaybackQueue.Repeat.OFF -> PlaybackQueue.Repeat.ALL
+                    PlaybackQueue.Repeat.ALL -> PlaybackQueue.Repeat.ONE
+                    PlaybackQueue.Repeat.ONE -> PlaybackQueue.Repeat.OFF
+                }
+                savedQueue.save(queue)
             }
         }
         return result
     }
 
     private fun playNext(automatic: Boolean) {
-        queue.next(automatic)?.let { resolveAndPlay(it) }
+        queue.next(automatic)?.let { savedQueue.save(queue); resolveAndPlay(it) }
     }
 
     private fun playPrevious() {
-        queue.previous()?.let { resolveAndPlay(it) }
+        queue.previous()?.let { savedQueue.save(queue); resolveAndPlay(it) }
     }
 
     private fun resolveAndPlay(entry: QueueEntry) {
