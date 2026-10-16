@@ -9,6 +9,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -58,6 +60,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
@@ -75,6 +78,8 @@ import com.nightwave.player.library.MusicLibrary
 import com.nightwave.player.net.VideoPreview
 import com.nightwave.player.ui.MainActivity
 import com.nightwave.player.v2.data.GuestProfileStore
+import com.nightwave.player.v2.playback.StudioPlaybackBridge
+import com.nightwave.player.v2.playback.StudioPlayerState
 import com.nightwave.player.v2.model.MotionPreference
 import com.nightwave.player.v2.model.NightWaveTheme
 import com.nightwave.player.v2.model.ProfileSettings
@@ -86,6 +91,7 @@ import com.nightwave.player.v2.model.ProfileSettings
 class NightWaveStudioActivity : ComponentActivity() {
     private lateinit var profiles: GuestProfileStore
     private lateinit var library: MusicLibrary
+    private lateinit var playback: StudioPlaybackBridge
     private var profile by mutableStateOf(ProfileSettings(localId = "pending"))
     private var favorites by mutableStateOf<List<VideoPreview>>(emptyList())
     private var recentlyPlayed by mutableStateOf<List<VideoPreview>>(emptyList())
@@ -95,6 +101,7 @@ class NightWaveStudioActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         profiles = GuestProfileStore(this)
         library = MusicLibrary(this)
+        playback = StudioPlaybackBridge(this)
         profile = profiles.load()
         refresh()
         setContent {
@@ -102,6 +109,10 @@ class NightWaveStudioActivity : ComponentActivity() {
                 StudioRoot(
                     profile = profile, favorites = favorites, recent = recentlyPlayed,
                     playlistNames = names, getPlaylist = { library.playlist(it) },
+                    playerState = playback.state, playerActions = playback,
+                    isFavorite = { url -> library.isFavorite(url) },
+                    onToggleFavorite = { video -> library.toggleFavorite(video); refresh() },
+                    onSaveCurrentToPlaylist = { saveCurrentToPlaylist() },
                     onSaveProfile = { updated ->
                         if (profiles.save(updated)) profile = profiles.load()
                     },
@@ -110,18 +121,18 @@ class NightWaveStudioActivity : ComponentActivity() {
                             putExtra("nightwave_web_search", query)
                         })
                     },
-                    onPlay = { video ->
-                        startActivity(Intent(this, MainActivity::class.java).apply {
-                            action = Intent.ACTION_SEND
-                            type = "text/plain"
-                            putExtra(Intent.EXTRA_TEXT, video.url)
-                        })
-                    },
-                    onLegacyPlayer = { startActivity(Intent(this, MainActivity::class.java)) },
+                    onPlay = { video, collection -> playback.play(video, collection) },
+                    onLegacyPlayer = { manageLibrary() },
                     onClose = { finish() }
                 )
             }
         }
+        playback.connect()
+    }
+
+    override fun onDestroy() {
+        if (::playback.isInitialized) playback.release()
+        super.onDestroy()
     }
 
     override fun onResume() {
@@ -149,13 +160,21 @@ private fun StudioRoot(
     playlistNames: List<String>,
     getPlaylist: (String) -> List<VideoPreview>,
     onSaveProfile: (ProfileSettings) -> Unit,
+    playerState: StudioPlayerState,
+    playerActions: StudioPlaybackBridge,
+    isFavorite: (String) -> Boolean,
+    onToggleFavorite: (VideoPreview) -> Unit,
+    onSaveCurrentToPlaylist: () -> Unit,
     onSearch: (String) -> Unit,
-    onPlay: (VideoPreview) -> Unit,
+    onPlay: (VideoPreview, List<VideoPreview>) -> Unit,
     onLegacyPlayer: () -> Unit,
     onClose: () -> Unit
 ) {
     var tab by rememberSaveable { mutableStateOf(StudioTab.HOME) }
     var selectedPlaylist by rememberSaveable { mutableStateOf<String?>(null) }
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    var showQueue by rememberSaveable { mutableStateOf(false) }
+    Box(Modifier.fillMaxSize()) {
     Scaffold(
         modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing),
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -171,6 +190,8 @@ private fun StudioRoot(
             }
         },
         bottomBar = {
+            Column {
+            StudioMiniPlayer(playerState, playerActions, onExpand = { expanded = true })
             NavigationBar(
                 containerColor = MaterialTheme.colorScheme.surface,
                 tonalElevation = 4.dp
@@ -192,6 +213,7 @@ private fun StudioRoot(
                         alwaysShowLabel = true
                     )
                 }
+            }
             }
         }
     ) { safe ->
@@ -219,13 +241,33 @@ private fun StudioRoot(
         }
         }
     }
+    StudioNowPlayingOverlay(
+        expanded = expanded && playerState.hasTrack,
+        state = playerState, actions = playerActions,
+        reduceMotion = profile.motion == MotionPreference.REDUCED,
+        liked = playerState.hasTrack && isFavorite(playerState.videoUrl),
+        onLike = {
+            if (playerState.hasTrack) onToggleFavorite(VideoPreview(
+                playerState.title, playerState.artist, playerState.videoUrl,
+                playerState.thumbnail, playerState.durationMs / 1000L
+            ))
+        },
+        onOpenQueue = { showQueue = true },
+        onSaveToPlaylist = onSaveCurrentToPlaylist,
+        onDismiss = { expanded = false }
+    )
+    if (showQueue) StudioQueueSheet(
+        state = playerState, onDismiss = { showQueue = false },
+        onSelect = { index -> playerActions.jumpTo(index); showQueue = false }
+    )
+    }
 }
 
 @Composable
 private fun StudioHome(
     modifier: Modifier, profile: ProfileSettings, recent: List<VideoPreview>,
     favorites: List<VideoPreview>, onSearch: (String) -> Unit,
-    onPlay: (VideoPreview) -> Unit, openLibrary: () -> Unit
+    onPlay: (VideoPreview, List<VideoPreview>) -> Unit, openLibrary: () -> Unit
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -271,7 +313,7 @@ private fun StudioHome(
                 "Your actual listening history will appear here as you play.",
                 "Find a song") { onSearch("music") }
         } else items(recent.take(6), key = { it.url }) { song ->
-            MusicTrackTile(song, onClick = { onPlay(song) })
+            MusicTrackTile(song, onClick = { onPlay(song, recent) })
         }
         item { SectionHeading("Liked by you", favorites.size.toString() + " saved tracks") }
         item {
@@ -340,7 +382,7 @@ private fun StudioSearch(modifier: Modifier, onSearch: (String) -> Unit) {
 private fun StudioLibrary(
     modifier: Modifier, favorites: List<VideoPreview>, names: List<String>,
     selectedPlaylist: String?, onSelectPlaylist: (String?) -> Unit,
-    getPlaylist: (String) -> List<VideoPreview>, onPlay: (VideoPreview) -> Unit,
+    getPlaylist: (String) -> List<VideoPreview>, onPlay: (VideoPreview, List<VideoPreview>) -> Unit,
     onManage: () -> Unit, onSearch: () -> Unit
 ) {
     val tracks = if (selectedPlaylist == null || selectedPlaylist == LIKED_COLLECTION) favorites else getPlaylist(selectedPlaylist)
@@ -392,7 +434,7 @@ private fun StudioLibrary(
                 "Your real songs and playlists will appear here once saved.",
                 "Search music", onAction = onSearch)
         } else items(tracks, key = { it.url }) { song ->
-            MusicTrackTile(song, onClick = { onPlay(song) })
+            MusicTrackTile(song, onClick = { onPlay(song, tracks) })
         }
         item {
             OutlinedButton(onClick = onManage, modifier = Modifier.fillMaxWidth()) {
