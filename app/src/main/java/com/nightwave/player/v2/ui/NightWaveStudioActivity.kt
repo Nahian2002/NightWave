@@ -22,6 +22,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -134,6 +136,7 @@ class NightWaveStudioActivity : ComponentActivity() {
     }
 }
 
+private const val LIKED_COLLECTION = "nightwave://local-liked"
 private enum class StudioTab(val caption: String) {
     HOME("Home"), SEARCH("Search"), LIBRARY("Library"), PROFILE("You")
 }
@@ -153,9 +156,9 @@ private fun StudioRoot(
 ) {
     var tab by rememberSaveable { mutableStateOf(StudioTab.HOME) }
     var selectedPlaylist by rememberSaveable { mutableStateOf<String?>(null) }
-    val accent = MaterialTheme.colorScheme.primary
     Scaffold(
         modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing),
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 13.dp),
@@ -192,7 +195,10 @@ private fun StudioRoot(
             }
         }
     ) { safe ->
-        when (tab) {
+        Crossfade(targetState = tab,
+            animationSpec = tween(durationMillis = if (profile.motion == MotionPreference.REDUCED) 0 else 220),
+            label = "NightWave navigation") { screen ->
+        when (screen) {
             StudioTab.HOME -> StudioHome(
                 modifier = Modifier.padding(safe), profile = profile, recent = recent,
                 favorites = favorites, onSearch = onSearch, onPlay = onPlay,
@@ -210,6 +216,7 @@ private fun StudioRoot(
                 modifier = Modifier.padding(safe), profile = profile,
                 save = onSaveProfile
             )
+        }
         }
     }
 }
@@ -336,7 +343,7 @@ private fun StudioLibrary(
     getPlaylist: (String) -> List<VideoPreview>, onPlay: (VideoPreview) -> Unit,
     onManage: () -> Unit, onSearch: () -> Unit
 ) {
-    val tracks = if (selectedPlaylist == null) favorites else getPlaylist(selectedPlaylist)
+    val tracks = if (selectedPlaylist == null || selectedPlaylist == LIKED_COLLECTION) favorites else getPlaylist(selectedPlaylist)
     LazyColumn(modifier.fillMaxSize(), contentPadding = PaddingValues(20.dp),
         verticalArrangement = Arrangement.spacedBy(13.dp)) {
         item {
@@ -345,7 +352,7 @@ private fun StudioLibrary(
                     Icon(Icons.Outlined.ArrowBack, contentDescription = "Back to Library")
                 }
                 Column {
-                    SectionHeading(selectedPlaylist ?: "Your music.",
+                    SectionHeading(if (selectedPlaylist == LIKED_COLLECTION) "Liked Songs" else selectedPlaylist ?: "Your music.",
                         if (selectedPlaylist == null) "Every collection, under one roof."
                         else tracks.size.toString() + " songs in this playlist")
                 }
@@ -355,7 +362,7 @@ private fun StudioLibrary(
             item {
                 MusicFeatureCard("YOUR PRIVATE COLLECTION",
                     "Liked songs.", favorites.size.toString() + " tracks saved locally") {
-                    onSelectPlaylist(null)
+                    onSelectPlaylist(LIKED_COLLECTION)
                 }
             }
             if (names.isNotEmpty()) {
@@ -462,9 +469,15 @@ private fun StudioProfile(modifier: Modifier, profile: ProfileSettings, save: (P
         }
         item { HorizontalDivider(color = MaterialTheme.colorScheme.outline) }
         item {
-            EmptyMusicCard("Google recovery comes later",
-                "Google sign-in and private backup will be integrated only after the storage migration and restore tests pass. No account connection is active yet.",
-                "Guest mode is ready") { }
+            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                shape = RoundedCornerShape(19.dp)) {
+                Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                    Text("Google recovery — planned", style = MaterialTheme.typography.titleMedium)
+                    Text("This guest profile is stored locally. Google sign-in and private Drive recovery will be added after migration and restore tests. No account is connected yet.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
         }
     }
 }
