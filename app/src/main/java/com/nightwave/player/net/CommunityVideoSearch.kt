@@ -26,7 +26,8 @@ class CommunityVideoSearch(
     private val instances = listOf(
         "https://inv.nadeko.net",
         "https://invidious.nerdvpn.de",
-        "https://invidious.tiekoetter.com"
+        "https://invidious.tiekoetter.com",
+        "https://yt.chocolatemoo53.com"
     )
 
     data class Result(val videos: List<VideoPreview>, val server: String)
