@@ -1,8 +1,35 @@
-# NightWave v0.5 — personal streaming music player for Android
+# NightWave v0.6 — Midnight Sessions
 
 An independently developed **Android app source project** for searching public videos and listening to supported audio streams with the phone locked. Built with native Kotlin UI, [NewPipeExtractor](https://github.com/TeamNewPipe/NewPipeExtractor), and AndroidX Media3.
 
-> **Status:** v0.5 is uploaded as source and has not yet passed an Android APK build or physical-phone regression test. A previous NightWave version built successfully on the owner's Windows PC and passed five S24 Ultra playback checks. Install the new version only after building and testing it.
+> **Status:** v0.6 has been uploaded as source; its Android APK build and live song-name search remain unverified. A previous NightWave version built successfully on the owner's Windows PC and passed five S24 Ultra playback checks. Install the new version only after building and testing it.
+
+## What's new — v0.6 search repair + Midnight Sessions UI
+
+### Search behavior
+- Searching **Baby shark**, **Adele Hello**, and any free-form song or artist name uses normal YouTube **Videos** extraction first. Song mode then ranks the videos by title/artist match and music-like duration; the UI does not depend exclusively on the often-empty YouTube Music song filter.
+- If the primary search yields no usable video entries, the extractor attempts **All** and **Music songs** filters instead. Search-result links accept trusted relative paths such as \`/watch?v=...\`, without accepting lookalike phishing hosts.
+- Empty results from the extractor are now shown as a **search error** with diagnostic counts and real Retry / Try Videos actions, rather than claiming the requested song does not exist.
+- Source logs have tag \`NightWaveSearch\` and show raw item count, stream item count and rejected link count. Sensitive stream signatures are **not** logged.
+- No website or unofficial extractor can guarantee that every video is accessible. Live search still requires a physical-device regression test.
+
+### NightWave's new premium visual direction
+- **Midnight Sessions:** dark navy/ink surfaces, violet gradient buttons, cool aqua artwork accents and soft contrasts, replacing the original flat neon-lime visuals.
+- Reworked branded header, spacious search field, active song/video filters, clear content typography, elevated album-art music rows, atmospheric Home hero and refined Library cards.
+- Floating gradient mini-player with cover art, animated entrance, lightweight navigation transitions, tactile card/button feedback and artwork cross-fade.
+- Immersive **Now Playing** view with large album cover, live seek progress, shuffle, next/previous, play/pause, Liked Songs, playlist and queue actions.
+- All display effects use native Android resources and animations. There are **no external UI image packs, ad SDKs, accounts or new graphics dependencies**.
+
+### Build and installation
+1. [Download the current private repository ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/main.zip) while signed into GitHub.
+2. Extract into a **new** folder. Do not run the old v0.5 build script folder.
+3. Double-click \`build-windows.cmd\`. Cached Android and Gradle tools are reused; no GitHub billing is required.
+4. After \`BUILD SUCCESS\`, find \`dist\NightWave-debug.apk\`. **Install over the existing NightWave build; do not uninstall or clear app data** if you want to preserve local liked songs and playlists.
+5. Search \`Baby shark\` in Songs and Videos. Check thumbnails, tap a result and test lock-screen audio, queue auto-next, and Bluetooth controls.
+6. If Gradle fails, keep the old installed app and send the **first Kotlin compiler error** shown in the console.
+7. If search still returns zero, capture the app error and optionally run \`adb logcat -d -s NightWaveSearch:D\` to collect the non-sensitive extraction diagnostics.
+
+**Verification status:** v0.6 is committed and passed GitHub source-level inspection (binding IDs, resources and background-service presence). A complete v0.6 Android build and real YouTube search **have not yet been verified** here.
 
 ## NightWave v0.5 — music app upgrade
 
