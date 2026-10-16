@@ -39,6 +39,24 @@ object VideoLink {
         return if (id != null && idPattern.matches(id)) "https://www.youtube.com/watch?v=$id" else null
     }
 
+    /**
+     * NewPipe search results can provide relative /watch?v=... or watch?v=...
+     * URLs rather than full YouTube URLs. Keep the same strict video-ID parser.
+     */
+    fun normalizeSearchResult(input: String): String? {
+        val value = input.trim().replace("&amp;", "&")
+        normalize(value)?.let { return it }
+        val adjusted = when {
+            value.startsWith("/watch?") || value.startsWith("/shorts/") ||
+                value.startsWith("/live/") -> "https://www.youtube.com" + value
+            value.startsWith("watch?") || value.startsWith("shorts/") ||
+                value.startsWith("live/") -> "https://www.youtube.com/" + value
+            idPattern.matches(value) -> "https://www.youtube.com/watch?v=" + value
+            else -> return null
+        }
+        return normalize(adjusted)
+    }
+
     /** A plain search term isn't a URL; a likely but invalid link is reported to the user. */
     fun resemblesLink(input: String): Boolean =
         input.contains("youtube.com", ignoreCase = true) ||
