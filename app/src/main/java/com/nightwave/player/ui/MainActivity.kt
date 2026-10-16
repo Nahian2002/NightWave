@@ -3,6 +3,7 @@ package com.nightwave.player.ui
 import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
+import android.app.Dialog
 import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -23,6 +24,7 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.SeekBar
+import android.widget.ScrollView
 import android.graphics.drawable.GradientDrawable
 import android.widget.TextView
 import androidx.media3.common.C
@@ -868,42 +870,177 @@ class MainActivity : Activity() {
             .show()
     }
 
+    /** Full-height listening screen; all controls use the same background MediaController. */
     private fun openNowPlayingDialog() {
         val video = currentVideo() ?: return
-        val artwork = ImageView(this).apply {
-            setImageResource(R.drawable.ic_nightwave)
-            scaleType = ImageView.ScaleType.CENTER_CROP
-            layoutParams = LinearLayout.LayoutParams(-1, dp(255)).apply { bottomMargin = dp(20) }
-        }
-        thumbs.load(video.thumbnail, artwork)
-        val content = LinearLayout(this).apply {
+        val dialog = Dialog(this)
+        dialog.window?.setBackgroundDrawableResource(R.drawable.bg_root)
+        val container = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(18), dp(18), dp(18), dp(14))
-            addView(artwork)
-            addView(TextView(this@MainActivity).apply {
-                text = video.title
-                textSize = 23f
-                typeface = Typeface.DEFAULT_BOLD
-                setTextColor(Color.WHITE)
-                maxLines = 2
-            })
-            addView(TextView(this@MainActivity).apply {
-                text = video.author
-                textSize = 14f
-                setTextColor(Color.rgb(174, 191, 174))
-                setPadding(0, dp(7), 0, dp(12))
-            })
+            setPadding(dp(25), dp(24), dp(25), dp(24))
+            setBackgroundResource(R.drawable.bg_root)
         }
-        val dialog = AlertDialog.Builder(this).setTitle("Now Playing")
-            .setView(content)
-            .setNeutralButton("Repeat: " + listOf("Off", "All", "One")[repeat]) { _, _ ->
-                repeat = (repeat + 1) % 3
-                sendQueueAction(PlaybackService.ACTION_REPEAT)
-                showStatus("Repeat: " + listOf("Off", "All", "One")[repeat])
+        val header = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        header.addView(TextView(this).apply {
+            text = "✦  NIGHTWAVE  /  NOW PLAYING"
+            textSize = 12f
+            letterSpacing = 0.1f
+            typeface = Typeface.DEFAULT_BOLD
+            setTextColor(Color.rgb(181, 223, 232))
+            layoutParams = LinearLayout.LayoutParams(0, dp(52), 1f)
+            gravity = Gravity.CENTER_VERTICAL
+        })
+        header.addView(TextView(this).apply {
+            text = "×"
+            textSize = 31f
+            gravity = Gravity.CENTER
+            setTextColor(Color.WHITE)
+            isClickable = true
+            isFocusable = true
+            contentDescription = "Close player"
+            setOnClickListener { dialog.dismiss() }
+        }, LinearLayout.LayoutParams(dp(48), dp(48)))
+        container.addView(header)
+
+        val artworkSize = resources.displayMetrics.widthPixels - dp(50)
+        val art = ImageView(this).apply {
+            scaleType = ImageView.ScaleType.CENTER_CROP
+            setImageResource(R.drawable.ic_nightwave)
+            setBackgroundResource(R.drawable.bg_now_playing)
+            clipToOutline = true
+            elevation = dp(12).toFloat()
+            layoutParams = LinearLayout.LayoutParams(-1, artworkSize).apply {
+                topMargin = dp(24)
+                bottomMargin = dp(28)
             }
-            .setNegativeButton("Add to playlist") { _, _ -> showPlaylistPicker(video) }
-            .setPositiveButton("Done", null).create()
+        }
+        thumbs.load(video.thumbnail, art)
+        container.addView(art)
+        container.addView(TextView(this).apply {
+            text = video.title
+            textSize = 27f
+            typeface = Typeface.create("sans-serif-black", Typeface.BOLD)
+            setTextColor(Color.WHITE)
+            maxLines = 3
+        })
+        container.addView(TextView(this).apply {
+            text = video.author
+            textSize = 15f
+            setTextColor(Color.rgb(178, 181, 217))
+            setPadding(0, dp(8), 0, dp(18))
+        })
+        val fullProgress = SeekBar(this).apply {
+            max = 1000
+            progressTintList = android.content.res.ColorStateList.valueOf(Color.rgb(187, 172, 255))
+            thumbTintList = android.content.res.ColorStateList.valueOf(Color.rgb(187, 172, 255))
+            progressBackgroundTintList = android.content.res.ColorStateList.valueOf(Color.rgb(69, 72, 111))
+        }
+        fullProgress.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(bar: SeekBar?, progress: Int, fromUser: Boolean) = Unit
+            override fun onStartTrackingTouch(bar: SeekBar?) = Unit
+            override fun onStopTrackingTouch(bar: SeekBar?) {
+                controller?.let { player ->
+                    val duration = player.duration
+                    if (duration > 0 && duration != C.TIME_UNSET) {
+                        player.seekTo(duration * fullProgress.progress / 1000L)
+                    }
+                }
+            }
+        })
+        container.addView(fullProgress, LinearLayout.LayoutParams(-1, dp(40)))
+
+        val time = TextView(this).apply {
+            textSize = 12f
+            setTextColor(Color.rgb(169, 174, 206))
+            gravity = Gravity.END
+        }
+        container.addView(time)
+        val controls = LinearLayout(this).apply {
+            gravity = Gravity.CENTER
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, dp(19), 0, dp(16))
+        }
+        fun control(symbol: String, description: String, weight: Float, tap: () -> Unit): TextView {
+            return TextView(this).apply {
+                text = symbol
+                textSize = if (description == "Play or pause") 28f else 25f
+                gravity = Gravity.CENTER
+                setTextColor(Color.rgb(241, 238, 255))
+                isClickable = true
+                isFocusable = true
+                contentDescription = description
+                layoutParams = LinearLayout.LayoutParams(0, dp(68), weight)
+                setOnClickListener {
+                    animate().scaleX(0.83f).scaleY(0.83f).setDuration(95).withEndAction {
+                        animate().scaleX(1f).scaleY(1f).setDuration(135).start()
+                    }.start()
+                    tap()
+                }
+            }
+        }
+        controls.addView(control("⇄", "Toggle shuffle", 1f) {
+            shuffle = !shuffle
+            sendQueueAction(PlaybackService.ACTION_SHUFFLE)
+            binding.shuffleButton.setTextColor(if (shuffle) Color.rgb(193, 175, 255) else Color.rgb(195, 194, 217))
+        })
+        controls.addView(control("|◀", "Previous song", 1f) {
+            sendQueueAction(PlaybackService.ACTION_PREVIOUS)
+        })
+        val play = control(if (controller?.isPlaying == true) "Ⅱ" else "▶", "Play or pause", 1.35f) {
+            controller?.let { if (it.isPlaying) it.pause() else it.play() }
+        }.apply {
+            setTextColor(Color.rgb(16, 19, 42))
+            setBackgroundResource(R.drawable.bg_action)
+        }
+        controls.addView(play)
+        controls.addView(control("▶|", "Next song", 1f) {
+            sendQueueAction(PlaybackService.ACTION_NEXT)
+        })
+        controls.addView(control("♡", "Like this song", 1f) {
+            library.toggleFavorite(video)
+            updateFavoriteButton()
+        })
+        container.addView(controls)
+        val actions = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER
+        }
+        actions.addView(control("＋  SAVE", "Add to a playlist", 1f) {
+            showPlaylistPicker(video)
+        })
+        actions.addView(control("≡  UP NEXT", "View playing queue", 1f) {
+            showQueueDialog()
+        })
+        container.addView(actions)
+        val scroll = ScrollView(this).apply {
+            isFillViewport = true
+            addView(container)
+        }
+        dialog.setContentView(scroll)
+        val update = object : Runnable {
+            override fun run() {
+                if (!dialog.isShowing) return
+                controller?.let { player ->
+                    val length = player.duration.takeIf { it > 0 && it != C.TIME_UNSET } ?: 0
+                    val elapsed = player.currentPosition.coerceAtLeast(0)
+                    if (length > 0) fullProgress.progress =
+                        ((elapsed.coerceAtMost(length) * 1000) / length).toInt()
+                    time.text = TimeLabel.format(elapsed) + "  /  " + TimeLabel.format(length)
+                    play.text = if (player.isPlaying) "Ⅱ" else "▶"
+                }
+                main.postDelayed(this, 800)
+            }
+        }
+        dialog.setOnDismissListener { main.removeCallbacks(update) }
         dialog.show()
+        dialog.window?.setLayout(-1, -1)
+        art.alpha = 0.3f
+        art.translationY = dp(28).toFloat()
+        art.animate().alpha(1f).translationY(0f).setDuration(420).start()
+        main.post(update)
     }
 
     private fun showStatus(message: String, isError: Boolean = false) {
