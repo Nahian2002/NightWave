@@ -13,9 +13,21 @@ An independently developed **Android app source project** for searching public v
 - Seekbar, jump ±15 seconds, artist/title/album artwork, open the source video in YouTube.
 - Dark native Android interface; no login, no root, no storage permission, no local content downloads.
 
-## Build an APK with GitHub Actions (simplest)
+## Build on your Windows PC without any GitHub billing (recommended for private repos)
 
-1. Open https://github.com/new and create an empty **private** repository named `NightWave` in your account. Do **not** initialize it with a README, license, or .gitignore. Upload the **contents of this folder**, including hidden `.github/` and `.gitignore` files. Keep `.github/workflows/android.yml` intact.
+1. Open the private NightWave repository. Click **Code → Download ZIP**, then extract it.
+2. Double-click **build-windows.cmd** in the extracted folder. No terminal commands or Android Studio are needed.
+3. The first run downloads Java 17 if needed, Gradle 8.11.1, and Google's Android SDK tools. Downloads are free but need internet and several GB of disk space.
+4. Review Google's Android SDK license prompts and type **y** if you accept the terms.
+5. After tests and compilation succeed, the APK will be at **dist\NightWave-debug.apk**. Copy the APK to your Android phone and tap to install.
+
+The script uses only local Windows resources; it **does not** use GitHub-hosted runners, need any billing settings, or require a payment method. It caches tools in %LOCALAPPDATA%\NightWaveBuild. Download sources are visible in tools/build-windows.ps1.
+
+**Status:** The local build script and source checks are prepared, but an APK has not been compiled or tested on an Android phone yet. If your local build fails, share the last error messages for diagnosis.
+
+## Build an APK with GitHub Actions (only if GitHub permits jobs)
+
+1. Open the existing private NightWave repository and confirm `.github/workflows/android.yml` is present.
 2. Under GitHub **Actions**, select **Android debug APK** and click **Run workflow** (or push to `main`).
 3. After the workflow finishes, download the **NightWave-debug-apk** artifact and extract `app-debug.apk`.
 4. Transfer APK to your Samsung phone. Open the APK and allow installation from the app you used to open it (if Android asks).
@@ -74,4 +86,4 @@ The implementation is intended as a private experimental app and uses NewPipeExt
 
 ## Repository publication status
 
-The project is ready to upload, but an actual repository and a successful remote APK build must be verified separately. Source ZIP presence does not imply GitHub upload or installable APK.
+The repository exists at https://github.com/Nahian2002/NightWave. GitHub Actions runs were blocked *before a runner started* by a GitHub account billing restriction. Use `build-windows.cmd` to compile without GitHub billing. A successful APK build and screen-off playback are still unverified.
