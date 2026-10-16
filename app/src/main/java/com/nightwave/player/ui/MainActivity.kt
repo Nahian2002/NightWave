@@ -420,7 +420,7 @@ class MainActivity : Activity() {
         player.seekTo((player.currentPosition + offset).coerceIn(0L, end))
     }
 
-    /** Compact music-first track row. Long-press or tap ⋮ for queue and playlist actions. */
+    /** Compact elevated track tile with cover art and a working actions menu. */
     private fun addVideoCard(
         video: VideoPreview,
         collection: List<VideoPreview> = results,
@@ -429,60 +429,66 @@ class MainActivity : Activity() {
         val card = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            setPadding(dp(4), dp(8), dp(3), dp(8))
+            setPadding(dp(10), dp(9), dp(6), dp(9))
+            setBackgroundResource(R.drawable.bg_result_item)
+            elevation = dp(2).toFloat()
             isClickable = true
             isFocusable = true
             contentDescription = "Play " + video.title + " by " + video.author
-            setOnClickListener { playCollection(video, collection) }
+            setOnClickListener {
+                animate().scaleX(0.97f).scaleY(0.97f).setDuration(85)
+                    .withEndAction { animate().scaleX(1f).scaleY(1f).setDuration(160).start() }
+                    .start()
+                playCollection(video, collection)
+            }
             setOnLongClickListener { showSongActions(video, playlist); true }
         }
         val image = ImageView(this).apply {
             scaleType = ImageView.ScaleType.CENTER_CROP
             setImageResource(R.drawable.ic_nightwave)
-            background = GradientDrawable().apply {
-                setColor(Color.rgb(33, 40, 37))
-                cornerRadius = dp(10).toFloat()
-            }
+            setBackgroundResource(R.drawable.bg_search_hint)
             clipToOutline = true
-            layoutParams = LinearLayout.LayoutParams(dp(74), dp(74))
+            layoutParams = LinearLayout.LayoutParams(dp(65), dp(65))
         }
         thumbs.load(video.thumbnail, image)
         card.addView(image)
         val details = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER_VERTICAL
-            setPadding(dp(13), 0, dp(6), 0)
-            layoutParams = LinearLayout.LayoutParams(0, dp(74), 1f)
+            setPadding(dp(13), 0, dp(5), 0)
+            layoutParams = LinearLayout.LayoutParams(0, dp(65), 1f)
         }
         details.addView(TextView(this).apply {
             text = video.title
-            setTextColor(Color.rgb(242, 247, 242))
-            textSize = 15f
-            typeface = Typeface.DEFAULT_BOLD
+            setTextColor(Color.rgb(249, 249, 255))
+            textSize = 14.5f
+            typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
             maxLines = 2
             ellipsize = android.text.TextUtils.TruncateAt.END
         })
         details.addView(TextView(this).apply {
-            text = video.author + (if (video.durationSeconds > 0) "  •  " + TimeLabel.format(video.durationSeconds * 1_000) else "")
-            setTextColor(Color.rgb(159, 173, 164))
+            text = video.author + if (video.durationSeconds > 0)
+                "   ·   " + TimeLabel.format(video.durationSeconds * 1_000)
+            else ""
+            setTextColor(Color.rgb(158, 167, 198))
             textSize = 12f
             maxLines = 1
             ellipsize = android.text.TextUtils.TruncateAt.END
-            layoutParams = LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(5) }
+            layoutParams = LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(6) }
         })
         card.addView(details)
         card.addView(TextView(this).apply {
             text = "⋮"
             gravity = Gravity.CENTER
-            textSize = 25f
-            setTextColor(Color.rgb(185, 201, 177))
-            contentDescription = "More options for " + video.title
+            textSize = 24f
+            setTextColor(Color.rgb(190, 181, 255))
+            contentDescription = "Options for " + video.title
             isClickable = true
             isFocusable = true
             setOnClickListener { showSongActions(video, playlist) }
-        }, LinearLayout.LayoutParams(dp(42), dp(54)))
+        }, LinearLayout.LayoutParams(dp(37), dp(48)))
         binding.resultsContainer.addView(card, LinearLayout.LayoutParams(-1, -2).apply {
-            bottomMargin = dp(2)
+            bottomMargin = dp(10)
         })
     }
 
