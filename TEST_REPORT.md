@@ -19,7 +19,7 @@ Date: 2026-10-17
 - Kotlin 1.9 JVM compilation of the queue engine: PASS after fixing an unsupported deque append call.
 - Kotlin 1.9 smoke harness: PASS (38 queue transitions/edge cases, including shuffle exhaustion, repeat one/all/off, navigation history, jump bounds, 100-item cap).
 - GitHub verification: all new Kotlin files, queue persistence, UI and resources confirmed uploaded.
-- Post-upgrade ViewBinding static check: 32 unique layout IDs, all referenced UI bindings present, and paired Kotlin brace counts match. PASS.
+- Post-upgrade ViewBinding static check: 33 unique layout IDs, all referenced UI bindings present, and paired Kotlin brace counts match. PASS.
 - MediaSessionService, audio stream resolver and foreground media service remain installed.
 
 ## Not yet verified
