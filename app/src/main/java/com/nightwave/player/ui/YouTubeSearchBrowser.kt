@@ -31,7 +31,7 @@ import com.nightwave.player.core.WebSearchRoute
  * by NightWave.
  */
 class YouTubeSearchBrowser(private val context: Context) {
-    fun show(query: String, onVideoSelected: (String) -> Unit) {
+    fun show(query: String, onVideoSelected: (String) -> Unit): Dialog {
         val pageUrl = WebSearchRoute.searchUrl(query)
         val dialog = Dialog(context)
         val root = LinearLayout(context).apply {
@@ -203,6 +203,7 @@ class YouTubeSearchBrowser(private val context: Context) {
         dialog.window?.setBackgroundDrawableResource(R.drawable.bg_root)
         dialog.window?.setLayout(-1, -1)
         browser.loadUrl(pageUrl)
+        return dialog
     }
 
     private fun dp(v: Int): Int = (context.resources.displayMetrics.density * v + 0.5f).toInt()
