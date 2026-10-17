@@ -136,6 +136,7 @@ import com.nightwave.player.net.YouTubeGateway
 import com.nightwave.player.net.VideoSearchResults
 import com.nightwave.player.net.SearchMode
 import com.nightwave.player.net.SavedTrackSearch
+import com.nightwave.player.net.MusicIdentity
 import com.nightwave.player.ui.MainActivity
 import com.nightwave.player.ui.YouTubeSearchBrowser
 import com.nightwave.player.v2.data.GuestProfileStore
@@ -1694,6 +1695,9 @@ private fun StudioSearch(
     val savedMatches = remember(query, savedTracks) {
         SavedTrackSearch.match(query, savedTracks)
     }
+    val knownCreators = remember(savedTracks) {
+        MusicIdentity.creatorsFrom(savedTracks, limit = 8)
+    }
     // Never present results from an older query as results for new typed text.
     val responseMatchesQuery = state.query.isNotBlank() &&
         query.trim().equals(state.query.trim(), ignoreCase = true)
@@ -1731,7 +1735,7 @@ private fun StudioSearch(
                     shape = RoundedCornerShape(15.dp)) {
                     Text("Find music on YouTube")
                 }
-                Text("YouTube search opens inside NightWave. Saved songs stay available offline.",
+                Text("Saved entries stay in your library. Public video audio still needs internet.",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
@@ -1756,10 +1760,35 @@ private fun StudioSearch(
                     }
                 }
             }
+            if (knownCreators.isNotEmpty()) {
+                item(key = "local-creators") {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        SectionHeading("Artists & creators from your music",
+                            "Browse your saved and recent tracks · on this device")
+                        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            knownCreators.forEach { creator ->
+                                FilterChip(selected = false,
+                                    onClick = {
+                                        // Only update the local search filter.
+                                        // Online search remains a separate tap.
+                                        mode = SearchMode.SONGS
+                                        query = creator.name
+                                        quickOptionsExpanded = false
+                                    },
+                                    label = {
+                                        Text(creator.name + " · " + creator.trackCount,
+                                            maxLines = 1)
+                                    })
+                            }
+                        }
+                    }
+                }
+            }
             if (savedTracks.isNotEmpty()) {
                 item {
                     SectionHeading("Already in your library",
-                        "Play something saved without searching online")
+                        "Saved entries · public videos require internet to play")
                 }
                 items(savedTracks.take(3), key = { "search-starter:" + it.url }) { song ->
                     MusicTrackTile(song, isPlaying = playingUrl == song.url,
