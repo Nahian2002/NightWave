@@ -1,5 +1,17 @@
 # NightWave
 
+## Phase 6K — Service-owned sleep timer (draft)
+
+**Development branch:** `feature/nightwave-v2-phase6k-service-sleep-timer`, stacked on user-tested Phase 6J. [Complete source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase6k-service-sleep-timer.zip) · [Phase 6K safety and acceptance checklist](docs/NIGHTWAVE_V2_PHASE6K_QA.md)
+
+- **Sleep timer in Now Playing:** Choose **15 / 30 / 45 / 60 minutes**, view estimated remaining time, or cancel without stopping music. Works with public-video streams and manually imported local audio while the Media3 service stays alive.
+- **Safe expiration:** Media3-owning service uses the monotonic clock and a single replaceable callback; expiry pauses playback, cancels pending public stream extraction, writes an existing progress bookmark, and blocks already-posted automatic next-track callbacks until listening starts again. No deletion, forced queue reset, file modification or new audio player.
+- **Privacy/lifecycle:** only a transient deadline value is stored for display, cleared on service creation and destruction; no listening IDs, cloud sync, background analytics, exact-alarm permission or guaranteed operation after process death/reboot.
+- **Conservative scope:** equalizer, gapless and crossfade were not forced into this release because correct platform/audio-route behavior would require deeper device validation. Existing offline library, 6J display metadata, search, song imports, lyrics, cloud backups, playlists, mini-player gestures and app ID/build35 remain.
+- **Status:** eight new policy JUnit methods authored and `tools/verify_v2_phase6k.py` staged under stacked Android CI. A real full Gradle build and on-device timer test still need confirmation before release; never uninstall or clear current NightWave data due to an APK certificate mismatch.
+
+---
+
 ## Phase 6J — Music identity and honest local discovery (draft)
 
 **Development branch:** `feature/nightwave-v2-phase6j-music-identity-discovery`, stacked on the user's checked 6I. [Complete source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase6j-music-identity-discovery.zip) · [Phase 6J QA and limitations](docs/NIGHTWAVE_V2_PHASE6J_QA.md)

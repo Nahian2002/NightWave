@@ -59,6 +59,9 @@ class PlaybackService : MediaSessionService() {
         const val ACTION_JUMP = "com.nightwave.player.JUMP"
         const val ACTION_SHUFFLE = "com.nightwave.player.SHUFFLE"
         const val ACTION_REPEAT = "com.nightwave.player.REPEAT"
+        const val ACTION_SLEEP_TIMER_SET = "com.nightwave.player.SLEEP_TIMER_SET"
+        const val ACTION_SLEEP_TIMER_CANCEL = "com.nightwave.player.SLEEP_TIMER_CANCEL"
+        const val EXTRA_SLEEP_MINUTES = "sleep_minutes"
         const val EXTRA_URLS = "urls"
         const val EXTRA_TITLES = "titles"
         const val EXTRA_CREATORS = "creators"
@@ -71,6 +74,52 @@ class PlaybackService : MediaSessionService() {
     private val queue = PlaybackQueue()
     private lateinit var savedQueue: QueueStateStore
     private val main = Handler(Looper.getMainLooper())
+    private lateinit var sleepStatus: SleepTimerStatusStore
+    private var sleepTimerGeneration = 0
+    private var sleepDeadlineElapsedMs = 0L
+    private var sleepTimerRunnable: Runnable? = null
+    // Suppress already-posted automatic Next callbacks after expiry, until
+    // the listener observes a genuine new user-initiated Play event.
+    private var sleepTimerPaused = false
+
+    private fun clearSleepTimer() {
+        sleepTimerGeneration++
+        sleepTimerRunnable?.let(main::removeCallbacks)
+        sleepTimerRunnable = null
+        sleepDeadlineElapsedMs = 0L
+        if (::sleepStatus.isInitialized) sleepStatus.clear()
+    }
+
+    private fun setSleepTimer(minutes: Int) {
+        val deadline = SleepTimerPolicy.deadlineMs(SystemClock.elapsedRealtime(), minutes)
+            ?: return // invalid input cannot cancel or extend an active timer
+        clearSleepTimer()
+        val token = sleepTimerGeneration
+        sleepDeadlineElapsedMs = deadline
+        sleepStatus.setDeadline(deadline)
+        val runnable = Runnable {
+            if (sleepTimerGeneration != token || sleepDeadlineElapsedMs != deadline) return@Runnable
+            if (!SleepTimerPolicy.expires(SystemClock.elapsedRealtime(), deadline)) {
+                // Late/early Handler dispatch still respects the monotonic deadline.
+                val delay = SleepTimerPolicy.remainingMs(SystemClock.elapsedRealtime(), deadline)
+                main.postDelayed(sleepTimerRunnable ?: return@Runnable, delay)
+                return@Runnable
+            }
+            sleepTimerPaused = true
+            clearSleepTimer()
+            // Pause both public and app-owned offline audio. If a public URL is
+            // resolving, invalidate it to prevent the result from autoplaying.
+            generation++
+            cancelPendingResolution()
+            exoPlayer?.pause()
+            exoPlayer?.playWhenReady = false
+            persistProgress(flush = true)
+        }
+        sleepTimerRunnable = runnable
+        main.postDelayed(runnable,
+            SleepTimerPolicy.remainingMs(SystemClock.elapsedRealtime(), deadline))
+    }
+
     // One slow, stale extractor cannot block a newer selection. Maximum two
     // active workers + one queued request; do not spawn unbounded network jobs.
     private val resolver = ThreadPoolExecutor(2, 2, 30L, TimeUnit.SECONDS,
@@ -162,6 +211,7 @@ class PlaybackService : MediaSessionService() {
 
     private val trackListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
+            if (isPlaying) sleepTimerPaused = false
             sampleListening()
             main.removeCallbacks(progressWriter)
             if (isPlaying) main.postDelayed(progressWriter, 2500L)
@@ -174,7 +224,7 @@ class PlaybackService : MediaSessionService() {
                 // Switching Media3 items inside a Player callback is unsafe on
                 // some devices; post the guarded transition onto the main loop.
                 main.post {
-                    if (exoPlayer?.playbackState == Player.STATE_ENDED) {
+                    if (!sleepTimerPaused && exoPlayer?.playbackState == Player.STATE_ENDED) {
                         if (offlinePlaying) {
                             if (!advanceOffline(forward = true)) {
                                 offlineQueue.current?.let { offlineSession.savePosition(it, 0L, flush = true) }
@@ -229,6 +279,10 @@ class PlaybackService : MediaSessionService() {
     override fun onCreate() {
         super.onCreate()
         savedQueue = QueueStateStore(this)
+        sleepStatus = SleepTimerStatusStore(this)
+        // A process/service restart never silently resurrects an old timer.
+        // Playback itself also requires an explicit user resume after restart.
+        clearSleepTimer()
         savedQueue.clearLookup() // process restart must not leave a ghost spinner
         offlineSession = OfflineSessionStore(this)
         listeningMemory = ListeningMemoryStore(this)
@@ -393,6 +447,8 @@ class PlaybackService : MediaSessionService() {
             }
             ACTION_RESUME_SAVED -> resumeSavedQueue()
             ACTION_RETRY_CURRENT -> retryCurrent()
+            ACTION_SLEEP_TIMER_SET -> setSleepTimer(intent.getIntExtra(EXTRA_SLEEP_MINUTES, 0))
+            ACTION_SLEEP_TIMER_CANCEL -> clearSleepTimer()
             ACTION_NEXT -> playNext(false)
             ACTION_PREVIOUS -> playPrevious()
             ACTION_JUMP -> if (!offlinePlaying) queue.jump(intent.getIntExtra(EXTRA_INDEX, -1))?.let { savedQueue.save(queue); resolveAndPlay(it) }
@@ -688,6 +744,7 @@ class PlaybackService : MediaSessionService() {
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = mediaSession
 
     override fun onDestroy() {
+        clearSleepTimer()
         sampleListening(endSession = true)
         persistProgress(flush = true)
         main.removeCallbacks(progressWriter)

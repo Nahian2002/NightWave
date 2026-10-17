@@ -37,6 +37,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
+import com.nightwave.player.playback.SleepTimerStatusStore
 import androidx.activity.compose.setContent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
@@ -173,6 +175,8 @@ class NightWaveStudioActivity : ComponentActivity() {
     private lateinit var profiles: GuestProfileStore
     private lateinit var library: MusicLibrary
     private lateinit var playback: StudioPlaybackBridge
+    private lateinit var sleepTimerStatus: SleepTimerStatusStore
+    private var sleepRemainingMs by mutableStateOf(0L)
     private lateinit var archiveManager: LibraryArchiveManager
     private lateinit var lyricsStore: PrivateLyricsStore
     private lateinit var listeningMemoryStore: ListeningMemoryStore
@@ -330,6 +334,7 @@ class NightWaveStudioActivity : ComponentActivity() {
         profiles = GuestProfileStore(this)
         library = MusicLibrary(this)
         playback = StudioPlaybackBridge(this)
+        sleepTimerStatus = SleepTimerStatusStore(this)
         archiveManager = LibraryArchiveManager(this)
         lyricsStore = PrivateLyricsStore(this)
         listeningMemoryStore = ListeningMemoryStore(this)
@@ -351,6 +356,14 @@ class NightWaveStudioActivity : ComponentActivity() {
         profile = profiles.load()
         refresh()
         setContent {
+            // Display only. The media service remains the single timer owner,
+            // including when this Activity is no longer visible.
+            LaunchedEffect(Unit) {
+                while (true) {
+                    sleepRemainingMs = sleepTimerStatus.remainingMs()
+                    delay(5_000L)
+                }
+            }
             LaunchedEffect(playback.state.videoUrl) {
                 if (playback.state.videoUrl.isNotBlank()) refresh()
             }
@@ -376,6 +389,25 @@ class NightWaveStudioActivity : ComponentActivity() {
                         else library.playlist(name)
                     },
                     playerState = playback.state, playerActions = playback,
+                    sleepRemainingMs = sleepRemainingMs,
+                    onSleepTimer = { minutes ->
+                        runCatching {
+                            startService(Intent(this, PlaybackService::class.java).apply {
+                                action = if (minutes == null)
+                                    PlaybackService.ACTION_SLEEP_TIMER_CANCEL
+                                else PlaybackService.ACTION_SLEEP_TIMER_SET
+                                if (minutes != null)
+                                    putExtra(PlaybackService.EXTRA_SLEEP_MINUTES, minutes)
+                            })
+                        }.onSuccess {
+                            lifecycleScope.launch {
+                                delay(300L)
+                                sleepRemainingMs = sleepTimerStatus.remainingMs()
+                            }
+                        }.onFailure {
+                            showMessage("Sleep timer couldn't be updated. Try again.")
+                        }
+                    },
                     memory = memorySummary,
                     onMemoryEnabledChange = { setListeningMemory(it) },
                     onMemoryErase = { confirmEraseListeningMemory() },
@@ -1196,6 +1228,8 @@ private fun StudioRoot(
     onUseLegacyReads: () -> Unit,
     playerState: StudioPlayerState,
     playerActions: StudioPlaybackBridge,
+    sleepRemainingMs: Long,
+    onSleepTimer: (Int?) -> Unit,
     memory: ListeningMemorySummary,
     onMemoryEnabledChange: (Boolean) -> Unit,
     onMemoryErase: () -> Unit,
@@ -1502,6 +1536,8 @@ private fun StudioRoot(
         },
         onOpenQueue = { showQueue = true },
         onSaveToPlaylist = onSaveCurrentToPlaylist,
+        sleepRemainingMs = sleepRemainingMs,
+        onSleepTimer = onSleepTimer,
         lyrics = currentLyrics,
         onImportLyrics = onImportLyrics,
         onRemoveLyrics = onRemoveLyrics,
