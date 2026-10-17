@@ -2027,7 +2027,7 @@ private fun StudioSearch(
                         shape = RoundedCornerShape(14.dp)
                     ) {
                         Text(if (showAllCreators) "Hide saved creators"
-                            else "Browse all saved creators · " + creatorGroups.size)
+                            else "Browse saved creators · " + creatorGroups.size + " of up to 48")
                     }
                 }
                 if (showAllCreators) {
