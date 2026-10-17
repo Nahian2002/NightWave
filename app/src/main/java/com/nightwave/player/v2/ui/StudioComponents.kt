@@ -10,6 +10,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
@@ -23,11 +26,14 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
@@ -43,7 +49,7 @@ fun NightWaveWordmark(modifier: Modifier = Modifier) {
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
+        horizontalArrangement = Arrangement.spacedBy(9.dp)
     ) {
         val accent = MaterialTheme.colorScheme.primary
         Box(
@@ -67,10 +73,12 @@ fun NightWaveWordmark(modifier: Modifier = Modifier) {
         }
         Row(horizontalArrangement = Arrangement.spacedBy(0.dp),
             verticalAlignment = Alignment.CenterVertically) {
-            Text("Night", style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onBackground)
-            Text("Wave", style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.primary)
+            Text("Night", style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.ExtraBold, letterSpacing = (-0.65).sp),
+                maxLines = 1, color = MaterialTheme.colorScheme.onBackground)
+            Text("Wave", style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.ExtraBold, letterSpacing = (-0.65).sp),
+                maxLines = 1, color = MaterialTheme.colorScheme.primary)
         }
     }
 }
@@ -129,30 +137,112 @@ fun MusicFeatureCard(
     }
 }
 
+/** Uses real last-listened metadata. This surface never invents a recommendation. */
+@Composable
+fun ListeningSpotlight(
+    lastTrack: VideoPreview?,
+    onResume: () -> Unit,
+    onDiscover: () -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+    val hasRecent = lastTrack != null
+    Card(
+        onClick = if (hasRecent) onResume else onDiscover,
+        modifier = Modifier.fillMaxWidth().height(174.dp),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = colors.surfaceVariant)
+    ) {
+        Box(Modifier.fillMaxWidth().height(174.dp).background(
+            Brush.linearGradient(listOf(colors.surfaceVariant, colors.surface, colors.surfaceVariant),
+                start = Offset.Zero, end = Offset(900f, 400f))
+        )) {
+            Box(Modifier.align(Alignment.CenterEnd).size(145.dp)
+                .offset(x = 16.dp).clip(RoundedCornerShape(22.dp))
+                .background(colors.primary.copy(alpha = .13f)),
+                contentAlignment = Alignment.Center) {
+                if (hasRecent && !lastTrack?.thumbnail.isNullOrBlank()) {
+                    AsyncImage(
+                        model = lastTrack?.thumbnail, contentDescription = "Last played artwork",
+                        modifier = Modifier.size(137.dp).clip(RoundedCornerShape(19.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Canvas(Modifier.size(125.dp)) {
+                        drawCircle(colors.primary.copy(alpha = .2f), radius = size.minDimension * .43f)
+                        drawCircle(colors.primary.copy(alpha = .63f), radius = size.minDimension * .29f,
+                            style = Stroke(width = 2.dp.toPx()))
+                        drawCircle(colors.primary, radius = size.minDimension * .055f)
+                    }
+                }
+            }
+            Column(Modifier.align(Alignment.CenterStart).fillMaxWidth(.71f)
+                .padding(start = 20.dp, top = 18.dp, bottom = 18.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(if (hasRecent) "PICK UP WHERE YOU LEFT OFF" else "YOUR NEXT LISTEN",
+                    style = MaterialTheme.typography.labelSmall, color = colors.primary)
+                Text(if (hasRecent) lastTrack?.title.orEmpty() else "Make tonight sound better",
+                    style = MaterialTheme.typography.headlineSmall, color = colors.onSurface,
+                    maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Text(if (hasRecent) lastTrack?.author.orEmpty() else "Discover something worth replaying",
+                    style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Row(verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Icon(Icons.Outlined.PlayArrow, null, modifier = Modifier.size(19.dp),
+                        tint = colors.primary)
+                    Text(if (hasRecent) "Play again" else "Discover music",
+                        style = MaterialTheme.typography.labelLarge, color = colors.primary)
+                }
+            }
+        }
+    }
+}
+
+/** Artwork placeholder remains visible if upstream thumbnails cannot load. */
+@Composable
+private fun TrackArtwork(video: VideoPreview, modifier: Modifier = Modifier) {
+    Box(modifier.clip(RoundedCornerShape(11.dp))
+        .background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.surfaceVariant,
+            MaterialTheme.colorScheme.surface))),
+        contentAlignment = Alignment.Center) {
+        Canvas(Modifier.size(28.dp)) {
+            drawCircle(Color.White.copy(alpha = .12f), radius = size.minDimension * .47f)
+            drawCircle(Color.White.copy(alpha = .5f), radius = size.minDimension * .29f,
+                style = Stroke(width = 2.dp.toPx()))
+            drawCircle(Color.White.copy(alpha = .7f), radius = size.minDimension * .06f)
+        }
+        if (video.thumbnail.isNotBlank()) {
+            AsyncImage(model = video.thumbnail,
+                contentDescription = "Artwork for " + video.title,
+                modifier = Modifier.matchParentSize(),
+                contentScale = ContentScale.Crop)
+        }
+    }
+}
+
 @Composable
 fun MusicTrackTile(
     video: VideoPreview,
     modifier: Modifier = Modifier,
     onOptions: (() -> Unit)? = null,
+    isPlaying: Boolean = false,
     onClick: () -> Unit
 ) {
     val scheme = MaterialTheme.colorScheme
     Row(
         modifier = modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp))
-            .clickable(onClick = onClick).padding(vertical = 5.dp, horizontal = 3.dp),
+            .background(if (isPlaying) scheme.primary.copy(alpha = .10f) else Color.Transparent)
+            .clickable(onClick = onClick).padding(vertical = 7.dp, horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        AsyncImage(
-            model = video.thumbnail, contentDescription = "Artwork for " + video.title,
-            modifier = Modifier.size(52.dp).clip(RoundedCornerShape(10.dp))
-                .background(scheme.surfaceVariant),
-            contentScale = ContentScale.Crop
-        )
+        TrackArtwork(video, Modifier.size(51.dp))
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
             Text(video.title, style = MaterialTheme.typography.titleMedium,
-                color = scheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(video.author, style = MaterialTheme.typography.bodyMedium,
+                color = if (isPlaying) scheme.primary else scheme.onSurface,
+                maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(if (isPlaying) "●  Playing · " + video.author else video.author,
+                style = MaterialTheme.typography.bodyMedium,
                 color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         if (onOptions != null) {
