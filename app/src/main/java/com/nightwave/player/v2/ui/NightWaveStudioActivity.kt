@@ -136,6 +136,16 @@ class NightWaveStudioActivity : ComponentActivity() {
         playback.connect()
     }
 
+    override fun onStart() {
+        super.onStart()
+        if (::playback.isInitialized) playback.resumeUiUpdates()
+    }
+
+    override fun onStop() {
+        if (::playback.isInitialized) playback.pauseUiUpdates()
+        super.onStop()
+    }
+
     override fun onDestroy() {
         youtubeDialog?.dismiss()
         youtubeDialog = null
