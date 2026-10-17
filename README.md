@@ -1,5 +1,22 @@
 # NightWave
 
+## NightWave Alpha 4 — Premium UI + last-session recovery
+
+**Current development preview:** \`2.0.0-alpha4\` on \`feature/nightwave-v2-phase4-premium-session\`.
+
+[Download full Phase 4 source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase4-premium-session.zip) · [Phase 4 QA and release limits](docs/NIGHTWAVE_V2_PHASE4_QA.md)
+
+**Major change:** the premium Jetpack Compose Home/Search/Library/Profile is the default launcher in this branch. The classic player is still available via the top-right Settings icon and still handles Android share-to-NightWave links.
+
+The prior song and queue are restored after app reopen, with the last saved playback position and metadata. Media3 resolves a fresh stream and prepares it **paused**; tapping Play explicitly resumes. Neither authentication nor expiring signed audio stream links are saved. A compact mini-player (~60dp) supports swipe down to hide, swipe up to expand, and a tappable "Now playing" control to show it again. Four compact tabs replace the oversized old navigation; album artwork, title layouts and Profile wording were refined for phone screen ratios.
+
+**Build status:** Source uploaded and reviewed, but the full Android Gradle build and real-phone tests for Alpha 4 are **not verified here**. Download/extract to a new folder, run \`build-windows.cmd\`, and only install the debug APK over your existing installation after \`BUILD SUCCESS\`. Never uninstall or clear app data just to upgrade. On compilation errors send \`dist/NightWave-build-errors.txt\`.
+
+Upstream YouTube search is unchanged and may still fail for some queries; the new UI does not promise a search backend fix. Room-primary writing and Google account/Drive recovery remain separate future milestones.
+
+---
+
+
 ## NightWave 2.0 Alpha 3D — guarded single-writer storage
 
 **Branch:** \`feature/nightwave-v2-phase3d-single-writer\` · **Version:** 2.0.0-alpha3d (code 13) · **Draft, NOT Android verified**
