@@ -43,6 +43,6 @@
 - Change Android font/display size and check branded header/navigation don't clip.
 
 ## Regression gates
-- Three Android instrumentation tests for imported file retention, invalid extension rejection and deletion without touching the original.
+- Three Android instrumentation tests for imported file retention, invalid extension rejection and deletion without touching the original, plus one Android palette test covering all four NightWave themes.
 - Static source gate at \`tools/verify_alpha4_ui_offline.py\`.
 - Full Android/Kotlin/KSP build and physical phone acceptance are pending. Do not merge to stable \`main\` until complete.
