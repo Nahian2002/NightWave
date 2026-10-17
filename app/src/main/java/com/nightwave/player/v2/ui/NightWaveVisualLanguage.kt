@@ -198,7 +198,7 @@ fun NightWaveMoodArt(
     // A malformed/empty editorial palette should not crash Home composition.
     val safeColors = if (colors.size >= 2) colors else
         listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.surfaceVariant)
-    Card(onClick = onClick, modifier = modifier.height(126.dp),
+    Card(onClick = onClick, modifier = modifier.height(118.dp),
         shape = RoundedCornerShape(21.dp)) {
         Box(Modifier.fillMaxSize().background(Brush.linearGradient(safeColors))) {
             Canvas(Modifier.fillMaxSize()) {
