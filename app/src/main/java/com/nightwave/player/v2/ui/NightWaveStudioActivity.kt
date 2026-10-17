@@ -613,7 +613,8 @@ private fun StudioRoot(
         },
         bottomBar = {
             Column {
-                if (!playerState.error.isNullOrBlank() && playerState.hasTrack) {
+                if (!playerState.error.isNullOrBlank() &&
+                    (playerState.hasTrack || !playerState.connected)) {
                     Surface(color = MaterialTheme.colorScheme.surfaceVariant,
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth()
@@ -627,7 +628,7 @@ private fun StudioRoot(
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.error)
                             OutlinedButton(onClick = { playerActions.retry() }) {
-                                Text("Retry")
+                                Text(if (!playerState.connected) "Reconnect" else "Retry")
                             }
                         }
                     }
