@@ -478,7 +478,9 @@ fun StudioQueueSheet(
                     contentPadding = PaddingValues(bottom = 22.dp),
                     verticalArrangement = Arrangement.spacedBy(7.dp)
                 ) {
-                    itemsIndexed(state.queue, key = { _, video -> video.url }) { index, video ->
+                    // Repeated URLs can occur in a restored/imported queue. A duplicate
+                    // LazyColumn key crashes Compose; use the absolute queue slot.
+                    itemsIndexed(state.queue, key = { index, _ -> index }) { index, video ->
                         val canRemove = removable && index > state.queueIndex &&
                             state.queueIndex >= 0 &&
                             video.url.startsWith("https://www.youtube.com/watch?v=")
