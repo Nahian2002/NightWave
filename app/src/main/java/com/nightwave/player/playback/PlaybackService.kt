@@ -79,6 +79,7 @@ class PlaybackService : MediaSessionService() {
     private lateinit var offlineSession: OfflineSessionStore
     private lateinit var listeningMemory: ListeningMemoryStore
     private val listeningMeter = ListeningSessionMeter()
+    private val listeningWriter = Executors.newSingleThreadExecutor()
     private var lastMemoryConsentRevision = -1L
     private var autoRetriedVideo: String? = null
     private val progressWriter = object : Runnable {
