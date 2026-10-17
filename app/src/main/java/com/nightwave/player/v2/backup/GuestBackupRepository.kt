@@ -54,15 +54,23 @@ class GuestBackupRepository(context: Context) {
         val oldLibrary = library.snapshotForBackup()
         val proposed = BackupMerge.prepare(oldLibrary, data, strategy)
         if (strategy == ImportStrategy.KEEP_EXISTING && restoreSettings) {
-            return profiles.save(data.profile.onto(oldProfile))
+            if (!profiles.save(data.profile.onto(oldProfile))) {
+                throw IllegalStateException("Profile settings could not be written.")
+            }
+            return true
         }
         val original = BackupFormat.export(PortableBackup(
             BackupPreferences.from(oldProfile), oldLibrary,
             System.currentTimeMillis(), includesHistory = true
         ))
-        FileOutputStream(rescue).use { out ->
-            out.write(original)
-            out.fd.sync()
+        try {
+            FileOutputStream(rescue).use { out ->
+                out.write(original)
+                out.fd.sync()
+            }
+        } catch (error: Exception) {
+            rescue.delete()
+            throw IllegalStateException("Could not safely prepare an import recovery copy.", error)
         }
         try {
             if (!library.commitImportedLibrary(proposed))
@@ -70,9 +78,7 @@ class GuestBackupRepository(context: Context) {
             if (restoreSettings && !profiles.save(data.profile.onto(oldProfile)))
                 throw IllegalStateException("Profile settings commit failed.")
             if (!rescue.delete()) {
-                // Successful restore is not lost; a rescue copy is left and must be
-                // dealt with before the next import.
-                android.util.Log.w("NightWaveBackup", "Rescue file needs cleanup after successful restore.")
+                throw IllegalStateException("Could not finalize the recovery journal.")
             }
             return true
         } catch (problem: Exception) {
