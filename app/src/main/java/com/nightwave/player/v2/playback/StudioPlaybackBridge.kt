@@ -156,7 +156,7 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
         val current = persistence.read()
         val offlineId = media?.mediaId?.takeIf { it.startsWith("offline:") }
         val offlineList = if (offlineId != null) offlineQueueFor(offlineId.removePrefix("offline:"))
-            else emptyList<VideoPreview>() to -1
+            else (emptyList<VideoPreview>() to -1)
         val savedTrack = current.tracks.getOrNull(current.index)
         val savedBookmark = persistence.bookmark(savedTrack?.url)
         state = state.copy(
@@ -261,8 +261,12 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
         if (state.offline) PlaybackService.ACTION_JUMP_OFFLINE
         else PlaybackService.ACTION_JUMP, index
     )
-    override fun toggleShuffle() = action(PlaybackService.ACTION_SHUFFLE)
-    override fun cycleRepeat() = action(PlaybackService.ACTION_REPEAT)
+    override fun toggleShuffle() {
+        if (!state.offline) action(PlaybackService.ACTION_SHUFFLE)
+    }
+    override fun cycleRepeat() {
+        if (!state.offline) action(PlaybackService.ACTION_REPEAT)
+    }
 
     override fun seekTo(positionMs: Long) {
         controller?.let { player ->
