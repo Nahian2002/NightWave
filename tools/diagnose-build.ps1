@@ -17,8 +17,10 @@ if (-not $BuildStatus) { $BuildStatus = Join-Path $dist 'NightWave-build-status.
 function Redact-Line([string]$line) {
     $clean = $line -replace '(?i)file:///([A-Z]:)/Users/[^/]+/', 'file:///$1/Users/<user>/'
     $clean = $clean -replace '(?i)([A-Z]:\\Users\\)[^\\]+\\', '$1<user>\'
-    # Never surface auth header values accidentally printed by a dependency.
+    # Never surface auth header values or common URL credential parameters.
     $clean = $clean -replace '(?i)(Authorization:\s*(?:Bearer|Basic)\s+)\S+', '$1<redacted>'
+    $clean = $clean -replace '(?i)([?&](?:token|access_token|refresh_token|api_key|key|client_secret|signature|sig|code)=)[^\s&#]+', '$1<redacted>'
+    $clean = $clean -replace '(?i)((?:client_secret|refresh_token|access_token|id_token)\s*[:=]\s*)\S+', '$1<redacted>'
     return $clean.TrimEnd()
 }
 function Summarize([string[]]$lines) {
@@ -51,6 +53,13 @@ if ($SelfTest) {
     )
     $got = @(Summarize -lines $sample) -join [Environment]::NewLine
     $credentialCheck = Redact-Line 'Authorization: Bearer imaginary-test-secret'
+    $urlCheck = Redact-Line 'Could not resolve https://example.org/file?access_token=imaginary-secret&name=public'
+    if ($urlCheck -match 'imaginary-secret' -or
+        $urlCheck -notmatch 'access_token=<redacted>' -or
+        $urlCheck -notmatch 'name=public') {
+        Write-Host 'FAIL: URL credential redaction.' -ForegroundColor Red
+        exit 1
+    }
     if ($got -notmatch 'Unresolved reference' -or $got -notmatch 'compileDebugKotlin FAILED' -or
         $got -match 'Users/demo|imaginary-test-secret' -or $got -notmatch 'Users/<user>' -or
         $credentialCheck -match 'imaginary-test-secret' -or
@@ -85,7 +94,7 @@ try {
     }
     $report = Join-Path $dist 'NightWave-build-diagnostic.txt'
     @(
-        'NightWave build recovery summary (Phase 5S)',
+        'NightWave build recovery summary (Phase 6G)',
         'Read-only: no installed APK, account, playlist or phone data modified.',
         'Important: CI artifacts may not match the installed app signing key.',
         'Build outcome/status (do not treat an old APK as a new one):'
