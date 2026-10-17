@@ -194,10 +194,12 @@ fun NightWaveMoodArt(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    require(colors.size >= 2)
+    // A malformed/empty editorial palette should not crash Home composition.
+    val safeColors = if (colors.size >= 2) colors else
+        listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.surfaceVariant)
     Card(onClick = onClick, modifier = modifier.height(126.dp),
         shape = RoundedCornerShape(21.dp)) {
-        Box(Modifier.fillMaxSize().background(Brush.linearGradient(colors))) {
+        Box(Modifier.fillMaxSize().background(Brush.linearGradient(safeColors))) {
             Canvas(Modifier.fillMaxSize()) {
                 val center = Offset(size.width * .81f, size.height * .18f)
                 val radius = size.width * .34f
