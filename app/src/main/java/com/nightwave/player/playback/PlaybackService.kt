@@ -229,6 +229,7 @@ class PlaybackService : MediaSessionService() {
     override fun onCreate() {
         super.onCreate()
         savedQueue = QueueStateStore(this)
+        savedQueue.clearLookup() // process restart must not leave a ghost spinner
         offlineSession = OfflineSessionStore(this)
         listeningMemory = ListeningMemoryStore(this)
         savedQueue.restore(queue)
@@ -422,6 +423,7 @@ class PlaybackService : MediaSessionService() {
         resolveFuture = null
         resolver.queue.clear()
         resolvingPublicUrl = null
+        if (::savedQueue.isInitialized) savedQueue.clearLookup()
     }
 
     /** Explicit retry after a playback/extraction error, without reusing signed stream URLs. */
@@ -580,8 +582,9 @@ class PlaybackService : MediaSessionService() {
         if (autoPlay && resumePositionMs == 0L) savedQueue.saveBookmark(entry.url, 0L, 0L)
         val request = ++generation
         resolvingPublicUrl = entry.url
+        savedQueue.markLookup(entry.url)
         if (resolver.isShutdown) {
-            resolvingPublicUrl = null
+            cancelPendingResolution()
             savedQueue.recordFailure(entry.url, "Playback is stopping. Open the app and Retry.")
             return
         }
