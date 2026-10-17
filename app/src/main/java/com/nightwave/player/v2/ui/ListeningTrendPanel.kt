@@ -73,7 +73,7 @@ fun ListeningTrendPanel(memory: ListeningMemorySummary, todayUtc: Long) {
         }
         Text("UTC dates · from opted-in recorded playback only. " +
             "The 30-day view groups days into short periods. Missed or unrecorded " +
-            "playback may not appear; older daily buckets expire automatically.",
+            "playback may not appear; old buckets are pruned on the next data access.",
             style = MaterialTheme.typography.labelSmall,
             color = colors.onSurfaceVariant)
     }
