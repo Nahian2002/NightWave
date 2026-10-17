@@ -9,6 +9,10 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.Typeface
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
+import android.view.MotionEvent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -52,6 +56,8 @@ import java.util.concurrent.Executors
 
 class MainActivity : Activity() {
     private lateinit var binding: ActivityMainBinding
+    private var miniHidden = false
+    private var playerTouchStartY = 0f
     private val gateway = YouTubeGateway()
     private val worker = Executors.newSingleThreadExecutor()
     private val main = Handler(Looper.getMainLooper())
@@ -93,6 +99,28 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.brandText.text = SpannableString("NightWave").apply {
+            setSpan(ForegroundColorSpan(0xFF8FE5DA.toInt()), 5, 9,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
+        binding.collapsePlayerButton.setOnClickListener { hideCompactPlayer() }
+        binding.miniPlayerRestore.setOnClickListener { restoreCompactPlayer() }
+        binding.currentTitle.setOnClickListener { openNowPlayingDialog() }
+        binding.currentCreator.setOnClickListener { openNowPlayingDialog() }
+        binding.playerArtwork.setOnTouchListener { _, event ->
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    playerTouchStartY = event.rawY
+                    true
+                }
+                MotionEvent.ACTION_UP -> {
+                    if (event.rawY - playerTouchStartY > dp(48)) hideCompactPlayer()
+                    else openNowPlayingDialog()
+                    true
+                }
+                else -> true
+            }
+        }
         thumbs = ThumbnailLoader(this)
         library = MusicLibrary(this)
         val persistence = QueueStateStore(this)
@@ -414,16 +442,29 @@ class MainActivity : Activity() {
         binding.currentTitle.text = video.title
         binding.currentCreator.text = video.author
         setPlayerArtwork(video.thumbnail)
-        binding.playerPanel.visibility = View.VISIBLE
+        restoreCompactPlayer()
         binding.playerPanel.alpha = 0f
         binding.playerPanel.translationY = dp(28).toFloat()
         binding.playerPanel.animate().alpha(1f).translationY(0f).setDuration(320).start()
         showStatus("Now playing • You can lock your screen")
     }
 
+    private fun hideCompactPlayer() {
+        if (currentVideoUrl == null) return
+        miniHidden = true
+        binding.playerPanel.visibility = View.GONE
+        binding.miniPlayerRestore.visibility = View.VISIBLE
+    }
+
+    private fun restoreCompactPlayer() {
+        miniHidden = false
+        binding.miniPlayerRestore.visibility = View.GONE
+        binding.playerPanel.visibility = View.VISIBLE
+    }
+
     private fun showPlayerState(player: Player) {
         if (player.mediaItemCount == 0) return
-        binding.playerPanel.visibility = View.VISIBLE
+        if (!miniHidden) binding.playerPanel.visibility = View.VISIBLE
         val item = player.currentMediaItem
         currentVideoUrl = item?.mediaId?.takeIf { VideoLink.normalize(it) != null } ?: currentVideoUrl
         binding.currentTitle.text = item?.mediaMetadata?.title ?: "Playing"
@@ -612,11 +653,17 @@ class MainActivity : Activity() {
     }
 
     private fun updateTabs() {
-        val activeColor = Color.rgb(193, 175, 255)
+        val activeColor = Color.rgb(145, 226, 215)
         val inactive = Color.rgb(159, 164, 194)
         binding.homeTab.setTextColor(if (page == Page.HOME) activeColor else inactive)
         binding.searchTab.setTextColor(if (page == Page.SEARCH) activeColor else inactive)
         binding.libraryTab.setTextColor(if (page == Page.LIBRARY) activeColor else inactive)
+        binding.homeTab.setBackgroundResource(
+            if (page == Page.HOME) R.drawable.bg_nav_active else android.R.color.transparent)
+        binding.searchTab.setBackgroundResource(
+            if (page == Page.SEARCH) R.drawable.bg_nav_active else android.R.color.transparent)
+        binding.libraryTab.setBackgroundResource(
+            if (page == Page.LIBRARY) R.drawable.bg_nav_active else android.R.color.transparent)
         binding.topSearchArea.visibility = View.VISIBLE
         binding.searchRow.visibility = if (page == Page.SEARCH) View.VISIBLE else View.GONE
         binding.filtersRow.visibility = if (page == Page.SEARCH) View.VISIBLE else View.GONE
