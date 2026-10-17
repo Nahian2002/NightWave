@@ -215,14 +215,18 @@ class NightWaveStudioActivity : ComponentActivity() {
         val bytes = pendingExport
         pendingExport = null
         if (uri == null || bytes == null) return@registerForActivityResult
-        try {
-            contentResolver.openOutputStream(uri, "wt")?.use { stream ->
-                stream.write(bytes)
-                stream.flush()
-            } ?: throw java.io.IOException("Could not open output document.")
-            showMessage("NightWave guest backup exported.")
-        } catch (error: Exception) {
-            showMessage("Backup export failed. Choose another folder.")
+        lifecycleScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    contentResolver.openOutputStream(uri, "wt")?.use { stream ->
+                        stream.write(bytes)
+                        stream.flush()
+                    } ?: throw java.io.IOException("Could not open output document.")
+                }
+                showMessage("NightWave guest backup exported.")
+            } catch (error: Exception) {
+                showMessage("Backup export failed. Choose another folder.")
+            }
         }
     }
 
@@ -230,65 +234,79 @@ class NightWaveStudioActivity : ComponentActivity() {
         ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
         if (uri == null) return@registerForActivityResult
-        try {
-            val raw = contentResolver.openInputStream(uri)?.use { input ->
-                val output = java.io.ByteArrayOutputStream()
-                val chunk = ByteArray(8192)
-                while (true) {
-                    val count = input.read(chunk)
-                    if (count == -1) break
-                    if (output.size() + count > BackupFormat.MAX_BYTES)
-                        throw java.io.IOException("Backup file is too large.")
-                    output.write(chunk, 0, count)
+        lifecycleScope.launch {
+            try {
+                val (data, preview) = withContext(Dispatchers.IO) {
+                    val raw = contentResolver.openInputStream(uri)?.use { input ->
+                        val output = java.io.ByteArrayOutputStream()
+                        val chunk = ByteArray(8192)
+                        while (true) {
+                            val count = input.read(chunk)
+                            if (count == -1) break
+                            if (output.size() + count > BackupFormat.MAX_BYTES)
+                                throw java.io.IOException("Backup file is too large.")
+                            output.write(chunk, 0, count)
+                        }
+                        output.toByteArray()
+                    } ?: throw java.io.IOException("Could not open selected backup.")
+                    backup.inspect(raw)
                 }
-                output.toByteArray()
-            } ?: throw java.io.IOException("Could not open selected backup.")
-            val (data, preview) = backup.inspect(raw)
-            val description = preview.incomingFavorites.toString() + " liked songs, " +
-                preview.incomingPlaylists + " playlists, " +
-                preview.incomingTracks + " playlist entries" +
-                (if (data.includesHistory) ", " + preview.incomingHistory + " history entries" else "")
-            AlertDialog.Builder(this).setTitle("Restore NightWave backup?")
-                .setMessage(description + "\n\nChoose how to handle existing saved songs. " +
-                    "No import happens until you confirm.")
-                .setItems(arrayOf(
-                    "Merge saved music and restore profile",
-                    "Replace saved music and restore profile",
-                    "Merge music only (keep profile)"
-                )) { _, action ->
-                    val strategy = if (action == 1) ImportStrategy.REPLACE_LIBRARY
-                        else ImportStrategy.MERGE_LIBRARY
-                    val restoreProfile = action != 2
-                    val warning = if (strategy == ImportStrategy.REPLACE_LIBRARY)
-                        "Replace local favorites and playlists with the backup? Existing data will be held in a private recovery copy during import."
-                    else "Merge this backup with local favorites and playlists? Duplicates will be skipped."
-                    AlertDialog.Builder(this).setTitle("Confirm restore")
-                        .setMessage(warning)
-                        .setNegativeButton("Cancel", null)
-                        .setPositiveButton("Restore") { _, _ ->
-                            runCatching { backup.applyImport(data, strategy, restoreProfile) }
-                                .onSuccess {
-                                    profile = profiles.load()
-                                    refresh()
-                                    playback.refreshQueue()
-                                    stageStorageMirror()
-                                    showMessage("Guest backup restored.")
-                                }.onFailure { showMessage(it.message ?: "Import failed. No data was changed.") }
-                        }.show()
-                }.setNegativeButton("Cancel", null).show()
-        } catch (error: Exception) {
-            showMessage("Cannot read backup: " + (error.message ?: "invalid document").take(120))
+                val description = preview.incomingFavorites.toString() + " liked songs, " +
+                    preview.incomingPlaylists + " playlists, " +
+                    preview.incomingTracks + " playlist entries" +
+                    (if (data.includesHistory) ", " + preview.incomingHistory + " history entries" else "")
+                AlertDialog.Builder(this@NightWaveStudioActivity).setTitle("Restore NightWave backup?")
+                    .setMessage(description + "\n\nChoose how to handle existing saved songs. " +
+                        "No import happens until you confirm.")
+                    .setItems(arrayOf(
+                        "Merge saved music and restore profile",
+                        "Replace saved music and restore profile",
+                        "Merge music only (keep profile)"
+                    )) { _, action ->
+                        val strategy = if (action == 1) ImportStrategy.REPLACE_LIBRARY
+                            else ImportStrategy.MERGE_LIBRARY
+                        val restoreProfile = action != 2
+                        val warning = if (strategy == ImportStrategy.REPLACE_LIBRARY)
+                            "Replace local favorites and playlists with the backup? Existing data will be held in a private recovery copy during import."
+                        else "Merge this backup with local favorites and playlists? Duplicates will be skipped."
+                        AlertDialog.Builder(this@NightWaveStudioActivity).setTitle("Confirm restore")
+                            .setMessage(warning)
+                            .setNegativeButton("Cancel", null)
+                            .setPositiveButton("Restore") { _, _ ->
+                                lifecycleScope.launch {
+                                    try {
+                                        withContext(Dispatchers.IO) {
+                                            backup.applyImport(data, strategy, restoreProfile)
+                                        }
+                                        profile = profiles.load()
+                                        refresh()
+                                        playback.refreshQueue()
+                                        stageStorageMirror()
+                                        showMessage("Guest backup restored.")
+                                    } catch (error: Exception) {
+                                        showMessage(error.message ?: "Import failed; previous data retained.")
+                                    }
+                                }
+                            }.show()
+                    }.setNegativeButton("Cancel", null).show()
+            } catch (error: Exception) {
+                showMessage("Cannot read backup: " + (error.message ?: "invalid document").take(120))
+            }
         }
     }
 
     private fun startGuestExport() {
-        try {
-            pendingExport = backup.createExport(profile.historyPrivacy == ListeningPrivacy.INCLUDE_IN_BACKUP)
-            guestExportPicker.launch("NightWave-Guest-Backup-" +
-                java.text.SimpleDateFormat("yyyyMMdd", java.util.Locale.US).format(java.util.Date()) + ".json")
-        } catch (error: Exception) {
-            pendingExport = null
-            showMessage("Cannot prepare backup: " + (error.message ?: "unknown error").take(100))
+        lifecycleScope.launch {
+            try {
+                pendingExport = withContext(Dispatchers.IO) {
+                    backup.createExport(profile.historyPrivacy == ListeningPrivacy.INCLUDE_IN_BACKUP)
+                }
+                guestExportPicker.launch("NightWave-Guest-Backup-" +
+                    java.text.SimpleDateFormat("yyyyMMdd", java.util.Locale.US).format(java.util.Date()) + ".json")
+            } catch (error: Exception) {
+                pendingExport = null
+                showMessage("Cannot prepare backup: " + (error.message ?: "unknown error").take(100))
+            }
         }
     }
 
