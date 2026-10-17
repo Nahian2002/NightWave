@@ -960,6 +960,7 @@ private fun StudioSearch(
 @Composable
 private fun StudioLibrary(
     modifier: Modifier, favorites: List<VideoPreview>, names: List<String>,
+    playingUrl: String,
     selectedPlaylist: String?, onSelectPlaylist: (String?) -> Unit,
     getPlaylist: (String) -> List<VideoPreview>, onPlay: (VideoPreview, List<VideoPreview>) -> Unit,
     onManage: () -> Unit, onSearch: () -> Unit,
@@ -968,8 +969,16 @@ private fun StudioLibrary(
     onResumeOffline: () -> Unit,
     onSongOptions: (VideoPreview) -> Unit
 ) {
-    val tracks = if (selectedPlaylist == null || selectedPlaylist == LIKED_COLLECTION) favorites else getPlaylist(selectedPlaylist)
-    LazyColumn(modifier.widthIn(max = 840.dp).fillMaxHeight(), contentPadding = PaddingValues(20.dp),
+    val tracks = if (selectedPlaylist == null || selectedPlaylist == LIKED_COLLECTION)
+        favorites else getPlaylist(selectedPlaylist)
+    var localFilter by rememberSaveable(selectedPlaylist) { mutableStateOf("") }
+    val matched = if (selectedPlaylist == null || localFilter.isBlank()) tracks else tracks.filter {
+        it.title.contains(localFilter.trim(), ignoreCase = true) ||
+            it.author.contains(localFilter.trim(), ignoreCase = true)
+    }
+    val visibleTracks = if (selectedPlaylist == null) matched.take(5) else matched
+    LazyColumn(modifier.fillMaxWidth().widthIn(max = 740.dp).fillMaxHeight(),
+        contentPadding = PaddingValues(19.dp),
         verticalArrangement = Arrangement.spacedBy(13.dp)) {
         item {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -978,8 +987,8 @@ private fun StudioLibrary(
                 }
                 Column {
                     SectionHeading(if (selectedPlaylist == LIKED_COLLECTION) "Liked Songs" else selectedPlaylist ?: "Your library",
-                        if (selectedPlaylist == null) "Playlists and liked songs"
-                        else tracks.size.toString() + " songs in this playlist")
+                        if (selectedPlaylist == null) "Your music, all in one place"
+                        else tracks.size.toString() + " saved tracks")
                 }
             }
         }
@@ -1006,51 +1015,54 @@ private fun StudioLibrary(
                 }
             }
             item {
-                Card(onClick = onOffline, modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
-                    Column(Modifier.padding(17.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                        Text("♫  Offline music", style = MaterialTheme.typography.titleMedium)
-                        Text("Import audio files and play without Wi-Fi",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                }
+                MusicCollectionTile("Offline music",
+                    "Your imported audio · listen without Wi-Fi",
+                    cover = null, onClick = onOffline)
             }
             item {
-                MusicFeatureCard("YOUR PRIVATE COLLECTION",
-                    "Liked songs", favorites.size.toString() + " tracks") {
+                MusicCollectionTile("Liked songs",
+                    favorites.size.toString() + " tracks",
+                    cover = favorites.firstOrNull()) {
                     onSelectPlaylist(LIKED_COLLECTION)
                 }
             }
             if (names.isNotEmpty()) {
-                item { SectionHeading("Playlists", "Tap to explore your saved songs") }
+                item { SectionHeading("Your playlists", names.size.toString() + " collections") }
                 items(names, key = { it }) { name ->
-                    Card(onClick = { onSelectPlaylist(name) }, modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(17.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
-                        Row(Modifier.padding(19.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Outlined.LibraryMusic, contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary)
-                            Spacer(Modifier.width(15.dp))
-                            Column {
-                                Text(name, style = MaterialTheme.typography.titleMedium)
-                                Text(getPlaylist(name).size.toString() + " tracks",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                        }
-                    }
+                    val songs = getPlaylist(name)
+                    MusicCollectionTile(name, songs.size.toString() + " tracks",
+                        cover = songs.firstOrNull()) { onSelectPlaylist(name) }
                 }
             }
         }
-        item { SectionHeading(if (selectedPlaylist == null) "Liked tracks" else "Playlist tracks") }
-        if (tracks.isEmpty()) item {
-            EmptyMusicCard("Nothing here yet",
-                "Your real songs and playlists will appear here once saved.",
-                "Search music", onAction = onSearch)
-        } else items(tracks, key = { it.url }) { song ->
-            MusicTrackTile(song, onOptions = { onSongOptions(song) }, onClick = { onPlay(song, tracks) })
+        item {
+            SectionHeading(if (selectedPlaylist == null) "Recently liked" else "Saved tracks",
+                if (selectedPlaylist == null) "Your latest five liked songs" else null)
+        }
+        if (selectedPlaylist != null && tracks.isNotEmpty()) {
+            item {
+                OutlinedTextField(
+                    value = localFilter, onValueChange = { localFilter = it.take(80) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(15.dp),
+                    singleLine = true,
+                    placeholder = { Text("Filter this collection") },
+                    leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) }
+                )
+            }
+        }
+        if (visibleTracks.isEmpty()) item {
+            EmptyMusicCard(
+                if (tracks.isEmpty()) "Nothing here yet" else "No matching tracks",
+                if (tracks.isEmpty()) "Save a song to build your collection."
+                else "Try another title or artist.",
+                if (tracks.isEmpty()) "Find music" else "Clear filter") {
+                if (tracks.isEmpty()) onSearch() else localFilter = ""
+            }
+        } else items(visibleTracks, key = { it.url }) { song ->
+            MusicTrackTile(song, isPlaying = playingUrl == song.url,
+                onOptions = { onSongOptions(song) },
+                onClick = { onPlay(song, if (selectedPlaylist == null) tracks else matched) })
         }
         item {
             OutlinedButton(onClick = onManage, modifier = Modifier.fillMaxWidth()) {
