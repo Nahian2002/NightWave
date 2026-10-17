@@ -2,6 +2,7 @@ package com.nightwave.player.v2.recommendation
 
 import com.nightwave.player.core.VideoLink
 import com.nightwave.player.net.VideoPreview
+import com.nightwave.player.v2.insights.RecordedTrack
 
 /** Recommendations only from real device-local saved public video metadata. */
 data class PersonalMix(
@@ -18,7 +19,9 @@ object PersonalMixEngine {
         favorites: List<VideoPreview>,
         recent: List<VideoPreview>,
         playlistTracks: List<VideoPreview>,
-        dayNumber: Long
+        dayNumber: Long,
+        memoryTracks: List<RecordedTrack> = emptyList(),
+        memoryEnabled: Boolean = false
     ): List<PersonalMix> {
         val likes = favorites.take(250).filter { VideoLink.normalize(it.url) == it.url }
         val plays = recent.take(100).filter { VideoLink.normalize(it.url) == it.url }
@@ -29,15 +32,28 @@ object PersonalMixEngine {
         val liked = likes.map { it.url }.toSet()
         val latest = plays.map { it.url }.toSet()
         val curated = lists.map { it.url }.toSet()
+        // Do not consider this signal unless the user still explicitly opts in.
+        // The ranking can only reorder/add REAL catalog candidates from pool.
+        val learned = if (memoryEnabled) memoryTracks.take(100)
+            .filter { VideoLink.normalize(it.id) == it.id }
+            .associateBy { it.id } else emptyMap()
         val favArtists = likes.map { it.author.trim().lowercase() }
             .filter { it.isNotBlank() && it != "unknown" }
             .groupingBy { it }.eachCount()
         fun affinity(track: VideoPreview): Int =
             favArtists[track.author.trim().lowercase()]?.coerceAtMost(4) ?: 0
+        fun memoryAffinity(track: VideoPreview): Int {
+            val signal = learned[track.url] ?: return 0
+            val sessions = signal.qualifiedPlays.coerceIn(0, 5) * 2
+            val time = (signal.listenedMs.coerceAtLeast(0L) / 180_000L)
+                .coerceAtMost(5L).toInt()
+            return sessions + time
+        }
         fun rank(track: VideoPreview): Int =
             (if (track.url in liked) 6 else 0) +
             (if (track.url in latest) 4 else 0) +
-            (if (track.url in curated) 2 else 0) + affinity(track)
+            (if (track.url in curated) 2 else 0) +
+            affinity(track) + memoryAffinity(track)
         fun dailyTie(track: VideoPreview): Int =
             track.url.hashCode() xor (dayNumber.toInt() * 31)
         fun ordered(source: List<VideoPreview>) = source.distinctBy { it.url }
@@ -56,8 +72,22 @@ object PersonalMixEngine {
         }
 
         add("daily", "Your daily rotation", "Your saved soundtrack, reshuffled each day",
-            "Based on liked songs, recent plays and saved playlists",
+            if (learned.isEmpty()) "Based on liked songs, recent plays and saved playlists"
+            else "Based on saved tracks and your opted-in playback memory",
             ordered(pool))
+        if (learned.isNotEmpty()) {
+            val repeatCandidates = pool.filter { song ->
+                val stored = learned[song.url]
+                stored != null && (stored.qualifiedPlays > 0 || stored.listenedMs >= 60_000L)
+            }.sortedWith(compareByDescending<VideoPreview> { memoryAffinity(it) }
+                .thenBy { dailyTie(it) })
+            if (repeatCandidates.isNotEmpty()) {
+                add("memory", "Your listening rotation",
+                    "Music you actually spent time listening to",
+                    "30s+ observed sessions and playback time from saved songs",
+                    repeatCandidates)
+            }
+        }
         if (plays.isNotEmpty()) {
             // Preserve actual listening order instead of claiming random songs are recent.
             add("replay", "Back in rotation", "Continue with songs you played recently",

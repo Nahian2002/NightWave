@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.nightwave.player.v2.insights.ListeningMemorySummary
+import com.nightwave.player.v2.insights.ListeningTrendEngine
 
 /** Consent and erase controls never launch audio or network requests. */
 @Composable
@@ -62,6 +63,10 @@ fun ListeningMemoryPanel(
                 }
             }
         }
+        ListeningTrendPanel(
+            memory = memory,
+            todayUtc = ListeningTrendEngine.utcEpochDay(System.currentTimeMillis())
+        )
         if (memory.tracks.isNotEmpty()) {
             Text("Most observed listening time", style = MaterialTheme.typography.titleSmall)
             memory.tracks.forEach { track ->

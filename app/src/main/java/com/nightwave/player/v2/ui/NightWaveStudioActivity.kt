@@ -1231,7 +1231,7 @@ private fun StudioRoot(
     val focus = LocalFocusManager.current
     val tab = StudioTab.entries[pagerState.currentPage]
     LaunchedEffect(tab, playerState.positionMs / 15000L) {
-        if (tab == StudioTab.PROFILE) onMemoryRefresh()
+        if (tab == StudioTab.PROFILE || tab == StudioTab.HOME) onMemoryRefresh()
     }
     LaunchedEffect(tab) {
         // An active search/library text editor must not leave the soft keyboard
@@ -1406,6 +1406,7 @@ private fun StudioRoot(
                     StudioTab.HOME -> StudioHome(
                         modifier = Modifier, profile = profile, recent = recent,
                         favorites = favorites,
+                        memory = memory,
                         playlistTracks = remember(libraryRevision, playlistNames, roomPreviewActive) {
                             playlistNames.take(25).flatMap(getPlaylist).distinctBy { it.url }.take(350)
                         },
@@ -1517,14 +1518,17 @@ private fun StudioRoot(
 private fun StudioHome(
     modifier: Modifier, profile: ProfileSettings, recent: List<VideoPreview>,
     favorites: List<VideoPreview>, playlistTracks: List<VideoPreview>,
+    memory: ListeningMemorySummary,
     playingUrl: String, onSearch: (String) -> Unit,
     onResumeSpotlight: (VideoPreview, List<VideoPreview>) -> Unit,
     onPlay: (VideoPreview, List<VideoPreview>) -> Unit,
     onSongOptions: (VideoPreview) -> Unit, openLibrary: () -> Unit
 ) {
     val dayNumber = java.time.LocalDate.now().toEpochDay()
-    val mixes = remember(favorites, recent, playlistTracks, dayNumber) {
-        PersonalMixEngine.make(favorites, recent, playlistTracks, dayNumber)
+    val mixes = remember(favorites, recent, playlistTracks, dayNumber, memory) {
+        PersonalMixEngine.make(favorites, recent, playlistTracks, dayNumber,
+            memoryTracks = memory.recommendationTracks,
+            memoryEnabled = memory.enabled)
     }
     var chosenMixKey by rememberSaveable { mutableStateOf<String?>(null) }
     var showAllMixTracks by rememberSaveable { mutableStateOf(false) }
