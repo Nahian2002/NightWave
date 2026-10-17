@@ -43,6 +43,10 @@ class PlaybackService : MediaSessionService() {
         /** Atomic queue assignment followed by a single play request for the v2 interface. */
         const val ACTION_PLAY_QUEUE = "com.nightwave.player.PLAY_QUEUE"
         const val ACTION_ENQUEUE = "com.nightwave.player.ENQUEUE"
+        const val ACTION_REMOVE_UPCOMING = "com.nightwave.player.REMOVE_UPCOMING"
+        const val ACTION_UNDO_REMOVE_UPCOMING = "com.nightwave.player.UNDO_REMOVE_UPCOMING"
+        const val EXTRA_QUEUE_TOKEN = "queue_token"
+        const val EXTRA_EXPECTED_URL = "expected_queue_url"
         const val ACTION_NEXT = "com.nightwave.player.NEXT"
         const val ACTION_PREVIOUS = "com.nightwave.player.PREVIOUS"
         const val ACTION_JUMP = "com.nightwave.player.JUMP"
@@ -64,6 +68,8 @@ class PlaybackService : MediaSessionService() {
     private val gateway = YouTubeGateway()
     private var generation = 0
     private var offlinePlaying = false
+    // The service owns the only pending Undo. No playlist/audio-file writes.
+    private var pendingQueueRemoval: Pair<String, PlaybackQueue.RemovedUpcoming>? = null
     private val offlineQueue = OfflinePlaybackQueue()
     private lateinit var offlineSession: OfflineSessionStore
     private var autoRetriedVideo: String? = null
@@ -209,6 +215,10 @@ class PlaybackService : MediaSessionService() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val result = super.onStartCommand(intent, flags, startId)
+        // A new playback/queue command invalidates an older undo token; stale
+        // UI actions must never resurrect a song in a different queue.
+        if (intent?.action != ACTION_REMOVE_UPCOMING &&
+            intent?.action != ACTION_UNDO_REMOVE_UPCOMING) pendingQueueRemoval = null
         when (intent?.action) {
             ACTION_REPLACE, ACTION_PLAY_QUEUE -> {
                 val urls = intent.getStringArrayListExtra(EXTRA_URLS).orEmpty()
@@ -228,6 +238,29 @@ class PlaybackService : MediaSessionService() {
                     // Current item belongs to the same queue snapshot; do not touch old app entry points.
                     exoPlayer?.pause()
                     queue.current?.let { resolveAndPlay(it) }
+                }
+            }
+            ACTION_REMOVE_UPCOMING -> {
+                pendingQueueRemoval = null
+                val at = intent.getIntExtra(EXTRA_INDEX, -1)
+                val expected = intent.getStringExtra(EXTRA_EXPECTED_URL).orEmpty()
+                val token = intent.getStringExtra(EXTRA_QUEUE_TOKEN).orEmpty()
+                if (!offlinePlaying && token.length == 36 &&
+                    expected.startsWith("https://www.youtube.com/watch?v=")) {
+                    queue.removeUpcoming(at, expected)?.let { removed ->
+                        savedQueue.save(queue)
+                        pendingQueueRemoval = token to removed
+                    }
+                }
+            }
+            ACTION_UNDO_REMOVE_UPCOMING -> {
+                val token = intent.getStringExtra(EXTRA_QUEUE_TOKEN).orEmpty()
+                val pending = pendingQueueRemoval
+                pendingQueueRemoval = null // one-shot even if restore is denied
+                if (!offlinePlaying && token.isNotBlank() &&
+                    pending?.first == token &&
+                    queue.restoreUpcoming(pending.second)) {
+                    savedQueue.save(queue)
                 }
             }
             ACTION_ENQUEUE -> {
