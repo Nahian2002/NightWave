@@ -37,6 +37,14 @@ class OfflinePlaybackQueue {
         return current
     }
 
+    fun snapshot(): List<String> = ids.toList()
+
+    fun jump(to: Int): String? {
+        if (to !in ids.indices) return null
+        index = to
+        return current
+    }
+
     fun reset() {
         ids.clear()
         index = -1

@@ -36,6 +36,17 @@ class OfflinePlaybackQueueTest {
         assertEquals("a", queue.next())
     }
 
+    @Test fun jumpHandlesBoundsWithoutDamagingSelection() {
+        val queue = OfflinePlaybackQueue()
+        queue.select(listOf("a", "b", "c"), "a")
+        assertEquals("c", queue.jump(2))
+        assertEquals("b", queue.previous())
+        assertNull(queue.jump(-1))
+        assertNull(queue.jump(3))
+        assertEquals("b", queue.current)
+        assertEquals(listOf("a", "b", "c"), queue.snapshot())
+    }
+
     @Test fun boundAndReset() {
         val queue = OfflinePlaybackQueue()
         queue.select((1..500).map(Int::toString), "400")

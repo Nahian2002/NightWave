@@ -90,6 +90,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.nightwave.player.library.MusicLibrary
 import com.nightwave.player.offline.OfflineLibraryActivity
+import com.nightwave.player.offline.OfflineAudioLibrary
+import com.nightwave.player.offline.OfflineSessionStore
+import com.nightwave.player.playback.PlaybackService
 import com.nightwave.player.library.LegacyLibraryTransaction
 import com.nightwave.player.net.VideoPreview
 import com.nightwave.player.net.YouTubeGateway
@@ -192,6 +195,8 @@ class NightWaveStudioActivity : ComponentActivity() {
     private var profile by mutableStateOf(ProfileSettings(localId = "pending"))
     private var favorites by mutableStateOf<List<VideoPreview>>(emptyList())
     private var recentlyPlayed by mutableStateOf<List<VideoPreview>>(emptyList())
+    private var offlineResumeTitle by mutableStateOf<String?>(null)
+    private var offlineResumePositionMs by mutableStateOf(0L)
     private var names by mutableStateOf<List<String>>(emptyList())
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -217,6 +222,16 @@ class NightWaveStudioActivity : ComponentActivity() {
                         else library.playlist(name)
                     },
                     playerState = playback.state, playerActions = playback,
+                    offlineResumeTitle = offlineResumeTitle,
+                    offlineResumePositionMs = offlineResumePositionMs,
+                    onResumeOffline = {
+                        runCatching {
+                            startService(Intent(this, PlaybackService::class.java)
+                                .setAction(PlaybackService.ACTION_RESUME_OFFLINE))
+                        }.onFailure {
+                            showMessage("Offline music could not resume. Open the Offline library.")
+                        }
+                    },
                     isFavorite = { url -> library.isFavorite(url) },
                     onToggleFavorite = { video -> library.toggleFavorite(video); refresh() },
                     onSongOptions = { video -> showSongOptions(video) },
@@ -434,6 +449,12 @@ class NightWaveStudioActivity : ComponentActivity() {
         favorites = library.favorites()
         recentlyPlayed = library.recent()
         names = library.playlistNames()
+        val checkpoint = OfflineSessionStore(this).read()
+        val song = checkpoint?.selectedId?.let { id ->
+            runCatching { OfflineAudioLibrary(this).find(id) }.getOrNull()
+        }?.takeIf { OfflineAudioLibrary(this).fileFor(it) != null }
+        offlineResumeTitle = song?.title
+        offlineResumePositionMs = if (song != null) (checkpoint?.positionMs ?: 0L) else 0L
         // Do not enqueue a complete Room rewrite for every player/queue update.
         // onResume and the explicit "Recheck" action handle shadow verification.
     }
@@ -542,6 +563,9 @@ private fun StudioRoot(
     onUseLegacyReads: () -> Unit,
     playerState: StudioPlayerState,
     playerActions: StudioPlaybackBridge,
+    offlineResumeTitle: String?,
+    offlineResumePositionMs: Long,
+    onResumeOffline: () -> Unit,
     isFavorite: (String) -> Boolean,
     onToggleFavorite: (VideoPreview) -> Unit,
     onSongOptions: (VideoPreview) -> Unit,
@@ -687,6 +711,9 @@ private fun StudioRoot(
                 getPlaylist = getPlaylist, onPlay = onPlay,
                 onSongOptions = onSongOptions,
                 onManage = onLegacyPlayer, onOffline = onOfflineLibrary,
+                offlineResumeTitle = offlineResumeTitle,
+                offlineResumePositionMs = offlineResumePositionMs,
+                onResumeOffline = onResumeOffline,
                 onSearch = { tab = StudioTab.SEARCH }
             )
             StudioTab.PROFILE -> StudioProfile(
@@ -899,6 +926,8 @@ private fun StudioLibrary(
     getPlaylist: (String) -> List<VideoPreview>, onPlay: (VideoPreview, List<VideoPreview>) -> Unit,
     onManage: () -> Unit, onSearch: () -> Unit,
     onOffline: () -> Unit,
+    offlineResumeTitle: String?, offlineResumePositionMs: Long,
+    onResumeOffline: () -> Unit,
     onSongOptions: (VideoPreview) -> Unit
 ) {
     val tracks = if (selectedPlaylist == null || selectedPlaylist == LIKED_COLLECTION) favorites else getPlaylist(selectedPlaylist)
@@ -917,6 +946,27 @@ private fun StudioLibrary(
             }
         }
         if (selectedPlaylist == null) {
+            if (offlineResumeTitle != null) {
+                item {
+                    Card(onClick = onResumeOffline, modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(18.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+                        Column(Modifier.padding(18.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text("CONTINUE LISTENING · OFFLINE",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary)
+                            Text(offlineResumeTitle, style = MaterialTheme.typography.titleMedium,
+                                maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text("Resume on this device" +
+                                (if (offlineResumePositionMs >= 60_000)
+                                    " · " + (offlineResumePositionMs / 60_000) + " min" else "") +
+                                "  ›", style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
+            }
             item {
                 Card(onClick = onOffline, modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),

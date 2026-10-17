@@ -1,5 +1,21 @@
 # NightWave
 
+## NightWave 2.0 Alpha 5D — Offline session resume & premium Up Next
+
+**Version:** `2.0.0-alpha5d` (code 20). **Draft branch:** `feature/nightwave-v2-phase5d-offline-resume`.
+
+[Download full Phase 5D source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase5d-offline-resume.zip) · [Complete Phase 5D QA instructions](docs/NIGHTWAVE_V2_PHASE5D_QA.md)
+
+- Remembers the last imported song, its position, and the ordered offline playback list in isolated, integrity-checked app-private preferences. The session is resumed **only when you request it**; no autoplay on service creation or relaunch.
+- Adds **Resume** to the classic Offline library and **Continue Listening** to the premium Library. Offline Up Next now shows imported songs and allows jumping to another one.
+- In the premium player, controls meant only for online songs (YouTube favorites, playlist saving, shuffle and repeat) are disabled for private offline files rather than accidentally affecting your streaming queue.
+- Retains Phase 5C local search/sorting/Play All, Media3/background controls, imported audio storage, existing library, playlists, guest profiles and public-video playback.
+- Includes six pure decoder JUnit test cases, an offline queue jump case, and a Phase 5D source gate. **No Android Gradle build or phone QA has run here**, so this is not yet a release APK.
+
+**Safety:** do not uninstall or clear app data, and keep the PR draft until `build-windows.cmd` and device QA succeed. The earlier Android crash warning still requires actual logcat evidence to diagnose.
+
+---
+
 ## NightWave 2.0 Alpha 5C — Offline-first Library and Queue
 
 **Version:** `2.0.0-alpha5c` (code 19) · **Development:** `feature/nightwave-v2-phase5c-offline-queue`.

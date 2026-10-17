@@ -15,6 +15,8 @@ import com.nightwave.player.net.VideoPreview
 import com.nightwave.player.playback.PlaybackService
 import com.nightwave.player.playback.QueueStateStore
 import com.nightwave.player.playback.PlaybackQueue
+import com.nightwave.player.offline.OfflineAudioLibrary
+import com.nightwave.player.offline.OfflineSessionStore
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -67,6 +69,8 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
     private var controller: MediaController? = null
     private var released = false
     private var ticking = false
+    private var cachedOfflineIds: List<String> = emptyList()
+    private var cachedOfflineQueue: List<VideoPreview> = emptyList()
     private val listener = object : Player.Listener {
         override fun onEvents(player: Player, events: Player.Events) = updateFromPlayer(player)
     }
@@ -128,6 +132,22 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
         future = null
     }
 
+    /** Cached per ordered local list; no offline library JSON scan every UI tick. */
+    private fun offlineQueueFor(id: String): Pair<List<VideoPreview>, Int> {
+        val checkpoint = OfflineSessionStore(context).read() ?: return emptyList<VideoPreview>() to -1
+        if (checkpoint.ids != cachedOfflineIds) {
+            val known = runCatching { OfflineAudioLibrary(context).songs().associateBy { it.id } }
+                .getOrDefault(emptyMap())
+            cachedOfflineQueue = checkpoint.ids.mapNotNull { savedId ->
+                known[savedId]?.let {
+                    VideoPreview(it.title, "Offline · NightWave", "offline:" + it.id, "", 0L)
+                }
+            }
+            cachedOfflineIds = checkpoint.ids
+        }
+        return cachedOfflineQueue to cachedOfflineQueue.indexOfFirst { it.url == "offline:" + id }
+    }
+
     private fun updateFromPlayer(player: Player) {
         val media = player.currentMediaItem
         val metadata = media?.mediaMetadata
@@ -135,6 +155,8 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
         val persistence = QueueStateStore(context)
         val current = persistence.read()
         val offlineId = media?.mediaId?.takeIf { it.startsWith("offline:") }
+        val offlineList = if (offlineId != null) offlineQueueFor(offlineId.removePrefix("offline:"))
+            else (emptyList<VideoPreview>() to -1)
         val savedTrack = current.tracks.getOrNull(current.index)
         val savedBookmark = persistence.bookmark(savedTrack?.url)
         state = state.copy(
@@ -161,9 +183,9 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
                 else if (offlineId != null) 0L else savedBookmark?.durationMs ?: 0L,
             shuffle = current.shuffle,
             repeat = current.repeat,
-            queue = if (offlineId != null) emptyList()
+            queue = if (offlineId != null) offlineList.first
                 else current.tracks.map { VideoPreview(it.title, it.creator, it.url, it.artwork, 0) },
-            queueIndex = if (offlineId != null) -1 else current.index,
+            queueIndex = if (offlineId != null) offlineList.second else current.index,
             error = if (player.playerError != null)
                 "Audio playback failed. Tap Retry or choose another song."
                 else if (offlineId != null) null else persistence.failure(savedTrack?.url)
@@ -222,10 +244,12 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
             if (it.isPlaying) it.pause()
             else if (it.playerError != null) action(PlaybackService.ACTION_RETRY_CURRENT)
             else if (it.currentMediaItem != null) it.play()
+            else if (state.offline) action(PlaybackService.ACTION_RESUME_OFFLINE)
             else if (state.queueIndex >= 0) action(PlaybackService.ACTION_RESUME_SAVED)
             else state = state.copy(error = "Choose a song to start listening.")
         } ?: run {
-            if (state.queueIndex >= 0) action(PlaybackService.ACTION_RESUME_SAVED)
+            if (state.offline) action(PlaybackService.ACTION_RESUME_OFFLINE)
+            else if (state.queueIndex >= 0) action(PlaybackService.ACTION_RESUME_SAVED)
             else state = state.copy(error = "Player is connecting. Try again.")
         }
     }
@@ -233,9 +257,16 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
     override fun retry() = action(PlaybackService.ACTION_RETRY_CURRENT)
     override fun next() = action(PlaybackService.ACTION_NEXT)
     override fun previous() = action(PlaybackService.ACTION_PREVIOUS)
-    override fun jumpTo(index: Int) = action(PlaybackService.ACTION_JUMP, index)
-    override fun toggleShuffle() = action(PlaybackService.ACTION_SHUFFLE)
-    override fun cycleRepeat() = action(PlaybackService.ACTION_REPEAT)
+    override fun jumpTo(index: Int) = action(
+        if (state.offline) PlaybackService.ACTION_JUMP_OFFLINE
+        else PlaybackService.ACTION_JUMP, index
+    )
+    override fun toggleShuffle() {
+        if (!state.offline) action(PlaybackService.ACTION_SHUFFLE)
+    }
+    override fun cycleRepeat() {
+        if (!state.offline) action(PlaybackService.ACTION_REPEAT)
+    }
 
     override fun seekTo(positionMs: Long) {
         controller?.let { player ->
@@ -251,9 +282,9 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
         val entry = snapshot.tracks.getOrNull(snapshot.index)
         val bookmark = persistence.bookmark(entry?.url)
         state = state.copy(
-            queue = if (state.offline) emptyList()
+            queue = if (state.offline) state.queue
                 else snapshot.tracks.map { VideoPreview(it.title, it.creator, it.url, it.artwork, 0L) },
-            queueIndex = if (state.offline) -1 else snapshot.index,
+            queueIndex = if (state.offline) state.queueIndex else snapshot.index,
             shuffle = snapshot.shuffle,
             repeat = snapshot.repeat,
             title = if (state.offline) state.title else entry?.title ?: state.title,
