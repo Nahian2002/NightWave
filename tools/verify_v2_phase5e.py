@@ -56,7 +56,7 @@ assert 'animateColorAsState(' in studio
 assert 'MotionPreference.REDUCED' in studio
 assert 'BackHandler(enabled = showQueue || expanded ||' in studio
 assert 'tab == StudioTab.LIBRARY && selectedPlaylist != null -> selectedPlaylist = null' in studio
-assert 'tab != StudioTab.HOME -> tab = StudioTab.HOME' in studio
+assert 'tab != StudioTab.HOME -> navigateToTab(StudioTab.HOME)' in studio
 
 # Preserve prior offline resume, network player and one launcher.
 assert 'private fun resumeOfflineSession()' in service
