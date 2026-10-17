@@ -33,6 +33,10 @@ android {
     buildFeatures { viewBinding = true; compose = true }
 }
 
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 dependencies {
     // v2 Compose is added in parallel; the legacy playback UI remains available.
     implementation(platform("androidx.compose:compose-bom:2024.12.01"))
@@ -43,6 +47,8 @@ dependencies {
     ksp("androidx.room:room-compiler:2.6.1")
     implementation("androidx.datastore:datastore-preferences:1.1.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.test:runner:1.6.2")
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.foundation:foundation")
     implementation("androidx.compose.animation:animation")
