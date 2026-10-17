@@ -15,7 +15,9 @@ import androidx.compose.ui.unit.sp
 import com.nightwave.player.v2.model.NightWaveDesign
 import com.nightwave.player.v2.model.NightWaveTheme as ThemeChoice
 
-private fun color(raw: Long) = Color(raw.toULong())
+// Palette values are 32-bit ARGB (0xAARRGGBB), NOT Compose's packed ULong colors.
+// Color(ULong) interprets the low bits as a color-space ID and can crash at startup.
+private fun color(raw: Long) = Color(raw.toInt())
 val LocalNightWavePalette = staticCompositionLocalOf { NightWaveDesign.palette(ThemeChoice.MIDNIGHT) }
 
 private val premiumTypography = Typography(
