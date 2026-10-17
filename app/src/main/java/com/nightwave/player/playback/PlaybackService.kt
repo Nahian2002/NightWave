@@ -23,6 +23,7 @@ import androidx.media3.session.MediaSessionService
 import com.nightwave.player.library.MusicLibrary
 import com.nightwave.player.net.YouTubeGateway
 import com.nightwave.player.offline.OfflineAudioLibrary
+import com.nightwave.player.offline.OfflinePlaybackQueue
 import com.nightwave.player.ui.MainActivity
 import java.util.concurrent.Executors
 
@@ -35,6 +36,7 @@ class PlaybackService : MediaSessionService() {
         const val ACTION_RETRY_CURRENT = "com.nightwave.player.RETRY_CURRENT"
         const val ACTION_PLAY_OFFLINE = "com.nightwave.player.PLAY_OFFLINE"
         const val EXTRA_OFFLINE_ID = "offline_id"
+        const val EXTRA_OFFLINE_IDS = "offline_ids"
         /** Atomic queue assignment followed by a single play request for the v2 interface. */
         const val ACTION_PLAY_QUEUE = "com.nightwave.player.PLAY_QUEUE"
         const val ACTION_ENQUEUE = "com.nightwave.player.ENQUEUE"
@@ -59,6 +61,7 @@ class PlaybackService : MediaSessionService() {
     private val gateway = YouTubeGateway()
     private var generation = 0
     private var offlinePlaying = false
+    private val offlineQueue = OfflinePlaybackQueue()
     private var autoRetriedVideo: String? = null
     private val progressWriter = object : Runnable {
         override fun run() {
@@ -88,7 +91,13 @@ class PlaybackService : MediaSessionService() {
         }
 
         override fun onPlaybackStateChanged(state: Int) {
-            if (state == Player.STATE_ENDED && !offlinePlaying) playNext(true)
+            if (state == Player.STATE_ENDED) {
+                // Switching Media3 items inside a Player callback is unsafe on
+                // some devices; post the guarded transition onto the main loop.
+                main.post {
+                    if (exoPlayer?.playbackState == Player.STATE_ENDED) playNext(true)
+                }
+            }
         }
 
         override fun onPlayerError(error: PlaybackException) {
@@ -163,7 +172,7 @@ class PlaybackService : MediaSessionService() {
                         KeyEvent.KEYCODE_MEDIA_PREVIOUS -> { playPrevious(); true }
                         KeyEvent.KEYCODE_MEDIA_PLAY, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
                         KeyEvent.KEYCODE_HEADSETHOOK -> {
-                            if (exoPlayer?.currentMediaItem == null && queue.current != null) {
+                            if (exoPlayer?.currentMediaItem == null && !offlinePlaying && queue.current != null) {
                                 resumeSavedQueue()
                                 true
                             } else false // Media3 handles ordinary play/pause.
@@ -195,6 +204,7 @@ class PlaybackService : MediaSessionService() {
                 savedQueue.save(queue)
                 queue.current?.let { savedQueue.saveBookmark(it.url, 0L, 0L) }
                 if (intent.action == ACTION_PLAY_QUEUE) {
+                    offlineQueue.reset()
                     // Current item belongs to the same queue snapshot; do not touch old app entry points.
                     exoPlayer?.pause()
                     queue.current?.let { resolveAndPlay(it) }
@@ -212,30 +222,23 @@ class PlaybackService : MediaSessionService() {
             ACTION_PLAY_OFFLINE -> {
                 val id = intent.getStringExtra(EXTRA_OFFLINE_ID).orEmpty()
                 val localLibrary = OfflineAudioLibrary(this)
-                val song = runCatching { localLibrary.find(id) }.getOrNull()
-                val localFile = song?.let { localLibrary.fileFor(it) }
-                if (song != null && localFile != null) {
-                    offlinePlaying = true
-                    generation++
-                    val item = MediaItem.Builder().setMediaId("offline:" + song.id)
-                        .setUri(Uri.fromFile(localFile)).setMimeType(song.mimeType)
-                        .setMediaMetadata(MediaMetadata.Builder()
-                            .setTitle(song.title).setArtist("Offline · NightWave").build())
-                        .build()
-                    exoPlayer?.apply {
-                        pause()
-                        setMediaItem(item)
-                        playWhenReady = true
-                        prepare()
-                        play()
-                    }
+                // Accept only registered private IDs, never externally supplied paths.
+                val ownedIds = runCatching { localLibrary.songs().map { it.id }.toSet() }
+                    .getOrDefault(emptySet())
+                val submitted = intent.getStringArrayListExtra(EXTRA_OFFLINE_IDS)
+                    .orEmpty().filter { it in ownedIds }
+                val candidates = if (submitted.isEmpty()) listOf(id).filter { it in ownedIds }
+                    else submitted
+                if (offlineQueue.select(candidates, id) != null &&
+                    !playOfflineId(id, localLibrary)) {
+                    advanceOffline(forward = true)
                 }
             }
             ACTION_RESUME_SAVED -> resumeSavedQueue()
             ACTION_RETRY_CURRENT -> retryCurrent()
             ACTION_NEXT -> playNext(false)
             ACTION_PREVIOUS -> playPrevious()
-            ACTION_JUMP -> queue.jump(intent.getIntExtra(EXTRA_INDEX, -1))?.let { savedQueue.save(queue); resolveAndPlay(it) }
+            ACTION_JUMP -> if (!offlinePlaying) queue.jump(intent.getIntExtra(EXTRA_INDEX, -1))?.let { savedQueue.save(queue); resolveAndPlay(it) }
             ACTION_SHUFFLE -> { queue.shuffle = !queue.shuffle; savedQueue.save(queue) }
             ACTION_REPEAT -> {
                 queue.repeat = when (queue.repeat) {
@@ -276,8 +279,44 @@ class PlaybackService : MediaSessionService() {
         }
     }
 
+    /** Offline IDs are transient; never write them into public-video bookmarks. */
+    private fun playOfflineId(id: String, localLibrary: OfflineAudioLibrary = OfflineAudioLibrary(this)): Boolean {
+        val song = runCatching { localLibrary.find(id) }.getOrNull() ?: return false
+        val file = localLibrary.fileFor(song) ?: return false
+        val player = exoPlayer ?: return false
+        val item = MediaItem.Builder().setMediaId("offline:" + song.id)
+            .setUri(Uri.fromFile(file)).setMimeType(song.mimeType)
+            .setMediaMetadata(MediaMetadata.Builder()
+                .setTitle(song.title).setArtist("Offline · NightWave").build())
+            .build()
+        offlinePlaying = true
+        generation++ // Cancel unresolved online audio from a previous song.
+        autoRetriedVideo = null
+        player.apply {
+            pause()
+            setMediaItem(item)
+            playWhenReady = true
+            prepare()
+            play()
+        }
+        return true
+    }
+
+    private fun advanceOffline(forward: Boolean): Boolean {
+        // Missing/deleted files are skipped in a bounded pass.
+        repeat(offlineQueue.size) {
+            val id = (if (forward) offlineQueue.next() else offlineQueue.previous())
+                ?: return false
+            if (playOfflineId(id)) return true
+        }
+        return false
+    }
+
     private fun playNext(automatic: Boolean) {
-        if (offlinePlaying) return
+        if (offlinePlaying) {
+            advanceOffline(forward = true)
+            return
+        }
         queue.next(automatic)?.let { savedQueue.save(queue); resolveAndPlay(it) }
     }
 
@@ -293,7 +332,10 @@ class PlaybackService : MediaSessionService() {
             }
             return
         }
-        if (offlinePlaying) { player?.seekTo(0L); return }
+        if (offlinePlaying) {
+            if (!advanceOffline(forward = false)) player?.seekTo(0L)
+            return
+        }
         queue.previous()?.let { savedQueue.save(queue); resolveAndPlay(it) }
     }
 
@@ -302,6 +344,7 @@ class PlaybackService : MediaSessionService() {
         resumePositionMs: Long = 0L, recoveryAttempt: Boolean = false
     ) {
         offlinePlaying = false
+        offlineQueue.reset()
         if (!recoveryAttempt) autoRetriedVideo = null
         savedQueue.clearFailure()
         // Drop expired previous stream metadata immediately; the UI can display

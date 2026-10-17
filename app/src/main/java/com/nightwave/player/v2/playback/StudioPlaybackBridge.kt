@@ -139,10 +139,14 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
         val savedBookmark = persistence.bookmark(savedTrack?.url)
         state = state.copy(
             connected = true,
-            title = metadata?.title?.toString()?.takeIf { it.isNotBlank() }
-                ?: savedTrack?.title.orEmpty(),
-            artist = metadata?.artist?.toString()?.takeIf { it.isNotBlank() }
-                ?: savedTrack?.creator.orEmpty(),
+            title = if (offlineId != null) metadata?.title?.toString().orEmpty()
+                .ifBlank { "Offline audio" }
+                else metadata?.title?.toString()?.takeIf { it.isNotBlank() }
+                    ?: savedTrack?.title.orEmpty(),
+            artist = if (offlineId != null) metadata?.artist?.toString().orEmpty()
+                .ifBlank { "Offline · NightWave" }
+                else metadata?.artist?.toString()?.takeIf { it.isNotBlank() }
+                    ?: savedTrack?.creator.orEmpty(),
             videoUrl = offlineId ?: media?.mediaId.orEmpty()
                 .takeIf { it.startsWith("https://www.youtube.com/watch?v=") }
                 ?: savedTrack?.url.orEmpty(),
@@ -153,10 +157,12 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
             buffering = player.playbackState == Player.STATE_BUFFERING,
             positionMs = if (media != null) player.currentPosition.coerceAtLeast(0L)
                 else savedBookmark?.positionMs ?: 0L,
-            durationMs = if (duration > 0L) duration else savedBookmark?.durationMs ?: 0L,
+            durationMs = if (duration > 0L) duration
+                else if (offlineId != null) 0L else savedBookmark?.durationMs ?: 0L,
             shuffle = current.shuffle,
             repeat = current.repeat,
-            queue = current.tracks.map { VideoPreview(it.title, it.creator, it.url, it.artwork, 0) },
+            queue = if (offlineId != null) emptyList()
+                else current.tracks.map { VideoPreview(it.title, it.creator, it.url, it.artwork, 0) },
             queueIndex = if (offlineId != null) -1 else current.index,
             error = if (player.playerError != null)
                 "Audio playback failed. Tap Retry or choose another song."
@@ -245,16 +251,17 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
         val entry = snapshot.tracks.getOrNull(snapshot.index)
         val bookmark = persistence.bookmark(entry?.url)
         state = state.copy(
-            queue = snapshot.tracks.map { VideoPreview(it.title, it.creator, it.url, it.artwork, 0L) },
+            queue = if (state.offline) emptyList()
+                else snapshot.tracks.map { VideoPreview(it.title, it.creator, it.url, it.artwork, 0L) },
             queueIndex = if (state.offline) -1 else snapshot.index,
             shuffle = snapshot.shuffle,
             repeat = snapshot.repeat,
-            title = entry?.title ?: state.title,
-            artist = entry?.creator ?: state.artist,
-            thumbnail = entry?.artwork ?: state.thumbnail,
+            title = if (state.offline) state.title else entry?.title ?: state.title,
+            artist = if (state.offline) state.artist else entry?.creator ?: state.artist,
+            thumbnail = if (state.offline) state.thumbnail else entry?.artwork ?: state.thumbnail,
             videoUrl = if (state.offline) state.videoUrl else entry?.url ?: state.videoUrl,
-            positionMs = bookmark?.positionMs ?: state.positionMs,
-            durationMs = bookmark?.durationMs ?: state.durationMs,
+            positionMs = if (state.offline) state.positionMs else bookmark?.positionMs ?: state.positionMs,
+            durationMs = if (state.offline) state.durationMs else bookmark?.durationMs ?: state.durationMs,
             error = if (state.offline) state.error else persistence.failure(entry?.url)
         )
     }
