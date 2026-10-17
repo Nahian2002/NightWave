@@ -77,6 +77,9 @@ assert "keySet()" not in snapshot
 # Repeated queue song URLs no longer crash LazyColumn with duplicate keys.
 assert "itemsIndexed(state.queue, key = { index, _ -> index })" in sheet
 assert "itemsIndexed(state.queue, key = { _, video -> video.url })" not in sheet
+queue_tests = read("app/src/androidTest/java/com/nightwave/player/v2/ui/NightWaveQueueSwipeInstrumentedTest.kt")
+assert 'duplicatedQueueUrlsUseUniqueComposeRowKeys' in queue_tests
+assert queue_tests.count('@Test') == 3
 assert "fun removeUpcoming(at: Int, expectedUrl: String)" in queue
 assert "ACTION_REMOVE_UPCOMING" in service
 
