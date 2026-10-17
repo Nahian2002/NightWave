@@ -45,6 +45,7 @@ import com.nightwave.player.net.SearchMode
 import com.nightwave.player.net.VideoPreview
 import com.nightwave.player.net.YouTubeGateway
 import com.nightwave.player.library.MusicLibrary
+import com.nightwave.player.offline.OfflineLibraryActivity
 import com.nightwave.player.playback.PlaybackService
 import com.nightwave.player.playback.QueueStateStore
 import java.util.concurrent.Executors
@@ -704,7 +705,7 @@ class MainActivity : Activity() {
                 })
                 card.addView(TextView(this).apply {
                     text = title
-                    textSize = 19f
+                    textSize = 17f
                     typeface = Typeface.create("sans-serif-black", Typeface.BOLD)
                     setTextColor(Color.WHITE)
                     setPadding(0, dp(5), 0, 0)
@@ -751,12 +752,12 @@ class MainActivity : Activity() {
     }
 
     private fun showHome() {
-        binding.resultsHeading.text = "Made for your mood."
-        showStatus("Your own listening space, always on.")
+        binding.resultsHeading.text = "Your music, your pace"
+        showStatus("Find something worth replaying.")
         val hero = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            setPadding(dp(20), dp(24), dp(14), dp(24))
+            setPadding(dp(16), dp(16), dp(13), dp(16))
             setBackgroundResource(R.drawable.bg_hero)
             elevation = dp(4).toFloat()
             isClickable = true
@@ -768,22 +769,22 @@ class MainActivity : Activity() {
             layoutParams = LinearLayout.LayoutParams(0, -2, 1f)
         }
         copy.addView(TextView(this).apply {
-            text = "✦  YOUR NEXT OBSESSION"
+            text = "NIGHTWAVE  ·  DISCOVER"
             textSize = 10f
             letterSpacing = 0.12f
             typeface = Typeface.DEFAULT_BOLD
             setTextColor(Color.rgb(183, 232, 233))
         })
         copy.addView(TextView(this).apply {
-            text = "Press play.\nFade away."
-            textSize = 28f
+            text = "All your sound.\nOne place."
+            textSize = 23f
             typeface = Typeface.create("sans-serif-black", Typeface.BOLD)
             letterSpacing = -0.04f
             setTextColor(Color.WHITE)
             setPadding(0, dp(14), 0, dp(14))
         })
         copy.addView(TextView(this).apply {
-            text = "Millions of public videos to explore.\nYour soundtrack, your rules."
+            text = "Browse music, build playlists, and keep your own files for offline listening."
             textSize = 12f
             setTextColor(Color.rgb(216, 215, 241))
             setLineSpacing(dp(3).toFloat(), 1f)
@@ -799,7 +800,7 @@ class MainActivity : Activity() {
         val emblem = TextView(this).apply {
             text = "◉"
             gravity = Gravity.CENTER
-            textSize = 78f
+            textSize = 55f
             setTextColor(Color.rgb(173, 226, 238))
             rotation = -18f
             background = GradientDrawable(
@@ -807,7 +808,7 @@ class MainActivity : Activity() {
                 intArrayOf(Color.rgb(82, 74, 159), Color.rgb(35, 130, 151))
             ).apply { cornerRadius = dp(19).toFloat() }
             elevation = dp(8).toFloat()
-            layoutParams = LinearLayout.LayoutParams(dp(102), dp(124)).apply {
+            layoutParams = LinearLayout.LayoutParams(dp(74), dp(98)).apply {
                 marginStart = dp(13)
             }
         }
@@ -831,18 +832,27 @@ class MainActivity : Activity() {
         sectionTitle("Browse by mood")
         showMoodGrid()
         labelAction("Search for an exact song or artist") { openPage(Page.SEARCH) }
-        sectionTitle("NightWave 2.0 · Design preview")
-        labelAction("✦  Explore the new premium interface") {
-            startActivity(Intent(this, com.nightwave.player.v2.ui.NightWaveStudioActivity::class.java))
+        labelAction("♫  Your offline music · Import audio") { openOfflineLibrary() }
+        sectionTitle("Early access")
+        labelAction("✦  Preview redesigned NightWave") {
+            try {
+                startActivity(Intent(this, com.nightwave.player.v2.ui.NightWaveStudioActivity::class.java))
+            } catch (error: Exception) {
+                showStatus("Preview unavailable: " + (error.message ?: "Unknown Android error"), true)
+            }
         }
     }
 
     /** Library with real saved state and working actions, including a link-import recovery path. */
+    private fun openOfflineLibrary() {
+        startActivity(Intent(this, OfflineLibraryActivity::class.java))
+    }
+
     private fun showLibrary() {
         val favorites = library.favorites()
         val names = library.playlistNames()
         val recent = library.recent()
-        binding.resultsHeading.text = "Your collection."
+        binding.resultsHeading.text = "Your library"
         showStatus(favorites.size.toString() + " liked  ·  " + names.size +
             " playlists  ·  " + recent.size + " recently played")
         val header = LinearLayout(this).apply {
@@ -869,10 +879,10 @@ class MainActivity : Activity() {
             }
             tile.addView(TextView(this).apply {
                 text = glyph
-                textSize = 40f
+                textSize = 30f
                 setTextColor(Color.WHITE)
                 gravity = Gravity.START
-            }, LinearLayout.LayoutParams(-1, dp(60)))
+            }, LinearLayout.LayoutParams(-1, dp(45)))
             tile.addView(TextView(this).apply {
                 text = title
                 textSize = 19f
@@ -891,7 +901,7 @@ class MainActivity : Activity() {
         header.addView(libraryTile(
             "Liked Songs", favorites.size.toString() + " tracks", "♥",
             intArrayOf(0xFF78498F.toInt(), 0xFF35315D.toInt())
-        ) { showCollection("Liked Songs", favorites) }, LinearLayout.LayoutParams(0, dp(166), 1f).apply {
+        ) { showCollection("Liked Songs", favorites) }, LinearLayout.LayoutParams(0, dp(132), 1f).apply {
             marginEnd = dp(10)
         })
         header.addView(libraryTile(
@@ -899,6 +909,7 @@ class MainActivity : Activity() {
             intArrayOf(0xFF196C81.toInt(), 0xFF293C68.toInt())
         ) { createPlaylistDialog() }, LinearLayout.LayoutParams(0, dp(166), 1f))
         binding.resultsContainer.addView(header, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(9) })
+        labelAction("♫  Offline library · Import & play your audio files") { openOfflineLibrary() }
         labelAction("Paste a YouTube link to save a track") { addVideoLinkDialog() }
         labelAction("See your playing queue") { showQueueDialog() }
         sectionTitle("Your playlists")
