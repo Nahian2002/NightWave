@@ -1,5 +1,20 @@
 # NightWave
 
+## Alpha 4 Hotfix 1 — startup recovery (Android crash triage)
+
+**This recovery release has NOT been compiled or run on a phone here.** It is based on Alpha 4 and retains all saved music and playback data.
+
+**[Download the full recovery ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/fix/alpha4-launcher-recovery.zip)**
+
+After reports that NightWave Alpha 4 installs but immediately closes on Android, this hotfix restores the previously usable classic Home as the default launcher while preserving the new premium Compose interface as an **opt-in preview** through classic Home → **Explore the new premium interface**. The Media3 session's notification also returns to the classic Activity. The Android application ID and private data locations remain unchanged, so **install the debug APK as an update, without uninstalling or clearing data**.
+
+The root cause of the premium screen's runtime crash is **not identified yet**. Build with `build-windows.cmd`, then install only if `BUILD SUCCESS`. To diagnose the remaining premium crash, enable USB debugging, connect the phone, run `capture-nightwave-crash.cmd`, tap the premium preview until it closes, then collect `NightWave-crash.log` and share the part starting with `FATAL EXCEPTION`. Review the log for personal information first.
+
+Hotfix version: **2.0.0-alpha4-hotfix1** (versionCode 15). Stable `main` is unchanged. See [hotfix QA](docs/NIGHTWAVE_ALPHA4_STARTUP_RECOVERY.md).
+
+---
+
+
 ## NightWave Alpha 4 — Premium UI + last-session recovery
 
 **Current development preview:** \`2.0.0-alpha4\` on \`feature/nightwave-v2-phase4-premium-session\`.

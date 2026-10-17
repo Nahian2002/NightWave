@@ -15,17 +15,18 @@
         android:roundIcon="@drawable/ic_nightwave">
         <activity android:name=".ui.MainActivity" android:exported="true" android:windowSoftInputMode="adjustResize">
             <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
-        <activity android:name=".v2.ui.NightWaveStudioActivity" android:exported="true" android:windowSoftInputMode="adjustResize">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+        <!-- Preview remains explicitly accessible from classic Home, not the launcher.
+             A crash in unverified Compose startup must not prevent access to saved music. -->
+        <activity android:name=".v2.ui.NightWaveStudioActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
         <service
             android:name=".playback.PlaybackService"
             android:exported="true"
