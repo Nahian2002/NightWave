@@ -20,6 +20,7 @@ sealed interface LibraryChange {
     data class DeletePlaylist(val name: String) : LibraryChange
     data class RenamePlaylist(val oldName: String, val newName: String) : LibraryChange
     data class AddToPlaylist(val name: String, val song: VideoPreview) : LibraryChange
+    data class ImportSharedPlaylist(val name: String, val tracks: List<VideoPreview>) : LibraryChange
     data class RemoveFromPlaylist(val name: String, val url: String) : LibraryChange
 }
 
@@ -92,6 +93,40 @@ object LibraryMutationPlan {
                 accepted(old.copy(playlists = old.playlists.map { (name, entries) ->
                     name to if (name == operation.name) entries + song else entries
                 }))
+            }
+            is LibraryChange.ImportSharedPlaylist -> {
+                val name = operation.name.trim()
+                if (name.isBlank() || name.length > 60 ||
+                    name.any { it.code < 32 || it.code == 127 } ||
+                    operation.tracks.size !in 1..30
+                ) return rejected()
+                val clean = mutableListOf<VideoPreview>()
+                for (raw in operation.tracks) {
+                    // Defense in depth: strictly canonical, public watch links.
+                    // Never convert an offline/path/extra-query URL into one.
+                    val normalized = video(raw) ?: return rejected()
+                    if (normalized.url != raw.url) return rejected()
+                    clean += normalized
+                }
+                if (clean.map { it.url }.toSet().size != clean.size) return rejected()
+                val urls = clean.map { it.url }
+                fun importedName(suffix: Int): String {
+                    val tag = if (suffix == 1) " (Shared)" else " (Shared $suffix)"
+                    return name.take(60 - tag.length).trimEnd() + tag
+                }
+                // Repeated imports are no-ops; different existing playlists
+                // never get overwritten or silently merged.
+                val candidates = listOf(name) + (1..50).map(::importedName)
+                val alreadyThere = old.playlists.any { (existing, songs) ->
+                    candidates.any { it.equals(existing, ignoreCase = true) } &&
+                        songs.map { it.url } == urls
+                }
+                if (alreadyThere) return accepted(old)
+                if (old.playlists.size >= 50) return rejected()
+                val chosen = candidates.firstOrNull { candidate ->
+                    old.names().none { it.equals(candidate, ignoreCase = true) }
+                } ?: return rejected()
+                accepted(old.copy(playlists = old.playlists + (chosen to clean)))
             }
             is LibraryChange.RemoveFromPlaylist -> {
                 if (operation.name !in old.names()) return rejected()
