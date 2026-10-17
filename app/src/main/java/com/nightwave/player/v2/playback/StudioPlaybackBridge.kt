@@ -73,12 +73,28 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
     private var cachedOfflineIds: List<String> = emptyList()
     private var cachedOfflineQueue: List<VideoPreview> = emptyList()
     private val listener = object : Player.Listener {
-        override fun onEvents(player: Player, events: Player.Events) = updateFromPlayer(player)
+        override fun onEvents(player: Player, events: Player.Events) {
+            try {
+                updateFromPlayer(player)
+            } catch (error: Exception) {
+                Log.w("NightWaveMedia", "Player state refresh unavailable: " +
+                    error.javaClass.simpleName)
+                state = state.copy(error = "Player state refresh failed. Tap Reconnect.")
+            }
+        }
     }
     private val ticker = object : Runnable {
         override fun run() {
             if (released || !ticking) return
-            controller?.let { updateFromPlayer(it) }
+            controller?.let {
+                try {
+                    updateFromPlayer(it)
+                } catch (error: Exception) {
+                    Log.w("NightWaveMedia", "Playback UI tick failed: " +
+                        error.javaClass.simpleName)
+                    state = state.copy(error = "Player state could not be updated.")
+                }
+            }
             main.postDelayed(this, 750L)
         }
     }
