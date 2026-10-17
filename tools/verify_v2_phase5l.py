@@ -31,6 +31,10 @@ assert "$versionName = '2.0.0-alpha5l'" in device
 assert '$versionCode = 28' in device
 assert '$reportedVersion -ne $versionName' in device
 assert '$reportedCode -ne $versionCode' in device
+assert device.count("if ($checked -like 'PASS*') { exit 0 }") == 1
+assert device.rstrip().endswith('exit 1')
+assert device.count("The build status version does not match the current NightWave source.") == 1
+assert device.count("$signerVerifier = Join-Path $PSScriptRoot") == 1
 assert 'Build status version does not match the current NightWave source.' in device
 
 # New capture must read only bounded logcat history and never save raw logs.
