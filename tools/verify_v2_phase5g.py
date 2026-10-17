@@ -19,8 +19,8 @@ service = read(code / "playback/PlaybackService.kt")
 offline = read(code / "offline/OfflineAudioLibrary.kt")
 manifest = read(root / "app/src/main/AndroidManifest.xml")
 
-assert 'versionCode = 23' in gradle
-assert 'versionName = "2.0.0-alpha5g"' in gradle
+assert 'versionCode = 24' in gradle
+assert 'versionName = "2.0.0-alpha5h"' in gradle
 assert 'applicationId = "com.nightwave.player"' in gradle
 assert 'compileSdk = 35' in gradle and 'targetSdk = 35' in gradle
 assert 'Gradle' in build and 'gradle-8.11.1' in build
@@ -34,8 +34,10 @@ assert "'STARTED - not a verified build." in build
 assert 'if (-not (Test-Path -LiteralPath $errorReport))' in build
 assert 'Copy-Item -LiteralPath $output -Destination $previousApk -Force' in build
 assert 'Remove-Item -LiteralPath $output -Force' in build
-assert 'aapt.exe' in build
-assert "versionCode='23' versionName='2\\.0\\.0-alpha5g'" in build
+assert "verify-apk-signature.ps1" in build
+assert "-VersionName '2.0.0-alpha5h' -VersionCode '24'" in build
+assert 'aapt.exe' in read(root / 'tools/verify-apk-signature.ps1')
+assert 'apksigner.bat' in read(root / 'tools/verify-apk-signature.ps1')
 assert '$LASTEXITCODE -ne 0' in build
 assert 'SHA256:' in build
 assert 'BUILD FAILED' in launcher and 'BUILD SUCCESS' in launcher
