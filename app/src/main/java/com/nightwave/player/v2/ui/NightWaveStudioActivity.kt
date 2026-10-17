@@ -1173,7 +1173,7 @@ private fun StudioRoot(
                                 hasError = playerState.error != null
                             )) {
                                 SpotlightAction.KEEP_CURRENT -> Unit
-                                SpotlightAction.RESUME_CURRENT -> playerActions.playPause()
+                                SpotlightAction.RESUME_CURRENT -> playerActions.resumeCurrent()
                                 SpotlightAction.RETRY_CURRENT -> playerActions.retry()
                                 SpotlightAction.START_SELECTED -> onPlay(song, collection)
                             }
