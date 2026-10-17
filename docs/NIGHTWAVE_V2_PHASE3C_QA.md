@@ -11,7 +11,8 @@ Status: **source implemented, not compiled or phone-tested**
 3. **Optional session-only read preview.** New Compose Profile section offers "TRY VERIFIED ROOM READS" and "RETURN TO ORIGINAL LIBRARY". The default remains original SharedPreferences.
 4. **Automatic legacy fallback.** A stale checkpoint, changed source, mismatched metadata, corruption or migration failure disables Room preview and refreshes UI from the original library. The UI never silently displays an unchecked Room snapshot.
 5. **No destructive writes/cutover.** All song/playlist mutations still go through MusicLibrary's SharedPreferences. Neither the WebView search/playback service nor the legacy launcher is replaced by this phase.
-6. **Zero database schema changes.** Existing Room version 1 and its pending exported schema remain compatible with Phase 3B.
+6. **Vanished-source guard.** If a previously populated Room mirror exists but the old library preference keys disappear unexpectedly, the migrator refuses to clear Room and reports an error requiring review.
+7. **Zero database schema changes.** Existing Room version 1 and its pending exported schema remain compatible with Phase 3B.
 
 ## Why this is not the final storage cutover
 
@@ -24,7 +25,7 @@ A session's verified snapshot is not a globally serializable lock on the old pla
 ## Added test coverage
 
 - 10 JVM parity tests: exact match, missing/stale checkpoint, favorite order, recent order, playlist order, song order, metadata mismatch, empty library and duplicate song membership.
-- 6 Android instrumentation tests: no checkpoint, verified fresh snapshot, stale preferences/reconcile, corrupt Room metadata, conflicting metadata for same URL, malformed legacy JSON.
+- 7 Android instrumentation tests: six verified-reader scenarios plus one new vanished-source recovery guard, in addition to the five Room migration and one DataStore tests from Phase 3B. Reader scenarios: no checkpoint, verified fresh snapshot, stale preferences/reconcile, corrupt Room metadata, conflicting metadata for same URL, malformed legacy JSON.
 - Source gate: \`python tools/verify_v2_phase3c.py\`. Phase 3B source gate also updated to support this version.
 
 **These tests were added but not executed here. No Android Gradle build was run.**
