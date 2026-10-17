@@ -301,5 +301,14 @@ try {
     ) | Set-Content -LiteralPath $statusFile -Encoding UTF8
     Write-Host "[NightWave] BUILD FAILED ($stage): $reason" -ForegroundColor Red
     Write-Host "Diagnostics: $errorReport" -ForegroundColor Yellow
+    # Best-effort failure-only diagnosis; never changes the failed exit code.
+    $diagnosticScript = Join-Path $PSScriptRoot 'diagnose-build.ps1'
+    if (Test-Path -LiteralPath $diagnosticScript -PathType Leaf) {
+        try {
+            & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $diagnosticScript
+        } catch {
+            Write-Host ('Diagnostic summary unavailable: ' + $_.Exception.Message) -ForegroundColor Yellow
+        }
+    }
     exit 1
 }
