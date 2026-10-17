@@ -67,6 +67,8 @@ class PlaybackService : MediaSessionService() {
     private val resolver = Executors.newSingleThreadExecutor()
     private val gateway = YouTubeGateway()
     private var generation = 0
+    /** Main-thread marker for a public track awaiting extractor resolution. */
+    private var resolvingPublicUrl: String? = null
     private var offlinePlaying = false
     // The service owns the only pending Undo. No playlist/audio-file writes.
     private var pendingQueueRemoval: Pair<String, PlaybackQueue.RemovedUpcoming>? = null
@@ -229,15 +231,33 @@ class PlaybackService : MediaSessionService() {
                     if (!url.startsWith("https://www.youtube.com/watch?v=")) return@mapIndexedNotNull null
                     QueueEntry(url, titles.getOrNull(index).orEmpty(), creators.getOrNull(index).orEmpty(), artworks.getOrNull(index).orEmpty())
                 }
-                queue.replace(entries, intent.getIntExtra(EXTRA_INDEX, 0))
-                generation++ // invalidate unresolved previous track jobs
-                savedQueue.save(queue)
-                queue.current?.let { savedQueue.saveBookmark(it.url, 0L, 0L) }
-                if (intent.action == ACTION_PLAY_QUEUE) {
-                    offlineQueue.reset()
-                    // Current item belongs to the same queue snapshot; do not touch old app entry points.
-                    exoPlayer?.pause()
-                    queue.current?.let { resolveAndPlay(it) }
+                val selected = intent.getIntExtra(EXTRA_INDEX, 0)
+                val proposedQueue = entries.distinctBy { it.url }.take(100)
+                val selectedEntry = proposedQueue.getOrNull(selected.coerceIn(
+                    0, (proposedQueue.size - 1).coerceAtLeast(0)))
+                val sameQueue = intent.action == ACTION_PLAY_QUEUE && !offlinePlaying &&
+                    proposedQueue.isNotEmpty() && queue.snapshot() == proposedQueue &&
+                    queue.index == selected.coerceIn(0, proposedQueue.lastIndex)
+                val loaded = selectedEntry != null &&
+                    exoPlayer?.currentMediaItem?.mediaId == selectedEntry.url &&
+                    exoPlayer?.playerError == null
+                val resolving = selectedEntry != null &&
+                    resolvingPublicUrl == selectedEntry.url
+                if (sameQueue && (loaded || resolving)) {
+                    // Double-tap/recomposition must not drop an already buffered
+                    // stream or enqueue another slow extraction of the same URL.
+                    if (loaded) exoPlayer?.play()
+                } else {
+                    queue.replace(entries, selected)
+                    generation++ // invalidate unresolved previous track jobs
+                    resolvingPublicUrl = null
+                    savedQueue.save(queue)
+                    queue.current?.let { savedQueue.saveBookmark(it.url, 0L, 0L) }
+                    if (intent.action == ACTION_PLAY_QUEUE) {
+                        offlineQueue.reset()
+                        exoPlayer?.pause()
+                        queue.current?.let { resolveAndPlay(it) }
+                    }
                 }
             }
             ACTION_REMOVE_UPCOMING -> {
@@ -454,12 +474,17 @@ class PlaybackService : MediaSessionService() {
         }
         if (autoPlay && resumePositionMs == 0L) savedQueue.saveBookmark(entry.url, 0L, 0L)
         val request = ++generation
-        if (resolver.isShutdown) return
+        resolvingPublicUrl = entry.url
+        if (resolver.isShutdown) {
+            resolvingPublicUrl = null
+            return
+        }
         try {
             resolver.execute {
                 val outcome = runCatching { gateway.resolve(entry.url) }
                 main.post {
                     if (request != generation || exoPlayer == null) return@post
+                    resolvingPublicUrl = null
                     outcome.onSuccess { playable ->
                     val video = playable.video
                     savedQueue.clearFailure()
@@ -489,6 +514,7 @@ class PlaybackService : MediaSessionService() {
                 }
             }
         } catch (_: java.util.concurrent.RejectedExecutionException) {
+            resolvingPublicUrl = null
             // Service is shutting down; never crash because an async resolve was queued.
         }
     }
@@ -499,6 +525,7 @@ class PlaybackService : MediaSessionService() {
         persistProgress(flush = true)
         main.removeCallbacks(progressWriter)
         generation++
+        resolvingPublicUrl = null
         resolver.shutdownNow()
         exoPlayer?.removeListener(trackListener)
         mediaSession?.release()
