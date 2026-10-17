@@ -148,14 +148,13 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
     }
 
     override fun play(video: VideoPreview, collection: List<VideoPreview>) {
-        // Keep the requested song in the queue even if a collection exceeds 100 items.
-        val unique = (if (collection.any { it.url == video.url }) collection else listOf(video))
-            .distinctBy { it.url }
-        val firstHundred = unique.take(100)
-        val tracks = if (firstHundred.any { it.url == video.url }) firstHundred
-            else listOf(video) + unique.filter { it.url != video.url }.take(99)
-        if (tracks.isEmpty()) return
-        val index = tracks.indexOfFirst { it.url == video.url }.coerceAtLeast(0)
+        val plan = QueueSelectionRules.plan(video, collection)
+        val tracks = plan.songs
+        if (tracks.isEmpty()) {
+            state = state.copy(error = "This is not a supported public video link.")
+            return
+        }
+        val index = plan.selectedIndex
         try {
             val request = Intent(context, PlaybackService::class.java)
                 .setAction(PlaybackService.ACTION_PLAY_QUEUE)
