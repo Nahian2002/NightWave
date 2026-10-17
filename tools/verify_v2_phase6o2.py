@@ -18,7 +18,7 @@ assert "MAX_GROUPS = 48" in group
 assert "MAX_QUEUE_TRACKS = 100" in group
 assert "source.take(MAX_SOURCE_TRACKS)" in group
 assert "seenUrls.add(video.url)" in group
-assert 'video.url.startsWith("https://www.youtube.com/watch?v=")' in group
+assert "VideoLink.normalize(video.url) != video.url" in group
 assert "MusicIdentity.display(video.title, video.author)" in group
 assert "SearchRelevancePolicy.normalize(label)" in group
 assert "key in generic" in group
