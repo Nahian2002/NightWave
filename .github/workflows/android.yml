@@ -10,6 +10,8 @@ on:
       - feature/nightwave-v2-phase5s-build-recovery
       - feature/nightwave-v2-phase5t-reliable-discovery
       - feature/nightwave-v2-phase5u-google-drive-backup
+  # Phase 5Z tests were explicitly deferred. The new 5Z source gate will run
+  # via workflow_dispatch when ready; do not trigger it on PR creation.
   workflow_dispatch:
 
 permissions:
@@ -44,6 +46,7 @@ jobs:
           python3 tools/verify_v2_phase5t.py
           python3 tools/verify_v2_phase5u.py
           python3 tools/verify_v2_phase5y.py
+          python3 tools/verify_v2_phase5z.py
       - name: Compile debug app, JVM tests and Android instrumentation sources
         run: |
           gradle --no-daemon --stacktrace --console=plain :app:testDebugUnitTest :app:assembleDebug :app:compileDebugAndroidTestKotlin
@@ -57,7 +60,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: NightWave-5Y-dev-debug-UNVERIFIED-FOR-DEVICE
+          name: NightWave-5Z-dev-debug-UNVERIFIED-FOR-DEVICE
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 5

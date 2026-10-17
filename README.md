@@ -1,5 +1,19 @@
 # NightWave
 
+## Phase 5Z — Cross-device library comparison & safe merge (draft)
+
+**Branch:** `feature/nightwave-v2-phase5z-safe-cross-device-merge` — built on Phase 5Y/5U. Stable `main` untouched; APK and OAuth verification deferred as requested. No app-ID, version-code, signer or user music-file changes.
+
+[Phase 5Z source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase5z-safe-cross-device-merge.zip) · [Exact scope and later acceptance checklist](docs/NIGHTWAVE_V2_PHASE5Z_QA.md)
+
+- **Compare & merge devices** in You > Library & backup, only after optional 5U Google Drive authorization. Choose a previously saved private Drive snapshot and review a count of additions before importing.
+- **Existing favorites/playlists preserved:** missing liked songs are appended; distinct new playlists imported. Conflicting playlist names are kept intact locally, while the incoming cloud version is copied to a separate `(Drive)` playlist. Duplicate repeat imports are recognized.
+- **Fail closed:** strict archive caps and validation, an account guard, unchanged-local-snapshot check at final confirmation under the legacy writer lock, and the existing local rollback checkpoint. No import on app startup or merely signing in.
+- **No automatic remote changes:** profile, listening history, offline audio and playback state remain local. This is *manual additive sync*, not real-time library conflict resolution or Spotify Connect. Previously scheduled 5U backup runs remain separate.
+- **Release gate deferred:** new JVM regression tests and source assertions are committed for later. No Gradle/Android compile, OAuth/cloud traffic, or real phone acceptance is claimed.
+
+---
+
 ## Phase 5Y — Local Personal Mixes & Safe Home Resume (draft)
 
 **Source branch:** `feature/nightwave-v2-phase5y-personal-mixes-resume-guard` · **App identity unchanged:** `com.nightwave.player`, alpha5s/build35 during draft review. **No device-verified APK from this branch yet.**

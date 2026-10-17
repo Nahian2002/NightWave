@@ -32,6 +32,36 @@ class LibraryArchiveManager(context: Context) {
 
     fun preview(bytes: ByteArray): LibraryArchive = LibraryBackupCodec.decode(bytes)
 
+    /**
+     * Apply the explicitly confirmed merge only if the library still exactly
+     * matches what the user saw in the comparison dialog. Comparison and
+     * replacement share the legacy transaction lock; playlist edits made while
+     * the dialog was open cannot be overwritten by a stale merge.
+     */
+    fun mergeIfUnchanged(
+        plan: com.nightwave.player.v2.cloud.CloudMergePlan
+    ): CloudMergeApplyResult = LegacyLibraryTransaction.exclusive {
+        val current = runCatching { export() }.getOrNull()
+            ?: return@exclusive CloudMergeApplyResult.FAILED
+        if (!current.contentEquals(plan.expectedLocalBackup)) {
+            return@exclusive CloudMergeApplyResult.STALE_PREVIEW
+        }
+        if (!plan.hasChanges) return@exclusive CloudMergeApplyResult.NO_CHANGES
+        // Re-check limits and format before touching any preference keys.
+        val validated = runCatching {
+            LibraryBackupCodec.decode(LibraryBackupCodec.encode(plan.mergedArchive))
+        }.getOrNull() ?: return@exclusive CloudMergeApplyResult.FAILED
+        // A merge cannot alter this device's profile.
+        val currentProfile = LibraryBackupCodec.decode(current)
+        if (validated.displayName != currentProfile.displayName ||
+            validated.theme != currentProfile.theme ||
+            validated.avatar != currentProfile.avatar) {
+            return@exclusive CloudMergeApplyResult.FAILED
+        }
+        if (restoreWithConfirmation(validated)) CloudMergeApplyResult.APPLIED
+        else CloudMergeApplyResult.FAILED
+    }
+
     private fun serialize(videos: List<VideoPreview>): String = JSONArray().also { arr ->
         videos.forEach {
             arr.put(JSONObject().put("url", it.url).put("title", it.title)
@@ -105,3 +135,5 @@ class LibraryArchiveManager(context: Context) {
         editor.commit()
     }.getOrDefault(false)
 }
+
+enum class CloudMergeApplyResult { APPLIED, NO_CHANGES, STALE_PREVIEW, FAILED }

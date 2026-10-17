@@ -15,6 +15,9 @@ import com.nightwave.player.v2.cloud.CloudBackupCodec
 import com.nightwave.player.v2.cloud.CloudBackupPreview
 import com.nightwave.player.v2.cloud.NightWaveDriveClient
 import com.nightwave.player.v2.cloud.DriveSnapshot
+import com.nightwave.player.v2.cloud.CloudLibraryMerger
+import com.nightwave.player.v2.cloud.CloudMergePlan
+import com.nightwave.player.v2.data.CloudMergeApplyResult
 import com.nightwave.player.v2.cloud.NightWaveCloudAuthorization
 import com.nightwave.player.v2.cloud.NightWaveCloudSchedule
 import com.nightwave.player.v2.data.LibraryArchiveManager
@@ -322,6 +325,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                     onCloudConnect = { requestCloudAction("connect") },
                     onCloudBackup = { requestCloudAction("backup") },
                     onCloudPreviewRestore = { requestCloudAction("preview") },
+                    onCloudCompare = { requestCloudAction("merge") },
                     onCloudDisconnect = { disconnectCloud() },
                     onCloudHistory = { enabled ->
                         if (cloudStore.setHistory(enabled)) refreshCloud()
@@ -504,7 +508,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                             drive.uploadVerified(bytes)
                             null
                         }
-                        "preview" -> {
+                        "preview", "merge" -> {
                             drive.listSnapshots().takeIf { it.isNotEmpty() }
                                 ?: error("No NightWave cloud backup found")
                         }
@@ -527,7 +531,8 @@ class NightWaveStudioActivity : ComponentActivity() {
                         showMessage("Backup uploaded, but scheduling needs a fresh connection.")
                     }
                 } else if (preview != null) {
-                    showCloudSnapshotPicker(preview, token)
+                    showCloudSnapshotPicker(preview, token,
+                        forMerge = action == "merge", expectedAccount = expectedAccount)
                 }
             }.onFailure { error ->
                 // Only bounded, non-sensitive status to UI; never display an access token.
@@ -540,7 +545,10 @@ class NightWaveStudioActivity : ComponentActivity() {
         }
     }
 
-    private fun showCloudSnapshotPicker(snapshots: List<DriveSnapshot>, token: String) {
+    private fun showCloudSnapshotPicker(
+        snapshots: List<DriveSnapshot>, token: String,
+        forMerge: Boolean, expectedAccount: String
+    ) {
         val options = snapshots.take(20)
         val labels = options.mapIndexed { index, snapshot ->
             val timestamp = snapshot.name.removePrefix("nightwave-cloud-v2-")
@@ -551,18 +559,30 @@ class NightWaveStudioActivity : ComponentActivity() {
             "${index + 1}. $whenSaved"
         }.toTypedArray()
         AlertDialog.Builder(this)
-            .setTitle("Choose a cloud backup")
+            .setTitle(if (forMerge) "Compare with cloud snapshot" else "Choose a cloud backup")
             .setItems(labels) { _, which ->
                 val chosen = options[which]
                 cloudBusy = true
                 lifecycleScope.launch {
                     val outcome = withContext(Dispatchers.IO) {
                         runCatching {
-                            CloudBackupCodec.decode(NightWaveDriveClient(token).download(chosen.id))
+                            check(cloudStore.read().account.equals(expectedAccount, true)) {
+                                "Google account changed"
+                            }
+                            val remote = CloudBackupCodec.decode(
+                                NightWaveDriveClient(token).download(chosen.id))
+                            val plan = if (forMerge) CloudLibraryMerger.preview(
+                                archiveManager.export(), remote.archive) else null
+                            remote to plan
                         }
                     }
                     cloudBusy = false
-                    outcome.onSuccess { showCloudRestorePreview(it) }
+                    outcome.onSuccess { (remote, plan) ->
+                        if (!cloudStore.read().account.equals(expectedAccount, true)) {
+                            showMessage("Google account changed; compare again.")
+                        } else if (plan != null) showCloudMergePreview(plan, expectedAccount)
+                        else showCloudRestorePreview(remote)
+                    }
                         .onFailure {
                             cloudStore.status("Selected backup unavailable or failed validation")
                             refreshCloud()
@@ -572,6 +592,57 @@ class NightWaveStudioActivity : ComponentActivity() {
             }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+
+    /**
+     * Preview changes before confirmation. Applying checks account and local
+     * checkpoint; neither a late playlist edit nor a different Google account
+     * may be overwritten by the merge.
+     */
+    private fun showCloudMergePreview(plan: CloudMergePlan, account: String) {
+        val conflicts = if (plan.conflictingPlaylistNames.isEmpty()) ""
+            else "\n\nPlaylist name conflicts: " +
+                plan.conflictingPlaylistNames.take(5).joinToString(", ") +
+                ". Separate (Drive) copies will be added."
+        val message = "Cloud comparison: ${plan.addedFavoriteCount} additional liked tracks, " +
+            "${plan.addedPlaylistCount} additional playlists, " +
+            "${plan.newTrackReferences} imported playlist entries." +
+            conflicts + "\n\nLocal profile, playlists and listening history are preserved. " +
+            "This operation does not upload or delete cloud files."
+        val dialog = AlertDialog.Builder(this)
+            .setTitle(if (plan.hasChanges) "Review library merge" else "Already up to date")
+            .setMessage(message)
+            .setNegativeButton("Close", null)
+        if (plan.hasChanges) {
+            dialog.setPositiveButton("Merge into this device") { _, _ ->
+                if (cloudBusy || !cloudStore.read().account.equals(account, ignoreCase = true)) {
+                    showMessage("Google account changed or busy; compare again.")
+                    return@setPositiveButton
+                }
+                cloudBusy = true
+                lifecycleScope.launch {
+                    val result = withContext(Dispatchers.IO) {
+                        runCatching { archiveManager.mergeIfUnchanged(plan) }
+                            .getOrDefault(CloudMergeApplyResult.FAILED)
+                    }
+                    cloudBusy = false
+                    when (result) {
+                        CloudMergeApplyResult.APPLIED -> {
+                            profile = profiles.load()
+                            refresh()
+                            showMessage("Library merged. Cloud backups are unchanged.")
+                        }
+                        CloudMergeApplyResult.STALE_PREVIEW ->
+                            showMessage("Your library changed. Compare again before merging.")
+                        CloudMergeApplyResult.NO_CHANGES ->
+                            showMessage("Library already contains those tracks.")
+                        CloudMergeApplyResult.FAILED ->
+                            showMessage("Merge could not finish. Review your library before retrying.")
+                    }
+                }
+            }
+        }
+        dialog.show()
     }
 
     private fun showCloudRestorePreview(preview: CloudBackupPreview) {
@@ -966,6 +1037,7 @@ private fun StudioRoot(
     onCloudConnect: () -> Unit,
     onCloudBackup: () -> Unit,
     onCloudPreviewRestore: () -> Unit,
+    onCloudCompare: () -> Unit,
     onCloudDisconnect: () -> Unit,
     onCloudHistory: (Boolean) -> Unit,
     onCloudWifi: (Boolean) -> Unit,
@@ -1217,6 +1289,7 @@ private fun StudioRoot(
                         onCloudConnect = onCloudConnect,
                         onCloudBackup = onCloudBackup,
                         onCloudPreviewRestore = onCloudPreviewRestore,
+                        onCloudCompare = onCloudCompare,
                         onCloudDisconnect = onCloudDisconnect,
                         onCloudHistory = onCloudHistory,
                         onCloudWifi = onCloudWifi,
@@ -1697,6 +1770,7 @@ private fun StudioProfile(
     onCloudConnect: () -> Unit,
     onCloudBackup: () -> Unit,
     onCloudPreviewRestore: () -> Unit,
+    onCloudCompare: () -> Unit,
     onCloudDisconnect: () -> Unit,
     onCloudHistory: (Boolean) -> Unit,
     onCloudWifi: (Boolean) -> Unit,
@@ -1891,6 +1965,9 @@ private fun StudioProfile(
                             Icons.Outlined.LibraryMusic, onCloudBackup)
                         StudioProfileRow("Preview cloud restore", "Choose before replacing local collections",
                             Icons.Outlined.LibraryMusic, onCloudPreviewRestore)
+                        StudioProfileRow("Compare & merge devices",
+                            "Add saved music without replacing local playlists",
+                            Icons.Outlined.LibraryMusic, onCloudCompare)
                         StudioProfileRow("Back up listening history",
                             "Off by default; old snapshots keep their previous contents",
                             Icons.Outlined.Settings, { onCloudHistory(!cloud.includeHistory) },
@@ -1912,7 +1989,8 @@ private fun StudioProfile(
                         modifier = Modifier.padding(horizontal = 14.dp),
                         style = MaterialTheme.typography.bodySmall, color = muted)
                     Text("Backups contain metadata, never offline audio or passwords. " +
-                        "Google consent is optional. Automatic sync can run later than scheduled.",
+                        "Google consent is optional. Manual compare is not live device sync. " +
+                        "Automatic backup may run later than scheduled.",
                         modifier = Modifier.padding(start = 14.dp, end = 14.dp, bottom = 12.dp),
                         style = MaterialTheme.typography.bodySmall, color = muted)
                 }

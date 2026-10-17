@@ -54,9 +54,11 @@ assert "SpotlightAction.RESUME_CURRENT -> playerActions.resumeCurrent()" in home
 assert "SpotlightAction.RETRY_CURRENT -> playerActions.retry()" in home
 assert "fun resumeCurrent()" in bridge
 assert "active.isPlaying -> Unit" in bridge
-assert "active.currentMediaItem != null -> active.play()" in bridge
+assert "active.currentMediaItem != null -> {" in bridge
+assert "active.play()" in bridge
 assert "if (sameQueue && (loaded || resolving))" in service
-assert "if (loaded) exoPlayer?.play()" in service
+assert "if (loaded) exoPlayer?.apply {" in service
+assert "playbackState == Player.STATE_ENDED" in service
 assert "resolvingPublicUrl == queue.current?.url" in service
 assert "resolvingPublicUrl = null" in service
 assert test_resume.count("@Test") >= 8
