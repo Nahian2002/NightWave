@@ -91,7 +91,13 @@ class PlaybackService : MediaSessionService() {
         }
 
         override fun onPlaybackStateChanged(state: Int) {
-            if (state == Player.STATE_ENDED) playNext(true)
+            if (state == Player.STATE_ENDED) {
+                // Switching Media3 items inside a Player callback is unsafe on
+                // some devices; post the guarded transition onto the main loop.
+                main.post {
+                    if (exoPlayer?.playbackState == Player.STATE_ENDED) playNext(true)
+                }
+            }
         }
 
         override fun onPlayerError(error: PlaybackException) {
@@ -277,6 +283,7 @@ class PlaybackService : MediaSessionService() {
     private fun playOfflineId(id: String, localLibrary: OfflineAudioLibrary = OfflineAudioLibrary(this)): Boolean {
         val song = runCatching { localLibrary.find(id) }.getOrNull() ?: return false
         val file = localLibrary.fileFor(song) ?: return false
+        val player = exoPlayer ?: return false
         val item = MediaItem.Builder().setMediaId("offline:" + song.id)
             .setUri(Uri.fromFile(file)).setMimeType(song.mimeType)
             .setMediaMetadata(MediaMetadata.Builder()
@@ -285,7 +292,7 @@ class PlaybackService : MediaSessionService() {
         offlinePlaying = true
         generation++ // Cancel unresolved online audio from a previous song.
         autoRetriedVideo = null
-        exoPlayer?.apply {
+        player.apply {
             pause()
             setMediaItem(item)
             playWhenReady = true
