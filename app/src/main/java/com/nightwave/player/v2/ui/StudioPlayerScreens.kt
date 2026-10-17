@@ -1,6 +1,8 @@
 package com.nightwave.player.v2.ui
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
@@ -11,6 +13,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -147,11 +150,17 @@ fun StudioMiniPlayer(
                     contentDescription = if (state.playing) "Pause playback" else "Resume playback",
                     tint = colors.onSurface)
             }
+            if (state.queue.size > 1) {
+                IconButton(onClick = actions::next, modifier = Modifier.size(44.dp),
+                    enabled = state.connected && !state.buffering) {
+                    Icon(Icons.Outlined.SkipNext, contentDescription = "Next track",
+                        tint = colors.onSurface)
+                }
+            }
         }
         LinearProgressIndicator(
             progress = {
-                if (state.durationMs > 0L)
-                    (state.positionMs.toFloat() / state.durationMs).coerceIn(0f, 1f) else 0f
+                PlayerProgressRules.fraction(state.positionMs, state.durationMs)
             },
             modifier = Modifier.fillMaxWidth().height(2.dp),
             color = colors.primary,
@@ -167,16 +176,17 @@ private fun CoverArt(url: String, modifier: Modifier = Modifier, radius: Int = 2
         Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary.copy(alpha = .5f),
             MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.surface))
     ), contentAlignment = Alignment.Center) {
+        // The motif stays behind a real artwork request. If Coil cannot load a
+        // thumbnail (offline/missing image), the branded fallback remains visible.
+        Canvas(Modifier.fillMaxSize(.64f)) {
+            drawCircle(Color.White.copy(alpha = .26f), radius = size.minDimension * .44f)
+            drawCircle(Color.White.copy(alpha = .65f), radius = size.minDimension * .33f,
+                style = Stroke(width = 2.dp.toPx()))
+            drawCircle(Color.White.copy(alpha = .7f), radius = size.minDimension * .09f)
+        }
         if (url.isNotBlank()) {
             AsyncImage(model = url, contentDescription = "Album artwork",
                 modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-        } else {
-            Canvas(Modifier.fillMaxSize(.64f)) {
-                drawCircle(Color.White.copy(alpha = .26f), radius = size.minDimension * .44f)
-                drawCircle(Color.White.copy(alpha = .65f), radius = size.minDimension * .33f,
-                    style = Stroke(width = 2.dp.toPx()))
-                drawCircle(Color.White.copy(alpha = .7f), radius = size.minDimension * .09f)
-            }
         }
     }
 }
@@ -197,9 +207,14 @@ fun StudioNowPlayingOverlay(
     val exit = if (reduceMotion) ExitTransition.None else slideOutVertically(targetOffsetY = { it }) + fadeOut()
     AnimatedVisibility(visible = expanded, enter = enter, exit = exit) {
         val colors = MaterialTheme.colorScheme
-        val background = Brush.verticalGradient(listOf(colors.surfaceVariant, colors.background, colors.background))
+        val background = Brush.verticalGradient(listOf(
+            colors.primary.copy(alpha = .19f), colors.surfaceVariant,
+            colors.background, colors.background
+        ))
         BoxWithConstraints(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing).background(background)) {
             val art = minOf(maxWidth - 76.dp, maxHeight * .34f, 330.dp)
+            val canSwipeArtwork = state.connected && !state.buffering && state.queue.size > 1
+            var horizontalTravel by remember(state.videoUrl) { mutableStateOf(0f) }
             Column(
                 Modifier.fillMaxSize().verticalScroll(rememberScrollState())
                     .padding(horizontal = 24.dp),
@@ -229,7 +244,8 @@ fun StudioNowPlayingOverlay(
                     Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("NIGHTWAVE", style = MaterialTheme.typography.labelSmall,
                             color = colors.onSurfaceVariant)
-                        Text("NOW PLAYING", style = MaterialTheme.typography.labelLarge,
+                        Text(if (state.offline) "OFFLINE AUDIO" else "NOW PLAYING",
+                            style = MaterialTheme.typography.labelLarge,
                             color = colors.onBackground)
                     }
                     IconButton(onClick = onSaveToPlaylist, enabled = !state.offline,
@@ -239,9 +255,49 @@ fun StudioNowPlayingOverlay(
                     }
                 }
                 Spacer(Modifier.height(8.dp))
-                CoverArt(state.thumbnail,
-                    Modifier.size(art).clip(RoundedCornerShape(26.dp)), 26)
-                Spacer(Modifier.height(21.dp))
+                Box(
+                    Modifier.size(art).clip(RoundedCornerShape(26.dp)).then(
+                        if (canSwipeArtwork) Modifier.pointerInput(
+                            state.videoUrl, state.queue.size, state.connected, state.buffering
+                        ) {
+                            detectHorizontalDragGestures(
+                                onDragStart = { horizontalTravel = 0f },
+                                onHorizontalDrag = { change, amount ->
+                                    change.consume()
+                                    horizontalTravel += amount
+                                },
+                                onDragEnd = {
+                                    when (PlayerGestureRules.decideHorizontalSwipe(
+                                        horizontalTravel, PlayerGestureRules.MIN_SWIPE_DP.dp.toPx(),
+                                        state.connected, state.buffering, state.queue.size
+                                    )) {
+                                        PlayerArtworkSwipe.NEXT -> actions.next()
+                                        PlayerArtworkSwipe.PREVIOUS -> actions.previous()
+                                        PlayerArtworkSwipe.NONE -> Unit
+                                    }
+                                    horizontalTravel = 0f
+                                },
+                                onDragCancel = { horizontalTravel = 0f }
+                            )
+                        } else Modifier
+                    ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Crossfade(
+                        targetState = state.thumbnail,
+                        animationSpec = tween(durationMillis = if (reduceMotion) 0 else 180),
+                        label = "Player artwork"
+                    ) { thumbnail ->
+                        CoverArt(thumbnail, Modifier.fillMaxSize(), 26)
+                    }
+                }
+                if (canSwipeArtwork) {
+                    Text("Swipe artwork to change tracks",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = colors.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 9.dp))
+                }
+                Spacer(Modifier.height(17.dp))
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text(state.title.ifBlank { "Choose a track" },
@@ -258,17 +314,23 @@ fun StudioNowPlayingOverlay(
                     }
                 }
                 Spacer(Modifier.height(11.dp))
-                var dragFraction by remember { mutableStateOf<Float?>(null) }
-                val fraction = dragFraction ?: if (state.durationMs > 0L)
-                    (state.positionMs.toFloat() / state.durationMs).coerceIn(0f, 1f) else 0f
+                // A scrub in progress belongs to exactly one track. Changing tracks
+                // clears the pending drag so an old percentage cannot seek the next.
+                var dragFraction by remember(state.videoUrl) { mutableStateOf<Float?>(null) }
+                val fraction = dragFraction ?: PlayerProgressRules.fraction(
+                    state.positionMs, state.durationMs)
                 Slider(value = fraction, onValueChange = { dragFraction = it },
                     onValueChangeFinished = {
-                        dragFraction?.let { actions.seekTo((state.durationMs * it).toLong()) }
+                        dragFraction?.let {
+                            PlayerProgressRules.requestedPosition(state.durationMs, it)
+                                ?.let(actions::seekTo)
+                        }
                         dragFraction = null
                     },
-                    enabled = state.durationMs > 0)
+                    enabled = state.connected && state.durationMs > 0L)
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(timeLabel((state.durationMs * fraction).toLong()), style = MaterialTheme.typography.labelSmall,
+                    Text(timeLabel(PlayerProgressRules.requestedPosition(
+                        state.durationMs, fraction) ?: 0L), style = MaterialTheme.typography.labelSmall,
                         color = colors.onSurfaceVariant)
                     Text(timeLabel(state.durationMs), style = MaterialTheme.typography.labelSmall,
                         color = colors.onSurfaceVariant)
@@ -323,8 +385,9 @@ fun StudioNowPlayingOverlay(
                     CircularProgressIndicator(modifier = Modifier.size(25.dp),
                         color = colors.primary, strokeWidth = 2.dp)
                 }
-                state.error?.let { message ->
+                state.error?.takeIf { it.isNotBlank() }?.let { message ->
                     Text(message, style = MaterialTheme.typography.bodyMedium, color = colors.error)
+                    Button(onClick = actions::retry) { Text("Retry playback") }
                 }
                 Spacer(Modifier.height(32.dp))
             }
