@@ -19,10 +19,11 @@ function Read-Signer([string]$File, [string]$Apksigner) {
     if ($output -notmatch '(?m)^Signer #1 certificate SHA-256 digest:\s*([0-9A-Fa-f]{64})\s*$') {
         throw 'Cannot determine the APK signer certificate digest.'
     }
+    $digest = $Matches[1].ToUpperInvariant()
     if ($output -match '(?m)^Signer #2 certificate SHA-256 digest:') {
         throw 'Unexpected multiple signers; debug APK requires one signer.'
     }
-    return $Matches[1].ToUpperInvariant()
+    return $digest
 }
 
 try {
@@ -72,6 +73,6 @@ try {
     Write-Output "Signing continuity: $continuity"
     exit 0
 } catch {
-    Write-Error ('NightWave APK verification FAILED: ' + $_.Exception.Message)
+    Write-Host ('NightWave APK verification FAILED: ' + $_.Exception.Message) -ForegroundColor Red
     exit 1
 }
