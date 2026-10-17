@@ -11,6 +11,8 @@ import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
+import androidx.media3.common.PlaybackException
+import android.util.Log
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
@@ -30,6 +32,7 @@ class PlaybackService : MediaSessionService() {
     companion object {
         const val ACTION_REPLACE = "com.nightwave.player.REPLACE_QUEUE"
         const val ACTION_RESUME_SAVED = "com.nightwave.player.RESUME_SAVED"
+        const val ACTION_RETRY_CURRENT = "com.nightwave.player.RETRY_CURRENT"
         const val ACTION_PLAY_OFFLINE = "com.nightwave.player.PLAY_OFFLINE"
         const val EXTRA_OFFLINE_ID = "offline_id"
         /** Atomic queue assignment followed by a single play request for the v2 interface. */
@@ -56,6 +59,7 @@ class PlaybackService : MediaSessionService() {
     private val gateway = YouTubeGateway()
     private var generation = 0
     private var offlinePlaying = false
+    private var autoRetriedVideo: String? = null
     private val progressWriter = object : Runnable {
         override fun run() {
             val player = exoPlayer ?: return
@@ -85,6 +89,22 @@ class PlaybackService : MediaSessionService() {
 
         override fun onPlaybackStateChanged(state: Int) {
             if (state == Player.STATE_ENDED && !offlinePlaying) playNext(true)
+        }
+
+        override fun onPlayerError(error: PlaybackException) {
+            val video = exoPlayer?.currentMediaItem?.mediaId ?: return
+            if (offlinePlaying || queue.current?.url != video || autoRetriedVideo == video) return
+            val retriable = error.errorCode in setOf(
+                PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED,
+                PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT,
+                PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS
+            )
+            if (!retriable) return
+            autoRetriedVideo = video
+            val position = exoPlayer?.currentPosition?.coerceAtLeast(0L) ?: 0L
+            Log.w("NightWavePlayback", "Transient playback error; one stream refresh requested")
+            queue.current?.let { resolveAndPlay(it, autoPlay = true,
+                resumePositionMs = position, recoveryAttempt = true) }
         }
     }
 
@@ -199,6 +219,7 @@ class PlaybackService : MediaSessionService() {
                 }
             }
             ACTION_RESUME_SAVED -> resumeSavedQueue()
+            ACTION_RETRY_CURRENT -> retryCurrent()
             ACTION_NEXT -> playNext(false)
             ACTION_PREVIOUS -> playPrevious()
             ACTION_JUMP -> queue.jump(intent.getIntExtra(EXTRA_INDEX, -1))?.let { savedQueue.save(queue); resolveAndPlay(it) }
@@ -213,6 +234,21 @@ class PlaybackService : MediaSessionService() {
             }
         }
         return result
+    }
+
+    /** Explicit retry after a playback/extraction error, without reusing signed stream URLs. */
+    private fun retryCurrent() {
+        if (offlinePlaying) {
+            exoPlayer?.apply { prepare(); play() }
+            return
+        }
+        val entry = queue.current ?: return
+        val currentId = exoPlayer?.currentMediaItem?.mediaId
+        if (currentId != null && currentId != entry.url) return
+        val bookmark = savedQueue.bookmark(entry.url)?.positionMs ?: 0L
+        val position = exoPlayer?.currentPosition?.coerceAtLeast(0L)
+            ?.takeIf { it > 0 } ?: bookmark
+        resolveAndPlay(entry, autoPlay = true, resumePositionMs = position)
     }
 
     /** Called only by a user/transport Play action, never by onCreate. */
@@ -233,14 +269,34 @@ class PlaybackService : MediaSessionService() {
     }
 
     private fun playPrevious() {
-        if (offlinePlaying) return
+        val player = exoPlayer
+        // Music-player convention: Previous first restarts a song if >3 seconds in.
+        if (player != null && player.currentPosition > 3_000L &&
+            (offlinePlaying || player.currentMediaItem?.mediaId == queue.current?.url)) {
+            player.seekTo(0L)
+            if (!offlinePlaying) queue.current?.let {
+                savedQueue.saveBookmark(it.url, 0L,
+                    player.duration.takeIf { duration -> duration > 0L && duration != C.TIME_UNSET } ?: 0L)
+            }
+            return
+        }
+        if (offlinePlaying) { player?.seekTo(0L); return }
         queue.previous()?.let { savedQueue.save(queue); resolveAndPlay(it) }
     }
 
     private fun resolveAndPlay(
-        entry: QueueEntry, autoPlay: Boolean = true, resumePositionMs: Long = 0L
+        entry: QueueEntry, autoPlay: Boolean = true,
+        resumePositionMs: Long = 0L, recoveryAttempt: Boolean = false
     ) {
         offlinePlaying = false
+        if (!recoveryAttempt) autoRetriedVideo = null
+        // Drop expired previous stream metadata immediately; the UI can display
+        // the current queue entry during fresh extraction instead of a stale song.
+        exoPlayer?.apply {
+            stop()
+            clearMediaItems()
+            playWhenReady = false
+        }
         if (autoPlay && resumePositionMs == 0L) savedQueue.saveBookmark(entry.url, 0L, 0L)
         val request = ++generation
         if (resolver.isShutdown) return
@@ -266,8 +322,12 @@ class PlaybackService : MediaSessionService() {
                         if (autoPlay) play()
                     }
                 }
-                // Never loop infinitely through unavailable streams.
-                    outcome.onFailure { exoPlayer?.pause() }
+                // An unavailable public stream is not a reason to replay an old song.
+                    outcome.onFailure {
+                        Log.w("NightWavePlayback", "Stream extraction failed: " +
+                            it.javaClass.simpleName)
+                        exoPlayer?.pause()
+                    }
                 }
             }
         } catch (_: java.util.concurrent.RejectedExecutionException) {
