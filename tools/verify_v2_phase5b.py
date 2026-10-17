@@ -28,7 +28,7 @@ assert "nativeSearchJob?.cancel()" in studio
 assert "StudioTab.SEARCH -> StudioSearch(" in studio
 assert "items(state.videos, key = { it.url })" in studio
 assert "onClick = { onPlay(song, state.videos) }" in studio
-assert "Open YouTube search" in studio
+assert "Search on YouTube ↗" in studio
 assert "YouTubeSearchBrowser(this).show(query)" in studio
 assert "SearchMode.SONGS" in studio and "SearchMode.VIDEOS" in studio
 assert "playerActions.retry()" in studio
