@@ -1,5 +1,18 @@
 # NightWave
 
+## Phase 6J — Music identity and honest local discovery (draft)
+
+**Development branch:** `feature/nightwave-v2-phase6j-music-identity-discovery`, stacked on the user's checked 6I. [Complete source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase6j-music-identity-discovery.zip) · [Phase 6J QA and limitations](docs/NIGHTWAVE_V2_PHASE6J_QA.md)
+
+- **Cleaner readable track labels:** display-only removal of explicit trailing Official Video/Audio or Lyrics tags. `Artist - Song` is shortened only when the uploader name independently corroborates the artist, including known VEVO/Topic suffix patterns; mismatches preserve the full title. Keep Live, Remix, Acoustic and other meaningful versions. No album/title database is invented.
+- **Improved local search:** match original public video titles/uploaders and conservative display title/creator names, while preserving exact original URLs, queue/playlist entries and library data.
+- **Real artist/creator exploration:** the Search empty state shows up to eight creators calculated from distinct known saved/recent/playlist tracks. Tapping one only filters the **local** library; the existing explicit Find music on YouTube control is required to request public results.
+- **Honest offline wording:** saving public video references is not offline downloading. User-imported local audio remains the supported offline path.
+- **Scope/safety:** no new network providers, licensed artist discographies, album claims, user tracking, permissions or data migrations. Existing `com.nightwave.player` build35, private backup/Drive merge, real offline files, 6I compact UI and 6D–6H2 playback safeguards remain unchanged.
+- **Verification:** ten pure JVM test methods authored; seven equivalent Kotlin/JVM smoke assertions passed. A new source gate is staged in GitHub CI. **Full Gradle/JUnit Android compilation and phone UI/signer QA still require verification on this branch.**
+
+---
+
 ## Phase 6I — Compact, artwork-aware editorial UI (draft)
 
 **Source branch:** `feature/nightwave-v2-phase6i-compact-editorial-ui` stacked on 6H2. **This source has not yet passed a complete Android build or user-device visual QA.** Stable `main` and installed music are untouched.
