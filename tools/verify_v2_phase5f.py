@@ -67,7 +67,7 @@ assert 'class StudioPlaybackBridge(' in bridge
 assert 'ACTION_RESUME_OFFLINE' in service
 assert 'private fun resumeOfflineSession()' in service
 assert '"nightwave_offline_session_v1"' in offline
-assert 'YouTubeSearchBrowser(this).show(query)' in studio
+assert 'YouTubeSearchBrowser(this).show(clean)' in studio
 creation = service.split("override fun onCreate()", 1)[1].split("override fun onStartCommand", 1)[0]
 assert 'resolveAndPlay(' not in creation and 'playOfflineId(' not in creation
 

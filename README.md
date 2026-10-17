@@ -1,5 +1,19 @@
 # NightWave
 
+## Phase 5T — Official-first music discovery (draft)
+
+**Development source branch:** `feature/nightwave-v2-phase5t-reliable-discovery`. For now this source branch inherits the previous alpha5s/build35 identity pending a verified build and release-version alignment. Do not treat a ZIP or source gate as a confirmed APK.
+
+[Phase 5T source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase5t-reliable-discovery.zip) · [Search testing checklist and Phase 5U cloud-backup plan](docs/NIGHTWAVE_V2_PHASE5T_QA.md)
+
+- **Find music on YouTube** uses the existing official in-app YouTube search WebView as the primary keyword route. It no longer waits for the unreliable public extractor/community search services. The external-browser fallback remains.
+- **Quick in-app results** are optional. Native NewPipe/community results are still available without pretending they will always load; a small failure state no longer blocks official search.
+- **Saved music appears immediately:** liked songs, recent public tracks and saved playlists match locally as you type, even offline. Home shortcuts prefill the Search screen without unnecessary network calls. Valid YouTube links preserve direct route and malformed links are refused.
+- **No playback, music-file, user-library or signing changes** in this phase. GitHub/Windows Android compilation, WebView loading, stream playback and phone testing remain required before shipping.
+- **Next Phase 5U:** opt-in Google Drive app data backups, consented history export, daily schedule via WorkManager, verified backup snapshots and confirmed restore. This **is not yet implemented** and needs Google Cloud OAuth setup.
+
+---
+
 ## NightWave 2.0 Alpha 5S — Android build recovery
 
 **Version:** `2.0.0-alpha5s` · **Build 35** · Draft development branch: `feature/nightwave-v2-phase5s-build-recovery`.

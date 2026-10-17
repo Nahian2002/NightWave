@@ -1,12 +1,13 @@
 name: NightWave Android verification
 
-# Only the 5R review branch is checked automatically. Do not publish to main.
+# Only stacked development PR review branches are checked. Do not publish to main.
 # CI debug APKs use GitHub's temporary debug signing identity and MUST NOT be
 # installed over the user's existing music library without certificate checks.
 on:
   pull_request:
     branches:
       - feature/nightwave-v2-phase5r-accessibility-build-gates
+      - feature/nightwave-v2-phase5s-build-recovery
   workflow_dispatch:
 
 permissions:
@@ -33,11 +34,12 @@ jobs:
           gradle-version: '8.11.1'
       - name: Install Android SDK 35
         run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
-      - name: Source integrity and Phase 5R checks
+      - name: Source integrity, build recovery and official-first search checks
         run: |
           python3 tools/verify_source.py
           python3 tools/verify_v2_phase5r.py
           python3 tools/verify_v2_phase5s.py
+          python3 tools/verify_v2_phase5t.py
       - name: Compile debug app, JVM tests and Android instrumentation sources
         run: |
           gradle --no-daemon --stacktrace --console=plain :app:testDebugUnitTest :app:assembleDebug :app:compileDebugAndroidTestKotlin
@@ -51,7 +53,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: NightWave-5S-debug-UNVERIFIED-FOR-DEVICE
+          name: NightWave-5T-dev-debug-UNVERIFIED-FOR-DEVICE
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 5

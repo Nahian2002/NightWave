@@ -43,11 +43,14 @@ assert 'playlistNames.take(25).flatMap(getPlaylist)' in studio
 assert '(favorites + recent +' in studio
 assert 'onPlay(song, savedMatches)' in studio
 
-# Failure state is smaller, still actionable, and preserves same-query results.
-assert 'Text("Online search is unavailable"' in studio
-assert 'Text("Retry")' in studio
-assert 'Text("YouTube ↗")' in studio
-assert '(!responseMatchesQuery || state.error.isBlank()) && query.isNotBlank()' in studio
+# 5T promotes official discovery to the primary action while retaining the
+# earlier 5Q device-local matches and optional quick-result retry.
+assert 'Text("Find music on YouTube")' in studio
+assert 'Quick results aren\'t available right now' in studio
+assert 'Text("Retry quick results")' in studio
+assert 'Text("YouTube")' in studio
+assert 'private fun primarySearch(' in studio
+assert 'private fun openOfficialSearch(' in studio
 assert 'val responseMatchesQuery = state.query.isNotBlank()' in studio
 assert 'val searching = responseMatchesQuery && state.loading' in studio
 assert 'Native results are unavailable right now' not in studio
@@ -73,7 +76,7 @@ assert 'class CommunityVideoSearch' in fallback
 assert 'failsOverAfterMalformedJsonChallenge' in fallback_tests
 assert 'emptyPublicResultsTryNextEndpoint' in fallback_tests
 assert 'WebSearchRoute.searchUrl(query)' in browser
-assert 'Search on YouTube ↗' in studio
+assert 'YouTubeSearchBrowser(this).show(clean)' in studio
 
 assert saved_tests.count('@Test') == 6
 assert fallback_tests.count('@Test') == 4
