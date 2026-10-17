@@ -290,6 +290,18 @@ fun StudioNowPlayingOverlay(
                     ) { thumbnail ->
                         CoverArt(thumbnail, Modifier.fillMaxSize(), 26)
                     }
+                    if (state.buffering) {
+                        Box(
+                            Modifier.size(56.dp).clip(CircleShape)
+                                .background(colors.background.copy(alpha = .76f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(29.dp),
+                                color = colors.primary, strokeWidth = 2.dp
+                            )
+                        }
+                    }
                 }
                 if (canSwipeArtwork) {
                     Text("Swipe artwork to change tracks",
@@ -343,19 +355,19 @@ fun StudioNowPlayingOverlay(
                         Icon(Icons.Outlined.Shuffle, contentDescription = "Toggle shuffle",
                             tint = if (state.shuffle) colors.primary else colors.onSurfaceVariant)
                     }
-                    IconButton(onClick = actions::previous, modifier = Modifier.size(53.dp)) {
+                    IconButton(onClick = actions::previous, modifier = Modifier.size(48.dp)) {
                         Icon(Icons.Outlined.SkipPrevious, contentDescription = "Previous track",
                             modifier = Modifier.size(34.dp), tint = colors.onBackground)
                     }
                     Surface(onClick = actions::playPause, color = colors.primary,
-                        shape = CircleShape, modifier = Modifier.size(72.dp)) {
+                        shape = CircleShape, modifier = Modifier.size(64.dp)) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(if (state.playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
                                 contentDescription = if (state.playing) "Pause" else "Play",
-                                tint = colors.onPrimary, modifier = Modifier.size(36.dp))
+                                tint = colors.onPrimary, modifier = Modifier.size(33.dp))
                         }
                     }
-                    IconButton(onClick = actions::next, modifier = Modifier.size(53.dp)) {
+                    IconButton(onClick = actions::next, modifier = Modifier.size(48.dp)) {
                         Icon(Icons.Outlined.SkipNext, contentDescription = "Next track",
                             modifier = Modifier.size(34.dp), tint = colors.onBackground)
                     }
