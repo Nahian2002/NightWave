@@ -1,5 +1,24 @@
 # NightWave
 
+## NightWave Alpha4 Hotfix2 — Premium startup repair + offline audio
+
+**Development branch:** \`feature/nightwave-alpha4-ui-offline-repair\` · **Version:** 2.0.0-alpha4-hotfix2 / code 16.
+
+[Download the complete Hotfix2 source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-alpha4-ui-offline-repair.zip) · [Detailed QA and limitations](docs/NIGHTWAVE_ALPHA4_HOTFIX2_QA.md)
+
+Responds to phone screenshots/feedback:
+- The header now shows **NightWave** in two-tone typography, without the inert Night Mode badge. Smaller Home/Library cards and compact selected navigation tabs reduce clipping.
+- Classic Now Playing is collapsed to its core controls and progress, with a collapse control and swipe-down gesture on the artwork; tap the small Now Playing pill to restore it. Expanded player still contains secondary actions.
+- Fixes a Compose ARGB rendering error that could cause the premium preview to fail: \`Color(raw.toULong())\` incorrectly interpreted 32-bit ARGB values as packed Compose color values. It now uses \`Color(raw.toInt())\`. The actual cause of the reported crash still needs confirmation with an Android crash log.
+- Adds **Offline library** to Home and Library in the classic app and Library in the premium preview. Import personal/licensed MP3, M4A, AAC, FLAC, WAV, OGG, OPUS, MP4, WebM or 3GP files through the Android picker; NightWave copies these files to private storage and plays them through the Media3 music session without Wi-Fi. Import caps: 250 MiB per file, 3 GiB total, 400 tracks. Files are removed by Android if app data is cleared or NightWave is uninstalled.
+- **This is not YouTube download functionality.** NightWave still streams public video audio when online; it does not download videos, bypass restrictions, or save temporary signed audio streams.
+- The classic Home remains the launcher until the premium screen is physically tested. Existing likes, playlists, guest settings and Room mirrors are preserved.
+
+**Build/QA:** Source uploaded but APK compilation and real-phone playback are **NOT verified**. Download, extract to a new folder, run \`build-windows.cmd\`. Do not uninstall the current app or clear its data. If build fails, send \`dist/NightWave-build-errors.txt\`. If the premium preview still exits, use \`capture-nightwave-crash.cmd\` and share a redacted Android \`FATAL EXCEPTION\` stack.
+
+---
+
+
 ## Alpha 4 Hotfix 1 — startup recovery (Android crash triage)
 
 **This recovery release has NOT been compiled or run on a phone here.** It is based on Alpha 4 and retains all saved music and playback data.
