@@ -1,5 +1,20 @@
 # NightWave
 
+## NightWave 2.0 Alpha 3D — guarded single-writer storage
+
+**Branch:** \`feature/nightwave-v2-phase3d-single-writer\` · **Version:** 2.0.0-alpha3d (code 13) · **Draft, NOT Android verified**
+
+[Download the full Phase 3D GitHub source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase3d-single-writer.zip) · [Detailed Phase 3D QA and limitations](docs/NIGHTWAVE_V2_PHASE3D_QA.md)
+
+This phase consolidates all local favorites, listening-history and playlist mutations into one guarded, synchronous SharedPreferences writer. Each operation validates its source, persists a recovery snapshot and commits the logical library state together rather than publishing playlist names before songs. Manual backup imports share the same lock. The preview's Profile screen offers **UNDO MOST RECENT LIBRARY EDIT** with explicit confirmation and a fingerprint that refuses to recover over newer changes.
+
+**Room primary writing remains disabled** until migration and rollback are actually verified. The current Room copy and DataStore preferences are still secondary; the legacy player and Android media service are preserved. The source includes 10 new JVM mutation tests and seven Android device regression tests, but no Android build or hardware test has run here.
+
+Extract the source ZIP into a fresh folder and run \`build-windows.cmd\`. **Do not uninstall the working app or clear its data** if compilation fails. Room/device tests require a disposable test profile and a separate \`:app:connectedDebugAndroidTest\`; those tests clear test preferences and must NOT be run against personal playlists.
+
+---
+
+
 ## NightWave 2.0 — Phase 3C verified storage preview
 
 **Current development branch:** \`feature/nightwave-v2-phase3c-verified-read-routing\`  
