@@ -395,6 +395,9 @@ class PlaybackService : MediaSessionService() {
     }
 
     private fun playNext(automatic: Boolean) {
+        // Automatic track advancement isn't an Intent; it must also revoke
+        // any undo tied to the old playback position.
+        pendingQueueRemoval = null
         if (offlinePlaying) {
             advanceOffline(forward = true)
             return
@@ -424,7 +427,11 @@ class PlaybackService : MediaSessionService() {
             }
             return
         }
-        queue.previous()?.let { savedQueue.save(queue); resolveAndPlay(it) }
+        queue.previous()?.let {
+            pendingQueueRemoval = null
+            savedQueue.save(queue)
+            resolveAndPlay(it)
+        }
     }
 
     private fun resolveAndPlay(
