@@ -25,11 +25,11 @@ manifest = read("app/src/main/AndroidManifest.xml")
 builder = read("tools/build-windows.ps1")
 device = read("tools/check-device-update.ps1")
 
-assert 'versionCode = 33' in gradle
-assert 'versionName = "2.0.0-alpha5q"' in gradle
-assert "-VersionName '2.0.0-alpha5q' -VersionCode '33'" in builder
-assert "$versionName = '2.0.0-alpha5q'" in device
-assert '$versionCode = 33' in device
+assert 'versionCode = 34' in gradle
+assert 'versionName = "2.0.0-alpha5r"' in gradle
+assert "-VersionName '2.0.0-alpha5r' -VersionCode '34'" in builder
+assert "$versionName = '2.0.0-alpha5r'" in device
+assert '$versionCode = 34' in device
 
 # Saved results must be available without external network search.
 assert 'object SavedTrackSearch' in saved
