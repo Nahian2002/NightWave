@@ -27,6 +27,7 @@ import java.util.concurrent.Executors
 class PlaybackService : MediaSessionService() {
     companion object {
         const val ACTION_REPLACE = "com.nightwave.player.REPLACE_QUEUE"
+        const val ACTION_RESUME_SAVED = "com.nightwave.player.RESUME_SAVED"
         /** Atomic queue assignment followed by a single play request for the v2 interface. */
         const val ACTION_PLAY_QUEUE = "com.nightwave.player.PLAY_QUEUE"
         const val ACTION_ENQUEUE = "com.nightwave.player.ENQUEUE"
@@ -153,6 +154,14 @@ class PlaybackService : MediaSessionService() {
                     savedQueue.save(queue)
                 }
             }
+            ACTION_RESUME_SAVED -> {
+                val current = queue.current
+                if (exoPlayer?.currentMediaItem != null) exoPlayer?.play()
+                else current?.let {
+                    resolveAndPlay(it, autoPlay = true,
+                        resumePositionMs = savedQueue.bookmark(it.url)?.positionMs ?: 0L)
+                }
+            }
             ACTION_NEXT -> playNext(false)
             ACTION_PREVIOUS -> playPrevious()
             ACTION_JUMP -> queue.jump(intent.getIntExtra(EXTRA_INDEX, -1))?.let { savedQueue.save(queue); resolveAndPlay(it) }
@@ -180,7 +189,7 @@ class PlaybackService : MediaSessionService() {
     private fun resolveAndPlay(
         entry: QueueEntry, autoPlay: Boolean = true, resumePositionMs: Long = 0L
     ) {
-        if (autoPlay) savedQueue.saveBookmark(entry.url, 0L, 0L)
+        if (autoPlay && resumePositionMs == 0L) savedQueue.saveBookmark(entry.url, 0L, 0L)
         val request = ++generation
         resolver.execute {
             val outcome = runCatching { gateway.resolve(entry.url) }
