@@ -89,6 +89,17 @@ try {
     }
     Say 'No GitHub billing or payment method is required.'
     Say 'The first build downloads official build tools and may take time and several GB of disk space.'
+    $stage = 'Crash redaction self-test'
+    $crashScript = Join-Path $PSScriptRoot 'capture-nightwave-crash.ps1'
+    if (-not (Test-Path -LiteralPath $crashScript -PathType Leaf)) {
+        throw 'NightWave privacy-filtered crash script is missing.'
+    }
+    $crashTest = (& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $crashScript -SelfTest 2>&1 | Out-String)
+    if ($LASTEXITCODE -ne 0 -or
+        $crashTest -notmatch 'PASS: NightWave-only crash filtering') {
+        throw 'NightWave synthetic crash redaction self-test failed. No APK was published.'
+    }
+    Say 'Synthetic crash-report privacy test PASS; no device was accessed.'
     $stage = 'Java preparation'
     Resolve-Java
 
