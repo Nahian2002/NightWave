@@ -28,6 +28,22 @@ class QueueStateBookmarkInstrumentedTest {
             .edit().clear().commit()
     }
 
+    @Test fun malformedBookmarkTypesFailClosedWithoutDeletingPrefs() {
+        val prefs = app.getSharedPreferences("nightwave_queue_v1", Context.MODE_PRIVATE)
+        prefs.edit().putString("bookmark_url", first)
+            .putString("bookmark_position_ms", "corrupted-not-long")
+            .putLong("bookmark_duration_ms", 120_000L).commit()
+        assertNull(QueueStateStore(app).bookmark(first))
+        assertEquals("corrupted-not-long", prefs.getString("bookmark_position_ms", null))
+    }
+
+    @Test fun wrongTypedBookmarkUrlNeverCrashesScreenStartup() {
+        val prefs = app.getSharedPreferences("nightwave_queue_v1", Context.MODE_PRIVATE)
+        prefs.edit().putInt("bookmark_url", 18).commit()
+        assertNull(QueueStateStore(app).bookmark(first))
+        assertEquals(18, prefs.getInt("bookmark_url", 0))
+    }
+
     @Test fun savedQueueAndPlaybackBookmarkSurviveNewStoreInstance() {
         val queue = PlaybackQueue()
         queue.replace(
