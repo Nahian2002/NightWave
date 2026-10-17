@@ -7,6 +7,7 @@ import com.nightwave.player.net.VideoPreview
 import com.nightwave.player.v2.data.room.LegacyLibrarySnapshotParser
 import org.json.JSONArray
 import org.json.JSONObject
+import java.security.MessageDigest
 
 /**
  * One in-process mutation lane shared by the legacy player, Compose preview
@@ -20,7 +21,7 @@ object LegacyLibraryTransaction {
     private const val SOURCE = "nightwave_library_v1"
     private const val RECOVERY = "nightwave_v2_library_write_recovery"
     private const val LAST_BEFORE = "last_before"
-    private const val LAST_AFTER = "last_after_digest"
+    private const val LAST_AFTER = "last_after_fingerprint"
 
     fun <T> exclusive(action: () -> T): T = synchronized(lock) { action() }
 
@@ -57,6 +58,15 @@ object LegacyLibraryTransaction {
             for ((name, tracks) in collections.playlists) put("list_$name", jsonTracks(tracks))
         }
 
+    private fun fingerprint(values: Map<String, String>): String {
+        val canonical = values.toSortedMap().entries.joinToString("\u0000") { (key, value) ->
+            key.length.toString() + ":" + key + ":" + value.length + ":" + value
+        }
+        return MessageDigest.getInstance("SHA-256")
+            .digest(canonical.toByteArray(Charsets.UTF_8))
+            .joinToString("") { "%02x".format(it) }
+    }
+
     private fun encodeSnapshot(values: Map<String, String>): String =
         JSONObject().apply { values.forEach { (key, value) -> put(key, value) } }.toString()
 
@@ -82,7 +92,13 @@ object LegacyLibraryTransaction {
         if (!planned.accepted || !planned.changed) return@exclusive planned
 
         val newValues = desiredStrings(planned.updated)
-        val checkpoint = LegacyLibrarySnapshotParser.parse(newValues).digest
+        val afterValues = raw.toMutableMap()
+        for (name in before.names()) {
+            val key = "list_" + name
+            if (key !in newValues) afterValues.remove(key)
+        }
+        afterValues.putAll(newValues)
+        val checkpoint = fingerprint(afterValues)
         val backup = encodeSnapshot(raw)
         // Keep the last two snapshots for diagnosis. A successful commit is never
         // claimed unless the pre-write snapshot is durably committed.
@@ -129,7 +145,7 @@ object LegacyLibraryTransaction {
             existingStrings(prefs)
         } catch (_: Exception) { return@exclusive false }
         val digest = try {
-            LegacyLibrarySnapshotParser.parse(current).digest
+            fingerprint(current)
         } catch (_: Exception) { return@exclusive false }
         if (digest != expectedAfter) return@exclusive false
         val obj = try { JSONObject(saved) } catch (_: Exception) { return@exclusive false }
