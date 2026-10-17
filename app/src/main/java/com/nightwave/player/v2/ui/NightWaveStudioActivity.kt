@@ -1360,8 +1360,24 @@ private fun StudioHome(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
-            SectionHeading("Good to have you back",
-                profile.displayName.substringBefore(' ').take(20) + " · Your listening space")
+            Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                NightWaveMicroLabel("Your listening space")
+                val greeting = when (java.time.LocalTime.now().hour) {
+                    in 5..11 -> "Good morning"
+                    in 12..17 -> "Good afternoon"
+                    else -> "Good evening"
+                }
+                Text(greeting, style = MaterialTheme.typography.headlineLarge.copy(
+                    fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onBackground)
+                Text(profile.displayName.substringBefore(' ').take(20) +
+                    " · Your music, your pace",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+        item {
+            NightWaveLibraryNumbers(favorites.size, recent.size, onLibrary = openLibrary)
         }
         item {
             ListeningSpotlight(
@@ -1379,28 +1395,13 @@ private fun StudioHome(
                 item(key = "personal-mix-$row") {
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         pair.forEach { mix ->
-                            Card(
+                            NightWaveMixCard(
+                                mix = mix, selected = chosenMixKey == mix.key,
+                                modifier = Modifier.weight(1f),
                                 onClick = {
                                     chosenMixKey = if (chosenMixKey == mix.key) null else mix.key
-                                },
-                                modifier = Modifier.weight(1f).height(126.dp),
-                                shape = RoundedCornerShape(18.dp)
-                            ) {
-                                Column(Modifier.fillMaxSize().padding(12.dp),
-                                    verticalArrangement = Arrangement.SpaceBetween) {
-                                    Icon(Icons.Outlined.AutoAwesome, contentDescription = null,
-                                        modifier = Modifier.size(19.dp),
-                                        tint = MaterialTheme.colorScheme.primary)
-                                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                        Text(mix.title, style = MaterialTheme.typography.titleSmall,
-                                            maxLines = 2, overflow = TextOverflow.Ellipsis)
-                                        Text("${mix.tracks.size} saved tracks · " +
-                                            (if (chosenMixKey == mix.key) "Hide" else "View"),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    }
                                 }
-                            }
+                            )
                         }
                     }
                 }
@@ -1420,7 +1421,7 @@ private fun StudioHome(
                 }
             }
         }
-        item { SectionHeading("Find your frequency", "Six directions. The next track is yours to choose.") }
+        item { SectionHeading("Explore a new mood", "Six sounds to explore, chosen by you") }
         DiscoveryShortcuts.picks.chunked(2).forEachIndexed { row, shortcuts ->
             item(key = "discovery-$row") {
                 Row(horizontalArrangement = Arrangement.spacedBy(11.dp)) {
@@ -1433,7 +1434,7 @@ private fun StudioHome(
                 }
             }
         }
-        item { SectionHeading("Listen again", "From your recent plays") }
+        item { SectionHeading("Recently played", "Pick up another favorite") }
         if (recent.isEmpty()) item {
             EmptyMusicCard("Your soundtrack starts here",
                 "Songs you play will appear here, ready for another listen.",
@@ -1455,20 +1456,7 @@ private fun StudioHome(
 
 @Composable
 private fun MoodTile(title: String, subtitle: String, gradient: List<Color>, modifier: Modifier, onClick: () -> Unit) {
-    Card(onClick = onClick, modifier = modifier.height(108.dp),
-        shape = RoundedCornerShape(19.dp)) {
-        Column(Modifier.fillMaxSize().background(Brush.linearGradient(gradient)).padding(14.dp),
-            verticalArrangement = Arrangement.SpaceBetween) {
-            Icon(Icons.Outlined.AutoAwesome, contentDescription = null, tint = Color.White.copy(alpha = .82f),
-                modifier = Modifier.size(18.dp))
-            Column {
-                Text(title, style = MaterialTheme.typography.titleMedium, color = Color.White,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(subtitle, style = MaterialTheme.typography.labelSmall,
-                    color = Color.White.copy(alpha = .84f))
-            }
-        }
-    }
+    NightWaveMoodArt(title, subtitle, gradient, modifier, onClick)
 }
 
 @Composable
