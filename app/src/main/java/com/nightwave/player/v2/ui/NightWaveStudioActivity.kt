@@ -107,6 +107,8 @@ import com.nightwave.player.offline.OfflineSessionStore
 import com.nightwave.player.playback.PlaybackService
 import com.nightwave.player.library.LegacyLibraryTransaction
 import com.nightwave.player.core.VideoLink
+import com.nightwave.player.core.SearchInput
+import com.nightwave.player.core.SearchInputResolver
 import com.nightwave.player.net.VideoPreview
 import com.nightwave.player.net.YouTubeGateway
 import com.nightwave.player.net.VideoSearchResults
@@ -132,7 +134,8 @@ private data class StudioSearchSnapshot(
     val loading: Boolean = false,
     val videos: List<VideoPreview> = emptyList(),
     val provider: String = "",
-    val error: String = ""
+    val error: String = "",
+    val hint: String = ""
 )
 
 /**
@@ -325,7 +328,25 @@ class NightWaveStudioActivity : ComponentActivity() {
 
     private fun nativeSearch(query: String, mode: SearchMode) {
         val clean = query.trim().take(160)
-        if (clean.isBlank()) return
+        when (val input = SearchInputResolver.resolve(clean)) {
+            SearchInput.Blank -> return
+            is SearchInput.VideoUrl -> {
+                nativeSearchJob?.cancel()
+                nativeSearchGeneration++
+                nativeSearchState = StudioSearchSnapshot(query = clean, mode = mode,
+                    hint = "Opening this public video in NightWave…")
+                playback.play(VideoPreview("Loading track…", "YouTube", input.url, "", 0L))
+                return
+            }
+            SearchInput.BadLink -> {
+                nativeSearchJob?.cancel()
+                nativeSearchGeneration++
+                nativeSearchState = StudioSearchSnapshot(query = clean, mode = mode,
+                    hint = "This link is not a supported public YouTube video. Check the URL.")
+                return
+            }
+            is SearchInput.Keywords -> Unit
+        }
         val request = ++nativeSearchGeneration
         nativeSearchJob?.cancel()
         // A retry for the same query should not erase successful public
@@ -1127,6 +1148,11 @@ private fun StudioSearch(
                         }
                     }
                 }
+            }
+        } else if (state.hint.isNotBlank()) {
+            item {
+                Text(state.hint, style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         } else if (state.query.isNotBlank() && savedMatches.isEmpty()) {
             item {
