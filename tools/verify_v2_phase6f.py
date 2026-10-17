@@ -26,6 +26,12 @@ for file in kotlin_files:
     assert len(imports) == len(set(imports)), f"Duplicate Kotlin import: {file.relative_to(root)}"
     invalid = bad_imports.intersection(imports)
     assert not invalid, f"Invalid Compose import in {file.relative_to(root)}: {sorted(invalid)}"
+    # Phase 6H1 failed only at three .fillMaxSize() calls, all missing the
+    # same Kotlin extension import. Detect the class of failure before Gradle.
+    if re.search(r"\.\s*fillMaxSize\s*\(", text):
+        assert ("androidx.compose.foundation.layout.fillMaxSize" in imports or
+                "androidx.compose.foundation.layout.*" in imports), (
+                    f"Missing Compose fillMaxSize import: {file.relative_to(root)}")
 
 gradle = (app / "build.gradle.kts").read_text(encoding="utf-8")
 settings = (root / "build.gradle.kts").read_text(encoding="utf-8")
