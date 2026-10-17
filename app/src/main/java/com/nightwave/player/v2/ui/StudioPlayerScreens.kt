@@ -108,6 +108,7 @@ import com.nightwave.player.v2.lyrics.TimedLyrics
 import com.nightwave.player.playback.PlaybackQueue
 import com.nightwave.player.playback.SleepTimerPolicy
 import com.nightwave.player.playback.OfflinePlaybackSpeedPolicy
+import com.nightwave.player.playback.ListeningLevelPolicy
 
 private fun timeLabel(ms: Long): String {
     val secs = (ms.coerceAtLeast(0L) / 1000L)
@@ -277,6 +278,8 @@ fun StudioNowPlayingOverlay(
     onSleepTimer: (Int?) -> Unit,
     offlineSpeedPercent: Int,
     onOfflineSpeed: (Int) -> Unit,
+    listeningLevelPercent: Int,
+    onListeningLevel: (Int) -> Unit,
     onDismiss: () -> Unit,
     lyrics: TimedLyrics? = null,
     onImportLyrics: () -> Unit = {},
@@ -298,6 +301,7 @@ fun StudioNowPlayingOverlay(
             var lyricsOpen by remember(state.videoUrl) { mutableStateOf(false) }
             var sleepOptionsOpen by remember { mutableStateOf(false) }
             var speedOptionsOpen by remember { mutableStateOf(false) }
+            var listeningOptionsOpen by remember { mutableStateOf(false) }
             Column(
                 Modifier.fillMaxSize().verticalScroll(rememberScrollState())
                     .padding(horizontal = 24.dp),
@@ -493,6 +497,31 @@ fun StudioNowPlayingOverlay(
                         horizontalArrangement = Arrangement.SpaceBetween) {
                         Text("Up next · " + state.queue.size + " tracks", style = MaterialTheme.typography.titleMedium)
                         Icon(Icons.Outlined.QueueMusic, contentDescription = "Open queue", tint = colors.primary)
+                    }
+                }
+                Spacer(Modifier.height(11.dp))
+                Box(Modifier.fillMaxWidth()) {
+                    OutlinedButton(
+                        onClick = { listeningOptionsOpen = true },
+                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text("Listening level · " +
+                            ListeningLevelPolicy.label(listeningLevelPercent))
+                    }
+                    DropdownMenu(
+                        expanded = listeningOptionsOpen,
+                        onDismissRequest = { listeningOptionsOpen = false }
+                    ) {
+                        ListeningLevelPolicy.presetsPercent.forEach { percent ->
+                            DropdownMenuItem(
+                                text = { Text(ListeningLevelPolicy.label(percent)) },
+                                onClick = {
+                                    listeningOptionsOpen = false
+                                    onListeningLevel(percent)
+                                }
+                            )
+                        }
                     }
                 }
                 Spacer(Modifier.height(11.dp))

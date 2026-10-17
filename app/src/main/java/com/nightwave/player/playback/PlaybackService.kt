@@ -62,6 +62,8 @@ class PlaybackService : MediaSessionService() {
         const val ACTION_SLEEP_TIMER_SET = "com.nightwave.player.SLEEP_TIMER_SET"
         const val ACTION_SLEEP_TIMER_CANCEL = "com.nightwave.player.SLEEP_TIMER_CANCEL"
         const val ACTION_OFFLINE_SPEED_SET = "com.nightwave.player.OFFLINE_SPEED_SET"
+        const val ACTION_LISTENING_LEVEL_SET = "com.nightwave.player.LISTENING_LEVEL_SET"
+        const val EXTRA_LISTENING_LEVEL_PERCENT = "listening_level_percent"
         const val EXTRA_OFFLINE_SPEED_PERCENT = "offline_speed_percent"
         const val EXTRA_SLEEP_MINUTES = "sleep_minutes"
         const val EXTRA_URLS = "urls"
@@ -78,6 +80,7 @@ class PlaybackService : MediaSessionService() {
     private val main = Handler(Looper.getMainLooper())
     private lateinit var sleepStatus: SleepTimerStatusStore
     private lateinit var offlineSpeedStore: OfflinePlaybackSpeedStore
+    private lateinit var listeningLevelStore: ListeningLevelStore
     private var sleepTimerGeneration = 0
     private var sleepDeadlineElapsedMs = 0L
     private var sleepTimerRunnable: Runnable? = null
@@ -315,6 +318,7 @@ class PlaybackService : MediaSessionService() {
         savedQueue = QueueStateStore(this)
         sleepStatus = SleepTimerStatusStore(this)
         offlineSpeedStore = OfflinePlaybackSpeedStore(this)
+        listeningLevelStore = ListeningLevelStore(this)
         // A process/service restart never silently resurrects an old timer.
         // Playback itself also requires an explicit user resume after restart.
         clearSleepTimer()
@@ -332,6 +336,8 @@ class PlaybackService : MediaSessionService() {
         val player = ExoPlayer.Builder(this)
             .setMediaSourceFactory(DefaultMediaSourceFactory(DefaultDataSource.Factory(this, networkSource)))
             .build().apply {
+                // One service-owned output trim. Unity (100%) is the default.
+                volume = ListeningLevelPolicy.gain(listeningLevelStore.read())
                 setAudioAttributes(
                     AudioAttributes.Builder()
                         .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
@@ -484,6 +490,15 @@ class PlaybackService : MediaSessionService() {
             ACTION_RETRY_CURRENT -> retryCurrent()
             ACTION_SLEEP_TIMER_SET -> setSleepTimer(intent.getIntExtra(EXTRA_SLEEP_MINUTES, 0))
             ACTION_SLEEP_TIMER_CANCEL -> clearSleepTimer()
+            ACTION_LISTENING_LEVEL_SET -> {
+                val percent = intent.getIntExtra(EXTRA_LISTENING_LEVEL_PERCENT, -1)
+                if (ListeningLevelPolicy.accepts(percent) &&
+                    listeningLevelStore.save(percent)
+                ) {
+                    // No amplification above unity and no Android system-volume change.
+                    exoPlayer?.volume = ListeningLevelPolicy.gain(percent)
+                }
+            }
             ACTION_OFFLINE_SPEED_SET -> {
                 val percent = intent.getIntExtra(EXTRA_OFFLINE_SPEED_PERCENT, -1)
                 if (OfflinePlaybackSpeedPolicy.accepts(percent) &&
