@@ -81,6 +81,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.nightwave.player.library.MusicLibrary
+import com.nightwave.player.library.LegacyLibraryTransaction
 import com.nightwave.player.net.VideoPreview
 import com.nightwave.player.ui.MainActivity
 import com.nightwave.player.ui.YouTubeSearchBrowser
@@ -199,6 +200,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                     onUseLegacyReads = { disableRoomPreview() },
                     onExportGuest = { exportFile.launch("nightwave-guest-backup.json") },
                     onImportGuest = { importFile.launch(arrayOf("application/json", "application/octet-stream")) },
+                    onRecoverLastChange = { confirmLastWriteRecovery() },
                     onSaveProfile = { updated ->
                         if (profiles.save(updated)) {
                             profile = profiles.load()
@@ -328,6 +330,28 @@ class NightWaveStudioActivity : ComponentActivity() {
             }.setNegativeButton("Close", null).show()
     }
 
+    private fun confirmLastWriteRecovery() {
+        AlertDialog.Builder(this)
+            .setTitle("Undo the last library edit?")
+            .setMessage(
+                "This restores the state immediately before the most recent saved library change. " +
+                "It might be a recent listening-history update, favorite, or playlist edit. " +
+                "It will only run if none of the saved library keys have changed since that write. " +
+                "For long-term recovery, export a backup first."
+            )
+            .setNegativeButton("Cancel", null)
+            .setPositiveButton("Undo last edit") { _, _ ->
+                val restored = LegacyLibraryTransaction.recoverLastWriteIfUnchanged(this)
+                if (restored) {
+                    disableRoomPreview()
+                    refresh()
+                    showMessage("Last library edit undone.")
+                } else {
+                    showMessage("Recovery not available or library has changed. Nothing replaced.")
+                }
+            }.show()
+    }
+
     private fun refresh() {
         // A legacy edit invalidates any previously displayed Room snapshot.
         roomPreviewActive = false
@@ -433,6 +457,7 @@ private fun StudioRoot(
     onSaveProfile: (ProfileSettings) -> Unit,
     onExportGuest: () -> Unit,
     onImportGuest: () -> Unit,
+    onRecoverLastChange: () -> Unit,
     storageStatus: String,
     onCheckStorage: () -> Unit,
     roomReadStatus: String,
@@ -520,6 +545,7 @@ private fun StudioRoot(
             StudioTab.PROFILE -> StudioProfile(
                 modifier = Modifier.padding(safe), profile = profile,
                 save = onSaveProfile, onExport = onExportGuest, onImport = onImportGuest,
+                onRecoverLastChange = onRecoverLastChange,
                 storageStatus = storageStatus, onCheckStorage = onCheckStorage,
                 roomReadStatus = roomReadStatus,
                 roomPreviewActive = roomPreviewActive,
@@ -738,6 +764,7 @@ private fun StudioLibrary(
 @Composable
 private fun StudioProfile(modifier: Modifier, profile: ProfileSettings, save: (ProfileSettings) -> Unit,
     onExport: () -> Unit, onImport: () -> Unit,
+    onRecoverLastChange: () -> Unit,
     storageStatus: String, onCheckStorage: () -> Unit,
     roomReadStatus: String, roomPreviewActive: Boolean,
     onEnableRoomPreview: () -> Unit, onUseLegacyReads: () -> Unit) {
@@ -840,6 +867,12 @@ private fun StudioProfile(modifier: Modifier, profile: ProfileSettings, save: (P
             }
         }
         item { SectionHeading("Guest backup and restore", "Keep a copy before uninstalling NightWave") }
+        item {
+            OutlinedButton(onClick = onRecoverLastChange,
+                modifier = Modifier.fillMaxWidth().height(50.dp)) {
+                Text("UNDO MOST RECENT LIBRARY EDIT")
+            }
+        }
         item {
             OutlinedButton(onClick = onExport, modifier = Modifier.fillMaxWidth().height(52.dp)) {
                 Text("EXPORT LIBRARY BACKUP")
