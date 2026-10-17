@@ -110,8 +110,14 @@ class PlaybackService : MediaSessionService() {
             autoRetriedVideo = video
             val position = exoPlayer?.currentPosition?.coerceAtLeast(0L) ?: 0L
             Log.w("NightWavePlayback", "Transient playback error; one stream refresh requested")
-            queue.current?.let { resolveAndPlay(it, autoPlay = true,
-                resumePositionMs = position, recoveryAttempt = true) }
+            // Avoid mutating ExoPlayer inside its error callback.
+            main.post {
+                if (autoRetriedVideo == video && queue.current?.url == video &&
+                    exoPlayer != null) {
+                    queue.current?.let { resolveAndPlay(it, autoPlay = true,
+                        resumePositionMs = position, recoveryAttempt = true) }
+                }
+            }
         }
     }
 
