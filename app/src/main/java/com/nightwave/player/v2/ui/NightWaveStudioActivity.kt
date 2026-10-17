@@ -1478,6 +1478,8 @@ private fun StudioRoot(
                         onMemoryEnabledChange = onMemoryEnabledChange,
                         onMemoryErase = onMemoryErase,
                         onMemoryRefresh = onMemoryRefresh,
+                        playbackState = playerState,
+                        onRecoverPlayback = { playerActions.retry() },
                         onShareDiagnostics = onShareDiagnostics,
                         onOpenClassic = onOpenClassic
                     )
@@ -2074,6 +2076,8 @@ private fun StudioProfile(
     onMemoryEnabledChange: (Boolean) -> Unit,
     onMemoryErase: () -> Unit,
     onMemoryRefresh: () -> Unit,
+    playbackState: StudioPlayerState,
+    onRecoverPlayback: () -> Unit,
     storageStatus: String, onCheckStorage: () -> Unit,
     roomReadStatus: String, roomPreviewActive: Boolean,
     onEnableRoomPreview: () -> Unit, onUseLegacyReads: () -> Unit,
@@ -2357,6 +2361,7 @@ private fun StudioProfile(
 
         item {
             StudioProfileGroup("App health") {
+                PlaybackHealthPanel(playbackState, onRecoverPlayback)
                 StudioProfileRow("Crash diagnostics", "Preview before sharing any report",
                     Icons.Outlined.Settings, onShareDiagnostics)
             }

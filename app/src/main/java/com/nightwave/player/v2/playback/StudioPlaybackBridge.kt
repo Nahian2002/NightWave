@@ -31,6 +31,8 @@ data class StudioPlayerState(
     val thumbnail: String = "",
     val playing: Boolean = false,
     val buffering: Boolean = false,
+    /** Extractor is looking up a public watch URL, before Media3 has a stream. */
+    val resolving: Boolean = false,
     val positionMs: Long = 0L,
     val durationMs: Long = 0L,
     val shuffle: Boolean = false,
@@ -74,6 +76,14 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
     private var released = false
     private var ticking = false
     private var ticksSinceReconcile = 0
+    private var foregroundReconnectAvailable = true
+    private val oneShotReconnect = Runnable {
+        if (!released && ticking && foregroundReconnectAvailable &&
+            controller == null && future == null) {
+            foregroundReconnectAvailable = false
+            connect() // one attempt while visible; never auto-play an old session
+        }
+    }
     private var cachedOfflineIds: List<String> = emptyList()
     private var cachedOfflineQueue: List<VideoPreview> = emptyList()
     /** Media3 notifies us when Android kills/restarts the session process. */
@@ -97,8 +107,15 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
             }
             state = state.copy(
                 connected = false, playing = false, buffering = false,
+                resolving = false,
                 error = "Music service disconnected. Tap Reconnect."
             )
+            // Only one bounded, visible-screen recovery; never a background
+            // loop and never touch the queue/media or restart playback.
+            if (ticking && foregroundReconnectAvailable) {
+                main.removeCallbacks(oneShotReconnect)
+                main.postDelayed(oneShotReconnect, 1_200L)
+            }
         }
     }
 
@@ -132,6 +149,7 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
     @MainThread
     fun connect() {
         if (released || future != null || controller != null) return
+        main.removeCallbacks(oneShotReconnect)
         try {
             val token = SessionToken(context, ComponentName(context, PlaybackService::class.java))
             val pending = MediaController.Builder(context, token)
@@ -145,6 +163,7 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
                 try {
                     val resolved = pending.get()
                     controller = resolved
+                    state = state.copy(error = null)
                     resolved.addListener(listener)
                     refreshQueue()
                     updateFromPlayer(resolved)
@@ -173,6 +192,7 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
     @MainThread
     fun resumeUiUpdates() {
         if (released) return
+        foregroundReconnectAvailable = true
         ticksSinceReconcile = PlayerSnapshotPolicy.RECONCILE_TICKS
         // Imported files may have been deleted or re-imported while the Offline
         // Library Activity was on top. Refresh the cache on return, not on each tick.
@@ -189,6 +209,7 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
     fun pauseUiUpdates() {
         ticking = false
         main.removeCallbacks(ticker)
+        main.removeCallbacks(oneShotReconnect)
     }
 
     @MainThread
@@ -242,10 +263,12 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
         val playing = player.isPlaying
         val buffering = player.playbackState == Player.STATE_BUFFERING
         if (state.positionMs != position || state.durationMs != duration ||
-            state.playing != playing || state.buffering != buffering
+            state.playing != playing || state.buffering != buffering ||
+            state.resolving
         ) {
             state = state.copy(positionMs = position, durationMs = duration,
-                playing = playing, buffering = buffering, connected = true)
+                playing = playing, buffering = buffering, resolving = false,
+                connected = true)
         }
     }
 
@@ -280,6 +303,7 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
                     ?: savedTrack?.artwork.orEmpty(),
             playing = player.isPlaying,
             buffering = player.playbackState == Player.STATE_BUFFERING || resolving,
+            resolving = resolving,
             positionMs = if (media != null) player.currentPosition.coerceAtLeast(0L)
                 else savedBookmark?.positionMs ?: 0L,
             durationMs = if (duration > 0L) duration
@@ -356,7 +380,7 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
         future?.let { pending -> runCatching { MediaController.releaseFuture(pending) } }
         future = null
         state = state.copy(connected = false, playing = false, buffering = false,
-            error = "Playback connection was interrupted. Tap Reconnect.")
+            resolving = false, error = "Playback connection was interrupted. Tap Reconnect.")
     }
 
     /**

@@ -98,6 +98,8 @@ import coil.compose.AsyncImage
 import com.nightwave.player.v2.model.NightWaveTheme
 import com.nightwave.player.v2.playback.StudioPlayerActions
 import com.nightwave.player.v2.playback.StudioPlayerState
+import com.nightwave.player.v2.playback.PlaybackHealthPolicy
+import com.nightwave.player.v2.playback.PlaybackPhase
 import com.nightwave.player.net.VideoPreview
 import com.nightwave.player.v2.lyrics.TimedLyrics
 import com.nightwave.player.playback.PlaybackQueue
@@ -120,6 +122,8 @@ fun StudioMiniPlayer(
 ) {
     if (!state.hasTrack) return
     val colors = MaterialTheme.colorScheme
+    val health = PlaybackHealthPolicy.classify(state.hasTrack, state.connected,
+        state.offline, state.playing, state.buffering, state.resolving, state.error)
     var travel by remember(state.videoUrl) { mutableStateOf(0f) }
     Column(
         modifier = modifier.fillMaxWidth().padding(horizontal = 11.dp, vertical = 3.dp)
@@ -186,8 +190,11 @@ fun StudioMiniPlayer(
                             color = colors.onSurface, maxLines = 1,
                             overflow = TextOverflow.Ellipsis)
                         Text(
-                            if (state.buffering) "Connecting…" else
-                                state.artist.ifBlank { "NightWave" },
+                            if (health.phase == PlaybackPhase.LOOKING_UP ||
+                                health.phase == PlaybackPhase.BUFFERING ||
+                                health.phase == PlaybackPhase.DISCONNECTED ||
+                                health.phase == PlaybackPhase.ERROR) health.title
+                            else state.artist.ifBlank { "NightWave" },
                             style = MaterialTheme.typography.bodyMedium,
                             color = colors.onSurfaceVariant, maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -534,8 +541,16 @@ fun StudioNowPlayingOverlay(
                 }
                 Spacer(Modifier.height(26.dp))
                 if (state.buffering) {
-                    CircularProgressIndicator(modifier = Modifier.size(25.dp),
-                        color = colors.primary, strokeWidth = 2.dp)
+                    val health = PlaybackHealthPolicy.classify(
+                        state.hasTrack, state.connected, state.offline,
+                        state.playing, state.buffering, state.resolving, state.error)
+                    Row(verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        CircularProgressIndicator(modifier = Modifier.size(25.dp),
+                            color = colors.primary, strokeWidth = 2.dp)
+                        Text(health.title, style = MaterialTheme.typography.bodyMedium,
+                            color = colors.onSurfaceVariant)
+                    }
                 }
                 state.error?.takeIf { it.isNotBlank() }?.let { message ->
                     Text(message, style = MaterialTheme.typography.bodyMedium, color = colors.error)

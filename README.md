@@ -1,5 +1,19 @@
 # NightWave
 
+## Phase 6E — Playback Health & Controller Continuity (draft)
+
+**Development branch:** `feature/nightwave-v2-phase6e-playback-health-continuity`, built on 6D. **Source only — Android compilation, tests, screenshots and phone verification remain deferred.** The current installed library and stable `main` remain unchanged.
+
+[Download Phase 6E source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase6e-playback-health-continuity.zip) · [Full Phase 6E acceptance checklist](docs/NIGHTWAVE_V2_PHASE6E_QA.md)
+
+- **Clear, truthful player status:** a shared pure policy separates **Finding audio** during the public lookup from **Buffering audio** inside Media3, with consistent Paused, Playing, Disconnected and Retry-needed states. The Now Playing panel and mini-player both use this language.
+- **Bounded controller recovery:** a disconnected foreground Activity gets at most **one delayed rebind attempt**. It does not autoplay, seek or replace the queue. No background reconnection loop; manual Reconnect remains available on failure.
+- **You > App health:** new compact **Playback Health** panel reports only current player phase, source category and queue size; lets users explicitly Retry/Reconnect. It does **not** expose song URLs, offline file paths, tokens, account identity or personal diagnostics.
+- **No destructive changes:** existing Media3 owner, 6D extractor/timeouts, queue/resume, mini-player X/swipe, private lyrics, opt-in listening memory, trends, offline files, cloud backup/merge, package identity and signing settings are untouched.
+- **Deferred QA:** eight pure policy JUnit cases authored and source guard `tools/verify_v2_phase6e.py` staged under manual-only CI. This is **not a verified, compiled Android APK**.
+
+---
+
 ## Phase 6D — Playback Intelligence & Reliability (draft)
 
 **Branch:** `feature/nightwave-v2-phase6d-playback-resolve-recovery`, stacked on 6C2. **Source delivery only; no verified Android APK or real-device playback timing.** Stable `main` and the existing installed music library are unchanged.
