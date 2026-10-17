@@ -344,6 +344,8 @@ class NightWaveStudioActivity : ComponentActivity() {
                             libraryReport.favorites + " likes · " +
                             libraryReport.playlists + " playlists · " +
                             libraryReport.songs + " unique songs"
+                    } catch (error: kotlinx.coroutines.CancellationException) {
+                        throw error
                     } catch (error: Exception) {
                         shadowStatus = "Storage preview needs attention: " +
                             (error.message ?: "Could not migrate legacy data").take(150) +
