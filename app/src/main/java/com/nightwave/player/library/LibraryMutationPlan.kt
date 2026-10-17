@@ -34,9 +34,15 @@ data class LibraryChangeResult(
 object LibraryMutationPlan {
     private fun video(raw: VideoPreview): VideoPreview? {
         val url = VideoLink.normalize(raw.url) ?: return null
-        if (raw.title.length > 250 || raw.author.length > 150 ||
-            raw.thumbnail.length > 2000 || raw.durationSeconds !in 0L..86400L) return null
-        return raw.copy(url = url)
+        // Match the legacy metadata limits instead of rejecting an otherwise
+        // playable track because YouTube returned a long title or unknown length.
+        return raw.copy(
+            url = url,
+            title = raw.title.take(250),
+            author = raw.author.take(150),
+            thumbnail = raw.thumbnail.take(2000),
+            durationSeconds = raw.durationSeconds.coerceIn(0L, 86400L)
+        )
     }
 
     fun apply(old: LibraryCollections, operation: LibraryChange): LibraryChangeResult {
