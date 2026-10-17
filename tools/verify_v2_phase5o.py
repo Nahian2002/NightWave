@@ -19,11 +19,11 @@ device = read("tools/check-device-update.ps1")
 tests = read("app/src/androidTest/java/com/nightwave/player/v2/ui/NightWaveSwipeTabsInstrumentedTest.kt")
 manifest = read("app/src/main/AndroidManifest.xml")
 
-assert 'versionCode = 34' in gradle
-assert 'versionName = "2.0.0-alpha5r"' in gradle
-assert "-VersionName '2.0.0-alpha5r' -VersionCode '34'" in builder
-assert "$versionName = '2.0.0-alpha5r'" in device
-assert '$versionCode = 34' in device
+assert 'versionCode = 35' in gradle
+assert 'versionName = "2.0.0-alpha5s"' in gradle
+assert "-VersionName '2.0.0-alpha5s' -VersionCode '35'" in builder
+assert "$versionName = '2.0.0-alpha5s'" in device
+assert '$versionCode = 35' in device
 assert '$reportedVersion -ne $versionName' in device
 
 # One stable page position for click/swipe/back/settings and restoration.
