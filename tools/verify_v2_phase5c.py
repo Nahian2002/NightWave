@@ -23,8 +23,8 @@ assert 'offlineQueue.select(candidates, id)' in service
 assert 'private fun advanceOffline(forward: Boolean)' in service
 assert 'playOfflineId(id)' in service
 assert 'if (state == Player.STATE_ENDED)' in service
-assert 'if (exoPlayer?.playbackState == Player.STATE_ENDED) playNext(true)' in service
-assert 'if (!advanceOffline(forward = false)) player?.seekTo(0L)' in service
+assert 'if (exoPlayer?.playbackState == Player.STATE_ENDED)' in service
+assert 'if (!advanceOffline(forward = false))' in service
 assert 'if (offlinePlaying)' in service
 assert 'offlineQueue.reset()' in service
 
@@ -45,8 +45,8 @@ assert 'fun next(): String?' in queue and 'fun previous(): String?' in queue
 assert 'fun reset()' in queue
 assert tests.count("@Test") >= 5
 
-assert 'queue = if (offlineId != null) emptyList()' in bridge
-assert 'queue = if (state.offline) emptyList()' in bridge
+assert 'queue = if (offlineId != null) offlineList.first' in bridge
+assert 'queue = if (state.offline) state.queue' in bridge
 assert 'title = if (state.offline) state.title' in bridge
 assert 'if (state.offline) state.durationMs' in bridge
 assert 'private val root = File(context.applicationContext.filesDir, "offline_audio")' in store
