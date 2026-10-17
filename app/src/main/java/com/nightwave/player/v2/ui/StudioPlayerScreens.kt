@@ -107,6 +107,7 @@ import com.nightwave.player.net.MusicIdentity
 import com.nightwave.player.v2.lyrics.TimedLyrics
 import com.nightwave.player.playback.PlaybackQueue
 import com.nightwave.player.playback.SleepTimerPolicy
+import com.nightwave.player.playback.OfflinePlaybackSpeedPolicy
 
 private fun timeLabel(ms: Long): String {
     val secs = (ms.coerceAtLeast(0L) / 1000L)
@@ -274,6 +275,8 @@ fun StudioNowPlayingOverlay(
     onSaveToPlaylist: () -> Unit,
     sleepRemainingMs: Long,
     onSleepTimer: (Int?) -> Unit,
+    offlineSpeedPercent: Int,
+    onOfflineSpeed: (Int) -> Unit,
     onDismiss: () -> Unit,
     lyrics: TimedLyrics? = null,
     onImportLyrics: () -> Unit = {},
@@ -294,6 +297,7 @@ fun StudioNowPlayingOverlay(
             var horizontalTravel by remember(state.videoUrl) { mutableStateOf(0f) }
             var lyricsOpen by remember(state.videoUrl) { mutableStateOf(false) }
             var sleepOptionsOpen by remember { mutableStateOf(false) }
+            var speedOptionsOpen by remember { mutableStateOf(false) }
             Column(
                 Modifier.fillMaxSize().verticalScroll(rememberScrollState())
                     .padding(horizontal = 24.dp),
@@ -521,6 +525,33 @@ fun StudioNowPlayingOverlay(
                                     onSleepTimer(null)
                                 }
                             )
+                        }
+                    }
+                }
+                if (state.offline) {
+                    Spacer(Modifier.height(11.dp))
+                    Box(Modifier.fillMaxWidth()) {
+                        OutlinedButton(
+                            onClick = { speedOptionsOpen = true },
+                            modifier = Modifier.fillMaxWidth().height(48.dp),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Text("Offline playback speed · " +
+                                OfflinePlaybackSpeedPolicy.label(offlineSpeedPercent))
+                        }
+                        DropdownMenu(
+                            expanded = speedOptionsOpen,
+                            onDismissRequest = { speedOptionsOpen = false }
+                        ) {
+                            OfflinePlaybackSpeedPolicy.presetsPercent.forEach { percent ->
+                                DropdownMenuItem(
+                                    text = { Text(OfflinePlaybackSpeedPolicy.label(percent)) },
+                                    onClick = {
+                                        speedOptionsOpen = false
+                                        onOfflineSpeed(percent)
+                                    }
+                                )
+                            }
                         }
                     }
                 }
