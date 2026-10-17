@@ -1673,11 +1673,17 @@ private fun StudioLibrary(
     val tracks = if (selectedPlaylist == null || selectedPlaylist == LIKED_COLLECTION)
         favorites else getPlaylist(selectedPlaylist)
     var localFilter by rememberSaveable(selectedPlaylist) { mutableStateOf("") }
+    var sortMode by rememberSaveable(selectedPlaylist) { mutableStateOf("saved") }
     val matched = if (selectedPlaylist == null || localFilter.isBlank()) tracks else tracks.filter {
         it.title.contains(localFilter.trim(), ignoreCase = true) ||
             it.author.contains(localFilter.trim(), ignoreCase = true)
     }
-    val visibleTracks = if (selectedPlaylist == null) matched.take(5) else matched
+    val orderedTracks = when (sortMode) {
+        "title" -> matched.sortedWith(compareBy({ it.title.lowercase() }, { it.url }))
+        "artist" -> matched.sortedWith(compareBy({ it.author.lowercase() }, { it.title.lowercase() }))
+        else -> matched
+    }
+    val visibleTracks = if (selectedPlaylist == null) orderedTracks.take(5) else orderedTracks
     LazyColumn(modifier.fillMaxWidth().widthIn(max = 740.dp).fillMaxHeight(),
         contentPadding = PaddingValues(19.dp),
         verticalArrangement = Arrangement.spacedBy(13.dp)) {
@@ -1687,13 +1693,46 @@ private fun StudioLibrary(
                     Icon(Icons.Outlined.ArrowBack, contentDescription = "Back to Library")
                 }
                 Column {
+                    NightWaveMicroLabel(if (selectedPlaylist == null) "Your collection" else "Playlist view")
                     SectionHeading(if (selectedPlaylist == LIKED_COLLECTION) "Liked Songs" else selectedPlaylist ?: "Your library",
-                        if (selectedPlaylist == null) "Your music, all in one place"
+                        if (selectedPlaylist == null) "Saved music across your collections"
                         else tracks.size.toString() + " saved tracks")
                 }
             }
         }
         if (selectedPlaylist == null) {
+            item {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.surface,
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Column(Modifier.padding(14.dp),
+                            verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                            Text(favorites.size.toString(),
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold)
+                            Text("Liked tracks", style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                    Surface(
+                        color = MaterialTheme.colorScheme.surface,
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Column(Modifier.padding(14.dp),
+                            verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                            Text(names.size.toString(),
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold)
+                            Text("Playlists", style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
+            }
             if (offlineResumeTitle != null) {
                 item {
                     Card(onClick = onResumeOffline, modifier = Modifier.fillMaxWidth(),
@@ -1748,8 +1787,23 @@ private fun StudioLibrary(
                     shape = RoundedCornerShape(15.dp),
                     singleLine = true,
                     placeholder = { Text("Filter this collection") },
-                    leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) }
+                    leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
+                    trailingIcon = {
+                        if (localFilter.isNotBlank()) IconButton(onClick = { localFilter = "" }) {
+                            Icon(Icons.Outlined.Close, contentDescription = "Clear library filter")
+                        }
+                    }
                 )
+            }
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                    FilterChip(selected = sortMode == "saved", onClick = { sortMode = "saved" },
+                        label = { Text("Saved order") })
+                    FilterChip(selected = sortMode == "title", onClick = { sortMode = "title" },
+                        label = { Text("Title") })
+                    FilterChip(selected = sortMode == "artist", onClick = { sortMode = "artist" },
+                        label = { Text("Artist") })
+                }
             }
         }
         if (visibleTracks.isEmpty()) item {
@@ -1763,11 +1817,11 @@ private fun StudioLibrary(
         } else items(visibleTracks, key = { it.url }) { song ->
             MusicTrackTile(song, isPlaying = playingUrl == song.url,
                 onOptions = { onSongOptions(song) },
-                onClick = { onPlay(song, if (selectedPlaylist == null) tracks else matched) })
+                onClick = { onPlay(song, if (selectedPlaylist == null) tracks else orderedTracks) })
         }
         item {
             OutlinedButton(onClick = onManage, modifier = Modifier.fillMaxWidth()) {
-                Text("CREATE, RENAME OR DELETE PLAYLISTS")
+                Text("Manage playlists")
             }
         }
     }
