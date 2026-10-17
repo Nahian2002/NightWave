@@ -31,10 +31,12 @@ if not "%BUILD_EXIT%"=="0" (
     echo.
     echo Error report: %~dp0dist\NightWave-build-errors.txt
     echo Full log:     %~dp0dist\NightWave-build-full.log
-    echo Please send NightWave-build-errors.txt so the failing Kotlin lines can be fixed.
+    echo For one compact report, run send-build-report.cmd in this folder.
+    echo Send: dist\NightWave-build-diagnostic.txt
   ) else (
     echo The build stopped before Gradle could create an error report.
-    echo Please share the earliest red error above.
+    echo For one compact report, run send-build-report.cmd.
+    echo Send: dist\NightWave-build-diagnostic.txt
   )
 ) else (
   echo BUILD SUCCESS. Verified build 35: dist\NightWave-debug.apk

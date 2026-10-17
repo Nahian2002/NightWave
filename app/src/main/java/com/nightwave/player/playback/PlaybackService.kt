@@ -428,7 +428,17 @@ class PlaybackService : MediaSessionService() {
     /** Explicit retry after a playback/extraction error, without reusing signed stream URLs. */
     private fun retryCurrent() {
         if (offlinePlaying) {
-            exoPlayer?.apply { prepare(); play() }
+            val selectedId = offlineQueue.current ?: offlineSession.read()?.selectedId
+            val loadedId = exoPlayer?.currentMediaItem?.mediaId
+            if (selectedId != null && loadedId == "offline:$selectedId") {
+                // Retry the same app-owned local file without touching its
+                // saved queue, copying it or erasing its checkpoint.
+                exoPlayer?.apply { prepare(); play() }
+            } else {
+                // A stale/empty MediaItem is not proof the selected offline
+                // file is still loaded; restore only through file ownership QA.
+                resumeOfflineSession()
+            }
             return
         }
         val entry = queue.current ?: return
