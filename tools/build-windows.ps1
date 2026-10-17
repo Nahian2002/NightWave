@@ -156,8 +156,9 @@ try {
 
         # A zero exit code without Gradle's terminal success marker is not
         # enough to publish a possibly stale APK from another checkout.
-        $gradleSucceeded = $gradleResult -eq 0 -and
-            [bool](Select-String -LiteralPath $buildLog -Pattern '^BUILD SUCCESSFUL' -Quiet)
+        $gradleSucceeded = ($gradleResult -eq 0) -and [bool](
+            Select-String -LiteralPath $buildLog -Pattern '^BUILD SUCCESSFUL' -Quiet
+        )
         if (-not $gradleSucceeded) {
             $patterns = @(
                 '^e:\s',
