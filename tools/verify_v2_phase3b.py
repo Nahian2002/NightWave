@@ -23,7 +23,7 @@ assert 'id("com.google.devtools.ksp")' in app_gradle
 assert 'room-runtime:2.7.2' in app_gradle and 'room-compiler:2.7.2' in app_gradle
 assert 'datastore-preferences:1.1.7' in app_gradle
 assert 'room.schemaLocation' in app_gradle
-assert any(f'versionName = "{v}"' in app_gradle for v in ("2.0.0-alpha3b", "2.0.0-alpha3c", "2.0.0-alpha3d", "2.0.0-alpha4", "2.0.0-alpha4-hotfix1", "2.0.0-alpha4-hotfix2", "2.0.0-alpha5a", "2.0.0-alpha5b"))
+assert any(f'versionName = "{v}"' in app_gradle for v in ("2.0.0-alpha3b", "2.0.0-alpha3c", "2.0.0-alpha3d", "2.0.0-alpha4", "2.0.0-alpha4-hotfix1", "2.0.0-alpha4-hotfix2", "2.0.0-alpha5a", "2.0.0-alpha5b", "2.0.0-alpha5c"))
 assert 'applicationId = "com.nightwave.player"' in app_gradle
 assert 'fallbackToDestructiveMigration' not in db.replace(
     '// Never use fallbackToDestructiveMigration.', ''
