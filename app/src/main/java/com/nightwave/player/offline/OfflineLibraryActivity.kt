@@ -6,6 +6,9 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
+import android.widget.EditText
 import android.view.Gravity
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -20,6 +23,12 @@ class OfflineLibraryActivity : ComponentActivity() {
     private lateinit var library: OfflineAudioLibrary
     private lateinit var tracks: LinearLayout
     private lateinit var state: TextView
+    private lateinit var sortControl: TextView
+    private lateinit var playAllControl: TextView
+    private var searchText = ""
+    private var sortMode = 0
+    private var visibleSongs: List<OfflineSong> = emptyList()
+    private val sortLabels = arrayOf("Recently imported", "Title A–Z", "Smallest first", "Largest first")
     private val worker = Executors.newSingleThreadExecutor()
     private val pick = registerForActivityResult(
         ActivityResultContracts.OpenMultipleDocuments()
@@ -80,6 +89,55 @@ class OfflineLibraryActivity : ComponentActivity() {
                 pick.launch(arrayOf("audio/*", "application/ogg", "application/octet-stream"))
             }
         }, LinearLayout.LayoutParams(-1, dp(51)))
+        val search = EditText(this).apply {
+            hint = "Search saved songs"
+            setSingleLine(true)
+            textSize = 15f
+            setTextColor(Color.WHITE)
+            setHintTextColor(0xFF8294A8.toInt())
+            setPadding(dp(15), 0, dp(15), 0)
+            background = cardBackground(0xFF172432.toInt())
+            addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                    searchText = s?.toString()?.trim().orEmpty()
+                    if (::tracks.isInitialized) refresh()
+                }
+                override fun afterTextChanged(s: Editable?) {}
+            })
+        }
+        root.addView(search, LinearLayout.LayoutParams(-1, dp(49)).apply {
+            topMargin = dp(14)
+        })
+        val controls = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        sortControl = label("Sort: " + sortLabels[sortMode] + "  ▾", 12f, 0xFFB5C8D8.toInt()).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            setOnClickListener {
+                AlertDialog.Builder(this@OfflineLibraryActivity)
+                    .setTitle("Sort offline music")
+                    .setSingleChoiceItems(sortLabels, sortMode) { dialog, which ->
+                        sortMode = which
+                        text = "Sort: " + sortLabels[sortMode] + "  ▾"
+                        dialog.dismiss()
+                        refresh()
+                    }.setNegativeButton("Cancel", null).show()
+            }
+        }
+        controls.addView(sortControl, LinearLayout.LayoutParams(0, dp(49), 1f))
+        playAllControl = label("▶  Play all", 13f, 0xFF91E2D7.toInt(), true).apply {
+            gravity = Gravity.CENTER
+            contentDescription = "Play all visible offline tracks"
+            setOnClickListener {
+                val first = visibleSongs.firstOrNull { library.fileFor(it) != null }
+                if (first == null) status("No playable audio in the current view.")
+                else launchPlayback(first)
+            }
+        }
+        controls.addView(playAllControl, LinearLayout.LayoutParams(dp(105), dp(49)))
+        root.addView(controls)
         state = label("", 12f, 0xFFABBCD0.toInt()).apply {
             setPadding(dp(2), dp(15), 0, dp(12))
         }
@@ -102,16 +160,28 @@ class OfflineLibraryActivity : ComponentActivity() {
 
     private fun refresh() {
         val all = try { library.songs() } catch (e: Exception) {
+            tracks.removeAllViews()
+            visibleSongs = emptyList()
             status("Library index needs attention: " + e.message)
             return
         }
-        status(all.size.toString() + " tracks saved · Available offline")
+        val filtered = all.filter { it.title.contains(searchText, ignoreCase = true) }
+        visibleSongs = when (sortMode) {
+            1 -> filtered.sortedWith(compareBy<OfflineSong> { it.title.lowercase() }.thenBy { it.id })
+            2 -> filtered.sortedWith(compareBy<OfflineSong> { it.bytes }.thenBy { it.title.lowercase() })
+            3 -> filtered.sortedWith(compareByDescending<OfflineSong> { it.bytes }.thenBy { it.title.lowercase() })
+            else -> filtered.asReversed()
+        }
+        status(visibleSongs.size.toString() + " of " + all.size +
+            " tracks · Offline · " + (all.sumOf { it.bytes } / (1024 * 1024)) + " MB stored")
+        playAllControl.alpha = if (visibleSongs.isEmpty()) 0.45f else 1f
         tracks.removeAllViews()
-        if (all.isEmpty()) tracks.addView(label(
-            "No offline songs yet. Import audio you own or are licensed to use.",
+        if (visibleSongs.isEmpty()) tracks.addView(label(
+            if (all.isEmpty()) "No offline songs yet. Import audio you own or are licensed to use."
+            else "No matching songs. Try another search.",
             14f, 0xFFABB8CC.toInt()
         ).apply { setPadding(dp(5), dp(25), 0, 0) })
-        all.forEach { song ->
+        visibleSongs.forEach { song ->
             val row = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
@@ -129,18 +199,7 @@ class OfflineLibraryActivity : ComponentActivity() {
             row.addView(label("▶", 21f, 0xFF91E2D7.toInt()).apply {
                 gravity = Gravity.CENTER
                 contentDescription = "Play " + song.title
-                setOnClickListener {
-                    if (library.fileFor(song) == null) {
-                        status("Audio file not available: " + song.title)
-                    } else {
-                        runCatching {
-                            startService(Intent(this@OfflineLibraryActivity, PlaybackService::class.java)
-                                .setAction(PlaybackService.ACTION_PLAY_OFFLINE)
-                                .putExtra(PlaybackService.EXTRA_OFFLINE_ID, song.id))
-                        }.onSuccess { status("Opening " + song.title) }
-                            .onFailure { status("Offline playback could not start. Please retry.") }
-                    }
-                }
+                setOnClickListener { launchPlayback(song) }
             }, LinearLayout.LayoutParams(dp(49), dp(47)))
             row.addView(label("⋮", 24f, 0xFFB9C9D6.toInt()).apply {
                 gravity = Gravity.CENTER
@@ -160,6 +219,23 @@ class OfflineLibraryActivity : ComponentActivity() {
                 bottomMargin = dp(8)
             })
         }
+    }
+
+    private fun launchPlayback(song: OfflineSong) {
+        if (library.fileFor(song) == null) {
+            status("Audio file unavailable: " + song.title)
+            return
+        }
+        // Only app-private UUID IDs are passed; playback validates against its own
+        // library index before opening any media file.
+        val ids = ArrayList(visibleSongs.map { it.id }.take(OfflinePlaybackQueue.MAX_ITEMS))
+        runCatching {
+            startService(Intent(this, PlaybackService::class.java)
+                .setAction(PlaybackService.ACTION_PLAY_OFFLINE)
+                .putExtra(PlaybackService.EXTRA_OFFLINE_ID, song.id)
+                .putStringArrayListExtra(PlaybackService.EXTRA_OFFLINE_IDS, ids))
+        }.onSuccess { status("Playing " + song.title + " · Next follows this list") }
+            .onFailure { status("Offline playback could not start. Please retry.") }
     }
 
     private fun status(message: String) {
