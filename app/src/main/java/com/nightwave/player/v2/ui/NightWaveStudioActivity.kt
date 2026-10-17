@@ -280,12 +280,9 @@ class NightWaveStudioActivity : ComponentActivity() {
                     },
                     searchState = nativeSearchState,
                     onSearch = { query, mode -> nativeSearch(query, mode) },
-                    onWebSearch = { query ->
-                        youtubeDialog?.dismiss()
-                        youtubeDialog = YouTubeSearchBrowser(this).show(query) { url ->
-                            playback.play(VideoPreview("Loading track…", "YouTube", url, "", 0L))
-                        }
-                    },
+                    onPrimarySearch = { query, mode -> primarySearch(query, mode) },
+                    onPrepareSearch = { query, mode -> prepareSearch(query, mode) },
+                    onWebSearch = { query -> openOfficialSearch(query) },
                     onPlay = { video, collection -> playback.play(video, collection) },
                     onLegacyPlayer = { manageLibrary() },
                     onOfflineLibrary = { startActivity(Intent(this, OfflineLibraryActivity::class.java)) },
@@ -323,6 +320,40 @@ class NightWaveStudioActivity : ComponentActivity() {
             playback.play(VideoPreview("Shared track", "YouTube", watchUrl, "", 0L))
         } else {
             nativeSearch(shared, SearchMode.SONGS)
+        }
+    }
+
+    /**
+     * Official YouTube discovery is the primary route. Public scrapers are
+     * optional quick results and must not block the primary search action.
+     */
+    private fun primarySearch(query: String, mode: SearchMode) {
+        val clean = query.trim().take(160)
+        when (SearchInputResolver.resolve(clean)) {
+            SearchInput.Blank -> return
+            is SearchInput.VideoUrl, SearchInput.BadLink -> nativeSearch(clean, mode)
+            is SearchInput.Keywords -> {
+                prepareSearch(clean, mode)
+                openOfficialSearch(clean)
+            }
+        }
+    }
+
+    /** Home shortcuts prefill without starting an unreliable provider call. */
+    private fun prepareSearch(query: String, mode: SearchMode) {
+        val clean = query.trim().take(160)
+        if (clean.isBlank()) return
+        nativeSearchJob?.cancel()
+        nativeSearchGeneration++
+        nativeSearchState = StudioSearchSnapshot(query = clean, mode = mode)
+    }
+
+    private fun openOfficialSearch(query: String) {
+        val clean = query.trim().take(160)
+        if (clean.isBlank()) return
+        youtubeDialog?.dismiss()
+        youtubeDialog = YouTubeSearchBrowser(this).show(clean) { url ->
+            playback.play(VideoPreview("Loading track…", "YouTube", url, "", 0L))
         }
     }
 
@@ -685,6 +716,8 @@ private fun StudioRoot(
     onSongOptions: (VideoPreview) -> Unit,
     onSaveCurrentToPlaylist: () -> Unit,
     onSearch: (String, SearchMode) -> Unit,
+    onPrimarySearch: (String, SearchMode) -> Unit,
+    onPrepareSearch: (String, SearchMode) -> Unit,
     onWebSearch: (String) -> Unit,
     searchState: StudioSearchSnapshot,
     onPlay: (VideoPreview, List<VideoPreview>) -> Unit,
@@ -862,14 +895,14 @@ private fun StudioRoot(
                         favorites = favorites,
                         playingUrl = playerState.videoUrl.takeIf { playerState.playing }.orEmpty(),
                         onSearch = { query ->
-                            onSearch(query, SearchMode.SONGS)
+                            onPrepareSearch(query, SearchMode.SONGS)
                             navigateToTab(StudioTab.SEARCH)
                         },
                         onPlay = onPlay, onSongOptions = onSongOptions,
                         openLibrary = { navigateToTab(StudioTab.LIBRARY) }
                     )
                     StudioTab.SEARCH -> StudioSearch(
-                        Modifier, searchState, onSearch, onWebSearch,
+                        Modifier, searchState, onPrimarySearch, onSearch, onWebSearch,
                         onPlay, onSongOptions,
                         playerState.videoUrl.takeIf { playerState.playing }.orEmpty(),
                         savedTracks = remember(favorites, recent, playlistNames) {
@@ -1019,6 +1052,7 @@ private fun MoodTile(title: String, subtitle: String, gradient: List<Color>, mod
 private fun StudioSearch(
     modifier: Modifier,
     state: StudioSearchSnapshot,
+    onPrimarySearch: (String, SearchMode) -> Unit,
     onNativeSearch: (String, SearchMode) -> Unit,
     onWebSearch: (String) -> Unit,
     onPlay: (VideoPreview, List<VideoPreview>) -> Unit,
@@ -1029,7 +1063,7 @@ private fun StudioSearch(
     var query by rememberSaveable { mutableStateOf("") }
     var mode by rememberSaveable { mutableStateOf(SearchMode.SONGS) }
     LaunchedEffect(state.query) { if (state.query.isNotBlank()) query = state.query }
-    val submit = { if (query.isNotBlank()) onNativeSearch(query.trim(), mode) }
+    val submit = { if (query.isNotBlank()) onPrimarySearch(query.trim(), mode) }
     val savedMatches = remember(query, savedTracks) {
         SavedTrackSearch.match(query, savedTracks)
     }
@@ -1055,7 +1089,7 @@ private fun StudioSearch(
                                     onClick = {
                                         mode = SearchMode.SONGS
                                         query = shortcut.query
-                                        onNativeSearch(shortcut.query, SearchMode.SONGS)
+                                        onPrimarySearch(shortcut.query, SearchMode.SONGS)
                                     },
                                     label = { Text(shortcut.title, maxLines = 1) },
                                     modifier = Modifier.weight(1f))
@@ -1084,15 +1118,28 @@ private fun StudioSearch(
             }
         }
         item {
-            Button(onClick = submit, enabled = query.isNotBlank() && !searching,
+            Button(onClick = submit, enabled = query.isNotBlank(),
                 modifier = Modifier.fillMaxWidth().height(49.dp),
                 shape = RoundedCornerShape(15.dp)) {
-                if (searching) {
-                    CircularProgressIndicator(modifier = Modifier.size(20.dp),
-                        strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
-                    Spacer(Modifier.width(10.dp))
+                Text("Find music on YouTube")
+            }
+            Text("Opens official YouTube search inside NightWave. Saved matches appear below.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        if (query.isNotBlank()) {
+            item {
+                OutlinedButton(
+                    onClick = { onNativeSearch(query.trim(), mode) },
+                    enabled = !searching,
+                    modifier = Modifier.fillMaxWidth().height(44.dp)
+                ) {
+                    if (searching) {
+                        CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                        Spacer(Modifier.width(8.dp))
+                    }
+                    Text(if (searching) "Checking quick results…" else "Try quick in-app results")
                 }
-                Text(if (searching) "Searching…" else "Find music")
             }
         }
         if (savedMatches.isNotEmpty()) {
@@ -1134,21 +1181,19 @@ private fun StudioSearch(
                     .background(MaterialTheme.colorScheme.surface)
                     .padding(horizontal = 14.dp, vertical = 13.dp),
                     verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                    Text("Online search is unavailable",
-                        style = MaterialTheme.typography.titleMedium)
-                    Text(if (savedMatches.isNotEmpty())
-                        "Your saved matches are above. You can retry public search or open YouTube."
-                        else "Public search didn't return results. Retry or search YouTube directly.",
+                    Text("Quick results aren't available right now",
+                        style = MaterialTheme.typography.titleSmall)
+                    Text("Your library still works. Use Find music on YouTube above, or retry quick results.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedButton(onClick = submit, enabled = query.isNotBlank()) {
-                            Text("Retry")
+                        OutlinedButton(onClick = { onNativeSearch(query.trim(), mode) },
+                            enabled = query.isNotBlank()) {
+                            Text("Retry quick results")
                         }
-                        OutlinedButton(onClick = {
-                            onWebSearch(query.ifBlank { state.query })
-                        }, enabled = query.isNotBlank()) {
-                            Text("YouTube ↗")
+                        OutlinedButton(onClick = { onWebSearch(query.trim()) },
+                            enabled = query.isNotBlank()) {
+                            Text("YouTube")
                         }
                     }
                 }
@@ -1165,16 +1210,8 @@ private fun StudioSearch(
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
-        if ((!responseMatchesQuery || state.error.isBlank()) && query.isNotBlank()) {
-            item {
-                OutlinedButton(onClick = { onWebSearch(query.trim()) },
-                    modifier = Modifier.fillMaxWidth().height(45.dp)) {
-                    Text("Search on YouTube ↗")
-                }
-            }
-        }
         item {
-            Text("Saved songs work without public search. YouTube availability and playback can change.",
+            Text("Saved songs work without public search. Online results and playback depend on YouTube availability.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
