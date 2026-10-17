@@ -1,5 +1,25 @@
 # NightWave
 
+## NightWave 2.0 — Phase 5A stability and crash diagnostics
+
+**Version:** \`2.0.0-alpha5a\` (code 17) · **branch:** \`feature/nightwave-v2-phase5a-stability\` · **not Android-verified yet**.
+
+[Download the full Phase 5A source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase5a-stability.zip) · [Phase 5A QA and crash guidance](docs/NIGHTWAVE_V2_PHASE5A_STABILITY_QA.md)
+
+This phase addresses the user's recurring Android crash warning **without guessing the actual fatal exception**:
+- Media3 no longer resolves the last YouTube stream automatically when Android recreates the service; background work and saved-position writes only happen when music actually plays. Saved track/queue metadata remains available immediately, and explicit Play (including supported Bluetooth play commands) restores the stream.
+- Corrupt legacy guest preferences, bookmark fields and offline-file indices no longer have to crash startup or background playback. No original library values are automatically deleted.
+- Room/DataStore mirroring runs on screen resume or explicit storage checks, not on every playback state update.
+- A privacy-limited on-device crash summary stores up to five exception classes and NightWave-only stack frames, retaining Android's normal crash reporting. Open classic Home → **Diagnostics · Share recent crash summary** to share it voluntarily, or use \`capture-nightwave-crash.cmd\` with ADB.
+- The previous compact NightWave design, offline audio imports, YouTube search, existing playlists/favorites, backup format and current launcher remain preserved.
+
+**Release warning:** Android Gradle compilation, new device tests and the user's S24 Ultra crash reproduction have **not** been run here. Extract the source ZIP in a fresh folder and run \`build-windows.cmd\`; install the resulting APK **only after BUILD SUCCESS**, without uninstalling or clearing app data. If the build fails, send \`dist/NightWave-build-errors.txt\`. Do not run destructive instrumentation tests on a phone containing important playlists.
+
+This is a draft stability milestone. Google sign-in, cloud recovery and permanent Room-primary writes are still future phases; the root cause of the repeated-crash notification still requires the phone's error trace.
+
+---
+
+
 ## NightWave Alpha4 Hotfix2 — Premium startup repair + offline audio
 
 **Development branch:** \`feature/nightwave-alpha4-ui-offline-repair\` · **Version:** 2.0.0-alpha4-hotfix2 / code 16.
