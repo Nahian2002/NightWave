@@ -21,6 +21,8 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -1162,209 +1164,280 @@ private fun StudioLibrary(
 }
 
 @Composable
-private fun StudioProfile(modifier: Modifier, profile: ProfileSettings, save: (ProfileSettings) -> Unit,
-    onExport: () -> Unit, onImport: () -> Unit,
-    onRecoverLastChange: () -> Unit,
+private fun StudioProfile(
+    modifier: Modifier, profile: ProfileSettings, save: (ProfileSettings) -> Unit,
+    onExport: () -> Unit, onImport: () -> Unit, onRecoverLastChange: () -> Unit,
     storageStatus: String, onCheckStorage: () -> Unit,
     roomReadStatus: String, roomPreviewActive: Boolean,
     onEnableRoomPreview: () -> Unit, onUseLegacyReads: () -> Unit,
-    onShareDiagnostics: () -> Unit, onOpenClassic: () -> Unit) {
+    onShareDiagnostics: () -> Unit, onOpenClassic: () -> Unit
+) {
     var name by rememberSaveable(profile.localId) { mutableStateOf(profile.displayName) }
+    var editing by rememberSaveable { mutableStateOf(false) }
+    var showAppearance by rememberSaveable { mutableStateOf(false) }
+    var showBackup by rememberSaveable { mutableStateOf(false) }
     var showAdvanced by rememberSaveable { mutableStateOf(false) }
-    LazyColumn(modifier.widthIn(max = 840.dp).fillMaxHeight(), contentPadding = PaddingValues(20.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp)) {
-        item { SectionHeading("Your profile", "A listening space that feels like yours.") }
+    val muted = MaterialTheme.colorScheme.onSurfaceVariant
+
+    LazyColumn(
+        modifier = modifier.widthIn(max = 720.dp).fillMaxHeight(),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
         item {
-            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                shape = RoundedCornerShape(23.dp), modifier = Modifier.fillMaxWidth()) {
-                Row(Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Box(Modifier.size(67.dp).background(MaterialTheme.colorScheme.primary,
-                        CircleShape), contentAlignment = Alignment.Center) {
-                        Text(when (profile.avatarStyle) {
-                            "moon" -> "☾"
-                            "spark" -> "✦"
-                            "prism" -> "◇"
-                            "vinyl" -> "◎"
-                            "wave" -> "〰"
-                            else -> "◉"
-                        }, style = MaterialTheme.typography.headlineLarge,
-                            color = MaterialTheme.colorScheme.onPrimary)
-                    }
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(profile.displayName, style = MaterialTheme.typography.titleLarge)
-                        Text("GUEST · LOCAL PROFILE",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
+            Row(
+                Modifier.fillMaxWidth().padding(horizontal = 3.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text("Your space", style = MaterialTheme.typography.headlineSmall)
+                    Text("Profile, listening and preferences",
+                        style = MaterialTheme.typography.bodySmall, color = muted)
                 }
+                Text("LOCAL", style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary)
             }
         }
+
         item {
-            OutlinedTextField(value = name, onValueChange = { name = it.take(40) },
-                modifier = Modifier.fillMaxWidth(), label = { Text("Display name") },
-                singleLine = true)
-        }
-        item {
-            Button(onClick = { save(profile.copy(displayName = name)) },
-                modifier = Modifier.fillMaxWidth().height(50.dp)) {
-                Text("Save profile")
-            }
-        }
-        item { SectionHeading("Profile icon", "Choose a look without uploading personal photos") }
-        item {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                for (styles in ProfileSettings.allowedAvatars.sorted().chunked(3)) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                        for (style in styles) {
-                            FilterChip(
-                                selected = profile.avatarStyle == style,
-                                onClick = { save(profile.copy(avatarStyle = style)) },
-                                label = { Text(style.replaceFirstChar { it.titlecase() }) },
-                                modifier = Modifier.weight(1f)
-                            )
+            Card(
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(Modifier.fillMaxWidth().padding(14.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Box(
+                            Modifier.size(52.dp).clip(RoundedCornerShape(16.dp))
+                                .background(MaterialTheme.colorScheme.primary),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(when (profile.avatarStyle) {
+                                "moon" -> "☾"
+                                "spark" -> "✦"
+                                "prism" -> "◇"
+                                "vinyl" -> "◎"
+                                "wave" -> "〰"
+                                else -> "◉"
+                            }, style = MaterialTheme.typography.headlineSmall,
+                                color = MaterialTheme.colorScheme.onPrimary)
+                        }
+                        Column(Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(profile.displayName, style = MaterialTheme.typography.titleMedium,
+                                maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text("Guest profile · Saved on this device",
+                                style = MaterialTheme.typography.bodySmall, color = muted,
+                                maxLines = 1)
+                        }
+                        OutlinedButton(onClick = {
+                            name = profile.displayName
+                            editing = !editing
+                        }) {
+                            Text(if (editing) "Close" else "Edit")
+                        }
+                    }
+                    if (editing) {
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        OutlinedTextField(
+                            value = name, onValueChange = { name = it.take(40) },
+                            modifier = Modifier.fillMaxWidth(), singleLine = true,
+                            label = { Text("Display name") }
+                        )
+                        Button(onClick = {
+                            val updated = name.trim()
+                            if (updated.isNotEmpty()) {
+                                save(profile.copy(displayName = updated))
+                                editing = false
+                            }
+                        }, modifier = Modifier.fillMaxWidth().height(44.dp),
+                            enabled = name.trim().isNotEmpty() &&
+                                name.trim() != profile.displayName) {
+                            Text("Save profile")
                         }
                     }
                 }
             }
         }
-        item { SectionHeading("Guest backup and restore", "Keep your saved collections safe") }
+
         item {
-            OutlinedButton(onClick = onRecoverLastChange,
-                modifier = Modifier.fillMaxWidth().height(50.dp)) {
-                Text("Undo recent library edit")
-            }
-        }
-        item {
-            OutlinedButton(onClick = onExport, modifier = Modifier.fillMaxWidth().height(52.dp)) {
-                Text("Export music library")
-            }
-        }
-        item {
-            OutlinedButton(onClick = onImport, modifier = Modifier.fillMaxWidth().height(52.dp)) {
-                Text("Restore from backup")
-            }
-        }
-        item {
-            Text("Backups contain your profile, favorites and playlists—not audio files or passwords. " +
-                "Import replaces your current collections after confirmation. Cloud sync is not active.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        item { SectionHeading("App appearance", "Your chosen theme persists across restarts") }
-        item {
-            Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                for (options in NightWaveTheme.entries.chunked(2)) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        for (option in options) {
-                            FilterChip(selected = profile.theme == option,
-                                onClick = { save(profile.copy(theme = option)) },
-                                label = { Text(option.name.lowercase().replaceFirstChar { it.titlecase() }) },
-                                modifier = Modifier.weight(1f))
+            StudioProfileGroup("Appearance & playback") {
+                StudioProfileRow(
+                    "Theme", profile.theme.name.lowercase().replaceFirstChar { it.titlecase() },
+                    Icons.Outlined.AutoAwesome, { showAppearance = !showAppearance },
+                    trailing = { Text(if (showAppearance) "Hide" else "Change",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary) }
+                )
+                if (showAppearance) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    Column(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 9.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text("Colour theme", style = MaterialTheme.typography.labelSmall,
+                            color = muted)
+                        for (options in NightWaveTheme.entries.chunked(2)) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                options.forEach { option ->
+                                    FilterChip(
+                                        selected = profile.theme == option,
+                                        onClick = { save(profile.copy(theme = option)) },
+                                        label = { Text(option.name.lowercase()
+                                            .replaceFirstChar { it.titlecase() }) },
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
+                            }
                         }
+                        Text("Profile icon", style = MaterialTheme.typography.labelSmall,
+                            color = muted)
+                        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            ProfileSettings.allowedAvatars.sorted().forEach { style ->
+                                FilterChip(
+                                    selected = profile.avatarStyle == style,
+                                    onClick = { save(profile.copy(avatarStyle = style)) },
+                                    label = { Text(style.replaceFirstChar { it.titlecase() }) }
+                                )
+                            }
+                        }
+                    }
+                }
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                StudioProfileRow(
+                    "Reduced motion", "Minimize screen transitions",
+                    Icons.Outlined.Settings,
+                    { save(profile.copy(motion =
+                        if (profile.motion == MotionPreference.REDUCED)
+                            MotionPreference.SYSTEM else MotionPreference.REDUCED)) },
+                    trailing = {
+                        Switch(checked = profile.motion == MotionPreference.REDUCED,
+                            onCheckedChange = {
+                                save(profile.copy(motion =
+                                    if (it) MotionPreference.REDUCED else MotionPreference.SYSTEM))
+                            })
+                    }
+                )
+            }
+        }
+
+        item {
+            StudioProfileGroup("Library & backup") {
+                StudioProfileRow("Manage backups", "Export, restore and undo edits",
+                    Icons.Outlined.LibraryMusic, { showBackup = !showBackup },
+                    trailing = { Text(if (showBackup) "Hide" else "Open",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary) })
+                if (showBackup) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    StudioProfileRow("Export music library", "Profile, favorites and playlists",
+                        Icons.Outlined.LibraryMusic, onExport)
+                    StudioProfileRow("Restore from backup", "Replaces collections after confirmation",
+                        Icons.Outlined.LibraryMusic, onImport)
+                    StudioProfileRow("Undo most recent library edit", "Restore last protected change",
+                        Icons.Outlined.ArrowBack, onRecoverLastChange)
+                    Text("Backups do not include audio files or passwords. Cloud sync is not active.",
+                        modifier = Modifier.padding(start = 14.dp, end = 14.dp, bottom = 12.dp),
+                        style = MaterialTheme.typography.bodySmall, color = muted)
+                }
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                StudioProfileRow("Advanced storage", "Original library remains authoritative",
+                    Icons.Outlined.Settings, { showAdvanced = !showAdvanced },
+                    trailing = { Text(if (showAdvanced) "Hide" else "Details",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary) })
+                if (showAdvanced) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    Column(Modifier.padding(horizontal = 14.dp, vertical = 9.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(storageStatus, style = MaterialTheme.typography.bodySmall)
+                        Text(roomReadStatus, style = MaterialTheme.typography.bodySmall,
+                            color = muted)
+                        Text("Room and DataStore are optional read-only mirrors. " +
+                            "Your existing saved library stays in use.",
+                            style = MaterialTheme.typography.bodySmall, color = muted)
+                        OutlinedButton(onClick = onCheckStorage,
+                            modifier = Modifier.fillMaxWidth()) {
+                            Text("RECHECK NEW STORAGE")
+                        }
+                        OutlinedButton(
+                            onClick = if (roomPreviewActive) onUseLegacyReads
+                                else onEnableRoomPreview,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(if (roomPreviewActive) "RETURN TO ORIGINAL LIBRARY"
+                                else "TRY VERIFIED ROOM READS")
+                        }
+                        Text("Cloud recovery is not available yet.",
+                            style = MaterialTheme.typography.bodySmall, color = muted)
                     }
                 }
             }
         }
-        item { SectionHeading("Motion and comfort") }
+
         item {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween) {
-                Column {
-                    Text("Reduced animations", style = MaterialTheme.typography.titleMedium)
-                    Text("Prefer fewer moving effects",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-                Switch(checked = profile.motion == MotionPreference.REDUCED,
-                    onCheckedChange = { save(profile.copy(motion = if (it) MotionPreference.REDUCED else MotionPreference.SYSTEM)) })
-            }
-        }
-        item { SectionHeading("App health", "Review crashes without connecting to a computer") }
-        item {
-            OutlinedButton(onClick = onShareDiagnostics,
-                modifier = Modifier.fillMaxWidth().height(50.dp)) {
-                Text("View / share crash summary")
+            StudioProfileGroup("App health") {
+                StudioProfileRow("Crash diagnostics", "Preview before sharing any report",
+                    Icons.Outlined.Settings, onShareDiagnostics)
             }
         }
         item {
-            Text("Crash details and Android exit reasons stay on this phone until you share them. " +
-                "Some system terminations may not provide a detailed exception.",
-                style = MaterialTheme.typography.bodyMedium,
+            StudioProfileGroup("Interface") {
+                StudioProfileRow("Open classic interface", "Temporary fallback · Shared library",
+                    Icons.Outlined.ArrowBack, onOpenClassic)
+            }
+        }
+        item {
+            Text("NightWave · Your music stays on this device unless you choose to export it.",
+                modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 10.dp),
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                style = MaterialTheme.typography.labelSmall, color = muted)
+        }
+    }
+}
+
+@Composable
+private fun StudioProfileGroup(
+    title: String, content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit
+) {
+    Card(
+        shape = RoundedCornerShape(17.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column {
+            Text(title, modifier = Modifier.padding(start = 14.dp, top = 12.dp, bottom = 3.dp),
+                style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
+            content()
         }
-        item {
-            OutlinedButton(onClick = { showAdvanced = !showAdvanced },
-                modifier = Modifier.fillMaxWidth().height(49.dp)) {
-                Text(if (showAdvanced) "Hide advanced storage" else "Advanced storage tools")
-            }
+    }
+}
+
+@Composable
+private fun StudioProfileRow(
+    title: String, detail: String, icon: androidx.compose.ui.graphics.vector.ImageVector,
+    onClick: () -> Unit, trailing: @Composable (() -> Unit)? = null
+) {
+    Row(
+        Modifier.fillMaxWidth().clickable(onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 11.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(icon, contentDescription = null, modifier = Modifier.size(21.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(title, style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold)
+            Text(detail, style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2)
         }
-        if (showAdvanced) {
-        item { SectionHeading("Storage upgrade preview", "Safe migration without deleting the old library") }
-        item {
-            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                shape = RoundedCornerShape(19.dp), modifier = Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(storageStatus, style = MaterialTheme.typography.bodyMedium)
-                    Text("Room and DataStore are read-only mirrors of the active legacy data. " +
-                        "Your original playlists, listening history and settings remain in place.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-        }
-        item {
-            OutlinedButton(onClick = onCheckStorage, modifier = Modifier.fillMaxWidth().height(48.dp)) {
-                Text("RECHECK NEW STORAGE")
-            }
-        }
-        item {
-            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                shape = RoundedCornerShape(18.dp)) {
-                Column(Modifier.fillMaxWidth().padding(18.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Verified database read preview", style = MaterialTheme.typography.titleMedium)
-                    Text(roomReadStatus, style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text("Optional and temporary. All changes still save to your original library. " +
-                        "If any track/order differs, NightWave automatically uses the original data.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-        }
-        item {
-            OutlinedButton(onClick = if (roomPreviewActive) onUseLegacyReads else onEnableRoomPreview,
-                modifier = Modifier.fillMaxWidth().height(50.dp)) {
-                Text(if (roomPreviewActive) "RETURN TO ORIGINAL LIBRARY"
-                    else "TRY VERIFIED ROOM READS")
-            }
-        }
-        }
-        item { SectionHeading("Interface fallback", "The original NightWave interface remains available") }
-        item {
-            OutlinedButton(onClick = onOpenClassic,
-                modifier = Modifier.fillMaxWidth().height(50.dp)) {
-                Text("Open classic interface")
-            }
-        }
-        item {
-            Text("This is a temporary fallback. Your playlists, favorites and offline audio " +
-                "remain shared between both interfaces. Use Return to NightWave to come back.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        item { HorizontalDivider(color = MaterialTheme.colorScheme.outline) }
-        item {
-            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                shape = RoundedCornerShape(19.dp)) {
-                Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                    Text("Cloud recovery", style = MaterialTheme.typography.titleMedium)
-                    Text("Google account recovery is coming later. Guest profiles and local backup already work without signing in.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-        }
+        if (trailing != null) trailing()
+        else Text("›", color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.titleLarge)
     }
 }
