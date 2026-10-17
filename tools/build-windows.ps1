@@ -133,8 +133,8 @@ try {
     Say 'Android SDK licenses must be accepted once. Read the terms and type y when you agree.'
     & $sdkmanager "--sdk_root=$sdk" --licenses
     if ($LASTEXITCODE -ne 0) { throw 'Android SDK licenses were not accepted.' }
-    Say 'Installing Android platform 35 and build tools 35.0.0'
-    & $sdkmanager "--sdk_root=$sdk" 'platforms;android-35' 'build-tools;35.0.0'
+    Say 'Installing Android 35, build tools and read-only device-check platform tools'
+    & $sdkmanager "--sdk_root=$sdk" 'platforms;android-35' 'build-tools;35.0.0' 'platform-tools'
     if ($LASTEXITCODE -ne 0) { throw 'Android SDK package installation failed.' }
 
     $stage = 'Gradle compile / unit tests'
