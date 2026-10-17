@@ -2065,6 +2065,11 @@ private fun StudioProfile(
     var showAppearance by rememberSaveable { mutableStateOf(false) }
     var showBackup by rememberSaveable { mutableStateOf(false) }
     var showAdvanced by rememberSaveable { mutableStateOf(false) }
+    // Keep the everyday You screen legible; full insights, local analytics
+    // controls and developer-like playback health are one tap away.
+    var showSnapshot by rememberSaveable { mutableStateOf(false) }
+    var showListeningMemory by rememberSaveable { mutableStateOf(false) }
+    var showPlaybackHealth by rememberSaveable { mutableStateOf(false) }
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
 
     LazyColumn(
@@ -2222,17 +2227,41 @@ private fun StudioProfile(
 
         item {
             StudioProfileGroup("Your listening snapshot") {
-                Column(Modifier.fillMaxWidth().padding(14.dp)) {
-                    ListeningInsightsPanel(insights)
+                StudioProfileRow("Recent listening",
+                    "Artists and songs in your recent history",
+                    Icons.Outlined.LibraryMusic, { showSnapshot = !showSnapshot },
+                    trailing = {
+                        Text(if (showSnapshot) "Hide" else "View",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary)
+                    })
+                if (showSnapshot) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    Column(Modifier.fillMaxWidth().padding(14.dp)) {
+                        ListeningInsightsPanel(insights)
+                    }
                 }
             }
         }
 
         item {
             StudioProfileGroup("Listening memory · optional") {
-                ListeningMemoryPanel(
-                    memory, onMemoryEnabledChange, onMemoryErase, onMemoryRefresh
-                )
+                StudioProfileRow("Listening statistics",
+                    if (memory.enabled) "On · Stored privately on this device"
+                    else "Off · Opt in only if you choose",
+                    Icons.Outlined.AutoAwesome,
+                    { showListeningMemory = !showListeningMemory },
+                    trailing = {
+                        Text(if (showListeningMemory) "Hide" else "View",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary)
+                    })
+                if (showListeningMemory) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    ListeningMemoryPanel(
+                        memory, onMemoryEnabledChange, onMemoryErase, onMemoryRefresh
+                    )
+                }
             }
         }
 
@@ -2338,7 +2367,21 @@ private fun StudioProfile(
 
         item {
             StudioProfileGroup("App health") {
-                PlaybackHealthPanel(playbackState, onRecoverPlayback)
+                StudioProfileRow("Playback health",
+                    if (!playbackState.error.isNullOrBlank() || !playbackState.connected)
+                        "Action may be needed · Tap to inspect"
+                    else "Current status and recovery controls",
+                    Icons.Outlined.Settings,
+                    { showPlaybackHealth = !showPlaybackHealth },
+                    trailing = {
+                        Text(if (showPlaybackHealth) "Hide" else "View",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary)
+                    })
+                if (showPlaybackHealth || !playbackState.connected ||
+                    !playbackState.error.isNullOrBlank()) {
+                    PlaybackHealthPanel(playbackState, onRecoverPlayback)
+                }
                 StudioProfileRow("Crash diagnostics", "Preview before sharing any report",
                     Icons.Outlined.Settings, onShareDiagnostics)
             }
