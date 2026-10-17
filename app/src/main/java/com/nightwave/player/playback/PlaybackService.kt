@@ -349,6 +349,10 @@ class PlaybackService : MediaSessionService() {
 
     /** Called only by a user/transport Play action, never by onCreate. */
     private fun resumeSavedQueue() {
+        // A second Resume tap while extractor work is pending must not queue
+        // another resolution behind a slow first request.
+        if (resolvingPublicUrl != null &&
+            resolvingPublicUrl == queue.current?.url) return
         if (exoPlayer?.currentMediaItem != null) {
             exoPlayer?.play()
         } else {
