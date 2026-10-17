@@ -2,7 +2,7 @@
 # Raw logcat text stays in process memory and is never persisted to disk.
 # Never install, clear, uninstall, force-stop, or reset the phone.
 [CmdletBinding()]
-param()
+param([switch]$SelfTest)
 $ErrorActionPreference = 'Stop'
 $project = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $reportDir = Join-Path $project 'dist'
@@ -94,6 +94,32 @@ function Extract-NightWaveFatal([string[]]$RawLines) {
         }
     }
     return @($safe)
+}
+
+# Local regression test: synthetic Android crash records, no phone and no log files.
+# This tests actual PowerShell filtering behavior on the user's Windows PC.
+if ($SelfTest) {
+    $example = @(
+        '10-17 12:00:00.000 777 777 E AndroidRuntime: FATAL EXCEPTION: main',
+        '10-17 12:00:00.010 777 777 E AndroidRuntime: Process: com.example.other, PID: 777',
+        '10-17 12:00:00.012 777 777 E AndroidRuntime: java.lang.RuntimeException: OTHER_APP_SECRET',
+        '10-17 12:01:00.000 888 888 E AndroidRuntime: FATAL EXCEPTION: main',
+        '10-17 12:01:00.010 888 888 E AndroidRuntime: Process: com.nightwave.player, PID: 888',
+        '10-17 12:01:00.012 888 888 E AndroidRuntime: java.lang.IllegalStateException: USER_PRIVATE_SECRET',
+        '10-17 12:01:00.014 888 888 E AndroidRuntime: at com.nightwave.player.ui.MainActivity.onCreate(MainActivity.kt:42)',
+        '10-17 12:01:00.015 888 888 E AndroidRuntime: at android.app.ActivityThread.main(ActivityThread.java:1)'
+    )
+    $filtered = @(Extract-NightWaveFatal -RawLines $example)
+    $result = $filtered -join [Environment]::NewLine
+    if ($result -notmatch 'java.lang.IllegalStateException' -or
+        $result -notmatch 'com.nightwave.player.ui.MainActivity.onCreate:42' -or
+        $result -notmatch 'Crash 1:' -or
+        $result -match 'OTHER_APP_SECRET|USER_PRIVATE_SECRET|com.example.other|PID:|ActivityThread.main') {
+        Write-Host 'FAILED: synthetic NightWave privacy filter checks.' -ForegroundColor Red
+        exit 1
+    }
+    Write-Host 'PASS: NightWave-only crash filtering, redaction and stack summary.' -ForegroundColor Green
+    exit 0
 }
 
 try {
