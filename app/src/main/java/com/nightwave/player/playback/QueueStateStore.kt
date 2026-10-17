@@ -15,6 +15,30 @@ class QueueStateStore(context: Context) {
         val repeat: PlaybackQueue.Repeat
     )
 
+    data class Bookmark(val url: String, val positionMs: Long, val durationMs: Long)
+
+    /** Signed audio URLs are never persisted. This records only public IDs and position. */
+    fun saveBookmark(url: String, positionMs: Long, durationMs: Long) {
+        if (!url.startsWith("https://www.youtube.com/watch?v=")) return
+        prefs.edit()
+            .putString("bookmark_url", url)
+            .putLong("bookmark_position_ms", positionMs.coerceIn(0L, 86_400_000L))
+            .putLong("bookmark_duration_ms", durationMs.coerceIn(0L, 86_400_000L))
+            .apply()
+    }
+
+    fun bookmark(expectedUrl: String?): Bookmark? {
+        if (expectedUrl.isNullOrBlank()) return null
+        val url = prefs.getString("bookmark_url", null) ?: return null
+        if (url != expectedUrl) return null
+        val duration = prefs.getLong("bookmark_duration_ms", 0L).coerceIn(0L, 86_400_000L)
+        val raw = prefs.getLong("bookmark_position_ms", 0L).coerceIn(0L, 86_400_000L)
+        // Never restore into the last few seconds of an already finished song.
+        val position = if (duration > 0L && raw >= (duration - 4_000L).coerceAtLeast(0L))
+            0L else raw
+        return Bookmark(url, position, duration)
+    }
+
     fun save(queue: PlaybackQueue) {
         val tracks = JSONArray()
         queue.snapshot().forEach {
