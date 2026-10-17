@@ -370,10 +370,9 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
                     active.isPlaying -> Unit
                     active.playerError != null -> action(PlaybackService.ACTION_RETRY_CURRENT)
                     active.currentMediaItem != null -> {
-                        if (active.playbackState == Player.STATE_ENDED) {
-                            active.seekTo(0L)
-                            active.prepare()
-                        }
+                        if (active.playbackState == Player.STATE_ENDED) active.seekTo(0L)
+                        if (active.playbackState == Player.STATE_ENDED ||
+                            active.playbackState == Player.STATE_IDLE) active.prepare()
                         active.play()
                     }
                     state.offline -> action(PlaybackService.ACTION_RESUME_OFFLINE)
@@ -397,7 +396,12 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
                     (it.currentMediaItem == null && !state.offline && state.queueIndex >= 0 &&
                         it.playWhenReady)) it.pause()
                 else if (it.playerError != null) action(PlaybackService.ACTION_RETRY_CURRENT)
-                else if (it.currentMediaItem != null) it.play()
+                else if (it.currentMediaItem != null) {
+                    if (it.playbackState == Player.STATE_ENDED) it.seekTo(0L)
+                    if (it.playbackState == Player.STATE_ENDED ||
+                        it.playbackState == Player.STATE_IDLE) it.prepare()
+                    it.play()
+                }
                 else if (state.offline) action(PlaybackService.ACTION_RESUME_OFFLINE)
                 else if (state.queueIndex >= 0) action(PlaybackService.ACTION_RESUME_SAVED)
                 else state = state.copy(error = "Choose a song to start listening.")
