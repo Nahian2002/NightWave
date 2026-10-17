@@ -18,6 +18,14 @@ object PlaybackCommandPolicy {
         !selectedId.isNullOrBlank() &&
         selectedId == loadedId
 
+    /** Home Resume is idempotent only for the exact item already playing. */
+    fun resumeSatisfied(
+        selectedId: String?,
+        loadedId: String?,
+        playerHasError: Boolean,
+        isPlaying: Boolean
+    ): Boolean = isPlaying && canResumeLoaded(selectedId, loadedId, playerHasError)
+
     fun isOfflineSelection(selectedId: String?): Boolean =
         selectedId?.startsWith("offline:") == true
 
