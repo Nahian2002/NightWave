@@ -1,44 +1,57 @@
 @echo off
 setlocal EnableExtensions
-title NightWave - Android Crash Capture
+title NightWave - Crash and Background Error Capture
 echo.
-echo NightWave crash diagnostics - read-only Android log collection
-echo No app data is cleared. No apps are uninstalled.
+echo NIGHTWAVE CRASH CAPTURE - no app reinstall or data reset required
+echo This script reads Android diagnostic logs. It does NOT clear app data.
+echo It can capture recent crashes even if NightWave will not open.
 echo.
+
 set "ADB="
 for %%P in (adb.exe) do set "ADB=%%~$PATH:P"
 if not defined ADB if exist "%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe" (
-  set "ADB=%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe"
+    set "ADB=%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe"
 )
 if not defined ADB (
-  echo ERROR: Android adb.exe not found.
-  echo Install Android SDK Platform Tools or use Android Studio's SDK.
-  echo If available, run adb logcat -b crash -d on your PC.
-  echo.
-  pause
-  exit /b 1
+    echo ERROR: adb.exe not found in PATH or the default Android SDK folder.
+    echo Install or locate Android SDK Platform Tools and retry.
+    pause
+    exit /b 1
 )
-echo Using ADB: %ADB%
-echo Connect your Android phone by USB and allow USB debugging.
-echo.
+
+echo Connect your phone by USB. Turn on USB debugging and approve its prompt.
 "%ADB%" devices
 echo.
-echo Now open NightWave's premium preview on your phone.
-echo If the app closes unexpectedly, return here and press any key.
+echo Capturing recent crashes NOW. You do NOT need to reproduce a crash.
 echo.
-pause >nul
-set "REPORT=%~dp0NightWave-crash.log"
-"%ADB%" logcat -b crash -d -t 600 > "%REPORT%"
+set "CRASH=%~dp0NightWave-crash.log"
+set "SYSTEM=%~dp0NightWave-system-log.log"
+"%ADB%" logcat -b crash -d -v threadtime > "%CRASH%"
 if errorlevel 1 (
-  echo Failed to capture crash log. Verify USB debugging authorization.
-  pause
-  exit /b 1
+    echo Could not read crash logs. Check USB debugging authorization.
+    pause
+    exit /b 1
+)
+"%ADB%" logcat -b main -b system -d -t 3000 -v threadtime > "%SYSTEM%"
+if errorlevel 1 (
+    echo Main/system log collection failed. Crash log was still saved.
 )
 echo.
-echo Crash buffer saved to: %REPORT%
-echo Open the file and look for "FATAL EXCEPTION" and "com.nightwave.player".
-echo Review the file for private data before sharing.
-echo Note: the crash buffer can contain records from other apps.
+echo Crash log: %CRASH%
+echo Supplemental log: %SYSTEM%
+echo.
+echo FIRST: open NightWave-crash.log and search for:
+echo   "FATAL EXCEPTION"  or  "Process: com.nightwave.player"
+echo Include that block and its "Caused by:" stack when sending.
+echo.
+echo If the crash log has no NightWave exception, share the relevant
+echo NightWave/AndroidRuntime/ANR lines from NightWave-system-log.log.
+echo.
+echo IMPORTANT: These logs may contain personal information and data from
+echo other apps. Review/redact sensitive content before sharing.
+echo.
+echo If no crash is recorded yet, reproduce the issue and run this script
+echo again. DO NOT uninstall, clear data, or select reset.
 echo.
 pause
 exit /b 0
