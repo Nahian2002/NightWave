@@ -12,7 +12,7 @@ The premium player's Play/Pause and Seek controls previously called Media3 Contr
 
 ### 2. App health in premium NightWave
 
-The premium **You** profile now includes **App health → View / share crash summary**, available without opening classic NightWave. The button displays a preview on the phone first and requires an explicit **Share summary** confirmation. No data is uploaded automatically. Classic NightWave retains its own diagnostic share action.
+The premium **You** profile now includes **App health → View / share crash summary**, available without opening classic NightWave. The button displays the **exact report it will share** on the phone first and requires an explicit **Share summary** confirmation. The newest app exception history is capped at 5,000 characters so the important Android exit-history section is never hidden behind old entries. No data is uploaded automatically. Classic NightWave retains its own diagnostic share action.
 
 ### 3. Android system exit history, privacy-minimized
 
