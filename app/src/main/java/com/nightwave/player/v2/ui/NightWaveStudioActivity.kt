@@ -111,6 +111,7 @@ import com.nightwave.player.net.VideoPreview
 import com.nightwave.player.net.YouTubeGateway
 import com.nightwave.player.net.VideoSearchResults
 import com.nightwave.player.net.SearchMode
+import com.nightwave.player.net.SavedTrackSearch
 import com.nightwave.player.ui.MainActivity
 import com.nightwave.player.ui.YouTubeSearchBrowser
 import com.nightwave.player.v2.data.GuestProfileStore
@@ -842,7 +843,12 @@ private fun StudioRoot(
                     StudioTab.SEARCH -> StudioSearch(
                         Modifier, searchState, onSearch, onWebSearch,
                         onPlay, onSongOptions,
-                        playerState.videoUrl.takeIf { playerState.playing }.orEmpty()
+                        playerState.videoUrl.takeIf { playerState.playing }.orEmpty(),
+                        savedTracks = remember(favorites, recent, playlistNames) {
+                            (favorites + recent + playlistNames.take(25).flatMap(getPlaylist))
+                                .distinctBy { it.url }
+                                .take(350)
+                        }
                     )
                     StudioTab.LIBRARY -> StudioLibrary(
                         modifier = Modifier, favorites = favorites, names = playlistNames,
@@ -989,19 +995,23 @@ private fun StudioSearch(
     onWebSearch: (String) -> Unit,
     onPlay: (VideoPreview, List<VideoPreview>) -> Unit,
     onSongOptions: (VideoPreview) -> Unit,
-    playingUrl: String
+    playingUrl: String,
+    savedTracks: List<VideoPreview>
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var mode by rememberSaveable { mutableStateOf(SearchMode.SONGS) }
     LaunchedEffect(state.query) { if (state.query.isNotBlank()) query = state.query }
     val submit = { if (query.isNotBlank()) onNativeSearch(query.trim(), mode) }
+    val savedMatches = remember(query, savedTracks) {
+        SavedTrackSearch.match(query, savedTracks)
+    }
     LazyColumn(
         modifier.fillMaxWidth().widthIn(max = 740.dp).fillMaxHeight(),
         contentPadding = PaddingValues(horizontal = 19.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item { SectionHeading("Explore sound", "Search for songs, artists and public videos") }
-        if (state.videos.isEmpty() && !state.loading) {
+        if (query.isBlank() && state.videos.isEmpty() && !state.loading) {
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
                     Text("START SOMEWHERE", style = MaterialTheme.typography.labelSmall,
@@ -1053,37 +1063,74 @@ private fun StudioSearch(
                 Text(if (state.loading) "Searching…" else "Find music")
             }
         }
+        if (savedMatches.isNotEmpty()) {
+            item {
+                SectionHeading("In your library",
+                    savedMatches.size.toString() + " matches from liked, recent and playlists")
+            }
+            items(savedMatches, key = { "saved:" + it.url }) { song ->
+                MusicTrackTile(song, isPlaying = playingUrl == song.url,
+                    onOptions = { onSongOptions(song) },
+                    onClick = { onPlay(song, savedMatches) })
+            }
+        }
         if (state.loading) {
-            item { Text("Searching public music results…",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant) }
+            item {
+                Text("Checking public video search… Your saved songs remain available.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         } else if (state.videos.isNotEmpty()) {
-            item { SectionHeading(
-                "Results", state.videos.size.toString() + " tracks · " + state.provider
-            ) }
-            items(state.videos, key = { it.url }) { song ->
+            item { SectionHeading("Public results",
+                state.videos.size.toString() + " tracks · " + state.provider) }
+            items(state.videos, key = { "public:" + it.url }) { song ->
                 MusicTrackTile(song, isPlaying = playingUrl == song.url,
                     onOptions = { onSongOptions(song) },
                     onClick = { onPlay(song, state.videos) })
             }
         } else if (state.error.isNotBlank()) {
-            item { EmptyMusicCard("Search needs a different route",
-                state.error, "Search on YouTube") {
-                onWebSearch(query.ifBlank { state.query })
-            } }
-        } else if (state.query.isNotBlank()) {
-            item { Text("No supported public video results returned.",
-                style = MaterialTheme.typography.bodyMedium) }
+            item {
+                Column(Modifier.fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.surface)
+                    .padding(horizontal = 14.dp, vertical = 13.dp),
+                    verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                    Text("Online search is unavailable",
+                        style = MaterialTheme.typography.titleMedium)
+                    Text(if (savedMatches.isNotEmpty())
+                        "Your saved matches are above. You can retry public search or open YouTube."
+                        else "Public search didn't return results. Retry or search YouTube directly.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(onClick = submit, enabled = query.isNotBlank()) {
+                            Text("Retry")
+                        }
+                        OutlinedButton(onClick = {
+                            onWebSearch(query.ifBlank { state.query })
+                        }, enabled = query.isNotBlank()) {
+                            Text("YouTube ↗")
+                        }
+                    }
+                }
+            }
+        } else if (state.query.isNotBlank() && savedMatches.isEmpty()) {
+            item {
+                Text("No matches yet. Try a different artist or open YouTube search.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+        if (state.error.isBlank() && query.isNotBlank()) {
+            item {
+                OutlinedButton(onClick = { onWebSearch(query.trim()) },
+                    modifier = Modifier.fillMaxWidth().height(45.dp)) {
+                    Text("Search on YouTube ↗")
+                }
+            }
         }
         item {
-            OutlinedButton(
-                onClick = { onWebSearch(query.trim()) },
-                enabled = query.isNotBlank(),
-                modifier = Modifier.fillMaxWidth().height(48.dp)
-            ) { Text("Open YouTube search  ↗") }
-        }
-        item {
-            Text("Public video availability can change. YouTube search opens inside NightWave when native results aren't accessible.",
+            Text("Saved songs work without public search. YouTube availability and playback can change.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
