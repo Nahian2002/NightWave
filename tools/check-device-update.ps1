@@ -107,11 +107,14 @@ try {
         }
 
         $installedInfo = (& $aapt dump badging $temporaryApk 2>&1 | Out-String)
-        if ($LASTEXITCODE -ne 0 -or
-            $installedInfo -notmatch "(?m)^package:\s+name='com\.nightwave\.player'\s+versionCode='(\d+)'") {
+        if ($LASTEXITCODE -ne 0) {
+            throw 'Android aapt cannot inspect installed NightWave.'
+        }
+        if ($installedInfo -match "(?m)^package:\s+name='com\.nightwave\.player'\s+versionCode='(\d+)'") {
+            $installedCode = [int]$Matches[1]
+        } else {
             throw 'Installed package identity/version could not be verified.'
         }
-        $installedCode = [int]$Matches[1]
         if ($installedCode -gt $versionCode) {
             throw 'Installed NightWave version is newer. Do not downgrade or uninstall.'
         }
@@ -119,8 +122,9 @@ try {
         $checked = 'PASS - IN-PLACE UPDATE SIGNER MATCH'
         $details = 'Installed NightWave APK signer matches the new APK. This is only a read-only preflight.'
     }
+    $verifyText = $verifyResult -join [Environment]::NewLine
     if ($LASTEXITCODE -ne 0 -or
-        -not ($verifyResult -join [Environment]::NewLine).Contains('NightWave APK verification PASSED')) {
+        $verifyText -notmatch 'NightWave APK verification PASSED') {
         $checked = 'INCONCLUSIVE'
         throw 'Candidate/installed APK verification failed. Do not install or uninstall.'
     }
