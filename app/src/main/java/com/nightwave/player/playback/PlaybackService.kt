@@ -61,6 +61,8 @@ class PlaybackService : MediaSessionService() {
         const val ACTION_REPEAT = "com.nightwave.player.REPEAT"
         const val ACTION_SLEEP_TIMER_SET = "com.nightwave.player.SLEEP_TIMER_SET"
         const val ACTION_SLEEP_TIMER_CANCEL = "com.nightwave.player.SLEEP_TIMER_CANCEL"
+        const val ACTION_OFFLINE_SPEED_SET = "com.nightwave.player.OFFLINE_SPEED_SET"
+        const val EXTRA_OFFLINE_SPEED_PERCENT = "offline_speed_percent"
         const val EXTRA_SLEEP_MINUTES = "sleep_minutes"
         const val EXTRA_URLS = "urls"
         const val EXTRA_TITLES = "titles"
@@ -75,6 +77,7 @@ class PlaybackService : MediaSessionService() {
     private lateinit var savedQueue: QueueStateStore
     private val main = Handler(Looper.getMainLooper())
     private lateinit var sleepStatus: SleepTimerStatusStore
+    private lateinit var offlineSpeedStore: OfflinePlaybackSpeedStore
     private var sleepTimerGeneration = 0
     private var sleepDeadlineElapsedMs = 0L
     private var sleepTimerRunnable: Runnable? = null
@@ -280,6 +283,7 @@ class PlaybackService : MediaSessionService() {
         super.onCreate()
         savedQueue = QueueStateStore(this)
         sleepStatus = SleepTimerStatusStore(this)
+        offlineSpeedStore = OfflinePlaybackSpeedStore(this)
         // A process/service restart never silently resurrects an old timer.
         // Playback itself also requires an explicit user resume after restart.
         clearSleepTimer()
@@ -449,6 +453,14 @@ class PlaybackService : MediaSessionService() {
             ACTION_RETRY_CURRENT -> retryCurrent()
             ACTION_SLEEP_TIMER_SET -> setSleepTimer(intent.getIntExtra(EXTRA_SLEEP_MINUTES, 0))
             ACTION_SLEEP_TIMER_CANCEL -> clearSleepTimer()
+            ACTION_OFFLINE_SPEED_SET -> {
+                val percent = intent.getIntExtra(EXTRA_OFFLINE_SPEED_PERCENT, -1)
+                if (OfflinePlaybackSpeedPolicy.accepts(percent) &&
+                    offlineSpeedStore.save(percent) && offlinePlaying
+                ) {
+                    exoPlayer?.setPlaybackSpeed(OfflinePlaybackSpeedPolicy.speed(percent))
+                }
+            }
             ACTION_NEXT -> playNext(false)
             ACTION_PREVIOUS -> playPrevious()
             ACTION_JUMP -> if (!offlinePlaying) queue.jump(intent.getIntExtra(EXTRA_INDEX, -1))?.let { savedQueue.save(queue); resolveAndPlay(it) }
@@ -572,6 +584,8 @@ class PlaybackService : MediaSessionService() {
         player.apply {
             pause()
             setMediaItem(item)
+            // Offline audio only; restart and next-track load obey same choice.
+            setPlaybackSpeed(OfflinePlaybackSpeedPolicy.speed(offlineSpeedStore.read()))
             playWhenReady = true
             prepare()
             if (resumePositionMs > 0L) seekTo(resumePositionMs)
@@ -664,6 +678,8 @@ class PlaybackService : MediaSessionService() {
         exoPlayer?.apply {
             stop()
             clearMediaItems()
+            // Never apply offline speed preference to public stream playback.
+            setPlaybackSpeed(1f)
             // Keep pending user intent observable by Media3 Play/Pause.
             // A Pause during extraction must not be reversed at completion.
             playWhenReady = autoPlay
