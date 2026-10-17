@@ -178,7 +178,8 @@ fun NightWaveMixCard(
                     Text(mix.title, style = MaterialTheme.typography.titleMedium,
                         color = scheme.onSurface, maxLines = 1,
                         overflow = TextOverflow.Ellipsis)
-                    Text("${mix.tracks.size} tracks · ${if (selected) "Collapse" else "View tracks"}",
+                    Text("${mix.tracks.size} ${if (mix.tracks.size == 1) "track" else "tracks"} · " +
+                        if (selected) "Collapse" else "View tracks",
                         style = MaterialTheme.typography.labelSmall,
                         color = scheme.onSurfaceVariant, maxLines = 1)
                 }
