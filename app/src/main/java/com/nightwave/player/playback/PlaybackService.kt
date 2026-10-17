@@ -131,9 +131,7 @@ class PlaybackService : MediaSessionService() {
                         KeyEvent.KEYCODE_MEDIA_PLAY, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
                         KeyEvent.KEYCODE_HEADSETHOOK -> {
                             if (exoPlayer?.currentMediaItem == null && queue.current != null) {
-                                val entry = queue.current!!
-                                resolveAndPlay(entry, autoPlay = true,
-                                    resumePositionMs = savedQueue.bookmark(entry.url)?.positionMs ?: 0L)
+                                resumeSavedQueue()
                                 true
                             } else false // Media3 handles ordinary play/pause.
                         }
@@ -200,14 +198,7 @@ class PlaybackService : MediaSessionService() {
                     }
                 }
             }
-            ACTION_RESUME_SAVED -> {
-                val current = queue.current
-                if (exoPlayer?.currentMediaItem != null) exoPlayer?.play()
-                else current?.let {
-                    resolveAndPlay(it, autoPlay = true,
-                        resumePositionMs = savedQueue.bookmark(it.url)?.positionMs ?: 0L)
-                }
-            }
+            ACTION_RESUME_SAVED -> resumeSavedQueue()
             ACTION_NEXT -> playNext(false)
             ACTION_PREVIOUS -> playPrevious()
             ACTION_JUMP -> queue.jump(intent.getIntExtra(EXTRA_INDEX, -1))?.let { savedQueue.save(queue); resolveAndPlay(it) }
@@ -222,6 +213,18 @@ class PlaybackService : MediaSessionService() {
             }
         }
         return result
+    }
+
+    /** Called only by a user/transport Play action, never by onCreate. */
+    private fun resumeSavedQueue() {
+        if (exoPlayer?.currentMediaItem != null) {
+            exoPlayer?.play()
+        } else {
+            queue.current?.let { entry ->
+                resolveAndPlay(entry, autoPlay = true,
+                    resumePositionMs = savedQueue.bookmark(entry.url)?.positionMs ?: 0L)
+            }
+        }
     }
 
     private fun playNext(automatic: Boolean) {
