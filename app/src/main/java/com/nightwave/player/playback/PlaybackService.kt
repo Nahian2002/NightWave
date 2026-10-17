@@ -396,6 +396,7 @@ class PlaybackService : MediaSessionService() {
         }
         offlinePlaying = true
         generation++ // Cancel unresolved online audio from a previous song.
+        resolvingPublicUrl = null
         autoRetriedVideo = null
         player.apply {
             pause()
