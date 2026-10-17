@@ -40,11 +40,22 @@ object CloudLibraryMerger {
         var appendedReferences = 0
 
         for ((remoteName, remoteTracks) in cleanRemote.playlists) {
-            val existing = local.playlists.firstOrNull {
+            val existing = mergedPlaylists.firstOrNull {
                 it.first.equals(remoteName, ignoreCase = true)
             }
-            if (existing != null && existing.second.map { it.url } == remoteTracks.map { it.url }) {
+            val remoteUrls = remoteTracks.map { it.url }
+            if (existing != null && existing.second.map { it.url } == remoteUrls) {
                 continue // Already identical in content and order. Keep local metadata.
+            }
+            if (existing != null) {
+                // Idempotent: repeat manual merge of the SAME remote snapshot
+                // must not create "Drive 2", "Drive 3" copies forever.
+                val alreadyImported = mergedPlaylists.any { (storedName, storedTracks) ->
+                    (1..51).any { suffix ->
+                        storedName.equals(importedName(remoteName, suffix), ignoreCase = true)
+                    } && storedTracks.map { it.url } == remoteUrls
+                }
+                if (alreadyImported) continue
             }
             val importedName = if (existing == null) remoteName
                 else {
@@ -81,11 +92,14 @@ object CloudLibraryMerger {
         )
     }
 
+    private fun importedName(name: String, suffix: Int): String {
+        val marker = if (suffix == 1) " (Drive)" else " (Drive $suffix)"
+        return name.take(60 - marker.length).trimEnd() + marker
+    }
+
     private fun availableImportedName(name: String, used: Set<String>): String {
         for (suffix in 1..51) {
-            val marker = if (suffix == 1) " (Drive)" else " (Drive $suffix)"
-            val truncated = name.take(60 - marker.length).trimEnd()
-            val candidate = truncated + marker
+            val candidate = importedName(name, suffix)
             if (candidate.lowercase() !in used) return candidate
         }
         error("Could not allocate a safe imported playlist name")
