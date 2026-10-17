@@ -62,6 +62,9 @@ class ListeningSessionMeter {
     ): List<ListeningPulse> {
         val emitted = mutableListOf<ListeningPulse>()
         if (id != trackId) {
+            // Commit the elapsed tail of the outgoing song before updating its
+            // identity. A transition must never attribute old audio to new art.
+            accrue(nowElapsedMs)
             emitPending(nowWallMs)?.let(emitted::add)
             reset()
             id = trackId?.takeIf { it.isNotBlank() }
@@ -69,6 +72,16 @@ class ListeningSessionMeter {
             artist = trackArtist.take(120)
         }
         if (id == null) return emitted
+        accrue(nowElapsedMs)
+        wasPlaying = playing
+        previousElapsed = nowElapsedMs
+        if (!playing || pendingMs >= FLUSH_MS || pendingQualifyingPlay) {
+            emitPending(nowWallMs)?.let(emitted::add)
+        }
+        return emitted
+    }
+
+    private fun accrue(nowElapsedMs: Long) {
         val prev = previousElapsed
         if (wasPlaying && prev != null) {
             val elapsed = (nowElapsedMs - prev).coerceIn(0L, MAX_OBSERVED_GAP_MS)
@@ -79,12 +92,6 @@ class ListeningSessionMeter {
                 playCredited = true
             }
         }
-        wasPlaying = playing
-        previousElapsed = nowElapsedMs
-        if (!playing || pendingMs >= FLUSH_MS || pendingQualifyingPlay) {
-            emitPending(nowWallMs)?.let(emitted::add)
-        }
-        return emitted
     }
 
     private fun emitPending(wallMs: Long): ListeningPulse? {
