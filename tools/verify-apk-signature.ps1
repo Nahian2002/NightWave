@@ -58,6 +58,11 @@ try {
     $continuity = 'NOT CHECKED - no previous APK supplied. Installed-device signer must be checked separately.'
     if (-not [string]::IsNullOrWhiteSpace($PreviousApkPath) -and
         (Test-Path -LiteralPath $PreviousApkPath -PathType Leaf)) {
+        $previousBadging = (& $aapt dump badging $PreviousApkPath 2>&1 | Out-String)
+        if ($LASTEXITCODE -ne 0 -or
+            $previousBadging -notmatch "(?m)^package:\\s+name='com\\.nightwave\\.player'") {
+            throw 'The previous APK is not a verifiable NightWave package.'
+        }
         $previousSigner = Read-Signer $PreviousApkPath $apksigner
         if ($previousSigner -ne $newSigner) {
             throw 'APK signing certificate changed. Keep the existing app; do NOT uninstall or clear data.'
