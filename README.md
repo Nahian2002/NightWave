@@ -1,5 +1,19 @@
 # NightWave
 
+## Phase 6B — User-imported synced lyrics & private listening insights (draft)
+
+**Source branch:** `feature/nightwave-v2-phase6b-private-lyrics-listening-insights`, built on 6A2D. Stable `main` and existing installed user data are unchanged. **No Android/phone verification has been performed.**
+
+[Phase 6B source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase6b-private-lyrics-listening-insights.zip) · [6B privacy, limits & deferred QA guide](docs/NIGHTWAVE_V2_PHASE6B_QA.md)
+
+- **Lyrics in Now Playing:** Tap **Lyrics** on an imported offline audio track, select a user-provided timestamped **.lrc** through Android's document picker, then follow highlighted synchronized lines as playback progresses. Replace/remove private lyric copies for that song. Strict UTF-8 validation, 64KB / 1200 cues and track identity guard; no automatic lyrics scraping or third-party catalog integration.
+- **Private by design:** LRC text is saved in separate device-private settings, not included in Google Drive backups, exported guest library or cloud-device merges. No app permission, server, lyrics provider or analytics tracker added.
+- **You > Your listening snapshot:** Shows truthful counts of distinct recently played tracks, represented creators, liked songs and playlists from existing bounded library data. These are **not play counts, total listening minutes or all-time charts**.
+- **Preserved:** Media3 owner, offline media files, Home, Search, mini-player X/swipe/restore, safe resume, user playlists, cloud backup and merge. No version/signing/package change.
+- **Release verification deferred:** JVM tests for timestamp import, active-line lookup, encoding/size rejection and local-insight calculations are authored and CI gate is staged for manual execution. Build/APK, Google OAuth, artwork, gestures and phone screen checks are **not yet verified**.
+
+---
+
 ## Phase 6A2D — Compact Home mixes & useful idle Search (draft)
 
 **Branch:** `feature/nightwave-v2-phase6a2d-discovery-home-density` (built on 6A2). **Not a verified Android release.** The existing mini-player X/swipe behavior, playback engine, saved library and Google Drive code remain unchanged.
