@@ -22,13 +22,13 @@ manifest = read("app/src/main/AndroidManifest.xml")
 
 # Always keep the build, provenance check and installed-device check aligned.
 assert 'applicationId = "com.nightwave.player"' in gradle
-assert 'versionCode = 33' in gradle
-assert 'versionName = "2.0.0-alpha5q"' in gradle
-assert "-VersionName '2.0.0-alpha5q' -VersionCode '33'" in builder
-assert "'Version: 2.0.0-alpha5q'" in builder
-assert "'Version code: 33'" in builder
-assert "$versionName = '2.0.0-alpha5q'" in device
-assert '$versionCode = 33' in device
+assert 'versionCode = 34' in gradle
+assert 'versionName = "2.0.0-alpha5r"' in gradle
+assert "-VersionName '2.0.0-alpha5r' -VersionCode '34'" in builder
+assert "'Version: 2.0.0-alpha5r'" in builder
+assert "'Version code: 34'" in builder
+assert "$versionName = '2.0.0-alpha5r'" in device
+assert '$versionCode = 34' in device
 assert '$reportedVersion -ne $versionName' in device
 assert '$reportedCode -ne $versionCode' in device
 assert device.count("if ($checked -like 'PASS*') { exit 0 }") == 1

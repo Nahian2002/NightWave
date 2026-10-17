@@ -19,11 +19,11 @@ device = read("tools/check-device-update.ps1")
 tests = read("app/src/androidTest/java/com/nightwave/player/v2/ui/NightWaveSwipeTabsInstrumentedTest.kt")
 manifest = read("app/src/main/AndroidManifest.xml")
 
-assert 'versionCode = 33' in gradle
-assert 'versionName = "2.0.0-alpha5q"' in gradle
-assert "-VersionName '2.0.0-alpha5q' -VersionCode '33'" in builder
-assert "$versionName = '2.0.0-alpha5q'" in device
-assert '$versionCode = 33' in device
+assert 'versionCode = 34' in gradle
+assert 'versionName = "2.0.0-alpha5r"' in gradle
+assert "-VersionName '2.0.0-alpha5r' -VersionCode '34'" in builder
+assert "$versionName = '2.0.0-alpha5r'" in device
+assert '$versionCode = 34' in device
 assert '$reportedVersion -ne $versionName' in device
 
 # One stable page position for click/swipe/back/settings and restoration.
@@ -71,9 +71,9 @@ assert 'searchNavigationToken' in ui
 # Child and overlay gestures remain separate from the page pager.
 assert 'detectVerticalDragGestures(' in player
 assert 'detectHorizontalDragGestures(' in player
-assert 'if (travel > 70f) onHide()' in player
-assert 'if (travel < -70f) onExpand()' in player
-assert 'if (dragged > 65f) onDismiss()' in player
+assert 'PlayerVerticalSwipe.MINIMIZE -> onHide()' in player
+assert 'PlayerVerticalSwipe.EXPAND -> onExpand()' in player
+assert 'PlayerVerticalSwipe.MINIMIZE) onDismiss()' in player
 assert 'StudioNowPlayingOverlay(' in ui
 assert 'if (showQueue) StudioQueueSheet(' in ui
 assert 'onOpenClassic = onOpenClassic' in ui
