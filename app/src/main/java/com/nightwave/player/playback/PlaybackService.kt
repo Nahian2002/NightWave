@@ -128,7 +128,16 @@ class PlaybackService : MediaSessionService() {
                     return when (event.keyCode) {
                         KeyEvent.KEYCODE_MEDIA_NEXT -> { playNext(false); true }
                         KeyEvent.KEYCODE_MEDIA_PREVIOUS -> { playPrevious(); true }
-                        else -> false // Media3 still handles play/pause/headset buttons.
+                        KeyEvent.KEYCODE_MEDIA_PLAY, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
+                        KeyEvent.KEYCODE_HEADSETHOOK -> {
+                            if (exoPlayer?.currentMediaItem == null && queue.current != null) {
+                                val entry = queue.current!!
+                                resolveAndPlay(entry, autoPlay = true,
+                                    resumePositionMs = savedQueue.bookmark(entry.url)?.positionMs ?: 0L)
+                                true
+                            } else false // Media3 handles ordinary play/pause.
+                        }
+                        else -> false
                     }
                 }
             }).build()
