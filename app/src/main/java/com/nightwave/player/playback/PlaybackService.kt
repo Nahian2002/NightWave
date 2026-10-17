@@ -19,7 +19,7 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import com.nightwave.player.library.MusicLibrary
 import com.nightwave.player.net.YouTubeGateway
-import com.nightwave.player.ui.MainActivity
+import com.nightwave.player.v2.ui.NightWaveStudioActivity
 import java.util.concurrent.Executors
 
 /** The service owns automatic next-track resolution, even while the Activity is stopped. */
@@ -95,7 +95,7 @@ class PlaybackService : MediaSessionService() {
             }
         exoPlayer = player
         val openApp = PendingIntent.getActivity(
-            this, 0, Intent(this, MainActivity::class.java),
+            this, 0, Intent(this, NightWaveStudioActivity::class.java),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
         mediaSession = MediaSession.Builder(this, player).setSessionActivity(openApp)
@@ -197,7 +197,7 @@ class PlaybackService : MediaSessionService() {
                 if (request != generation) return@post
                 outcome.onSuccess { playable ->
                     val video = playable.video
-                    MusicLibrary(this).addRecent(video)
+                    if (autoPlay) MusicLibrary(this).addRecent(video)
                     val metadata = MediaMetadata.Builder().setTitle(video.title).setArtist(video.author)
                         .apply { if (video.thumbnail.isNotEmpty()) setArtworkUri(Uri.parse(video.thumbnail)) }
                         .build()
