@@ -28,6 +28,16 @@ foreach ($file in $files) {
                 $file.FullName.Substring($root.Length + 1), $name))
         }
     }
+    # Compose sizing methods are top-level extension functions. A reference
+    # compiles only when its foundation.layout import is in the same file.
+    # Check every Kotlin file, not just the three positions from the 6H1 log.
+    $source = [System.IO.File]::ReadAllText($file.FullName)
+    if ($source -match '\.\s*fillMaxSize\s*\(' -and
+        -not ($imports -contains 'androidx.compose.foundation.layout.fillMaxSize') -and
+        -not ($imports -contains 'androidx.compose.foundation.layout.*')) {
+        $issues.Add(('Missing androidx.compose.foundation.layout.fillMaxSize import in {0}' -f
+            $file.FullName.Substring($root.Length + 1)))
+    }
     $duplicates = @($imports | Group-Object | Where-Object { $_.Count -gt 1 })
     foreach ($duplicate in $duplicates) {
         $issues.Add(('Duplicate Kotlin import in {0}: {1}' -f
