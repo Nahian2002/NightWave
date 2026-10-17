@@ -6,6 +6,7 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.view.View
 import android.text.Editable
 import android.text.TextWatcher
 import android.widget.EditText
@@ -23,6 +24,7 @@ class OfflineLibraryActivity : ComponentActivity() {
     private lateinit var library: OfflineAudioLibrary
     private lateinit var tracks: LinearLayout
     private lateinit var state: TextView
+    private lateinit var resumeControl: TextView
     private lateinit var sortControl: TextView
     private lateinit var playAllControl: TextView
     private var searchText = ""
@@ -138,6 +140,28 @@ class OfflineLibraryActivity : ComponentActivity() {
         }
         controls.addView(playAllControl, LinearLayout.LayoutParams(dp(105), dp(49)))
         root.addView(controls)
+        resumeControl = label("", 13f, 0xFF91E2D7.toInt(), true).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(15), 0, dp(15), 0)
+            background = cardBackground(0xFF223A42.toInt())
+            contentDescription = "Resume the previous offline listening session"
+            setOnClickListener {
+                val saved = OfflineSessionStore(this@OfflineLibraryActivity).read()
+                if (saved == null || library.find(saved.selectedId)?.let(library::fileFor) == null) {
+                    refresh()
+                    status("The previous offline track is no longer available.")
+                } else {
+                    runCatching {
+                        startService(Intent(this@OfflineLibraryActivity, PlaybackService::class.java)
+                            .setAction(PlaybackService.ACTION_RESUME_OFFLINE))
+                    }.onSuccess { status("Resuming offline music…") }
+                        .onFailure { status("Couldn't resume local music. Try again.") }
+                }
+            }
+        }
+        root.addView(resumeControl, LinearLayout.LayoutParams(-1, dp(48)).apply {
+            bottomMargin = dp(5)
+        })
         state = label("", 12f, 0xFFABBCD0.toInt()).apply {
             setPadding(dp(2), dp(15), 0, dp(12))
         }
@@ -171,6 +195,17 @@ class OfflineLibraryActivity : ComponentActivity() {
             2 -> filtered.sortedWith(compareBy<OfflineSong> { it.bytes }.thenBy { it.title.lowercase() })
             3 -> filtered.sortedWith(compareByDescending<OfflineSong> { it.bytes }.thenBy { it.title.lowercase() })
             else -> filtered.asReversed()
+        }
+        val checkpoint = OfflineSessionStore(this).read()
+        val resumeSong = all.firstOrNull { it.id == checkpoint?.selectedId }
+            ?.takeIf { library.fileFor(it) != null }
+        resumeControl.visibility = if (resumeSong == null) View.GONE else View.VISIBLE
+        if (resumeSong != null) {
+            val minute = (checkpoint?.positionMs ?: 0L) / 60_000
+            resumeControl.text = "↻  Resume · " + resumeSong.title +
+                (if (minute > 0) " · " + minute + "m" else "")
+            resumeControl.maxLines = 1
+            resumeControl.ellipsize = android.text.TextUtils.TruncateAt.END
         }
         status(visibleSongs.size.toString() + " of " + all.size +
             " tracks · Offline · " + (all.sumOf { it.bytes } / (1024 * 1024)) + " MB stored")
