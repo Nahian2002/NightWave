@@ -1,5 +1,21 @@
 # NightWave
 
+## NightWave 2.0 Alpha 5M — Premium interface by default
+
+**Version:** `2.0.0-alpha5m` · **code 29** · **draft branch:** `feature/nightwave-v2-phase5m-premium-default`.
+
+[Download complete Phase 5M source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase5m-premium-default.zip) · [Phase 5M Android navigation and QA](docs/NIGHTWAVE_V2_PHASE5M_QA.md)
+
+- **New default:** NightWave's redesigned Home/Search/Library/You app is Android's sole launcher and opens from the media playback notification. The old early-access label is removed.
+- **Real Settings:** The premium header gear opens **You**, not the old interface. The classic screen is available explicitly under **You → Interface fallback → Open classic interface**. Use **Return to NightWave** in classic Home to come back without duplicating activities.
+- **Shares stay premium:** External YouTube watch links and shared plain text now enter the new UI, not the old one. Valid watch links play through NightWave's existing Media3 service; other text opens native Search. Config changes do not replay an external share.
+- **Navigation:** Android Back dismisses queue/full player/playlist first, then navigates to premium Home; it doesn't unexpectedly return to classic UI.
+- **Data and stability:** Existing app ID, saved profiles, offline audio, queue/bookmarks, existing signing configuration, crash diagnostics, and original Android playback service remain intact. The entire classic UI remains installed as a non-exported in-app fallback.
+
+**Verification:** Added `tools/verify_v2_phase5m.py` and two emulator/device instrumentation tests validating launcher and share routing. **No real Android Gradle build, emulator run, APK install or phone playback test was possible in this environment.** Stable `main` is unchanged; the PR stays draft pending local Windows/phone QA.
+
+---
+
 ## NightWave 2.0 Alpha 5L — Private crash evidence & correct update checks
 
 **Version:** `2.0.0-alpha5l` (build 28). **Draft branch:** `feature/nightwave-v2-phase5l-private-crash-capture`.
