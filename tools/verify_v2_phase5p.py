@@ -23,11 +23,11 @@ device = read("tools/check-device-update.ps1")
 unit = read("app/src/test/java/com/nightwave/player/playback/PlaybackQueueUpcomingTest.kt")
 android = read("app/src/androidTest/java/com/nightwave/player/v2/ui/NightWaveQueueSwipeInstrumentedTest.kt")
 
-assert 'versionCode = 34' in gradle
-assert 'versionName = "2.0.0-alpha5r"' in gradle
-assert "-VersionName '2.0.0-alpha5r' -VersionCode '34'" in builder
-assert "$versionName = '2.0.0-alpha5r'" in device
-assert '$versionCode = 34' in device
+assert 'versionCode = 35' in gradle
+assert 'versionName = "2.0.0-alpha5s"' in gradle
+assert "-VersionName '2.0.0-alpha5s' -VersionCode '35'" in builder
+assert "$versionName = '2.0.0-alpha5s'" in device
+assert '$versionCode = 35' in device
 assert '$reportedVersion -ne $versionName' in device
 
 # Queue-only pure Kotlin mutation, guarded by current song and expected url.
@@ -94,7 +94,7 @@ assert 'android:allowBackup="false"' in manifest
 ET.parse(root / "app/src/main/AndroidManifest.xml")
 
 assert unit.count('@Test') == 8
-assert android.count('@Test') == 2
+assert android.count('@Test') == 3
 for name, content in (('queue', queue), ('service', service), ('bridge', bridge),
                       ('Up Next', ui), ('premium root', studio)):
     assert content.count('{') == content.count('}'), name + ': brace imbalance'

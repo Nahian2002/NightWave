@@ -20,13 +20,13 @@ device = read("tools/check-device-update.ps1")
 signer = read("tools/verify-apk-signature.ps1")
 manifest = read("app/src/main/AndroidManifest.xml")
 
-assert 'versionCode = 34' in gradle
-assert 'versionName = "2.0.0-alpha5r"' in gradle
+assert 'versionCode = 35' in gradle
+assert 'versionName = "2.0.0-alpha5s"' in gradle
 assert 'applicationId = "com.nightwave.player"' in gradle
-assert "-VersionName '2.0.0-alpha5r' -VersionCode '34'" in builder
-assert "Version code: 34" in builder
-assert "$versionName = '2.0.0-alpha5r'" in device
-assert "$versionCode = 34" in device
+assert "-VersionName '2.0.0-alpha5s' -VersionCode '35'" in builder
+assert "Version code: 35" in builder
+assert "$versionName = '2.0.0-alpha5s'" in device
+assert "$versionCode = 35" in device
 
 # Media3 events must remain the authoritative immediate state synchronizer.
 assert 'override fun onEvents(player: Player, events: Player.Events)' in bridge

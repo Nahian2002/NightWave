@@ -69,6 +69,7 @@ function Resolve-Java {
 $project = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $outDir = Join-Path $project 'dist'
 $buildLog = Join-Path $outDir 'NightWave-build-full.log'
+$previousLog = Join-Path $outDir 'NightWave-build-full-previous.log'
 $errorReport = Join-Path $outDir 'NightWave-build-errors.txt'
 $statusFile = Join-Path $outDir 'NightWave-build-status.txt'
 $output = Join-Path $outDir 'NightWave-debug.apk'
@@ -76,7 +77,13 @@ $previousApk = Join-Path $outDir 'NightWave-debug-previous.apk'
 $stage = 'Preflight'
 New-Item -ItemType Directory -Path $outDir -Force | Out-Null
 if (Test-Path -LiteralPath $errorReport) { Remove-Item -LiteralPath $errorReport -Force }
-'STARTED - not a verified build. Do not install an old APK.' |
+# Archive the prior log; a preflight failure must not reuse yesterday's compiler errors.
+if (Test-Path -LiteralPath $buildLog) {
+    Copy-Item -LiteralPath $buildLog -Destination $previousLog -Force
+}
+'Gradle not yet started for this NightWave build attempt.' |
+    Set-Content -LiteralPath $buildLog -Encoding UTF8
+'FAILED - build has not yet passed all checks; do not install an old APK.' |
     Set-Content -LiteralPath $statusFile -Encoding UTF8
 try {
     if (-not [Environment]::Is64BitOperatingSystem) { throw '64-bit Windows is required.' }
@@ -100,6 +107,16 @@ try {
         throw 'NightWave synthetic crash redaction self-test failed. No APK was published.'
     }
     Say 'Synthetic crash-report privacy test PASS; no device was accessed.'
+    $stage = 'Build diagnostic self-test'
+    $diagnosticScript = Join-Path $PSScriptRoot 'diagnose-build.ps1'
+    if (-not (Test-Path -LiteralPath $diagnosticScript -PathType Leaf)) {
+        throw 'NightWave read-only build diagnosis tool is missing.'
+    }
+    $diagnosticTest = (& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $diagnosticScript -SelfTest 2>&1 | Out-String)
+    if ($LASTEXITCODE -ne 0 -or $diagnosticTest -notmatch 'PASS: NightWave build diagnostic self-test') {
+        throw 'NightWave build diagnosis/redaction self-test failed. No APK was published.'
+    }
+    Say 'Build diagnostics self-test PASS; no APK or device was accessed.'
     $stage = 'Java preparation'
     Resolve-Java
 
@@ -149,7 +166,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Android SDK package installation failed.' }
 
     $stage = 'Gradle compile / unit tests'
-    Say 'Running Android unit tests and compiling the debug APK'
+    Say 'Running unit tests, building APK and compiling Android instrumentation test sources'
     # The complete Gradle output is retained; preflight failures also get a report.
     Say "Saving build output to $buildLog"
 
@@ -158,7 +175,7 @@ try {
         $previousErrorPreference = $ErrorActionPreference
         $ErrorActionPreference = 'Continue'
         try {
-            & $gradleBat --no-daemon --console=plain --warning-mode=summary :app:testDebugUnitTest :app:assembleDebug 2>&1 |
+            & $gradleBat --no-daemon --console=plain --warning-mode=summary :app:testDebugUnitTest :app:assembleDebug :app:compileDebugAndroidTestKotlin 2>&1 |
                 ForEach-Object { $_.ToString() } | Tee-Object -FilePath $buildLog
             $gradleResult = $LASTEXITCODE
         } finally {
@@ -231,7 +248,7 @@ try {
     $buildTools = Join-Path $sdk 'build-tools\35.0.0'
     $verifyOutput = (& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $verifier `
         -ApkPath $apk -BuildToolsDir $buildTools `
-        -VersionName '2.0.0-alpha5r' -VersionCode '34' `
+        -VersionName '2.0.0-alpha5s' -VersionCode '35' `
         -PreviousApkPath $previousApk 2>&1 | Out-String)
     if ($LASTEXITCODE -ne 0) {
         throw ('APK signature/identity gate failed: ' + $verifyOutput.Trim())
@@ -250,8 +267,8 @@ try {
     @(
         'SUCCESS - NightWave Android debug APK locally verified',
         'Package: com.nightwave.player',
-        'Version: 2.0.0-alpha5r',
-        'Version code: 34',
+        'Version: 2.0.0-alpha5s',
+        'Version code: 35',
         $signerLine,
         $continuityLine,
         "SHA256: $hash",
@@ -284,5 +301,14 @@ try {
     ) | Set-Content -LiteralPath $statusFile -Encoding UTF8
     Write-Host "[NightWave] BUILD FAILED ($stage): $reason" -ForegroundColor Red
     Write-Host "Diagnostics: $errorReport" -ForegroundColor Yellow
+    # Best-effort failure-only diagnosis; never changes the failed exit code.
+    $diagnosticScript = Join-Path $PSScriptRoot 'diagnose-build.ps1'
+    if (Test-Path -LiteralPath $diagnosticScript -PathType Leaf) {
+        try {
+            & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $diagnosticScript
+        } catch {
+            Write-Host ('Diagnostic summary unavailable: ' + $_.Exception.Message) -ForegroundColor Yellow
+        }
+    }
     exit 1
 }

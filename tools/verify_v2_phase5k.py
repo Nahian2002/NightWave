@@ -23,12 +23,12 @@ builder = read("tools/build-windows.ps1")
 device = read("tools/check-device-update.ps1")
 manifest = read("app/src/main/AndroidManifest.xml")
 
-assert 'versionCode = 34' in gradle
-assert 'versionName = "2.0.0-alpha5r"' in gradle
+assert 'versionCode = 35' in gradle
+assert 'versionName = "2.0.0-alpha5s"' in gradle
 assert 'applicationId = "com.nightwave.player"' in gradle
-assert "-VersionName '2.0.0-alpha5r' -VersionCode '34'" in builder
-assert "$versionName = '2.0.0-alpha5r'" in device
-assert "$versionCode = 34" in device
+assert "-VersionName '2.0.0-alpha5s' -VersionCode '35'" in builder
+assert "$versionName = '2.0.0-alpha5s'" in device
+assert "$versionCode = 35" in device
 # Critically, the checker must compare the build-status *regex* against the
 # current version, not merely bind the correct $versionName variable.
 assert "$reportedVersion -ne $versionName" in device
