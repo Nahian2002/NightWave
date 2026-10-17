@@ -33,7 +33,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -467,6 +466,7 @@ fun StudioQueueSheet(
                     "Close queue", onDismiss)
             } else {
                 LazyColumn(
+                    modifier = Modifier.weight(1f, fill = false),
                     contentPadding = PaddingValues(bottom = 22.dp),
                     verticalArrangement = Arrangement.spacedBy(7.dp)
                 ) {
