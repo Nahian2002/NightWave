@@ -141,45 +141,48 @@ fun NightWaveMixCard(
     mix: PersonalMix,
     selected: Boolean,
     modifier: Modifier = Modifier,
+    compact: Boolean = false,
     onClick: () -> Unit
 ) {
     val accent = NightWaveVisualLanguage.accent(mix.key)
     val scheme = MaterialTheme.colorScheme
+    val trackLabel = "${mix.tracks.size} " +
+        (if (mix.tracks.size == 1) "track" else "tracks") +
+        " · " + (if (selected) "Collapse" else "View tracks")
     Card(
         onClick = onClick,
-        modifier = modifier.height(138.dp),
-        shape = RoundedCornerShape(21.dp),
+        modifier = modifier.height(if (compact) 106.dp else 122.dp),
+        shape = RoundedCornerShape(19.dp),
         colors = CardDefaults.cardColors(containerColor = scheme.surface)
     ) {
         Box(Modifier.fillMaxSize().background(
             Brush.linearGradient(
-                listOf(accent.copy(alpha = .28f), scheme.surfaceVariant, scheme.surface)
+                listOf(accent.copy(alpha = .23f), scheme.surfaceVariant, scheme.surface)
             )
         )) {
             Canvas(Modifier.fillMaxSize()) {
-                val center = Offset(size.width * .86f, size.height * .18f)
-                drawCircle(accent.copy(alpha = .10f), radius = size.width * .36f, center = center)
-                drawCircle(accent.copy(alpha = .33f), radius = size.width * .26f,
-                    center = center, style = Stroke(width = 2.dp.toPx()))
+                val center = Offset(size.width * .89f, size.height * .16f)
+                drawCircle(accent.copy(alpha = .08f), radius = size.width * .31f, center = center)
+                drawCircle(accent.copy(alpha = .25f), radius = size.width * .24f,
+                    center = center, style = Stroke(width = 1.5.dp.toPx()))
             }
             Column(
-                Modifier.fillMaxSize().padding(13.dp),
+                Modifier.fillMaxSize().padding(horizontal = 14.dp, vertical = 11.dp),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Icon(Icons.Outlined.AutoAwesome, contentDescription = null,
-                        tint = accent, modifier = Modifier.size(18.dp))
-                    Text("FOR YOU", style = MaterialTheme.typography.labelSmall,
-                        color = scheme.onSurfaceVariant)
+                        tint = accent, modifier = Modifier.size(17.dp))
+                    Text("FROM YOUR LIBRARY", style = MaterialTheme.typography.labelSmall,
+                        color = scheme.onSurfaceVariant, maxLines = 1)
                 }
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(mix.title, style = MaterialTheme.typography.titleMedium,
-                        color = scheme.onSurface, maxLines = 2,
+                        color = scheme.onSurface, maxLines = 1,
                         overflow = TextOverflow.Ellipsis)
-                    Text("${mix.tracks.size} saved tracks · ${if (selected) "Hide" else "Explore"}",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = scheme.onSurfaceVariant)
+                    Text(trackLabel, style = MaterialTheme.typography.labelSmall,
+                        color = scheme.onSurfaceVariant, maxLines = 1)
                 }
             }
         }
@@ -197,7 +200,7 @@ fun NightWaveMoodArt(
     // A malformed/empty editorial palette should not crash Home composition.
     val safeColors = if (colors.size >= 2) colors else
         listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.surfaceVariant)
-    Card(onClick = onClick, modifier = modifier.height(126.dp),
+    Card(onClick = onClick, modifier = modifier.height(118.dp),
         shape = RoundedCornerShape(21.dp)) {
         Box(Modifier.fillMaxSize().background(Brush.linearGradient(safeColors))) {
             Canvas(Modifier.fillMaxSize()) {

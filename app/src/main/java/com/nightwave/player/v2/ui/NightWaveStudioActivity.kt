@@ -1362,6 +1362,7 @@ private fun StudioHome(
         PersonalMixEngine.make(favorites, recent, playlistTracks, dayNumber)
     }
     var chosenMixKey by rememberSaveable { mutableStateOf<String?>(null) }
+    var showAllMixTracks by rememberSaveable { mutableStateOf(false) }
     val chosenMix = mixes.firstOrNull { it.key == chosenMixKey }
     val palettes = listOf(
         listOf(Color(0xFF423163), Color(0xFF242B57)),
@@ -1377,7 +1378,7 @@ private fun StudioHome(
         // only add breathing room, not an artificial 150dp blank spacer.
         contentPadding = PaddingValues(start = 19.dp, end = 19.dp,
             top = 18.dp, bottom = 36.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
             Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
@@ -1408,8 +1409,7 @@ private fun StudioHome(
         }
         if (mixes.isNotEmpty()) {
             item {
-                SectionHeading("Made for your listening",
-                    "Real tracks from your favorites, history and playlists · on-device")
+                SectionHeading("Made for you", "Mixes built privately from your saved music")
             }
             mixes.chunked(2).forEachIndexed { row, pair ->
                 item(key = "personal-mix-$row") {
@@ -1417,9 +1417,12 @@ private fun StudioHome(
                         pair.forEach { mix ->
                             NightWaveMixCard(
                                 mix = mix, selected = chosenMixKey == mix.key,
-                                modifier = Modifier.weight(1f),
+                                modifier = if (pair.size == 1) Modifier.fillMaxWidth()
+                                    else Modifier.weight(1f),
+                                compact = pair.size == 1,
                                 onClick = {
                                     chosenMixKey = if (chosenMixKey == mix.key) null else mix.key
+                                    showAllMixTracks = false
                                 }
                             )
                         }
@@ -1428,16 +1431,36 @@ private fun StudioHome(
             }
             if (chosenMix != null) {
                 item(key = "mix-explanation") {
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(chosenMix.description, style = MaterialTheme.typography.titleSmall)
-                        Text(chosenMix.reason, style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Row(Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(chosenMix.description, style = MaterialTheme.typography.titleSmall,
+                                maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(chosenMix.reason, style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        }
+                        OutlinedButton(onClick = {
+                            chosenMix.tracks.firstOrNull()?.let { onPlay(it, chosenMix.tracks) }
+                        }) { Text("Play mix") }
                     }
                 }
-                items(chosenMix.tracks.take(6), key = { "mix:" + it.url }) { song ->
+                items(chosenMix.tracks.take(if (showAllMixTracks) 12 else 3),
+                    key = { "mix:" + it.url }) { song ->
                     MusicTrackTile(song, isPlaying = playingUrl == song.url,
                         onOptions = { onSongOptions(song) },
                         onClick = { onPlay(song, chosenMix.tracks) })
+                }
+                if (chosenMix.tracks.size > 3) {
+                    item(key = "mix-more-tracks") {
+                        OutlinedButton(onClick = { showAllMixTracks = !showAllMixTracks },
+                            modifier = Modifier.fillMaxWidth()) {
+                            Text(if (showAllMixTracks) "Show fewer tracks"
+                                else "See all ${chosenMix.tracks.size} tracks")
+                        }
+                    }
                 }
             }
         }
@@ -1493,6 +1516,7 @@ private fun StudioSearch(
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var mode by rememberSaveable { mutableStateOf(SearchMode.SONGS) }
+    var quickOptionsExpanded by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(state.query) { if (state.query.isNotBlank()) query = state.query }
     val submit = { if (query.isNotBlank()) onPrimarySearch(query.trim(), mode) }
     val savedMatches = remember(query, savedTracks) {
@@ -1529,21 +1553,21 @@ private fun StudioSearch(
                 keyboardActions = KeyboardActions(onSearch = { submit() })
             )
         }
-        item {
-            Button(onClick = submit, enabled = query.isNotBlank(),
-                modifier = Modifier.fillMaxWidth().height(49.dp),
-                shape = RoundedCornerShape(15.dp)) {
-                Text("Find music on YouTube")
+        if (query.isNotBlank()) {
+            item {
+                Button(onClick = submit, modifier = Modifier.fillMaxWidth().height(49.dp),
+                    shape = RoundedCornerShape(15.dp)) {
+                    Text("Find music on YouTube")
+                }
+                Text("YouTube search opens inside NightWave. Saved songs stay available offline.",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Text("Official YouTube discovery · Saved tracks match instantly below",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         if (query.isBlank() && !searching) {
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                    Text("START SOMEWHERE", style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    NightWaveMicroLabel("Explore by mood")
                     DiscoveryShortcuts.picks.take(4).chunked(2).forEach { choices ->
                         Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
                             choices.forEach { shortcut ->
@@ -1560,8 +1584,34 @@ private fun StudioSearch(
                     }
                 }
             }
+            if (savedTracks.isNotEmpty()) {
+                item {
+                    SectionHeading("Already in your library",
+                        "Play something saved without searching online")
+                }
+                items(savedTracks.take(3), key = { "search-starter:" + it.url }) { song ->
+                    MusicTrackTile(song, isPlaying = playingUrl == song.url,
+                        onOptions = { onSongOptions(song) },
+                        onClick = { onPlay(song, savedTracks) })
+                }
+            } else {
+                item {
+                    Text("Your liked songs, playlists and recent music will appear here.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
         }
         if (query.isNotBlank()) {
+            item {
+                OutlinedButton(onClick = { quickOptionsExpanded = !quickOptionsExpanded },
+                    modifier = Modifier.fillMaxWidth().height(44.dp)) {
+                    Text(if (quickOptionsExpanded) "Hide advanced search"
+                        else "More search options")
+                }
+            }
+            if (quickOptionsExpanded || (responseMatchesQuery &&
+                    (state.loading || state.error.isNotBlank() || state.videos.isNotEmpty()))) {
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     NightWaveMicroLabel("Optional quick results")
@@ -1585,6 +1635,7 @@ private fun StudioSearch(
                     }
                     Text(if (searching) "Checking quick results…" else "Try quick in-app results")
                 }
+            }
             }
         }
         if (savedMatches.isNotEmpty()) {
@@ -1648,17 +1699,19 @@ private fun StudioSearch(
                 Text(state.hint, style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-        } else if (responseMatchesQuery && savedMatches.isEmpty()) {
+        } else if (query.isNotBlank() && savedMatches.isEmpty() && !searching) {
             item {
-                Text("No matches yet. Try a different artist or open YouTube search.",
+                Text("Nothing saved for this search yet. Try YouTube or another artist.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
-        item {
-            Text("Saved songs work without public search. Online results and playback depend on YouTube availability.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (query.isNotBlank()) {
+            item {
+                Text("Online search and playback depend on provider availability.",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
     }
 }

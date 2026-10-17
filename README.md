@@ -1,5 +1,18 @@
 # NightWave
 
+## Phase 6A2D — Compact Home mixes & useful idle Search (draft)
+
+**Branch:** `feature/nightwave-v2-phase6a2d-discovery-home-density` (built on 6A2). **Not a verified Android release.** The existing mini-player X/swipe behavior, playback engine, saved library and Google Drive code remain unchanged.
+
+[Phase 6A2D source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase6a2d-discovery-home-density.zip) · [6A2D acceptance checklist](docs/NIGHTWAVE_V2_PHASE6A2D_QA.md)
+
+- **Compact Home:** shorter real-data mix cards, single mix expands full width, leaner spacing, explicit **Play mix** control, three-song preview and **See all tracks** for additional genuine saved tracks. Card taps only reveal tracks; media playback starts on an explicit Play or track selection.
+- **Idle Search:** remove disabled YouTube button on an empty query; show real saved music and four existing mood shortcuts. Saved tracks open using the existing local-library route.
+- **Focused Search:** primary YouTube discovery stays prominent when a query exists. Optional provider filters/results live behind **More search options**, with error states still accessible, local matching still instantaneous and stale online results still guarded.
+- **No invasive changes:** no storage schema, privacy permission, account token, network provider, queue, gesture, media service or APK identity change. Source checks and Compose test cases are authored; **Gradle/Android/device testing is deferred**, as requested.
+
+---
+
 ## Phase 6A2 — Mini-player dismiss and responsive layout (draft)
 
 **Branch:** `feature/nightwave-v2-phase6a2-mini-dismiss-layout-polish`, stacked on 6A. **Source implementation committed; Android/device checks deferred.** No change to package identity, signing, user library or background playback.
