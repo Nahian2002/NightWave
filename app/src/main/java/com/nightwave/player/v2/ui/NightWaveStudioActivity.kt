@@ -813,9 +813,10 @@ private fun StudioProfile(modifier: Modifier, profile: ProfileSettings, save: (P
     roomReadStatus: String, roomPreviewActive: Boolean,
     onEnableRoomPreview: () -> Unit, onUseLegacyReads: () -> Unit) {
     var name by rememberSaveable(profile.localId) { mutableStateOf(profile.displayName) }
+    var showAdvanced by rememberSaveable { mutableStateOf(false) }
     LazyColumn(modifier.widthIn(max = 840.dp).fillMaxHeight(), contentPadding = PaddingValues(20.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp)) {
-        item { SectionHeading("Make it yours.", "Your guest profile is saved on this phone.") }
+        item { SectionHeading("Your profile", "A listening space that feels like yours.") }
         item {
             Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 shape = RoundedCornerShape(23.dp), modifier = Modifier.fillMaxWidth()) {
@@ -835,7 +836,7 @@ private fun StudioProfile(modifier: Modifier, profile: ProfileSettings, save: (P
                     }
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text(profile.displayName, style = MaterialTheme.typography.titleLarge)
-                        Text("GUEST PROFILE · ON THIS DEVICE",
+                        Text("GUEST · LOCAL PROFILE",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
@@ -850,7 +851,7 @@ private fun StudioProfile(modifier: Modifier, profile: ProfileSettings, save: (P
         item {
             Button(onClick = { save(profile.copy(displayName = name)) },
                 modifier = Modifier.fillMaxWidth().height(50.dp)) {
-                Text("SAVE PROFILE NAME")
+                Text("Save profile")
             }
         }
         item { SectionHeading("Profile icon", "Choose a look without uploading personal photos") }
@@ -870,6 +871,65 @@ private fun StudioProfile(modifier: Modifier, profile: ProfileSettings, save: (P
                 }
             }
         }
+        item { SectionHeading("Guest backup and restore", "Keep a copy before uninstalling NightWave") }
+        item {
+            OutlinedButton(onClick = onRecoverLastChange,
+                modifier = Modifier.fillMaxWidth().height(50.dp)) {
+                Text("Undo recent library edit")
+            }
+        }
+        item {
+            OutlinedButton(onClick = onExport, modifier = Modifier.fillMaxWidth().height(52.dp)) {
+                Text("Export music library")
+            }
+        }
+        item {
+            OutlinedButton(onClick = onImport, modifier = Modifier.fillMaxWidth().height(52.dp)) {
+                Text("Restore from backup")
+            }
+        }
+        item {
+            Text("Backups contain your profile, favorites and playlists—not audio files or passwords. " +
+                "Import replaces your current collections after confirmation. Cloud sync is not active.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        item { SectionHeading("App appearance", "Your chosen theme persists across restarts") }
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                for (options in NightWaveTheme.entries.chunked(2)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        for (option in options) {
+                            FilterChip(selected = profile.theme == option,
+                                onClick = { save(profile.copy(theme = option)) },
+                                label = { Text(option.name.lowercase().replaceFirstChar { it.titlecase() }) },
+                                modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
+            }
+        }
+        item { SectionHeading("Motion and comfort") }
+        item {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween) {
+                Column {
+                    Text("Reduced animations", style = MaterialTheme.typography.titleMedium)
+                    Text("Prefer fewer moving effects",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Switch(checked = profile.motion == MotionPreference.REDUCED,
+                    onCheckedChange = { save(profile.copy(motion = if (it) MotionPreference.REDUCED else MotionPreference.SYSTEM)) })
+            }
+        }
+        item {
+            OutlinedButton(onClick = { showAdvanced = !showAdvanced },
+                modifier = Modifier.fillMaxWidth().height(49.dp)) {
+                Text(if (showAdvanced) "Hide advanced storage" else "Advanced storage tools")
+            }
+        }
+        if (showAdvanced) {
         item { SectionHeading("Storage upgrade preview", "Safe migration without deleting the old library") }
         item {
             Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -910,65 +970,14 @@ private fun StudioProfile(modifier: Modifier, profile: ProfileSettings, save: (P
                     else "TRY VERIFIED ROOM READS")
             }
         }
-        item { SectionHeading("Guest backup and restore", "Keep a copy before uninstalling NightWave") }
-        item {
-            OutlinedButton(onClick = onRecoverLastChange,
-                modifier = Modifier.fillMaxWidth().height(50.dp)) {
-                Text("UNDO MOST RECENT LIBRARY EDIT")
-            }
-        }
-        item {
-            OutlinedButton(onClick = onExport, modifier = Modifier.fillMaxWidth().height(52.dp)) {
-                Text("EXPORT LIBRARY BACKUP")
-            }
-        }
-        item {
-            OutlinedButton(onClick = onImport, modifier = Modifier.fillMaxWidth().height(52.dp)) {
-                Text("IMPORT SAVED BACKUP")
-            }
-        }
-        item {
-            Text("Backups contain your profile, favorites and playlists—not audio files or passwords. " +
-                "Import replaces your current collections after confirmation. Cloud sync is not active.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        item { SectionHeading("App appearance", "Your chosen theme persists across restarts") }
-        item {
-            Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                for (options in NightWaveTheme.entries.chunked(2)) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        for (option in options) {
-                            FilterChip(selected = profile.theme == option,
-                                onClick = { save(profile.copy(theme = option)) },
-                                label = { Text(option.name.lowercase().replaceFirstChar { it.titlecase() }) },
-                                modifier = Modifier.weight(1f))
-                        }
-                    }
-                }
-            }
-        }
-        item { SectionHeading("Motion and comfort") }
-        item {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween) {
-                Column {
-                    Text("Reduced animations", style = MaterialTheme.typography.titleMedium)
-                    Text("Prefer fewer moving effects",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-                Switch(checked = profile.motion == MotionPreference.REDUCED,
-                    onCheckedChange = { save(profile.copy(motion = if (it) MotionPreference.REDUCED else MotionPreference.SYSTEM)) })
-            }
         }
         item { HorizontalDivider(color = MaterialTheme.colorScheme.outline) }
         item {
             Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 shape = RoundedCornerShape(19.dp)) {
                 Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                    Text("Google recovery — planned", style = MaterialTheme.typography.titleMedium)
-                    Text("This guest profile is stored locally. Google sign-in and private Drive recovery will be added after migration and restore tests. No account is connected yet.",
+                    Text("Cloud recovery", style = MaterialTheme.typography.titleMedium)
+                    Text("Google account recovery is coming later. Guest profiles and local backup already work without signing in.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
