@@ -8,6 +8,7 @@ import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import com.nightwave.player.v2.data.LibraryArchiveManager
 import com.nightwave.player.diagnostics.NightWaveCrashRecorder
+import com.nightwave.player.diagnostics.NightWaveExitHistory
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
@@ -405,10 +406,11 @@ class NightWaveStudioActivity : ComponentActivity() {
      * Android's share chooser. No telemetry is uploaded automatically.
      */
     private fun showCrashSummaryDialog() {
-        val report = NightWaveCrashRecorder.report(this)
-        val contextText = "Contains exception types and NightWave stack frames only. " +
-            "It does not collect song titles, URLs, file paths or account details. " +
-            "Fatal crashes only: ANRs and system kills may require an Android log."
+        val report = NightWaveCrashRecorder.report(this) + "\n\n" +
+            NightWaveExitHistory.report(this)
+        val contextText = "Includes app-only exception types/stack frames and recent " +
+            "Android process-exit reasons. No song titles, URLs, file paths, " +
+            "traces, account details or device identifiers are collected."
         AlertDialog.Builder(this)
             .setTitle("NightWave crash diagnostics")
             .setMessage(contextText + "\n\n" + report.take(2400))
@@ -1251,9 +1253,8 @@ private fun StudioProfile(modifier: Modifier, profile: ProfileSettings, save: (P
             }
         }
         item {
-            Text("Crash details stay on this phone until you explicitly share them. " +
-                "If Android reports frequent crashes but this list is empty, an ANR or " +
-                "system termination may need an Android log.",
+            Text("Crash details and Android exit reasons stay on this phone until you share them. " +
+                "Some system terminations may not provide a detailed exception.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
