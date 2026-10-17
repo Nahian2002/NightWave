@@ -357,6 +357,37 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
             error = "Playback connection was interrupted. Tap Reconnect.")
     }
 
+    /**
+     * Idempotent Resume for Home's "Pick up where you left off" card.
+     * Unlike playPause(), this can never accidentally pause a live controller.
+     */
+    fun resumeCurrent() {
+        try {
+            controller?.let { active ->
+                when {
+                    active.isPlaying -> Unit
+                    active.playerError != null -> action(PlaybackService.ACTION_RETRY_CURRENT)
+                    active.currentMediaItem != null -> {
+                        if (active.playbackState == Player.STATE_ENDED) {
+                            active.seekTo(0L)
+                            active.prepare()
+                        }
+                        active.play()
+                    }
+                    state.offline -> action(PlaybackService.ACTION_RESUME_OFFLINE)
+                    state.queueIndex >= 0 -> action(PlaybackService.ACTION_RESUME_SAVED)
+                    else -> state = state.copy(error = "Choose a song to start listening.")
+                }
+            } ?: run {
+                if (state.offline) action(PlaybackService.ACTION_RESUME_OFFLINE)
+                else if (state.queueIndex >= 0) action(PlaybackService.ACTION_RESUME_SAVED)
+                else state = state.copy(error = "Player is connecting. Try again.")
+            }
+        } catch (error: RuntimeException) {
+            handleControlFailure("resume", error)
+        }
+    }
+
     override fun playPause() {
         try {
             controller?.let {

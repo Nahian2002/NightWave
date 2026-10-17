@@ -37,7 +37,7 @@ assert 'private fun TrackArtwork(' in components
 assert 'if (video.thumbnail.isNotBlank())' in components
 assert 'isPlaying: Boolean = false' in components
 assert 'ListeningSpotlight(' in studio
-assert 'recent.firstOrNull()?.let { onPlay(it, recent) }' in studio
+assert 'recent.firstOrNull()?.let { onResumeSpotlight(it, recent) }' in studio
 assert 'MusicCollectionTile("Liked songs"' in studio
 assert 'getPlaylist(name)' in studio
 assert 'Filter this collection' in studio

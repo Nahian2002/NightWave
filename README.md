@@ -1,5 +1,18 @@
 # NightWave
 
+## Phase 5Y — Local Personal Mixes & Safe Home Resume (draft)
+
+**Source branch:** `feature/nightwave-v2-phase5y-personal-mixes-resume-guard` · **App identity unchanged:** `com.nightwave.player`, alpha5s/build35 during draft review. **No device-verified APK from this branch yet.**
+
+[Phase 5Y source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase5y-personal-mixes-resume-guard.zip) · [Phase 5Y QA matrix](docs/NIGHTWAVE_V2_PHASE5Y_QA.md)
+
+- **Made for your listening** Home mixes from real local favorites, public-video listening history and playlist tracks, with visible explanations. On-device deterministic ranking, day variation, duplicate filtering and empty-library safeguards; no artificial catalog, paid AI, or new network search requests.
+- **Tap mix to preview:** expanding a mix shows actual tracks without stopping currently playing music; tapping a specific track starts the selected queue.
+- **Fix Home "Pick up where you left off" interruption:** already-playing/buffering current track is preserved; paused current track resumes without rebuilding the queue; known error is retried; different track still follows normal selection. A second service-side guard suppresses duplicate identical queue/resume commands while existing playback or URL resolution is active.
+- **Verified so far:** source and tests committed; real Gradle/JUnit, Android instrumentation, device network latency, streaming and signing checks **not yet verified**. Prior private offline audio, 5T official search and 5U Google Drive draft are preserved.
+
+---
+
 ## Phase 5U — Opt-in Google Drive backups (draft)
 
 **Branch:** `feature/nightwave-v2-phase5u-google-drive-backup`. **No verified APK**, OAuth/Android Gradle/device checks required. Current source still carries development version `alpha5s`/code 35 until release build gates pass.
