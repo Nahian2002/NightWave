@@ -50,6 +50,7 @@ import com.nightwave.player.net.VideoPreview
 import com.nightwave.player.net.YouTubeGateway
 import com.nightwave.player.library.MusicLibrary
 import com.nightwave.player.offline.OfflineLibraryActivity
+import com.nightwave.player.diagnostics.NightWaveCrashRecorder
 import com.nightwave.player.playback.PlaybackService
 import com.nightwave.player.playback.QueueStateStore
 import java.util.concurrent.Executors
@@ -881,6 +882,17 @@ class MainActivity : Activity() {
         labelAction("Search for an exact song or artist") { openPage(Page.SEARCH) }
         labelAction("♫  Your offline music · Import audio") { openOfflineLibrary() }
         sectionTitle("Early access")
+        labelAction("Diagnostics · Share recent crash summary") {
+            val report = NightWaveCrashRecorder.report(this)
+            runCatching {
+                startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, report)
+                }, "Share NightWave diagnostics"))
+            }.onFailure {
+                showStatus("Unable to open a share app. Use the included crash-capture script.", true)
+            }
+        }
         labelAction("✦  Preview redesigned NightWave") {
             try {
                 startActivity(Intent(this, com.nightwave.player.v2.ui.NightWaveStudioActivity::class.java))
