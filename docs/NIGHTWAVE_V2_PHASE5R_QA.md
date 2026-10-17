@@ -33,6 +33,23 @@ The source-only verifier is also updated to require all three separate Gradle ta
 - Historic Phase 5O static gesture expectations were updated to the density-based behavior.
 - User content, local offline imports, queue, libraries, saved profiles, database read-only mirror, launcher, network/search provider logic and Android permissions are unchanged.
 
+## CI attempt from Phase 5R draft PR
+
+GitHub Actions workflow run **#6** was triggered by PR #29, so the
+narrowly scoped `pull_request` trigger is functioning. However, the run
+reported **FAILURE**, and GitHub's job API returned **no recorded steps**
+while the job-log download returned `404 BlobNotFound`. Therefore it is
+**not possible to infer** whether Kotlin compilation, dependency resolution,
+runner provisioning, permissions, or an account-level Actions restriction
+caused the failure. There is **no confirmed Android build** and no verified
+APK artifact from that run.
+
+[Inspect the failed GitHub Actions run](https://github.com/Nahian2002/NightWave/actions/runs/39034688978).
+Do **not** describe this as a passed CI run. If GitHub displays a billing or
+account restriction, resolve that through the repository's Actions settings
+or use the existing Windows builder instead. Do not bypass or uninstall the
+current NightWave installation to work around the lack of an APK.
+
 ## Required acceptance before release
 
 1. **CI:** Wait for the Phase 5R draft PR check. If Actions are unavailable or fail, label the build **unverified** and inspect the exact Gradle/compiler failures. Do not silently publish an older APK. CI success confirms compilation/unit tests, **not** emulator or phone stability.
