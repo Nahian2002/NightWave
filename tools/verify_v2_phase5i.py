@@ -42,7 +42,7 @@ assert ' pull $base[0] $temporaryApk' in device
 assert 'getPackageInfo' not in device  # PackageManager source is not pulled from app data
 assert 'NightWave-build-status.txt' in device
 assert "Version: 2\\.0\\.0-alpha5i" in device
-assert 'Version code: 25' in device
+assert '$versionCode = 25' in device
 assert 'Get-FileHash -LiteralPath $apk -Algorithm SHA256' in device
 assert 'NightWave-device-update-check.txt' in device
 assert 'No app installation, uninstallation or music-data change occurred.' in device
@@ -64,7 +64,7 @@ for script in (device, launcher):
     execution = "\n".join(line for line in script.splitlines()
                            if not line.lstrip().startswith("#"))
     for command in dangerous_actions:
-        assert command not in execution.lower(), f"Forbidden device action: {command}"
+        assert command.lower() not in execution.lower(), f"Forbidden device action: {command}"
 
 assert "'check-device-update.ps1'" in preflight
 assert 'ParseFile(' in preflight
