@@ -13,8 +13,8 @@ android {
         applicationId = "com.nightwave.player"
         minSdk = 26
         targetSdk = 35
-        versionCode = 30
-        versionName = "2.0.0-alpha5n"
+        versionCode = 31
+        versionName = "2.0.0-alpha5o"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
