@@ -4,7 +4,6 @@ import android.content.Context
 import com.nightwave.player.core.VideoLink
 import org.json.JSONArray
 import org.json.JSONObject
-import java.util.Locale
 
 /** A locally aggregated, opt-in history; never part of library/cloud exports. */
 data class RecordedTrack(
@@ -115,7 +114,7 @@ class ListeningMemoryStore(context: Context) {
             artist = pulse.artist.take(120).ifBlank { old?.artist.orEmpty() },
             listenedMs = (old?.listenedMs ?: 0L).plus(pulse.listenedMs)
                 .coerceAtMost(MAX_TRACK_MS),
-            qualifiedPlays = ((old?.qualifiedPlays ?: 0L) +
+            qualifiedPlays = ((old?.qualifiedPlays?.toLong() ?: 0L) +
                 if (pulse.qualifyingPlay) 1 else 0).coerceAtMost(1_000_000),
             lastAtMs = pulse.recordedAtMs
         )
