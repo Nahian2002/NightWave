@@ -11,6 +11,7 @@ import androidx.activity.ComponentActivity
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import androidx.activity.compose.setContent
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -488,6 +489,9 @@ private fun StudioRoot(
     var showQueue by rememberSaveable { mutableStateOf(false) }
     var compactHidden by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(playerState.videoUrl) { compactHidden = false }
+    BackHandler(enabled = showQueue || expanded) {
+        if (showQueue) showQueue = false else expanded = false
+    }
     Box(Modifier.fillMaxSize()) {
     Scaffold(
         modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing),
