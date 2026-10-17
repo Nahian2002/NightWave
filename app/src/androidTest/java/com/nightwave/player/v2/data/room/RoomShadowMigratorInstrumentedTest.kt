@@ -2,6 +2,7 @@ package com.nightwave.player.v2.data.room
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.withTransaction
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.nightwave.player.library.MusicLibrary
@@ -88,6 +89,28 @@ class RoomShadowMigratorInstrumentedTest {
             assertEquals(before, db.libraryDao().observeFavorites().first())
             assertEquals(checkpoint, db.libraryDao().checkpoint(RoomShadowMigrator.CHECKPOINT))
             assertTrue(pref.getString("favorites", "").orEmpty().contains("bad.example"))
+        }
+    }
+
+    @Test fun sqliteAbortRollsBackRowsAndCheckpoint() = runBlocking {
+        val legacy = MusicLibrary(app)
+        legacy.toggleFavorite(first)
+        val migrator = RoomShadowMigrator(app, db)
+        migrator.reconcile()
+        val dao = db.libraryDao()
+        val old = dao.observeFavorites().first()
+        val checkpoint = dao.checkpoint(RoomShadowMigrator.CHECKPOINT)
+        try {
+            db.withTransaction {
+                dao.clearFavorites()
+                dao.saveCheckpoint(MigrationCheckpoint(
+                    RoomShadowMigrator.CHECKPOINT, "wrong-digest", 1L))
+                throw IllegalStateException("Synthetic crash during transaction")
+            }
+            fail("Expected synthetic Room transaction failure")
+        } catch (_: IllegalStateException) {
+            assertEquals(old, dao.observeFavorites().first())
+            assertEquals(checkpoint, dao.checkpoint(RoomShadowMigrator.CHECKPOINT))
         }
     }
 
