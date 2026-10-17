@@ -40,11 +40,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -82,11 +83,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -658,14 +661,32 @@ private fun StudioRoot(
     onOpenClassic: () -> Unit,
     searchNavigationToken: Int
 ) {
-    var tab by rememberSaveable { mutableStateOf(StudioTab.HOME) }
+    // The pager is the single source of truth for swipes, tabs and Back.
+    // Pager state survives rotation and process recreation through Compose Saver.
+    val pagerState = rememberPagerState(initialPage = StudioTab.HOME.ordinal) {
+        StudioTab.entries.size
+    }
+    val scope = rememberCoroutineScope()
+    val tab = StudioTab.entries[pagerState.currentPage]
     var selectedPlaylist by rememberSaveable { mutableStateOf<String?>(null) }
     var expanded by rememberSaveable { mutableStateOf(false) }
     var showQueue by rememberSaveable { mutableStateOf(false) }
     var compactHidden by rememberSaveable { mutableStateOf(false) }
+    fun navigateToTab(destination: StudioTab) {
+        if (destination == tab) return
+        if (destination != StudioTab.LIBRARY) selectedPlaylist = null
+        scope.launch {
+            if (profile.motion == MotionPreference.REDUCED) {
+                pagerState.scrollToPage(destination.ordinal)
+            } else {
+                pagerState.animateScrollToPage(destination.ordinal)
+            }
+        }
+    }
     LaunchedEffect(playerState.videoUrl) { compactHidden = false }
     LaunchedEffect(searchNavigationToken) {
-        if (searchNavigationToken > 0) tab = StudioTab.SEARCH
+        // Never replay shared media on rotation or slide through other pages.
+        if (searchNavigationToken > 0) pagerState.scrollToPage(StudioTab.SEARCH.ordinal)
     }
     BackHandler(enabled = showQueue || expanded ||
         (tab == StudioTab.LIBRARY && selectedPlaylist != null) || tab != StudioTab.HOME) {
@@ -673,7 +694,7 @@ private fun StudioRoot(
             showQueue -> showQueue = false
             expanded -> expanded = false
             tab == StudioTab.LIBRARY && selectedPlaylist != null -> selectedPlaylist = null
-            tab != StudioTab.HOME -> tab = StudioTab.HOME
+            tab != StudioTab.HOME -> navigateToTab(StudioTab.HOME)
         }
     }
     Box(Modifier.fillMaxSize()) {
@@ -687,7 +708,7 @@ private fun StudioRoot(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween) {
                 NightWaveWordmark()
-                IconButton(onClick = { tab = StudioTab.PROFILE }) {
+                IconButton(onClick = { navigateToTab(StudioTab.PROFILE) }) {
                     Icon(Icons.Outlined.Settings, contentDescription = "Open NightWave settings",
                         tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
@@ -763,12 +784,7 @@ private fun StudioRoot(
                                 Modifier.weight(1f).fillMaxHeight()
                                     .clip(RoundedCornerShape(16.dp))
                                     .background(tabColor)
-                                    .clickable {
-                                        if (tab != item) {
-                                            tab = item
-                                            if (item != StudioTab.LIBRARY) selectedPlaylist = null
-                                        }
-                                    },
+                                    .clickable { navigateToTab(item) },
                                 verticalArrangement = Arrangement.Center,
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
@@ -786,52 +802,61 @@ private fun StudioRoot(
             }
         }
     ) { safe ->
-        Crossfade(targetState = tab,
-            animationSpec = tween(durationMillis = if (profile.motion == MotionPreference.REDUCED) 0 else 220),
-            label = "NightWave navigation") { screen ->
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-        when (screen) {
-            StudioTab.HOME -> StudioHome(
-                modifier = Modifier.padding(safe), profile = profile, recent = recent,
-                favorites = favorites,
-                playingUrl = playerState.videoUrl.takeIf { playerState.playing }.orEmpty(),
-                onSearch = { query -> onSearch(query, SearchMode.SONGS); tab = StudioTab.SEARCH },
-                onPlay = onPlay,
-                onSongOptions = onSongOptions,
-                openLibrary = { tab = StudioTab.LIBRARY }
-            )
-            StudioTab.SEARCH -> StudioSearch(
-                Modifier.padding(safe), searchState, onSearch, onWebSearch,
-                onPlay, onSongOptions,
-                playerState.videoUrl.takeIf { playerState.playing }.orEmpty()
-            )
-            StudioTab.LIBRARY -> StudioLibrary(
-                modifier = Modifier.padding(safe),
-                favorites = favorites, names = playlistNames,
-                playingUrl = playerState.videoUrl.takeIf { playerState.playing }.orEmpty(),
-                selectedPlaylist = selectedPlaylist, onSelectPlaylist = { selectedPlaylist = it },
-                getPlaylist = getPlaylist, onPlay = onPlay,
-                onSongOptions = onSongOptions,
-                onManage = onLegacyPlayer, onOffline = onOfflineLibrary,
-                offlineResumeTitle = offlineResumeTitle,
-                offlineResumePositionMs = offlineResumePositionMs,
-                onResumeOffline = onResumeOffline,
-                onSearch = { tab = StudioTab.SEARCH }
-            )
-            StudioTab.PROFILE -> StudioProfile(
-                modifier = Modifier.padding(safe), profile = profile,
-                save = onSaveProfile, onExport = onExportGuest, onImport = onImportGuest,
-                onRecoverLastChange = onRecoverLastChange,
-                storageStatus = storageStatus, onCheckStorage = onCheckStorage,
-                roomReadStatus = roomReadStatus,
-                roomPreviewActive = roomPreviewActive,
-                onEnableRoomPreview = onEnableRoomPreview,
-                onUseLegacyReads = onUseLegacyReads,
-                onShareDiagnostics = onShareDiagnostics,
-                onOpenClassic = onOpenClassic
-            )
-        }
-        }
+        // HorizontalPager owns page swipes; child LazyColumns own vertical scroll.
+        // Full player / Up Next overlay gestures never move the background tabs.
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxSize().padding(safe).testTag("nightwave-tab-pager"),
+            key = { StudioTab.entries[it].name },
+            beyondViewportPageCount = 1,
+            userScrollEnabled = !expanded && !showQueue,
+            pageSpacing = 0.dp
+        ) { page ->
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+                when (StudioTab.entries[page]) {
+                    StudioTab.HOME -> StudioHome(
+                        modifier = Modifier, profile = profile, recent = recent,
+                        favorites = favorites,
+                        playingUrl = playerState.videoUrl.takeIf { playerState.playing }.orEmpty(),
+                        onSearch = { query ->
+                            onSearch(query, SearchMode.SONGS)
+                            navigateToTab(StudioTab.SEARCH)
+                        },
+                        onPlay = onPlay, onSongOptions = onSongOptions,
+                        openLibrary = { navigateToTab(StudioTab.LIBRARY) }
+                    )
+                    StudioTab.SEARCH -> StudioSearch(
+                        Modifier, searchState, onSearch, onWebSearch,
+                        onPlay, onSongOptions,
+                        playerState.videoUrl.takeIf { playerState.playing }.orEmpty()
+                    )
+                    StudioTab.LIBRARY -> StudioLibrary(
+                        modifier = Modifier, favorites = favorites, names = playlistNames,
+                        playingUrl = playerState.videoUrl.takeIf { playerState.playing }.orEmpty(),
+                        selectedPlaylist = selectedPlaylist,
+                        onSelectPlaylist = { selectedPlaylist = it },
+                        getPlaylist = getPlaylist, onPlay = onPlay,
+                        onSongOptions = onSongOptions,
+                        onManage = onLegacyPlayer, onOffline = onOfflineLibrary,
+                        offlineResumeTitle = offlineResumeTitle,
+                        offlineResumePositionMs = offlineResumePositionMs,
+                        onResumeOffline = onResumeOffline,
+                        onSearch = { navigateToTab(StudioTab.SEARCH) }
+                    )
+                    StudioTab.PROFILE -> StudioProfile(
+                        modifier = Modifier, profile = profile, save = onSaveProfile,
+                        onExport = onExportGuest, onImport = onImportGuest,
+                        onRecoverLastChange = onRecoverLastChange,
+                        storageStatus = storageStatus, onCheckStorage = onCheckStorage,
+                        roomReadStatus = roomReadStatus,
+                        roomPreviewActive = roomPreviewActive,
+                        onEnableRoomPreview = onEnableRoomPreview,
+                        onUseLegacyReads = onUseLegacyReads,
+                        onShareDiagnostics = onShareDiagnostics,
+                        onOpenClassic = onOpenClassic
+                    )
+                }
+            }
         }
     }
     StudioNowPlayingOverlay(
