@@ -291,6 +291,12 @@ class NightWaveStudioActivity : ComponentActivity() {
     }
 
     override fun onStop() {
+        nativeSearchJob?.cancel()
+        nativeSearchGeneration++
+        if (nativeSearchState.loading) {
+            nativeSearchState = nativeSearchState.copy(loading = false,
+                error = "Search was paused. Tap Find music to retry.")
+        }
         if (::playback.isInitialized) playback.pauseUiUpdates()
         super.onStop()
     }
@@ -312,6 +318,10 @@ class NightWaveStudioActivity : ComponentActivity() {
 
     private fun saveCurrentToPlaylist() {
         val now = playback.state
+        if (now.offline) {
+            showMessage("Imported audio stays in your Offline library.")
+            return
+        }
         if (now.hasTrack) saveSongToPlaylist(VideoPreview(
             now.title.ifBlank { "YouTube video" }, now.artist, now.videoUrl,
             now.thumbnail, now.durationMs / 1000L
