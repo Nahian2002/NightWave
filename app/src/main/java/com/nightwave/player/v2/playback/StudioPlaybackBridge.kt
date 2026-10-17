@@ -160,6 +160,10 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
     fun resumeUiUpdates() {
         if (released) return
         ticksSinceReconcile = PlayerSnapshotPolicy.RECONCILE_TICKS
+        // Imported files may have been deleted or re-imported while the Offline
+        // Library Activity was on top. Refresh the cache on return, not on each tick.
+        cachedOfflineIds = emptyList()
+        cachedOfflineQueue = emptyList()
         // One bounded attempt on foreground re-entry, never a reconnect loop.
         if (controller == null && future == null) connect()
         if (ticking) return
