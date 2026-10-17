@@ -74,6 +74,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -104,6 +106,7 @@ import com.nightwave.player.net.VideoPreview
 import com.nightwave.player.net.MusicIdentity
 import com.nightwave.player.v2.lyrics.TimedLyrics
 import com.nightwave.player.playback.PlaybackQueue
+import com.nightwave.player.playback.SleepTimerPolicy
 
 private fun timeLabel(ms: Long): String {
     val secs = (ms.coerceAtLeast(0L) / 1000L)
@@ -269,6 +272,8 @@ fun StudioNowPlayingOverlay(
     onLike: () -> Unit,
     onOpenQueue: () -> Unit,
     onSaveToPlaylist: () -> Unit,
+    sleepRemainingMs: Long,
+    onSleepTimer: (Int?) -> Unit,
     onDismiss: () -> Unit,
     lyrics: TimedLyrics? = null,
     onImportLyrics: () -> Unit = {},
@@ -288,6 +293,7 @@ fun StudioNowPlayingOverlay(
             val canSwipeArtwork = state.connected && !state.buffering && state.queue.size > 1
             var horizontalTravel by remember(state.videoUrl) { mutableStateOf(0f) }
             var lyricsOpen by remember(state.videoUrl) { mutableStateOf(false) }
+            var sleepOptionsOpen by remember { mutableStateOf(false) }
             Column(
                 Modifier.fillMaxSize().verticalScroll(rememberScrollState())
                     .padding(horizontal = 24.dp),
@@ -483,6 +489,39 @@ fun StudioNowPlayingOverlay(
                         horizontalArrangement = Arrangement.SpaceBetween) {
                         Text("Up next · " + state.queue.size + " tracks", style = MaterialTheme.typography.titleMedium)
                         Icon(Icons.Outlined.QueueMusic, contentDescription = "Open queue", tint = colors.primary)
+                    }
+                }
+                Spacer(Modifier.height(11.dp))
+                Box(Modifier.fillMaxWidth()) {
+                    OutlinedButton(
+                        onClick = { sleepOptionsOpen = true },
+                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text(SleepTimerPolicy.label(sleepRemainingMs))
+                    }
+                    DropdownMenu(
+                        expanded = sleepOptionsOpen,
+                        onDismissRequest = { sleepOptionsOpen = false }
+                    ) {
+                        SleepTimerPolicy.choicesMinutes.forEach { minutes ->
+                            DropdownMenuItem(
+                                text = { Text("Pause music after " + minutes + " min") },
+                                onClick = {
+                                    sleepOptionsOpen = false
+                                    onSleepTimer(minutes)
+                                }
+                            )
+                        }
+                        if (sleepRemainingMs > 0L) {
+                            DropdownMenuItem(
+                                text = { Text("Cancel sleep timer") },
+                                onClick = {
+                                    sleepOptionsOpen = false
+                                    onSleepTimer(null)
+                                }
+                            )
+                        }
                     }
                 }
                 Spacer(Modifier.height(12.dp))
