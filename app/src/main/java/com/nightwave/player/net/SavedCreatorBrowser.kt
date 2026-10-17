@@ -1,5 +1,6 @@
 package com.nightwave.player.net
 
+import com.nightwave.player.core.VideoLink
 import java.util.Locale
 
 /**
