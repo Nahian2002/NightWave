@@ -35,7 +35,7 @@ object SavedCreatorBrowser {
         val seenUrls = hashSetOf<String>()
         source.take(MAX_SOURCE_TRACKS).forEach { video ->
             // These are local saved PUBLIC references, not imported file IDs.
-            if (!video.url.startsWith("https://www.youtube.com/watch?v=") ||
+            if (VideoLink.normalize(video.url) != video.url ||
                 !seenUrls.add(video.url)) return@forEach
             val label = MusicIdentity.display(video.title, video.author)
                 .artistOrCreator.trim()
