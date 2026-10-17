@@ -18,8 +18,8 @@ unit = read(root / "app/src/test/java/com/nightwave/player/library/LibraryMutati
 device_a = read(root / "app/src/androidTest/java/com/nightwave/player/library/SingleWriterBasicInstrumentedTest.kt")
 device_b = read(root / "app/src/androidTest/java/com/nightwave/player/library/SingleWriterConcurrencyInstrumentedTest.kt")
 
-assert any(f'versionName = "{v}"' in gradle for v in ("2.0.0-alpha3d", "2.0.0-alpha4", "2.0.0-alpha4-hotfix1", "2.0.0-alpha4-hotfix2", "2.0.0-alpha5a"))
-assert any(f"versionCode = {v}" in gradle for v in (13, 14, 15, 16, 17))
+assert any(f'versionName = "{v}"' in gradle for v in ("2.0.0-alpha3d", "2.0.0-alpha4", "2.0.0-alpha4-hotfix1", "2.0.0-alpha4-hotfix2", "2.0.0-alpha5a", "2.0.0-alpha5b"))
+assert any(f"versionCode = {v}" in gradle for v in (13, 14, 15, 16, 17, 18))
 assert 'applicationId = "com.nightwave.player"' in gradle
 assert 'ROOM_PRIMARY_WRITES_ENABLED = false' in policy
 assert 'LEGACY_SINGLE_WRITER_ENABLED = true' in policy
