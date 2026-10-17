@@ -479,46 +479,86 @@ private fun StudioRoot(
     var selectedPlaylist by rememberSaveable { mutableStateOf<String?>(null) }
     var expanded by rememberSaveable { mutableStateOf(false) }
     var showQueue by rememberSaveable { mutableStateOf(false) }
+    var compactHidden by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(playerState.videoUrl) { compactHidden = false }
     Box(Modifier.fillMaxSize()) {
     Scaffold(
         modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing),
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 13.dp),
-                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+            Row(Modifier.fillMaxWidth().height(62.dp)
+                    .padding(horizontal = 19.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween) {
                 NightWaveWordmark()
                 IconButton(onClick = onClose) {
-                    Icon(Icons.Outlined.ArrowBack, contentDescription = "Return to current player",
+                    Icon(Icons.Outlined.Settings, contentDescription = "Open classic player",
                         tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         },
         bottomBar = {
             Column {
-            StudioMiniPlayer(playerState, playerActions, onExpand = { expanded = true })
-            NavigationBar(
-                containerColor = MaterialTheme.colorScheme.surface,
-                tonalElevation = 4.dp
-            ) {
-                for (item in StudioTab.entries) {
-                    val image = when (item) {
-                        StudioTab.HOME -> Icons.Outlined.Home
-                        StudioTab.SEARCH -> Icons.Outlined.Search
-                        StudioTab.LIBRARY -> Icons.Outlined.LibraryMusic
-                        StudioTab.PROFILE -> Icons.Outlined.PersonOutline
+                if (playerState.hasTrack && compactHidden) {
+                    Surface(onClick = { compactHidden = false },
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(13.dp),
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp)
+                            .height(36.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center) {
+                            Icon(Icons.Outlined.PlayArrow,
+                                contentDescription = null, modifier = Modifier.size(17.dp))
+                            Spacer(Modifier.width(7.dp))
+                            Text("Now playing · Tap to show",
+                                style = MaterialTheme.typography.labelLarge)
+                        }
                     }
-                    NavigationBarItem(
-                        selected = tab == item, onClick = {
-                            tab = item
-                            selectedPlaylist = null
-                        },
-                        icon = { Icon(image, contentDescription = item.caption) },
-                        label = { Text(item.caption, style = MaterialTheme.typography.labelSmall) },
-                        alwaysShowLabel = true
-                    )
+                } else if (playerState.hasTrack) {
+                    StudioMiniPlayer(playerState, playerActions,
+                        onExpand = { expanded = true },
+                        onHide = { compactHidden = true })
                 }
-            }
+                Surface(color = MaterialTheme.colorScheme.background,
+                    shadowElevation = 4.dp) {
+                    Row(
+                        Modifier.fillMaxWidth().height(60.dp)
+                            .padding(horizontal = 10.dp, vertical = 5.dp),
+                        horizontalArrangement = Arrangement.spacedBy(5.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        for (item in StudioTab.entries) {
+                            val image = when (item) {
+                                StudioTab.HOME -> Icons.Outlined.Home
+                                StudioTab.SEARCH -> Icons.Outlined.Search
+                                StudioTab.LIBRARY -> Icons.Outlined.LibraryMusic
+                                StudioTab.PROFILE -> Icons.Outlined.PersonOutline
+                            }
+                            val selected = tab == item
+                            Column(
+                                Modifier.weight(1f).fillMaxHeight()
+                                    .clip(RoundedCornerShape(13.dp))
+                                    .background(if (selected) MaterialTheme.colorScheme.surfaceVariant
+                                        else Color.Transparent)
+                                    .clickable {
+                                        tab = item
+                                        selectedPlaylist = null
+                                    },
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(image, contentDescription = item.caption,
+                                    modifier = Modifier.size(19.dp),
+                                    tint = if (selected) MaterialTheme.colorScheme.primary
+                                        else MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(item.caption, style = MaterialTheme.typography.labelSmall,
+                                    color = if (selected) MaterialTheme.colorScheme.onSurface
+                                        else MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                    }
+                }
             }
         }
     ) { safe ->
@@ -592,17 +632,17 @@ private fun StudioHome(
     ) {
         item {
             SectionHeading(
-                "Good to see you, " + profile.displayName.substringBefore(' ').take(18) + ".",
-                "Set the mood. We'll handle the atmosphere."
+                "Listen your way",
+                "Welcome back, " + profile.displayName.substringBefore(' ').take(18)
             )
         }
         item {
             MusicFeatureCard(
-                "CURATED BY YOU", "Every mood.\nOne place.",
-                "Your library and the sounds you love, beautifully together."
+                "DISCOVER", "Find your next favorite",
+                "Search music from YouTube"
             ) { onSearch("night drive music") }
         }
-        item { SectionHeading("Explore by mood", "Tap a collection to search real music.") }
+        item { SectionHeading("Browse by mood") }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 MoodTile("After dark", "Night drive music",
@@ -623,7 +663,7 @@ private fun StudioHome(
                     Modifier.weight(1f)) { onSearch("workout music") }
             }
         }
-        item { SectionHeading("Back in rotation", "Recently played on this device") }
+        item { SectionHeading("Recently played") }
         if (recent.isEmpty()) item {
             EmptyMusicCard("Start your first session",
                 "Your actual listening history will appear here as you play.",
@@ -631,7 +671,7 @@ private fun StudioHome(
         } else items(recent.take(6), key = { it.url }) { song ->
             MusicTrackTile(song, onOptions = { onSongOptions(song) }, onClick = { onPlay(song, recent) })
         }
-        item { SectionHeading("Liked by you", favorites.size.toString() + " saved tracks") }
+        item { SectionHeading("Your favorites", favorites.size.toString() + " liked tracks") }
         item {
             OutlinedButton(onClick = openLibrary, modifier = Modifier.fillMaxWidth().height(51.dp)) {
                 Icon(Icons.Outlined.FavoriteBorder, contentDescription = null)
@@ -644,7 +684,7 @@ private fun StudioHome(
 
 @Composable
 private fun MoodTile(title: String, subtitle: String, gradient: List<Color>, modifier: Modifier, onClick: () -> Unit) {
-    Card(onClick = onClick, modifier = modifier.height(152.dp),
+    Card(onClick = onClick, modifier = modifier.height(112.dp),
         shape = RoundedCornerShape(21.dp)) {
         Column(Modifier.fillMaxSize().background(Brush.linearGradient(gradient)).padding(16.dp),
             verticalArrangement = Arrangement.SpaceBetween) {
@@ -711,8 +751,8 @@ private fun StudioLibrary(
                     Icon(Icons.Outlined.ArrowBack, contentDescription = "Back to Library")
                 }
                 Column {
-                    SectionHeading(if (selectedPlaylist == LIKED_COLLECTION) "Liked Songs" else selectedPlaylist ?: "Your music.",
-                        if (selectedPlaylist == null) "Every collection, under one roof."
+                    SectionHeading(if (selectedPlaylist == LIKED_COLLECTION) "Liked Songs" else selectedPlaylist ?: "Your library",
+                        if (selectedPlaylist == null) "Playlists and liked songs"
                         else tracks.size.toString() + " songs in this playlist")
                 }
             }
@@ -720,7 +760,7 @@ private fun StudioLibrary(
         if (selectedPlaylist == null) {
             item {
                 MusicFeatureCard("YOUR PRIVATE COLLECTION",
-                    "Liked songs.", favorites.size.toString() + " tracks saved locally") {
+                    "Liked songs", favorites.size.toString() + " tracks") {
                     onSelectPlaylist(LIKED_COLLECTION)
                 }
             }
