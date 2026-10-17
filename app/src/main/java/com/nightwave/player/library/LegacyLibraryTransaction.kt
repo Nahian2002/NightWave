@@ -101,8 +101,11 @@ object LegacyLibraryTransaction {
         // The editor is committed once for the complete collection, including
         // playlist names and their ordered entries. Unrelated preferences stay.
         val editor = preferences.edit()
-        for (key in raw.keys) {
-            if (key.startsWith("list_") && key !in newValues) editor.remove(key)
+        // Remove only playlists that were explicitly registered in the
+        // validated previous snapshot. Preserve orphaned keys for recovery.
+        for (name in before.names()) {
+            val key = "list_" + name
+            if (key !in newValues) editor.remove(key)
         }
         for ((key, value) in newValues) editor.putString(key, value)
         if (!editor.commit()) {
