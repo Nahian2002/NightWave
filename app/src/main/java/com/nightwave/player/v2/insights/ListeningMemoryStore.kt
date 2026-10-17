@@ -44,13 +44,18 @@ class ListeningMemoryStore(context: Context) {
 
     fun isEnabled(): Boolean = synchronized(lock) { prefs.getBoolean("consent", false) }
 
+    /** Incremented on every consent change; service resets in-flight session. */
+    fun consentRevision(): Long = synchronized(lock) { prefs.getLong("revision", 0L) }
+
     fun setEnabled(enabled: Boolean): Boolean = synchronized(lock) {
-        prefs.edit().putBoolean("consent", enabled).commit()
+        val next = prefs.getLong("revision", 0L).plus(1L)
+        prefs.edit().putBoolean("consent", enabled).putLong("revision", next).commit()
     }
 
-    /** Clearing always disables recording until the user explicitly opts in again. */
+    /** Clearing disables and advances revision atomically: no delayed session survives. */
     fun eraseAndDisable(): Boolean = synchronized(lock) {
-        prefs.edit().clear().commit()
+        val next = prefs.getLong("revision", 0L).plus(1L)
+        prefs.edit().clear().putLong("revision", next).commit()
     }
 
     private fun approvedId(value: String): Boolean =
