@@ -90,6 +90,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.graphics.Brush
@@ -669,7 +671,15 @@ private fun StudioRoot(
         StudioTab.entries.size
     }
     val scope = rememberCoroutineScope()
+    val keyboard = LocalSoftwareKeyboardController.current
+    val focus = LocalFocusManager.current
     val tab = StudioTab.entries[pagerState.currentPage]
+    LaunchedEffect(tab) {
+        // An active search/library text editor must not leave the soft keyboard
+        // covering another page after a user swipe or bottom-tab selection.
+        focus.clearFocus()
+        keyboard?.hide()
+    }
     var selectedPlaylist by rememberSaveable { mutableStateOf<String?>(null) }
     var expanded by rememberSaveable { mutableStateOf(false) }
     var showQueue by rememberSaveable { mutableStateOf(false) }
