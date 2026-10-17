@@ -14,6 +14,8 @@ import com.nightwave.player.v2.lyrics.TimedLyrics
 import com.nightwave.player.v2.lyrics.TimedLyricsCodec
 import com.nightwave.player.v2.insights.ListeningInsights
 import com.nightwave.player.v2.insights.ListeningInsightsEngine
+import com.nightwave.player.v2.insights.ListeningMemoryStore
+import com.nightwave.player.v2.insights.ListeningMemorySummary
 import com.nightwave.player.v2.cloud.CloudBackupStatus
 import com.nightwave.player.v2.cloud.CloudBackupState
 import com.nightwave.player.v2.cloud.CloudBackupCodec
@@ -172,6 +174,11 @@ class NightWaveStudioActivity : ComponentActivity() {
     private lateinit var playback: StudioPlaybackBridge
     private lateinit var archiveManager: LibraryArchiveManager
     private lateinit var lyricsStore: PrivateLyricsStore
+    private lateinit var listeningMemoryStore: ListeningMemoryStore
+    private var memorySummary by mutableStateOf(
+        ListeningMemorySummary(false, 0L, 0, 0, emptyList())
+    )
+    private var memoryReadGeneration = 0
     private var pendingLyricsId: String? = null
     private var lyricsRevision by mutableStateOf(0)
     private var loadedLyrics by mutableStateOf<Pair<String, TimedLyrics>?>(null)
@@ -324,6 +331,8 @@ class NightWaveStudioActivity : ComponentActivity() {
         playback = StudioPlaybackBridge(this)
         archiveManager = LibraryArchiveManager(this)
         lyricsStore = PrivateLyricsStore(this)
+        listeningMemoryStore = ListeningMemoryStore(this)
+        refreshListeningMemory()
         cloudStore = CloudBackupState(this)
         refreshCloud()
         // Room/DataStore are read-only previews at this phase. A failure
@@ -366,6 +375,10 @@ class NightWaveStudioActivity : ComponentActivity() {
                         else library.playlist(name)
                     },
                     playerState = playback.state, playerActions = playback,
+                    memory = memorySummary,
+                    onMemoryEnabledChange = { setListeningMemory(it) },
+                    onMemoryErase = { confirmEraseListeningMemory() },
+                    onMemoryRefresh = { refreshListeningMemory() },
                     currentLyrics = loadedLyrics?.takeIf {
                         playback.state.videoUrl == "offline:" + it.first
                     }?.second,
@@ -863,8 +876,46 @@ class NightWaveStudioActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         if (::library.isInitialized) refresh()
+        refreshListeningMemory()
         if (::roomShadow.isInitialized && ::profileShadow.isInitialized &&
             ::verifiedReader.isInitialized) refreshShadows()
+    }
+
+    /** Reading small private aggregates never changes player or cloud state. */
+    private fun refreshListeningMemory() {
+        if (!::listeningMemoryStore.isInitialized) return
+        val generation = ++memoryReadGeneration
+        lifecycleScope.launch {
+            val snapshot = withContext(Dispatchers.IO) {
+                runCatching { listeningMemoryStore.snapshot() }.getOrNull()
+            }
+            if (generation == memoryReadGeneration && snapshot != null) {
+                memorySummary = snapshot
+            }
+        }
+    }
+
+    private fun setListeningMemory(enabled: Boolean) {
+        if (!::listeningMemoryStore.isInitialized) return
+        val result = listeningMemoryStore.setEnabled(enabled)
+        if (!result) {
+            showMessage("Could not change listening privacy settings.")
+        }
+        refreshListeningMemory()
+    }
+
+    private fun confirmEraseListeningMemory() {
+        AlertDialog.Builder(this)
+            .setTitle("Erase listening statistics?")
+            .setMessage("Remove the local play-session statistics and switch tracking off. " +
+                "This cannot be undone. Your songs, playlists and listening history stay untouched.")
+            .setNegativeButton("Cancel", null)
+            .setPositiveButton("Erase & turn off") { _, _ ->
+                if (listeningMemoryStore.eraseAndDisable()) {
+                    refreshListeningMemory()
+                    showMessage("Listening statistics erased and tracking disabled.")
+                } else showMessage("Could not erase listening statistics.")
+            }.show()
     }
 
     private fun saveCurrentToPlaylist() {
@@ -1144,6 +1195,10 @@ private fun StudioRoot(
     onUseLegacyReads: () -> Unit,
     playerState: StudioPlayerState,
     playerActions: StudioPlaybackBridge,
+    memory: ListeningMemorySummary,
+    onMemoryEnabledChange: (Boolean) -> Unit,
+    onMemoryErase: () -> Unit,
+    onMemoryRefresh: () -> Unit,
     currentLyrics: TimedLyrics?,
     onImportLyrics: () -> Unit,
     onRemoveLyrics: () -> Unit,
@@ -1175,6 +1230,9 @@ private fun StudioRoot(
     val keyboard = LocalSoftwareKeyboardController.current
     val focus = LocalFocusManager.current
     val tab = StudioTab.entries[pagerState.currentPage]
+    LaunchedEffect(tab, playerState.positionMs / 15000L) {
+        if (tab == StudioTab.PROFILE) onMemoryRefresh()
+    }
     LaunchedEffect(tab) {
         // An active search/library text editor must not leave the soft keyboard
         // covering another page after a user swipe or bottom-tab selection.
@@ -1415,6 +1473,10 @@ private fun StudioRoot(
                         insights = remember(recent, favorites, playlistNames) {
                             ListeningInsightsEngine.calculate(recent, favorites, playlistNames)
                         },
+                        memory = memory,
+                        onMemoryEnabledChange = onMemoryEnabledChange,
+                        onMemoryErase = onMemoryErase,
+                        onMemoryRefresh = onMemoryRefresh,
                         onShareDiagnostics = onShareDiagnostics,
                         onOpenClassic = onOpenClassic
                     )
@@ -2004,6 +2066,10 @@ private fun StudioProfile(
     onCloudHistory: (Boolean) -> Unit,
     onCloudWifi: (Boolean) -> Unit,
     insights: ListeningInsights,
+    memory: ListeningMemorySummary,
+    onMemoryEnabledChange: (Boolean) -> Unit,
+    onMemoryErase: () -> Unit,
+    onMemoryRefresh: () -> Unit,
     storageStatus: String, onCheckStorage: () -> Unit,
     roomReadStatus: String, roomPreviewActive: Boolean,
     onEnableRoomPreview: () -> Unit, onUseLegacyReads: () -> Unit,
@@ -2174,6 +2240,14 @@ private fun StudioProfile(
                 Column(Modifier.fillMaxWidth().padding(14.dp)) {
                     ListeningInsightsPanel(insights)
                 }
+            }
+        }
+
+        item {
+            StudioProfileGroup("Listening memory · optional") {
+                ListeningMemoryPanel(
+                    memory, onMemoryEnabledChange, onMemoryErase, onMemoryRefresh
+                )
             }
         }
 
