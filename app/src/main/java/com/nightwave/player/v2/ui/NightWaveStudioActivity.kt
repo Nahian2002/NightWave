@@ -6,6 +6,13 @@ import android.widget.EditText
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import com.nightwave.player.v2.data.RoomMirrorRepository
+import com.nightwave.player.v2.data.GuestSettingsMirror
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -102,6 +109,7 @@ class NightWaveStudioActivity : ComponentActivity() {
     private lateinit var library: MusicLibrary
     private lateinit var backup: GuestBackupRepository
     private var pendingExport: ByteArray? = null
+    private var mirrorJob: Job? = null
     private lateinit var playback: StudioPlaybackBridge
     private var youtubeDialog: Dialog? = null
     private var profile by mutableStateOf(ProfileSettings(localId = "pending"))
@@ -121,6 +129,7 @@ class NightWaveStudioActivity : ComponentActivity() {
         playback = StudioPlaybackBridge(this)
         profile = profiles.load()
         refresh()
+        stageStorageMirror()
         setContent {
             NightWaveMaterialTheme(profile.theme) {
                 StudioRoot(
@@ -134,7 +143,10 @@ class NightWaveStudioActivity : ComponentActivity() {
                     onExportBackup = { startGuestExport() },
                     onImportBackup = { guestImportPicker.launch(arrayOf("application/json", "application/octet-stream")) },
                     onSaveProfile = { updated ->
-                        if (profiles.save(updated)) profile = profiles.load()
+                        if (profiles.save(updated)) {
+                            profile = profiles.load()
+                            stageStorageMirror()
+                        }
                     },
                     onSearch = { query ->
                         youtubeDialog?.dismiss()
@@ -162,6 +174,7 @@ class NightWaveStudioActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        mirrorJob?.cancel()
         youtubeDialog?.dismiss()
         youtubeDialog = null
         if (::playback.isInitialized) playback.release()
@@ -170,7 +183,30 @@ class NightWaveStudioActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        if (::library.isInitialized) refresh()
+        if (::library.isInitialized) {
+            refresh()
+            stageStorageMirror()
+        }
+    }
+
+    private fun stageStorageMirror() {
+        if (!::library.isInitialized || !::profiles.isInitialized) return
+        mirrorJob?.cancel()
+        mirrorJob = lifecycleScope.launch {
+            try {
+                val snapshot = withContext(Dispatchers.IO) {
+                    library.snapshotForBackup() to profiles.load()
+                }
+                withContext(Dispatchers.IO) {
+                    RoomMirrorRepository(applicationContext).stage(snapshot.first)
+                    GuestSettingsMirror(applicationContext).stage(snapshot.second)
+                }
+            } catch (cancel: kotlinx.coroutines.CancellationException) {
+                throw cancel
+            } catch (error: Exception) {
+                android.util.Log.w("NightWaveStorage", "Staging new storage failed; legacy library kept unchanged.", error)
+            }
+        }
     }
 
     private val guestExportPicker = registerForActivityResult(
@@ -235,6 +271,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                                     profile = profiles.load()
                                     refresh()
                                     playback.refreshQueue()
+                                    stageStorageMirror()
                                     showMessage("Guest backup restored.")
                                 }.onFailure { showMessage(it.message ?: "Import failed. No data was changed.") }
                         }.show()
