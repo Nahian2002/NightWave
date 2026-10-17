@@ -6,6 +6,34 @@ import org.junit.Test
 class PlaybackQueueTest {
     private fun e(n: Int) = QueueEntry("https://youtu.be/video$n", "Track $n", "Artist", "")
 
+    @Test fun fullNativeSearchResultsPlayNextInCorrectOrder() {
+        val queue = PlaybackQueue()
+        queue.replace((1..40).map(::e), 12)
+        assertEquals(e(13), queue.current)
+        assertEquals(e(14), queue.next(true))
+        assertEquals(e(13), queue.previous())
+    }
+
+    @Test fun userNextIgnoresRepeatOneButCompletionReplaysCurrent() {
+        val queue = PlaybackQueue()
+        queue.replace(listOf(e(1), e(2), e(3)), 0)
+        queue.repeat = PlaybackQueue.Repeat.ONE
+        assertEquals(e(1), queue.next(true))
+        assertEquals(e(2), queue.next(false))
+        assertEquals(e(2), queue.next(true))
+    }
+
+    @Test fun shuffleRestartsWithoutImmediateRepeatAcrossTwoTracks() {
+        val queue = PlaybackQueue { 0 }
+        queue.replace(listOf(e(1), e(2)), 0)
+        queue.shuffle = true
+        queue.repeat = PlaybackQueue.Repeat.ALL
+        repeat(15) {
+            val before = queue.current
+            assertNotEquals(before, queue.next(true))
+        }
+    }
+
     @Test fun endStopsWhenRepeatOff() {
         val q = PlaybackQueue()
         q.replace(listOf(e(1), e(2)), 0)
