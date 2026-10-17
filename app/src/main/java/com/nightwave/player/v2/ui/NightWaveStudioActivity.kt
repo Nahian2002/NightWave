@@ -5,6 +5,8 @@ import android.app.Dialog
 import android.widget.EditText
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.result.contract.ActivityResultContracts
+import com.nightwave.player.v2.data.LibraryArchiveManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
@@ -95,7 +97,47 @@ class NightWaveStudioActivity : ComponentActivity() {
     private lateinit var profiles: GuestProfileStore
     private lateinit var library: MusicLibrary
     private lateinit var playback: StudioPlaybackBridge
+    private lateinit var archiveManager: LibraryArchiveManager
     private var youtubeDialog: Dialog? = null
+    private val exportFile = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        if (uri == null) return@registerForActivityResult
+        runCatching {
+            val data = archiveManager.export()
+            requireNotNull(contentResolver.openOutputStream(uri)) { "Can't open destination" }
+                .use { it.write(data) }
+        }.onSuccess { showMessage("Guest backup exported successfully.") }
+            .onFailure { showMessage("Export failed: " + (it.message ?: "unknown error")) }
+    }
+    private val importFile = registerForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri == null) return@registerForActivityResult
+        runCatching {
+            requireNotNull(contentResolver.openInputStream(uri)).use { input ->
+                val bytes = input.readNBytes(com.nightwave.player.v2.data.LibraryBackupCodec.MAX_BYTES + 1)
+                archiveManager.preview(bytes)
+            }
+        }.onSuccess { archive ->
+            AlertDialog.Builder(this)
+                .setTitle("Replace your local library?")
+                .setMessage(
+                    "Backup contains " + archive.favorites.size + " liked songs and " +
+                    archive.playlists.size + " playlists. This will replace your current favorites " +
+                    "and playlists. Your local listening history stays on this phone. " +
+                    "Export your existing library first if you want to keep it."
+                )
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Replace library") { _, _ ->
+                    if (archiveManager.restoreWithConfirmation(archive)) {
+                        profile = profiles.load()
+                        refresh()
+                        showMessage("Guest library restored.")
+                    } else showMessage("Import could not complete. Your previous library is retained.")
+                }.show()
+        }.onFailure { showMessage("Invalid backup: " + (it.message ?: "cannot read file")) }
+    }
     private var profile by mutableStateOf(ProfileSettings(localId = "pending"))
     private var favorites by mutableStateOf<List<VideoPreview>>(emptyList())
     private var recentlyPlayed by mutableStateOf<List<VideoPreview>>(emptyList())
@@ -106,6 +148,7 @@ class NightWaveStudioActivity : ComponentActivity() {
         profiles = GuestProfileStore(this)
         library = MusicLibrary(this)
         playback = StudioPlaybackBridge(this)
+        archiveManager = LibraryArchiveManager(this)
         profile = profiles.load()
         refresh()
         setContent {
@@ -118,6 +161,8 @@ class NightWaveStudioActivity : ComponentActivity() {
                     onToggleFavorite = { video -> library.toggleFavorite(video); refresh() },
                     onSongOptions = { video -> showSongOptions(video) },
                     onSaveCurrentToPlaylist = { saveCurrentToPlaylist() },
+                    onExportGuest = { exportFile.launch("nightwave-guest-backup.json") },
+                    onImportGuest = { importFile.launch(arrayOf("application/json", "application/octet-stream")) },
                     onSaveProfile = { updated ->
                         if (profiles.save(updated)) profile = profiles.load()
                     },
@@ -263,6 +308,8 @@ private fun StudioRoot(
     playlistNames: List<String>,
     getPlaylist: (String) -> List<VideoPreview>,
     onSaveProfile: (ProfileSettings) -> Unit,
+    onExportGuest: () -> Unit,
+    onImportGuest: () -> Unit,
     playerState: StudioPlayerState,
     playerActions: StudioPlaybackBridge,
     isFavorite: (String) -> Boolean,
@@ -343,7 +390,7 @@ private fun StudioRoot(
             )
             StudioTab.PROFILE -> StudioProfile(
                 modifier = Modifier.padding(safe), profile = profile,
-                save = onSaveProfile
+                save = onSaveProfile, onExport = onExportGuest, onImport = onImportGuest
             )
         }
         }
@@ -555,7 +602,8 @@ private fun StudioLibrary(
 }
 
 @Composable
-private fun StudioProfile(modifier: Modifier, profile: ProfileSettings, save: (ProfileSettings) -> Unit) {
+private fun StudioProfile(modifier: Modifier, profile: ProfileSettings, save: (ProfileSettings) -> Unit,
+    onExport: () -> Unit, onImport: () -> Unit) {
     var name by rememberSaveable(profile.localId) { mutableStateOf(profile.displayName) }
     LazyColumn(modifier.widthIn(max = 840.dp).fillMaxHeight(), contentPadding = PaddingValues(20.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp)) {
@@ -613,6 +661,23 @@ private fun StudioProfile(modifier: Modifier, profile: ProfileSettings, save: (P
                     }
                 }
             }
+        }
+        item { SectionHeading("Guest backup and restore", "Keep a copy before uninstalling NightWave") }
+        item {
+            OutlinedButton(onClick = onExport, modifier = Modifier.fillMaxWidth().height(52.dp)) {
+                Text("EXPORT LIBRARY BACKUP")
+            }
+        }
+        item {
+            OutlinedButton(onClick = onImport, modifier = Modifier.fillMaxWidth().height(52.dp)) {
+                Text("IMPORT SAVED BACKUP")
+            }
+        }
+        item {
+            Text("Backups contain your profile, favorites and playlists—not audio files or passwords. " +
+                "Import replaces your current collections after confirmation. Cloud sync is not active.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         item { SectionHeading("App appearance", "Your chosen theme persists across restarts") }
         item {
