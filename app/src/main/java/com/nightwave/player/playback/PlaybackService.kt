@@ -25,7 +25,7 @@ import com.nightwave.player.net.YouTubeGateway
 import com.nightwave.player.offline.OfflineAudioLibrary
 import com.nightwave.player.offline.OfflinePlaybackQueue
 import com.nightwave.player.offline.OfflineSessionStore
-import com.nightwave.player.ui.MainActivity
+import com.nightwave.player.v2.ui.NightWaveStudioActivity
 import java.util.concurrent.Executors
 
 /** The service owns automatic next-track resolution, even while the Activity is stopped. */
@@ -174,7 +174,7 @@ class PlaybackService : MediaSessionService() {
             }
         exoPlayer = player
         val openApp = PendingIntent.getActivity(
-            this, 0, Intent(this, MainActivity::class.java),
+            this, 0, Intent(this, NightWaveStudioActivity::class.java),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
         mediaSession = MediaSession.Builder(this, player).setSessionActivity(openApp)
