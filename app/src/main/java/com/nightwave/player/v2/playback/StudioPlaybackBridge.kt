@@ -36,11 +36,13 @@ data class StudioPlayerState(
     val error: String? = null
 ) {
     val hasTrack: Boolean get() = videoUrl.isNotBlank()
+    val offline: Boolean get() = videoUrl.startsWith("offline:")
 }
 
 interface StudioPlayerActions {
     fun play(video: VideoPreview, collection: List<VideoPreview> = listOf(video))
     fun playPause()
+    fun retry()
     fun enqueue(video: VideoPreview)
     fun previous()
     fun next()
@@ -132,6 +134,7 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
         val duration = player.duration.takeIf { it != C.TIME_UNSET && it > 0L } ?: 0L
         val persistence = QueueStateStore(context)
         val current = persistence.read()
+        val offlineId = media?.mediaId?.takeIf { it.startsWith("offline:") }
         val savedTrack = current.tracks.getOrNull(current.index)
         val savedBookmark = persistence.bookmark(savedTrack?.url)
         state = state.copy(
@@ -140,7 +143,7 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
                 ?: savedTrack?.title.orEmpty(),
             artist = metadata?.artist?.toString()?.takeIf { it.isNotBlank() }
                 ?: savedTrack?.creator.orEmpty(),
-            videoUrl = media?.mediaId.orEmpty()
+            videoUrl = offlineId ?: media?.mediaId.orEmpty()
                 .takeIf { it.startsWith("https://www.youtube.com/watch?v=") }
                 ?: savedTrack?.url.orEmpty(),
             thumbnail = metadata?.artworkUri?.toString()?.takeIf { it.isNotBlank() }
@@ -153,8 +156,9 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
             shuffle = current.shuffle,
             repeat = current.repeat,
             queue = current.tracks.map { VideoPreview(it.title, it.creator, it.url, it.artwork, 0) },
-            queueIndex = current.index,
-            error = null
+            queueIndex = if (offlineId != null) -1 else current.index,
+            error = if (player.playerError != null)
+                "This track could not be played. Retry or choose another song." else null
         )
     }
 
@@ -208,11 +212,17 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
     override fun playPause() {
         controller?.let {
             if (it.isPlaying) it.pause()
+            else if (it.playerError != null) action(PlaybackService.ACTION_RETRY_CURRENT)
             else if (it.currentMediaItem != null) it.play()
             else if (state.queueIndex >= 0) action(PlaybackService.ACTION_RESUME_SAVED)
             else state = state.copy(error = "Choose a song to start listening.")
-        } ?: run { state = state.copy(error = "Player is connecting. Try again.") }
+        } ?: run {
+            if (state.queueIndex >= 0) action(PlaybackService.ACTION_RESUME_SAVED)
+            else state = state.copy(error = "Player is connecting. Try again.")
+        }
     }
+
+    override fun retry() = action(PlaybackService.ACTION_RETRY_CURRENT)
     override fun next() = action(PlaybackService.ACTION_NEXT)
     override fun previous() = action(PlaybackService.ACTION_PREVIOUS)
     override fun jumpTo(index: Int) = action(PlaybackService.ACTION_JUMP, index)
@@ -240,7 +250,7 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
             title = entry?.title ?: state.title,
             artist = entry?.creator ?: state.artist,
             thumbnail = entry?.artwork ?: state.thumbnail,
-            videoUrl = entry?.url ?: state.videoUrl,
+            videoUrl = if (state.offline) state.videoUrl else entry?.url ?: state.videoUrl,
             positionMs = bookmark?.positionMs ?: state.positionMs,
             durationMs = bookmark?.durationMs ?: state.durationMs
         )
