@@ -130,17 +130,26 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
         val media = player.currentMediaItem
         val metadata = media?.mediaMetadata
         val duration = player.duration.takeIf { it != C.TIME_UNSET && it > 0L } ?: 0L
-        val current = QueueStateStore(context).read()
+        val persistence = QueueStateStore(context)
+        val current = persistence.read()
+        val savedTrack = current.tracks.getOrNull(current.index)
+        val savedBookmark = persistence.bookmark(savedTrack?.url)
         state = state.copy(
             connected = true,
-            title = metadata?.title?.toString().orEmpty(),
-            artist = metadata?.artist?.toString().orEmpty(),
-            videoUrl = media?.mediaId.orEmpty().takeIf { it.startsWith("https://www.youtube.com/watch?v=") }.orEmpty(),
-            thumbnail = metadata?.artworkUri?.toString().orEmpty(),
+            title = metadata?.title?.toString()?.takeIf { it.isNotBlank() }
+                ?: savedTrack?.title.orEmpty(),
+            artist = metadata?.artist?.toString()?.takeIf { it.isNotBlank() }
+                ?: savedTrack?.creator.orEmpty(),
+            videoUrl = media?.mediaId.orEmpty()
+                .takeIf { it.startsWith("https://www.youtube.com/watch?v=") }
+                ?: savedTrack?.url.orEmpty(),
+            thumbnail = metadata?.artworkUri?.toString()?.takeIf { it.isNotBlank() }
+                ?: savedTrack?.artwork.orEmpty(),
             playing = player.isPlaying,
             buffering = player.playbackState == Player.STATE_BUFFERING,
-            positionMs = player.currentPosition.coerceAtLeast(0L),
-            durationMs = duration,
+            positionMs = if (media != null) player.currentPosition.coerceAtLeast(0L)
+                else savedBookmark?.positionMs ?: 0L,
+            durationMs = if (duration > 0L) duration else savedBookmark?.durationMs ?: 0L,
             shuffle = current.shuffle,
             repeat = current.repeat,
             queue = current.tracks.map { VideoPreview(it.title, it.creator, it.url, it.artwork, 0) },
@@ -197,8 +206,12 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
     }
 
     override fun playPause() {
-        controller?.let { if (it.isPlaying) it.pause() else it.play() }
-            ?: run { state = state.copy(error = "Player is connecting. Try again.") }
+        controller?.let {
+            if (it.isPlaying) it.pause()
+            else if (it.currentMediaItem != null) it.play()
+            else if (state.queueIndex >= 0) action(PlaybackService.ACTION_RESUME_SAVED)
+            else state = state.copy(error = "Choose a song to start listening.")
+        } ?: run { state = state.copy(error = "Player is connecting. Try again.") }
     }
     override fun next() = action(PlaybackService.ACTION_NEXT)
     override fun previous() = action(PlaybackService.ACTION_PREVIOUS)
@@ -215,12 +228,21 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
     }
 
     override fun refreshQueue() {
-        val snapshot = QueueStateStore(context).read()
+        val persistence = QueueStateStore(context)
+        val snapshot = persistence.read()
+        val entry = snapshot.tracks.getOrNull(snapshot.index)
+        val bookmark = persistence.bookmark(entry?.url)
         state = state.copy(
             queue = snapshot.tracks.map { VideoPreview(it.title, it.creator, it.url, it.artwork, 0L) },
             queueIndex = snapshot.index,
             shuffle = snapshot.shuffle,
-            repeat = snapshot.repeat
+            repeat = snapshot.repeat,
+            title = entry?.title ?: state.title,
+            artist = entry?.creator ?: state.artist,
+            thumbnail = entry?.artwork ?: state.thumbnail,
+            videoUrl = entry?.url ?: state.videoUrl,
+            positionMs = bookmark?.positionMs ?: state.positionMs,
+            durationMs = bookmark?.durationMs ?: state.durationMs
         )
     }
 }
