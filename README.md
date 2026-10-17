@@ -1,5 +1,21 @@
 # NightWave
 
+## NightWave 2.0 Alpha 5R — Gesture stability and Android build verification
+
+**Version:** `2.0.0-alpha5r` · **Build code 34** · **Draft branch:** `feature/nightwave-v2-phase5r-accessibility-build-gates`.
+
+[Complete Phase 5R source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase5r-accessibility-build-gates.zip) · [Phase 5R build and device acceptance](docs/NIGHTWAVE_V2_PHASE5R_QA.md)
+
+- **More consistent gestures:** The mini-player and expanded-player drag-to-dismiss use the same **72 dp** threshold rather than raw pixel counts, preventing overly sensitive swipe actions on dense screens. Next is now a 48dp touch target. Album-art, Up Next/Undo and tab pager interactions remain distinct.
+- **Testable gesture policy:** Nine pure Kotlin JUnit cases cover artwork and player direction, short swipes, several display densities and invalid gesture values.
+- **Android compile gate:** A narrowly scoped draft-PR GitHub Actions job now attempts real Kotlin/Compose/Media3 debug compilation, JVM unit tests and **Android instrumentation test-source compilation**, before checking the debug APK's code/version and SHA-256. Unlike earlier source-only checks, this can surface actual Android compiler failures *if Actions runs successfully*.
+- **Signing safety:** CI artifacts are explicitly labeled **UNVERIFIED-FOR-DEVICE**. GitHub-generated debug certificates can differ from your phone installation; never install over saved music without running the repository's read-only Windows signing/device compatibility check.
+- **Preserved:** Phase 5Q saved/online search recovery, Phase 5P queue swipe/remove/Undo, Phase 5O navigation swipes, compact premium You, classic fallback, saved/offline audio, media service and app ID.
+
+**Release status:** Stable `main` is unchanged. Source implementation and CI configuration are committed, but **no Android APK/device compatibility or physical-phone stability is claimed until CI and actual Android tests report success**. Do not uninstall or reset NightWave to bypass signing problems.
+
+---
+
 ## NightWave 2.0 Alpha 5Q — Search recovery and saved-library discovery
 
 **Version:** `2.0.0-alpha5q` · **Build 33** · Branch: `feature/nightwave-v2-phase5q-search-recovery` (draft).
