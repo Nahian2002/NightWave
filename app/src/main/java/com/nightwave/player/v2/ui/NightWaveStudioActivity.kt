@@ -39,6 +39,8 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import com.nightwave.player.playback.SleepTimerStatusStore
+import com.nightwave.player.playback.OfflinePlaybackSpeedStore
+import com.nightwave.player.playback.OfflinePlaybackSpeedPolicy
 import androidx.activity.compose.setContent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
@@ -180,6 +182,8 @@ class NightWaveStudioActivity : ComponentActivity() {
     private lateinit var playback: StudioPlaybackBridge
     private lateinit var sleepTimerStatus: SleepTimerStatusStore
     private var sleepRemainingMs by mutableStateOf(0L)
+    private lateinit var offlineSpeedStore: OfflinePlaybackSpeedStore
+    private var offlineSpeedPercent by mutableStateOf(OfflinePlaybackSpeedPolicy.NORMAL_PERCENT)
     private lateinit var archiveManager: LibraryArchiveManager
     private lateinit var lyricsStore: PrivateLyricsStore
     private lateinit var listeningMemoryStore: ListeningMemoryStore
@@ -338,6 +342,8 @@ class NightWaveStudioActivity : ComponentActivity() {
         library = MusicLibrary(this)
         playback = StudioPlaybackBridge(this)
         sleepTimerStatus = SleepTimerStatusStore(this)
+        offlineSpeedStore = OfflinePlaybackSpeedStore(this)
+        offlineSpeedPercent = offlineSpeedStore.read()
         archiveManager = LibraryArchiveManager(this)
         lyricsStore = PrivateLyricsStore(this)
         listeningMemoryStore = ListeningMemoryStore(this)
@@ -409,6 +415,25 @@ class NightWaveStudioActivity : ComponentActivity() {
                             }
                         }.onFailure {
                             showMessage("Sleep timer couldn't be updated. Try again.")
+                        }
+                    },
+                    offlineSpeedPercent = offlineSpeedPercent,
+                    onOfflineSpeed = { percent ->
+                        if (OfflinePlaybackSpeedPolicy.accepts(percent)) {
+                            runCatching {
+                                startService(Intent(this, PlaybackService::class.java).apply {
+                                    action = PlaybackService.ACTION_OFFLINE_SPEED_SET
+                                    putExtra(PlaybackService.EXTRA_OFFLINE_SPEED_PERCENT, percent)
+                                })
+                            }.onSuccess {
+                                // The service commits the new setting before it is shown.
+                                lifecycleScope.launch {
+                                    delay(300L)
+                                    offlineSpeedPercent = offlineSpeedStore.read()
+                                }
+                            }.onFailure {
+                                showMessage("Could not change offline playback speed.")
+                            }
                         }
                     },
                     memory = memorySummary,
@@ -924,6 +949,7 @@ class NightWaveStudioActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         if (::library.isInitialized) refresh()
+        if (::offlineSpeedStore.isInitialized) offlineSpeedPercent = offlineSpeedStore.read()
         refreshListeningMemory()
         if (::roomShadow.isInitialized && ::profileShadow.isInitialized &&
             ::verifiedReader.isInitialized) refreshShadows()
@@ -1313,6 +1339,8 @@ private fun StudioRoot(
     playerActions: StudioPlaybackBridge,
     sleepRemainingMs: Long,
     onSleepTimer: (Int?) -> Unit,
+    offlineSpeedPercent: Int,
+    onOfflineSpeed: (Int) -> Unit,
     memory: ListeningMemorySummary,
     onMemoryEnabledChange: (Boolean) -> Unit,
     onMemoryErase: () -> Unit,
@@ -1625,6 +1653,8 @@ private fun StudioRoot(
         onSaveToPlaylist = onSaveCurrentToPlaylist,
         sleepRemainingMs = sleepRemainingMs,
         onSleepTimer = onSleepTimer,
+        offlineSpeedPercent = offlineSpeedPercent,
+        onOfflineSpeed = onOfflineSpeed,
         lyrics = currentLyrics,
         onImportLyrics = onImportLyrics,
         onRemoveLyrics = onRemoveLyrics,
