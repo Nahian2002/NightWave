@@ -87,8 +87,15 @@ class LibraryArchiveManager(context: Context) {
 
     private fun restoreOldLibrary(serialized: String): Boolean = runCatching {
         val obj = JSONObject(serialized)
-        val editor = libraryPrefs.edit().clear()
-        obj.keys().forEach { key -> editor.putString(key, obj.getString(key)) }
+        val before = obj.keys().asSequence().associateWith { key -> obj.getString(key) }
+        val current = libraryPrefs.all
+        val editor = libraryPrefs.edit()
+        // Undo only the imported collection fields, not unrelated app preferences.
+        for (key in current.keys) {
+            if ((key in setOf("favorites", "recent", "playlist_names") || key.startsWith("list_")) &&
+                key !in before) editor.remove(key)
+        }
+        for ((key, value) in before) editor.putString(key, value)
         editor.commit()
     }.getOrDefault(false)
 }
