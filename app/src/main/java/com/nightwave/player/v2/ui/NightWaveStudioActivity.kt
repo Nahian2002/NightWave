@@ -7,6 +7,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import com.nightwave.player.v2.data.LibraryArchiveManager
+import com.nightwave.player.diagnostics.NightWaveCrashRecorder
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
@@ -272,6 +273,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                     onPlay = { video, collection -> playback.play(video, collection) },
                     onLegacyPlayer = { manageLibrary() },
                     onOfflineLibrary = { startActivity(Intent(this, OfflineLibraryActivity::class.java)) },
+                    onShareDiagnostics = { showCrashSummaryDialog() },
                     onClose = {
                         startActivity(Intent(this, MainActivity::class.java))
                         finish()
@@ -395,6 +397,32 @@ class NightWaveStudioActivity : ComponentActivity() {
             .setNegativeButton("Cancel", null)
             .setPositiveButton("Save") { _, _ -> onSave(name.text.toString().trim()) }
             .show()
+    }
+
+    /**
+     * Private app-only crash evidence is available directly from premium UI.
+     * Show a preview first and require an explicit confirmation before opening
+     * Android's share chooser. No telemetry is uploaded automatically.
+     */
+    private fun showCrashSummaryDialog() {
+        val report = NightWaveCrashRecorder.report(this)
+        val contextText = "Contains exception types and NightWave stack frames only. " +
+            "It does not collect song titles, URLs, file paths or account details. " +
+            "Fatal crashes only: ANRs and system kills may require an Android log."
+        AlertDialog.Builder(this)
+            .setTitle("NightWave crash diagnostics")
+            .setMessage(contextText + "\n\n" + report.take(2400))
+            .setNegativeButton("Close", null)
+            .setPositiveButton("Share summary") { _, _ ->
+                try {
+                    startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, report)
+                    }, "Share NightWave crash diagnostics"))
+                } catch (error: Exception) {
+                    showMessage("No sharing app was available. The report remains on this device.")
+                }
+            }.show()
     }
 
     private fun showMessage(message: String) {
@@ -592,6 +620,7 @@ private fun StudioRoot(
     onPlay: (VideoPreview, List<VideoPreview>) -> Unit,
     onLegacyPlayer: () -> Unit,
     onOfflineLibrary: () -> Unit,
+    onShareDiagnostics: () -> Unit,
     onClose: () -> Unit
 ) {
     var tab by rememberSaveable { mutableStateOf(StudioTab.HOME) }
@@ -759,7 +788,8 @@ private fun StudioRoot(
                 roomReadStatus = roomReadStatus,
                 roomPreviewActive = roomPreviewActive,
                 onEnableRoomPreview = onEnableRoomPreview,
-                onUseLegacyReads = onUseLegacyReads
+                onUseLegacyReads = onUseLegacyReads,
+                onShareDiagnostics = onShareDiagnostics
             )
         }
         }
@@ -1100,7 +1130,8 @@ private fun StudioProfile(modifier: Modifier, profile: ProfileSettings, save: (P
     onRecoverLastChange: () -> Unit,
     storageStatus: String, onCheckStorage: () -> Unit,
     roomReadStatus: String, roomPreviewActive: Boolean,
-    onEnableRoomPreview: () -> Unit, onUseLegacyReads: () -> Unit) {
+    onEnableRoomPreview: () -> Unit, onUseLegacyReads: () -> Unit,
+    onShareDiagnostics: () -> Unit) {
     var name by rememberSaveable(profile.localId) { mutableStateOf(profile.displayName) }
     var showAdvanced by rememberSaveable { mutableStateOf(false) }
     LazyColumn(modifier.widthIn(max = 840.dp).fillMaxHeight(), contentPadding = PaddingValues(20.dp),
@@ -1160,7 +1191,7 @@ private fun StudioProfile(modifier: Modifier, profile: ProfileSettings, save: (P
                 }
             }
         }
-        item { SectionHeading("Guest backup and restore", "Keep a copy before uninstalling NightWave") }
+        item { SectionHeading("Guest backup and restore", "Keep your saved collections safe") }
         item {
             OutlinedButton(onClick = onRecoverLastChange,
                 modifier = Modifier.fillMaxWidth().height(50.dp)) {
@@ -1211,6 +1242,20 @@ private fun StudioProfile(modifier: Modifier, profile: ProfileSettings, save: (P
                 Switch(checked = profile.motion == MotionPreference.REDUCED,
                     onCheckedChange = { save(profile.copy(motion = if (it) MotionPreference.REDUCED else MotionPreference.SYSTEM)) })
             }
+        }
+        item { SectionHeading("App health", "Review crashes without connecting to a computer") }
+        item {
+            OutlinedButton(onClick = onShareDiagnostics,
+                modifier = Modifier.fillMaxWidth().height(50.dp)) {
+                Text("View / share crash summary")
+            }
+        }
+        item {
+            Text("Crash details stay on this phone until you explicitly share them. " +
+                "If Android reports frequent crashes but this list is empty, an ANR or " +
+                "system termination may need an Android log.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         item {
             OutlinedButton(onClick = { showAdvanced = !showAdvanced },
