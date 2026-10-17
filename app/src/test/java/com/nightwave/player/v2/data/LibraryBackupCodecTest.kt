@@ -50,6 +50,22 @@ class LibraryBackupCodecTest {
         }
     }
 
+    @Test fun rejectsExtraEnvelopeFieldEvenWhenChecksumIsValid() {
+        val doc = JSONObject(String(LibraryBackupCodec.encode(archive())))
+        doc.put("unauthorized", "value")
+        assertThrows(IllegalArgumentException::class.java) {
+            LibraryBackupCodec.decode(doc.toString().toByteArray())
+        }
+    }
+
+    @Test fun rejectsMissingEnvelopeFields() {
+        val doc = JSONObject(String(LibraryBackupCodec.encode(archive())))
+        doc.remove("sha256")
+        assertThrows(IllegalArgumentException::class.java) {
+            LibraryBackupCodec.decode(doc.toString().toByteArray())
+        }
+    }
+
     @Test fun rejectsTooManyPlaylists() {
         val archive = archive().copy(
             playlists = (0..50).map { "Playlist $it" to emptyList<VideoPreview>() }
