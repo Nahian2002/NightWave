@@ -85,8 +85,9 @@ fun NightWaveWordmark(modifier: Modifier = Modifier) {
 
 @Composable
 fun SectionHeading(title: String, hint: String? = null) {
-    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-        Text(title, style = MaterialTheme.typography.headlineSmall,
+    Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+        Text(title, style = MaterialTheme.typography.headlineSmall.copy(
+            fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.onBackground)
         if (!hint.isNullOrBlank()) Text(hint,
             style = MaterialTheme.typography.bodyMedium,
@@ -148,16 +149,16 @@ fun ListeningSpotlight(
     val hasRecent = lastTrack != null
     Card(
         onClick = if (hasRecent) onResume else onDiscover,
-        modifier = Modifier.fillMaxWidth().height(174.dp),
+        modifier = Modifier.fillMaxWidth().height(181.dp),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = colors.surfaceVariant)
     ) {
-        Box(Modifier.fillMaxWidth().height(174.dp).background(
+        Box(Modifier.fillMaxWidth().height(181.dp).background(
             Brush.linearGradient(listOf(colors.surfaceVariant, colors.surface, colors.surfaceVariant),
                 start = Offset.Zero, end = Offset(900f, 400f))
         )) {
             Box(Modifier.align(Alignment.CenterEnd).size(145.dp)
-                .offset(x = 16.dp).clip(RoundedCornerShape(22.dp))
+                .offset(x = (-9).dp).clip(RoundedCornerShape(22.dp))
                 .background(colors.primary.copy(alpha = .13f)),
                 contentAlignment = Alignment.Center) {
                 if (hasRecent && !lastTrack?.thumbnail.isNullOrBlank()) {
@@ -175,8 +176,8 @@ fun ListeningSpotlight(
                     }
                 }
             }
-            Column(Modifier.align(Alignment.CenterStart).fillMaxWidth(.63f)
-                .padding(start = 20.dp, top = 18.dp, bottom = 18.dp),
+            Column(Modifier.align(Alignment.CenterStart).fillMaxWidth(.65f)
+                .padding(start = 18.dp, top = 16.dp, bottom = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(if (hasRecent) "PICK UP WHERE YOU LEFT OFF" else "YOUR NEXT LISTEN",
                     style = MaterialTheme.typography.labelSmall, color = colors.primary)
@@ -230,9 +231,10 @@ fun MusicTrackTile(
 ) {
     val scheme = MaterialTheme.colorScheme
     Row(
-        modifier = modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp))
-            .background(if (isPlaying) scheme.primary.copy(alpha = .10f) else Color.Transparent)
-            .clickable(onClick = onClick).padding(vertical = 7.dp, horizontal = 8.dp),
+        modifier = modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp))
+            .background(if (isPlaying) scheme.primary.copy(alpha = .15f)
+                else scheme.surface.copy(alpha = .65f))
+            .clickable(onClick = onClick).padding(vertical = 8.dp, horizontal = 9.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -265,9 +267,10 @@ fun MusicCollectionTile(
 ) {
     val colors = MaterialTheme.colorScheme
     Card(
-        onClick = onClick, modifier = Modifier.fillMaxWidth().height(81.dp),
-        shape = RoundedCornerShape(17.dp),
-        colors = CardDefaults.cardColors(containerColor = colors.surface)
+        onClick = onClick, modifier = Modifier.fillMaxWidth().height(78.dp),
+        shape = RoundedCornerShape(19.dp),
+        colors = CardDefaults.cardColors(containerColor = colors.surfaceVariant),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 11.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -298,9 +301,9 @@ fun MusicCollectionTile(
 fun EmptyMusicCard(title: String, description: String, action: String, onAction: () -> Unit) {
     Surface(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onAction),
-        shape = RoundedCornerShape(18.dp),
-        color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = .48f))
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = .26f))
     ) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(title, style = MaterialTheme.typography.titleLarge)
