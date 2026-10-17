@@ -50,8 +50,11 @@ if ($SelfTest) {
         "Authorization: Bearer imaginary-test-secret"
     )
     $got = @(Summarize -lines $sample) -join [Environment]::NewLine
+    $credentialCheck = Redact-Line 'Authorization: Bearer imaginary-test-secret'
     if ($got -notmatch 'Unresolved reference' -or $got -notmatch 'compileDebugKotlin FAILED' -or
-        $got -match 'Users/demo|imaginary-test-secret' -or $got -notmatch 'Users/<user>') {
+        $got -match 'Users/demo|imaginary-test-secret' -or $got -notmatch 'Users/<user>' -or
+        $credentialCheck -match 'imaginary-test-secret' -or
+        $credentialCheck -notmatch '<redacted>') {
         Write-Host 'FAIL: Build report filtering or redaction.' -ForegroundColor Red
         exit 1
     }
