@@ -46,7 +46,7 @@ assert 'onPlay(song, savedMatches)' in studio
 # 5T promotes official discovery to the primary action while retaining the
 # earlier 5Q device-local matches and optional quick-result retry.
 assert 'Text("Find music on YouTube")' in studio
-assert 'Quick results aren\'t available right now' in studio
+assert 'Quick results temporarily unavailable' in studio
 assert 'Text("Retry quick results")' in studio
 assert 'Text("YouTube")' in studio
 assert 'private fun primarySearch(' in studio
