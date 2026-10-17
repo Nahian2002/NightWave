@@ -94,7 +94,7 @@ assert 'android:allowBackup="false"' in manifest
 ET.parse(root / "app/src/main/AndroidManifest.xml")
 
 assert unit.count('@Test') == 8
-assert android.count('@Test') == 2
+assert android.count('@Test') == 3
 for name, content in (('queue', queue), ('service', service), ('bridge', bridge),
                       ('Up Next', ui), ('premium root', studio)):
     assert content.count('{') == content.count('}'), name + ': brace imbalance'
