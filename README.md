@@ -1,5 +1,20 @@
 # NightWave
 
+## NightWave 2.0 Alpha 5I — Safe on-device update preflight
+
+**Version:** `2.0.0-alpha5i` (build 25). **Draft branch:** `feature/nightwave-v2-phase5i-device-update-check`.
+
+[Download Phase 5I complete source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase5i-device-update-check.zip) · [Read-only device check and Phase 5I QA](docs/NIGHTWAVE_V2_PHASE5I_QA.md)
+
+- **New: `check-device-update.cmd`.** After a verified local Windows build, connect one authorized Android phone and run this manually to compare the new APK against the package **actually installed on that phone**. It performs read-only ADB package discovery and reads only the app APK, not music, private data or account content.
+- **Signer and downgrade safety.** The check refuses a mismatched APK signing certificate, newer installed NightWave version, unauthorized/multiple devices, stale or altered local APK, and unexpected device responses. It returns `PASS - IN-PLACE UPDATE SIGNER MATCH`, `PASS - FRESH INSTALL`, or `INCONCLUSIVE`. It never installs, uninstalls, resets, or changes user data.
+- **Builder support.** The existing local (zero GitHub Actions billing) Windows builder now prepares Android SDK Platform Tools and validates source scripts before build. All prior APK identity/signature checks remain active.
+- **Nothing changes in music playback logic.** Media3, offline resume, classic UI, premium player, public search, app identity and local music persistence stay as they were in 5H.
+
+**Verification:** Prior isolated Kotlin smoke harnesses were re-run (38 behavior assertions passed), and Phase 5I has a source-only contract gate. **A complete Android Gradle build, Windows PowerShell execution, connected-device check, APK install and Samsung playback/crash test have NOT occurred.** Stable `main` is unchanged and this phase stays draft.
+
+---
+
 ## NightWave 2.0 Alpha 5H — APK verification and safer in-place updates
 
 **Version:** `2.0.0-alpha5h` (build 24). **Draft branch:** `feature/nightwave-v2-phase5h-apk-signing-gates`.

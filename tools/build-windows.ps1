@@ -133,8 +133,8 @@ try {
     Say 'Android SDK licenses must be accepted once. Read the terms and type y when you agree.'
     & $sdkmanager "--sdk_root=$sdk" --licenses
     if ($LASTEXITCODE -ne 0) { throw 'Android SDK licenses were not accepted.' }
-    Say 'Installing Android platform 35 and build tools 35.0.0'
-    & $sdkmanager "--sdk_root=$sdk" 'platforms;android-35' 'build-tools;35.0.0'
+    Say 'Installing Android 35, build tools and read-only device-check platform tools'
+    & $sdkmanager "--sdk_root=$sdk" 'platforms;android-35' 'build-tools;35.0.0' 'platform-tools'
     if ($LASTEXITCODE -ne 0) { throw 'Android SDK package installation failed.' }
 
     $stage = 'Gradle compile / unit tests'
@@ -220,7 +220,7 @@ try {
     $buildTools = Join-Path $sdk 'build-tools\35.0.0'
     $verifyOutput = (& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $verifier `
         -ApkPath $apk -BuildToolsDir $buildTools `
-        -VersionName '2.0.0-alpha5h' -VersionCode '24' `
+        -VersionName '2.0.0-alpha5i' -VersionCode '25' `
         -PreviousApkPath $previousApk 2>&1 | Out-String)
     if ($LASTEXITCODE -ne 0) {
         throw ('APK signature/identity gate failed: ' + $verifyOutput.Trim())
@@ -239,8 +239,8 @@ try {
     @(
         'SUCCESS - NightWave Android debug APK locally verified',
         'Package: com.nightwave.player',
-        'Version: 2.0.0-alpha5h',
-        'Version code: 24',
+        'Version: 2.0.0-alpha5i',
+        'Version code: 25',
         $signerLine,
         $continuityLine,
         "SHA256: $hash",
