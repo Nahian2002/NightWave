@@ -27,7 +27,7 @@ class NightWaveDefaultEntryInstrumentedTest {
             .addCategory(Intent.CATEGORY_LAUNCHER)
             .setPackage(context.packageName)
         val matches = context.packageManager.queryIntentActivities(
-            launch, PackageManager.MATCH_DEFAULT_ONLY
+            launch, 0
         ).filter { it.activityInfo.packageName == context.packageName }
         assertEquals("NightWave must expose exactly one launcher", 1, matches.size)
         assertEquals(NightWaveStudioActivity::class.java.name,
