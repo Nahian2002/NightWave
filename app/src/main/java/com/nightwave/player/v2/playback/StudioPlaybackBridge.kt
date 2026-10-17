@@ -41,6 +41,7 @@ data class StudioPlayerState(
 interface StudioPlayerActions {
     fun play(video: VideoPreview, collection: List<VideoPreview> = listOf(video))
     fun playPause()
+    fun enqueue(video: VideoPreview)
     fun previous()
     fun next()
     fun seekTo(positionMs: Long)
@@ -83,7 +84,6 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
             future = pending
             pending.addListener({
                 if (released) {
-                    MediaController.releaseFuture(pending)
                     return@addListener
                 }
                 try {
@@ -148,9 +148,12 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
     }
 
     override fun play(video: VideoPreview, collection: List<VideoPreview>) {
-        val tracks = (if (collection.any { it.url == video.url }) collection else listOf(video))
+        // Keep the requested song in the queue even if a collection exceeds 100 items.
+        val unique = (if (collection.any { it.url == video.url }) collection else listOf(video))
             .distinctBy { it.url }
-            .take(100)
+        val firstHundred = unique.take(100)
+        val tracks = if (firstHundred.any { it.url == video.url }) firstHundred
+            else listOf(video) + unique.filter { it.url != video.url }.take(99)
         if (tracks.isEmpty()) return
         val index = tracks.indexOfFirst { it.url == video.url }.coerceAtLeast(0)
         try {
@@ -164,6 +167,20 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
             context.startService(request)
         } catch (e: Exception) {
             state = state.copy(error = "Could not start this track.")
+        }
+    }
+
+    override fun enqueue(video: VideoPreview) {
+        try {
+            val request = Intent(context, PlaybackService::class.java)
+                .setAction(PlaybackService.ACTION_ENQUEUE)
+                .putExtra(PlaybackService.EXTRA_URLS, video.url)
+                .putExtra(PlaybackService.EXTRA_TITLES, video.title)
+                .putExtra(PlaybackService.EXTRA_CREATORS, video.author)
+                .putExtra(PlaybackService.EXTRA_ARTWORKS, video.thumbnail)
+            context.startService(request)
+        } catch (e: Exception) {
+            state = state.copy(error = "Could not add this track to the queue.")
         }
     }
 
