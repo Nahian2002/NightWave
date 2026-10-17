@@ -27,7 +27,7 @@ assert 'fun NightWaveLibraryNumbers(' in visual
 assert 'fun NightWaveMicroLabel(' in visual
 assert 'Color.Transparent' in visual
 assert 'Brush.radialGradient(' in visual
-assert 'Brush.linearGradient(colors)' in visual
+assert 'Brush.linearGradient(safeColors)' in visual
 for unsafe in ('AsyncImage(', 'BitmapFactory', 'OkHttp', 'WebView', 'NewPipe',
                'Math.random(', 'Permission', 'getExternalStorageDirectory'):
     assert unsafe not in visual, unsafe
