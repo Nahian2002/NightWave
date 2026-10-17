@@ -2,6 +2,7 @@ package com.nightwave.player.v2.data
 
 import android.content.Context
 import com.nightwave.player.library.MusicLibrary
+import com.nightwave.player.library.LegacyLibraryTransaction
 import com.nightwave.player.net.VideoPreview
 import com.nightwave.player.v2.model.NightWaveTheme
 import org.json.JSONArray
@@ -18,7 +19,7 @@ class LibraryArchiveManager(context: Context) {
     private val libraryPrefs = app.getSharedPreferences("nightwave_library_v1", Context.MODE_PRIVATE)
     private val recoveryPrefs = app.getSharedPreferences("nightwave_archive_recovery_v1", Context.MODE_PRIVATE)
 
-    fun export(): ByteArray {
+    fun export(): ByteArray = LegacyLibraryTransaction.exclusive {
         val profile = profileStore.load()
         return LibraryBackupCodec.encode(LibraryArchive(
             displayName = profile.displayName,
@@ -44,8 +45,7 @@ class LibraryArchiveManager(context: Context) {
      * Retain a separate recovery snapshot BEFORE mutation. Only then update
      * profile settings; if that step fails roll the library back immediately.
      */
-    @Synchronized
-    fun restoreWithConfirmation(archive: LibraryArchive): Boolean {
+    fun restoreWithConfirmation(archive: LibraryArchive): Boolean = LegacyLibraryTransaction.exclusive {
         // Round-trip normalization validates the entire input before modifying data.
         val checked = LibraryBackupCodec.decode(LibraryBackupCodec.encode(archive))
         val previous = libraryPrefs.all.toMap()
@@ -54,16 +54,22 @@ class LibraryArchiveManager(context: Context) {
                 if (value is String) snapshot.put(key, value)
             }
         }.toString()
-        if (!recoveryPrefs.edit().putString("previous_library", backup).commit()) return false
+        if (!recoveryPrefs.edit().putString("previous_library", backup).commit()) return@exclusive false
 
-        val change = libraryPrefs.edit().clear()
+        // Only replace declared playlists. Keep unlisted/orphaned keys for recovery.
+        val currentNames = library.playlistNames()
+        val change = libraryPrefs.edit()
             .putString("favorites", serialize(checked.favorites))
             .putString("playlist_names", JSONArray(checked.playlists.map { it.first }).toString())
             .putString("recent", serialize(library.recent())) // preserve local-only history
+        val replacementNames = checked.playlists.map { it.first }.toSet()
+        for (name in currentNames) {
+            if (name !in replacementNames) change.remove("list_" + name)
+        }
         checked.playlists.forEach { (name, tracks) ->
             change.putString("list_" + name, serialize(tracks))
         }
-        if (!change.commit()) return false
+        if (!change.commit()) return@exclusive false
         val oldProfile = profileStore.load()
         val proposed = oldProfile.copy(
             displayName = checked.displayName,
@@ -72,7 +78,7 @@ class LibraryArchiveManager(context: Context) {
         )
         if (!profileStore.save(proposed)) {
             restoreOldLibrary(backup)
-            return false
+            return@exclusive false
         }
         // Recovery snapshot intentionally retained; user can recover manually
         // on a future release, never overwritten by an automatic import.
