@@ -17,11 +17,11 @@ library = read(base + "offline/OfflineAudioLibrary.kt")
 builder = read("tools/build-windows.ps1")
 device = read("tools/check-device-update.ps1")
 
-assert 'versionCode = 32' in gradle
-assert 'versionName = "2.0.0-alpha5p"' in gradle
-assert "-VersionName '2.0.0-alpha5p' -VersionCode '32'" in builder
-assert "$versionName = '2.0.0-alpha5p'" in device
-assert '$versionCode = 32' in device
+assert 'versionCode = 33' in gradle
+assert 'versionName = "2.0.0-alpha5q"' in gradle
+assert "-VersionName '2.0.0-alpha5q' -VersionCode '33'" in builder
+assert "$versionName = '2.0.0-alpha5q'" in device
+assert '$versionCode = 33' in device
 
 # Visual structure: compact rather than 50dp-per-setting buttons and huge
 # unstructured sections. Advanced tools must be collapsed at first opening.
