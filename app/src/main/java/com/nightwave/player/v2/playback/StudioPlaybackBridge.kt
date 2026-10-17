@@ -261,6 +261,7 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
             else (emptyList<VideoPreview>() to -1)
         val savedTrack = current.tracks.getOrNull(current.index)
         val savedBookmark = persistence.bookmark(savedTrack?.url)
+        val resolving = media == null && persistence.lookupPending(savedTrack?.url)
         state = state.copy(
             connected = true,
             title = if (offlineId != null) metadata?.title?.toString().orEmpty()
@@ -278,7 +279,7 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
                 else metadata?.artworkUri?.toString()?.takeIf { it.isNotBlank() }
                     ?: savedTrack?.artwork.orEmpty(),
             playing = player.isPlaying,
-            buffering = player.playbackState == Player.STATE_BUFFERING,
+            buffering = player.playbackState == Player.STATE_BUFFERING || resolving,
             positionMs = if (media != null) player.currentPosition.coerceAtLeast(0L)
                 else savedBookmark?.positionMs ?: 0L,
             durationMs = if (duration > 0L) duration
@@ -290,7 +291,8 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
             queueIndex = if (offlineId != null) offlineList.second else current.index,
             error = if (player.playerError != null)
                 "Audio playback failed. Tap Retry or choose another song."
-                else if (offlineId != null) null else persistence.failure(savedTrack?.url)
+                else if (offlineId != null || resolving) null
+                else persistence.failure(savedTrack?.url)
         )
     }
 
@@ -368,10 +370,9 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
                     active.isPlaying -> Unit
                     active.playerError != null -> action(PlaybackService.ACTION_RETRY_CURRENT)
                     active.currentMediaItem != null -> {
-                        if (active.playbackState == Player.STATE_ENDED) {
-                            active.seekTo(0L)
-                            active.prepare()
-                        }
+                        if (active.playbackState == Player.STATE_ENDED) active.seekTo(0L)
+                        if (active.playbackState == Player.STATE_ENDED ||
+                            active.playbackState == Player.STATE_IDLE) active.prepare()
                         active.play()
                     }
                     state.offline -> action(PlaybackService.ACTION_RESUME_OFFLINE)
@@ -391,9 +392,16 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
     override fun playPause() {
         try {
             controller?.let {
-                if (it.isPlaying) it.pause()
+                if (it.isPlaying ||
+                    (it.currentMediaItem == null && !state.offline && state.queueIndex >= 0 &&
+                        it.playWhenReady)) it.pause()
                 else if (it.playerError != null) action(PlaybackService.ACTION_RETRY_CURRENT)
-                else if (it.currentMediaItem != null) it.play()
+                else if (it.currentMediaItem != null) {
+                    if (it.playbackState == Player.STATE_ENDED) it.seekTo(0L)
+                    if (it.playbackState == Player.STATE_ENDED ||
+                        it.playbackState == Player.STATE_IDLE) it.prepare()
+                    it.play()
+                }
                 else if (state.offline) action(PlaybackService.ACTION_RESUME_OFFLINE)
                 else if (state.queueIndex >= 0) action(PlaybackService.ACTION_RESUME_SAVED)
                 else state = state.copy(error = "Choose a song to start listening.")

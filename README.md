@@ -1,5 +1,21 @@
 # NightWave
 
+## Phase 6D — Playback Intelligence & Reliability (draft)
+
+**Branch:** `feature/nightwave-v2-phase6d-playback-resolve-recovery`, stacked on 6C2. **Source delivery only; no verified Android APK or real-device playback timing.** Stable `main` and the existing installed music library are unchanged.
+
+[Phase 6D source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase6d-playback-resolve-recovery.zip) · [Full deferred QA checklist](docs/NIGHTWAVE_V2_PHASE6D_QA.md)
+
+- **Fewer stuck music transitions:** the public-audio extractor now uses a bounded two-worker/one-waiting-slot pool. Selecting a new song invalidates and cancels superseded work so a stale completion cannot play over the new selection. A 35-second extractor-only timeout ends a stuck request with an explicit Retry action rather than a permanent wait. This is **not** a 35-second guarantee of playable audio from YouTube.
+- **Correct queue recovery:** explicit saved-queue Resume and Retry check the *selected* track's ID and its own bookmark, not whichever offline or older song happens to remain in the Media3 player. Duplicate in-progress commands do not spawn duplicate extracts.
+- **Pause means pause:** Play/Pause during lookup updates pending playback intent, honored when the source finally resolves. No surprise autoplay after the user paused.
+- **Repeat One without needless extraction:** replay a healthy, already loaded public track from the start; if its signed URL expires, inherited single automatic error recovery still applies. Ended/idle loaded tracks prepare without a new lookup.
+- **Visible progress and failure:** an elapsed-time-bounded public-ID-only lookup marker provides honest connecting state and Retry errors. Empty-media states refresh more quickly without polling the full queue on every 750ms player tick.
+- **Preserved** background Media3 ownership, real audio imports, safe 5Y resume, mini-player hide/restore, 6B lyrics, 6C listening memory/6C2 trends, Google Drive backups/merge, existing app ID/version and signing assumptions. No private audio paths or stream signatures saved.
+- **Release status:** Pure JVM policy tests and emulator-only transient-state tests authored; source audit scheduled only for future manual CI. **Gradle, physical playback, power-management, UI accessibility and APK update-signing checks deferred as requested.**
+
+---
+
 ## Phase 6C2 — Private Listening Trends & Smarter Music Mixes (draft)
 
 **Source branch:** `feature/nightwave-v2-phase6c2-private-trends-personal-mixes` — built on Phase 6C and all prior draft phases. Stable `main` remains untouched. **No verified Android build or device acceptance yet.**

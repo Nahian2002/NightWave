@@ -30,6 +30,10 @@ import com.nightwave.player.offline.OfflinePlaybackQueue
 import com.nightwave.player.offline.OfflineSessionStore
 import com.nightwave.player.v2.ui.NightWaveStudioActivity
 import java.util.concurrent.Executors
+import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.Future
 
 /** The service owns automatic next-track resolution, even while the Activity is stopped. */
 @UnstableApi
@@ -67,7 +71,12 @@ class PlaybackService : MediaSessionService() {
     private val queue = PlaybackQueue()
     private lateinit var savedQueue: QueueStateStore
     private val main = Handler(Looper.getMainLooper())
-    private val resolver = Executors.newSingleThreadExecutor()
+    // One slow, stale extractor cannot block a newer selection. Maximum two
+    // active workers + one queued request; do not spawn unbounded network jobs.
+    private val resolver = ThreadPoolExecutor(2, 2, 30L, TimeUnit.SECONDS,
+        ArrayBlockingQueue<Runnable>(1), ThreadPoolExecutor.AbortPolicy())
+    private var resolveFuture: Future<*>? = null
+    private var resolveDeadline: Runnable? = null
     private val gateway = YouTubeGateway()
     private var generation = 0
     /** Main-thread marker for a public track awaiting extractor resolution. */
@@ -220,6 +229,7 @@ class PlaybackService : MediaSessionService() {
     override fun onCreate() {
         super.onCreate()
         savedQueue = QueueStateStore(this)
+        savedQueue.clearLookup() // process restart must not leave a ghost spinner
         offlineSession = OfflineSessionStore(this)
         listeningMemory = ListeningMemoryStore(this)
         savedQueue.restore(queue)
@@ -301,25 +311,25 @@ class PlaybackService : MediaSessionService() {
                 val sameQueue = intent.action == ACTION_PLAY_QUEUE && !offlinePlaying &&
                     proposedQueue.isNotEmpty() && queue.snapshot() == proposedQueue &&
                     queue.index == selected.coerceIn(0, proposedQueue.lastIndex)
-                val loaded = selectedEntry != null &&
-                    exoPlayer?.currentMediaItem?.mediaId == selectedEntry.url &&
-                    exoPlayer?.playerError == null
+                val loaded = PlaybackResolutionPolicy.reusesLoadedTrack(
+                    selectedEntry?.url, exoPlayer?.currentMediaItem?.mediaId,
+                    exoPlayer?.playerError != null
+                )
                 val resolving = selectedEntry != null &&
-                    resolvingPublicUrl == selectedEntry.url
+                    PlaybackResolutionPolicy.awaitsSameResolution(selectedEntry.url, resolvingPublicUrl)
                 if (sameQueue && (loaded || resolving)) {
                     // Double-tap/recomposition must not drop an already buffered
                     // stream or enqueue another slow extraction of the same URL.
                     if (loaded) exoPlayer?.apply {
-                        if (playbackState == Player.STATE_ENDED) {
-                            seekTo(0L)
-                            prepare()
-                        }
+                        if (playbackState == Player.STATE_ENDED) seekTo(0L)
+                        if (playbackState == Player.STATE_ENDED ||
+                            playbackState == Player.STATE_IDLE) prepare()
                         play()
                     }
                 } else {
                     queue.replace(entries, selected)
                     generation++ // invalidate unresolved previous track jobs
-                    resolvingPublicUrl = null
+                    cancelPendingResolution()
                     savedQueue.save(queue)
                     queue.current?.let { savedQueue.saveBookmark(it.url, 0L, 0L) }
                     if (intent.action == ACTION_PLAY_QUEUE) {
@@ -401,6 +411,20 @@ class PlaybackService : MediaSessionService() {
         return result
     }
 
+    /**
+     * Invalidate queued/pending extraction jobs and their user-facing timeout.
+     * This does not touch actual media playback, queue, or offline files.
+     */
+    private fun cancelPendingResolution() {
+        resolveDeadline?.let(main::removeCallbacks)
+        resolveDeadline = null
+        resolveFuture?.cancel(true)
+        resolveFuture = null
+        resolver.queue.clear()
+        resolvingPublicUrl = null
+        if (::savedQueue.isInitialized) savedQueue.clearLookup()
+    }
+
     /** Explicit retry after a playback/extraction error, without reusing signed stream URLs. */
     private fun retryCurrent() {
         if (offlinePlaying) {
@@ -408,11 +432,15 @@ class PlaybackService : MediaSessionService() {
             return
         }
         val entry = queue.current ?: return
+        if (PlaybackResolutionPolicy.awaitsSameResolution(entry.url, resolvingPublicUrl)) return
         val currentId = exoPlayer?.currentMediaItem?.mediaId
-        if (currentId != null && currentId != entry.url) return
         val bookmark = savedQueue.bookmark(entry.url)?.positionMs ?: 0L
-        val position = exoPlayer?.currentPosition?.coerceAtLeast(0L)
-            ?.takeIf { it > 0 } ?: bookmark
+        // Retry targets the user's selected saved queue entry, not any stale
+        // media that happens to remain loaded. Never apply a different song's
+        // position to the requested public video.
+        val position = if (currentId == entry.url)
+            (exoPlayer?.currentPosition?.coerceAtLeast(0L)?.takeIf { it > 0 } ?: bookmark)
+        else bookmark
         resolveAndPlay(entry, autoPlay = true, resumePositionMs = position)
     }
 
@@ -420,16 +448,24 @@ class PlaybackService : MediaSessionService() {
     private fun resumeSavedQueue() {
         // A second Resume tap while extractor work is pending must not queue
         // another resolution behind a slow first request.
-        if (resolvingPublicUrl != null &&
-            resolvingPublicUrl == queue.current?.url) return
-        if (exoPlayer?.currentMediaItem != null) {
-            exoPlayer?.play()
-        } else {
-            queue.current?.let { entry ->
-                resolveAndPlay(entry, autoPlay = true,
-                    resumePositionMs = savedQueue.bookmark(entry.url)?.positionMs ?: 0L)
-            }
+        val entry = queue.current ?: return
+        if (PlaybackResolutionPolicy.awaitsSameResolution(entry.url, resolvingPublicUrl)) {
+            exoPlayer?.play() // resume intent only; do NOT re-extract
+            return
         }
+        val player = exoPlayer ?: return
+        if (PlaybackResolutionPolicy.reusesLoadedTrack(
+                entry.url, player.currentMediaItem?.mediaId, player.playerError != null)) {
+            if (player.playbackState == Player.STATE_ENDED) player.seekTo(0L)
+            if (player.playbackState == Player.STATE_ENDED ||
+                player.playbackState == Player.STATE_IDLE) player.prepare()
+            player.play()
+            return
+        }
+        // Never resume an offline/different cached item merely because some
+        // MediaItem exists. Restore selected *public* queue and saved bookmark.
+        resolveAndPlay(entry, autoPlay = true,
+            resumePositionMs = savedQueue.bookmark(entry.url)?.positionMs ?: 0L)
     }
 
     /** Explicit restoration only: validate every ID against the current file index. */
@@ -465,7 +501,7 @@ class PlaybackService : MediaSessionService() {
         }
         offlinePlaying = true
         generation++ // Cancel unresolved online audio from a previous song.
-        resolvingPublicUrl = null
+        cancelPendingResolution()
         autoRetriedVideo = null
         player.apply {
             pause()
@@ -494,6 +530,23 @@ class PlaybackService : MediaSessionService() {
         pendingQueueRemoval = null
         if (offlinePlaying) {
             advanceOffline(forward = true)
+            return
+        }
+        val player = exoPlayer
+        val repeating = queue.current
+        if (automatic && queue.repeat == PlaybackQueue.Repeat.ONE &&
+            PlaybackResolutionPolicy.reusesLoadedTrack(
+                repeating?.url, player?.currentMediaItem?.mediaId, player?.playerError != null)) {
+            // Repeat-one should not launch a whole fresh extractor request.
+            // A genuinely expired source still uses the existing one-refresh
+            // onPlayerError path. Manual Next obeys the queue's normal rules.
+            savedQueue.saveBookmark(repeating!!.url, 0L, 0L)
+            player?.apply {
+                seekTo(0L)
+                prepare()
+                playWhenReady = true
+                play()
+            }
             return
         }
         queue.next(automatic)?.let { savedQueue.save(queue); resolveAndPlay(it) }
@@ -539,26 +592,51 @@ class PlaybackService : MediaSessionService() {
         offlineQueue.reset()
         if (!recoveryAttempt) autoRetriedVideo = null
         savedQueue.clearFailure()
+        cancelPendingResolution()
         // Drop expired previous stream metadata immediately; the UI can display
         // the current queue entry during fresh extraction instead of a stale song.
         exoPlayer?.apply {
             stop()
             clearMediaItems()
-            playWhenReady = false
+            // Keep pending user intent observable by Media3 Play/Pause.
+            // A Pause during extraction must not be reversed at completion.
+            playWhenReady = autoPlay
         }
         if (autoPlay && resumePositionMs == 0L) savedQueue.saveBookmark(entry.url, 0L, 0L)
         val request = ++generation
         resolvingPublicUrl = entry.url
+        savedQueue.markLookup(entry.url)
         if (resolver.isShutdown) {
-            resolvingPublicUrl = null
+            cancelPendingResolution()
+            savedQueue.recordFailure(entry.url, "Playback is stopping. Open the app and Retry.")
             return
         }
+        val startElapsedMs = SystemClock.elapsedRealtime()
+        val timeout = Runnable {
+            if (PlaybackResolutionPolicy.acceptsResult(request, generation,
+                    entry.url, queue.current?.url, offlinePlaying) &&
+                resolvingPublicUrl == entry.url &&
+                PlaybackResolutionPolicy.timedOut(startElapsedMs, SystemClock.elapsedRealtime())) {
+                generation++ // future resolution is now invalid
+                cancelPendingResolution()
+                savedQueue.recordFailure(entry.url,
+                    "Audio lookup took too long. Tap Retry or choose another song.")
+                Log.w("NightWavePlayback", "Stream extraction timed out; waiting for user retry")
+            }
+        }
+        resolveDeadline = timeout
+        main.postDelayed(timeout, PlaybackResolutionPolicy.RESOLUTION_TIMEOUT_MS)
         try {
-            resolver.execute {
+            // submit() returns a cancellable Future; the bounded worker queue
+            // avoids serial head-of-line delay from a superseded extraction.
+            resolveFuture = resolver.submit(Runnable {
+                if (Thread.currentThread().isInterrupted) return@Runnable
                 val outcome = runCatching { gateway.resolve(entry.url) }
                 main.post {
-                    if (request != generation || exoPlayer == null) return@post
-                    resolvingPublicUrl = null
+                    if (!PlaybackResolutionPolicy.acceptsResult(request, generation,
+                            entry.url, queue.current?.url, offlinePlaying) ||
+                        exoPlayer == null) return@post
+                    cancelPendingResolution()
                     outcome.onSuccess { playable ->
                     val video = playable.video
                     savedQueue.clearFailure()
@@ -570,11 +648,12 @@ class PlaybackService : MediaSessionService() {
                         .apply { playable.mimeType?.let { setMimeType(it) } }
                         .setMediaMetadata(metadata).build()
                     exoPlayer?.apply {
+                        val shouldPlay = autoPlay && playWhenReady
                         setMediaItem(mediaItem)
                         if (resumePositionMs > 0L) seekTo(resumePositionMs)
-                        playWhenReady = autoPlay
+                        playWhenReady = shouldPlay
                         prepare()
-                        if (autoPlay) play()
+                        if (shouldPlay) play()
                     }
                 }
                 // An unavailable public stream is not a reason to replay an old song.
@@ -586,10 +665,13 @@ class PlaybackService : MediaSessionService() {
                         exoPlayer?.pause()
                     }
                 }
-            }
+            })
         } catch (_: java.util.concurrent.RejectedExecutionException) {
-            resolvingPublicUrl = null
-            // Service is shutting down; never crash because an async resolve was queued.
+            generation++
+            cancelPendingResolution()
+            savedQueue.recordFailure(entry.url,
+                "Music lookup is busy. Tap Retry in a moment.")
+            // Bounded workers are occupied; fail visibly, never queue indefinitely.
         }
     }
 
@@ -600,7 +682,7 @@ class PlaybackService : MediaSessionService() {
         persistProgress(flush = true)
         main.removeCallbacks(progressWriter)
         generation++
-        resolvingPublicUrl = null
+        cancelPendingResolution()
         resolver.shutdownNow()
         listeningWriter.shutdown() // drain pending bounded, consent-fenced writes
         exoPlayer?.removeListener(trackListener)
