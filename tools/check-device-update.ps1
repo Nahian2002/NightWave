@@ -10,8 +10,8 @@ $reportPath = Join-Path $dist 'NightWave-device-update-check.txt'
 $apk = Join-Path $dist 'NightWave-debug.apk'
 $status = Join-Path $dist 'NightWave-build-status.txt'
 $buildTools = Join-Path $env:LOCALAPPDATA 'NightWaveBuild\android-sdk\build-tools\35.0.0'
-$versionName = '2.0.0-alpha5k'
-$versionCode = 27
+$versionName = '2.0.0-alpha5l'
+$versionCode = 28
 $packageName = 'com.nightwave.player'
 $checked = 'INCONCLUSIVE'
 $details = 'Device and APK compatibility have not been verified.'
@@ -47,9 +47,21 @@ try {
     if ($summary -notmatch '(?m)^SUCCESS - NightWave Android debug APK locally verified') {
         throw 'The latest local build has not passed its verification gates.'
     }
-    if ($summary -notmatch '(?m)^Version: 2\.0\.0-alpha5k\s*$' -or
-        $summary -notmatch '(?m)^Version code: 27\s*$') {
-        throw 'The build status does not identify NightWave Phase 5I.'
+    # Compare parsed status fields to the single version declarations above.
+    # Never hard-code a second alpha version into the regular expression:
+    # Phase 5I/5K each broke the read-only update check during version bumps.
+    if ($summary -match '(?m)^Version:\s*([^\r\n]+)\s*$') {
+        $reportedVersion = $Matches[1].Trim()
+    } else {
+        throw 'Build status has no readable NightWave version.'
+    }
+    if ($summary -match '(?m)^Version code:\s*([0-9]+)\s*$') {
+        $reportedCode = [int]$Matches[1]
+    } else {
+        throw 'Build status has no readable NightWave version code.'
+    }
+    if ($reportedVersion -ne $versionName -or $reportedCode -ne $versionCode) {
+        throw 'The build status version does not match the current NightWave source.'
     }
     if ($summary -match '(?m)^SHA256: ([0-9A-Fa-f]{64})\s*$') {
         $expected = $Matches[1]

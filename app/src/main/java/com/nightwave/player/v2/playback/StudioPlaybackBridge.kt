@@ -79,8 +79,19 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
             // This callback also runs during a normal release. Never resurrect
             // an Activity that has already been destroyed.
             if (released || controller !== disconnected) return
+            // The future owns the MediaController resource, even when Android
+            // has already disconnected its underlying MediaSession. Release
+            // that stale future before allowing another controller to bind.
+            val disconnectedFuture = future
             controller = null
             future = null
+            disconnectedFuture?.let { pending ->
+                runCatching { MediaController.releaseFuture(pending) }
+                    .onFailure { error ->
+                        Log.w("NightWaveMedia", "Controller cleanup unavailable: " +
+                            error.javaClass.simpleName)
+                    }
+            }
             state = state.copy(
                 connected = false, playing = false, buffering = false,
                 error = "Music service disconnected. Tap Reconnect."

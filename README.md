@@ -1,5 +1,21 @@
 # NightWave
 
+## NightWave 2.0 Alpha 5L — Private crash evidence & correct update checks
+
+**Version:** `2.0.0-alpha5l` (build 28). **Draft branch:** `feature/nightwave-v2-phase5l-private-crash-capture`.
+
+[Download Phase 5L complete source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase5l-private-crash-capture.zip) · [Phase 5L privacy and Android QA](docs/NIGHTWAVE_V2_PHASE5L_QA.md)
+
+- **One-click sanitized Android crash summary:** `capture-nightwave-crash.cmd` now finds ADB in the SDK prepared by NightWave's own Windows builder, standard SDK paths or PATH. It writes only **`dist/NightWave-crash-summary.txt`** with recent NightWave-only fatal exception class names, method frames and timestamps, never raw other-app/system logs. It does not modify the phone or clear its logs.
+- **Testable without a phone:** run `powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools\capture-nightwave-crash.ps1 -SelfTest`; a synthetic NightWave crash and unrelated app crash test the privacy filter. The Windows builder requires this self-test before APK compilation.
+- **Update safety:** the connected-device APK checker now compares parsed build-status version/code directly against the current `$versionName` and `$versionCode`, avoiding another hardcoded-alpha mismatch.
+- **Session cleanup:** the premium Media3 bridge releases its disconnected future before allowing user-initiated reconnect, preserving all imported audio and existing queue state.
+- **Previously shipped Phase 5K in-app crash/ANR/low-memory exit report is unchanged**, as are the premium player and offline recovery behavior. Stable `main` and signing identity are untouched.
+
+**Verification:** source-level checks and earlier isolated JVM Kotlin smoke harnesses pass, but **the new PowerShell self-test, Android Gradle build, signed APK, emulator and phone checks have not run here**. This is a draft development branch; do not uninstall NightWave or clear user data to work around a build/signature error.
+
+---
+
 ## NightWave 2.0 Alpha 5K — Crash triage without data loss
 
 **Version:** `2.0.0-alpha5k` (build 27). **Draft branch:** `feature/nightwave-v2-phase5k-crash-triage`.
