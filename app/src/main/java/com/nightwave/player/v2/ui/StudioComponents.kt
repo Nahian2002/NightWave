@@ -255,6 +255,45 @@ fun MusicTrackTile(
     }
 }
 
+/** Compact collection entry using genuine stored song artwork and count. */
+@Composable
+fun MusicCollectionTile(
+    name: String,
+    subtitle: String,
+    cover: VideoPreview?,
+    onClick: () -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+    Card(
+        onClick = onClick, modifier = Modifier.fillMaxWidth().height(81.dp),
+        shape = RoundedCornerShape(17.dp),
+        colors = CardDefaults.cardColors(containerColor = colors.surface)
+    ) {
+        Row(Modifier.fillMaxWidth().padding(horizontal = 11.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            if (cover != null) {
+                TrackArtwork(cover, Modifier.size(60.dp))
+            } else {
+                Box(Modifier.size(60.dp).clip(RoundedCornerShape(11.dp))
+                    .background(colors.primary.copy(alpha = .13f)), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Outlined.PlayArrow, contentDescription = null,
+                        tint = colors.primary, modifier = Modifier.size(29.dp))
+                }
+            }
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Text(name, style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(subtitle, style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    color = colors.onSurfaceVariant)
+            }
+            Text("›", style = MaterialTheme.typography.titleLarge,
+                color = colors.primary)
+        }
+    }
+}
+
 @Composable
 fun EmptyMusicCard(title: String, description: String, action: String, onAction: () -> Unit) {
     Surface(
