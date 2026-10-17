@@ -147,7 +147,9 @@ class OfflineLibraryActivity : ComponentActivity() {
             contentDescription = "Resume the previous offline listening session"
             setOnClickListener {
                 val saved = OfflineSessionStore(this@OfflineLibraryActivity).read()
-                if (saved == null || library.find(saved.selectedId)?.let(library::fileFor) == null) {
+                if (saved == null || runCatching {
+                    library.find(saved.selectedId)?.let(library::fileFor)
+                }.getOrNull() == null) {
                     refresh()
                     status("The previous offline track is no longer available.")
                 } else {
