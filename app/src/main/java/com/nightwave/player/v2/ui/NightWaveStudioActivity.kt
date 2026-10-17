@@ -136,7 +136,7 @@ class NightWaveStudioActivity : ComponentActivity() {
     private lateinit var profileShadow: ProfileDataStoreMirror
     private var shadowStatus by mutableStateOf("Legacy storage active · Room/DataStore migration pending")
     private val nativeGateway = YouTubeGateway()
-    private var nativeSearch by mutableStateOf(StudioSearchSnapshot())
+    private var nativeSearchState by mutableStateOf(StudioSearchSnapshot())
     private var nativeSearchJob: Job? = null
     private var nativeSearchGeneration = 0
     private var shadowRunning = false
@@ -236,7 +236,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                             refreshShadows()
                         }
                     },
-                    searchState = nativeSearch,
+                    searchState = nativeSearchState,
                     onSearch = { query, mode -> nativeSearch(query, mode) },
                     onWebSearch = { query ->
                         youtubeDialog?.dismiss()
@@ -262,9 +262,9 @@ class NightWaveStudioActivity : ComponentActivity() {
         if (clean.isBlank()) return
         val request = ++nativeSearchGeneration
         nativeSearchJob?.cancel()
-        nativeSearch = StudioSearchSnapshot(query = clean, mode = mode, loading = true)
+        nativeSearchState = StudioSearchSnapshot(query = clean, mode = mode, loading = true)
         nativeSearchJob = lifecycleScope.launch {
-            val result = try {
+            val result: Result<VideoSearchResults> = try {
                 withContext(Dispatchers.IO) { Result.success(nativeGateway.search(clean, mode)) }
             } catch (cancel: CancellationException) {
                 throw cancel
@@ -274,11 +274,11 @@ class NightWaveStudioActivity : ComponentActivity() {
             if (request != nativeSearchGeneration || isFinishing || isDestroyed) return@launch
             result.fold(
                 onSuccess = { response ->
-                    nativeSearch = StudioSearchSnapshot(query = clean, mode = mode,
+                    nativeSearchState = StudioSearchSnapshot(query = clean, mode = mode,
                         videos = response.videos, provider = response.note)
                 },
                 onFailure = {
-                    nativeSearch = StudioSearchSnapshot(query = clean, mode = mode,
+                    nativeSearchState = StudioSearchSnapshot(query = clean, mode = mode,
                         error = "Native results are unavailable right now. Use YouTube search below.")
                 }
             )
