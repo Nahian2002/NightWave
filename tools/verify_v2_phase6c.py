@@ -50,7 +50,13 @@ assert 'private val listeningMeter = ListeningSessionMeter()' in service
 assert 'listeningMemory = ListeningMemoryStore(this)' in service
 assert 'SystemClock.elapsedRealtime()' in service
 assert 'playing = player.isPlaying && player.playbackState == Player.STATE_READY' in service
-assert 'if (!::listeningMemory.isInitialized || !listeningMemory.isEnabled())' in service
+assert 'if (!::listeningMemory.isInitialized) return' in service
+assert 'val revision = listeningMemory.consentRevision()' in service
+assert 'if (revision != lastMemoryConsentRevision)' in service
+assert 'listeningMeter.reset()' in service
+assert 'if (!listeningMemory.isEnabled())' in service
+assert 'putLong("revision", next)' in store
+assert 'prefs.edit().clear().putLong("revision", next).commit()' in store
 assert 'listeningMeter.reset()' in service
 assert 'pulses.forEach { listeningMemory.record(it) }' in service
 assert 'sampleListening()' in service
