@@ -113,6 +113,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                     playerState = playback.state, playerActions = playback,
                     isFavorite = { url -> library.isFavorite(url) },
                     onToggleFavorite = { video -> library.toggleFavorite(video); refresh() },
+                    onSongOptions = { video -> showSongOptions(video) },
                     onSaveCurrentToPlaylist = { saveCurrentToPlaylist() },
                     onSaveProfile = { updated ->
                         if (profiles.save(updated)) profile = profiles.load()
@@ -143,11 +144,13 @@ class NightWaveStudioActivity : ComponentActivity() {
 
     private fun saveCurrentToPlaylist() {
         val now = playback.state
-        if (!now.hasTrack) return
-        val video = VideoPreview(
+        if (now.hasTrack) saveSongToPlaylist(VideoPreview(
             now.title.ifBlank { "YouTube video" }, now.artist, now.videoUrl,
             now.thumbnail, now.durationMs / 1000L
-        )
+        ))
+    }
+
+    private fun saveSongToPlaylist(video: VideoPreview) {
         val names = library.playlistNames()
         val choices = names + "＋ Create playlist"
         AlertDialog.Builder(this).setTitle("Save to playlist")
@@ -162,6 +165,19 @@ class NightWaveStudioActivity : ComponentActivity() {
                     } else showMessage("Choose a different playlist name.")
                 }
             }.setNegativeButton("Cancel", null).show()
+    }
+
+    private fun showSongOptions(video: VideoPreview) {
+        val likeText = if (library.isFavorite(video.url)) "Unlike song" else "Like song"
+        AlertDialog.Builder(this).setTitle(video.title)
+            .setItems(arrayOf(likeText, "Save to playlist", "Add to queue", "Play now")) { _, selected ->
+                when (selected) {
+                    0 -> { library.toggleFavorite(video); refresh() }
+                    1 -> saveSongToPlaylist(video)
+                    2 -> playback.enqueue(video)
+                    3 -> playback.play(video)
+                }
+            }.setNegativeButton("Close", null).show()
     }
 
     private fun promptPlaylistName(initial: String = "", onSave: (String) -> Unit) {
@@ -235,6 +251,7 @@ private fun StudioRoot(
     playerActions: StudioPlaybackBridge,
     isFavorite: (String) -> Boolean,
     onToggleFavorite: (VideoPreview) -> Unit,
+    onSongOptions: (VideoPreview) -> Unit,
     onSaveCurrentToPlaylist: () -> Unit,
     onSearch: (String) -> Unit,
     onPlay: (VideoPreview, List<VideoPreview>) -> Unit,
@@ -296,6 +313,7 @@ private fun StudioRoot(
             StudioTab.HOME -> StudioHome(
                 modifier = Modifier.padding(safe), profile = profile, recent = recent,
                 favorites = favorites, onSearch = onSearch, onPlay = onPlay,
+                onSongOptions = onSongOptions,
                 openLibrary = { tab = StudioTab.LIBRARY }
             )
             StudioTab.SEARCH -> StudioSearch(Modifier.padding(safe), onSearch)
@@ -304,6 +322,7 @@ private fun StudioRoot(
                 favorites = favorites, names = playlistNames,
                 selectedPlaylist = selectedPlaylist, onSelectPlaylist = { selectedPlaylist = it },
                 getPlaylist = getPlaylist, onPlay = onPlay,
+                onSongOptions = onSongOptions,
                 onManage = onLegacyPlayer, onSearch = { tab = StudioTab.SEARCH }
             )
             StudioTab.PROFILE -> StudioProfile(
@@ -340,7 +359,8 @@ private fun StudioRoot(
 private fun StudioHome(
     modifier: Modifier, profile: ProfileSettings, recent: List<VideoPreview>,
     favorites: List<VideoPreview>, onSearch: (String) -> Unit,
-    onPlay: (VideoPreview, List<VideoPreview>) -> Unit, openLibrary: () -> Unit
+    onPlay: (VideoPreview, List<VideoPreview>) -> Unit,
+    onSongOptions: (VideoPreview) -> Unit, openLibrary: () -> Unit
 ) {
     LazyColumn(
         modifier = modifier.widthIn(max = 840.dp).fillMaxHeight(),
@@ -386,7 +406,7 @@ private fun StudioHome(
                 "Your actual listening history will appear here as you play.",
                 "Find a song") { onSearch("music") }
         } else items(recent.take(6), key = { it.url }) { song ->
-            MusicTrackTile(song, onClick = { onPlay(song, recent) })
+            MusicTrackTile(song, onOptions = { onSongOptions(song) }, onClick = { onPlay(song, recent) })
         }
         item { SectionHeading("Liked by you", favorites.size.toString() + " saved tracks") }
         item {
@@ -456,7 +476,8 @@ private fun StudioLibrary(
     modifier: Modifier, favorites: List<VideoPreview>, names: List<String>,
     selectedPlaylist: String?, onSelectPlaylist: (String?) -> Unit,
     getPlaylist: (String) -> List<VideoPreview>, onPlay: (VideoPreview, List<VideoPreview>) -> Unit,
-    onManage: () -> Unit, onSearch: () -> Unit
+    onManage: () -> Unit, onSearch: () -> Unit,
+    onSongOptions: (VideoPreview) -> Unit
 ) {
     val tracks = if (selectedPlaylist == null || selectedPlaylist == LIKED_COLLECTION) favorites else getPlaylist(selectedPlaylist)
     LazyColumn(modifier.widthIn(max = 840.dp).fillMaxHeight(), contentPadding = PaddingValues(20.dp),
@@ -507,7 +528,7 @@ private fun StudioLibrary(
                 "Your real songs and playlists will appear here once saved.",
                 "Search music", onAction = onSearch)
         } else items(tracks, key = { it.url }) { song ->
-            MusicTrackTile(song, onClick = { onPlay(song, tracks) })
+            MusicTrackTile(song, onOptions = { onSongOptions(song) }, onClick = { onPlay(song, tracks) })
         }
         item {
             OutlinedButton(onClick = onManage, modifier = Modifier.fillMaxWidth()) {
