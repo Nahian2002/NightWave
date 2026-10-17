@@ -115,7 +115,8 @@ class ListeningMemoryStore(context: Context) {
             listenedMs = (old?.listenedMs ?: 0L).plus(pulse.listenedMs)
                 .coerceAtMost(MAX_TRACK_MS),
             qualifiedPlays = ((old?.qualifiedPlays?.toLong() ?: 0L) +
-                if (pulse.qualifyingPlay) 1 else 0).coerceAtMost(1_000_000),
+                (if (pulse.qualifyingPlay) 1L else 0L))
+                .coerceAtMost(1_000_000L).toInt(),
             lastAtMs = pulse.recordedAtMs
         )
         if (at >= 0) tracks[at] = updated else tracks.add(updated)
