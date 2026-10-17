@@ -104,8 +104,11 @@ class ListeningMemoryStore(context: Context) {
     }
 
     /** Refuse writes if consent was revoked, even if service has an old pulse. */
-    fun record(pulse: ListeningPulse): Boolean = synchronized(lock) {
-        if (!prefs.getBoolean("consent", false)) return@synchronized false
+    fun record(pulse: ListeningPulse, expectedRevision: Long): Boolean = synchronized(lock) {
+        // Queued disk work is valid only for the exact opt-in generation.
+        // Rapid OFF -> ON cannot resurrect a previous listening segment.
+        if (!prefs.getBoolean("consent", false) ||
+            prefs.getLong("revision", 0L) != expectedRevision) return@synchronized false
         if (!approvedId(pulse.trackId) ||
             pulse.listenedMs !in 0L..ListeningSessionMeter.MAX_OBSERVED_GAP_MS * 8L ||
             pulse.recordedAtMs < 0L
