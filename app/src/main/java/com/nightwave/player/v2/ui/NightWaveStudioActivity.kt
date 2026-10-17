@@ -1128,7 +1128,7 @@ private fun StudioRoot(
                     onClick = { navigateToTab(StudioTab.PROFILE) },
                     shape = CircleShape,
                     color = MaterialTheme.colorScheme.surfaceVariant,
-                    modifier = Modifier.size(44.dp)
+                    modifier = Modifier.size(48.dp)
                 ) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Icon(Icons.Outlined.Settings, contentDescription = "Open NightWave settings",
