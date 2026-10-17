@@ -1274,8 +1274,8 @@ private fun StudioRoot(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            Row(Modifier.fillMaxWidth().height(60.dp)
-                    .padding(horizontal = 20.dp),
+            Row(Modifier.fillMaxWidth().height(56.dp)
+                    .padding(horizontal = 18.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween) {
                 NightWaveWordmark()
@@ -1340,11 +1340,11 @@ private fun StudioRoot(
                     color = MaterialTheme.colorScheme.surface,
                     shadowElevation = 3.dp,
                     tonalElevation = 1.dp,
-                    shape = RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp)
+                    shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
                 ) {
                     Row(
-                        Modifier.fillMaxWidth().height(62.dp)
-                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        Modifier.fillMaxWidth().height(58.dp)
+                            .padding(horizontal = 10.dp, vertical = 4.dp),
                         horizontalArrangement = Arrangement.spacedBy(5.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -1364,8 +1364,8 @@ private fun StudioRoot(
                                 label = "NightWave navigation focus"
                             )
                             Row(
-                                Modifier.weight(if (active) 1.28f else 1f).fillMaxHeight()
-                                    .clip(RoundedCornerShape(17.dp))
+                                Modifier.weight(if (active) 1.25f else 1f).fillMaxHeight()
+                                    .clip(RoundedCornerShape(15.dp))
                                     .background(tabColor)
                                     .clickable { navigateToTab(item) }
                                     .semantics { this.selected = active }
@@ -1374,7 +1374,7 @@ private fun StudioRoot(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Icon(image, contentDescription = item.caption,
-                                    modifier = Modifier.size(23.dp),
+                                    modifier = Modifier.size(22.dp),
                                     tint = if (active) MaterialTheme.colorScheme.primary
                                         else MaterialTheme.colorScheme.onSurfaceVariant)
                                 if (active) {
@@ -1635,15 +1635,16 @@ private fun StudioHome(
                 }
             }
         }
-        item { SectionHeading("Explore a new mood", "Six sounds to explore, chosen by you") }
-        DiscoveryShortcuts.picks.chunked(2).forEachIndexed { row, shortcuts ->
-            item(key = "discovery-$row") {
-                Row(horizontalArrangement = Arrangement.spacedBy(11.dp)) {
-                    shortcuts.forEachIndexed { i, shortcut ->
-                        MoodTile(shortcut.title, shortcut.subtitle,
-                            palettes[row * 2 + i], Modifier.weight(1f)) {
-                            onSearch(shortcut.query)
-                        }
+        item { SectionHeading("Explore a new mood", "Swipe across six ways to listen") }
+        // One horizontally scrollable shelf instead of three oversized rows.
+        // Uses existing real mood shortcuts and unchanged search actions.
+        item(key = "discovery-shelf") {
+            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                DiscoveryShortcuts.picks.forEachIndexed { index, shortcut ->
+                    MoodTile(shortcut.title, shortcut.subtitle,
+                        palettes[index % palettes.size], Modifier.width(178.dp)) {
+                        onSearch(shortcut.query)
                     }
                 }
             }
@@ -1931,37 +1932,13 @@ private fun StudioLibrary(
             }
         }
         if (selectedPlaylist == null) {
+            // Actual collection rows below serve as navigation. Avoid
+            // duplicating them with two oversized, noninteractive counters.
             item {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                    Surface(
-                        color = MaterialTheme.colorScheme.surface,
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Column(Modifier.padding(14.dp),
-                            verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                            Text(favorites.size.toString(),
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold)
-                            Text("Liked tracks", style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                    }
-                    Surface(
-                        color = MaterialTheme.colorScheme.surface,
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Column(Modifier.padding(14.dp),
-                            verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                            Text(names.size.toString(),
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold)
-                            Text("Playlists", style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                    }
-                }
+                Text("${favorites.size} liked tracks  ·  ${names.size} playlists",
+                    modifier = Modifier.padding(horizontal = 3.dp, vertical = 2.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             if (offlineResumeTitle != null) {
                 item {
@@ -2088,6 +2065,11 @@ private fun StudioProfile(
     var showAppearance by rememberSaveable { mutableStateOf(false) }
     var showBackup by rememberSaveable { mutableStateOf(false) }
     var showAdvanced by rememberSaveable { mutableStateOf(false) }
+    // Keep the everyday You screen legible; full insights, local analytics
+    // controls and developer-like playback health are one tap away.
+    var showSnapshot by rememberSaveable { mutableStateOf(false) }
+    var showListeningMemory by rememberSaveable { mutableStateOf(false) }
+    var showPlaybackHealth by rememberSaveable { mutableStateOf(false) }
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
 
     LazyColumn(
@@ -2245,17 +2227,41 @@ private fun StudioProfile(
 
         item {
             StudioProfileGroup("Your listening snapshot") {
-                Column(Modifier.fillMaxWidth().padding(14.dp)) {
-                    ListeningInsightsPanel(insights)
+                StudioProfileRow("Recent listening",
+                    "Artists and songs in your recent history",
+                    Icons.Outlined.LibraryMusic, { showSnapshot = !showSnapshot },
+                    trailing = {
+                        Text(if (showSnapshot) "Hide" else "View",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary)
+                    })
+                if (showSnapshot) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    Column(Modifier.fillMaxWidth().padding(14.dp)) {
+                        ListeningInsightsPanel(insights)
+                    }
                 }
             }
         }
 
         item {
             StudioProfileGroup("Listening memory · optional") {
-                ListeningMemoryPanel(
-                    memory, onMemoryEnabledChange, onMemoryErase, onMemoryRefresh
-                )
+                StudioProfileRow("Listening statistics",
+                    if (memory.enabled) "On · Stored privately on this device"
+                    else "Off · Opt in only if you choose",
+                    Icons.Outlined.AutoAwesome,
+                    { showListeningMemory = !showListeningMemory },
+                    trailing = {
+                        Text(if (showListeningMemory) "Hide" else "View",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary)
+                    })
+                if (showListeningMemory) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    ListeningMemoryPanel(
+                        memory, onMemoryEnabledChange, onMemoryErase, onMemoryRefresh
+                    )
+                }
             }
         }
 
@@ -2361,7 +2367,21 @@ private fun StudioProfile(
 
         item {
             StudioProfileGroup("App health") {
-                PlaybackHealthPanel(playbackState, onRecoverPlayback)
+                StudioProfileRow("Playback health",
+                    if (!playbackState.error.isNullOrBlank() || !playbackState.connected)
+                        "Action may be needed · Tap to inspect"
+                    else "Current status and recovery controls",
+                    Icons.Outlined.Settings,
+                    { showPlaybackHealth = !showPlaybackHealth },
+                    trailing = {
+                        Text(if (showPlaybackHealth) "Hide" else "View",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary)
+                    })
+                if (showPlaybackHealth || !playbackState.connected ||
+                    !playbackState.error.isNullOrBlank()) {
+                    PlaybackHealthPanel(playbackState, onRecoverPlayback)
+                }
                 StudioProfileRow("Crash diagnostics", "Preview before sharing any report",
                     Icons.Outlined.Settings, onShareDiagnostics)
             }

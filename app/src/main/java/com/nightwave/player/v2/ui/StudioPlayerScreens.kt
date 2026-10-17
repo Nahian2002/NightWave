@@ -159,7 +159,7 @@ fun StudioMiniPlayer(
     ) {
         // Visible gesture affordance. The parent still owns swipe-down hide and
         // swipe-up expansion; this indicator does not add a competing gesture.
-        Box(Modifier.fillMaxWidth().height(16.dp),
+        Box(Modifier.fillMaxWidth().height(9.dp),
             contentAlignment = Alignment.Center) {
             Box(Modifier.size(width = 32.dp, height = 3.dp)
                 .clip(CircleShape)
@@ -170,7 +170,7 @@ fun StudioMiniPlayer(
             // Next remains available in expanded Now Playing on narrow screens.
             val showNext = state.queue.size > 1 && maxWidth >= 365.dp
             Row(
-                modifier = Modifier.fillMaxWidth().height(58.dp)
+                modifier = Modifier.fillMaxWidth().height(54.dp)
                     .padding(start = 7.dp, end = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -182,7 +182,7 @@ fun StudioMiniPlayer(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(9.dp)
                 ) {
-                    CoverArt(state.thumbnail, Modifier.size(44.dp), 9)
+                    CoverArt(state.thumbnail, Modifier.size(40.dp), 9)
                     Column(Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(state.title.ifBlank { "Restoring your last track…" },

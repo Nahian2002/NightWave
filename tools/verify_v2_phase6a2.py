@@ -18,7 +18,9 @@ mini = player.split("fun StudioMiniPlayer(", 1)[1].split("private fun CoverArt("
 assert 'Icons.Outlined.Close' in mini
 assert 'IconButton(onClick = onHide, modifier = Modifier.size(48.dp))' in mini
 assert 'contentDescription = "Hide mini-player; music keeps playing"' in mini
-assert 'Box(Modifier.fillMaxWidth().height(16.dp)' in mini
+# Phase 6I keeps the original whole-card vertical swipe gesture, while
+# shortening only the visual drag-handle strip.
+assert 'Box(Modifier.fillMaxWidth().height(9.dp)' in mini
 assert '.pointerInput(state.videoUrl)' in mini
 assert 'PlayerGestureRules.decideVerticalSwipe(' in mini
 assert 'PlayerVerticalSwipe.MINIMIZE -> onHide()' in mini

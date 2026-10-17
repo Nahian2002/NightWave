@@ -204,19 +204,67 @@ fun NightWaveMoodArt(
         shape = RoundedCornerShape(21.dp)) {
         Box(Modifier.fillMaxSize().background(Brush.linearGradient(safeColors))) {
             Canvas(Modifier.fillMaxSize()) {
-                val center = Offset(size.width * .81f, size.height * .18f)
-                val radius = size.width * .34f
-                drawCircle(Color.White.copy(alpha = .09f), radius, center)
-                drawCircle(Color.White.copy(alpha = .24f), radius * .73f, center,
-                    style = Stroke(width = 1.5.dp.toPx()))
-                drawCircle(Color.White.copy(alpha = .13f), radius * .46f, center,
-                    style = Stroke(width = 1.5.dp.toPx()))
-                for (line in 0..2) {
-                    val y = size.height * (.25f + line * .14f)
-                    drawLine(Color.White.copy(alpha = .08f),
-                        start = Offset(size.width * .50f, y),
-                        end = Offset(size.width * .96f, y),
-                        strokeWidth = 1.dp.toPx(), cap = StrokeCap.Round)
+                // Six lightweight, genuinely distinct editorial motifs rather
+                // than the same ring graphic pasted across every mood card.
+                val w = size.width
+                val h = size.height
+                val soft = Color.White.copy(alpha = .17f)
+                val bright = Color.White.copy(alpha = .30f)
+                when (title.lowercase()) {
+                    "after hours" -> {
+                        for (i in 0..3) {
+                            drawCircle(soft, radius = w * (.13f + i * .07f),
+                                center = Offset(w * .91f, h * .22f),
+                                style = Stroke(width = 1.3.dp.toPx()))
+                        }
+                        drawCircle(bright, radius = 3.dp.toPx(),
+                            center = Offset(w * .56f, h * .22f))
+                    }
+                    "deep focus" -> {
+                        for (i in 0..5) {
+                            val x = w * (.57f + i * .065f)
+                            drawLine(if (i == 2) bright else soft,
+                                Offset(x, h * .14f), Offset(x, h * .60f),
+                                strokeWidth = if (i == 2) 3.dp.toPx() else 1.dp.toPx(),
+                                cap = StrokeCap.Round)
+                        }
+                    }
+                    "desi pulse" -> {
+                        for (i in 0..8) {
+                            val x = w * (.48f + i * .058f)
+                            val amplitude = (i % 4 + 1) * .07f
+                            drawLine(if (i % 3 == 0) bright else soft,
+                                Offset(x, h * (.37f - amplitude)),
+                                Offset(x, h * (.37f + amplitude)),
+                                strokeWidth = 2.dp.toPx(), cap = StrokeCap.Round)
+                        }
+                    }
+                    "unplugged" -> {
+                        for (i in 0..4) {
+                            val y = h * (.13f + i * .10f)
+                            drawLine(soft, Offset(w * .47f, y),
+                                Offset(w * .98f, y + h * .18f),
+                                strokeWidth = 1.5.dp.toPx(), cap = StrokeCap.Round)
+                        }
+                    }
+                    "momentum" -> {
+                        for (i in 0..4) {
+                            val x = w * (.50f + i * .09f)
+                            val height = h * (.12f + i * .095f)
+                            drawLine(if (i == 4) bright else soft,
+                                Offset(x, h * .57f), Offset(x, h * .57f - height),
+                                strokeWidth = 5.dp.toPx(), cap = StrokeCap.Round)
+                        }
+                    }
+                    else -> {
+                        val sun = Offset(w * .77f, h * .28f)
+                        drawCircle(bright, radius = w * .12f, center = sun)
+                        for (i in 0..2) {
+                            drawLine(soft, Offset(w * .49f, h * (.44f + i * .08f)),
+                                Offset(w * .99f, h * (.44f + i * .08f)),
+                                strokeWidth = 1.6.dp.toPx(), cap = StrokeCap.Round)
+                        }
+                    }
                 }
             }
             Column(

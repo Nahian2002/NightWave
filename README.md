@@ -1,5 +1,19 @@
 # NightWave
 
+## Phase 6I — Compact, artwork-aware editorial UI (draft)
+
+**Source branch:** `feature/nightwave-v2-phase6i-compact-editorial-ui` stacked on 6H2. **This source has not yet passed a complete Android build or user-device visual QA.** Stable `main` and installed music are untouched.
+
+[Download complete Phase 6I ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase6i-compact-editorial-ui.zip) · [Complete Phase 6I QA checklist](docs/NIGHTWAVE_V2_PHASE6I_QA.md)
+
+- **Less navigation obstruction:** shorter top brand header, mini-player handle/row, and bottom nav; 48dp Play/X buttons, swipe hide/expand, one-tap restore and Scaffold safe-inset behavior remain intact.
+- **Better Home content density:** six existing, functional music mood searches now occupy one horizontally scrollable editorial shelf. Each has a distinct inexpensive Canvas motif rather than six nearly identical ring cards. No new media data, fabricated songs or automatic search playback.
+- **Cleaner Library:** two redundant non-clickable count tiles become one small info line. Offline music, Liked songs, real playlists, named playlist edits, local search and sort are preserved.
+- **Tidier You profile:** Recent listening, optional local statistics and Playback Health are individually expandable. Opt-in state remains visible (OFF by default), erase consent and private backups remain accessible; player errors automatically show recovery. No activity tracking is newly enabled.
+- **Safety and verification:** no change to app ID/build35, signing, Android permissions, saved music, Media3 owner, private lyrics, Drive backups or analytics retention. Inherited mini-player source gate updated for new visual handle size; new 6I source test registered under the stacked Android Gradle workflow. **Build, emulator screenshots, large-font/accessibility and physical-device regressions are still pending.**
+
+---
+
 ## Phase 6H2 — Compose Kotlin compile hotfix (draft)
 
 [Download complete Phase 6H2 source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase6h2-fillmaxsize-compile-hotfix.zip) · [Exact compiler failure and safe retry](docs/NIGHTWAVE_V2_PHASE6H2_COMPOSE_COMPILE_HOTFIX.md)
