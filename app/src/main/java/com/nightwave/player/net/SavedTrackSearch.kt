@@ -14,14 +14,19 @@ object SavedTrackSearch {
         if (terms.isEmpty()) return emptyList()
         return tracks.withIndex()
             .filter { (_, track) ->
-                val haystack = (track.title + " " + track.author).lowercase(Locale.ROOT)
+                val label = MusicIdentity.display(track.title, track.author)
+                // Search both the original metadata and the safe display-only
+                // labels. Never modify VideoPreview identity or saved queue.
+                val haystack = (track.title + " " + track.author + " " +
+                    label.title + " " + label.artistOrCreator).lowercase(Locale.ROOT)
                 terms.all { term -> haystack.contains(term) }
             }
             .distinctBy { it.value.url }
             .sortedWith(
                 compareByDescending<IndexedValue<VideoPreview>> {
-                    val title = it.value.title.lowercase(Locale.ROOT)
-                    val artist = it.value.author.lowercase(Locale.ROOT)
+                    val label = MusicIdentity.display(it.value.title, it.value.author)
+                    val title = label.title.lowercase(Locale.ROOT)
+                    val artist = label.artistOrCreator.lowercase(Locale.ROOT)
                     when {
                         title == text -> 4
                         title.startsWith(text) -> 3
