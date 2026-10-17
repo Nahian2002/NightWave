@@ -384,6 +384,21 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
     }
 
     /**
+     * Explicitly resume the selected queue/offline checkpoint in the service.
+     * Service revalidates source identity, file ownership and bookmark before
+     * loading anything. Never issue play() against an unrelated cached item.
+     */
+    private fun requestSelectedResume() {
+        when {
+            PlaybackCommandPolicy.isOfflineSelection(state.videoUrl) ->
+                action(PlaybackService.ACTION_RESUME_OFFLINE)
+            PlaybackCommandPolicy.isPublicSelection(state.videoUrl) && state.queueIndex >= 0 ->
+                action(PlaybackService.ACTION_RESUME_SAVED)
+            else -> state = state.copy(error = "Choose a song to start listening.")
+        }
+    }
+
+    /**
      * Idempotent Resume for Home's "Pick up where you left off" card.
      * Unlike playPause(), this can never accidentally pause a live controller.
      */
@@ -394,19 +409,19 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
                     active.isPlaying -> Unit
                     active.playerError != null -> action(PlaybackService.ACTION_RETRY_CURRENT)
                     active.currentMediaItem != null -> {
-                        if (active.playbackState == Player.STATE_ENDED) active.seekTo(0L)
-                        if (active.playbackState == Player.STATE_ENDED ||
-                            active.playbackState == Player.STATE_IDLE) active.prepare()
-                        active.play()
+                        if (PlaybackCommandPolicy.canResumeLoaded(
+                                state.videoUrl, active.currentMediaItem?.mediaId,
+                                active.playerError != null)) {
+                            if (active.playbackState == Player.STATE_ENDED) active.seekTo(0L)
+                            if (active.playbackState == Player.STATE_ENDED ||
+                                active.playbackState == Player.STATE_IDLE) active.prepare()
+                            active.play()
+                        } else requestSelectedResume()
                     }
-                    state.offline -> action(PlaybackService.ACTION_RESUME_OFFLINE)
-                    state.queueIndex >= 0 -> action(PlaybackService.ACTION_RESUME_SAVED)
-                    else -> state = state.copy(error = "Choose a song to start listening.")
+                    else -> requestSelectedResume()
                 }
             } ?: run {
-                if (state.offline) action(PlaybackService.ACTION_RESUME_OFFLINE)
-                else if (state.queueIndex >= 0) action(PlaybackService.ACTION_RESUME_SAVED)
-                else state = state.copy(error = "Player is connecting. Try again.")
+                requestSelectedResume()
             }
         } catch (error: RuntimeException) {
             handleControlFailure("resume", error)
@@ -421,18 +436,18 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
                         it.playWhenReady)) it.pause()
                 else if (it.playerError != null) action(PlaybackService.ACTION_RETRY_CURRENT)
                 else if (it.currentMediaItem != null) {
-                    if (it.playbackState == Player.STATE_ENDED) it.seekTo(0L)
-                    if (it.playbackState == Player.STATE_ENDED ||
-                        it.playbackState == Player.STATE_IDLE) it.prepare()
-                    it.play()
+                    if (PlaybackCommandPolicy.canResumeLoaded(
+                            state.videoUrl, it.currentMediaItem?.mediaId,
+                            it.playerError != null)) {
+                        if (it.playbackState == Player.STATE_ENDED) it.seekTo(0L)
+                        if (it.playbackState == Player.STATE_ENDED ||
+                            it.playbackState == Player.STATE_IDLE) it.prepare()
+                        it.play()
+                    } else requestSelectedResume()
                 }
-                else if (state.offline) action(PlaybackService.ACTION_RESUME_OFFLINE)
-                else if (state.queueIndex >= 0) action(PlaybackService.ACTION_RESUME_SAVED)
-                else state = state.copy(error = "Choose a song to start listening.")
+                else requestSelectedResume()
             } ?: run {
-                if (state.offline) action(PlaybackService.ACTION_RESUME_OFFLINE)
-                else if (state.queueIndex >= 0) action(PlaybackService.ACTION_RESUME_SAVED)
-                else state = state.copy(error = "Player is connecting. Try again.")
+                requestSelectedResume()
             }
         } catch (error: RuntimeException) {
             handleControlFailure("play/pause", error)
