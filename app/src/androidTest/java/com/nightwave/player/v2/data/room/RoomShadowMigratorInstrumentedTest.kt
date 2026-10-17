@@ -114,6 +114,32 @@ class RoomShadowMigratorInstrumentedTest {
         }
     }
 
+    @Test fun vanishedLegacyKeysCannotErasePreviouslyPopulatedRoomSnapshot() = runBlocking {
+        val legacy = MusicLibrary(app)
+        legacy.createPlaylist("Recovered")
+        legacy.addToPlaylist("Recovered", first)
+        legacy.toggleFavorite(first)
+        val migrator = RoomShadowMigrator(app, db)
+        migrator.reconcile()
+        val dao = db.libraryDao()
+        val previous = dao.checkpoint(RoomShadowMigrator.CHECKPOINT)
+        val saved = dao.observeFavorites().first()
+
+        // Simulate an unexpected preferences-file wipe, not a user deleting
+        // songs through MusicLibrary's normal JSON-array writes.
+        app.getSharedPreferences("nightwave_library_v1", Context.MODE_PRIVATE)
+            .edit().clear().commit()
+        try {
+            migrator.reconcile()
+            fail("An unexpectedly empty source must be blocked")
+        } catch (error: IllegalStateException) {
+            assertTrue(error.message.orEmpty().contains("preserved"))
+            assertEquals(previous, dao.checkpoint(RoomShadowMigrator.CHECKPOINT))
+            assertEquals(saved, dao.observeFavorites().first())
+            assertEquals(listOf("Recovered"), dao.observePlaylists().first().map { it.name })
+        }
+    }
+
     @Test fun changedLegacyPreferencesRefreshMirrorWithoutOldDataLoss() = runBlocking {
         val legacy = MusicLibrary(app)
         legacy.toggleFavorite(first)
