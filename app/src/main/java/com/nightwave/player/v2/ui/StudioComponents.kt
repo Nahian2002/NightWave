@@ -45,6 +45,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.nightwave.player.net.VideoPreview
+import com.nightwave.player.net.MusicIdentity
 
 @Composable
 fun NightWaveWordmark(modifier: Modifier = Modifier) {
@@ -171,12 +172,15 @@ fun ListeningSpotlight(
                         style = MaterialTheme.typography.labelSmall,
                         color = colors.primary, maxLines = 1,
                         overflow = TextOverflow.Ellipsis)
-                    Text(if (hasRecent) lastTrack?.title.orEmpty() else "Make tonight sound better",
+                    Text(if (hasRecent) lastTrack?.let {
+                            MusicIdentity.display(it.title, it.author).title
+                        }.orEmpty() else "Make tonight sound better",
                         style = MaterialTheme.typography.titleLarge,
                         color = colors.onSurface, maxLines = 2,
                         overflow = TextOverflow.Ellipsis)
-                    Text(if (hasRecent) lastTrack?.author.orEmpty()
-                        else "Discover something worth replaying",
+                    Text(if (hasRecent) lastTrack?.let {
+                            MusicIdentity.display(it.title, it.author).artistOrCreator
+                        }.orEmpty() else "Discover something worth replaying",
                         style = MaterialTheme.typography.bodyMedium,
                         color = colors.onSurfaceVariant, maxLines = 1,
                         overflow = TextOverflow.Ellipsis)
@@ -247,6 +251,7 @@ fun MusicTrackTile(
     onClick: () -> Unit
 ) {
     val scheme = MaterialTheme.colorScheme
+    val identity = MusicIdentity.display(video.title, video.author)
     Row(
         modifier = modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp))
             .background(if (isPlaying) scheme.primary.copy(alpha = .15f)
@@ -257,10 +262,11 @@ fun MusicTrackTile(
     ) {
         TrackArtwork(video, Modifier.size(51.dp))
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-            Text(video.title, style = MaterialTheme.typography.titleMedium,
+            Text(identity.title, style = MaterialTheme.typography.titleMedium,
                 color = if (isPlaying) scheme.primary else scheme.onSurface,
                 maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(if (isPlaying) "●  Playing · " + video.author else video.author,
+            Text(if (isPlaying) "●  Playing · " + identity.artistOrCreator
+                else identity.artistOrCreator,
                 style = MaterialTheme.typography.bodyMedium,
                 color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
