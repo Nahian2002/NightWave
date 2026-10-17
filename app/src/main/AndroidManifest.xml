@@ -27,6 +27,7 @@
         <!-- Preview remains explicitly accessible from classic Home, not the launcher.
              A crash in unverified Compose startup must not prevent access to saved music. -->
         <activity android:name=".v2.ui.NightWaveStudioActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".offline.OfflineLibraryActivity" android:exported="false" />
         <service
             android:name=".playback.PlaybackService"
             android:exported="true"
