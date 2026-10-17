@@ -33,6 +33,10 @@ android {
     buildFeatures { viewBinding = true; compose = true }
 }
 
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 dependencies {
     // Shadow persistence: legacy collections remain authoritative until migration QA.
     implementation("androidx.room:room-runtime:2.7.2")
