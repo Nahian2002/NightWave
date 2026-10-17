@@ -101,6 +101,7 @@ import com.nightwave.player.v2.playback.StudioPlayerState
 import com.nightwave.player.v2.playback.PlaybackHealthPolicy
 import com.nightwave.player.v2.playback.PlaybackPhase
 import com.nightwave.player.net.VideoPreview
+import com.nightwave.player.net.MusicIdentity
 import com.nightwave.player.v2.lyrics.TimedLyrics
 import com.nightwave.player.playback.PlaybackQueue
 
@@ -124,6 +125,7 @@ fun StudioMiniPlayer(
     val colors = MaterialTheme.colorScheme
     val health = PlaybackHealthPolicy.classify(state.hasTrack, state.connected,
         state.offline, state.playing, state.buffering, state.resolving, state.error)
+    val identity = MusicIdentity.display(state.title, state.artist)
     var travel by remember(state.videoUrl) { mutableStateOf(0f) }
     Column(
         modifier = modifier.fillMaxWidth().padding(horizontal = 11.dp, vertical = 3.dp)
@@ -185,7 +187,8 @@ fun StudioMiniPlayer(
                     CoverArt(state.thumbnail, Modifier.size(40.dp), 9)
                     Column(Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text(state.title.ifBlank { "Restoring your last track…" },
+                        Text(if (state.title.isBlank()) "Restoring your last track…"
+                            else identity.title,
                             style = MaterialTheme.typography.titleMedium,
                             color = colors.onSurface, maxLines = 1,
                             overflow = TextOverflow.Ellipsis)
@@ -194,7 +197,7 @@ fun StudioMiniPlayer(
                                 health.phase == PlaybackPhase.BUFFERING ||
                                 health.phase == PlaybackPhase.DISCONNECTED ||
                                 health.phase == PlaybackPhase.ERROR) health.title
-                            else state.artist.ifBlank { "NightWave" },
+                            else identity.artistOrCreator,
                             style = MaterialTheme.typography.bodyMedium,
                             color = colors.onSurfaceVariant, maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -397,11 +400,13 @@ fun StudioNowPlayingOverlay(
                 Spacer(Modifier.height(17.dp))
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
-                        Text(state.title.ifBlank { "Choose a track" },
+                        Text(if (state.title.isBlank()) "Choose a track"
+                            else MusicIdentity.display(state.title, state.artist).title,
                             style = MaterialTheme.typography.headlineSmall, color = colors.onBackground,
                             maxLines = 2, overflow = TextOverflow.Ellipsis)
                         Spacer(Modifier.height(5.dp))
-                        Text(state.artist, style = MaterialTheme.typography.bodyLarge,
+                        Text(MusicIdentity.display(state.title, state.artist).artistOrCreator,
+                            style = MaterialTheme.typography.bodyLarge,
                             color = colors.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                     IconButton(onClick = onLike, enabled = !state.offline) {
