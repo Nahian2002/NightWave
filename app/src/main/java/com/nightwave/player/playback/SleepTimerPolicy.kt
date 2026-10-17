@@ -23,7 +23,7 @@ object SleepTimerPolicy {
 
     fun label(remainingMs: Long): String {
         if (remainingMs <= 0L) return "Sleep timer"
-        val totalMinutes = (remainingMs + 59_999L) / 60_000L
+        val totalMinutes = ((remainingMs - 1L) / 60_000L) + 1L
         return "Sleep in " + totalMinutes + " min"
     }
 }
