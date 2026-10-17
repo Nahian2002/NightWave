@@ -23,11 +23,11 @@ old_gate = read("tools/verify_v2_phase5o.py")
 unit_tests = read("app/src/test/java/com/nightwave/player/v2/ui/PlayerGestureRulesTest.kt")
 
 assert 'applicationId = "com.nightwave.player"' in gradle
-assert 'versionCode = 34' in gradle
-assert 'versionName = "2.0.0-alpha5r"' in gradle
-assert "-VersionName '2.0.0-alpha5r' -VersionCode '34'" in builder
-assert "$versionName = '2.0.0-alpha5r'" in device
-assert "$versionCode = 34" in device
+assert 'versionCode = 35' in gradle
+assert 'versionName = "2.0.0-alpha5s"' in gradle
+assert "-VersionName '2.0.0-alpha5s' -VersionCode '35'" in builder
+assert "$versionName = '2.0.0-alpha5s'" in device
+assert "$versionCode = 35" in device
 assert '$reportedVersion -ne $versionName' in device
 
 # Consistent physical travel distances across low/high DPI displays.
@@ -74,7 +74,7 @@ assert 'tools/verify_v2_phase5r.py' in workflow
 for task in (':app:testDebugUnitTest', ':app:assembleDebug',
              ':app:compileDebugAndroidTestKotlin'):
     assert task in workflow, task
-assert "versionCode='34' versionName='2.0.0-alpha5r'" in workflow
+assert "versionCode='34' versionName='2.0.0-alpha5s'" in workflow
 assert 'sha256sum "$apk"' in workflow
 assert 'if: success()' in workflow
 assert 'retention-days: 5' in workflow
