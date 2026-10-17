@@ -889,7 +889,7 @@ class MainActivity : Activity() {
         showMoodGrid()
         labelAction("Search for an exact song or artist") { openPage(Page.SEARCH) }
         labelAction("♫  Your offline music · Import audio") { openOfflineLibrary() }
-        sectionTitle("Early access")
+        sectionTitle("Tools and interface")
         labelAction("Diagnostics · Share recent crash summary") {
             val report = NightWaveCrashRecorder.report(this) + "\n\n" +
                 NightWaveExitHistory.report(this)
@@ -902,11 +902,13 @@ class MainActivity : Activity() {
                 showStatus("Unable to open a share app. Use the included crash-capture script.", true)
             }
         }
-        labelAction("✦  Preview redesigned NightWave") {
+        labelAction("✦  Return to NightWave") {
             try {
-                startActivity(Intent(this, com.nightwave.player.v2.ui.NightWaveStudioActivity::class.java))
+                startActivity(Intent(this, com.nightwave.player.v2.ui.NightWaveStudioActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP))
+                finish()
             } catch (error: Exception) {
-                showStatus("Preview unavailable: " + (error.message ?: "Unknown Android error"), true)
+                showStatus("Could not open NightWave. Your classic library remains available.", true)
             }
         }
     }
