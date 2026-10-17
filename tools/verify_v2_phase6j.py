@@ -61,10 +61,13 @@ assert 'item(key = "local-creators")' in search
 assert 'SectionHeading("Artists & creators from your music"' in search
 assert "Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())" in search
 assert "knownCreators.forEach { creator ->" in search
-assert "query = creator.name" in search
+# 6O2 opens a local creator-only collection instead of injecting text
+# into public search. No online request may fire from tapping a creator chip.
+assert "selectedCreator = creator.name" in search
 assert "quickOptionsExpanded = false" in search
 assert "onPrimarySearch(creator.name" not in search
 assert "onNativeSearch(creator.name" not in search
+assert "onPlay(song, selectedCreatorGroup.tracks)" in search
 assert "Saved entries stay in your library. Public video audio still needs internet." in search
 assert "Saved entries · public videos require internet to play" in search
 # 6O1 delegates matching/ranking to a pure shared policy. Keep the 6J
