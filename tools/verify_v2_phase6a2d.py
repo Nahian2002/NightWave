@@ -19,7 +19,7 @@ search = studio.split("private fun StudioSearch(", 1)[1].split("private fun Stud
 mix_card = visual.split("fun NightWaveMixCard(", 1)[1].split("fun NightWaveMoodArt(", 1)[0]
 
 # Recommendations are genuine and opening cards never starts audio.
-assert "PersonalMixEngine.make(favorites, recent, playlistTracks, dayNumber)" in home
+assert "PersonalMixEngine.make(favorites, recent, playlistTracks, dayNumber," in home
 assert 'SectionHeading("Made for you"' in home
 assert 'verticalArrangement = Arrangement.spacedBy(12.dp)' in home
 assert 'compact = pair.size == 1' in home
