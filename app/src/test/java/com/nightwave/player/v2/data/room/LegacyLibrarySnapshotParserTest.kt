@@ -64,6 +64,15 @@ class LegacyLibrarySnapshotParserTest {
         }
     }
 
+    @Test fun rejectsUnexpectedVideoMetadataFields() {
+        val injected = """[{"url":"https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            "title":"Song","creator":"Artist","artwork":"","duration":120,
+            "unauthorized":"token"}]"""
+        assertThrows(IllegalArgumentException::class.java) {
+            LegacyLibrarySnapshotParser.parse(source() + ("favorites" to injected))
+        }
+    }
+
     @Test fun emptyLibraryIsValidAndDeterministic() {
         val firstEmpty = LegacyLibrarySnapshotParser.parse(emptyMap())
         val secondEmpty = LegacyLibrarySnapshotParser.parse(mapOf("unused" to "metadata"))

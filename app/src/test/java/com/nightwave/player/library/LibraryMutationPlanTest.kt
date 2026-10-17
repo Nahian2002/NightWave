@@ -77,6 +77,34 @@ class LibraryMutationPlanTest {
         assertEquals(song(26).url, state.recent.last().url)
     }
 
+    @Test fun recentHistoryBoundaryHoldsExactlyOneHundredEntries() {
+        var state = zero
+        for (i in 1..99) {
+            state = LibraryMutationPlan.apply(state, LibraryChange.RecordRecent(song(i))).updated
+        }
+        assertEquals(99, state.recent.size)
+
+        state = LibraryMutationPlan.apply(state, LibraryChange.RecordRecent(song(100))).updated
+        assertEquals(100, state.recent.size)
+        assertEquals(song(1).url, state.recent.last().url)
+
+        state = LibraryMutationPlan.apply(state, LibraryChange.RecordRecent(song(101))).updated
+        assertEquals(100, state.recent.size)
+        assertEquals(song(2).url, state.recent.last().url)
+    }
+
+    @Test fun replayingRecentTrackMovesItToFrontWithoutDuplication() {
+        var state = zero
+        for (i in 1..100) {
+            state = LibraryMutationPlan.apply(state, LibraryChange.RecordRecent(song(i))).updated
+        }
+        state = LibraryMutationPlan.apply(state, LibraryChange.RecordRecent(song(50))).updated
+        assertEquals(100, state.recent.size)
+        assertEquals(song(50).url, state.recent.first().url)
+        assertEquals(100, state.recent.map { it.url }.distinct().size)
+        assertEquals(song(1).url, state.recent.last().url)
+    }
+
     @Test fun invalidHostNeverGetsIntoFavoritesOrPlaylist() {
         val unsafe = song(3).copy(url = "https://youtube.com.evil.example/watch?v=dQw4w9WgXcQ")
         val first = LibraryMutationPlan.apply(zero, LibraryChange.ToggleFavorite(unsafe))

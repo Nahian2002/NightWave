@@ -93,7 +93,7 @@ object LibraryBackupCodec {
     fun decode(bytes: ByteArray): LibraryArchive {
         require(bytes.size in 1..MAX_BYTES) { "Invalid backup size" }
         val raw = JSONObject(bytes.toString(Charsets.UTF_8))
-        require(raw.keySet() == setOf("payload_base64", "sha256")) { "Unexpected envelope fields" }
+        require(raw.keys().asSequence().toSet() == setOf("payload_base64", "sha256")) { "Unexpected envelope fields" }
         val payload = Base64.getDecoder().decode(raw.getString("payload_base64"))
         require(payload.size <= MAX_BYTES) { "Invalid payload size" }
         require(raw.getString("sha256") == hexDigest(payload)) {
@@ -101,11 +101,11 @@ object LibraryBackupCodec {
         }
         val data = JSONObject(payload.toString(Charsets.UTF_8))
         require(data.getInt("format") == VERSION) { "Unsupported backup version" }
-        require(data.keySet().all { it in setOf("format", "profile", "favorites", "playlists") }) {
+        require(data.keys().asSequence().toSet().all { it in setOf("format", "profile", "favorites", "playlists") }) {
             "Unexpected backup fields"
         }
         val p = data.getJSONObject("profile")
-        require(p.keySet().all { it in setOf("display_name", "theme", "avatar") }) {
+        require(p.keys().asSequence().toSet().all { it in setOf("display_name", "theme", "avatar") }) {
             "Unexpected profile fields"
         }
         val favorites = parseTracks(data.getJSONArray("favorites"), MAX_FAVORITES)
@@ -113,7 +113,7 @@ object LibraryBackupCodec {
         require(list.length() <= MAX_PLAYLISTS) { "Too many playlists" }
         val playlists = (0 until list.length()).map { i ->
             val item = list.getJSONObject(i)
-            require(item.keySet() == setOf("name", "tracks")) { "Unexpected playlist fields" }
+            require(item.keys().asSequence().toSet() == setOf("name", "tracks")) { "Unexpected playlist fields" }
             val name = item.getString("name")
             require(name.isNotBlank() && name.length <= 60) { "Invalid playlist name" }
             name to parseTracks(item.getJSONArray("tracks"), MAX_PER_PLAYLIST)
