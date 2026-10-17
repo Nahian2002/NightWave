@@ -1123,9 +1123,17 @@ private fun StudioRoot(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween) {
                 NightWaveWordmark()
-                IconButton(onClick = { navigateToTab(StudioTab.PROFILE) }) {
-                    Icon(Icons.Outlined.Settings, contentDescription = "Open NightWave settings",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                Surface(
+                    onClick = { navigateToTab(StudioTab.PROFILE) },
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    modifier = Modifier.size(44.dp)
+                ) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Icon(Icons.Outlined.Settings, contentDescription = "Open NightWave settings",
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.size(21.dp))
+                    }
                 }
             }
         },
@@ -1171,13 +1179,16 @@ private fun StudioRoot(
                         onExpand = { expanded = true },
                         onHide = { compactHidden = true })
                 }
-                Surface(color = MaterialTheme.colorScheme.surface,
-                    shadowElevation = 8.dp,
-                    shape = RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp)) {
+                Surface(
+                    color = MaterialTheme.colorScheme.surface,
+                    shadowElevation = 3.dp,
+                    tonalElevation = 1.dp,
+                    shape = RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp)
+                ) {
                     Row(
-                        Modifier.fillMaxWidth().height(65.dp)
-                            .padding(horizontal = 11.dp, vertical = 6.dp),
-                        horizontalArrangement = Arrangement.spacedBy(7.dp),
+                        Modifier.fillMaxWidth().height(62.dp)
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(5.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         for (item in StudioTab.entries) {
@@ -1187,31 +1198,35 @@ private fun StudioRoot(
                                 StudioTab.LIBRARY -> Icons.Outlined.LibraryMusic
                                 StudioTab.PROFILE -> Icons.Outlined.PersonOutline
                             }
-                            val selected = tab == item
+                            val active = tab == item
                             val tabColor by animateColorAsState(
-                                targetValue = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = .14f)
+                                targetValue = if (active) MaterialTheme.colorScheme.primary.copy(alpha = .17f)
                                     else Color.Transparent,
                                 animationSpec = tween(durationMillis =
-                                    if (profile.motion == MotionPreference.REDUCED) 0 else 180),
-                                label = "Navigation selection"
+                                    if (profile.motion == MotionPreference.REDUCED) 0 else 170),
+                                label = "NightWave navigation focus"
                             )
-                            Column(
-                                Modifier.weight(1f).fillMaxHeight()
-                                    .clip(RoundedCornerShape(16.dp))
+                            Row(
+                                Modifier.weight(if (active) 1.28f else 1f).fillMaxHeight()
+                                    .clip(RoundedCornerShape(17.dp))
                                     .background(tabColor)
                                     .clickable { navigateToTab(item) }
-                                    .semantics { this.selected = selected }
+                                    .semantics { this.selected = active }
                                     .testTag("nightwave-tab-" + item.name.lowercase()),
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Icon(image, contentDescription = item.caption,
-                                    modifier = Modifier.size(19.dp),
-                                    tint = if (selected) MaterialTheme.colorScheme.primary
+                                    modifier = Modifier.size(23.dp),
+                                    tint = if (active) MaterialTheme.colorScheme.primary
                                         else MaterialTheme.colorScheme.onSurfaceVariant)
-                                Text(item.caption, style = MaterialTheme.typography.labelSmall,
-                                    color = if (selected) MaterialTheme.colorScheme.onSurface
-                                        else MaterialTheme.colorScheme.onSurfaceVariant)
+                                if (active) {
+                                    Spacer(Modifier.width(7.dp))
+                                    Text(item.caption,
+                                        style = MaterialTheme.typography.labelLarge,
+                                        maxLines = 1,
+                                        color = MaterialTheme.colorScheme.onSurface)
+                                }
                             }
                         }
                     }
