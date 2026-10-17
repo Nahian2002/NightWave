@@ -321,10 +321,9 @@ class PlaybackService : MediaSessionService() {
                     // Double-tap/recomposition must not drop an already buffered
                     // stream or enqueue another slow extraction of the same URL.
                     if (loaded) exoPlayer?.apply {
-                        if (playbackState == Player.STATE_ENDED) {
-                            seekTo(0L)
-                            prepare()
-                        }
+                        if (playbackState == Player.STATE_ENDED) seekTo(0L)
+                        if (playbackState == Player.STATE_ENDED ||
+                            playbackState == Player.STATE_IDLE) prepare()
                         play()
                     }
                 } else {
@@ -454,10 +453,9 @@ class PlaybackService : MediaSessionService() {
         val player = exoPlayer ?: return
         if (PlaybackResolutionPolicy.reusesLoadedTrack(
                 entry.url, player.currentMediaItem?.mediaId, player.playerError != null)) {
-            if (player.playbackState == Player.STATE_ENDED) {
-                player.seekTo(0L)
-                player.prepare()
-            }
+            if (player.playbackState == Player.STATE_ENDED) player.seekTo(0L)
+            if (player.playbackState == Player.STATE_ENDED ||
+                player.playbackState == Player.STATE_IDLE) player.prepare()
             player.play()
             return
         }
@@ -529,6 +527,23 @@ class PlaybackService : MediaSessionService() {
         pendingQueueRemoval = null
         if (offlinePlaying) {
             advanceOffline(forward = true)
+            return
+        }
+        val player = exoPlayer
+        val repeating = queue.current
+        if (automatic && queue.repeat == PlaybackQueue.Repeat.ONE &&
+            PlaybackResolutionPolicy.reusesLoadedTrack(
+                repeating?.url, player?.currentMediaItem?.mediaId, player?.playerError != null)) {
+            // Repeat-one should not launch a whole fresh extractor request.
+            // A genuinely expired source still uses the existing one-refresh
+            // onPlayerError path. Manual Next obeys the queue's normal rules.
+            savedQueue.saveBookmark(repeating!!.url, 0L, 0L)
+            player?.apply {
+                seekTo(0L)
+                prepare()
+                playWhenReady = true
+                play()
+            }
             return
         }
         queue.next(automatic)?.let { savedQueue.save(queue); resolveAndPlay(it) }
