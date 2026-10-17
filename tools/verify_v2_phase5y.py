@@ -36,7 +36,8 @@ assert test_mix.count("@Test") >= 7
 
 # A mix tap expands authentic suggestions. Playback begins only on track tap.
 assert "PersonalMixEngine.make(favorites, recent, playlistTracks, dayNumber," in home
-assert 'SectionHeading("Made for your listening"' in home
+assert 'SectionHeading("Made for you"' in home
+# 6A2D shortened the title without removing authentic personalized mixes.
 assert "chosenMixKey = if (chosenMixKey == mix.key)" in home
 assert 'onClick = { onPlay(song, chosenMix.tracks) }' in home
 assert "onSearch(shortcut.query)" in home
