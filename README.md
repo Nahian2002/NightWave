@@ -1,5 +1,20 @@
 # NightWave
 
+## Phase 6C2 — Private Listening Trends & Smarter Music Mixes (draft)
+
+**Source branch:** `feature/nightwave-v2-phase6c2-private-trends-personal-mixes` — built on Phase 6C and all prior draft phases. Stable `main` remains untouched. **No verified Android build or device acceptance yet.**
+
+[Phase 6C2 source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase6c2-private-trends-personal-mixes.zip) · [Detailed privacy and deferred QA checklist](docs/NIGHTWAVE_V2_PHASE6C2_QA.md)
+
+- **You > Listening memory · optional > Listening trends:** compact chart of actual opted-in observed playback on **7 UTC days** or a **30-day** grouping. Only existing service-recorded playback pulses count, with a clear empty-data state.
+- **Bounded private daily storage:** up to 30 UTC daily buckets (8KB JSON) in the existing private `nightwave_listening_memory_v1` preferences; expired daily buckets are pruned on the next access. A single consent-revision-guarded commit updates the old per-song totals and daily bucket. No server, cloud, additional permission or scheduled background task.
+- **Smarter personalized Home:** consented playback time and qualified 30s+ sessions add a bounded weight to **real existing favorite/recent/playlist tracks**. May show a **Your listening rotation** mix. Disabled or erased memory stops influencing the ranking; no fabricated songs, URLs, AI calls or catalog discovery.
+- **Transparency:** The 30-day daily trend does NOT mean the prior per-song lifetime-style retained aggregates expire at 30 days. Those continue until **Erase & turn off**. Recorded time may undercount interruptions, and midnight-crossing pulses belong to the UTC day they were saved.
+- **Compatibility:** Existing 6C opt-in/off/erase protection, Media3 playback service, 6B private lyrics, 6A2D UI and mini-player X, 5Y safe resume, 5U/5Z cloud controls and app identity are preserved.
+- **Verification deferred:** New JVM trend and recommendation cases plus emulator-only privacy cases and a manual CI source gate are authored. **Kotlin/Gradle, device playback, UX/a11y, signing and Google-cloud QA have not been run.**
+
+---
+
 ## Phase 6C — Optional on-device listening memory (draft)
 
 **Source branch:** `feature/nightwave-v2-phase6c-optin-listening-memory`, built on 6B. **GitHub source only; no verified Android APK yet.** Stable `main` unchanged and existing user data not touched.
