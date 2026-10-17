@@ -175,7 +175,7 @@ fun ListeningSpotlight(
                     }
                 }
             }
-            Column(Modifier.align(Alignment.CenterStart).fillMaxWidth(.71f)
+            Column(Modifier.align(Alignment.CenterStart).fillMaxWidth(.63f)
                 .padding(start = 20.dp, top = 18.dp, bottom = 18.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(if (hasRecent) "PICK UP WHERE YOU LEFT OFF" else "YOUR NEXT LISTEN",
