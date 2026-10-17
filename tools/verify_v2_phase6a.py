@@ -40,7 +40,9 @@ assert 'onClick = { onPlay(song, chosenMix.tracks) }' in studio
 assert 'NightWaveMoodArt(title, subtitle, gradient, modifier, onClick)' in studio
 assert 'ListeningSpotlight(' in studio
 assert 'onResumeSpotlight(it, recent)' in studio
-assert 'offset(x = (-9).dp)' in component
+assert 'BoxWithConstraints(Modifier.fillMaxWidth().height(181.dp)' in component
+assert 'val artworkSize = if (maxWidth < 340.dp) 96.dp else 124.dp' in component
+assert 'Column(Modifier.weight(1f)' in component
 
 # Search and Library remain useful, clearable and local-first.
 assert 'SectionHeading("Explore sound"' in studio

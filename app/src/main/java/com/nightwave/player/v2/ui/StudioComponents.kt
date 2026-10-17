@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -153,46 +154,61 @@ fun ListeningSpotlight(
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = colors.surfaceVariant)
     ) {
-        Box(Modifier.fillMaxWidth().height(181.dp).background(
+        BoxWithConstraints(Modifier.fillMaxWidth().height(181.dp).background(
             Brush.linearGradient(listOf(colors.surfaceVariant, colors.surface, colors.surfaceVariant),
                 start = Offset.Zero, end = Offset(900f, 400f))
         )) {
-            Box(Modifier.align(Alignment.CenterEnd).size(145.dp)
-                .offset(x = (-9).dp).clip(RoundedCornerShape(22.dp))
-                .background(colors.primary.copy(alpha = .13f)),
-                contentAlignment = Alignment.Center) {
-                if (hasRecent && !lastTrack?.thumbnail.isNullOrBlank()) {
-                    AsyncImage(
-                        model = lastTrack?.thumbnail, contentDescription = "Last played artwork",
-                        modifier = Modifier.size(137.dp).clip(RoundedCornerShape(19.dp)),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    Canvas(Modifier.size(125.dp)) {
-                        drawCircle(colors.primary.copy(alpha = .2f), radius = size.minDimension * .43f)
-                        drawCircle(colors.primary.copy(alpha = .63f), radius = size.minDimension * .29f,
-                            style = Stroke(width = 2.dp.toPx()))
-                        drawCircle(colors.primary, radius = size.minDimension * .055f)
+            // Row measurement, not overlapping Box alignments, owns the space.
+            // Narrow screens shrink artwork before sacrificing the title area.
+            val artworkSize = if (maxWidth < 340.dp) 96.dp else 124.dp
+            Row(Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 15.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Column(Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                    Text(if (hasRecent) "PICK UP WHERE YOU LEFT OFF" else "YOUR NEXT LISTEN",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = colors.primary, maxLines = 1,
+                        overflow = TextOverflow.Ellipsis)
+                    Text(if (hasRecent) lastTrack?.title.orEmpty() else "Make tonight sound better",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = colors.onSurface, maxLines = 2,
+                        overflow = TextOverflow.Ellipsis)
+                    Text(if (hasRecent) lastTrack?.author.orEmpty()
+                        else "Discover something worth replaying",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colors.onSurfaceVariant, maxLines = 1,
+                        overflow = TextOverflow.Ellipsis)
+                    Row(verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Icon(Icons.Outlined.PlayArrow, null,
+                            modifier = Modifier.size(19.dp), tint = colors.primary)
+                        Text(if (hasRecent) "Play again" else "Discover music",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = colors.primary, maxLines = 1,
+                            overflow = TextOverflow.Ellipsis)
                     }
                 }
-            }
-            Column(Modifier.align(Alignment.CenterStart).fillMaxWidth(.65f)
-                .padding(start = 18.dp, top = 16.dp, bottom = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(if (hasRecent) "PICK UP WHERE YOU LEFT OFF" else "YOUR NEXT LISTEN",
-                    style = MaterialTheme.typography.labelSmall, color = colors.primary)
-                Text(if (hasRecent) lastTrack?.title.orEmpty() else "Make tonight sound better",
-                    style = MaterialTheme.typography.headlineSmall, color = colors.onSurface,
-                    maxLines = 2, overflow = TextOverflow.Ellipsis)
-                Text(if (hasRecent) lastTrack?.author.orEmpty() else "Discover something worth replaying",
-                    style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Row(verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Icon(Icons.Outlined.PlayArrow, null, modifier = Modifier.size(19.dp),
-                        tint = colors.primary)
-                    Text(if (hasRecent) "Play again" else "Discover music",
-                        style = MaterialTheme.typography.labelLarge, color = colors.primary)
+                Box(Modifier.size(artworkSize).clip(RoundedCornerShape(20.dp))
+                    .background(colors.primary.copy(alpha = .13f)),
+                    contentAlignment = Alignment.Center) {
+                    if (hasRecent && !lastTrack?.thumbnail.isNullOrBlank()) {
+                        AsyncImage(
+                            model = lastTrack?.thumbnail, contentDescription = "Last played artwork",
+                            modifier = Modifier.fillMaxSize().padding(4.dp)
+                                .clip(RoundedCornerShape(16.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Canvas(Modifier.fillMaxSize(.78f)) {
+                            drawCircle(colors.primary.copy(alpha = .2f),
+                                radius = size.minDimension * .43f)
+                            drawCircle(colors.primary.copy(alpha = .63f),
+                                radius = size.minDimension * .29f,
+                                style = Stroke(width = 2.dp.toPx()))
+                            drawCircle(colors.primary, radius = size.minDimension * .055f)
+                        }
+                    }
                 }
             }
         }
