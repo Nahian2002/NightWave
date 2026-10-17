@@ -9,7 +9,7 @@
 - **Google-only opt-in:** narrow Drive `appDataFolder` scope, selected user account, no access tokens saved to disk, no broad Drive permission. Google Cloud OAuth Android package/signing SHA-1 must be registered for actual sign-in to work.
 - **Automatic daily backups:** WorkManager begins only after **Back up now** uploads a snapshot and verifies remote bytes. Wi-Fi-only default; actual execution depends on Android scheduling, network and battery policy. New installs connect first and may **Preview cloud restore** before uploading anything.
 - **Preserve historical data:** versioned append-only snapshots, integrity check, library and profile basics, explicit opt-in for recent listening history. No music files, passwords, signed stream links, private file paths, or raw searches are uploaded.
-- **Restore preview:** no automatic replacement. User can cancel, restore favorites/playlists while keeping local history, or separately restore history; original library recovery/undo protections remain. Disconnect cancels future work, not stored Drive snapshots.
+- **Restore preview:** choose among older versioned snapshots; no automatic replacement. User can cancel, restore favorites/playlists while keeping local history, or separately restore history; original library recovery/undo protections remain. Disconnect cancels future work, not stored Drive snapshots.
 - **Limitations:** live multi-device merges, search-history sync, full profile settings and cloud snapshot retention are deferred. OAuth build, cloud uploads, background jobs and phone tests remain unverified.
 
 ---
