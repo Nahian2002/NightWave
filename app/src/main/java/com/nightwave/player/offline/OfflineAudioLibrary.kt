@@ -81,11 +81,14 @@ class OfflineAudioLibrary(private val context: Context) {
     fun import(uri: Uri): OfflineSong {
         val previous = songs()
         require(previous.size < MAX_SONGS) { "Offline library reached its 400-song limit" }
-        val displayName = context.contentResolver.query(
-            uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null
-        )?.use { cursor ->
-            if (cursor.moveToFirst()) cursor.getString(0) else null
-        }?.take(180) ?: uri.lastPathSegment?.substringAfterLast('/')?.take(180) ?: "Audio file"
+        val displayName = runCatching {
+            context.contentResolver.query(
+                uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null
+            )?.use { cursor ->
+                if (cursor.moveToFirst()) cursor.getString(0) else null
+            }
+        }.getOrNull()?.take(180)
+            ?: uri.lastPathSegment?.substringAfterLast('/')?.take(180) ?: "Audio file"
         val extension = displayName.substringAfterLast('.', "").lowercase()
         require(extension in extensions) { "Supported formats: MP3, M4A, AAC, FLAC, WAV, OGG, OPUS, MP4 and WebM" }
         val total = previous.sumOf(OfflineSong::bytes)
