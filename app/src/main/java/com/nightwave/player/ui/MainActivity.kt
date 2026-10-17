@@ -51,6 +51,7 @@ import com.nightwave.player.net.YouTubeGateway
 import com.nightwave.player.library.MusicLibrary
 import com.nightwave.player.offline.OfflineLibraryActivity
 import com.nightwave.player.diagnostics.NightWaveCrashRecorder
+import com.nightwave.player.diagnostics.NightWaveExitHistory
 import com.nightwave.player.playback.PlaybackService
 import com.nightwave.player.playback.QueueStateStore
 import java.util.concurrent.Executors
@@ -890,7 +891,8 @@ class MainActivity : Activity() {
         labelAction("♫  Your offline music · Import audio") { openOfflineLibrary() }
         sectionTitle("Early access")
         labelAction("Diagnostics · Share recent crash summary") {
-            val report = NightWaveCrashRecorder.report(this)
+            val report = NightWaveCrashRecorder.report(this) + "\n\n" +
+                NightWaveExitHistory.report(this)
             runCatching {
                 startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
                     type = "text/plain"
