@@ -1,5 +1,21 @@
 # NightWave
 
+## NightWave 2.0 Alpha 5C — Offline-first Library and Queue
+
+**Version:** `2.0.0-alpha5c` (code 19) · **Development:** `feature/nightwave-v2-phase5c-offline-queue`.
+
+[Get complete Phase 5C source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase5c-offline-queue.zip) · [Phase 5C testing and limits](docs/NIGHTWAVE_V2_PHASE5C_QA.md)
+
+- The imported-audio library now supports instant local title search, four sort modes, **Play all**, and tapping a song to play it within the currently visible ordered list.
+- Next/Previous (including Bluetooth/headset controls) and end-of-song auto-advance work across imported tracks without network access. Missing files are skipped; private file IDs never enter public YouTube queues or favorites.
+- Offline metadata and queue UI remain distinct from online playback, avoiding stale YouTube artwork, old track titles, and stale public queue rows.
+- The offline queue exists only while the playback service lives; **imported audio files remain saved**, but automatic queue restoration after service death is not yet implemented.
+- Previous Phase 5A/5B launch protection, native search, retry and classic player remain. **No YouTube downloading** or cloud login/sync.
+
+**Verification:** the standalone offline queue compiled under JVM Kotlin and passed seven targeted behavior checks. This is **not** a successful Android build or phone test. Run `build-windows.cmd` and real-device QA before installing or merging. Preserve installed app data; leave the PR draft until acceptance.
+
+---
+
 ## NightWave 2.0 Alpha 5B — Native Search & Playback Improvements
 
 **Version:** \`2.0.0-alpha5b\` (code 18). **Branch:** \`feature/nightwave-v2-phase5b-search-playback\` (source only, Android tests pending).
