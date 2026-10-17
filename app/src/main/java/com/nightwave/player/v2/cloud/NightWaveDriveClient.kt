@@ -91,13 +91,13 @@ class NightWaveDriveClient(private val accessToken: String) {
             .put("mimeType", "application/json")
             .put("parents", org.json.JSONArray().put("appDataFolder")).toString()
         val body = ByteArrayOutputStream().apply {
-            write("--$boundary\\r\\nContent-Type: application/json; charset=UTF-8\\r\\n\\r\\n"
+            write("--$boundary\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n"
                 .toByteArray(Charsets.UTF_8))
             write(metadata.toByteArray(Charsets.UTF_8))
-            write("\\r\\n--$boundary\\r\\nContent-Type: application/json\\r\\n\\r\\n"
+            write("\r\n--$boundary\r\nContent-Type: application/json\r\n\r\n"
                 .toByteArray(Charsets.UTF_8))
             write(bytes)
-            write("\\r\\n--$boundary--\\r\\n".toByteArray(Charsets.UTF_8))
+            write("\r\n--$boundary--\r\n".toByteArray(Charsets.UTF_8))
         }.toByteArray()
         val endpoint = "https://www.googleapis.com/upload/drive/v3/files".toHttpUrl()
             .newBuilder()
