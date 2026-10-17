@@ -1,30 +1,57 @@
-# Validate the PowerShell builder with Windows PowerShell's own AST parser.
-# Runs before Gradle, so parse errors cannot waste an Android build attempt.
+# Local Windows PowerShell parse gate. Fail closed before any Gradle/build work.
+# It also prevents an old APK being mistaken for a successful new build.
 [CmdletBinding()]
 param()
 
-$scriptFile = Join-Path $PSScriptRoot 'build-windows.ps1'
-if (-not (Test-Path -LiteralPath $scriptFile)) {
-    Write-Host "NightWave builder missing: $scriptFile" -ForegroundColor Red
-    exit 1
-}
+$ErrorActionPreference = 'Stop'
+$project = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+$dist = Join-Path $project 'dist'
+New-Item -ItemType Directory -Path $dist -Force | Out-Null
+$scripts = @('build-windows.ps1', 'verify-apk-signature.ps1')
+$issues = @()
 
-$tokens = $null
-$parseErrors = $null
-[System.Management.Automation.Language.Parser]::ParseFile(
-    $scriptFile, [ref]$tokens, [ref]$parseErrors
-) | Out-Null
-
-if ($null -ne $parseErrors -and $parseErrors.Count -gt 0) {
-    Write-Host 'NightWave builder PowerShell syntax check FAILED:' -ForegroundColor Red
-    foreach ($problem in $parseErrors) {
-        Write-Host ('Line {0}, column {1}: {2}' -f
-            $problem.Extent.StartLineNumber,
-            $problem.Extent.StartColumnNumber,
-            $problem.Message) -ForegroundColor Red
+foreach ($name in $scripts) {
+    $path = Join-Path $PSScriptRoot $name
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+        $issues += ("Missing Windows script: " + $name)
+        continue
     }
+    $tokens = $null
+    $parseErrors = $null
+    [System.Management.Automation.Language.Parser]::ParseFile(
+        $path, [ref]$tokens, [ref]$parseErrors
+    ) | Out-Null
+    foreach ($item in @($parseErrors)) {
+        if ($null -eq $item) { continue }
+        $issues += ('{0} line {1}, column {2}: {3}' -f
+            $name, $item.Extent.StartLineNumber,
+            $item.Extent.StartColumnNumber, $item.Message)
+    }
+}
+
+if ($issues.Count -gt 0) {
+    # Preserve a previous local build, only within the generated dist folder.
+    $apk = Join-Path $dist 'NightWave-debug.apk'
+    $backup = Join-Path $dist 'NightWave-debug-previous.apk'
+    try {
+        if (Test-Path -LiteralPath $apk -PathType Leaf) {
+            Copy-Item -LiteralPath $apk -Destination $backup -Force
+            Remove-Item -LiteralPath $apk -Force
+        }
+    } catch {
+        $issues += "Unable to archive the prior APK: $($_.Exception.Message)"
+    }
+
+    $report = Join-Path $dist 'NightWave-build-errors.txt'
+    $status = Join-Path $dist 'NightWave-build-status.txt'
+    @('NightWave Alpha 5H PowerShell syntax check failed.', '') + $issues |
+        Set-Content -LiteralPath $report -Encoding UTF8
+    @('FAILED - builder syntax/preflight.', 'No new verified APK was published.',
+        "Diagnostics: $report") |
+        Set-Content -LiteralPath $status -Encoding UTF8
+    $issues | ForEach-Object { Write-Host $_ -ForegroundColor Red }
     exit 1
 }
 
-Write-Host 'NightWave builder PowerShell syntax check passed.' -ForegroundColor Green
+Write-Host 'NightWave Windows builder and APK signing verifier syntax: PASS.' -ForegroundColor Green
 exit 0

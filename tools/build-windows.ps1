@@ -211,27 +211,43 @@ try {
     if (-not (Test-Path -LiteralPath $apk)) {
         throw 'Gradle exited successfully but the debug APK was not found.'
     }
-    # Confirm Android actually packaged the correct ID and incremented version,
-    # rather than copying a build left by an older checkout.
-    $aapt = Join-Path $sdk 'build-tools\35.0.0\aapt.exe'
-    if (-not (Test-Path -LiteralPath $aapt)) {
-        throw 'Android aapt.exe missing; cannot validate the APK identity.'
+    # Refuse an unsigned/tampered APK or a debug signer incompatible with
+    # the previously built NightWave APK. No installation or data reset occurs.
+    $verifier = Join-Path $PSScriptRoot 'verify-apk-signature.ps1'
+    if (-not (Test-Path -LiteralPath $verifier)) {
+        throw 'APK signature verification script missing from source ZIP.'
     }
-    $badging = (& $aapt dump badging $apk 2>&1 | Out-String)
-    if ($LASTEXITCODE -ne 0 -or
-        $badging -notmatch "package: name='com\.nightwave\.player' versionCode='23' versionName='2\.0\.0-alpha5g'") {
-        throw 'APK package/version does not match NightWave Alpha 5G, build 23.'
+    $buildTools = Join-Path $sdk 'build-tools\35.0.0'
+    $verifyOutput = (& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $verifier `
+        -ApkPath $apk -BuildToolsDir $buildTools `
+        -VersionName '2.0.0-alpha5h' -VersionCode '24' `
+        -PreviousApkPath $previousApk 2>&1 | Out-String)
+    if ($LASTEXITCODE -ne 0) {
+        throw ('APK signature/identity gate failed: ' + $verifyOutput.Trim())
     }
+    $verifyLines = @($verifyOutput -split '\r?\n')
+    $signerLine = $verifyLines | Where-Object { $_ -match '^Signer SHA256:' } |
+        Select-Object -First 1
+    $continuityLine = $verifyLines | Where-Object { $_ -match '^Signing continuity:' } |
+        Select-Object -First 1
+    if (-not $signerLine -or -not $continuityLine) {
+        throw 'APK verifier returned success without signer details.'
+    }
+    # The verified candidate alone is promoted to the downloadable result.
     Copy-Item -LiteralPath $apk -Destination $output -Force
     $hash = (Get-FileHash -LiteralPath $output -Algorithm SHA256).Hash
     @(
-        'SUCCESS - NightWave Android debug APK verified',
+        'SUCCESS - NightWave Android debug APK locally verified',
         'Package: com.nightwave.player',
-        'Version: 2.0.0-alpha5g',
-        'Version code: 23',
+        'Version: 2.0.0-alpha5h',
+        'Version code: 24',
+        $signerLine,
+        $continuityLine,
         "SHA256: $hash",
-        "APK: $output"
+        "APK: $output",
+        'Installed-device signer compatibility is not assured unless compared separately.'
     ) | Set-Content -LiteralPath $statusFile -Encoding UTF8
+    Say $verifyOutput.Trim()
     Say 'BUILD SUCCESS'
     Say "APK: $output"
     Write-Host "SHA256: $hash"

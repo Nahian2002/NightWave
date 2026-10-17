@@ -1,5 +1,21 @@
 # NightWave
 
+## NightWave 2.0 Alpha 5H — APK verification and safer in-place updates
+
+**Version:** `2.0.0-alpha5h` (build 24). **Draft branch:** `feature/nightwave-v2-phase5h-apk-signing-gates`.
+
+[Download full Phase 5H source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase5h-apk-signing-gates.zip) · [Phase 5H release/smoke guide](docs/NIGHTWAVE_V2_PHASE5H_QA.md)
+
+- Adds official Android Build Tools `aapt` **package/version** checks and `apksigner` **cryptographic APK-signature** verification to the existing **local, zero-GitHub-billing** Windows builder.
+- If a previous locally built NightWave APK is available, its signing certificate **must match** before the new APK is published. If no previous APK exists, signing continuity with the app already installed on your phone remains **unverified**; do not uninstall to work around failed update signatures.
+- Preflight parses both PowerShell build scripts and records errors even when an invalid script prevents Gradle from running; old built APKs are archived instead of presented as fresh build output.
+- Adds non-destructive Android instrumented startup checks for classic and premium NightWave, designed to run on an emulator/disposable profile.
+- No changes to actual audio playback, YouTube backend, private offline files, persistent profile/library schemas, Android app ID or existing signing keys.
+
+**Status:** Previously authored pure JVM tests were re-run (38 checks passed). Android Gradle compilation, Windows PowerShell execution and APK-device compatibility remain **PENDING** because this environment has no Android SDK/Gradle and cannot download them. The longstanding crash report still needs device evidence. The PR remains draft, stable `main` unchanged.
+
+---
+
 ## NightWave 2.0 Alpha 5G — Reliability and verifiable builds
 
 **Version:** `2.0.0-alpha5g` (code 23). **Draft branch:** `feature/nightwave-v2-phase5g-reliability-diagnostics`.
