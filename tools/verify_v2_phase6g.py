@@ -31,7 +31,11 @@ assert "selectedMediaId(), it.currentMediaItem?.mediaId" in bridge
 assert "else requestSelectedResume()" in bridge
 assert "action(PlaybackService.ACTION_RESUME_SAVED)" in bridge
 assert "action(PlaybackService.ACTION_RESUME_OFFLINE)" in bridge
-assert "active.isPlaying -> Unit" in bridge
+# 6H tightened the old unconditional "already playing" shortcut: it may
+# be idempotent only when the selected queue ID equals the current MediaItem.
+assert "PlaybackCommandPolicy.resumeSatisfied(" in bridge
+assert "selectedMediaId(), active.currentMediaItem?.mediaId" in bridge
+assert "active.playerError != null, active.isPlaying" in bridge
 assert "active.play()" in bridge
 assert "private fun resumeSavedQueue()" in service
 assert "PlaybackResolutionPolicy.reusesLoadedTrack(" in service
