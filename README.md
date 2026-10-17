@@ -1,5 +1,19 @@
 # NightWave
 
+## Phase 6A2 — Mini-player dismiss and responsive layout (draft)
+
+**Branch:** `feature/nightwave-v2-phase6a2-mini-dismiss-layout-polish`, stacked on 6A. **Source implementation committed; Android/device checks deferred.** No change to package identity, signing, user library or background playback.
+
+[Phase 6A2 ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase6a2-mini-dismiss-layout-polish.zip) · [Full Phase 6A2 QA handoff](docs/NIGHTWAVE_V2_PHASE6A2_QA.md)
+
+- **Mini-player dismissal:** a visible accessible **X** hides the bottom card without pausing/clearing Media3; the previous swipe-down hide remains. A small handle advertises swiping and the existing compact **Now playing · Tap to show** pill restores the card.
+- **Responsive controls:** Play/Pause and dismiss are always reachable. On smaller phones, Next moves to the full player to preserve useful title width; wider mini-players keep it.
+- **Scroll breathing room:** added modest final-item padding to Home, Search, Library and You, accounting for Scaffold's already-reserved bottom nav/mini-player height instead of double-padding every page by 150dp.
+- **Fixed Home cover/title overlap:** side-by-side measured artwork and text with adaptive artwork size and overflow ellipsis. The same real last-played item and safe 5Y Play again callback are preserved.
+- **Deferred verification:** disposable Compose instrumentation checks authored; 6A2 source gate staged in manual CI only. **No Android Gradle, device playback, screenshot QA or signing verification has been executed.** Keep draft; do not distribute as a validated APK.
+
+---
+
 ## Phase 6A — Cinematic UI & Visual System (draft)
 
 **Branch:** `feature/nightwave-v2-phase6a-cinematic-ui-system` — stacked on 5Z, keeping the existing service, 5Y mixes, 5U cloud and local audio. **Source only; Android/phone testing deferred**. Stable `main` stays untouched, current app package/code identity unchanged.
