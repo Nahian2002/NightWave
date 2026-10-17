@@ -24,7 +24,7 @@ manifest = read("app/src/main/AndroidManifest.xml")
 assert 'getBoolean("consent", false)' in store
 assert 'fun setEnabled(enabled: Boolean)' in store
 assert 'fun eraseAndDisable()' in store
-assert 'prefs.edit().clear().commit()' in store
+assert 'prefs.edit().clear().putLong("revision", next).commit()' in store
 assert 'private val lock = Any()' in store
 assert 'prefs.getLong("revision", 0L) != expectedRevision' in store
 assert 'fun record(pulse: ListeningPulse, expectedRevision: Long)' in store
@@ -74,7 +74,7 @@ assert 'onMemoryEnabledChange' in activity
 assert 'confirmEraseListeningMemory()' in activity
 assert 'setPositiveButton("Erase & turn off")' in activity
 assert 'listeningMemoryStore.eraseAndDisable()' in activity
-assert 'if (tab == StudioTab.PROFILE) onMemoryRefresh()' in activity
+assert 'if (tab == StudioTab.PROFILE || tab == StudioTab.HOME) onMemoryRefresh()' in activity
 assert 'onMemoryRefresh = onMemoryRefresh' in activity
 assert 'Switch(checked = memory.enabled' in panel
 assert '30s+ sessions' in panel

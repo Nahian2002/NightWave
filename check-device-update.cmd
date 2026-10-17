@@ -6,7 +6,7 @@ echo NightWave - read-only Android update compatibility check
 echo.
 echo This does NOT install, uninstall, reset, or modify your phone.
 echo Connect and authorize exactly one Android phone using USB debugging.
-echo A fresh verified Phase 5I APK must already exist in dist.
+echo A freshly verified NightWave debug APK must already exist in dist.
 echo.
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0tools\check-device-update.ps1"
 set "VERIFY_EXIT=%ERRORLEVEL%"
