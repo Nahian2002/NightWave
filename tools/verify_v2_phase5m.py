@@ -63,7 +63,7 @@ assert 'onClose: () -> Unit' not in studio
 assert 'showQueue -> showQueue = false' in studio
 assert 'expanded -> expanded = false' in studio
 assert 'selectedPlaylist = null' in studio
-assert 'tab != StudioTab.HOME -> tab = StudioTab.HOME' in studio
+assert 'tab != StudioTab.HOME -> navigateToTab(StudioTab.HOME)' in studio
 assert 'BackHandler(enabled = showQueue || expanded ||' in studio
 
 # Shared links open in new UI with bounded text and no rotate replay.
