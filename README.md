@@ -1,5 +1,21 @@
 # NightWave
 
+## NightWave 2.0 Alpha 5F — Immersive player motion
+
+**Version:** `2.0.0-alpha5f` (code 22). **Branch:** `feature/nightwave-v2-phase5f-player-motion` (draft).
+
+[Download complete Phase 5F source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase5f-player-motion.zip) · [Phase 5F QA and known limits](docs/NIGHTWAVE_V2_PHASE5F_QA.md)
+
+- Full-screen album artwork supports guarded left/right Next/Previous swipes, with a deliberate 88dp threshold and a no-action rule during buffering, disconnection or single-track playback.
+- Improved NightWave player backdrop, subtle artwork transitions that respect Reduced Animations, loading feedback over the cover, and reliable placeholder rendering when an upstream thumbnail fails.
+- Mini-player includes Next where a multi-track queue exists, while tap-to-expand and vertical collapse/expand gestures remain.
+- Progress and seek calculations are bounded and scoped to each track; an unfinished scrub cannot seek the next song. Full player offers Retry when playback reports an error.
+- Previously implemented offline library, explicit offline session recovery, queue, native search, Home/Library design and stable app data remain unchanged. No YouTube downloading or new privacy-sensitive behavior.
+
+**Verification:** Isolated Kotlin CLI compilation of the pure swipe/progress rules passed 23 focused assertions; Android JUnit, Compose compilation, APK assembly and phone testing are still **PENDING**. Run `build-windows.cmd` before any install and do not uninstall/clear the existing app. Keep this PR DRAFT until hardware QA and outstanding crash evidence are addressed.
+
+---
+
 ## NightWave 2.0 Alpha 5E — Discovery and Library redesign
 
 **Version:** `2.0.0-alpha5e` (code 21). **Draft branch:** `feature/nightwave-v2-phase5e-discovery-polish`.

@@ -18,8 +18,8 @@ components = read("v2/ui/StudioComponents.kt")
 design = read("v2/model/NightWaveDesign.kt")
 classic = read("ui/MainActivity.kt")
 
-assert 'versionCode = 21' in settings
-assert 'versionName = "2.0.0-alpha5e"' in settings
+assert 'versionCode = 22' in settings
+assert 'versionName = "2.0.0-alpha5f"' in settings
 assert 'applicationId = "com.nightwave.player"' in settings
 android_name = "{http://schemas.android.com/apk/res/android}name"
 activities = {x.attrib.get(android_name): x for x in manifest.iter("activity")}
