@@ -6,6 +6,9 @@ import android.net.Uri
 import android.view.KeyEvent
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
+import com.nightwave.player.v2.insights.ListeningMemoryStore
+import com.nightwave.player.v2.insights.ListeningSessionMeter
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -74,11 +77,14 @@ class PlaybackService : MediaSessionService() {
     private var pendingQueueRemoval: Pair<String, PlaybackQueue.RemovedUpcoming>? = null
     private val offlineQueue = OfflinePlaybackQueue()
     private lateinit var offlineSession: OfflineSessionStore
+    private lateinit var listeningMemory: ListeningMemoryStore
+    private val listeningMeter = ListeningSessionMeter()
     private var autoRetriedVideo: String? = null
     private val progressWriter = object : Runnable {
         override fun run() {
             val player = exoPlayer ?: return
             if (!player.isPlaying) return
+            sampleListening()
             persistProgress()
             main.postDelayed(this, 2500L)
         }
@@ -102,14 +108,45 @@ class PlaybackService : MediaSessionService() {
         }
     }
 
+    /**
+     * Only the Media3-owning service records session time. Player callbacks and
+     * the preexisting 2.5s bookmark ticker run on the player/main looper.
+     * Consent is checked every sample and AGAIN by the store under a lock.
+     */
+    private fun sampleListening(endSession: Boolean = false) {
+        val player = exoPlayer ?: return
+        try {
+            if (!::listeningMemory.isInitialized || !listeningMemory.isEnabled()) {
+                listeningMeter.reset()
+                return
+            }
+            val elapsed = SystemClock.elapsedRealtime()
+            val wall = System.currentTimeMillis()
+            val pulses = if (endSession) listeningMeter.finish(elapsed, wall)
+                else listeningMeter.observe(
+                    trackId = player.currentMediaItem?.mediaId,
+                    trackTitle = player.currentMediaItem?.mediaMetadata?.title?.toString().orEmpty(),
+                    trackArtist = player.currentMediaItem?.mediaMetadata?.artist?.toString().orEmpty(),
+                    playing = player.isPlaying && player.playbackState == Player.STATE_READY,
+                    nowElapsedMs = elapsed, nowWallMs = wall
+                )
+            pulses.forEach { listeningMemory.record(it) }
+        } catch (_: Exception) {
+            // Personal insights must never interrupt streaming or offline music.
+            listeningMeter.reset()
+        }
+    }
+
     private val trackListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
+            sampleListening()
             main.removeCallbacks(progressWriter)
             if (isPlaying) main.postDelayed(progressWriter, 2500L)
             else persistProgress(flush = true)
         }
 
         override fun onPlaybackStateChanged(state: Int) {
+            sampleListening()
             if (state == Player.STATE_ENDED) {
                 // Switching Media3 items inside a Player callback is unsafe on
                 // some devices; post the guarded transition onto the main loop.
@@ -125,7 +162,18 @@ class PlaybackService : MediaSessionService() {
             }
         }
 
+        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            // Repeated playback of the same track is a new session, not a
+            // permanent single lifetime play. Other transitions are detected
+            // by the track identity in ListeningSessionMeter.observe().
+            if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT) {
+                sampleListening(endSession = true)
+            }
+            sampleListening()
+        }
+
         override fun onPlayerError(error: PlaybackException) {
+            sampleListening()
             val video = exoPlayer?.currentMediaItem?.mediaId ?: return
             if (offlinePlaying || queue.current?.url != video) return
             if (autoRetriedVideo == video) {
@@ -159,6 +207,7 @@ class PlaybackService : MediaSessionService() {
         super.onCreate()
         savedQueue = QueueStateStore(this)
         offlineSession = OfflineSessionStore(this)
+        listeningMemory = ListeningMemoryStore(this)
         savedQueue.restore(queue)
         // Do NOT play, seek, or access any offline file on service creation.
         // The user must request ACTION_RESUME_OFFLINE explicitly.
@@ -533,6 +582,7 @@ class PlaybackService : MediaSessionService() {
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = mediaSession
 
     override fun onDestroy() {
+        sampleListening(endSession = true)
         persistProgress(flush = true)
         main.removeCallbacks(progressWriter)
         generation++
