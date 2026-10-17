@@ -41,7 +41,7 @@ assert ' shell pm path $packageName' in device
 assert ' pull $base[0] $temporaryApk' in device
 assert 'getPackageInfo' not in device  # PackageManager source is not pulled from app data
 assert 'NightWave-build-status.txt' in device
-assert "Version: 2\\.0\\.0-alpha5i" in device
+assert "Version: 2\\.0\\.0-alpha5k" in device
 assert '$versionCode = 27' in device
 assert 'Get-FileHash -LiteralPath $apk -Algorithm SHA256' in device
 assert 'NightWave-device-update-check.txt' in device
