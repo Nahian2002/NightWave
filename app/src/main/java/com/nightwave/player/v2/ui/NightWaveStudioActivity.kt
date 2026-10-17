@@ -84,6 +84,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.nightwave.player.library.MusicLibrary
+import com.nightwave.player.offline.OfflineLibraryActivity
 import com.nightwave.player.library.LegacyLibraryTransaction
 import com.nightwave.player.net.VideoPreview
 import com.nightwave.player.ui.MainActivity
@@ -221,6 +222,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                     },
                     onPlay = { video, collection -> playback.play(video, collection) },
                     onLegacyPlayer = { manageLibrary() },
+                    onOfflineLibrary = { startActivity(Intent(this, OfflineLibraryActivity::class.java)) },
                     onClose = {
                         startActivity(Intent(this, MainActivity::class.java))
                         finish()
@@ -482,6 +484,7 @@ private fun StudioRoot(
     onSearch: (String) -> Unit,
     onPlay: (VideoPreview, List<VideoPreview>) -> Unit,
     onLegacyPlayer: () -> Unit,
+    onOfflineLibrary: () -> Unit,
     onClose: () -> Unit
 ) {
     var tab by rememberSaveable { mutableStateOf(StudioTab.HOME) }
@@ -592,7 +595,8 @@ private fun StudioRoot(
                 selectedPlaylist = selectedPlaylist, onSelectPlaylist = { selectedPlaylist = it },
                 getPlaylist = getPlaylist, onPlay = onPlay,
                 onSongOptions = onSongOptions,
-                onManage = onLegacyPlayer, onSearch = { tab = StudioTab.SEARCH }
+                onManage = onLegacyPlayer, onOffline = onOfflineLibrary,
+                onSearch = { tab = StudioTab.SEARCH }
             )
             StudioTab.PROFILE -> StudioProfile(
                 modifier = Modifier.padding(safe), profile = profile,
@@ -752,6 +756,7 @@ private fun StudioLibrary(
     selectedPlaylist: String?, onSelectPlaylist: (String?) -> Unit,
     getPlaylist: (String) -> List<VideoPreview>, onPlay: (VideoPreview, List<VideoPreview>) -> Unit,
     onManage: () -> Unit, onSearch: () -> Unit,
+    onOffline: () -> Unit,
     onSongOptions: (VideoPreview) -> Unit
 ) {
     val tracks = if (selectedPlaylist == null || selectedPlaylist == LIKED_COLLECTION) favorites else getPlaylist(selectedPlaylist)
@@ -770,6 +775,18 @@ private fun StudioLibrary(
             }
         }
         if (selectedPlaylist == null) {
+            item {
+                Card(onClick = onOffline, modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+                    Column(Modifier.padding(17.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                        Text("♫  Offline music", style = MaterialTheme.typography.titleMedium)
+                        Text("Import audio files and play without Wi-Fi",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            }
             item {
                 MusicFeatureCard("YOUR PRIVATE COLLECTION",
                     "Liked songs", favorites.size.toString() + " tracks") {

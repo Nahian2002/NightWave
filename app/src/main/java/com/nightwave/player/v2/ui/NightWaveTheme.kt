@@ -15,7 +15,9 @@ import androidx.compose.ui.unit.sp
 import com.nightwave.player.v2.model.NightWaveDesign
 import com.nightwave.player.v2.model.NightWaveTheme as ThemeChoice
 
-private fun color(raw: Long) = Color(raw.toULong())
+// Palette values are 32-bit ARGB (0xAARRGGBB), NOT Compose's packed ULong colors.
+// Color(ULong) interprets the low bits as a color-space ID and can crash at startup.
+internal fun paletteColor(raw: Long) = Color(raw.toInt())
 val LocalNightWavePalette = staticCompositionLocalOf { NightWaveDesign.palette(ThemeChoice.MIDNIGHT) }
 
 private val premiumTypography = Typography(
@@ -34,17 +36,17 @@ private val premiumTypography = Typography(
 fun NightWaveMaterialTheme(choice: ThemeChoice, content: @Composable () -> Unit) {
     val palette = NightWaveDesign.palette(choice)
     val scheme = if (palette.isDark) darkColorScheme(
-        primary = color(palette.accent), onPrimary = color(palette.contrastOnAccent()),
-        background = color(palette.background), onBackground = color(palette.foreground),
-        surface = color(palette.surface), onSurface = color(palette.foreground),
-        surfaceVariant = color(palette.raised), onSurfaceVariant = color(palette.secondary),
-        outline = color(palette.outline), error = color(palette.danger)
+        primary = paletteColor(palette.accent), onPrimary = paletteColor(palette.contrastOnAccent()),
+        background = paletteColor(palette.background), onBackground = paletteColor(palette.foreground),
+        surface = paletteColor(palette.surface), onSurface = paletteColor(palette.foreground),
+        surfaceVariant = paletteColor(palette.raised), onSurfaceVariant = paletteColor(palette.secondary),
+        outline = paletteColor(palette.outline), error = paletteColor(palette.danger)
     ) else lightColorScheme(
-        primary = color(palette.accent), onPrimary = color(palette.contrastOnAccent()),
-        background = color(palette.background), onBackground = color(palette.foreground),
-        surface = color(palette.surface), onSurface = color(palette.foreground),
-        surfaceVariant = color(palette.raised), onSurfaceVariant = color(palette.secondary),
-        outline = color(palette.outline), error = color(palette.danger)
+        primary = paletteColor(palette.accent), onPrimary = paletteColor(palette.contrastOnAccent()),
+        background = paletteColor(palette.background), onBackground = paletteColor(palette.foreground),
+        surface = paletteColor(palette.surface), onSurface = paletteColor(palette.foreground),
+        surfaceVariant = paletteColor(palette.raised), onSurfaceVariant = paletteColor(palette.secondary),
+        outline = paletteColor(palette.outline), error = paletteColor(palette.danger)
     )
     CompositionLocalProvider(LocalNightWavePalette provides palette) {
         MaterialTheme(colorScheme = scheme, typography = premiumTypography, content = content)

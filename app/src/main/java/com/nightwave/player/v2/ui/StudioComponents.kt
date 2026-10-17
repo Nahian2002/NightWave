@@ -65,11 +65,13 @@ fun NightWaveWordmark(modifier: Modifier = Modifier) {
                 drawPath(p, Color.White, style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round))
             }
         }
-        Text(
-            "NightWave",
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onBackground
-        )
+        Row(horizontalArrangement = Arrangement.spacedBy(0.dp),
+            verticalAlignment = Alignment.CenterVertically) {
+            Text("Night", style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onBackground)
+            Text("Wave", style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.primary)
+        }
     }
 }
 
