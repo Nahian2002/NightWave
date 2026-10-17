@@ -143,6 +143,7 @@ import com.nightwave.player.net.VideoSearchResults
 import com.nightwave.player.net.SearchMode
 import com.nightwave.player.net.SavedTrackSearch
 import com.nightwave.player.net.MusicIdentity
+import com.nightwave.player.net.SavedCreatorBrowser
 import com.nightwave.player.ui.MainActivity
 import com.nightwave.player.ui.YouTubeSearchBrowser
 import com.nightwave.player.v2.data.GuestProfileStore
@@ -1872,13 +1873,26 @@ private fun StudioSearch(
     var query by rememberSaveable { mutableStateOf("") }
     var mode by rememberSaveable { mutableStateOf(SearchMode.SONGS) }
     var quickOptionsExpanded by rememberSaveable { mutableStateOf(false) }
-    LaunchedEffect(state.query) { if (state.query.isNotBlank()) query = state.query }
+    var selectedCreator by rememberSaveable { mutableStateOf<String?>(null) }
+    var showAllCreators by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(state.query) {
+        if (state.query.isNotBlank()) {
+            query = state.query
+            selectedCreator = null
+        }
+    }
     val submit = { if (query.isNotBlank()) onPrimarySearch(query.trim(), mode) }
     val savedMatches = remember(query, savedTracks) {
         SavedTrackSearch.match(query, savedTracks)
     }
     val knownCreators = remember(savedTracks) {
         MusicIdentity.creatorsFrom(savedTracks, limit = 8)
+    }
+    val creatorGroups = remember(savedTracks) {
+        SavedCreatorBrowser.groups(savedTracks)
+    }
+    val selectedCreatorGroup = remember(selectedCreator, creatorGroups) {
+        creatorGroups.firstOrNull { it.name == selectedCreator }
     }
     // Never present results from an older query as results for new typed text.
     val responseMatchesQuery = state.query.isNotBlank() &&
@@ -1898,7 +1912,10 @@ private fun StudioSearch(
         }
         item {
             OutlinedTextField(
-                value = query, onValueChange = { query = it.take(160) },
+                value = query, onValueChange = {
+                    query = it.take(160)
+                    selectedCreator = null
+                },
                 modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(17.dp),
                 singleLine = true, placeholder = { Text("Song or artist name") },
                 leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
@@ -1911,6 +1928,41 @@ private fun StudioSearch(
                 keyboardActions = KeyboardActions(onSearch = { submit() })
             )
         }
+        if (selectedCreatorGroup != null && query.isBlank()) {
+            item(key = "selected-saved-creator") {
+                Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                    OutlinedButton(onClick = {
+                        selectedCreator = null
+                        showAllCreators = false
+                    }, modifier = Modifier.height(44.dp)) {
+                        Text("Back to discovery")
+                    }
+                    SectionHeading(selectedCreatorGroup.name,
+                        selectedCreatorGroup.trackCount.toString() +
+                            " saved public videos · from your library")
+                    Text("A local creator shortcut based on video metadata, not an official artist profile.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (selectedCreatorGroup.hasMore) {
+                        Text("Showing the first 100 saved tracks for this creator. " +
+                            "Search your library to find more.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    OutlinedButton(onClick = {
+                        mode = SearchMode.SONGS
+                        onPrimarySearch(selectedCreatorGroup.name, SearchMode.SONGS)
+                    }, modifier = Modifier.fillMaxWidth().height(44.dp)) {
+                        Text("Search this creator on YouTube")
+                    }
+                }
+            }
+            items(selectedCreatorGroup.tracks, key = { "creator-track:" + it.url }) { song ->
+                MusicTrackTile(song, isPlaying = playingUrl == song.url,
+                    onOptions = { onSongOptions(song) },
+                    onClick = { onPlay(song, selectedCreatorGroup.tracks) })
+            }
+        } else {
         if (query.isNotBlank()) {
             item {
                 Button(onClick = submit, modifier = Modifier.fillMaxWidth().height(49.dp),
@@ -1955,13 +2007,52 @@ private fun StudioSearch(
                                         // Only update the local search filter.
                                         // Online search remains a separate tap.
                                         mode = SearchMode.SONGS
-                                        query = creator.name
+                                        selectedCreator = creator.name
                                         quickOptionsExpanded = false
                                     },
                                     label = {
                                         Text(creator.name + " · " + creator.trackCount,
                                             maxLines = 1)
                                     })
+                            }
+                        }
+                    }
+                }
+            }
+            if (creatorGroups.isNotEmpty()) {
+                item(key = "all-saved-creators-toggle") {
+                    OutlinedButton(
+                        onClick = { showAllCreators = !showAllCreators },
+                        modifier = Modifier.fillMaxWidth().height(44.dp),
+                        shape = RoundedCornerShape(14.dp)
+                    ) {
+                        Text(if (showAllCreators) "Hide saved creators"
+                            else "Browse saved creators · " + creatorGroups.size + " of up to 48")
+                    }
+                }
+                if (showAllCreators) {
+                    item(key = "all-saved-creators-list") {
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            creatorGroups.chunked(2).forEach { pair ->
+                                Row(Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    pair.forEach { creator ->
+                                        FilterChip(
+                                            selected = false,
+                                            onClick = {
+                                                selectedCreator = creator.name
+                                                showAllCreators = false
+                                                mode = SearchMode.SONGS
+                                                quickOptionsExpanded = false
+                                            },
+                                            label = {
+                                                Text(creator.name + " · " + creator.trackCount,
+                                                    maxLines = 1)
+                                            },
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
@@ -2096,6 +2187,7 @@ private fun StudioSearch(
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
+        } // Keep creator-specific local browsing separate from public results.
     }
 }
 
