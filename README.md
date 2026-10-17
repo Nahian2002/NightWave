@@ -1,5 +1,18 @@
 # NightWave
 
+## Phase 6H — Release readiness & exact-track Resume safety (draft)
+
+**Source branch:** `feature/nightwave-v2-phase6h-release-gates-resume-safety` stacked on 6G. Stable `main` and installed NightWave user data remain untouched. **An installable Android build has NOT yet been verified.**
+
+[Phase 6H source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase6h-release-gates-resume-safety.zip) · [Verification and device-safety checklist](docs/NIGHTWAVE_V2_PHASE6H_QA.md)
+
+- **Correct Home Resume:** When public song A is still playing but the selected saved queue is B, NightWave no longer treats A's playback as confirmation that B has resumed. Pure `PlaybackCommandPolicy.resumeSatisfied` requires the current Media3 ID to match the selected song. On mismatch it delegates to the service's existing ownership/queue-validated restore. Saved bookmarks, offline files, Play/Pause, mini-player hide and cloud backups remain untouched.
+- **Faster CI diagnostics:** the source gates run before Android SDK installation, and 6H PRs targeting 6G now trigger the build workflow. An actual Gradle failure with a runner produces a short privacy-filtered compiler artifact marked **NO APK**; successful builds alone can upload a short-lived *unverified-for-device* debug APK.
+- **Narrow verification performed:** 22 isolated pure Kotlin/JVM policy assertions passed and the stdlib-only redacted CI report script passed its synthetic self-test and missing-log fallback. **Full Android/Compose/Media3, JUnit, signing and device QA are NOT verified.**
+- **Safe Windows fallback:** If GitHub still fails before assigning a runner, use the complete 6H source ZIP and run `build-windows.cmd`, then `send-build-report.cmd` on failure. Review/share only `dist/NightWave-build-diagnostic.txt`. Do not uninstall or reset the existing app.
+
+---
+
 ## Phase 6G — Playback continuity & easier build reports (draft)
 
 **Development branch:** `feature/nightwave-v2-phase6g-playback-continuity-diagnostics`, built on Phase 6F. Stable `main` unchanged. **No Android APK verified yet.**

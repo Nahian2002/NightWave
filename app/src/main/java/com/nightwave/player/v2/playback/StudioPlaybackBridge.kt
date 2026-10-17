@@ -412,7 +412,13 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
         try {
             controller?.let { active ->
                 when {
-                    active.isPlaying -> Unit
+                    // Idempotent only when the playing item is *the
+                    // selected track*. A previous queue's audio may remain
+                    // playing while a new selection has not loaded yet.
+                    PlaybackCommandPolicy.resumeSatisfied(
+                        selectedMediaId(), active.currentMediaItem?.mediaId,
+                        active.playerError != null, active.isPlaying
+                    ) -> Unit
                     active.playerError != null -> action(PlaybackService.ACTION_RETRY_CURRENT)
                     active.currentMediaItem != null -> {
                         if (PlaybackCommandPolicy.canResumeLoaded(
