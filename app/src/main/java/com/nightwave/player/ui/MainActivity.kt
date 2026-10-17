@@ -193,11 +193,18 @@ class MainActivity : Activity() {
             if (action == EditorInfo.IME_ACTION_SEARCH) { searchOrPlay(); true } else false
         }
         binding.toggleButton.setOnClickListener {
-            controller?.let {
-                if (it.isPlaying) it.pause()
-                else if (it.mediaItemCount > 0) it.play()
-                else startService(Intent(this, PlaybackService::class.java)
-                    .setAction(PlaybackService.ACTION_RESUME_SAVED))
+            val live = controller
+            if (live?.isPlaying == true) {
+                live.pause()
+            } else if (live != null && live.mediaItemCount > 0) {
+                live.play()
+            } else {
+                runCatching {
+                    startService(Intent(this, PlaybackService::class.java)
+                        .setAction(PlaybackService.ACTION_RESUME_SAVED))
+                }.onFailure {
+                    showStatus("Music service is not ready. Try Play again.", true)
+                }
             }
         }
         binding.backButton.setOnClickListener { seekBy(-15_000) }
