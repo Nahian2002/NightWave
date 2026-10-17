@@ -1,6 +1,7 @@
 package com.nightwave.player.playback
 
 import android.content.Context
+import android.os.SystemClock
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -41,6 +42,34 @@ class QueueStateStore(context: Context) {
             Bookmark(url, position, duration)
         } catch (_: ClassCastException) {
             null // Preserve the original bytes for an explicit backup/repair.
+        }
+    }
+
+    /**
+     * Transient, ID-only public stream lookup state for the UI. No stream
+     * signature or private media path is stored. Monotonic TTL makes a service
+     * crash or reboot fail closed instead of showing a permanent spinner.
+     */
+    fun markLookup(publicUrl: String) {
+        if (!publicUrl.startsWith("https://www.youtube.com/watch?v=")) return
+        prefs.edit().putString("resolving_url", publicUrl)
+            .putLong("resolving_at_elapsed", SystemClock.elapsedRealtime()).apply()
+    }
+
+    fun clearLookup() {
+        prefs.edit().remove("resolving_url").remove("resolving_at_elapsed").apply()
+    }
+
+    fun lookupPending(expectedUrl: String?): Boolean {
+        if (expectedUrl.isNullOrBlank()) return false
+        return try {
+            val saved = prefs.getString("resolving_url", null)
+            val then = prefs.getLong("resolving_at_elapsed", -1L)
+            val now = SystemClock.elapsedRealtime()
+            saved == expectedUrl && then >= 0L && now >= then &&
+                now - then <= PlaybackResolutionPolicy.RESOLUTION_TIMEOUT_MS
+        } catch (_: ClassCastException) {
+            false
         }
     }
 
