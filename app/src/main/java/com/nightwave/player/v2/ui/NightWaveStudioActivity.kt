@@ -328,7 +328,13 @@ class NightWaveStudioActivity : ComponentActivity() {
         if (clean.isBlank()) return
         val request = ++nativeSearchGeneration
         nativeSearchJob?.cancel()
-        nativeSearchState = StudioSearchSnapshot(query = clean, mode = mode, loading = true)
+        // A retry for the same query should not erase successful public
+        // results while the network is temporarily unavailable.
+        val previous = nativeSearchState.takeIf {
+            it.query.equals(clean, ignoreCase = true) && it.mode == mode
+        }
+        nativeSearchState = StudioSearchSnapshot(query = clean, mode = mode, loading = true,
+            videos = previous?.videos.orEmpty(), provider = previous?.provider.orEmpty())
         nativeSearchJob = lifecycleScope.launch {
             val result: Result<VideoSearchResults> = try {
                 withContext(Dispatchers.IO) { Result.success(nativeGateway.search(clean, mode)) }
@@ -345,7 +351,8 @@ class NightWaveStudioActivity : ComponentActivity() {
                 },
                 onFailure = {
                     nativeSearchState = StudioSearchSnapshot(query = clean, mode = mode,
-                        error = "Native results are unavailable right now. Use YouTube search below.")
+                        videos = previous?.videos.orEmpty(), provider = previous?.provider.orEmpty(),
+                        error = "Online providers could not be reached. Saved music still works.")
                 }
             )
         }
@@ -1083,6 +1090,13 @@ private fun StudioSearch(
         } else if (state.videos.isNotEmpty()) {
             item { SectionHeading("Public results",
                 state.videos.size.toString() + " tracks · " + state.provider) }
+            if (state.error.isNotBlank()) {
+                item {
+                    Text("Showing earlier results for this search. Online refresh failed.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
             items(state.videos, key = { "public:" + it.url }) { song ->
                 MusicTrackTile(song, isPlaying = playingUrl == song.url,
                     onOptions = { onSongOptions(song) },
