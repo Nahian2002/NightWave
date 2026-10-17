@@ -51,7 +51,22 @@ class RoomShadowMigrator(context: Context, private val database: NightWaveDataba
         snapshot.favorites.forEach(::collect)
 
         val didChange = database.withTransaction {
-            if (dao.checkpoint(CHECKPOINT)?.legacyDigest == snapshot.digest) return@withTransaction false
+            val previous = dao.checkpoint(CHECKPOINT)
+            if (previous?.legacyDigest == snapshot.digest) return@withTransaction false
+
+            // A disappeared preference file is NOT permission to erase a
+            // previously populated Room mirror. Explicit user deletion writes
+            // an empty JSON array to legacy keys instead of removing all keys.
+            val hasSourceKeys = strings.keys.any {
+                it == "favorites" || it == "recent" || it == "playlist_names"
+            }
+            if (!hasSourceKeys && previous != null &&
+                (dao.trackCount() > 0 || dao.playlistCount() > 0 ||
+                    dao.favoriteCount() > 0 || dao.recentCount() > 0)) {
+                throw IllegalStateException(
+                    "Existing legacy library keys vanished; Room copy preserved for manual recovery"
+                )
+            }
             // Foreign keys: dependent rows first; the old source is never edited.
             dao.clearPlaylistEntries()
             dao.clearFavorites()
