@@ -1,5 +1,24 @@
 # NightWave
 
+## NightWave 2.0 Alpha 5O — Swipe across all four main pages
+
+**Version:** `2.0.0-alpha5o` · **Build 31** · Branch: `feature/nightwave-v2-phase5o-swipe-tab-pager` (draft).
+
+[Download the Phase 5O complete source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase5o-swipe-tab-pager.zip) · [Phase 5O gesture/Android QA](docs/NIGHTWAVE_V2_PHASE5O_QA.md)
+
+- **Native horizontal swiping:** Swipe Home ↔ Search ↔ Library ↔ You through a Compose HorizontalPager; the bottom navigation automatically tracks the visible page.
+- **All navigation agrees:** bottom tabs, the Settings gear, Home discovery shortcuts, Library navigation and system Back use the same saveable pager position rather than competing page states.
+- **Gesture isolation:** page swiping is disabled behind full-screen Now Playing and Up Next, while artwork left/right track switching, player swipe-down to dismiss and mini-player up/down gestures remain as before. Vertical music list scrolling and horizontal avatar chips remain separate.
+- **Reduced motion and keyboard:** bottom-tab transitions honor Reduced Motion, and changing pages releases text focus and closes the keyboard.
+- **Accessibility:** selected tab semantics/test IDs; added two Android instrumentation tests for swipes, vertical scrolling and tab synchronization.
+- **No destructive changes:** existing premium UI, compact You settings, classic fallback, imported audio, offline resume, playlists, media notifications and app identity are unchanged.
+
+**Verification:** source-level structural checks added in `tools/verify_v2_phase5o.py`. **Android Gradle, UI tests, APK signing, emulator and phone gesture QA have not run in this environment**. Keep this Phase 5O PR draft; don't clear/uninstall the previous app to bypass a signing mismatch.
+
+**Next:** Phase 5P — queue-only swipe-to-remove with Undo, followed by native search recovery in 5Q and accessibility/stability QA in 5R.
+
+---
+
 ## NightWave 2.0 Alpha 5N — Compact premium You tab
 
 **Version:** `2.0.0-alpha5n` (build **30**) · Branch: `feature/nightwave-v2-phase5n-compact-profile` (draft).

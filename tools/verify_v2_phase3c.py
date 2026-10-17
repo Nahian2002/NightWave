@@ -17,8 +17,8 @@ ui = read(src / "v2/ui/NightWaveStudioActivity.kt")
 old = read(src / "library/MusicLibrary.kt")
 service = read(src / "playback/PlaybackService.kt")
 
-assert any(f'versionName = "{v}"' in gradle for v in ("2.0.0-alpha3c", "2.0.0-alpha3d", "2.0.0-alpha4", "2.0.0-alpha4-hotfix1", "2.0.0-alpha4-hotfix2", "2.0.0-alpha5a", "2.0.0-alpha5b", "2.0.0-alpha5c", "2.0.0-alpha5d", "2.0.0-alpha5e", "2.0.0-alpha5f", "2.0.0-alpha5g", "2.0.0-alpha5h", "2.0.0-alpha5i", "2.0.0-alpha5j", "2.0.0-alpha5k", "2.0.0-alpha5l", "2.0.0-alpha5m", "2.0.0-alpha5n"))
-assert any(f"versionCode = {code}" in gradle for code in (12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30))
+assert any(f'versionName = "{v}"' in gradle for v in ("2.0.0-alpha3c", "2.0.0-alpha3d", "2.0.0-alpha4", "2.0.0-alpha4-hotfix1", "2.0.0-alpha4-hotfix2", "2.0.0-alpha5a", "2.0.0-alpha5b", "2.0.0-alpha5c", "2.0.0-alpha5d", "2.0.0-alpha5e", "2.0.0-alpha5f", "2.0.0-alpha5g", "2.0.0-alpha5h", "2.0.0-alpha5i", "2.0.0-alpha5j", "2.0.0-alpha5k", "2.0.0-alpha5l", "2.0.0-alpha5m", "2.0.0-alpha5n", "2.0.0-alpha5o"))
+assert any(f"versionCode = {code}" in gradle for code in (12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31))
 assert 'applicationId = "com.nightwave.player"' in gradle
 assert 'fallbackToDestructiveMigration' not in dao.replace(
     "// Never use fallbackToDestructiveMigration.", ""
