@@ -21,7 +21,7 @@ class LibraryArchiveManager(context: Context) {
 
     fun export(): ByteArray = LegacyLibraryTransaction.exclusive {
         val profile = profileStore.load()
-        return LibraryBackupCodec.encode(LibraryArchive(
+        LibraryBackupCodec.encode(LibraryArchive(
             displayName = profile.displayName,
             theme = profile.theme.name,
             avatar = profile.avatarStyle,
@@ -82,7 +82,7 @@ class LibraryArchiveManager(context: Context) {
         }
         // Recovery snapshot intentionally retained; user can recover manually
         // on a future release, never overwritten by an automatic import.
-        return true
+        true
     }
 
     private fun restoreOldLibrary(serialized: String): Boolean = runCatching {
