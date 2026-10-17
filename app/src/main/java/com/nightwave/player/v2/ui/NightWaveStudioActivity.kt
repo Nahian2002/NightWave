@@ -153,6 +153,8 @@ import com.nightwave.player.v2.playback.SpotlightAction
 import com.nightwave.player.v2.recommendation.PersonalMixEngine
 import com.nightwave.player.v2.recommendation.PersonalMix
 import com.nightwave.player.v2.social.PlaylistShareFormatter
+import com.nightwave.player.v2.social.PlaylistShareParser
+import com.nightwave.player.v2.social.SharedPlaylist
 import com.nightwave.player.v2.model.MotionPreference
 import com.nightwave.player.v2.model.NightWaveTheme
 import com.nightwave.player.v2.model.ProfileSettings
@@ -453,6 +455,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                     onToggleFavorite = { video -> library.toggleFavorite(video); refresh() },
                     onSongOptions = { video -> showSongOptions(video) },
                     onSharePlaylist = { name, tracks -> sharePlaylist(name, tracks) },
+                    onImportSharedPlaylist = { promptSharedPlaylistPaste() },
                     onSaveCurrentToPlaylist = { saveCurrentToPlaylist() },
                     storageStatus = shadowStatus,
                     onCheckStorage = { refreshShadows() },
@@ -520,7 +523,17 @@ class NightWaveStudioActivity : ComponentActivity() {
      */
     private fun handleIncomingShare(intent: Intent?) {
         if (intent?.action != Intent.ACTION_SEND || intent.type != "text/plain") return
-        val shared = intent.getStringExtra(Intent.EXTRA_TEXT).orEmpty().trim().take(160)
+        val raw = intent.getStringExtra(Intent.EXTRA_TEXT).orEmpty()
+        if (raw.isBlank()) return
+        // An incoming playlist never auto-plays and never mutates the library.
+        // The explicit preview and confirmation are mandatory.
+        if (raw.trimStart().startsWith(PlaylistShareParser.PREFIX)) {
+            val incoming = PlaylistShareParser.parse(raw)
+            if (incoming == null) showMessage("Invalid or incomplete NightWave playlist share.")
+            else showSharedPlaylistPreview(incoming)
+            return
+        }
+        val shared = raw.trim().take(160)
         if (shared.isBlank()) return
         searchNavigationToken++
         val watchUrl = VideoLink.normalize(shared)
@@ -1052,6 +1065,59 @@ class NightWaveStudioActivity : ComponentActivity() {
         }.onFailure { showMessage("No sharing app was available.") }
     }
 
+
+    /** Clipboard is only accessed if the user explicitly pastes into this field. */
+    private fun promptSharedPlaylistPaste() {
+        val entry = EditText(this).apply {
+            hint = "Paste the NightWave playlist share text"
+            inputType = android.text.InputType.TYPE_CLASS_TEXT or
+                android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE
+            minLines = 4
+            maxLines = 7
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Import a shared playlist")
+            .setMessage("Paste text shared from NightWave. Review before saving.")
+            .setView(entry)
+            .setNegativeButton("Cancel", null)
+            .setPositiveButton("Review") { _, _ ->
+                val parsed = PlaylistShareParser.parse(entry.text.toString())
+                if (parsed == null) {
+                    showMessage("Incomplete or unsupported NightWave playlist share.")
+                } else showSharedPlaylistPreview(parsed)
+            }.show()
+    }
+
+    /** Imported text is untrusted. No file, stream or account data is restored. */
+    private fun showSharedPlaylistPreview(incoming: SharedPlaylist) {
+        val preview = incoming.tracks.take(3).joinToString("\n") { "• " + it.title }
+        val more = if (incoming.tracks.size > 3) "\n…" else ""
+        AlertDialog.Builder(this)
+            .setTitle("Import playlist?")
+            .setMessage(
+                incoming.name + "\n\n" + incoming.tracks.size +
+                    " public song links:\n" + preview + more +
+                    "\n\nCreate a new playlist without replacing existing songs, " +
+                    "favorites or listening history. Duplicate names receive a (Shared) suffix. " +
+                    "Track titles and creators are supplied by the sender and not verified; " +
+                    "playback still depends on the public source."
+            )
+            .setNegativeButton("Cancel", null)
+            .setPositiveButton("Import") { _, _ ->
+                val outcome = library.importSharedPlaylist(incoming.name, incoming.tracks)
+                when {
+                    !outcome.accepted ->
+                        showMessage("Import failed; library unchanged. Check collection limits.")
+                    !outcome.changed -> showMessage("This playlist is already saved.")
+                    else -> {
+                        val savedName = outcome.updated.playlists.last().first
+                        refresh()
+                        showMessage("Imported playlist: " + savedName)
+                    }
+                }
+            }.show()
+    }
+
     private fun showMessage(message: String) {
         android.widget.Toast.makeText(this, message, android.widget.Toast.LENGTH_SHORT).show()
     }
@@ -1261,6 +1327,7 @@ private fun StudioRoot(
     onToggleFavorite: (VideoPreview) -> Unit,
     onSongOptions: (VideoPreview) -> Unit,
     onSharePlaylist: (String, List<VideoPreview>) -> Unit,
+    onImportSharedPlaylist: () -> Unit,
     onSaveCurrentToPlaylist: () -> Unit,
     onSearch: (String, SearchMode) -> Unit,
     onPrimarySearch: (String, SearchMode) -> Unit,
@@ -1502,6 +1569,7 @@ private fun StudioRoot(
                         getPlaylist = getPlaylist, onPlay = onPlay,
                         onSongOptions = onSongOptions,
                         onSharePlaylist = onSharePlaylist,
+                        onImportSharedPlaylist = onImportSharedPlaylist,
                         onManage = onLegacyPlayer, onOffline = onOfflineLibrary,
                         offlineResumeTitle = offlineResumeTitle,
                         offlineResumePositionMs = offlineResumePositionMs,
@@ -1983,7 +2051,8 @@ private fun StudioLibrary(
     offlineResumeTitle: String?, offlineResumePositionMs: Long,
     onResumeOffline: () -> Unit,
     onSongOptions: (VideoPreview) -> Unit,
-    onSharePlaylist: (String, List<VideoPreview>) -> Unit
+    onSharePlaylist: (String, List<VideoPreview>) -> Unit,
+    onImportSharedPlaylist: () -> Unit
 ) {
     val tracks = if (selectedPlaylist == null || selectedPlaylist == LIKED_COLLECTION)
         favorites else getPlaylist(selectedPlaylist)
@@ -2066,6 +2135,12 @@ private fun StudioLibrary(
                     favorites.size.toString() + " tracks",
                     cover = favorites.firstOrNull()) {
                     onSelectPlaylist(LIKED_COLLECTION)
+                }
+            }
+            item(key = "import-shared-playlist") {
+                OutlinedButton(onClick = onImportSharedPlaylist,
+                    modifier = Modifier.fillMaxWidth()) {
+                    Text("Import shared playlist")
                 }
             }
             if (names.isNotEmpty()) {
