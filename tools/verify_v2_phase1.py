@@ -37,10 +37,10 @@ for text in ("Good to see you", "What are we playing?", "Your music.",
 assert "GuestProfileStore(this)" in studio
 assert "nightwave_v2_guest_profile_1" in store
 assert "nightwave_web_search" in old
-assert "Explore the new premium interface" in old
+assert "Return to NightWave" in old
 assert "MediaSessionService" in service and "onGetSession" in service
 assert "Player.STATE_ENDED" in service
-assert "Google recovery — planned" in studio
+assert "Cloud recovery" in studio
 assert "GoogleSignInClient" not in studio
 assert "signInWithCredential" not in studio
 for secret in ("access_token", "refresh_token", "password", "id_token", "session_cookie"):
