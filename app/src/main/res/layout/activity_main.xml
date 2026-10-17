@@ -18,7 +18,7 @@
             <LinearLayout android:layout_width="0dp" android:layout_weight="1"
                 android:layout_height="wrap_content" android:orientation="vertical"
                 android:layout_marginStart="12dp">
-                <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                <TextView android:id="@+id/brandText" android:layout_width="match_parent" android:layout_height="wrap_content"
                     android:text="NightWave" android:textSize="23sp"
                     android:autoSizeTextType="uniform" android:autoSizeMinTextSize="16sp"
                     android:autoSizeMaxTextSize="23sp" android:autoSizeStepGranularity="1sp"
@@ -142,6 +142,11 @@
                     android:textSize="12sp" android:textColor="#B0ADCF"
                     android:layout_marginTop="4dp" android:ellipsize="end" android:maxLines="1"/>
             </LinearLayout>
+            <TextView android:id="@+id/collapsePlayerButton" android:layout_width="30dp"
+                android:layout_height="44dp" android:gravity="center"
+                android:text="⌄" android:textSize="20sp" android:textColor="#9CB9C6"
+                android:contentDescription="Minimize player" android:clickable="true"
+                android:focusable="true"/>
             <TextView android:id="@+id/favoriteButton" android:layout_width="37dp"
                 android:layout_height="48dp" android:gravity="center"
                 android:text="♡" android:textSize="27sp" android:textColor="#D8D9E8"
@@ -159,7 +164,8 @@
             android:max="1000" android:progressTint="#B7A2FF"
             android:progressBackgroundTint="#52526F" android:thumbTint="#C8B6FF"/>
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="horizontal" android:gravity="center_vertical">
+            android:orientation="horizontal" android:gravity="center_vertical"
+            android:visibility="gone">
             <TextView android:id="@+id/timeText" android:layout_width="0dp"
                 android:layout_weight="1" android:layout_height="wrap_content"
                 android:text="0:00 / 0:00" android:textColor="#B2B3D0" android:textSize="10sp"/>
@@ -190,7 +196,8 @@
                 android:contentDescription="Forward fifteen seconds"/>
         </LinearLayout>
         <LinearLayout android:layout_width="match_parent" android:layout_height="40dp"
-            android:orientation="horizontal" android:gravity="center_vertical">
+            android:orientation="horizontal" android:gravity="center_vertical"
+            android:visibility="gone">
             <TextView android:id="@+id/playlistButton" android:layout_width="0dp"
                 android:layout_weight="1" android:layout_height="match_parent"
                 android:gravity="center" android:text="+  Save" android:textSize="12sp"
@@ -209,6 +216,16 @@
                 android:textColor="#C8BDFF" android:clickable="true" android:focusable="true"/>
         </LinearLayout>
     </LinearLayout>
+    <TextView android:id="@+id/miniPlayerRestore"
+        android:layout_width="match_parent" android:layout_height="33dp"
+        android:layout_marginStart="12dp" android:layout_marginEnd="12dp"
+        android:layout_marginBottom="3dp" android:gravity="center"
+        android:text="♫  Now playing · Tap to show"
+        android:textColor="#A1E4DC" android:textSize="12sp"
+        android:background="@drawable/bg_nav_active"
+        android:visibility="gone" android:clickable="true"
+        android:focusable="true"
+        android:contentDescription="Restore minimized music player" />
     <LinearLayout android:id="@+id/navigationBar"
         android:layout_width="match_parent" android:layout_height="56dp"
         android:orientation="horizontal" android:gravity="center_vertical"
@@ -217,16 +234,22 @@
         <TextView android:id="@+id/homeTab" android:layout_width="0dp"
             android:layout_weight="1" android:layout_height="match_parent"
             android:gravity="center" android:text="⌂  Home" android:textSize="12sp"
+            android:layout_marginStart="3dp" android:layout_marginEnd="3dp"
+            android:layout_marginTop="5dp" android:layout_marginBottom="5dp"
             android:textColor="#C8B6FF" android:fontFamily="sans-serif-medium"
             android:clickable="true" android:focusable="true"/>
         <TextView android:id="@+id/searchTab" android:layout_width="0dp"
             android:layout_weight="1" android:layout_height="match_parent"
             android:gravity="center" android:text="⌕  Search" android:textSize="12sp"
+            android:layout_marginStart="3dp" android:layout_marginEnd="3dp"
+            android:layout_marginTop="5dp" android:layout_marginBottom="5dp"
             android:textColor="#9A9EBB" android:fontFamily="sans-serif-medium"
             android:clickable="true" android:focusable="true"/>
         <TextView android:id="@+id/libraryTab" android:layout_width="0dp"
             android:layout_weight="1" android:layout_height="match_parent"
             android:gravity="center" android:text="▤  Library" android:textSize="12sp"
+            android:layout_marginStart="3dp" android:layout_marginEnd="3dp"
+            android:layout_marginTop="5dp" android:layout_marginBottom="5dp"
             android:textColor="#9A9EBB" android:fontFamily="sans-serif-medium"
             android:clickable="true" android:focusable="true"/>
     </LinearLayout>
