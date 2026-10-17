@@ -1,5 +1,21 @@
 # NightWave
 
+## NightWave 2.0 Alpha 5E — Discovery and Library redesign
+
+**Version:** `2.0.0-alpha5e` (code 21). **Draft branch:** `feature/nightwave-v2-phase5e-discovery-polish`.
+
+[Download complete Phase 5E source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase5e-discovery-polish.zip) · [Full Phase 5E QA guide](docs/NIGHTWAVE_V2_PHASE5E_QA.md)
+
+- Home now opens with a real last-listened song spotlight when local recent history exists. It shows actual saved video metadata and artwork; when empty it clearly offers discovery rather than fake recommendations.
+- Six curated mood/search shortcuts and four Search-tab shortcuts send ordinary public queries through the existing native gateway, while YouTube browser fallback remains available.
+- Library now displays compact saved-artwork collection tiles with real track counts, quick access to recent likes, and title/artist filtering inside saved collections. Current playback is visually highlighted and missing artwork has a branded fallback.
+- Rounded, refined bottom navigation animates its selection subtly but disables that animation for Reduced Animations. Android Back navigates inside the premium UI before exiting.
+- Existing premium player, Phase 5D offline session recovery, public-video streaming paths, legacy library, original Android launcher and user data remain unchanged. No paid resources or cloud login were introduced.
+
+**Verification status:** A standalone Kotlin CLI smoke run of the pure discovery shortcuts passed seven assertions. Remote Kotlin source review and a new static gate were authored. **An actual Android Gradle build and phone UI/playback tests have NOT been executed here.** Do not install or merge until `build-windows.cmd` succeeds and device QA passes; never uninstall or clear existing music data.
+
+---
+
 ## NightWave 2.0 Alpha 5D — Offline session resume & premium Up Next
 
 **Version:** `2.0.0-alpha5d` (code 20). **Draft branch:** `feature/nightwave-v2-phase5d-offline-resume`.
