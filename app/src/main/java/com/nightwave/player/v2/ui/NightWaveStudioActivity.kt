@@ -1796,7 +1796,8 @@ private fun StudioLibrary(
                 )
             }
             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                Row(Modifier.horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(7.dp)) {
                     FilterChip(selected = sortMode == "saved", onClick = { sortMode = "saved" },
                         label = { Text("Saved order") })
                     FilterChip(selected = sortMode == "title", onClick = { sortMode = "title" },
@@ -1863,20 +1864,28 @@ private fun StudioProfile(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text("Your space", style = MaterialTheme.typography.headlineSmall)
-                    Text("Profile, listening and preferences",
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    NightWaveMicroLabel("Personalize NightWave")
+                    Text("Your space", style = MaterialTheme.typography.headlineSmall.copy(
+                        fontWeight = FontWeight.Bold))
+                    Text("Profile, appearance and library protection",
                         style = MaterialTheme.typography.bodySmall, color = muted)
                 }
-                Text("LOCAL", style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary)
+                Surface(shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = .13f)) {
+                    Text(if (cloud.lastSuccessMs > 0L && cloud.enabled) "BACKUP ON"
+                        else "LOCAL",
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary)
+                }
             }
         }
 
         item {
             Card(
-                shape = RoundedCornerShape(18.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                shape = RoundedCornerShape(21.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(Modifier.fillMaxWidth().padding(14.dp),
