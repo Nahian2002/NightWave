@@ -15,6 +15,7 @@ on:
       # Never install an artifact or run instrumentation on a personal phone.
       - feature/nightwave-v2-phase6e-playback-health-continuity
       - feature/nightwave-v2-phase6g-playback-continuity-diagnostics
+      - feature/nightwave-v2-phase6h-release-gates-resume-safety
   # Earlier phase Android/device tests were intentionally deferred.
   # Workflow dispatch stays available for controlled rechecks.
   workflow_dispatch:
@@ -53,6 +54,7 @@ jobs:
           python3 tools/verify_v2_phase6f.py
           python3 tools/verify_v2_phase6g.py
           python3 tools/verify_v2_phase6h.py
+          python3 tools/verify_v2_phase6h1.py
           python3 tools/ci_compile_summary.py --self-test
       - uses: actions/setup-java@v4
         with:
@@ -92,7 +94,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: NightWave-6H-dev-debug-UNVERIFIED-FOR-DEVICE
+          name: NightWave-6H1-dev-debug-UNVERIFIED-FOR-DEVICE
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 5
