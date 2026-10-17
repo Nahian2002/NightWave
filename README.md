@@ -1,5 +1,21 @@
 # NightWave
 
+## NightWave 2.0 Alpha 5K — Crash triage without data loss
+
+**Version:** `2.0.0-alpha5k` (build 27). **Draft branch:** `feature/nightwave-v2-phase5k-crash-triage`.
+
+[Download complete Phase 5K source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase5k-crash-triage.zip) · [Crash triage and Phase 5K QA](docs/NIGHTWAVE_V2_PHASE5K_QA.md)
+
+- **Safer playback controls:** Play/Pause and Seek now handle synchronous Media3 controller exceptions when Android disconnects a session during a tap. Only the stale Activity/controller connection is discarded; NightWave retains the saved queue, offline files, bookmarks and original playback service.
+- **App health in the premium UI:** Open **You → View / share crash summary** to inspect a local report before explicitly choosing to share it. No telemetry uploads automatically. The classic screen's diagnostics entry also remains available.
+- **Android 11+ system exit reasons:** A privacy-limited summary now shows up to 5 recent app process exits, such as Java/native crash, ANR, low-memory termination or startup failure, with UTC timestamps. It never reads full system traces, exit descriptions, process names, identifiers, local songs or account information. This may provide evidence when Android displays a frequent-crash warning but the app's exception recorder is empty.
+- **Verification:** An isolated Kotlin compilation with Android API stubs passed 14 behavior checks for the new process-exit report. Five other crash-aware/device/queue checks remain source-only or emulator-gated. `tools/verify_v2_phase5k.py` and a non-destructive Android instrumentation test are included.
+- **Safety:** The existing local Windows build/signature and connected-device update checks remain present, with `2.0.0-alpha5k` code 27. No user-data migration, deletion, signing-key replacement or app-ID change.
+
+**Release status:** The recurring crash warning is **not diagnosed or proven repaired** without the actual Android device evidence. Android Gradle, physical-phone and instrumentation runs remain **PENDING** due to missing Android SDK/Gradle and unavailable downloads in this environment. Keep this PR draft and stable `main` unchanged.
+
+---
+
 ## NightWave 2.0 Alpha 5J — Player-state efficiency
 
 **Version:** `2.0.0-alpha5j` (build 26). **Branch:** `feature/nightwave-v2-phase5j-player-state-efficiency` (draft).
