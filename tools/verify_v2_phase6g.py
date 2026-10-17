@@ -51,7 +51,8 @@ assert "dist\\NightWave-build-diagnostic.txt" in report
 assert "does not use ADB" in report
 assert "send-build-report.cmd" in windows
 assert "NightWave-build-diagnostic.txt" in windows
-assert "URL credential redaction" in diagnostics
+assert "URL token replacement must preserve non-secret query parameters" in diagnostics
+assert "multiple URL query credentials must be redacted independently" in diagnostics
 assert "access_token=<redacted>" in diagnostics
 assert "Authorization:" in diagnostics
 assert "NightWave build recovery summary (Phase 6G)" in diagnostics

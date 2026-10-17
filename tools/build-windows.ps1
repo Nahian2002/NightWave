@@ -124,7 +124,16 @@ try {
     }
     $diagnosticTest = (& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $diagnosticScript -SelfTest 2>&1 | Out-String)
     if ($LASTEXITCODE -ne 0 -or $diagnosticTest -notmatch 'PASS: NightWave build diagnostic self-test') {
-        throw 'NightWave build diagnosis/redaction self-test failed. No APK was published.'
+        # The redaction test uses only synthetic placeholders. Surface its
+        # exact fail category so a blocked Windows build is debuggable without
+        # copying full logs or printing real credentials.
+        $testFailure = if ($diagnosticTest -match 'FAIL: ([^\r\n]{1,180})') {
+            $Matches[1].Trim()
+        } else {
+            'The self-test exited without its PASS marker.'
+        }
+        throw ("NightWave build diagnosis/redaction self-test failed: " +
+            $testFailure + " No APK was published.")
     }
     Say 'Build diagnostics self-test PASS; no APK or device was accessed.'
     $stage = 'Java preparation'
