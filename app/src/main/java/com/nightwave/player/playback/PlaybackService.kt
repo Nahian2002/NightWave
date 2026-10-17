@@ -78,6 +78,9 @@ class PlaybackService : MediaSessionService() {
     private var sleepTimerGeneration = 0
     private var sleepDeadlineElapsedMs = 0L
     private var sleepTimerRunnable: Runnable? = null
+    // Suppress already-posted automatic Next callbacks after expiry, until
+    // the listener observes a genuine new user-initiated Play event.
+    private var sleepTimerPaused = false
 
     private fun clearSleepTimer() {
         sleepTimerGeneration++
@@ -102,6 +105,7 @@ class PlaybackService : MediaSessionService() {
                 main.postDelayed(sleepTimerRunnable ?: return@Runnable, delay)
                 return@Runnable
             }
+            sleepTimerPaused = true
             clearSleepTimer()
             // Pause both public and app-owned offline audio. If a public URL is
             // resolving, invalidate it to prevent the result from autoplaying.
@@ -207,6 +211,7 @@ class PlaybackService : MediaSessionService() {
 
     private val trackListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
+            if (isPlaying) sleepTimerPaused = false
             sampleListening()
             main.removeCallbacks(progressWriter)
             if (isPlaying) main.postDelayed(progressWriter, 2500L)
@@ -219,7 +224,7 @@ class PlaybackService : MediaSessionService() {
                 // Switching Media3 items inside a Player callback is unsafe on
                 // some devices; post the guarded transition onto the main loop.
                 main.post {
-                    if (exoPlayer?.playbackState == Player.STATE_ENDED) {
+                    if (!sleepTimerPaused && exoPlayer?.playbackState == Player.STATE_ENDED) {
                         if (offlinePlaying) {
                             if (!advanceOffline(forward = true)) {
                                 offlineQueue.current?.let { offlineSession.savePosition(it, 0L, flush = true) }
