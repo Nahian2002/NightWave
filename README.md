@@ -1,5 +1,20 @@
 # NightWave
 
+## Phase 6C — Optional on-device listening memory (draft)
+
+**Source branch:** `feature/nightwave-v2-phase6c-optin-listening-memory`, built on 6B. **GitHub source only; no verified Android APK yet.** Stable `main` unchanged and existing user data not touched.
+
+[Phase 6C source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase6c-optin-listening-memory.zip) · [6C privacy/acceptance checklist](docs/NIGHTWAVE_V2_PHASE6C_QA.md)
+
+- **You > Listening memory · optional** is **OFF by default**. Users choose to begin local playback tracking, pause it, refresh their snapshot or irreversibly **Erase & turn off** with confirmation.
+- **Based on actual Media3 playback:** records bounded monotonic elapsed intervals only when the service reports active ready audio. Counts one qualifying listening session per continuously played track after 30 seconds—not fake plays from recently searched songs.
+- **Private local memory:** up to 250 track aggregates / 120 KiB, with observed minutes, qualified 30s+ sessions, track counts and a top-five observed-time list. Session meter caps large app-sleep gaps and may undercount very short final fragments. This is a retained, approximate **observed-playback** aggregate, not accurate billing, an all-time historical ledger, or cross-device analytics.
+- **Strong erase semantics:** consent, erase and service writes share a lock and check opt-in; an incrementing consent revision drops any in-flight session after settings changes, including rapid OFF/ON. No activity-only fake counters, analytics servers, added permissions, music-file mutations, Google Drive uploads or changes to the legacy library backup.
+- **Preserved:** 6B private synced local LRC, 6A2D Home/Search, mini-player X/swipe, Media3 player, saved playlists/offline files, safe playback resume and 5U/5Z cloud controls.
+- **Deferred QA:** pure meter tests and source gate authored, manual CI workflow wired. Kotlin compilation, JVM/JUnit execution, Android instrumentation, actual playback session measurement, screenshots and signing comparison remain unverified, per request.
+
+---
+
 ## Phase 6B — User-imported synced lyrics & private listening insights (draft)
 
 **Source branch:** `feature/nightwave-v2-phase6b-private-lyrics-listening-insights`, built on 6A2D. Stable `main` and existing installed user data are unchanged. **No Android/phone verification has been performed.**
