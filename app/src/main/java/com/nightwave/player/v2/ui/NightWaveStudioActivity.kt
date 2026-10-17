@@ -37,6 +37,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -593,8 +594,8 @@ private fun StudioRoot(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            Row(Modifier.fillMaxWidth().height(62.dp)
-                    .padding(horizontal = 19.dp),
+            Row(Modifier.fillMaxWidth().height(60.dp)
+                    .padding(horizontal = 20.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween) {
                 NightWaveWordmark()
@@ -645,12 +646,13 @@ private fun StudioRoot(
                         onExpand = { expanded = true },
                         onHide = { compactHidden = true })
                 }
-                Surface(color = MaterialTheme.colorScheme.background,
-                    shadowElevation = 4.dp) {
+                Surface(color = MaterialTheme.colorScheme.surface,
+                    shadowElevation = 8.dp,
+                    shape = RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp)) {
                     Row(
-                        Modifier.fillMaxWidth().height(60.dp)
-                            .padding(horizontal = 10.dp, vertical = 5.dp),
-                        horizontalArrangement = Arrangement.spacedBy(5.dp),
+                        Modifier.fillMaxWidth().height(65.dp)
+                            .padding(horizontal = 11.dp, vertical = 6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(7.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         for (item in StudioTab.entries) {
@@ -661,14 +663,22 @@ private fun StudioRoot(
                                 StudioTab.PROFILE -> Icons.Outlined.PersonOutline
                             }
                             val selected = tab == item
+                            val tabColor by animateColorAsState(
+                                targetValue = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = .14f)
+                                    else Color.Transparent,
+                                animationSpec = tween(durationMillis =
+                                    if (profile.motion == MotionPreference.REDUCED) 0 else 180),
+                                label = "Navigation selection"
+                            )
                             Column(
                                 Modifier.weight(1f).fillMaxHeight()
-                                    .clip(RoundedCornerShape(13.dp))
-                                    .background(if (selected) MaterialTheme.colorScheme.surfaceVariant
-                                        else Color.Transparent)
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(tabColor)
                                     .clickable {
-                                        tab = item
-                                        selectedPlaylist = null
+                                        if (tab != item) {
+                                            tab = item
+                                            if (item != StudioTab.LIBRARY) selectedPlaylist = null
+                                        }
                                     },
                                 verticalArrangement = Arrangement.Center,
                                 horizontalAlignment = Alignment.CenterHorizontally
@@ -695,6 +705,7 @@ private fun StudioRoot(
             StudioTab.HOME -> StudioHome(
                 modifier = Modifier.padding(safe), profile = profile, recent = recent,
                 favorites = favorites,
+                playingUrl = playerState.videoUrl.takeIf { playerState.playing }.orEmpty(),
                 onSearch = { query -> onSearch(query, SearchMode.SONGS); tab = StudioTab.SEARCH },
                 onPlay = onPlay,
                 onSongOptions = onSongOptions,
@@ -702,11 +713,13 @@ private fun StudioRoot(
             )
             StudioTab.SEARCH -> StudioSearch(
                 Modifier.padding(safe), searchState, onSearch, onWebSearch,
-                onPlay, onSongOptions
+                onPlay, onSongOptions,
+                playerState.videoUrl.takeIf { playerState.playing }.orEmpty()
             )
             StudioTab.LIBRARY -> StudioLibrary(
                 modifier = Modifier.padding(safe),
                 favorites = favorites, names = playlistNames,
+                playingUrl = playerState.videoUrl.takeIf { playerState.playing }.orEmpty(),
                 selectedPlaylist = selectedPlaylist, onSelectPlaylist = { selectedPlaylist = it },
                 getPlaylist = getPlaylist, onPlay = onPlay,
                 onSongOptions = onSongOptions,
@@ -756,62 +769,62 @@ private fun StudioRoot(
 @Composable
 private fun StudioHome(
     modifier: Modifier, profile: ProfileSettings, recent: List<VideoPreview>,
-    favorites: List<VideoPreview>, onSearch: (String) -> Unit,
+    favorites: List<VideoPreview>, playingUrl: String, onSearch: (String) -> Unit,
     onPlay: (VideoPreview, List<VideoPreview>) -> Unit,
     onSongOptions: (VideoPreview) -> Unit, openLibrary: () -> Unit
 ) {
+    val palettes = listOf(
+        listOf(Color(0xFF423163), Color(0xFF242B57)),
+        listOf(Color(0xFF164F58), Color(0xFF19334D)),
+        listOf(Color(0xFF744259), Color(0xFF3E2B56)),
+        listOf(Color(0xFF4D577C), Color(0xFF273B51)),
+        listOf(Color(0xFF705031), Color(0xFF4F334B)),
+        listOf(Color(0xFF3B5867), Color(0xFF344066))
+    )
     LazyColumn(
-        modifier = modifier.widthIn(max = 840.dp).fillMaxHeight(),
-        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp),
-        verticalArrangement = Arrangement.spacedBy(17.dp)
+        modifier = modifier.fillMaxWidth().widthIn(max = 740.dp).fillMaxHeight(),
+        contentPadding = PaddingValues(horizontal = 19.dp, vertical = 18.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
-            SectionHeading(
-                "Listen your way",
-                "Welcome back, " + profile.displayName.substringBefore(' ').take(18)
+            SectionHeading("Good to have you back",
+                profile.displayName.substringBefore(' ').take(20) + " · Your listening space")
+        }
+        item {
+            ListeningSpotlight(
+                lastTrack = recent.firstOrNull(),
+                onResume = { recent.firstOrNull()?.let { onPlay(it, recent) } },
+                onDiscover = { onSearch("night drive music") }
             )
         }
-        item {
-            MusicFeatureCard(
-                "DISCOVER", "Find your next favorite",
-                "Search music from YouTube"
-            ) { onSearch("night drive music") }
-        }
-        item { SectionHeading("Browse by mood") }
-        item {
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                MoodTile("After dark", "Night drive music",
-                    listOf(Color(0xFF604780), Color(0xFF303B75)),
-                    Modifier.weight(1f)) { onSearch("night drive music") }
-                MoodTile("Slow mornings", "Lofi / acoustic",
-                    listOf(Color(0xFF1C6B70), Color(0xFF354D84)),
-                    Modifier.weight(1f)) { onSearch("lofi acoustic music") }
+        item { SectionHeading("Find your frequency", "Six directions. The next track is yours to choose.") }
+        DiscoveryShortcuts.picks.chunked(2).forEachIndexed { row, shortcuts ->
+            item(key = "discovery-$row") {
+                Row(horizontalArrangement = Arrangement.spacedBy(11.dp)) {
+                    shortcuts.forEachIndexed { i, shortcut ->
+                        MoodTile(shortcut.title, shortcut.subtitle,
+                            palettes[row * 2 + i], Modifier.weight(1f)) {
+                            onSearch(shortcut.query)
+                        }
+                    }
+                }
             }
         }
-        item {
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                MoodTile("Desi favorites", "Bangla / Hindi",
-                    listOf(Color(0xFF945578), Color(0xFF57325B)),
-                    Modifier.weight(1f)) { onSearch("popular bangla hindi songs") }
-                MoodTile("Move faster", "Workout energy",
-                    listOf(Color(0xFF9A6E3B), Color(0xFF68517D)),
-                    Modifier.weight(1f)) { onSearch("workout music") }
-            }
-        }
-        item { SectionHeading("Recently played") }
+        item { SectionHeading("Listen again", "From your recent plays") }
         if (recent.isEmpty()) item {
-            EmptyMusicCard("Start your first session",
-                "Your actual listening history will appear here as you play.",
-                "Find a song") { onSearch("music") }
+            EmptyMusicCard("Your soundtrack starts here",
+                "Songs you play will appear here, ready for another listen.",
+                "Discover music") { onSearch("music") }
         } else items(recent.take(6), key = { it.url }) { song ->
-            MusicTrackTile(song, onOptions = { onSongOptions(song) }, onClick = { onPlay(song, recent) })
+            MusicTrackTile(song, isPlaying = playingUrl == song.url,
+                onOptions = { onSongOptions(song) },
+                onClick = { onPlay(song, recent) })
         }
-        item { SectionHeading("Your favorites", favorites.size.toString() + " liked tracks") }
         item {
-            OutlinedButton(onClick = openLibrary, modifier = Modifier.fillMaxWidth().height(51.dp)) {
-                Icon(Icons.Outlined.FavoriteBorder, contentDescription = null)
-                Spacer(Modifier.width(10.dp))
-                Text("OPEN YOUR LIBRARY")
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween) {
+                SectionHeading("Your collection", favorites.size.toString() + " liked tracks")
+                OutlinedButton(onClick = openLibrary) { Text("Open Library  →") }
             }
         }
     }
@@ -819,11 +832,12 @@ private fun StudioHome(
 
 @Composable
 private fun MoodTile(title: String, subtitle: String, gradient: List<Color>, modifier: Modifier, onClick: () -> Unit) {
-    Card(onClick = onClick, modifier = modifier.height(112.dp),
-        shape = RoundedCornerShape(21.dp)) {
-        Column(Modifier.fillMaxSize().background(Brush.linearGradient(gradient)).padding(16.dp),
+    Card(onClick = onClick, modifier = modifier.height(108.dp),
+        shape = RoundedCornerShape(19.dp)) {
+        Column(Modifier.fillMaxSize().background(Brush.linearGradient(gradient)).padding(14.dp),
             verticalArrangement = Arrangement.SpaceBetween) {
-            Icon(Icons.Outlined.AutoAwesome, contentDescription = null, tint = Color.White)
+            Icon(Icons.Outlined.AutoAwesome, contentDescription = null, tint = Color.White.copy(alpha = .82f),
+                modifier = Modifier.size(18.dp))
             Column {
                 Text(title, style = MaterialTheme.typography.titleMedium, color = Color.White,
                     maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -841,18 +855,41 @@ private fun StudioSearch(
     onNativeSearch: (String, SearchMode) -> Unit,
     onWebSearch: (String) -> Unit,
     onPlay: (VideoPreview, List<VideoPreview>) -> Unit,
-    onSongOptions: (VideoPreview) -> Unit
+    onSongOptions: (VideoPreview) -> Unit,
+    playingUrl: String
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var mode by rememberSaveable { mutableStateOf(SearchMode.SONGS) }
     LaunchedEffect(state.query) { if (state.query.isNotBlank()) query = state.query }
     val submit = { if (query.isNotBlank()) onNativeSearch(query.trim(), mode) }
     LazyColumn(
-        modifier.widthIn(max = 840.dp).fillMaxHeight(),
-        contentPadding = PaddingValues(horizontal = 19.dp, vertical = 15.dp),
+        modifier.fillMaxWidth().widthIn(max = 740.dp).fillMaxHeight(),
+        contentPadding = PaddingValues(horizontal = 19.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item { SectionHeading("Search music", "Find songs, artists and videos") }
+        item { SectionHeading("Explore sound", "Search for songs, artists and public videos") }
+        if (state.videos.isEmpty() && !state.loading) {
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                    Text("START SOMEWHERE", style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    DiscoveryShortcuts.picks.take(4).chunked(2).forEach { choices ->
+                        Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                            choices.forEach { shortcut ->
+                                FilterChip(selected = false,
+                                    onClick = {
+                                        mode = SearchMode.SONGS
+                                        query = shortcut.query
+                                        onNativeSearch(shortcut.query, SearchMode.SONGS)
+                                    },
+                                    label = { Text(shortcut.title, maxLines = 1) },
+                                    modifier = Modifier.weight(1f))
+                            }
+                        }
+                    }
+                }
+            }
+        }
         item {
             OutlinedTextField(
                 value = query, onValueChange = { query = it.take(160) },
@@ -892,7 +929,8 @@ private fun StudioSearch(
                 "Results", state.videos.size.toString() + " tracks · " + state.provider
             ) }
             items(state.videos, key = { it.url }) { song ->
-                MusicTrackTile(song, onOptions = { onSongOptions(song) },
+                MusicTrackTile(song, isPlaying = playingUrl == song.url,
+                    onOptions = { onSongOptions(song) },
                     onClick = { onPlay(song, state.videos) })
             }
         } else if (state.error.isNotBlank()) {
