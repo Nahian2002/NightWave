@@ -70,6 +70,7 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
     private var controller: MediaController? = null
     private var released = false
     private var ticking = false
+    private var ticksSinceReconcile = 0
     private var cachedOfflineIds: List<String> = emptyList()
     private var cachedOfflineQueue: List<VideoPreview> = emptyList()
     /** Media3 notifies us when Android kills/restarts the session process. */
@@ -103,7 +104,7 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
             if (released || !ticking) return
             controller?.let {
                 try {
-                    updateFromPlayer(it)
+                    updatePlayhead(it)
                 } catch (error: Exception) {
                     Log.w("NightWaveMedia", "Playback UI tick failed: " +
                         error.javaClass.simpleName)
@@ -158,6 +159,7 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
     @MainThread
     fun resumeUiUpdates() {
         if (released) return
+        ticksSinceReconcile = PlayerSnapshotPolicy.RECONCILE_TICKS
         // One bounded attempt on foreground re-entry, never a reconnect loop.
         if (controller == null && future == null) connect()
         if (ticking) return
@@ -176,6 +178,7 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
         if (released) return
         released = true
         pauseUiUpdates()
+        ticksSinceReconcile = 0
         controller?.removeListener(listener)
         controller = null
         future?.let { MediaController.releaseFuture(it) }
@@ -198,7 +201,38 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
         return cachedOfflineQueue to cachedOfflineQueue.indexOfFirst { it.url == "offline:" + id }
     }
 
+    /**
+     * The former 750 ms ticker loaded SharedPreferences and reparsed the saved
+     * queue (and the offline checkpoint) on every tick. Playhead progress needs
+     * only the already-bound controller. Media3 events still reconcile at once;
+     * a periodic full read catches queue edits made by service Intent actions.
+     */
+    private fun updatePlayhead(player: Player) {
+        val currentId = player.currentMediaItem?.mediaId
+        if (PlayerSnapshotPolicy.needsFullRefresh(
+                currentId, state.videoUrl, ticksSinceReconcile, state.playing)) {
+            updateFromPlayer(player)
+            return
+        }
+        ticksSinceReconcile++
+        if (currentId == null) return // Keep the saved resume placeholder.
+        val position = player.currentPosition.coerceAtLeast(0L)
+        val liveDuration = player.duration.takeIf {
+            it != C.TIME_UNSET && it > 0L
+        }
+        val duration = liveDuration ?: state.durationMs
+        val playing = player.isPlaying
+        val buffering = player.playbackState == Player.STATE_BUFFERING
+        if (state.positionMs != position || state.durationMs != duration ||
+            state.playing != playing || state.buffering != buffering
+        ) {
+            state = state.copy(positionMs = position, durationMs = duration,
+                playing = playing, buffering = buffering, connected = true)
+        }
+    }
+
     private fun updateFromPlayer(player: Player) {
+        ticksSinceReconcile = 0
         val media = player.currentMediaItem
         val metadata = media?.mediaMetadata
         val duration = player.duration.takeIf { it != C.TIME_UNSET && it > 0L } ?: 0L
