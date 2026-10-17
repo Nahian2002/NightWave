@@ -47,7 +47,7 @@ try {
     if ($summary -notmatch '(?m)^SUCCESS - NightWave Android debug APK locally verified') {
         throw 'The latest local build has not passed its verification gates.'
     }
-    if ($summary -notmatch '(?m)^Version: 2\.0\.0-alpha5i\s*$' -or
+    if ($summary -notmatch '(?m)^Version: 2\.0\.0-alpha5k\s*$' -or
         $summary -notmatch '(?m)^Version code: 27\s*$') {
         throw 'The build status does not identify NightWave Phase 5I.'
     }
