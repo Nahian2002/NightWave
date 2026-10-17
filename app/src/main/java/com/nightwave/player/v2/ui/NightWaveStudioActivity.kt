@@ -1231,7 +1231,7 @@ private fun StudioRoot(
     val focus = LocalFocusManager.current
     val tab = StudioTab.entries[pagerState.currentPage]
     LaunchedEffect(tab, playerState.positionMs / 15000L) {
-        if (tab == StudioTab.PROFILE) onMemoryRefresh()
+        if (tab == StudioTab.PROFILE || tab == StudioTab.HOME) onMemoryRefresh()
     }
     LaunchedEffect(tab) {
         // An active search/library text editor must not leave the soft keyboard
