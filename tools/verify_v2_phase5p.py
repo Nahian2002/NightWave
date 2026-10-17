@@ -23,11 +23,11 @@ device = read("tools/check-device-update.ps1")
 unit = read("app/src/test/java/com/nightwave/player/playback/PlaybackQueueUpcomingTest.kt")
 android = read("app/src/androidTest/java/com/nightwave/player/v2/ui/NightWaveQueueSwipeInstrumentedTest.kt")
 
-assert 'versionCode = 32' in gradle
-assert 'versionName = "2.0.0-alpha5p"' in gradle
-assert "-VersionName '2.0.0-alpha5p' -VersionCode '32'" in builder
-assert "$versionName = '2.0.0-alpha5p'" in device
-assert '$versionCode = 32' in device
+assert 'versionCode = 33' in gradle
+assert 'versionName = "2.0.0-alpha5q"' in gradle
+assert "-VersionName '2.0.0-alpha5q' -VersionCode '33'" in builder
+assert "$versionName = '2.0.0-alpha5q'" in device
+assert '$versionCode = 33' in device
 assert '$reportedVersion -ne $versionName' in device
 
 # Queue-only pure Kotlin mutation, guarded by current song and expected url.
