@@ -1,5 +1,23 @@
 # NightWave
 
+## NightWave 2.0 Phase 3B — Room + DataStore storage preview
+
+**Branch:** \`feature/nightwave-v2-phase3b-room-datastore\` · **Version:** \`2.0.0-alpha3b\` · **Production main:** unchanged.
+
+- [Download Phase 3B source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase3b-room-datastore.zip)
+- [Storage and test instructions](docs/NIGHTWAVE_V2_PHASE3B_STORAGE_QA.md)
+
+The preview now builds an **isolated Room library copy** and a **DataStore guest-profile copy** when you enter the new interface. It does not delete old preferences or change the Media3 playback owner. Reopening the preview rechecks for changed playlists and guest settings. Profile → Storage upgrade preview shows its status and offers a manual recheck.
+
+Room stores public video metadata, ordered playlists, favorites and locally held recent history, with its migration checkpoint committed in the same SQLite transaction. DataStore receives guest settings through a non-destructive, atomic edit. This is deliberately a **shadow migration**, not the final cutover to Room/DataStore as the canonical writer.
+
+The new branch includes eight JVM snapshot tests, five Android Room instrumented tests and one Android DataStore instrumented test. **None have been executed here**, and the Android/KSP build has not been verified. Build on Windows with \`build-windows.cmd\` before installing; do not uninstall or clear the old app. The separate instrumented tests require a connected phone or emulator and \`:app:connectedDebugAndroidTest\`.
+
+**Not provided yet:** Google sign-in, cloud restore, full dual-write/cutover, and a proven Android APK for this phase.
+
+---
+
+
 > **NightWave 2.0 Phase 2 — opt-in developer preview**: A new native Compose music player is available on this branch. It adds a Media3-connected mini-player, full-screen artwork player, track queue, shuffle/repeat, usable playlists and on-screen actions. YouTube website song searches now return to the Compose player. The legacy launch screen and playback service remain intact. **This is NOT a verified Android build or stable release yet.**
 >
 > **Download Phase 2:** [Source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase2-player-ui.zip) · [Phase 2 QA guide](docs/NIGHTWAVE_V2_PHASE2_QA.md) · [Overall phased plan](docs/NIGHTWAVE_2_PHASES.md)
