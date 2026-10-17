@@ -1,5 +1,24 @@
 # NightWave
 
+## NightWave 2.0 Alpha 5Q — Search recovery and saved-library discovery
+
+**Version:** `2.0.0-alpha5q` · **Build 33** · Branch: `feature/nightwave-v2-phase5q-search-recovery` (draft).
+
+[Complete Phase 5Q source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase5q-search-recovery.zip) · [Phase 5Q Android/search QA](docs/NIGHTWAVE_V2_PHASE5Q_QA.md)
+
+- **Offline-ready discovery of saved public tracks:** type a title or artist and see matching saved liked songs, recent music and playlists under **In your library**, even if public search is blocked. Local saved results are never sent to a provider; imported local-audio files still use the separate Offline Library.
+- **Professional error state:** the oversized “Search needs a different route” card and duplicate browser CTAs were replaced by one compact online-unavailable section with **Retry** and **YouTube ↗**. Saved matches remain visible and playable through the existing service.
+- **Search reliability:** an extractor exception now triggers independent-provider failover without another nearly identical same-backend query. Previous successful results can survive a failed retry for **the same query**; changing the query hides old online results while local saved matches update instantly.
+- **Direct-link support:** pasting a strictly validated public YouTube video link plays through NightWave's existing media service instead of attempting a keyword search. Unsupported links produce an explanation without a public-provider request.
+- **Verification:** 14 isolated Kotlin/JVM matching assertions passed. Six repository JUnit saved-search tests and two additional MockWebServer malformed-response/failover tests were added, along with a source-only Phase 5Q gate.
+- **Unchanged:** Phase 5P Up Next gestures, native page swipe pager, compact You, imported offline audio, saved playlists, background service, Android launcher/signing identity and app data.
+
+**Limits:** Public video search cannot be guaranteed when the underlying provider/extractor is down, and a public video search result does not guarantee a playable audio stream. **Android Gradle, full repository JUnit, WebView/Compose instrumentation and real phone network tests have not run** here; leave the PR draft and stable main unchanged.
+
+**Next:** Phase 5R — refine motion/accessibility, then prioritize a verified Windows Android APK and physical-device playback/crash acceptance before broader releases.
+
+---
+
 ## NightWave 2.0 Alpha 5P — Safe Up Next swipe and Undo
 
 **Version:** `2.0.0-alpha5p` · **Build 32** · Branch: `feature/nightwave-v2-phase5p-safe-queue-swipes` (draft).
