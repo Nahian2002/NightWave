@@ -97,6 +97,7 @@ import com.nightwave.player.offline.OfflineAudioLibrary
 import com.nightwave.player.offline.OfflineSessionStore
 import com.nightwave.player.playback.PlaybackService
 import com.nightwave.player.library.LegacyLibraryTransaction
+import com.nightwave.player.core.VideoLink
 import com.nightwave.player.net.VideoPreview
 import com.nightwave.player.net.YouTubeGateway
 import com.nightwave.player.net.VideoSearchResults
@@ -125,8 +126,8 @@ private data class StudioSearchSnapshot(
 )
 
 /**
- * NightWave 2.0 design-preview shell.
- * Legacy search/player remains the production route until its real-device tests pass.
+ * Default NightWave 2.0 application surface. The original UI remains an
+ * explicit, reversible fallback in Profile and keeps the same local library.
  */
 class NightWaveStudioActivity : ComponentActivity() {
     private lateinit var profiles: GuestProfileStore
@@ -145,6 +146,7 @@ class NightWaveStudioActivity : ComponentActivity() {
     private var nativeSearchState by mutableStateOf(StudioSearchSnapshot())
     private var nativeSearchJob: Job? = null
     private var nativeSearchGeneration = 0
+    private var searchNavigationToken by mutableStateOf(0)
     private var shadowRunning = false
     private var shadowRequested = false
     private var youtubeDialog: Dialog? = null
@@ -275,14 +277,40 @@ class NightWaveStudioActivity : ComponentActivity() {
                     onLegacyPlayer = { manageLibrary() },
                     onOfflineLibrary = { startActivity(Intent(this, OfflineLibraryActivity::class.java)) },
                     onShareDiagnostics = { showCrashSummaryDialog() },
-                    onClose = {
+                    onOpenClassic = {
                         startActivity(Intent(this, MainActivity::class.java))
-                        finish()
-                    }
+                    },
+                    searchNavigationToken = searchNavigationToken
                 )
             }
         }
         playback.connect()
+        // Rotation must not repeat external share playback or web searches.
+        if (savedInstanceState == null) handleIncomingShare(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleIncomingShare(intent)
+    }
+
+    /**
+     * The premium Activity owns ACTION_SEND now that it is the launcher.
+     * Accept bounded plain text only; never treat arbitrary external links as
+     * media, and don't replay an old share during a configuration change.
+     */
+    private fun handleIncomingShare(intent: Intent?) {
+        if (intent?.action != Intent.ACTION_SEND || intent.type != "text/plain") return
+        val shared = intent.getStringExtra(Intent.EXTRA_TEXT).orEmpty().trim().take(160)
+        if (shared.isBlank()) return
+        searchNavigationToken++
+        val watchUrl = VideoLink.normalize(shared)
+        if (watchUrl != null) {
+            playback.play(VideoPreview("Shared track", "YouTube", watchUrl, "", 0L))
+        } else {
+            nativeSearch(shared, SearchMode.SONGS)
+        }
     }
 
     private fun nativeSearch(query: String, mode: SearchMode) {
@@ -625,7 +653,8 @@ private fun StudioRoot(
     onLegacyPlayer: () -> Unit,
     onOfflineLibrary: () -> Unit,
     onShareDiagnostics: () -> Unit,
-    onClose: () -> Unit
+    onOpenClassic: () -> Unit,
+    searchNavigationToken: Int
 ) {
     var tab by rememberSaveable { mutableStateOf(StudioTab.HOME) }
     var selectedPlaylist by rememberSaveable { mutableStateOf<String?>(null) }
@@ -633,6 +662,9 @@ private fun StudioRoot(
     var showQueue by rememberSaveable { mutableStateOf(false) }
     var compactHidden by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(playerState.videoUrl) { compactHidden = false }
+    LaunchedEffect(searchNavigationToken) {
+        if (searchNavigationToken > 0) tab = StudioTab.SEARCH
+    }
     BackHandler(enabled = showQueue || expanded ||
         (tab == StudioTab.LIBRARY && selectedPlaylist != null) || tab != StudioTab.HOME) {
         when {
@@ -653,8 +685,8 @@ private fun StudioRoot(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween) {
                 NightWaveWordmark()
-                IconButton(onClick = onClose) {
-                    Icon(Icons.Outlined.Settings, contentDescription = "Open classic player",
+                IconButton(onClick = { tab = StudioTab.PROFILE }) {
+                    Icon(Icons.Outlined.Settings, contentDescription = "Open NightWave settings",
                         tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
@@ -793,7 +825,8 @@ private fun StudioRoot(
                 roomPreviewActive = roomPreviewActive,
                 onEnableRoomPreview = onEnableRoomPreview,
                 onUseLegacyReads = onUseLegacyReads,
-                onShareDiagnostics = onShareDiagnostics
+                onShareDiagnostics = onShareDiagnostics,
+                onOpenClassic = onOpenClassic
             )
         }
         }
@@ -1135,7 +1168,7 @@ private fun StudioProfile(modifier: Modifier, profile: ProfileSettings, save: (P
     storageStatus: String, onCheckStorage: () -> Unit,
     roomReadStatus: String, roomPreviewActive: Boolean,
     onEnableRoomPreview: () -> Unit, onUseLegacyReads: () -> Unit,
-    onShareDiagnostics: () -> Unit) {
+    onShareDiagnostics: () -> Unit, onOpenClassic: () -> Unit) {
     var name by rememberSaveable(profile.localId) { mutableStateOf(profile.displayName) }
     var showAdvanced by rememberSaveable { mutableStateOf(false) }
     LazyColumn(modifier.widthIn(max = 840.dp).fillMaxHeight(), contentPadding = PaddingValues(20.dp),
@@ -1307,6 +1340,19 @@ private fun StudioProfile(modifier: Modifier, profile: ProfileSettings, save: (P
                     else "TRY VERIFIED ROOM READS")
             }
         }
+        }
+        item { SectionHeading("Interface fallback", "The original NightWave interface remains available") }
+        item {
+            OutlinedButton(onClick = onOpenClassic,
+                modifier = Modifier.fillMaxWidth().height(50.dp)) {
+                Text("Open classic interface")
+            }
+        }
+        item {
+            Text("This is a temporary fallback. Your playlists, favorites and offline audio " +
+                "remain shared between both interfaces. Use Return to NightWave to come back.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         item { HorizontalDivider(color = MaterialTheme.colorScheme.outline) }
         item {
