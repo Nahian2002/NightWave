@@ -1274,8 +1274,8 @@ private fun StudioRoot(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            Row(Modifier.fillMaxWidth().height(60.dp)
-                    .padding(horizontal = 20.dp),
+            Row(Modifier.fillMaxWidth().height(56.dp)
+                    .padding(horizontal = 18.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween) {
                 NightWaveWordmark()
@@ -1340,11 +1340,11 @@ private fun StudioRoot(
                     color = MaterialTheme.colorScheme.surface,
                     shadowElevation = 3.dp,
                     tonalElevation = 1.dp,
-                    shape = RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp)
+                    shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
                 ) {
                     Row(
-                        Modifier.fillMaxWidth().height(62.dp)
-                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        Modifier.fillMaxWidth().height(58.dp)
+                            .padding(horizontal = 10.dp, vertical = 4.dp),
                         horizontalArrangement = Arrangement.spacedBy(5.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -1364,8 +1364,8 @@ private fun StudioRoot(
                                 label = "NightWave navigation focus"
                             )
                             Row(
-                                Modifier.weight(if (active) 1.28f else 1f).fillMaxHeight()
-                                    .clip(RoundedCornerShape(17.dp))
+                                Modifier.weight(if (active) 1.25f else 1f).fillMaxHeight()
+                                    .clip(RoundedCornerShape(15.dp))
                                     .background(tabColor)
                                     .clickable { navigateToTab(item) }
                                     .semantics { this.selected = active }
@@ -1374,7 +1374,7 @@ private fun StudioRoot(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Icon(image, contentDescription = item.caption,
-                                    modifier = Modifier.size(23.dp),
+                                    modifier = Modifier.size(22.dp),
                                     tint = if (active) MaterialTheme.colorScheme.primary
                                         else MaterialTheme.colorScheme.onSurfaceVariant)
                                 if (active) {
@@ -1635,15 +1635,16 @@ private fun StudioHome(
                 }
             }
         }
-        item { SectionHeading("Explore a new mood", "Six sounds to explore, chosen by you") }
-        DiscoveryShortcuts.picks.chunked(2).forEachIndexed { row, shortcuts ->
-            item(key = "discovery-$row") {
-                Row(horizontalArrangement = Arrangement.spacedBy(11.dp)) {
-                    shortcuts.forEachIndexed { i, shortcut ->
-                        MoodTile(shortcut.title, shortcut.subtitle,
-                            palettes[row * 2 + i], Modifier.weight(1f)) {
-                            onSearch(shortcut.query)
-                        }
+        item { SectionHeading("Explore a new mood", "Swipe across six ways to listen") }
+        // One horizontally scrollable shelf instead of three oversized rows.
+        // Uses existing real mood shortcuts and unchanged search actions.
+        item(key = "discovery-shelf") {
+            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                DiscoveryShortcuts.picks.forEachIndexed { index, shortcut ->
+                    MoodTile(shortcut.title, shortcut.subtitle,
+                        palettes[index % palettes.size], Modifier.width(178.dp)) {
+                        onSearch(shortcut.query)
                     }
                 }
             }
@@ -1931,37 +1932,13 @@ private fun StudioLibrary(
             }
         }
         if (selectedPlaylist == null) {
+            // Actual collection rows below serve as navigation. Avoid
+            // duplicating them with two oversized, noninteractive counters.
             item {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                    Surface(
-                        color = MaterialTheme.colorScheme.surface,
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Column(Modifier.padding(14.dp),
-                            verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                            Text(favorites.size.toString(),
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold)
-                            Text("Liked tracks", style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                    }
-                    Surface(
-                        color = MaterialTheme.colorScheme.surface,
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Column(Modifier.padding(14.dp),
-                            verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                            Text(names.size.toString(),
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold)
-                            Text("Playlists", style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                    }
-                }
+                Text("${favorites.size} liked tracks  ·  ${names.size} playlists",
+                    modifier = Modifier.padding(horizontal = 3.dp, vertical = 2.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             if (offlineResumeTitle != null) {
                 item {
