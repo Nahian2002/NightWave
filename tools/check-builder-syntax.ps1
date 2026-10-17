@@ -7,7 +7,7 @@ $ErrorActionPreference = 'Stop'
 $project = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $dist = Join-Path $project 'dist'
 New-Item -ItemType Directory -Path $dist -Force | Out-Null
-$scripts = @('build-windows.ps1', 'verify-apk-signature.ps1')
+$scripts = @('build-windows.ps1', 'verify-apk-signature.ps1', 'check-device-update.ps1')
 $issues = @()
 
 foreach ($name in $scripts) {
