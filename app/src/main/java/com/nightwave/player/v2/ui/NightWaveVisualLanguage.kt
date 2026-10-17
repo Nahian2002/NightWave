@@ -146,6 +146,9 @@ fun NightWaveMixCard(
 ) {
     val accent = NightWaveVisualLanguage.accent(mix.key)
     val scheme = MaterialTheme.colorScheme
+    val trackLabel = "${mix.tracks.size} " +
+        (if (mix.tracks.size == 1) "track" else "tracks") +
+        " · " + (if (selected) "Collapse" else "View tracks")
     Card(
         onClick = onClick,
         modifier = modifier.height(if (compact) 106.dp else 122.dp),
@@ -178,9 +181,7 @@ fun NightWaveMixCard(
                     Text(mix.title, style = MaterialTheme.typography.titleMedium,
                         color = scheme.onSurface, maxLines = 1,
                         overflow = TextOverflow.Ellipsis)
-                    Text("${mix.tracks.size} ${if (mix.tracks.size == 1) "track" else "tracks"} · " +
-                        if (selected) "Collapse" else "View tracks",
-                        style = MaterialTheme.typography.labelSmall,
+                    Text(trackLabel, style = MaterialTheme.typography.labelSmall,
                         color = scheme.onSurfaceVariant, maxLines = 1)
                 }
             }
