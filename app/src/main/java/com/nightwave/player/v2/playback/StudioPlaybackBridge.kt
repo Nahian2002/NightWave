@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import java.util.UUID
 import androidx.annotation.MainThread
 import androidx.media3.common.C
 import androidx.media3.common.Player
@@ -53,6 +54,8 @@ interface StudioPlayerActions {
     fun toggleShuffle()
     fun cycleRepeat()
     fun jumpTo(index: Int)
+    fun removeUpcoming(index: Int, expectedUrl: String): String?
+    fun undoUpcoming(token: String)
     fun refreshQueue()
 }
 
@@ -383,6 +386,49 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
         if (state.offline) PlaybackService.ACTION_JUMP_OFFLINE
         else PlaybackService.ACTION_JUMP, index
     )
+    /**
+     * Returns a one-time token only when the request can be sent. The service
+     * independently validates the index/url/current track before persisting.
+     * Never send commands for imported offline files or a shuffled queue.
+     */
+    override fun removeUpcoming(index: Int, expectedUrl: String): String? {
+        if (state.offline || state.shuffle || !state.connected ||
+            index <= state.queueIndex || state.queue.getOrNull(index)?.url != expectedUrl ||
+            !expectedUrl.startsWith("https://www.youtube.com/watch?v=")) return null
+        val token = UUID.randomUUID().toString()
+        return try {
+            context.startService(Intent(context, PlaybackService::class.java)
+                .setAction(PlaybackService.ACTION_REMOVE_UPCOMING)
+                .putExtra(PlaybackService.EXTRA_INDEX, index)
+                .putExtra(PlaybackService.EXTRA_EXPECTED_URL, expectedUrl)
+                .putExtra(PlaybackService.EXTRA_QUEUE_TOKEN, token))
+            scheduleQueueRefresh()
+            token
+        } catch (error: Exception) {
+            state = state.copy(error = "Could not remove this Up Next entry.")
+            null
+        }
+    }
+
+    override fun undoUpcoming(token: String) {
+        if (token.isBlank() || state.offline) return
+        try {
+            context.startService(Intent(context, PlaybackService::class.java)
+                .setAction(PlaybackService.ACTION_UNDO_REMOVE_UPCOMING)
+                .putExtra(PlaybackService.EXTRA_QUEUE_TOKEN, token))
+            scheduleQueueRefresh()
+        } catch (error: Exception) {
+            state = state.copy(error = "Could not restore this Up Next entry.")
+        }
+    }
+
+    private fun scheduleQueueRefresh() {
+        // The service receives asynchronous intents. Don't read the old
+        // persisted snapshot in the same call stack before onStartCommand.
+        main.postDelayed({ if (!released) refreshQueue() }, 180L)
+        main.postDelayed({ if (!released) refreshQueue() }, 700L)
+    }
+
     override fun toggleShuffle() {
         if (!state.offline) action(PlaybackService.ACTION_SHUFFLE)
     }

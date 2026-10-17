@@ -1,5 +1,24 @@
 # NightWave
 
+## NightWave 2.0 Alpha 5P — Safe Up Next swipe and Undo
+
+**Version:** `2.0.0-alpha5p` · **Build 32** · Branch: `feature/nightwave-v2-phase5p-safe-queue-swipes` (draft).
+
+[Full Phase 5P source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase5p-safe-queue-swipes.zip) · [Phase 5P Android/queue QA](docs/NIGHTWAVE_V2_PHASE5P_QA.md)
+
+- **Up Next gestures:** Swipe **left** on a *future public track* to remove it from this listening queue, or tap the accessible Remove action. A brief Undo snackbar can restore the entry in its original order.
+- **Protection by design:** current and previously played tracks, offline-file queues, and shuffle mode never allow swipe removal. Neither Remove nor Undo touches saved playlists, liked songs, downloaded/imported files or the real playback stream.
+- **Service ownership:** queue changes happen inside the Media3 playback service, guarded by the expected absolute index + public URL and one-shot UUID Undo token. Playback advancement and other queue actions invalidate stale undo state. UI refreshes from the persisted queue asynchronously.
+- **Motion and access:** 72dp left-swipe threshold, visually restrained Remove reveal, 48dp Remove tap target, Undo below large queues, no entry removal on a short/right drag and Reduced Motion-compatible settling.
+- **Testing:** pure JVM Kotlin queue logic compiled and passed **19 isolated checks**. Added eight repo JUnit queue tests, two nondestructive Compose sheet gesture/Undo tests and `tools/verify_v2_phase5p.py` source gate.
+- **Retained:** Phase 5O horizontal tabs, mini-player swipe-up/down, album-art next/previous, full-player swipe-down, compact You, Android launcher, imported music data, app ID and signing identity.
+
+**Limitations:** Android Gradle, Compose UI instrumentation, real Media3 service delivery, signed APK and phone playback/crash tests are **not verified** in this environment. Stable main remains unchanged; keep this PR draft until Windows and Android acceptance pass.
+
+**Next:** **5Q** fix the native search failure seen on the phone, then **5R** integrate motion/accessibility and perform genuine Android build/phone stability QA.
+
+---
+
 ## NightWave 2.0 Alpha 5O — Swipe across all four main pages
 
 **Version:** `2.0.0-alpha5o` · **Build 31** · Branch: `feature/nightwave-v2-phase5o-swipe-tab-pager` (draft).

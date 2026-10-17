@@ -19,11 +19,11 @@ builder = read("tools/build-windows.ps1")
 device = read("tools/check-device-update.ps1")
 instrumentation = read("app/src/androidTest/java/com/nightwave/player/v2/ui/NightWaveDefaultEntryInstrumentedTest.kt")
 
-assert 'versionCode = 31' in gradle
-assert 'versionName = "2.0.0-alpha5o"' in gradle
+assert 'versionCode = 32' in gradle
+assert 'versionName = "2.0.0-alpha5p"' in gradle
 assert 'applicationId = "com.nightwave.player"' in gradle
-assert "-VersionName '2.0.0-alpha5o' -VersionCode '31'" in builder
-assert "$versionName = '2.0.0-alpha5o'" in device and '$versionCode = 31' in device
+assert "-VersionName '2.0.0-alpha5p' -VersionCode '32'" in builder
+assert "$versionName = '2.0.0-alpha5p'" in device and '$versionCode = 32' in device
 
 # The merged manifest must retain exactly one public launcher.
 tree = ET.fromstring(manifest)

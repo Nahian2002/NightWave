@@ -27,6 +27,59 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
         return current
     }
 
+    /**
+     * Queue-only, forward-item removal. Caller must supply both the expected
+     * absolute index and public URL: a stale UI swipe may not remove a
+     * different song after Next/Jump/replacement. Never remove the playing
+     * item, a previously played item, or shuffled future entries.
+     */
+    data class RemovedUpcoming(val entry: QueueEntry, val at: Int, val playingUrl: String)
+
+    fun removeUpcoming(at: Int, expectedUrl: String): RemovedUpcoming? {
+        val playing = current?.url ?: return null
+        if (shuffle || at <= index || at !in entries.indices ||
+            entries[at].url != expectedUrl) return null
+        val removed = entries.removeAt(at)
+        remapForRemoval(at)
+        return RemovedUpcoming(removed, at, playing)
+    }
+
+    /**
+     * Undo is allowed only while the same song still plays and the original
+     * insertion remains ahead of it. Service also guards a one-time token and
+     * invalidates undo when another queue operation runs.
+     */
+    fun restoreUpcoming(removed: RemovedUpcoming): Boolean {
+        if (shuffle || current?.url != removed.playingUrl ||
+            removed.at <= index || removed.at !in 0..entries.size ||
+            entries.size >= 100 || entries.any { it.url == removed.entry.url }) return false
+        entries.add(removed.at, removed.entry)
+        remapForInsertion(removed.at)
+        return true
+    }
+
+    private fun remapForRemoval(at: Int) {
+        val history = visited.toList()
+        visited.clear()
+        history.forEach { old ->
+            if (old != at) visited.add(if (old > at) old - 1 else old)
+        }
+        val shuffleHistory = shuffledSeen.toList()
+        shuffledSeen.clear()
+        shuffleHistory.forEach { old ->
+            if (old != at) shuffledSeen.add(if (old > at) old - 1 else old)
+        }
+    }
+
+    private fun remapForInsertion(at: Int) {
+        val history = visited.toList()
+        visited.clear()
+        history.forEach { old -> visited.add(if (old >= at) old + 1 else old) }
+        val shuffleHistory = shuffledSeen.toList()
+        shuffledSeen.clear()
+        shuffleHistory.forEach { old -> shuffledSeen.add(if (old >= at) old + 1 else old) }
+    }
+
     fun add(entry: QueueEntry): Boolean {
         if (entries.size >= 100 || entries.any { it.url == entry.url }) return false
         entries.add(entry)

@@ -3,6 +3,7 @@ package com.nightwave.player.v2.ui
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
@@ -52,12 +53,17 @@ import androidx.compose.material.icons.outlined.Shuffle
 import androidx.compose.material.icons.outlined.SkipNext
 import androidx.compose.material.icons.outlined.SkipPrevious
 import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Slider
@@ -69,10 +75,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -81,6 +90,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import coil.compose.AsyncImage
 import com.nightwave.player.v2.model.NightWaveTheme
 import com.nightwave.player.v2.playback.StudioPlayerActions
@@ -414,47 +424,155 @@ fun StudioNowPlayingOverlay(
 fun StudioQueueSheet(
     state: StudioPlayerState,
     onDismiss: () -> Unit,
-    onSelect: (Int) -> Unit
+    onSelect: (Int) -> Unit,
+    onRemoveUpcoming: (Int, String) -> String?,
+    onUndoRemoval: (String) -> Unit,
+    reduceMotion: Boolean
 ) {
-    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = MaterialTheme.colorScheme.surface) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
+    val snackbarHost = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    fun requestRemove(index: Int, url: String) {
+        val token = onRemoveUpcoming(index, url) ?: return
+        scope.launch {
+            snackbarHost.currentSnackbarData?.dismiss()
+            val result = snackbarHost.showSnackbar(
+                message = "Removed from Up Next",
+                actionLabel = "Undo",
+                withDismissAction = true,
+                duration = SnackbarDuration.Short
+            )
+            if (result == SnackbarResult.ActionPerformed) onUndoRemoval(token)
+        }
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface
+    ) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 18.dp)) {
             Text("Up next", style = MaterialTheme.typography.headlineSmall)
-            Text(state.queue.size.toString() +
-                (if (state.offline) " offline tracks · tap to play" else " saved tracks · tap to play"),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(Modifier.height(18.dp))
+            val removable = !state.offline && !state.shuffle && state.connected
+            Text(
+                when {
+                    state.offline -> "${state.queue.size} offline tracks · swipe removal unavailable for local files"
+                    state.shuffle -> "${state.queue.size} tracks · turn off shuffle to edit upcoming order"
+                    else -> "${state.queue.size} tracks · swipe left on upcoming songs to remove"
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.height(13.dp))
             if (state.queue.isEmpty()) {
-                EmptyMusicCard("Your queue is empty", "Play any song to start your listening session.",
+                EmptyMusicCard("Your queue is empty", "Play any song to start listening.",
                     "Close queue", onDismiss)
             } else {
-                LazyColumn(contentPadding = PaddingValues(bottom = 38.dp),
-                    verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                LazyColumn(
+                    modifier = Modifier.weight(1f, fill = false),
+                    contentPadding = PaddingValues(bottom = 22.dp),
+                    verticalArrangement = Arrangement.spacedBy(7.dp)
+                ) {
                     itemsIndexed(state.queue, key = { _, video -> video.url }) { index, video ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp))
-                                .background(if (index == state.queueIndex)
-                                    MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface)
-                                .clickable { onSelect(index) }.padding(9.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(13.dp)
-                        ) {
-                            Text((index + 1).toString(), modifier = Modifier.width(20.dp),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            CoverArt(video.thumbnail, Modifier.size(49.dp), 10)
-                            Column(Modifier.weight(1f)) {
-                                Text(video.title, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                                    style = MaterialTheme.typography.titleMedium)
-                                Text(video.author, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                            if (index == state.queueIndex) {
-                                Text("PLAYING", style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.primary)
-                            }
-                        }
+                        val canRemove = removable && index > state.queueIndex &&
+                            state.queueIndex >= 0 &&
+                            video.url.startsWith("https://www.youtube.com/watch?v=")
+                        SwipeUpcomingRow(
+                            number = index + 1,
+                            title = video.title,
+                            subtitle = video.author,
+                            artwork = video.thumbnail,
+                            isPlaying = index == state.queueIndex,
+                            canRemove = canRemove,
+                            reduceMotion = reduceMotion,
+                            onSelect = { onSelect(index) },
+                            onRemove = { requestRemove(index, video.url) }
+                        )
                     }
+                }
+            }
+            SnackbarHost(hostState = snackbarHost, modifier = Modifier.fillMaxWidth())
+        }
+    }
+}
+
+@Composable
+private fun SwipeUpcomingRow(
+    number: Int,
+    title: String,
+    subtitle: String,
+    artwork: String,
+    isPlaying: Boolean,
+    canRemove: Boolean,
+    reduceMotion: Boolean,
+    onSelect: () -> Unit,
+    onRemove: () -> Unit
+) {
+    var travel by remember(title, number) { mutableStateOf(0f) }
+    val animatedTravel by animateFloatAsState(
+        targetValue = travel,
+        animationSpec = tween(durationMillis = if (reduceMotion) 0 else 130),
+        label = "Upcoming track swipe"
+    )
+    Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp))) {
+        if (canRemove) {
+            Row(
+                Modifier.matchParentSize().background(MaterialTheme.colorScheme.errorContainer)
+                    .padding(end = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.End
+            ) {
+                Icon(Icons.Outlined.DeleteOutline, contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onErrorContainer)
+                Spacer(Modifier.width(5.dp))
+                Text("Remove", style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onErrorContainer)
+            }
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth()
+                .graphicsLayer { translationX = animatedTravel }
+                .clip(RoundedCornerShape(14.dp))
+                .background(if (isPlaying) MaterialTheme.colorScheme.surfaceVariant
+                    else MaterialTheme.colorScheme.surface)
+                .then(if (canRemove) Modifier.pointerInput(title, number, canRemove) {
+                    detectHorizontalDragGestures(
+                        onDragStart = { travel = 0f },
+                        onHorizontalDrag = { change, amount ->
+                            change.consume()
+                            travel = (travel + amount).coerceIn(-116.dp.toPx(), 0f)
+                        },
+                        onDragEnd = {
+                            val shouldRemove = travel <= -72.dp.toPx()
+                            travel = 0f
+                            if (shouldRemove) onRemove()
+                        },
+                        onDragCancel = { travel = 0f }
+                    )
+                } else Modifier)
+                .clickable(onClick = onSelect)
+                .testTag("nightwave-upcoming-$number")
+                .padding(horizontal = 9.dp, vertical = 5.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text(number.toString(), modifier = Modifier.width(19.dp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.labelMedium)
+            CoverArt(artwork, Modifier.size(45.dp), 10)
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.titleSmall)
+                Text(subtitle, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            if (isPlaying) {
+                Text("PLAYING", style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary)
+            } else if (canRemove) {
+                IconButton(onClick = onRemove, modifier = Modifier.size(48.dp)) {
+                    Icon(Icons.Outlined.DeleteOutline,
+                        contentDescription = "Remove ${title.take(36)} from Up Next",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
