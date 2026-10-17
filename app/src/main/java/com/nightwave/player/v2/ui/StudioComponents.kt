@@ -74,10 +74,10 @@ fun NightWaveWordmark(modifier: Modifier = Modifier) {
         Row(horizontalArrangement = Arrangement.spacedBy(0.dp),
             verticalAlignment = Alignment.CenterVertically) {
             Text("Night", style = MaterialTheme.typography.titleLarge.copy(
-                    fontWeight = FontWeight.ExtraBold, letterSpacing = (-0.65).sp),
+                    fontWeight = FontWeight.ExtraBold, letterSpacing = (-0.65f).sp),
                 maxLines = 1, color = MaterialTheme.colorScheme.onBackground)
             Text("Wave", style = MaterialTheme.typography.titleLarge.copy(
-                    fontWeight = FontWeight.ExtraBold, letterSpacing = (-0.65).sp),
+                    fontWeight = FontWeight.ExtraBold, letterSpacing = (-0.65f).sp),
                 maxLines = 1, color = MaterialTheme.colorScheme.primary)
         }
     }
