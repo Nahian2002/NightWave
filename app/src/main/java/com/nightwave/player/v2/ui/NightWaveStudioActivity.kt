@@ -67,6 +67,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.LibraryMusic
@@ -1123,9 +1124,17 @@ private fun StudioRoot(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween) {
                 NightWaveWordmark()
-                IconButton(onClick = { navigateToTab(StudioTab.PROFILE) }) {
-                    Icon(Icons.Outlined.Settings, contentDescription = "Open NightWave settings",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                Surface(
+                    onClick = { navigateToTab(StudioTab.PROFILE) },
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Icon(Icons.Outlined.Settings, contentDescription = "Open NightWave settings",
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.size(21.dp))
+                    }
                 }
             }
         },
@@ -1171,13 +1180,16 @@ private fun StudioRoot(
                         onExpand = { expanded = true },
                         onHide = { compactHidden = true })
                 }
-                Surface(color = MaterialTheme.colorScheme.surface,
-                    shadowElevation = 8.dp,
-                    shape = RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp)) {
+                Surface(
+                    color = MaterialTheme.colorScheme.surface,
+                    shadowElevation = 3.dp,
+                    tonalElevation = 1.dp,
+                    shape = RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp)
+                ) {
                     Row(
-                        Modifier.fillMaxWidth().height(65.dp)
-                            .padding(horizontal = 11.dp, vertical = 6.dp),
-                        horizontalArrangement = Arrangement.spacedBy(7.dp),
+                        Modifier.fillMaxWidth().height(62.dp)
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(5.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         for (item in StudioTab.entries) {
@@ -1187,31 +1199,35 @@ private fun StudioRoot(
                                 StudioTab.LIBRARY -> Icons.Outlined.LibraryMusic
                                 StudioTab.PROFILE -> Icons.Outlined.PersonOutline
                             }
-                            val selected = tab == item
+                            val active = tab == item
                             val tabColor by animateColorAsState(
-                                targetValue = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = .14f)
+                                targetValue = if (active) MaterialTheme.colorScheme.primary.copy(alpha = .17f)
                                     else Color.Transparent,
                                 animationSpec = tween(durationMillis =
-                                    if (profile.motion == MotionPreference.REDUCED) 0 else 180),
-                                label = "Navigation selection"
+                                    if (profile.motion == MotionPreference.REDUCED) 0 else 170),
+                                label = "NightWave navigation focus"
                             )
-                            Column(
-                                Modifier.weight(1f).fillMaxHeight()
-                                    .clip(RoundedCornerShape(16.dp))
+                            Row(
+                                Modifier.weight(if (active) 1.28f else 1f).fillMaxHeight()
+                                    .clip(RoundedCornerShape(17.dp))
                                     .background(tabColor)
                                     .clickable { navigateToTab(item) }
-                                    .semantics { this.selected = selected }
+                                    .semantics { this.selected = active }
                                     .testTag("nightwave-tab-" + item.name.lowercase()),
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Icon(image, contentDescription = item.caption,
-                                    modifier = Modifier.size(19.dp),
-                                    tint = if (selected) MaterialTheme.colorScheme.primary
+                                    modifier = Modifier.size(23.dp),
+                                    tint = if (active) MaterialTheme.colorScheme.primary
                                         else MaterialTheme.colorScheme.onSurfaceVariant)
-                                Text(item.caption, style = MaterialTheme.typography.labelSmall,
-                                    color = if (selected) MaterialTheme.colorScheme.onSurface
-                                        else MaterialTheme.colorScheme.onSurfaceVariant)
+                                if (active) {
+                                    Spacer(Modifier.width(7.dp))
+                                    Text(item.caption,
+                                        style = MaterialTheme.typography.labelLarge,
+                                        maxLines = 1,
+                                        color = MaterialTheme.colorScheme.onSurface)
+                                }
                             }
                         }
                     }
@@ -1360,8 +1376,24 @@ private fun StudioHome(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
-            SectionHeading("Good to have you back",
-                profile.displayName.substringBefore(' ').take(20) + " · Your listening space")
+            Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                NightWaveMicroLabel("Your listening space")
+                val greeting = when (java.time.LocalTime.now().hour) {
+                    in 5..11 -> "Good morning"
+                    in 12..17 -> "Good afternoon"
+                    else -> "Good evening"
+                }
+                Text(greeting, style = MaterialTheme.typography.headlineLarge.copy(
+                    fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onBackground)
+                Text(profile.displayName.substringBefore(' ').take(20) +
+                    " · Your music, your pace",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+        item {
+            NightWaveLibraryNumbers(favorites.size, recent.size, onLibrary = openLibrary)
         }
         item {
             ListeningSpotlight(
@@ -1379,28 +1411,13 @@ private fun StudioHome(
                 item(key = "personal-mix-$row") {
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         pair.forEach { mix ->
-                            Card(
+                            NightWaveMixCard(
+                                mix = mix, selected = chosenMixKey == mix.key,
+                                modifier = Modifier.weight(1f),
                                 onClick = {
                                     chosenMixKey = if (chosenMixKey == mix.key) null else mix.key
-                                },
-                                modifier = Modifier.weight(1f).height(126.dp),
-                                shape = RoundedCornerShape(18.dp)
-                            ) {
-                                Column(Modifier.fillMaxSize().padding(12.dp),
-                                    verticalArrangement = Arrangement.SpaceBetween) {
-                                    Icon(Icons.Outlined.AutoAwesome, contentDescription = null,
-                                        modifier = Modifier.size(19.dp),
-                                        tint = MaterialTheme.colorScheme.primary)
-                                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                        Text(mix.title, style = MaterialTheme.typography.titleSmall,
-                                            maxLines = 2, overflow = TextOverflow.Ellipsis)
-                                        Text("${mix.tracks.size} saved tracks · " +
-                                            (if (chosenMixKey == mix.key) "Hide" else "View"),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    }
                                 }
-                            }
+                            )
                         }
                     }
                 }
@@ -1420,7 +1437,7 @@ private fun StudioHome(
                 }
             }
         }
-        item { SectionHeading("Find your frequency", "Six directions. The next track is yours to choose.") }
+        item { SectionHeading("Explore a new mood", "Six sounds to explore, chosen by you") }
         DiscoveryShortcuts.picks.chunked(2).forEachIndexed { row, shortcuts ->
             item(key = "discovery-$row") {
                 Row(horizontalArrangement = Arrangement.spacedBy(11.dp)) {
@@ -1433,7 +1450,7 @@ private fun StudioHome(
                 }
             }
         }
-        item { SectionHeading("Listen again", "From your recent plays") }
+        item { SectionHeading("Recently played", "Pick up another favorite") }
         if (recent.isEmpty()) item {
             EmptyMusicCard("Your soundtrack starts here",
                 "Songs you play will appear here, ready for another listen.",
@@ -1455,20 +1472,7 @@ private fun StudioHome(
 
 @Composable
 private fun MoodTile(title: String, subtitle: String, gradient: List<Color>, modifier: Modifier, onClick: () -> Unit) {
-    Card(onClick = onClick, modifier = modifier.height(108.dp),
-        shape = RoundedCornerShape(19.dp)) {
-        Column(Modifier.fillMaxSize().background(Brush.linearGradient(gradient)).padding(14.dp),
-            verticalArrangement = Arrangement.SpaceBetween) {
-            Icon(Icons.Outlined.AutoAwesome, contentDescription = null, tint = Color.White.copy(alpha = .82f),
-                modifier = Modifier.size(18.dp))
-            Column {
-                Text(title, style = MaterialTheme.typography.titleMedium, color = Color.White,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(subtitle, style = MaterialTheme.typography.labelSmall,
-                    color = Color.White.copy(alpha = .84f))
-            }
-        }
-    }
+    NightWaveMoodArt(title, subtitle, gradient, modifier, onClick)
 }
 
 @Composable
@@ -1499,7 +1503,37 @@ private fun StudioSearch(
         contentPadding = PaddingValues(horizontal = 19.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item { SectionHeading("Explore sound", "Search for songs, artists and public videos") }
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                NightWaveMicroLabel("Discover")
+                SectionHeading("Explore sound", "Your next favorite starts here")
+            }
+        }
+        item {
+            OutlinedTextField(
+                value = query, onValueChange = { query = it.take(160) },
+                modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(17.dp),
+                singleLine = true, placeholder = { Text("Song or artist name") },
+                leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
+                trailingIcon = {
+                    if (query.isNotBlank()) IconButton(onClick = { query = "" }) {
+                        Icon(Icons.Outlined.Close, contentDescription = "Clear search")
+                    }
+                },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(onSearch = { submit() })
+            )
+        }
+        item {
+            Button(onClick = submit, enabled = query.isNotBlank(),
+                modifier = Modifier.fillMaxWidth().height(49.dp),
+                shape = RoundedCornerShape(15.dp)) {
+                Text("Find music on YouTube")
+            }
+            Text("Official YouTube discovery · Saved tracks match instantly below",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
         if (query.isBlank() && !searching) {
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
@@ -1522,32 +1556,10 @@ private fun StudioSearch(
                 }
             }
         }
-        item {
-            OutlinedTextField(
-                value = query, onValueChange = { query = it.take(160) },
-                modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(17.dp),
-                singleLine = true, placeholder = { Text("Song or artist name") },
-                leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                keyboardActions = KeyboardActions(onSearch = { submit() })
-            )
-        }
-        item {
-            Button(onClick = submit, enabled = query.isNotBlank(),
-                modifier = Modifier.fillMaxWidth().height(49.dp),
-                shape = RoundedCornerShape(15.dp)) {
-                Text("Find music on YouTube")
-            }
-            Text("Opens official YouTube search inside NightWave. Saved matches appear below.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
         if (query.isNotBlank()) {
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text("OPTIONAL QUICK RESULTS",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    NightWaveMicroLabel("Optional quick results")
                     Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
                         FilterChip(selected = mode == SearchMode.SONGS,
                             onClick = { mode = SearchMode.SONGS }, label = { Text("Songs") })
@@ -1609,7 +1621,7 @@ private fun StudioSearch(
                     .background(MaterialTheme.colorScheme.surface)
                     .padding(horizontal = 14.dp, vertical = 13.dp),
                     verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                    Text("Quick results aren't available right now",
+                    Text("Quick results temporarily unavailable",
                         style = MaterialTheme.typography.titleSmall)
                     Text("Your library still works. Use Find music on YouTube above, or retry quick results.",
                         style = MaterialTheme.typography.bodySmall,
@@ -1661,11 +1673,17 @@ private fun StudioLibrary(
     val tracks = if (selectedPlaylist == null || selectedPlaylist == LIKED_COLLECTION)
         favorites else getPlaylist(selectedPlaylist)
     var localFilter by rememberSaveable(selectedPlaylist) { mutableStateOf("") }
+    var sortMode by rememberSaveable(selectedPlaylist) { mutableStateOf("saved") }
     val matched = if (selectedPlaylist == null || localFilter.isBlank()) tracks else tracks.filter {
         it.title.contains(localFilter.trim(), ignoreCase = true) ||
             it.author.contains(localFilter.trim(), ignoreCase = true)
     }
-    val visibleTracks = if (selectedPlaylist == null) matched.take(5) else matched
+    val orderedTracks = when (sortMode) {
+        "title" -> matched.sortedWith(compareBy({ it.title.lowercase() }, { it.url }))
+        "artist" -> matched.sortedWith(compareBy({ it.author.lowercase() }, { it.title.lowercase() }))
+        else -> matched
+    }
+    val visibleTracks = if (selectedPlaylist == null) orderedTracks.take(5) else orderedTracks
     LazyColumn(modifier.fillMaxWidth().widthIn(max = 740.dp).fillMaxHeight(),
         contentPadding = PaddingValues(19.dp),
         verticalArrangement = Arrangement.spacedBy(13.dp)) {
@@ -1675,13 +1693,46 @@ private fun StudioLibrary(
                     Icon(Icons.Outlined.ArrowBack, contentDescription = "Back to Library")
                 }
                 Column {
+                    NightWaveMicroLabel(if (selectedPlaylist == null) "Your collection" else "Playlist view")
                     SectionHeading(if (selectedPlaylist == LIKED_COLLECTION) "Liked Songs" else selectedPlaylist ?: "Your library",
-                        if (selectedPlaylist == null) "Your music, all in one place"
+                        if (selectedPlaylist == null) "Saved music across your collections"
                         else tracks.size.toString() + " saved tracks")
                 }
             }
         }
         if (selectedPlaylist == null) {
+            item {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.surface,
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Column(Modifier.padding(14.dp),
+                            verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                            Text(favorites.size.toString(),
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold)
+                            Text("Liked tracks", style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                    Surface(
+                        color = MaterialTheme.colorScheme.surface,
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Column(Modifier.padding(14.dp),
+                            verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                            Text(names.size.toString(),
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold)
+                            Text("Playlists", style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
+            }
             if (offlineResumeTitle != null) {
                 item {
                     Card(onClick = onResumeOffline, modifier = Modifier.fillMaxWidth(),
@@ -1736,8 +1787,24 @@ private fun StudioLibrary(
                     shape = RoundedCornerShape(15.dp),
                     singleLine = true,
                     placeholder = { Text("Filter this collection") },
-                    leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) }
+                    leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
+                    trailingIcon = {
+                        if (localFilter.isNotBlank()) IconButton(onClick = { localFilter = "" }) {
+                            Icon(Icons.Outlined.Close, contentDescription = "Clear library filter")
+                        }
+                    }
                 )
+            }
+            item {
+                Row(Modifier.horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                    FilterChip(selected = sortMode == "saved", onClick = { sortMode = "saved" },
+                        label = { Text("Saved order") })
+                    FilterChip(selected = sortMode == "title", onClick = { sortMode = "title" },
+                        label = { Text("Title") })
+                    FilterChip(selected = sortMode == "artist", onClick = { sortMode = "artist" },
+                        label = { Text("Artist") })
+                }
             }
         }
         if (visibleTracks.isEmpty()) item {
@@ -1751,11 +1818,11 @@ private fun StudioLibrary(
         } else items(visibleTracks, key = { it.url }) { song ->
             MusicTrackTile(song, isPlaying = playingUrl == song.url,
                 onOptions = { onSongOptions(song) },
-                onClick = { onPlay(song, if (selectedPlaylist == null) tracks else matched) })
+                onClick = { onPlay(song, if (selectedPlaylist == null) tracks else orderedTracks) })
         }
         item {
             OutlinedButton(onClick = onManage, modifier = Modifier.fillMaxWidth()) {
-                Text("CREATE, RENAME OR DELETE PLAYLISTS")
+                Text("Manage playlists")
             }
         }
     }
@@ -1797,20 +1864,28 @@ private fun StudioProfile(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text("Your space", style = MaterialTheme.typography.headlineSmall)
-                    Text("Profile, listening and preferences",
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    NightWaveMicroLabel("Personalize NightWave")
+                    Text("Your space", style = MaterialTheme.typography.headlineSmall.copy(
+                        fontWeight = FontWeight.Bold))
+                    Text("Profile, appearance and library protection",
                         style = MaterialTheme.typography.bodySmall, color = muted)
                 }
-                Text("LOCAL", style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary)
+                Surface(shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = .13f)) {
+                    Text(if (cloud.lastSuccessMs > 0L && cloud.enabled) "BACKUP ON"
+                        else "LOCAL",
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary)
+                }
             }
         }
 
         item {
             Card(
-                shape = RoundedCornerShape(18.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                shape = RoundedCornerShape(21.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(Modifier.fillMaxWidth().padding(14.dp),
