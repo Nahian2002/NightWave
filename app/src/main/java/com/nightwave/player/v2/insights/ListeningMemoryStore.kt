@@ -19,7 +19,11 @@ data class ListeningMemorySummary(
     val listenedMs: Long,
     val qualifiedPlays: Int,
     val trackedSongs: Int,
-    val tracks: List<RecordedTrack>
+    val tracks: List<RecordedTrack>,
+    /** Rolling, opt-in UTC daily buckets; never exported or sent to Drive. */
+    val daily: List<DailyListeningBucket> = emptyList(),
+    /** Local recorded candidates only; UI still intersects real saved catalog. */
+    val recommendationTracks: List<RecordedTrack> = emptyList()
 )
 
 /**
@@ -32,6 +36,7 @@ class ListeningMemoryStore(context: Context) {
         private val lock = Any()
         const val MAX_TRACKS = 250
         const val MAX_JSON_BYTES = 120_000
+        const val MAX_DAILY_JSON_BYTES = 8_000
         private const val MAX_TRACK_MS = 10L * 365 * 24 * 60 * 60 * 1000
         private val offlineId = Regex(
             "offline:[0-9a-f-]{36}\\.(mp3|m4a|aac|flac|wav|ogg|opus|mp4|webm|3gp)"
@@ -88,18 +93,63 @@ class ListeningMemoryStore(context: Context) {
         }
     }
 
+    private fun readDaily(today: Long): List<DailyListeningBucket> {
+        val encoded = prefs.getString("dailyUtc", "[]") ?: "[]"
+        if (encoded.toByteArray(Charsets.UTF_8).size > MAX_DAILY_JSON_BYTES) return emptyList()
+        return try {
+            val arr = JSONArray(encoded)
+            if (arr.length() > ListeningTrendEngine.MAX_DAYS) return emptyList()
+            val lower = today - ListeningTrendEngine.MAX_DAYS + 1
+            val days = mutableListOf<DailyListeningBucket>()
+            for (i in 0 until arr.length()) {
+                val entry = arr.getJSONObject(i)
+                val day = entry.getLong("day")
+                if (day !in lower..today) continue
+                days += DailyListeningBucket(
+                    day,
+                    entry.optLong("duration").coerceIn(0L, MAX_TRACK_MS),
+                    entry.optInt("plays").coerceIn(0, 1_000_000)
+                )
+            }
+            days.distinctBy { it.epochDayUtc }.sortedBy { it.epochDayUtc }
+        } catch (_: Exception) {
+            emptyList()
+        }
+    }
+
+    private fun encodeDaily(days: List<DailyListeningBucket>): String =
+        JSONArray().apply {
+            days.sortedBy { it.epochDayUtc }.forEach { item ->
+                put(JSONObject().put("day", item.epochDayUtc)
+                    .put("duration", item.observedMs)
+                    .put("plays", item.qualifiedSessions))
+            }
+        }.toString()
+
     fun snapshot(): ListeningMemorySummary = synchronized(lock) {
         val tracks = decode().sortedWith(
             compareByDescending<RecordedTrack> { it.listenedMs }
                 .thenByDescending { it.lastAtMs }
         )
+        val enabled = prefs.getBoolean("consent", false)
+        // Expired UTC buckets are removed even if playback tracking is OFF.
+        val today = ListeningTrendEngine.utcEpochDay(System.currentTimeMillis())
+        val days = readDaily(today)
+        val encoded = encodeDaily(days)
+        if (prefs.getString("dailyUtc", "[]") != encoded) {
+            prefs.edit().putString("dailyUtc", encoded).commit()
+        }
         ListeningMemorySummary(
-            enabled = prefs.getBoolean("consent", false),
+            enabled = enabled,
             listenedMs = tracks.sumOf { it.listenedMs },
-            qualifiedPlays = tracks.sumOf { it.qualifiedPlays.coerceAtMost(1_000_000) }
-                .coerceAtMost(Int.MAX_VALUE),
+            qualifiedPlays = tracks.sumOf { it.qualifiedPlays.toLong() }
+                .coerceAtMost(Int.MAX_VALUE.toLong()).toInt(),
             trackedSongs = tracks.size,
-            tracks = tracks.take(5)
+            tracks = tracks.take(5),
+            daily = days,
+            recommendationTracks = if (enabled) tracks.filter {
+                it.id.startsWith("https://www.youtube.com/watch?v=")
+            }.take(100) else emptyList()
         )
     }
 
@@ -138,6 +188,33 @@ class ListeningMemoryStore(context: Context) {
             }
         }.toString()
         if (data.toByteArray(Charsets.UTF_8).size > MAX_JSON_BYTES) return@synchronized false
-        prefs.edit().putString("aggregates", data).commit()
+
+        // Attribute an interval to the UTC day it was recorded, not inferred
+        // seek time. Short cross-midnight intervals belong to their flush day.
+        val today = ListeningTrendEngine.utcEpochDay(System.currentTimeMillis())
+        val day = ListeningTrendEngine.utcEpochDay(pulse.recordedAtMs)
+        if (day !in (today - ListeningTrendEngine.MAX_DAYS + 1)..today) {
+            return@synchronized false
+        }
+        val previous = readDaily(today)
+        val oldBucket = previous.firstOrNull { it.epochDayUtc == day }
+        val nextBucket = DailyListeningBucket(
+            day,
+            ((oldBucket?.observedMs ?: 0L) + pulse.listenedMs)
+                .coerceAtMost(MAX_TRACK_MS),
+            ((oldBucket?.qualifiedSessions?.toLong() ?: 0L) +
+                (if (pulse.qualifyingPlay) 1L else 0L))
+                .coerceAtMost(1_000_000L).toInt()
+        )
+        val dailyData = encodeDaily(
+            (previous.filterNot { it.epochDayUtc == day } + nextBucket)
+                .sortedBy { it.epochDayUtc }.takeLast(ListeningTrendEngine.MAX_DAYS)
+        )
+        if (dailyData.toByteArray(Charsets.UTF_8).size > MAX_DAILY_JSON_BYTES) {
+            return@synchronized false
+        }
+        // A single commit prevents an aggregate row without its day bucket.
+        prefs.edit().putString("aggregates", data)
+            .putString("dailyUtc", dailyData).commit()
     }
 }
