@@ -1,5 +1,19 @@
 # NightWave
 
+## Phase 6G — Playback continuity & easier build reports (draft)
+
+**Development branch:** `feature/nightwave-v2-phase6g-playback-continuity-diagnostics`, built on Phase 6F. Stable `main` unchanged. **No Android APK verified yet.**
+
+[Phase 6G source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase6g-playback-continuity-diagnostics.zip) · [Full Phase 6G verification checklist](docs/NIGHTWAVE_V2_PHASE6G_QA.md)
+
+- **Safe Play/Resume:** the Activity/controller bridge now checks that an already-loaded Media3 item exactly matches the current public queue selection or imported offline track. If not, it delegates to the service's selected-queue resume path, which validates the saved bookmark and audio ownership. This closes a wrong-track replay path not covered by the earlier Phase 6D service-side guard.
+- **Safer offline Retry:** if Media3 has lost the selected imported local file, a Retry restores only the app-owned offline checkpoint rather than calling play on stale/empty media.
+- **One-file Windows diagnostics:** on a build failure run `send-build-report.cmd`. Send the produced `dist/NightWave-build-diagnostic.txt` after reviewing it. This is a read-only, no-network report, built from existing local Gradle logs with path, header-token and common URL-query-token redaction. The Windows build launcher now points to this single report.
+- **Verification:** eight JUnit policy tests authored, a 6G source gate wired for the manual workflow, and 14 isolated pure-Kotlin smoke assertions passed. Full Gradle/JVM integration, Android app runtime, installation and signer tests are still pending because the 6F GitHub Actions job ended without an assigned runner.
+- **Preserved:** existing `com.nightwave.player` 2.0.0-alpha5s/build35 identity, library data, offline files, playlists, Media3 owner, mini-player dismiss gestures, 6B lyrics, 6C2 listening trends and Google Drive backups. No new network calls, paid services, permissions, cloud schema or forced app reset.
+
+---
+
 ## Phase 6F — Build stabilization and compatibility (draft)
 
 **Branch:** `feature/nightwave-v2-phase6f-build-stabilization`, stacked on 6E. [Phase 6F source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase6f-build-stabilization.zip) · [Build and signing acceptance plan](docs/NIGHTWAVE_V2_PHASE6F_QA.md)
