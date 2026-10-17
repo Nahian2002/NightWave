@@ -17,8 +17,8 @@ classic = read(code / "ui/MainActivity.kt")
 offline = read(code / "offline/OfflineAudioLibrary.kt")
 manifest = read(root / "app/src/main/AndroidManifest.xml")
 
-assert 'versionCode = 18' in gradle
-assert 'versionName = "2.0.0-alpha5b"' in gradle
+assert 'versionCode = 19' in gradle
+assert 'versionName = "2.0.0-alpha5c"' in gradle
 assert 'applicationId = "com.nightwave.player"' in gradle
 assert "private data class StudioSearchSnapshot(" in studio
 assert "private var nativeSearchState by mutableStateOf" in studio
@@ -66,7 +66,8 @@ assert 'if (now.offline)' in studio
 assert 'if (playerState.hasTrack && !playerState.offline)' in studio
 assert 'DefaultDataSource.Factory(this, networkSource)' in service
 assert 'OfflineAudioLibrary(this)' in service
-assert 'if (offlinePlaying) return' in service
+assert 'if (offlinePlaying)' in service
+assert 'advanceOffline(forward = true)' in service
 
 # The Phase 5A crash fixes must remain intact: no eager YouTube resolution,
 # no background network work just because a controller connected.
