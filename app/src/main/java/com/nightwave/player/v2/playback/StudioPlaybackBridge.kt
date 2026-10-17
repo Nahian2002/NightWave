@@ -388,11 +388,17 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
      * Service revalidates source identity, file ownership and bookmark before
      * loading anything. Never issue play() against an unrelated cached item.
      */
+    private fun selectedMediaId(): String? =
+        if (PlaybackCommandPolicy.isOfflineSelection(state.videoUrl)) state.videoUrl
+        else state.queue.getOrNull(state.queueIndex)?.url
+            ?: state.videoUrl.takeIf(PlaybackCommandPolicy::isPublicSelection)
+
     private fun requestSelectedResume() {
         when {
             PlaybackCommandPolicy.isOfflineSelection(state.videoUrl) ->
                 action(PlaybackService.ACTION_RESUME_OFFLINE)
-            PlaybackCommandPolicy.isPublicSelection(state.videoUrl) && state.queueIndex >= 0 ->
+            state.queue.getOrNull(state.queueIndex)?.url
+                ?.let(PlaybackCommandPolicy::isPublicSelection) == true ->
                 action(PlaybackService.ACTION_RESUME_SAVED)
             else -> state = state.copy(error = "Choose a song to start listening.")
         }
@@ -410,7 +416,7 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
                     active.playerError != null -> action(PlaybackService.ACTION_RETRY_CURRENT)
                     active.currentMediaItem != null -> {
                         if (PlaybackCommandPolicy.canResumeLoaded(
-                                state.videoUrl, active.currentMediaItem?.mediaId,
+                                selectedMediaId(), active.currentMediaItem?.mediaId,
                                 active.playerError != null)) {
                             if (active.playbackState == Player.STATE_ENDED) active.seekTo(0L)
                             if (active.playbackState == Player.STATE_ENDED ||
@@ -437,7 +443,7 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
                 else if (it.playerError != null) action(PlaybackService.ACTION_RETRY_CURRENT)
                 else if (it.currentMediaItem != null) {
                     if (PlaybackCommandPolicy.canResumeLoaded(
-                            state.videoUrl, it.currentMediaItem?.mediaId,
+                            selectedMediaId(), it.currentMediaItem?.mediaId,
                             it.playerError != null)) {
                         if (it.playbackState == Player.STATE_ENDED) it.seekTo(0L)
                         if (it.playbackState == Player.STATE_ENDED ||
