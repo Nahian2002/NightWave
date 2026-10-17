@@ -29,8 +29,12 @@ class RoomShadowMigrator(context: Context, private val database: NightWaveDataba
     private val dao = database.libraryDao()
 
     suspend fun reconcile(): ShadowMigrationReport = withContext(Dispatchers.IO) {
-        val strings = prefs.all.mapValues { (_, value) ->
-            require(value is String) { "Unexpected legacy library value type" }
+        // Ignore unrelated future preference fields, but fail closed if a
+        // field we are actually importing has the wrong type.
+        val strings = prefs.all.filterKeys { key ->
+            key in setOf("favorites", "recent", "playlist_names") || key.startsWith("list_")
+        }.mapValues { (key, value) ->
+            require(value is String) { "Unexpected legacy value type for $key" }
             value
         }
         val snapshot = LegacyLibrarySnapshotParser.parse(strings)
