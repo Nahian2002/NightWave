@@ -8,6 +8,8 @@ import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import com.nightwave.player.v2.data.LibraryArchiveManager
 import androidx.activity.ComponentActivity
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -83,6 +85,9 @@ import com.nightwave.player.net.VideoPreview
 import com.nightwave.player.ui.MainActivity
 import com.nightwave.player.ui.YouTubeSearchBrowser
 import com.nightwave.player.v2.data.GuestProfileStore
+import com.nightwave.player.v2.data.ProfileDataStoreMirror
+import com.nightwave.player.v2.data.room.NightWaveDatabase
+import com.nightwave.player.v2.data.room.RoomShadowMigrator
 import com.nightwave.player.v2.playback.StudioPlaybackBridge
 import com.nightwave.player.v2.playback.StudioPlayerState
 import com.nightwave.player.v2.model.MotionPreference
@@ -98,6 +103,11 @@ class NightWaveStudioActivity : ComponentActivity() {
     private lateinit var library: MusicLibrary
     private lateinit var playback: StudioPlaybackBridge
     private lateinit var archiveManager: LibraryArchiveManager
+    private lateinit var roomShadow: RoomShadowMigrator
+    private lateinit var profileShadow: ProfileDataStoreMirror
+    private var shadowStatus by mutableStateOf("Legacy storage active · Room/DataStore migration pending")
+    private var shadowRunning = false
+    private var shadowRequested = false
     private var youtubeDialog: Dialog? = null
     private val exportFile = registerForActivityResult(
         ActivityResultContracts.CreateDocument("application/json")
@@ -157,6 +167,8 @@ class NightWaveStudioActivity : ComponentActivity() {
         library = MusicLibrary(this)
         playback = StudioPlaybackBridge(this)
         archiveManager = LibraryArchiveManager(this)
+        roomShadow = RoomShadowMigrator(this, NightWaveDatabase.get(this))
+        profileShadow = ProfileDataStoreMirror(this)
         profile = profiles.load()
         refresh()
         setContent {
@@ -169,10 +181,15 @@ class NightWaveStudioActivity : ComponentActivity() {
                     onToggleFavorite = { video -> library.toggleFavorite(video); refresh() },
                     onSongOptions = { video -> showSongOptions(video) },
                     onSaveCurrentToPlaylist = { saveCurrentToPlaylist() },
+                    storageStatus = shadowStatus,
+                    onCheckStorage = { refreshShadows() },
                     onExportGuest = { exportFile.launch("nightwave-guest-backup.json") },
                     onImportGuest = { importFile.launch(arrayOf("application/json", "application/octet-stream")) },
                     onSaveProfile = { updated ->
-                        if (profiles.save(updated)) profile = profiles.load()
+                        if (profiles.save(updated)) {
+                            profile = profiles.load()
+                            refreshShadows()
+                        }
                     },
                     onSearch = { query ->
                         youtubeDialog?.dismiss()
@@ -209,6 +226,7 @@ class NightWaveStudioActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         if (::library.isInitialized) refresh()
+        if (::roomShadow.isInitialized) refreshShadows()
     }
 
     private fun saveCurrentToPlaylist() {
@@ -300,6 +318,42 @@ class NightWaveStudioActivity : ComponentActivity() {
         favorites = library.favorites()
         recentlyPlayed = library.recent()
         names = library.playlistNames()
+        if (::roomShadow.isInitialized) refreshShadows()
+    }
+
+    /**
+     * A secondary, read-only-vs-legacy sync. On any failure the old library
+     * remains unchanged and the UI can still play music.
+     */
+    private fun refreshShadows() {
+        if (!::roomShadow.isInitialized || !::profileShadow.isInitialized) return
+        if (shadowRunning) {
+            shadowRequested = true
+            return
+        }
+        shadowRunning = true
+        lifecycleScope.launch {
+            try {
+                do {
+                    shadowRequested = false
+                    shadowStatus = "Checking local storage copy…"
+                    try {
+                        val libraryReport = roomShadow.reconcile()
+                        profileShadow.reconcile()
+                        shadowStatus = "Room/DataStore preview ready · " +
+                            libraryReport.favorites + " likes · " +
+                            libraryReport.playlists + " playlists · " +
+                            libraryReport.songs + " unique songs"
+                    } catch (error: Exception) {
+                        shadowStatus = "Storage preview needs attention: " +
+                            (error.message ?: "Could not migrate legacy data").take(150) +
+                            ". Original library remains in use."
+                    }
+                } while (shadowRequested)
+            } finally {
+                shadowRunning = false
+            }
+        }
     }
 }
 
@@ -318,6 +372,8 @@ private fun StudioRoot(
     onSaveProfile: (ProfileSettings) -> Unit,
     onExportGuest: () -> Unit,
     onImportGuest: () -> Unit,
+    storageStatus: String,
+    onCheckStorage: () -> Unit,
     playerState: StudioPlayerState,
     playerActions: StudioPlaybackBridge,
     isFavorite: (String) -> Boolean,
@@ -398,7 +454,8 @@ private fun StudioRoot(
             )
             StudioTab.PROFILE -> StudioProfile(
                 modifier = Modifier.padding(safe), profile = profile,
-                save = onSaveProfile, onExport = onExportGuest, onImport = onImportGuest
+                save = onSaveProfile, onExport = onExportGuest, onImport = onImportGuest,
+                storageStatus = storageStatus, onCheckStorage = onCheckStorage
             )
         }
         }
@@ -611,7 +668,8 @@ private fun StudioLibrary(
 
 @Composable
 private fun StudioProfile(modifier: Modifier, profile: ProfileSettings, save: (ProfileSettings) -> Unit,
-    onExport: () -> Unit, onImport: () -> Unit) {
+    onExport: () -> Unit, onImport: () -> Unit,
+    storageStatus: String, onCheckStorage: () -> Unit) {
     var name by rememberSaveable(profile.localId) { mutableStateOf(profile.displayName) }
     LazyColumn(modifier.widthIn(max = 840.dp).fillMaxHeight(), contentPadding = PaddingValues(20.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp)) {
@@ -668,6 +726,24 @@ private fun StudioProfile(modifier: Modifier, profile: ProfileSettings, save: (P
                         }
                     }
                 }
+            }
+        }
+        item { SectionHeading("Storage upgrade preview", "Safe migration without deleting the old library") }
+        item {
+            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                shape = RoundedCornerShape(19.dp), modifier = Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(storageStatus, style = MaterialTheme.typography.bodyMedium)
+                    Text("Room and DataStore are read-only mirrors of the active legacy data. " +
+                        "Your original playlists, listening history and settings remain in place.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+        item {
+            OutlinedButton(onClick = onCheckStorage, modifier = Modifier.fillMaxWidth().height(48.dp)) {
+                Text("RECHECK NEW STORAGE")
             }
         }
         item { SectionHeading("Guest backup and restore", "Keep a copy before uninstalling NightWave") }
