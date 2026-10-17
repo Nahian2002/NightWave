@@ -528,7 +528,7 @@ class NightWaveStudioActivity : ComponentActivity() {
             else " No listening history included."
         val dialog = AlertDialog.Builder(this)
             .setTitle("Review cloud restore")
-            .setMessage(message + "\\n\\nRestoring replaces local favorites and playlists. " +
+            .setMessage(message + "\n\nRestoring replaces local favorites and playlists. " +
                 "Export your current library first if you need both copies. " +
                 "The existing recovery snapshot is preserved.")
             .setNegativeButton("Cancel", null)
