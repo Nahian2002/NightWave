@@ -4,6 +4,15 @@ import android.app.AlertDialog
 import android.app.Dialog
 import android.widget.EditText
 import android.content.Intent
+import android.net.Uri
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import com.nightwave.player.v2.data.RoomMirrorRepository
+import com.nightwave.player.v2.data.GuestSettingsMirror
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -66,7 +75,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -83,6 +92,10 @@ import com.nightwave.player.ui.YouTubeSearchBrowser
 import com.nightwave.player.v2.data.GuestProfileStore
 import com.nightwave.player.v2.playback.StudioPlaybackBridge
 import com.nightwave.player.v2.playback.StudioPlayerState
+import com.nightwave.player.v2.backup.GuestBackupRepository
+import com.nightwave.player.v2.backup.BackupFormat
+import com.nightwave.player.v2.backup.ImportStrategy
+import com.nightwave.player.v2.model.ListeningPrivacy
 import com.nightwave.player.v2.model.MotionPreference
 import com.nightwave.player.v2.model.NightWaveTheme
 import com.nightwave.player.v2.model.ProfileSettings
@@ -94,6 +107,9 @@ import com.nightwave.player.v2.model.ProfileSettings
 class NightWaveStudioActivity : ComponentActivity() {
     private lateinit var profiles: GuestProfileStore
     private lateinit var library: MusicLibrary
+    private lateinit var backup: GuestBackupRepository
+    private var pendingExport: ByteArray? = null
+    private var mirrorJob: Job? = null
     private lateinit var playback: StudioPlaybackBridge
     private var youtubeDialog: Dialog? = null
     private var profile by mutableStateOf(ProfileSettings(localId = "pending"))
@@ -105,9 +121,15 @@ class NightWaveStudioActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         profiles = GuestProfileStore(this)
         library = MusicLibrary(this)
+        backup = GuestBackupRepository(this)
+        if (backup.hasPendingRecovery()) {
+            val recovered = runCatching { backup.recoverPendingRestore() }.getOrDefault(false)
+            if (!recovered) showMessage("Previous library restore needs recovery. Do not clear app storage.")
+        }
         playback = StudioPlaybackBridge(this)
         profile = profiles.load()
         refresh()
+        stageStorageMirror()
         setContent {
             NightWaveMaterialTheme(profile.theme) {
                 StudioRoot(
@@ -118,8 +140,13 @@ class NightWaveStudioActivity : ComponentActivity() {
                     onToggleFavorite = { video -> library.toggleFavorite(video); refresh() },
                     onSongOptions = { video -> showSongOptions(video) },
                     onSaveCurrentToPlaylist = { saveCurrentToPlaylist() },
+                    onExportBackup = { startGuestExport() },
+                    onImportBackup = { guestImportPicker.launch(arrayOf("application/json", "application/octet-stream")) },
                     onSaveProfile = { updated ->
-                        if (profiles.save(updated)) profile = profiles.load()
+                        if (profiles.save(updated)) {
+                            profile = profiles.load()
+                            stageStorageMirror()
+                        }
                     },
                     onSearch = { query ->
                         youtubeDialog?.dismiss()
@@ -147,6 +174,7 @@ class NightWaveStudioActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        mirrorJob?.cancel()
         youtubeDialog?.dismiss()
         youtubeDialog = null
         if (::playback.isInitialized) playback.release()
@@ -155,7 +183,131 @@ class NightWaveStudioActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        if (::library.isInitialized) refresh()
+        if (::library.isInitialized) {
+            refresh()
+            stageStorageMirror()
+        }
+    }
+
+    private fun stageStorageMirror() {
+        if (!::library.isInitialized || !::profiles.isInitialized) return
+        mirrorJob?.cancel()
+        mirrorJob = lifecycleScope.launch {
+            try {
+                val snapshot = withContext(Dispatchers.IO) {
+                    library.snapshotForBackup() to profiles.load()
+                }
+                withContext(Dispatchers.IO) {
+                    RoomMirrorRepository(applicationContext).stage(snapshot.first)
+                    GuestSettingsMirror(applicationContext).stage(snapshot.second)
+                }
+            } catch (cancel: kotlinx.coroutines.CancellationException) {
+                throw cancel
+            } catch (error: Exception) {
+                android.util.Log.w("NightWaveStorage", "Staging new storage failed; legacy library kept unchanged.", error)
+            }
+        }
+    }
+
+    private val guestExportPicker = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json")
+    ) { uri: Uri? ->
+        val bytes = pendingExport
+        pendingExport = null
+        if (uri == null || bytes == null) return@registerForActivityResult
+        lifecycleScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    contentResolver.openOutputStream(uri, "wt")?.use { stream ->
+                        stream.write(bytes)
+                        stream.flush()
+                    } ?: throw java.io.IOException("Could not open output document.")
+                }
+                showMessage("NightWave guest backup exported.")
+            } catch (error: Exception) {
+                showMessage("Backup export failed. Choose another folder.")
+            }
+        }
+    }
+
+    private val guestImportPicker = registerForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        if (uri == null) return@registerForActivityResult
+        lifecycleScope.launch {
+            try {
+                val (data, preview) = withContext(Dispatchers.IO) {
+                    val raw = contentResolver.openInputStream(uri)?.use { input ->
+                        val output = java.io.ByteArrayOutputStream()
+                        val chunk = ByteArray(8192)
+                        while (true) {
+                            val count = input.read(chunk)
+                            if (count == -1) break
+                            if (output.size() + count > BackupFormat.MAX_BYTES)
+                                throw java.io.IOException("Backup file is too large.")
+                            output.write(chunk, 0, count)
+                        }
+                        output.toByteArray()
+                    } ?: throw java.io.IOException("Could not open selected backup.")
+                    backup.inspect(raw)
+                }
+                val description = preview.incomingFavorites.toString() + " liked songs, " +
+                    preview.incomingPlaylists + " playlists, " +
+                    preview.incomingTracks + " playlist entries" +
+                    (if (data.includesHistory) ", " + preview.incomingHistory + " history entries" else "")
+                AlertDialog.Builder(this@NightWaveStudioActivity).setTitle("Restore NightWave backup?")
+                    .setMessage(description + "\n\nChoose how to handle existing saved songs. " +
+                        "No import happens until you confirm.")
+                    .setItems(arrayOf(
+                        "Merge saved music and restore profile",
+                        "Replace saved music and restore profile",
+                        "Merge music only (keep profile)"
+                    )) { _, action ->
+                        val strategy = if (action == 1) ImportStrategy.REPLACE_LIBRARY
+                            else ImportStrategy.MERGE_LIBRARY
+                        val restoreProfile = action != 2
+                        val warning = if (strategy == ImportStrategy.REPLACE_LIBRARY)
+                            "Replace local favorites and playlists with the backup? Existing data will be held in a private recovery copy during import."
+                        else "Merge this backup with local favorites and playlists? Duplicates will be skipped."
+                        AlertDialog.Builder(this@NightWaveStudioActivity).setTitle("Confirm restore")
+                            .setMessage(warning)
+                            .setNegativeButton("Cancel", null)
+                            .setPositiveButton("Restore") { _, _ ->
+                                lifecycleScope.launch {
+                                    try {
+                                        withContext(Dispatchers.IO) {
+                                            backup.applyImport(data, strategy, restoreProfile)
+                                        }
+                                        profile = profiles.load()
+                                        refresh()
+                                        playback.refreshQueue()
+                                        stageStorageMirror()
+                                        showMessage("Guest backup restored.")
+                                    } catch (error: Exception) {
+                                        showMessage(error.message ?: "Import failed; previous data retained.")
+                                    }
+                                }
+                            }.show()
+                    }.setNegativeButton("Cancel", null).show()
+            } catch (error: Exception) {
+                showMessage("Cannot read backup: " + (error.message ?: "invalid document").take(120))
+            }
+        }
+    }
+
+    private fun startGuestExport() {
+        lifecycleScope.launch {
+            try {
+                pendingExport = withContext(Dispatchers.IO) {
+                    backup.createExport(profile.historyPrivacy == ListeningPrivacy.INCLUDE_IN_BACKUP)
+                }
+                guestExportPicker.launch("NightWave-Guest-Backup-" +
+                    java.text.SimpleDateFormat("yyyyMMdd", java.util.Locale.US).format(java.util.Date()) + ".json")
+            } catch (error: Exception) {
+                pendingExport = null
+                showMessage("Cannot prepare backup: " + (error.message ?: "unknown error").take(100))
+            }
+        }
     }
 
     private fun saveCurrentToPlaylist() {
@@ -263,6 +415,8 @@ private fun StudioRoot(
     playlistNames: List<String>,
     getPlaylist: (String) -> List<VideoPreview>,
     onSaveProfile: (ProfileSettings) -> Unit,
+    onExportBackup: () -> Unit,
+    onImportBackup: () -> Unit,
     playerState: StudioPlayerState,
     playerActions: StudioPlaybackBridge,
     isFavorite: (String) -> Boolean,
@@ -343,7 +497,8 @@ private fun StudioRoot(
             )
             StudioTab.PROFILE -> StudioProfile(
                 modifier = Modifier.padding(safe), profile = profile,
-                save = onSaveProfile
+                save = onSaveProfile, onExportBackup = onExportBackup,
+                onImportBackup = onImportBackup
             )
         }
         }
@@ -555,7 +710,10 @@ private fun StudioLibrary(
 }
 
 @Composable
-private fun StudioProfile(modifier: Modifier, profile: ProfileSettings, save: (ProfileSettings) -> Unit) {
+private fun StudioProfile(
+    modifier: Modifier, profile: ProfileSettings, save: (ProfileSettings) -> Unit,
+    onExportBackup: () -> Unit, onImportBackup: () -> Unit
+) {
     var name by rememberSaveable(profile.localId) { mutableStateOf(profile.displayName) }
     LazyColumn(modifier.widthIn(max = 840.dp).fillMaxHeight(), contentPadding = PaddingValues(20.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp)) {
@@ -642,6 +800,38 @@ private fun StudioProfile(modifier: Modifier, profile: ProfileSettings, save: (P
                 Switch(checked = profile.motion == MotionPreference.REDUCED,
                     onCheckedChange = { save(profile.copy(motion = if (it) MotionPreference.REDUCED else MotionPreference.SYSTEM)) })
             }
+        }
+        item { SectionHeading("Guest backup and recovery", "Export your saved library before uninstalling NightWave") }
+        item {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween) {
+                Column(Modifier.weight(1f)) {
+                    Text("Include listening history", style = MaterialTheme.typography.titleMedium)
+                    Text("Optional. Off by default for privacy.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Switch(checked = profile.historyPrivacy == ListeningPrivacy.INCLUDE_IN_BACKUP,
+                    onCheckedChange = { enabled ->
+                        save(profile.copy(historyPrivacy = if (enabled)
+                            ListeningPrivacy.INCLUDE_IN_BACKUP else ListeningPrivacy.DEVICE_ONLY))
+                    })
+            }
+        }
+        item {
+            Button(onClick = onExportBackup, modifier = Modifier.fillMaxWidth().height(53.dp)) {
+                Text("EXPORT GUEST BACKUP")
+            }
+        }
+        item {
+            OutlinedButton(onClick = onImportBackup, modifier = Modifier.fillMaxWidth().height(53.dp)) {
+                Text("IMPORT SAVED BACKUP")
+            }
+        }
+        item {
+            Text("Backup is a local JSON file. Save it to a safe location; uninstalling the app does not automatically restore it. Google sync is not yet enabled.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         item { HorizontalDivider(color = MaterialTheme.colorScheme.outline) }
         item {
