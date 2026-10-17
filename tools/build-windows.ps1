@@ -107,6 +107,16 @@ try {
         throw 'NightWave synthetic crash redaction self-test failed. No APK was published.'
     }
     Say 'Synthetic crash-report privacy test PASS; no device was accessed.'
+    $stage = 'Build diagnostic self-test'
+    $diagnosticScript = Join-Path $PSScriptRoot 'diagnose-build.ps1'
+    if (-not (Test-Path -LiteralPath $diagnosticScript -PathType Leaf)) {
+        throw 'NightWave read-only build diagnosis tool is missing.'
+    }
+    $diagnosticTest = (& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $diagnosticScript -SelfTest 2>&1 | Out-String)
+    if ($LASTEXITCODE -ne 0 -or $diagnosticTest -notmatch 'PASS: NightWave build diagnostic self-test') {
+        throw 'NightWave build diagnosis/redaction self-test failed. No APK was published.'
+    }
+    Say 'Build diagnostics self-test PASS; no APK or device was accessed.'
     $stage = 'Java preparation'
     Resolve-Java
 
@@ -156,7 +166,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Android SDK package installation failed.' }
 
     $stage = 'Gradle compile / unit tests'
-    Say 'Running Android unit tests and compiling the debug APK'
+    Say 'Running unit tests, building APK and compiling Android instrumentation test sources'
     # The complete Gradle output is retained; preflight failures also get a report.
     Say "Saving build output to $buildLog"
 
@@ -165,7 +175,7 @@ try {
         $previousErrorPreference = $ErrorActionPreference
         $ErrorActionPreference = 'Continue'
         try {
-            & $gradleBat --no-daemon --console=plain --warning-mode=summary :app:testDebugUnitTest :app:assembleDebug 2>&1 |
+            & $gradleBat --no-daemon --console=plain --warning-mode=summary :app:testDebugUnitTest :app:assembleDebug :app:compileDebugAndroidTestKotlin 2>&1 |
                 ForEach-Object { $_.ToString() } | Tee-Object -FilePath $buildLog
             $gradleResult = $LASTEXITCODE
         } finally {
