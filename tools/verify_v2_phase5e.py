@@ -49,7 +49,7 @@ assert 'onSearch(shortcut.query)' in studio
 assert 'onNativeSearch(shortcut.query, SearchMode.SONGS)' in studio
 assert 'items(state.videos, key = { it.url })' in studio
 assert 'onClick = { onPlay(song, state.videos) }' in studio
-assert 'Open YouTube search' in studio
+assert 'Search on YouTube ↗' in studio
 
 # Navigation stays in-app and respects reduced-motion settings.
 assert 'animateColorAsState(' in studio
