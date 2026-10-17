@@ -17,9 +17,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -114,7 +116,7 @@ fun MusicFeatureCard(
 }
 
 @Composable
-fun MusicTrackTile(video: VideoPreview, modifier: Modifier = Modifier, onClick: () -> Unit) {
+fun MusicTrackTile(video: VideoPreview, modifier: Modifier = Modifier, onOptions: (() -> Unit)? = null, onClick: () -> Unit) {
     Row(modifier = modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp))
         .background(MaterialTheme.colorScheme.surface).clickable(onClick = onClick).padding(10.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(13.dp)) {
@@ -127,7 +129,14 @@ fun MusicTrackTile(video: VideoPreview, modifier: Modifier = Modifier, onClick: 
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
-        Icon(Icons.Outlined.PlayArrow, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+        if (onOptions != null) {
+            IconButton(onClick = onOptions, modifier = Modifier.size(48.dp)) {
+                Icon(Icons.Outlined.MoreVert, contentDescription = "Options for " + video.title,
+                    tint = MaterialTheme.colorScheme.primary)
+            }
+        } else {
+            Icon(Icons.Outlined.PlayArrow, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+        }
     }
 }
 
