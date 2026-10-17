@@ -572,6 +572,25 @@ private fun StudioRoot(
         },
         bottomBar = {
             Column {
+                if (!playerState.error.isNullOrBlank() && playerState.hasTrack) {
+                    Surface(color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 4.dp)) {
+                        Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Text(playerState.error.orEmpty(),
+                                modifier = Modifier.weight(1f),
+                                maxLines = 2,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error)
+                            OutlinedButton(onClick = { playerActions.retry() }) {
+                                Text("Retry")
+                            }
+                        }
+                    }
+                }
                 if (playerState.hasTrack && compactHidden) {
                     Surface(onClick = { compactHidden = false },
                         color = MaterialTheme.colorScheme.surfaceVariant,
@@ -678,9 +697,10 @@ private fun StudioRoot(
         expanded = expanded && playerState.hasTrack,
         state = playerState, actions = playerActions,
         reduceMotion = profile.motion == MotionPreference.REDUCED,
-        liked = playerState.hasTrack && isFavorite(playerState.videoUrl),
+        liked = playerState.hasTrack && !playerState.offline &&
+            isFavorite(playerState.videoUrl),
         onLike = {
-            if (playerState.hasTrack) onToggleFavorite(VideoPreview(
+            if (playerState.hasTrack && !playerState.offline) onToggleFavorite(VideoPreview(
                 playerState.title, playerState.artist, playerState.videoUrl,
                 playerState.thumbnail, playerState.durationMs / 1000L
             ))
