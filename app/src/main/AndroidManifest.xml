@@ -13,7 +13,12 @@
         android:usesCleartextTraffic="false"
         android:icon="@drawable/ic_nightwave"
         android:roundIcon="@drawable/ic_nightwave">
-        <activity android:name=".ui.MainActivity" android:exported="true" android:windowSoftInputMode="adjustResize">
+        <!-- NightWave 2.0 is the canonical launcher and external text-share target.
+             The classic UI remains a private, explicit in-app fallback. -->
+        <activity android:name=".v2.ui.NightWaveStudioActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -24,9 +29,9 @@
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
-        <!-- Preview remains explicitly accessible from classic Home, not the launcher.
-             A crash in unverified Compose startup must not prevent access to saved music. -->
-        <activity android:name=".v2.ui.NightWaveStudioActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".ui.MainActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
         <activity android:name=".offline.OfflineLibraryActivity" android:exported="false" />
         <service
             android:name=".playback.PlaybackService"
