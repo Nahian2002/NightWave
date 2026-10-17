@@ -68,10 +68,11 @@ class OfflineAudioLibrary(private val context: Context) {
     fun songs(): List<OfflineSong> = parse(prefs.getString("items", "[]") ?: "[]")
 
     fun fileFor(song: OfflineSong): File? = try {
-        if (song !in songs()) return null
-        val parent = root.canonicalFile
-        val file = File(parent, song.id).canonicalFile
-        if (file.parentFile != parent || !file.isFile || !file.canRead()) null else file
+        if (song !in songs()) null else {
+            val parent = root.canonicalFile
+            val file = File(parent, song.id).canonicalFile
+            if (file.parentFile != parent || !file.isFile || !file.canRead()) null else file
+        }
     } catch (_: Exception) {
         // Malformed index, permission or missing file must not crash Media3.
         // Keep the index intact for user-guided recovery.
