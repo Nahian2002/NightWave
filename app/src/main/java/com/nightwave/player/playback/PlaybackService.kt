@@ -246,7 +246,13 @@ class PlaybackService : MediaSessionService() {
                 if (sameQueue && (loaded || resolving)) {
                     // Double-tap/recomposition must not drop an already buffered
                     // stream or enqueue another slow extraction of the same URL.
-                    if (loaded) exoPlayer?.play()
+                    if (loaded) exoPlayer?.apply {
+                        if (playbackState == Player.STATE_ENDED) {
+                            seekTo(0L)
+                            prepare()
+                        }
+                        play()
+                    }
                 } else {
                     queue.replace(entries, selected)
                     generation++ // invalidate unresolved previous track jobs
