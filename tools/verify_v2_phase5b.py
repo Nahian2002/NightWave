@@ -17,8 +17,8 @@ classic = read(code / "ui/MainActivity.kt")
 offline = read(code / "offline/OfflineAudioLibrary.kt")
 manifest = read(root / "app/src/main/AndroidManifest.xml")
 
-assert 'versionCode = 29' in gradle
-assert 'versionName = "2.0.0-alpha5m"' in gradle
+assert 'versionCode = 30' in gradle
+assert 'versionName = "2.0.0-alpha5n"' in gradle
 assert 'applicationId = "com.nightwave.player"' in gradle
 assert "private data class StudioSearchSnapshot(" in studio
 assert "private var nativeSearchState by mutableStateOf" in studio
