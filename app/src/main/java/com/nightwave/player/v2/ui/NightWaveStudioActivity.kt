@@ -41,6 +41,8 @@ import kotlinx.coroutines.delay
 import com.nightwave.player.playback.SleepTimerStatusStore
 import com.nightwave.player.playback.OfflinePlaybackSpeedStore
 import com.nightwave.player.playback.OfflinePlaybackSpeedPolicy
+import com.nightwave.player.playback.ListeningLevelStore
+import com.nightwave.player.playback.ListeningLevelPolicy
 import androidx.activity.compose.setContent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
@@ -184,6 +186,8 @@ class NightWaveStudioActivity : ComponentActivity() {
     private var sleepRemainingMs by mutableStateOf(0L)
     private lateinit var offlineSpeedStore: OfflinePlaybackSpeedStore
     private var offlineSpeedPercent by mutableStateOf(OfflinePlaybackSpeedPolicy.NORMAL_PERCENT)
+    private lateinit var listeningLevelStore: ListeningLevelStore
+    private var listeningLevelPercent by mutableStateOf(ListeningLevelPolicy.DEFAULT_PERCENT)
     private lateinit var archiveManager: LibraryArchiveManager
     private lateinit var lyricsStore: PrivateLyricsStore
     private lateinit var listeningMemoryStore: ListeningMemoryStore
@@ -344,6 +348,8 @@ class NightWaveStudioActivity : ComponentActivity() {
         sleepTimerStatus = SleepTimerStatusStore(this)
         offlineSpeedStore = OfflinePlaybackSpeedStore(this)
         offlineSpeedPercent = offlineSpeedStore.read()
+        listeningLevelStore = ListeningLevelStore(this)
+        listeningLevelPercent = listeningLevelStore.read()
         archiveManager = LibraryArchiveManager(this)
         lyricsStore = PrivateLyricsStore(this)
         listeningMemoryStore = ListeningMemoryStore(this)
@@ -415,6 +421,24 @@ class NightWaveStudioActivity : ComponentActivity() {
                             }
                         }.onFailure {
                             showMessage("Sleep timer couldn't be updated. Try again.")
+                        }
+                    },
+                    listeningLevelPercent = listeningLevelPercent,
+                    onListeningLevel = { percent ->
+                        if (ListeningLevelPolicy.accepts(percent)) {
+                            runCatching {
+                                startService(Intent(this, PlaybackService::class.java).apply {
+                                    action = PlaybackService.ACTION_LISTENING_LEVEL_SET
+                                    putExtra(PlaybackService.EXTRA_LISTENING_LEVEL_PERCENT, percent)
+                                })
+                            }.onSuccess {
+                                lifecycleScope.launch {
+                                    delay(300L)
+                                    listeningLevelPercent = listeningLevelStore.read()
+                                }
+                            }.onFailure {
+                                showMessage("Listening level could not be changed.")
+                            }
                         }
                     },
                     offlineSpeedPercent = offlineSpeedPercent,
@@ -950,6 +974,7 @@ class NightWaveStudioActivity : ComponentActivity() {
         super.onResume()
         if (::library.isInitialized) refresh()
         if (::offlineSpeedStore.isInitialized) offlineSpeedPercent = offlineSpeedStore.read()
+        if (::listeningLevelStore.isInitialized) listeningLevelPercent = listeningLevelStore.read()
         refreshListeningMemory()
         if (::roomShadow.isInitialized && ::profileShadow.isInitialized &&
             ::verifiedReader.isInitialized) refreshShadows()
@@ -1341,6 +1366,8 @@ private fun StudioRoot(
     onSleepTimer: (Int?) -> Unit,
     offlineSpeedPercent: Int,
     onOfflineSpeed: (Int) -> Unit,
+    listeningLevelPercent: Int,
+    onListeningLevel: (Int) -> Unit,
     memory: ListeningMemorySummary,
     onMemoryEnabledChange: (Boolean) -> Unit,
     onMemoryErase: () -> Unit,
@@ -1655,6 +1682,8 @@ private fun StudioRoot(
         onSleepTimer = onSleepTimer,
         offlineSpeedPercent = offlineSpeedPercent,
         onOfflineSpeed = onOfflineSpeed,
+        listeningLevelPercent = listeningLevelPercent,
+        onListeningLevel = onListeningLevel,
         lyrics = currentLyrics,
         onImportLyrics = onImportLyrics,
         onRemoveLyrics = onRemoveLyrics,
