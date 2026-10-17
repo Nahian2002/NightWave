@@ -1317,7 +1317,7 @@ private fun StudioHome(
                                         Text(mix.title, style = MaterialTheme.typography.titleSmall,
                                             maxLines = 2, overflow = TextOverflow.Ellipsis)
                                         Text("${mix.tracks.size} saved tracks · " +
-                                            if (chosenMixKey == mix.key) "Hide" else "View",
+                                            (if (chosenMixKey == mix.key) "Hide" else "View"),
                                             style = MaterialTheme.typography.labelSmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
