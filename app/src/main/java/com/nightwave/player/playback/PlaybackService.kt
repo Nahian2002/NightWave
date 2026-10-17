@@ -626,8 +626,8 @@ class PlaybackService : MediaSessionService() {
         try {
             // submit() returns a cancellable Future; the bounded worker queue
             // avoids serial head-of-line delay from a superseded extraction.
-            resolveFuture = resolver.submit {
-                if (Thread.currentThread().isInterrupted) return@submit
+            resolveFuture = resolver.submit(Runnable {
+                if (Thread.currentThread().isInterrupted) return@Runnable
                 val outcome = runCatching { gateway.resolve(entry.url) }
                 main.post {
                     if (!PlaybackResolutionPolicy.acceptsResult(request, generation,
@@ -662,7 +662,7 @@ class PlaybackService : MediaSessionService() {
                         exoPlayer?.pause()
                     }
                 }
-            }
+            })
         } catch (_: java.util.concurrent.RejectedExecutionException) {
             generation++
             cancelPendingResolution()
