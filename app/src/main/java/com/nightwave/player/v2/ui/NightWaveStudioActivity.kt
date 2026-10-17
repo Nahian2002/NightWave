@@ -1033,13 +1033,17 @@ private fun StudioSearch(
     val savedMatches = remember(query, savedTracks) {
         SavedTrackSearch.match(query, savedTracks)
     }
+    // Never present results from an older query as results for new typed text.
+    val responseMatchesQuery = state.query.isNotBlank() &&
+        query.trim().equals(state.query.trim(), ignoreCase = true)
+    val searching = responseMatchesQuery && state.loading
     LazyColumn(
         modifier.fillMaxWidth().widthIn(max = 740.dp).fillMaxHeight(),
         contentPadding = PaddingValues(horizontal = 19.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item { SectionHeading("Explore sound", "Search for songs, artists and public videos") }
-        if (query.isBlank() && state.videos.isEmpty() && !state.loading) {
+        if (query.isBlank() && !searching) {
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
                     Text("START SOMEWHERE", style = MaterialTheme.typography.labelSmall,
@@ -1080,15 +1084,15 @@ private fun StudioSearch(
             }
         }
         item {
-            Button(onClick = submit, enabled = query.isNotBlank() && !state.loading,
+            Button(onClick = submit, enabled = query.isNotBlank() && !searching,
                 modifier = Modifier.fillMaxWidth().height(49.dp),
                 shape = RoundedCornerShape(15.dp)) {
-                if (state.loading) {
+                if (searching) {
                     CircularProgressIndicator(modifier = Modifier.size(20.dp),
                         strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
                     Spacer(Modifier.width(10.dp))
                 }
-                Text(if (state.loading) "Searching…" else "Find music")
+                Text(if (searching) "Searching…" else "Find music")
             }
         }
         if (savedMatches.isNotEmpty()) {
@@ -1102,13 +1106,13 @@ private fun StudioSearch(
                     onClick = { onPlay(song, savedMatches) })
             }
         }
-        if (state.loading) {
+        if (searching) {
             item {
                 Text("Checking public video search… Your saved songs remain available.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-        } else if (state.videos.isNotEmpty()) {
+        } else if (responseMatchesQuery && state.videos.isNotEmpty()) {
             item { SectionHeading("Public results",
                 state.videos.size.toString() + " tracks · " + state.provider) }
             if (state.error.isNotBlank()) {
@@ -1123,7 +1127,7 @@ private fun StudioSearch(
                     onOptions = { onSongOptions(song) },
                     onClick = { onPlay(song, state.videos) })
             }
-        } else if (state.error.isNotBlank()) {
+        } else if (responseMatchesQuery && state.error.isNotBlank()) {
             item {
                 Column(Modifier.fillMaxWidth()
                     .clip(RoundedCornerShape(16.dp))
@@ -1149,19 +1153,19 @@ private fun StudioSearch(
                     }
                 }
             }
-        } else if (state.hint.isNotBlank()) {
+        } else if (responseMatchesQuery && state.hint.isNotBlank()) {
             item {
                 Text(state.hint, style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-        } else if (state.query.isNotBlank() && savedMatches.isEmpty()) {
+        } else if (responseMatchesQuery && savedMatches.isEmpty()) {
             item {
                 Text("No matches yet. Try a different artist or open YouTube search.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
-        if (state.error.isBlank() && query.isNotBlank()) {
+        if ((!responseMatchesQuery || state.error.isBlank()) && query.isNotBlank()) {
             item {
                 OutlinedButton(onClick = { onWebSearch(query.trim()) },
                     modifier = Modifier.fillMaxWidth().height(45.dp)) {
