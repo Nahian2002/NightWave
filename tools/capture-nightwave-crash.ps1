@@ -56,7 +56,9 @@ function Extract-NightWaveFatal([string[]]$RawLines) {
     $safe = [Collections.Generic.List[string]]::new()
     $safe.Add('NightWave FATAL EXCEPTION summaries (newest first, up to five):')
     $number = 0
-    foreach ($block in @($matching | Select-Object -Last $limit | Select-Object -Reverse)) {
+    $recent = @($matching | Select-Object -Last $limit)
+    for ($i = $recent.Count - 1; $i -ge 0; $i--) {
+        $block = [string]$recent[$i]
         $number++
         $safe.Add('')
         $safe.Add('Crash ' + $number.ToString() + ':')
