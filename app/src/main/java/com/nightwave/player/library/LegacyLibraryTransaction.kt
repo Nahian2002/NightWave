@@ -75,6 +75,7 @@ object LegacyLibraryTransaction {
      * be parsed or its pre-write recovery snapshot cannot be persisted.
      */
     fun mutate(context: Context, change: LibraryChange): LibraryChangeResult = exclusive {
+        check(!LibraryStoragePolicy.ROOM_PRIMARY_WRITES_ENABLED) { "Two primary storage writers are not allowed" }
         val preferences = source(context)
         val raw = try {
             existingStrings(preferences)
