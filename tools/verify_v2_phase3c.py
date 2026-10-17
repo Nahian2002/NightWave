@@ -26,6 +26,7 @@ assert 'fallbackToDestructiveMigration' not in dao.replace(
 for name in ("readPlaylists", "readFavorites", "readRecent", "readPlaylistSongs"):
     assert f"suspend fun {name}(" in dao
 assert "database.withTransaction" in reader and "database.withTransaction" in migrator
+assert "Existing legacy library keys vanished" in migrator
 assert "LegacyLibrarySnapshotParser.parse" in reader
 assert "before.digest != after.digest" in reader
 assert "checkpointDigest != expected.digest" in parity
@@ -50,6 +51,8 @@ jvm = read(test / "LibraryReadParityTest.kt")
 android = read(instrumented / "VerifiedRoomReaderInstrumentedTest.kt")
 assert jvm.count("@Test") >= 10
 assert android.count("@Test") >= 6
+old_room = read(instrumented / "RoomShadowMigratorInstrumentedTest.kt")
+assert "vanishedLegacyKeysCannotErasePreviouslyPopulatedRoomSnapshot" in old_room
 assert "sameCountsButCorruptedRoomMetadataForcesFallback" in android
 assert "newLegacyEditMakesRoomSnapshotIneligibleUntilReconcile" in android
 
@@ -60,5 +63,5 @@ for name, content in (("dao", dao), ("parity", parity),
     assert len(imports) == len(set(imports)), name
 
 print("PASS: verified Room read routing, strict metadata/order parity, checkpoint")
-print("      validation, legacy-only writes, automatic fallback and 16 added tests")
+print("      validation, legacy-only writes, automatic fallback and 17 added tests")
 print("PENDING: Android/Kotlin/KSP build, JVM test run and device instrumentation")
