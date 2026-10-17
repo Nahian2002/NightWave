@@ -797,7 +797,8 @@ private fun StudioRoot(
                                     .clip(RoundedCornerShape(16.dp))
                                     .background(tabColor)
                                     .clickable { navigateToTab(item) }
-                                    .semantics { this.selected = selected },
+                                    .semantics { this.selected = selected }
+                                    .testTag("nightwave-tab-" + item.name.lowercase()),
                                 verticalArrangement = Arrangement.Center,
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
