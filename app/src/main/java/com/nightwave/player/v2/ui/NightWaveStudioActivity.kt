@@ -10,6 +10,10 @@ import com.nightwave.player.v2.data.LibraryArchiveManager
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.CancellationException
 import androidx.activity.compose.setContent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
@@ -56,6 +60,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -87,6 +92,9 @@ import com.nightwave.player.library.MusicLibrary
 import com.nightwave.player.offline.OfflineLibraryActivity
 import com.nightwave.player.library.LegacyLibraryTransaction
 import com.nightwave.player.net.VideoPreview
+import com.nightwave.player.net.YouTubeGateway
+import com.nightwave.player.net.VideoSearchResults
+import com.nightwave.player.net.SearchMode
 import com.nightwave.player.ui.MainActivity
 import com.nightwave.player.ui.YouTubeSearchBrowser
 import com.nightwave.player.v2.data.GuestProfileStore
@@ -99,6 +107,16 @@ import com.nightwave.player.v2.playback.StudioPlayerState
 import com.nightwave.player.v2.model.MotionPreference
 import com.nightwave.player.v2.model.NightWaveTheme
 import com.nightwave.player.v2.model.ProfileSettings
+
+/** Native result rows are an enhancement; the official browser remains a fallback. */
+private data class StudioSearchSnapshot(
+    val query: String = "",
+    val mode: SearchMode = SearchMode.SONGS,
+    val loading: Boolean = false,
+    val videos: List<VideoPreview> = emptyList(),
+    val provider: String = "",
+    val error: String = ""
+)
 
 /**
  * NightWave 2.0 design-preview shell.
@@ -117,6 +135,10 @@ class NightWaveStudioActivity : ComponentActivity() {
     private var roomPreviewPlaylists by mutableStateOf<Map<String, List<VideoPreview>>>(emptyMap())
     private lateinit var profileShadow: ProfileDataStoreMirror
     private var shadowStatus by mutableStateOf("Legacy storage active · Room/DataStore migration pending")
+    private val nativeGateway = YouTubeGateway()
+    private var nativeSearch by mutableStateOf(StudioSearchSnapshot())
+    private var nativeSearchJob: Job? = null
+    private var nativeSearchGeneration = 0
     private var shadowRunning = false
     private var shadowRequested = false
     private var youtubeDialog: Dialog? = null
@@ -214,7 +236,9 @@ class NightWaveStudioActivity : ComponentActivity() {
                             refreshShadows()
                         }
                     },
-                    onSearch = { query ->
+                    searchState = nativeSearch,
+                    onSearch = { query, mode -> nativeSearch(query, mode) },
+                    onWebSearch = { query ->
                         youtubeDialog?.dismiss()
                         youtubeDialog = YouTubeSearchBrowser(this).show(query) { url ->
                             playback.play(VideoPreview("Loading track…", "YouTube", url, "", 0L))
@@ -233,6 +257,34 @@ class NightWaveStudioActivity : ComponentActivity() {
         playback.connect()
     }
 
+    private fun nativeSearch(query: String, mode: SearchMode) {
+        val clean = query.trim().take(160)
+        if (clean.isBlank()) return
+        val request = ++nativeSearchGeneration
+        nativeSearchJob?.cancel()
+        nativeSearch = StudioSearchSnapshot(query = clean, mode = mode, loading = true)
+        nativeSearchJob = lifecycleScope.launch {
+            val result = try {
+                withContext(Dispatchers.IO) { Result.success(nativeGateway.search(clean, mode)) }
+            } catch (cancel: CancellationException) {
+                throw cancel
+            } catch (error: Exception) {
+                Result.failure(error)
+            }
+            if (request != nativeSearchGeneration || isFinishing || isDestroyed) return@launch
+            result.fold(
+                onSuccess = { response ->
+                    nativeSearch = StudioSearchSnapshot(query = clean, mode = mode,
+                        videos = response.videos, provider = response.note)
+                },
+                onFailure = {
+                    nativeSearch = StudioSearchSnapshot(query = clean, mode = mode,
+                        error = "Native results are unavailable right now. Use YouTube search below.")
+                }
+            )
+        }
+    }
+
     override fun onStart() {
         super.onStart()
         if (::playback.isInitialized) playback.resumeUiUpdates()
@@ -244,6 +296,8 @@ class NightWaveStudioActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        nativeSearchJob?.cancel()
+        nativeSearchGeneration++
         youtubeDialog?.dismiss()
         youtubeDialog = null
         if (::playback.isInitialized) playback.release()
@@ -482,7 +536,9 @@ private fun StudioRoot(
     onToggleFavorite: (VideoPreview) -> Unit,
     onSongOptions: (VideoPreview) -> Unit,
     onSaveCurrentToPlaylist: () -> Unit,
-    onSearch: (String) -> Unit,
+    onSearch: (String, SearchMode) -> Unit,
+    onWebSearch: (String) -> Unit,
+    searchState: StudioSearchSnapshot,
     onPlay: (VideoPreview, List<VideoPreview>) -> Unit,
     onLegacyPlayer: () -> Unit,
     onOfflineLibrary: () -> Unit,
@@ -585,11 +641,16 @@ private fun StudioRoot(
         when (screen) {
             StudioTab.HOME -> StudioHome(
                 modifier = Modifier.padding(safe), profile = profile, recent = recent,
-                favorites = favorites, onSearch = onSearch, onPlay = onPlay,
+                favorites = favorites,
+                onSearch = { query -> onSearch(query, SearchMode.SONGS); tab = StudioTab.SEARCH },
+                onPlay = onPlay,
                 onSongOptions = onSongOptions,
                 openLibrary = { tab = StudioTab.LIBRARY }
             )
-            StudioTab.SEARCH -> StudioSearch(Modifier.padding(safe), onSearch)
+            StudioTab.SEARCH -> StudioSearch(
+                Modifier.padding(safe), searchState, onSearch, onWebSearch,
+                onPlay, onSongOptions
+            )
             StudioTab.LIBRARY -> StudioLibrary(
                 modifier = Modifier.padding(safe),
                 favorites = favorites, names = playlistNames,
@@ -717,36 +778,86 @@ private fun MoodTile(title: String, subtitle: String, gradient: List<Color>, mod
 }
 
 @Composable
-private fun StudioSearch(modifier: Modifier, onSearch: (String) -> Unit) {
+private fun StudioSearch(
+    modifier: Modifier,
+    state: StudioSearchSnapshot,
+    onNativeSearch: (String, SearchMode) -> Unit,
+    onWebSearch: (String) -> Unit,
+    onPlay: (VideoPreview, List<VideoPreview>) -> Unit,
+    onSongOptions: (VideoPreview) -> Unit
+) {
     var query by rememberSaveable { mutableStateOf("") }
-    val submit = { if (query.isNotBlank()) onSearch(query.trim()) }
-    LazyColumn(modifier.widthIn(max = 840.dp).fillMaxHeight(), contentPadding = PaddingValues(20.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp)) {
-        item { SectionHeading("What are we playing?", "Find music by name, artist or mood.") }
+    var mode by rememberSaveable { mutableStateOf(SearchMode.SONGS) }
+    LaunchedEffect(state.query) { if (state.query.isNotBlank()) query = state.query }
+    val submit = { if (query.isNotBlank()) onNativeSearch(query.trim(), mode) }
+    LazyColumn(
+        modifier.widthIn(max = 840.dp).fillMaxHeight(),
+        contentPadding = PaddingValues(horizontal = 19.dp, vertical = 15.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        item { SectionHeading("Search music", "Find songs, artists and videos") }
         item {
             OutlinedTextField(
                 value = query, onValueChange = { query = it.take(160) },
-                modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp),
-                singleLine = true, placeholder = { Text("Search any song or artist") },
+                modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(17.dp),
+                singleLine = true, placeholder = { Text("Song or artist name") },
                 leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(onSearch = { submit() })
             )
         }
         item {
-            Button(onClick = submit, enabled = query.isNotBlank(),
-                modifier = Modifier.fillMaxWidth().height(55.dp), shape = RoundedCornerShape(18.dp)) {
-                Icon(Icons.Outlined.Search, contentDescription = null)
-                Spacer(Modifier.width(10.dp))
-                Text("SEARCH YOUTUBE")
+            Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                FilterChip(selected = mode == SearchMode.SONGS,
+                    onClick = { mode = SearchMode.SONGS }, label = { Text("Songs") })
+                FilterChip(selected = mode == SearchMode.VIDEOS,
+                    onClick = { mode = SearchMode.VIDEOS }, label = { Text("Videos") })
             }
         }
         item {
-            EmptyMusicCard(
-                "Search without exact links",
-                "The existing playback engine remains in charge. This phase opens the current YouTube search flow until native search is verified.",
-                "Find your sound"
-            ) { onSearch(if (query.isBlank()) "music" else query) }
+            Button(onClick = submit, enabled = query.isNotBlank() && !state.loading,
+                modifier = Modifier.fillMaxWidth().height(49.dp),
+                shape = RoundedCornerShape(15.dp)) {
+                if (state.loading) {
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
+                    Spacer(Modifier.width(10.dp))
+                }
+                Text(if (state.loading) "Searching…" else "Find music")
+            }
+        }
+        if (state.loading) {
+            item { Text("Searching public music results…",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant) }
+        } else if (state.videos.isNotEmpty()) {
+            item { SectionHeading(
+                "Results", state.videos.size.toString() + " tracks · " + state.provider
+            ) }
+            items(state.videos, key = { it.url }) { song ->
+                MusicTrackTile(song, onOptions = { onSongOptions(song) },
+                    onClick = { onPlay(song, state.videos) })
+            }
+        } else if (state.error.isNotBlank()) {
+            item { EmptyMusicCard("Search needs a different route",
+                state.error, "Search on YouTube") {
+                onWebSearch(query.ifBlank { state.query })
+            } }
+        } else if (state.query.isNotBlank()) {
+            item { Text("No supported public video results returned.",
+                style = MaterialTheme.typography.bodyMedium) }
+        }
+        item {
+            OutlinedButton(
+                onClick = { onWebSearch(query.trim()) },
+                enabled = query.isNotBlank(),
+                modifier = Modifier.fillMaxWidth().height(48.dp)
+            ) { Text("Open YouTube search  ↗") }
+        }
+        item {
+            Text("Public video availability can change. YouTube search opens inside NightWave when native results aren't accessible.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
