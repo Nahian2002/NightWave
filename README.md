@@ -1,5 +1,21 @@
 # NightWave
 
+## NightWave 2.0 Alpha 5J — Player-state efficiency
+
+**Version:** `2.0.0-alpha5j` (build 26). **Branch:** `feature/nightwave-v2-phase5j-player-state-efficiency` (draft).
+
+[Download complete Phase 5J source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase5j-player-state-efficiency.zip) · [Phase 5J player-state QA guide](docs/NIGHTWAVE_V2_PHASE5J_QA.md)
+
+- **Targeted Android UI responsiveness fix:** the premium player's 750 ms position ticker previously loaded and parsed saved queue / offline-session preferences on each tick. Its new fast path updates position, duration and play/buffering state straight from the already-connected Media3 controller, without synchronous saved-library reads.
+- **Safety:** Media3 events still update song metadata and queue immediately, a periodic full refresh catches queue Intent changes, and returning to the Activity forces one full reconciliation. Leaving and returning from Offline Library invalidates the cached imported-track preview so deleted/added local songs are reflected.
+- **No playback-engine rewrite:** the Media3 background service, stream resolver, audio formats, queue persistence, preferences and downloaded/imported audio bytes are unchanged.
+- **Release controls retained:** local Windows build/signing gates and explicit read-only device-APK compatibility check from Alpha 5I are carried forward with versionCode 26.
+- **Tests:** the pure Kotlin PlayerSnapshotPolicy compiled under Kotlin CLI and passed 8 focused assertions. A repository JUnit test with five scenarios and source gate `tools/verify_v2_phase5j.py` were added.
+
+**Verification limitation:** Full Android Gradle, repository JUnit, Windows PowerShell, real Android device profiles and previous crash reproduction have **not** run in this environment. The Phase 5J PR remains DRAFT; do not uninstall/clear NightWave or merge into stable `main` until Windows and phone QA pass.
+
+---
+
 ## NightWave 2.0 Alpha 5I — Safe on-device update preflight
 
 **Version:** `2.0.0-alpha5i` (build 25). **Draft branch:** `feature/nightwave-v2-phase5i-device-update-check`.
