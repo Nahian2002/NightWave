@@ -60,6 +60,18 @@ class SavedCreatorBrowserTest {
         assertTrue(SavedCreatorBrowser.groups(listOf(local, other)).isEmpty())
     }
 
+    @Test fun nonCanonicalWatchUrlsAreExcludedRatherThanRewritten() {
+        val original = video("Saved", "Creator", "abc12345678")
+        val modified = original.copy(url = original.url + "&t=16")
+        assertTrue(SavedCreatorBrowser.groups(listOf(modified)).isEmpty())
+    }
+
+    @Test fun fakeYouTubeHostNeverEntersCreatorQueue() {
+        val spoofed = VideoPreview("Saved", "Creator",
+            "https://www.youtube.com.example.net/watch?v=abc12345678", "", 200)
+        assertTrue(SavedCreatorBrowser.groups(listOf(spoofed)).isEmpty())
+    }
+
     @Test fun accentAndSpacingNormalizeCreatorKeys() {
         val a = video("First", "Beyoncé", "abc12345678")
         val b = video("Second", "Beyonce", "abc12345679")
