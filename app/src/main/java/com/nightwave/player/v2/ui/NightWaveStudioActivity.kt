@@ -454,7 +454,7 @@ class NightWaveStudioActivity : ComponentActivity() {
             runCatching { OfflineAudioLibrary(this).find(id) }.getOrNull()
         }?.takeIf { OfflineAudioLibrary(this).fileFor(it) != null }
         offlineResumeTitle = song?.title
-        offlineResumePositionMs = if (song != null) checkpoint?.positionMs ?: 0L else 0L
+        offlineResumePositionMs = if (song != null) (checkpoint?.positionMs ?: 0L) else 0L
         // Do not enqueue a complete Room rewrite for every player/queue update.
         // onResume and the explicit "Recheck" action handle shadow verification.
     }
