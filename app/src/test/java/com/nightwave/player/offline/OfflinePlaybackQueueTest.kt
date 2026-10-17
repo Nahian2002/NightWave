@@ -32,7 +32,7 @@ class OfflinePlaybackQueueTest {
     @Test fun duplicatesAndBlankEntriesAreIgnored() {
         val queue = OfflinePlaybackQueue()
         queue.select(listOf("", "b", "b", "a", "  "), "b")
-        assertEquals(3, queue.size)
+        assertEquals(2, queue.size)
         assertEquals("a", queue.next())
     }
 
