@@ -20,8 +20,8 @@ tests = read(root / "app/src/test/java/com/nightwave/player/offline/OfflineSessi
 queue_tests = read(root / "app/src/test/java/com/nightwave/player/offline/OfflinePlaybackQueueTest.kt")
 manifest = read(root / "app/src/main/AndroidManifest.xml")
 
-assert 'versionCode = 28' in gradle
-assert 'versionName = "2.0.0-alpha5l"' in gradle
+assert 'versionCode = 29' in gradle
+assert 'versionName = "2.0.0-alpha5m"' in gradle
 assert 'applicationId = "com.nightwave.player"' in gradle
 assert 'private const val VERSION = "NWOS1"' in codec
 assert 'MessageDigest.getInstance("SHA-256")' in codec
