@@ -11,6 +11,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -289,6 +291,7 @@ private fun StudioRoot(
         Crossfade(targetState = tab,
             animationSpec = tween(durationMillis = if (profile.motion == MotionPreference.REDUCED) 0 else 220),
             label = "NightWave navigation") { screen ->
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         when (screen) {
             StudioTab.HOME -> StudioHome(
                 modifier = Modifier.padding(safe), profile = profile, recent = recent,
@@ -307,6 +310,7 @@ private fun StudioRoot(
                 modifier = Modifier.padding(safe), profile = profile,
                 save = onSaveProfile
             )
+        }
         }
         }
     }
@@ -339,7 +343,7 @@ private fun StudioHome(
     onPlay: (VideoPreview, List<VideoPreview>) -> Unit, openLibrary: () -> Unit
 ) {
     LazyColumn(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier.widthIn(max = 840.dp).fillMaxHeight(),
         contentPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp),
         verticalArrangement = Arrangement.spacedBy(17.dp)
     ) {
@@ -416,7 +420,7 @@ private fun MoodTile(title: String, subtitle: String, gradient: List<Color>, mod
 private fun StudioSearch(modifier: Modifier, onSearch: (String) -> Unit) {
     var query by rememberSaveable { mutableStateOf("") }
     val submit = { if (query.isNotBlank()) onSearch(query.trim()) }
-    LazyColumn(modifier.fillMaxSize(), contentPadding = PaddingValues(20.dp),
+    LazyColumn(modifier.widthIn(max = 840.dp).fillMaxHeight(), contentPadding = PaddingValues(20.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp)) {
         item { SectionHeading("What are we playing?", "Find music by name, artist or mood.") }
         item {
@@ -455,7 +459,7 @@ private fun StudioLibrary(
     onManage: () -> Unit, onSearch: () -> Unit
 ) {
     val tracks = if (selectedPlaylist == null || selectedPlaylist == LIKED_COLLECTION) favorites else getPlaylist(selectedPlaylist)
-    LazyColumn(modifier.fillMaxSize(), contentPadding = PaddingValues(20.dp),
+    LazyColumn(modifier.widthIn(max = 840.dp).fillMaxHeight(), contentPadding = PaddingValues(20.dp),
         verticalArrangement = Arrangement.spacedBy(13.dp)) {
         item {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -516,7 +520,7 @@ private fun StudioLibrary(
 @Composable
 private fun StudioProfile(modifier: Modifier, profile: ProfileSettings, save: (ProfileSettings) -> Unit) {
     var name by rememberSaveable(profile.localId) { mutableStateOf(profile.displayName) }
-    LazyColumn(modifier.fillMaxSize(), contentPadding = PaddingValues(20.dp),
+    LazyColumn(modifier.widthIn(max = 840.dp).fillMaxHeight(), contentPadding = PaddingValues(20.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp)) {
         item { SectionHeading("Make it yours.", "Your guest profile is saved on this phone.") }
         item {
