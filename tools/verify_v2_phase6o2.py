@@ -33,7 +33,7 @@ assert "selectedCreatorGroup != null && query.isBlank()" in ui
 assert "onPlay(song, selectedCreatorGroup.tracks)" in ui
 assert "onSongOptions(song)" in ui
 assert "Back to discovery" in ui
-assert "Browse all saved creators" in ui
+assert "Browse saved creators" in ui
 assert "creatorGroups.chunked(2)" in ui
 assert "showAllCreators = false" in ui
 assert "onPrimarySearch(selectedCreatorGroup.name, SearchMode.SONGS)" in ui
@@ -46,7 +46,7 @@ assert "tools/verify_v2_phase6o2.py" in ci
 assert "feature/nightwave-v2-phase6o1-relevant-music-search" in ci
 assert 'applicationId = "com.nightwave.player"' in gradle
 assert "versionCode = 35" in gradle
-assert tests.count("@Test") >= 16
+assert tests.count("@Test") >= 18
 for name,text in (("model",group),("search",search),("tests",tests)):
     assert text.count("{")==text.count("}"), name
     imports=[ln for ln in text.splitlines() if ln.startswith("import ")]
