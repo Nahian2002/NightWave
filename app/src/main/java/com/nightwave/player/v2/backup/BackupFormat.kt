@@ -184,7 +184,7 @@ object BackupFormat {
             val image = item.optString("thumbnail")
             val seconds = item.optLong("duration", -1)
             if (title.length > 250 || author.length > 150 || image.length > 2000 ||
-                seconds !in 0..86400 || !validArtwork(image))
+                seconds !in 0L..86400L || !validArtwork(image))
                 throw InvalidBackupException("Invalid track metadata.")
             result.add(VideoPreview(title, author, url, image, seconds))
         }
@@ -212,7 +212,7 @@ object BackupFormat {
                 val canonical = VideoLink.normalize(video.url)
                 if (canonical == null || !ids.add(canonical) ||
                     video.title.length > 250 || video.author.length > 150 ||
-                    video.durationSeconds !in 0..86400 || !validArtwork(video.thumbnail))
+                    video.durationSeconds !in 0L..86400L || !validArtwork(video.thumbnail))
                     throw InvalidBackupException("Invalid track in library.")
             }
         }
