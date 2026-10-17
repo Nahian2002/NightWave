@@ -1,11 +1,26 @@
-name: Android debug APK
+name: NightWave Android verification
+
+# Only the 5R review branch is checked automatically. Do not publish to main.
+# CI debug APKs use GitHub's temporary debug signing identity and MUST NOT be
+# installed over the user's existing music library without certificate checks.
 on:
+  pull_request:
+    branches:
+      - feature/nightwave-v2-phase5q-search-recovery
   workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightwave-android-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  apk:
+  verify:
+    name: Compile, JVM tests and Android test-source check
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -16,11 +31,26 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.11.1'
-      - run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
-      - run: python3 tools/verify_source.py
-      - run: gradle --no-daemon --stacktrace testDebugUnitTest assembleDebug
+      - name: Install Android SDK 35
+        run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+      - name: Source integrity and Phase 5R checks
+        run: |
+          python3 tools/verify_source.py
+          python3 tools/verify_v2_phase5r.py
+      - name: Compile debug app, JVM tests and Android instrumentation sources
+        run: |
+          gradle --no-daemon --stacktrace --console=plain :app:testDebugUnitTest :app:assembleDebug :app:compileDebugAndroidTestKotlin
+      - name: Verify APK identity from compiled artifact
+        run: |
+          set -euo pipefail
+          apk=app/build/outputs/apk/debug/app-debug.apk
+          test -s "$apk"
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$apk" | grep -E "package: name='com.nightwave.player' versionCode='34' versionName='2.0.0-alpha5r'"
+          sha256sum "$apk"
       - uses: actions/upload-artifact@v4
+        if: success()
         with:
-          name: NightWave-debug-apk
+          name: NightWave-5R-debug-UNVERIFIED-FOR-DEVICE
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+          retention-days: 5
