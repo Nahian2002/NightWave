@@ -44,7 +44,7 @@ if ($issues.Count -gt 0) {
 
     $report = Join-Path $dist 'NightWave-build-errors.txt'
     $status = Join-Path $dist 'NightWave-build-status.txt'
-    @('NightWave Alpha 5H PowerShell syntax check failed.', '') + $issues |
+    @('NightWave Alpha 5I PowerShell syntax check failed.', '') + $issues |
         Set-Content -LiteralPath $report -Encoding UTF8
     @('FAILED - builder syntax/preflight.', 'No new verified APK was published.',
         "Diagnostics: $report") |
@@ -53,5 +53,5 @@ if ($issues.Count -gt 0) {
     exit 1
 }
 
-Write-Host 'NightWave Windows builder and APK signing verifier syntax: PASS.' -ForegroundColor Green
+Write-Host 'NightWave Windows builder, signer and device-check scripts syntax: PASS.' -ForegroundColor Green
 exit 0
