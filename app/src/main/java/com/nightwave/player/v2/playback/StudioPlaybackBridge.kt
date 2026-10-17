@@ -393,7 +393,9 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
     override fun playPause() {
         try {
             controller?.let {
-                if (it.isPlaying) it.pause()
+                if (it.isPlaying ||
+                    (it.currentMediaItem == null && !state.offline && state.queueIndex >= 0 &&
+                        it.playWhenReady)) it.pause()
                 else if (it.playerError != null) action(PlaybackService.ACTION_RETRY_CURRENT)
                 else if (it.currentMediaItem != null) it.play()
                 else if (state.offline) action(PlaybackService.ACTION_RESUME_OFFLINE)
