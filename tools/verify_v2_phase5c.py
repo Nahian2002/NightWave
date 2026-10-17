@@ -13,8 +13,8 @@ bridge = read(src / "v2/playback/StudioPlaybackBridge.kt")
 store = read(src / "offline/OfflineAudioLibrary.kt")
 tests = read(root / "app/src/test/java/com/nightwave/player/offline/OfflinePlaybackQueueTest.kt")
 
-assert 'versionCode = 26' in gradle
-assert 'versionName = "2.0.0-alpha5j"' in gradle
+assert 'versionCode = 27' in gradle
+assert 'versionName = "2.0.0-alpha5k"' in gradle
 assert 'applicationId = "com.nightwave.player"' in gradle
 
 assert 'EXTRA_OFFLINE_IDS = "offline_ids"' in service

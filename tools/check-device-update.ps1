@@ -10,8 +10,8 @@ $reportPath = Join-Path $dist 'NightWave-device-update-check.txt'
 $apk = Join-Path $dist 'NightWave-debug.apk'
 $status = Join-Path $dist 'NightWave-build-status.txt'
 $buildTools = Join-Path $env:LOCALAPPDATA 'NightWaveBuild\android-sdk\build-tools\35.0.0'
-$versionName = '2.0.0-alpha5j'
-$versionCode = 26
+$versionName = '2.0.0-alpha5k'
+$versionCode = 27
 $packageName = 'com.nightwave.player'
 $checked = 'INCONCLUSIVE'
 $details = 'Device and APK compatibility have not been verified.'
@@ -47,8 +47,8 @@ try {
     if ($summary -notmatch '(?m)^SUCCESS - NightWave Android debug APK locally verified') {
         throw 'The latest local build has not passed its verification gates.'
     }
-    if ($summary -notmatch '(?m)^Version: 2\.0\.0-alpha5i\s*$' -or
-        $summary -notmatch '(?m)^Version code: 26\s*$') {
+    if ($summary -notmatch '(?m)^Version: 2\.0\.0-alpha5k\s*$' -or
+        $summary -notmatch '(?m)^Version code: 27\s*$') {
         throw 'The build status does not identify NightWave Phase 5I.'
     }
     if ($summary -match '(?m)^SHA256: ([0-9A-Fa-f]{64})\s*$') {

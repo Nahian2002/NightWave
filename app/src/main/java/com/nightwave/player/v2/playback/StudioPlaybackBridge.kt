@@ -327,18 +327,38 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
         }
     }
 
+    /**
+     * A controller can disconnect between drawing Play/Seek and the click.
+     * Media3 may then throw synchronously; never let that crash the Activity.
+     * Clear this Activity's stale controller and leave the saved queue intact.
+     */
+    private fun handleControlFailure(operation: String, error: RuntimeException) {
+        Log.w("NightWaveMedia", "Controller " + operation + " failed: " +
+            error.javaClass.simpleName)
+        controller?.let { active -> runCatching { active.removeListener(listener) } }
+        controller = null
+        future?.let { pending -> runCatching { MediaController.releaseFuture(pending) } }
+        future = null
+        state = state.copy(connected = false, playing = false, buffering = false,
+            error = "Playback connection was interrupted. Tap Reconnect.")
+    }
+
     override fun playPause() {
-        controller?.let {
-            if (it.isPlaying) it.pause()
-            else if (it.playerError != null) action(PlaybackService.ACTION_RETRY_CURRENT)
-            else if (it.currentMediaItem != null) it.play()
-            else if (state.offline) action(PlaybackService.ACTION_RESUME_OFFLINE)
-            else if (state.queueIndex >= 0) action(PlaybackService.ACTION_RESUME_SAVED)
-            else state = state.copy(error = "Choose a song to start listening.")
-        } ?: run {
-            if (state.offline) action(PlaybackService.ACTION_RESUME_OFFLINE)
-            else if (state.queueIndex >= 0) action(PlaybackService.ACTION_RESUME_SAVED)
-            else state = state.copy(error = "Player is connecting. Try again.")
+        try {
+            controller?.let {
+                if (it.isPlaying) it.pause()
+                else if (it.playerError != null) action(PlaybackService.ACTION_RETRY_CURRENT)
+                else if (it.currentMediaItem != null) it.play()
+                else if (state.offline) action(PlaybackService.ACTION_RESUME_OFFLINE)
+                else if (state.queueIndex >= 0) action(PlaybackService.ACTION_RESUME_SAVED)
+                else state = state.copy(error = "Choose a song to start listening.")
+            } ?: run {
+                if (state.offline) action(PlaybackService.ACTION_RESUME_OFFLINE)
+                else if (state.queueIndex >= 0) action(PlaybackService.ACTION_RESUME_SAVED)
+                else state = state.copy(error = "Player is connecting. Try again.")
+            }
+        } catch (error: RuntimeException) {
+            handleControlFailure("play/pause", error)
         }
     }
 
@@ -360,10 +380,15 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
     }
 
     override fun seekTo(positionMs: Long) {
-        controller?.let { player ->
-            if (player.duration > 0 && player.duration != C.TIME_UNSET) {
-                player.seekTo(positionMs.coerceIn(0L, player.duration))
+        try {
+            controller?.let { player ->
+                val duration = player.duration
+                if (duration > 0 && duration != C.TIME_UNSET) {
+                    player.seekTo(positionMs.coerceIn(0L, duration))
+                }
             }
+        } catch (error: RuntimeException) {
+            handleControlFailure("seek", error)
         }
     }
 

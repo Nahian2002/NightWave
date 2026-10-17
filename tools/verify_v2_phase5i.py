@@ -20,11 +20,11 @@ service = read("app/src/main/java/com/nightwave/player/playback/PlaybackService.
 offline = read("app/src/main/java/com/nightwave/player/offline/OfflineAudioLibrary.kt")
 bridge = read("app/src/main/java/com/nightwave/player/v2/playback/StudioPlaybackBridge.kt")
 
-assert 'versionCode = 26' in gradle
-assert 'versionName = "2.0.0-alpha5j"' in gradle
+assert 'versionCode = 27' in gradle
+assert 'versionName = "2.0.0-alpha5k"' in gradle
 assert 'applicationId = "com.nightwave.player"' in gradle
-assert "-VersionName '2.0.0-alpha5j' -VersionCode '26'" in builder
-assert 'Verified build 26' in build_launcher
+assert "-VersionName '2.0.0-alpha5k' -VersionCode '27'" in builder
+assert 'Verified build 27' in build_launcher
 assert 'platform-tools' in builder
 assert ":app:testDebugUnitTest :app:assembleDebug" in builder
 assert "Select-String -LiteralPath $buildLog -Pattern '^BUILD SUCCESSFUL'" in builder
@@ -41,8 +41,8 @@ assert ' shell pm path $packageName' in device
 assert ' pull $base[0] $temporaryApk' in device
 assert 'getPackageInfo' not in device  # PackageManager source is not pulled from app data
 assert 'NightWave-build-status.txt' in device
-assert "Version: 2\\.0\\.0-alpha5i" in device
-assert '$versionCode = 26' in device
+assert "Version: 2\\.0\\.0-alpha5k" in device
+assert '$versionCode = 27' in device
 assert 'Get-FileHash -LiteralPath $apk -Algorithm SHA256' in device
 assert 'NightWave-device-update-check.txt' in device
 assert 'No app installation, uninstallation or music-data change occurred.' in device
