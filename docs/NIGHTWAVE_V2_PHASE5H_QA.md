@@ -15,6 +15,7 @@
 
 ## Tests and exact limitations
 
+- The optional `tools/verify_v2_phase5h.py` is a **source-only** consistency check. It is not an APK build or a signature-verification execution.
 - Real JVM behavior checks from prior phases were re-run on this environment: 23 PlayerGesture/Progress rules plus 15 offline session/queue checks **passed**. These are unchanged sources and **do not compile Android UI code**.
 - New source check and signing verifier script were read back and inspected, but **Windows PowerShell runtime and its actual parser are not installed in this environment**. Do not confuse matched strings or balanced braces with successful PowerShell execution.
 - No Android SDK or Gradle distribution is installed in this environment, and downloads are blocked. Therefore **no APK was assembled, no Android JUnit/instrumented suite was run, and no device crash root cause is verified**.
