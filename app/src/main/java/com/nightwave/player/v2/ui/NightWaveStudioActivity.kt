@@ -253,6 +253,8 @@ class NightWaveStudioActivity : ComponentActivity() {
     private var profile by mutableStateOf(ProfileSettings(localId = "pending"))
     private var favorites by mutableStateOf<List<VideoPreview>>(emptyList())
     private var recentlyPlayed by mutableStateOf<List<VideoPreview>>(emptyList())
+    /** Invalidates cached playlist recommendations after edits without renaming playlists. */
+    private var libraryRevision by mutableStateOf(0)
     private var offlineResumeTitle by mutableStateOf<String?>(null)
     private var offlineResumePositionMs by mutableStateOf(0L)
     private var names by mutableStateOf<List<String>>(emptyList())
@@ -286,6 +288,7 @@ class NightWaveStudioActivity : ComponentActivity() {
             NightWaveMaterialTheme(profile.theme) {
                 StudioRoot(
                     profile = profile, favorites = favorites, recent = recentlyPlayed,
+                    libraryRevision = libraryRevision,
                     playlistNames = names, getPlaylist = { name ->
                         if (roomPreviewActive) roomPreviewPlaylists[name] ?: emptyList()
                         else library.playlist(name)
@@ -845,6 +848,7 @@ class NightWaveStudioActivity : ComponentActivity() {
         favorites = library.favorites()
         recentlyPlayed = library.recent()
         names = library.playlistNames()
+        libraryRevision++
         val checkpoint = OfflineSessionStore(this).read()
         val song = checkpoint?.selectedId?.let { id ->
             runCatching { OfflineAudioLibrary(this).find(id) }.getOrNull()
@@ -950,6 +954,7 @@ private fun StudioRoot(
     profile: ProfileSettings,
     favorites: List<VideoPreview>,
     recent: List<VideoPreview>,
+    libraryRevision: Int,
     playlistNames: List<String>,
     getPlaylist: (String) -> List<VideoPreview>,
     onSaveProfile: (ProfileSettings) -> Unit,
@@ -1157,7 +1162,7 @@ private fun StudioRoot(
                     StudioTab.HOME -> StudioHome(
                         modifier = Modifier, profile = profile, recent = recent,
                         favorites = favorites,
-                        playlistTracks = remember(favorites, recent, playlistNames) {
+                        playlistTracks = remember(libraryRevision, playlistNames, roomPreviewActive) {
                             playlistNames.take(25).flatMap(getPlaylist).distinctBy { it.url }.take(350)
                         },
                         playingUrl = playerState.videoUrl.takeIf { playerState.playing }.orEmpty(),
@@ -1185,7 +1190,7 @@ private fun StudioRoot(
                         Modifier, searchState, onPrimarySearch, onSearch, onWebSearch,
                         onPlay, onSongOptions,
                         playerState.videoUrl.takeIf { playerState.playing }.orEmpty(),
-                        savedTracks = remember(favorites, recent, playlistNames) {
+                        savedTracks = remember(libraryRevision, favorites, recent, playlistNames, roomPreviewActive) {
                             (favorites + recent + playlistNames.take(25).flatMap(getPlaylist))
                                 .distinctBy { it.url }
                                 .take(350)
