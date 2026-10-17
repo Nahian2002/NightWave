@@ -12,6 +12,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
@@ -119,8 +120,15 @@ fun StudioMiniPlayer(
     var travel by remember(state.videoUrl) { mutableStateOf(0f) }
     Column(
         modifier = modifier.fillMaxWidth().padding(horizontal = 11.dp, vertical = 3.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(colors.surfaceVariant)
+            .clip(RoundedCornerShape(18.dp))
+            .background(
+                Brush.horizontalGradient(listOf(
+                    NightWaveVisualLanguage.accent(state.videoUrl).copy(alpha = .24f),
+                    colors.surfaceVariant,
+                    colors.surface
+                ))
+            )
+            .border(1.dp, colors.outline.copy(alpha = .17f), RoundedCornerShape(18.dp))
             .pointerInput(state.videoUrl) {
                 detectVerticalDragGestures(
                     onDragStart = { travel = 0f },
@@ -177,7 +185,7 @@ fun StudioMiniPlayer(
             progress = {
                 PlayerProgressRules.fraction(state.positionMs, state.durationMs)
             },
-            modifier = Modifier.fillMaxWidth().height(2.dp),
+            modifier = Modifier.fillMaxWidth().height(3.dp),
             color = colors.primary,
             trackColor = colors.outline.copy(alpha = .28f)
         )
@@ -222,12 +230,13 @@ fun StudioNowPlayingOverlay(
     val exit = if (reduceMotion) ExitTransition.None else slideOutVertically(targetOffsetY = { it }) + fadeOut()
     AnimatedVisibility(visible = expanded, enter = enter, exit = exit) {
         val colors = MaterialTheme.colorScheme
-        val background = Brush.verticalGradient(listOf(
-            colors.primary.copy(alpha = .19f), colors.surfaceVariant,
-            colors.background, colors.background
-        ))
-        BoxWithConstraints(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing).background(background)) {
-            val art = minOf(maxWidth - 76.dp, maxHeight * .34f, 330.dp)
+        BoxWithConstraints(Modifier.fillMaxSize()
+            .windowInsetsPadding(WindowInsets.safeDrawing)
+            .background(colors.background)) {
+            // Deterministic, artwork-keyed ambient light; never crop or blur
+            // remote thumbnails, preserving battery life and privacy.
+            NightWaveBackdrop(state.videoUrl.ifBlank { "nightwave-player" }, Modifier.fillMaxSize())
+            val art = minOf(maxWidth - 64.dp, maxHeight * .36f, 356.dp)
             val canSwipeArtwork = state.connected && !state.buffering && state.queue.size > 1
             var horizontalTravel by remember(state.videoUrl) { mutableStateOf(0f) }
             Column(
@@ -273,7 +282,11 @@ fun StudioNowPlayingOverlay(
                 }
                 Spacer(Modifier.height(8.dp))
                 Box(
-                    Modifier.size(art).clip(RoundedCornerShape(26.dp)).then(
+                    Modifier.size(art).clip(RoundedCornerShape(27.dp))
+                        .background(colors.surfaceVariant)
+                        .border(1.dp,
+                            NightWaveVisualLanguage.accent(state.videoUrl).copy(alpha = .46f),
+                            RoundedCornerShape(27.dp)).then(
                         if (canSwipeArtwork) Modifier.pointerInput(
                             state.videoUrl, state.queue.size, state.connected, state.buffering
                         ) {
@@ -320,11 +333,20 @@ fun StudioNowPlayingOverlay(
                         }
                     }
                 }
-                if (canSwipeArtwork) {
-                    Text("Swipe artwork to change tracks",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = colors.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 9.dp))
+                Row(Modifier.padding(top = 11.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Surface(shape = RoundedCornerShape(9.dp),
+                        color = colors.surfaceVariant) {
+                        Text(if (state.offline) "LOCAL AUDIO" else "PUBLIC VIDEO",
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = colors.onSurfaceVariant)
+                    }
+                    if (canSwipeArtwork) {
+                        Text("Swipe artwork to skip", style = MaterialTheme.typography.labelSmall,
+                            color = colors.onSurfaceVariant)
+                    }
                 }
                 Spacer(Modifier.height(17.dp))
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -376,8 +398,10 @@ fun StudioNowPlayingOverlay(
                         Icon(Icons.Outlined.SkipPrevious, contentDescription = "Previous track",
                             modifier = Modifier.size(34.dp), tint = colors.onBackground)
                     }
-                    Surface(onClick = actions::playPause, color = colors.primary,
-                        shape = CircleShape, modifier = Modifier.size(64.dp)) {
+                    Surface(onClick = actions::playPause,
+                        color = colors.primary,
+                        shadowElevation = if (reduceMotion) 0.dp else 5.dp,
+                        shape = CircleShape, modifier = Modifier.size(68.dp)) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(if (state.playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
                                 contentDescription = if (state.playing) "Pause" else "Play",
@@ -397,10 +421,11 @@ fun StudioNowPlayingOverlay(
                                 colors.onSurfaceVariant else colors.primary)
                     }
                 }
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(18.dp))
                 Surface(
-                    onClick = onOpenQueue, modifier = Modifier.fillMaxWidth().height(54.dp),
-                    shape = RoundedCornerShape(17.dp), color = colors.surface
+                    onClick = onOpenQueue, modifier = Modifier.fillMaxWidth().height(58.dp),
+                    shape = RoundedCornerShape(18.dp), color = colors.surface,
+                    tonalElevation = 2.dp
                 ) {
                     Row(Modifier.fillMaxSize().padding(horizontal = 17.dp),
                         verticalAlignment = Alignment.CenterVertically,
