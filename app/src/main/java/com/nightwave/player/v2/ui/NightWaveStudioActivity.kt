@@ -321,7 +321,8 @@ class NightWaveStudioActivity : ComponentActivity() {
                     onCloudWifi = { enabled ->
                         if (cloudStore.setWifiOnly(enabled)) {
                             refreshCloud()
-                            NightWaveCloudSchedule.update(this)
+                            runCatching { NightWaveCloudSchedule.update(this) }
+                                .onFailure { cloudStore.status("Could not update backup schedule") }
                         }
                     },
                     onSaveProfile = { updated ->
@@ -432,7 +433,14 @@ class NightWaveStudioActivity : ComponentActivity() {
                         cloudPendingAction = ""
                         showMessage("Google could not open account authorization.")
                     } else {
-                        cloudResolution.launch(IntentSenderRequest.Builder(pending.intentSender).build())
+                        runCatching {
+                            cloudResolution.launch(IntentSenderRequest.Builder(pending.intentSender).build())
+                        }.onFailure {
+                            cloudBusy = false
+                            cloudPendingAction = ""
+                            cloudStore.status("Google permission dialog unavailable")
+                            refreshCloud()
+                        }
                     }
                 } else finishCloudAuthorization(response)
             }
@@ -459,7 +467,7 @@ class NightWaveStudioActivity : ComponentActivity() {
         if (action == "connect") {
             cloudBusy = false
             if (cloudStore.connect(account)) {
-                NightWaveCloudSchedule.stop(this)
+                runCatching { NightWaveCloudSchedule.stop(this) }
                 refreshCloud()
                 showMessage("Drive connected. Choose Back up now or Preview restore.")
             } else showMessage("Google account could not be saved.")
@@ -501,7 +509,11 @@ class NightWaveStudioActivity : ComponentActivity() {
             resultTask.onSuccess { preview ->
                 if (action == "backup") {
                     if (cloudStore.success(expectedAccount, System.currentTimeMillis())) {
-                        NightWaveCloudSchedule.update(this@NightWaveStudioActivity)
+                        runCatching {
+                            NightWaveCloudSchedule.update(this@NightWaveStudioActivity)
+                        }.onFailure {
+                            cloudStore.status("Upload verified; backup schedule needs attention")
+                        }
                         refreshCloud()
                         showMessage("Cloud backup uploaded and verified.")
                     } else {
@@ -558,7 +570,7 @@ class NightWaveStudioActivity : ComponentActivity() {
             return
         }
         cloudStore.disconnect()
-        NightWaveCloudSchedule.stop(this)
+        runCatching { NightWaveCloudSchedule.stop(this) }
         refreshCloud()
         showMessage("Disconnected locally. Existing cloud snapshots were not deleted.")
     }
