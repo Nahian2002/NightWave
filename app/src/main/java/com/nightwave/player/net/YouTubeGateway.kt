@@ -134,24 +134,8 @@ class YouTubeGateway {
         return parsed to report
     }
 
-    private fun sortMusicMatches(videos: List<VideoPreview>, query: String): List<VideoPreview> {
-        val lowerQuery = query.lowercase(java.util.Locale.ROOT)
-        val terms = lowerQuery.split(Regex("\\s+")).filter { it.length > 1 }
-        fun score(item: VideoPreview): Int {
-            val title = item.title.lowercase(java.util.Locale.ROOT)
-            val author = item.author.lowercase(java.util.Locale.ROOT)
-            var rank = terms.count { title.contains(it) } * 7 + terms.count { author.contains(it) } * 3
-            if (title.contains(lowerQuery)) rank += 35
-            if (title.contains("official audio") || title.contains("official music video")) rank += 7
-            if (title.contains("lyrics") || title.contains("lyric video")) rank += 2
-            if (item.durationSeconds in 90..660) rank += 4
-            if (title.contains("reaction") || title.contains("tutorial") || title.contains("review")) rank -= 8
-            return rank
-        }
-        return videos.withIndex().sortedWith(
-            compareByDescending<IndexedValue<VideoPreview>> { score(it.value) }.thenBy { it.index }
-        ).map { it.value }
-    }
+    private fun sortMusicMatches(videos: List<VideoPreview>, query: String): List<VideoPreview> =
+        SearchRelevancePolicy.rankPublic(query, videos)
 
     fun resolve(url: String): PlayableAudio {
         val canonical = VideoLink.normalize(url) ?: throw IllegalArgumentException("Not a supported YouTube video link")
