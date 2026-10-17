@@ -24,6 +24,7 @@ import com.nightwave.player.library.MusicLibrary
 import com.nightwave.player.net.YouTubeGateway
 import com.nightwave.player.offline.OfflineAudioLibrary
 import com.nightwave.player.offline.OfflinePlaybackQueue
+import com.nightwave.player.offline.OfflineSessionStore
 import com.nightwave.player.ui.MainActivity
 import java.util.concurrent.Executors
 
@@ -35,6 +36,8 @@ class PlaybackService : MediaSessionService() {
         const val ACTION_RESUME_SAVED = "com.nightwave.player.RESUME_SAVED"
         const val ACTION_RETRY_CURRENT = "com.nightwave.player.RETRY_CURRENT"
         const val ACTION_PLAY_OFFLINE = "com.nightwave.player.PLAY_OFFLINE"
+        const val ACTION_RESUME_OFFLINE = "com.nightwave.player.RESUME_OFFLINE"
+        const val ACTION_JUMP_OFFLINE = "com.nightwave.player.JUMP_OFFLINE"
         const val EXTRA_OFFLINE_ID = "offline_id"
         const val EXTRA_OFFLINE_IDS = "offline_ids"
         /** Atomic queue assignment followed by a single play request for the v2 interface. */
@@ -62,6 +65,7 @@ class PlaybackService : MediaSessionService() {
     private var generation = 0
     private var offlinePlaying = false
     private val offlineQueue = OfflinePlaybackQueue()
+    private lateinit var offlineSession: OfflineSessionStore
     private var autoRetriedVideo: String? = null
     private val progressWriter = object : Runnable {
         override fun run() {
@@ -72,9 +76,16 @@ class PlaybackService : MediaSessionService() {
         }
     }
 
-    private fun persistProgress() {
+    private fun persistProgress(flush: Boolean = false) {
         val player = exoPlayer ?: return
         val url = player.currentMediaItem?.mediaId ?: return
+        if (offlinePlaying && url.startsWith("offline:")) {
+            if (::offlineSession.isInitialized) runCatching {
+                offlineSession.savePosition(url.removePrefix("offline:"),
+                    player.currentPosition.coerceAtLeast(0L), flush)
+            }
+            return
+        }
         if (!::savedQueue.isInitialized || !url.startsWith("https://www.youtube.com/watch?v=")) return
         val duration = player.duration.takeIf { it != C.TIME_UNSET && it > 0L } ?: 0L
         // A corrupt preference must never terminate the background playback service.
@@ -87,7 +98,7 @@ class PlaybackService : MediaSessionService() {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             main.removeCallbacks(progressWriter)
             if (isPlaying) main.postDelayed(progressWriter, 2500L)
-            else persistProgress()
+            else persistProgress(flush = true)
         }
 
         override fun onPlaybackStateChanged(state: Int) {
@@ -95,7 +106,13 @@ class PlaybackService : MediaSessionService() {
                 // Switching Media3 items inside a Player callback is unsafe on
                 // some devices; post the guarded transition onto the main loop.
                 main.post {
-                    if (exoPlayer?.playbackState == Player.STATE_ENDED) playNext(true)
+                    if (exoPlayer?.playbackState == Player.STATE_ENDED) {
+                        if (offlinePlaying) {
+                            if (!advanceOffline(forward = true)) {
+                                offlineQueue.current?.let { offlineSession.savePosition(it, 0L, flush = true) }
+                            }
+                        } else playNext(true)
+                    }
                 }
             }
         }
@@ -133,7 +150,10 @@ class PlaybackService : MediaSessionService() {
     override fun onCreate() {
         super.onCreate()
         savedQueue = QueueStateStore(this)
+        offlineSession = OfflineSessionStore(this)
         savedQueue.restore(queue)
+        // Do NOT play, seek, or access any offline file on service creation.
+        // The user must request ACTION_RESUME_OFFLINE explicitly.
         val networkSource = DefaultHttpDataSource.Factory()
             .setUserAgent("Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 Chrome/121.0 Mobile Safari/537.36")
             .setAllowCrossProtocolRedirects(true)
@@ -229,10 +249,15 @@ class PlaybackService : MediaSessionService() {
                     .orEmpty().filter { it in ownedIds }
                 val candidates = if (submitted.isEmpty()) listOf(id).filter { it in ownedIds }
                     else submitted
-                if (offlineQueue.select(candidates, id) != null &&
-                    !playOfflineId(id, localLibrary)) {
-                    advanceOffline(forward = true)
+                if (offlineQueue.select(candidates, id) != null) {
+                    if (!playOfflineId(id, localLibrary)) advanceOffline(forward = true)
                 }
+            }
+            ACTION_RESUME_OFFLINE -> resumeOfflineSession()
+            ACTION_JUMP_OFFLINE -> if (offlinePlaying) {
+                val index = intent.getIntExtra(EXTRA_INDEX, -1)
+                val next = offlineQueue.jump(index)
+                if (next != null) playOfflineId(next)
             }
             ACTION_RESUME_SAVED -> resumeSavedQueue()
             ACTION_RETRY_CURRENT -> retryCurrent()
@@ -279,8 +304,24 @@ class PlaybackService : MediaSessionService() {
         }
     }
 
-    /** Offline IDs are transient; never write them into public-video bookmarks. */
-    private fun playOfflineId(id: String, localLibrary: OfflineAudioLibrary = OfflineAudioLibrary(this)): Boolean {
+    /** Explicit restoration only: validate every ID against the current file index. */
+    private fun resumeOfflineSession() {
+        val saved = offlineSession.read() ?: return
+        val localLibrary = OfflineAudioLibrary(this)
+        val known = runCatching { localLibrary.songs().map { it.id }.toSet() }
+            .getOrDefault(emptySet())
+        val candidates = saved.ids.filter { it in known }
+        if (offlineQueue.select(candidates, saved.selectedId) == null) return
+        if (!playOfflineId(saved.selectedId, localLibrary, saved.positionMs)) {
+            advanceOffline(forward = true)
+        }
+    }
+
+    /** Offline IDs are bounded; never write them into public-video bookmarks. */
+    private fun playOfflineId(
+        id: String, localLibrary: OfflineAudioLibrary = OfflineAudioLibrary(this),
+        resumePositionMs: Long = 0L
+    ): Boolean {
         val song = runCatching { localLibrary.find(id) }.getOrNull() ?: return false
         val file = localLibrary.fileFor(song) ?: return false
         val player = exoPlayer ?: return false
@@ -289,6 +330,10 @@ class PlaybackService : MediaSessionService() {
             .setMediaMetadata(MediaMetadata.Builder()
                 .setTitle(song.title).setArtist("Offline · NightWave").build())
             .build()
+        if (!offlineSession.saveSelection(offlineQueue.snapshot(), id, resumePositionMs)) {
+            // Playback may still proceed, but no false promise of durable resume.
+            Log.w("NightWavePlayback", "Could not save offline listening checkpoint")
+        }
         offlinePlaying = true
         generation++ // Cancel unresolved online audio from a previous song.
         autoRetriedVideo = null
@@ -297,6 +342,7 @@ class PlaybackService : MediaSessionService() {
             setMediaItem(item)
             playWhenReady = true
             prepare()
+            if (resumePositionMs > 0L) seekTo(resumePositionMs)
             play()
         }
         return true
@@ -326,6 +372,9 @@ class PlaybackService : MediaSessionService() {
         if (player != null && player.currentPosition > 3_000L &&
             (offlinePlaying || player.currentMediaItem?.mediaId == queue.current?.url)) {
             player.seekTo(0L)
+            if (offlinePlaying) offlineQueue.current?.let {
+                offlineSession.savePosition(it, 0L, flush = true)
+            }
             if (!offlinePlaying) queue.current?.let {
                 savedQueue.saveBookmark(it.url, 0L,
                     player.duration.takeIf { duration -> duration > 0L && duration != C.TIME_UNSET } ?: 0L)
@@ -333,7 +382,10 @@ class PlaybackService : MediaSessionService() {
             return
         }
         if (offlinePlaying) {
-            if (!advanceOffline(forward = false)) player?.seekTo(0L)
+            if (!advanceOffline(forward = false)) {
+                player?.seekTo(0L)
+                offlineQueue.current?.let { offlineSession.savePosition(it, 0L, flush = true) }
+            }
             return
         }
         queue.previous()?.let { savedQueue.save(queue); resolveAndPlay(it) }
@@ -398,7 +450,7 @@ class PlaybackService : MediaSessionService() {
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = mediaSession
 
     override fun onDestroy() {
-        persistProgress()
+        persistProgress(flush = true)
         main.removeCallbacks(progressWriter)
         generation++
         resolver.shutdownNow()
