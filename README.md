@@ -1,5 +1,22 @@
 # NightWave
 
+## Phase 6A — Cinematic UI & Visual System (draft)
+
+**Branch:** `feature/nightwave-v2-phase6a-cinematic-ui-system` — stacked on 5Z, keeping the existing service, 5Y mixes, 5U cloud and local audio. **Source only; Android/phone testing deferred**. Stable `main` stays untouched, current app package/code identity unchanged.
+
+[Phase 6A source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase6a-cinematic-ui-system.zip) · [Full 6A visual QA & device review](docs/NIGHTWAVE_V2_PHASE6A_QA.md)
+
+- **New visual language:** static GPU-light, song-identity-based ambient backgrounds; coherent typography, editorial mix cards, richer mood tiles and accessible real artwork fallbacks. No fabricated songs or licensed stock images.
+- **Home rebuilt:** real liked/recent counts, personal greeting, bold section hierarchy, safe cropped-cover fix, enhanced curated/local mix surfaces. Mood shortcuts still navigate to search.
+- **Search streamlined:** field-first layout, clear action, contextual presets beneath the form, restored saved-library matching, and compact optional online-provider recovery.
+- **Library streamlined:** dashboard counts, revised collection and track rows, search/filter clear control and Saved order / Title / Artist sorts that never rewrite the underlying playlist.
+- **Compact, meaningful navigation:** a single active rounded capsule, nonactive icon buttons, original semantic tags and pager/Back/swipe behavior, reduced motion support and improved Settings touch target.
+- **Now Playing and mini-player:** subtle artwork-keyed ambient light, refined layering, visible local/public audio provenance, clearer queue affordance, revised progress and larger primary control; gestures and stream service unchanged.
+- **You:** cohesive identity panel and truthful cloud/local status without disturbing optional backup, restore and manual merge controls.
+- **Deferred QA:** source guard `tools/verify_v2_phase6a.py` and workflow handoff authored for later. **No verified APK, device screenshots, Compose compile, accessibility audit or Google OAuth check yet.** Do not distribute to users until those checks pass.
+
+---
+
 ## Phase 5Z — Cross-device library comparison & safe merge (draft)
 
 **Branch:** `feature/nightwave-v2-phase5z-safe-cross-device-merge` — built on Phase 5Y/5U. Stable `main` untouched; APK and OAuth verification deferred as requested. No app-ID, version-code, signer or user music-file changes.
