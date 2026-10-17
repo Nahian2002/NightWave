@@ -1,5 +1,21 @@
 # NightWave
 
+## NightWave 2.0 Alpha 5G — Reliability and verifiable builds
+
+**Version:** `2.0.0-alpha5g` (code 23). **Draft branch:** `feature/nightwave-v2-phase5g-reliability-diagnostics`.
+
+[Download complete Phase 5G source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase5g-reliability-diagnostics.zip) · [Phase 5G QA / startup and crash checklist](docs/NIGHTWAVE_V2_PHASE5G_QA.md)
+
+- Media3 controllers now recover from failed connections, report session disconnection, and expose manual Reconnect instead of becoming permanently stuck.
+- Startup no longer depends on successful public-video extractor initialization or the optional Room/DataStore preview; the original library and offline music remain untouched.
+- Privacy-minimal in-app crash summaries include the installed app version, making old and new failures easier to distinguish.
+- The free **Windows local builder** retains its previous working APK separately, generates a failure summary for caught preparation errors, and publishes a fresh APK only after Gradle reports BUILD SUCCESSFUL and Android Build Tools verify `com.nightwave.player` / versionCode `23`. The status and SHA-256 appear in `dist/NightWave-build-status.txt`.
+- Previous Alpha 5F player visuals/gestures and Phase 5D offline resume are retained.
+
+**Verification:** Source wiring checks and new `tools/verify_v2_phase5g.py` were added. **Actual Windows PowerShell, Android Gradle/JUnit, emulator and phone tests have not been executed in this environment.** The original Android frequent-crash cause is not yet diagnosed; use **Diagnostics · Share recent crash summary** in classic Home or the USB log script for actionable evidence. Leave this PR DRAFT until tested. Do not uninstall or clear NightWave's existing data.
+
+---
+
 ## NightWave 2.0 Alpha 5F — Immersive player motion
 
 **Version:** `2.0.0-alpha5f` (code 22). **Branch:** `feature/nightwave-v2-phase5f-player-motion` (draft).

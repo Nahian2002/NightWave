@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import androidx.annotation.MainThread
 import androidx.media3.common.C
 import androidx.media3.common.Player
@@ -71,28 +72,61 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
     private var ticking = false
     private var cachedOfflineIds: List<String> = emptyList()
     private var cachedOfflineQueue: List<VideoPreview> = emptyList()
+    /** Media3 notifies us when Android kills/restarts the session process. */
+    private val controllerListener = object : MediaController.Listener {
+        override fun onDisconnected(disconnected: MediaController) {
+            // This callback also runs during a normal release. Never resurrect
+            // an Activity that has already been destroyed.
+            if (released || controller !== disconnected) return
+            controller = null
+            future = null
+            state = state.copy(
+                connected = false, playing = false, buffering = false,
+                error = "Music service disconnected. Tap Reconnect."
+            )
+        }
+    }
+
     private val listener = object : Player.Listener {
-        override fun onEvents(player: Player, events: Player.Events) = updateFromPlayer(player)
+        override fun onEvents(player: Player, events: Player.Events) {
+            try {
+                updateFromPlayer(player)
+            } catch (error: Exception) {
+                Log.w("NightWaveMedia", "Player state refresh unavailable: " +
+                    error.javaClass.simpleName)
+                state = state.copy(error = "Player state refresh failed. Tap Reconnect.")
+            }
+        }
     }
     private val ticker = object : Runnable {
         override fun run() {
             if (released || !ticking) return
-            controller?.let { updateFromPlayer(it) }
+            controller?.let {
+                try {
+                    updateFromPlayer(it)
+                } catch (error: Exception) {
+                    Log.w("NightWaveMedia", "Playback UI tick failed: " +
+                        error.javaClass.simpleName)
+                    state = state.copy(error = "Player state could not be updated.")
+                }
+            }
             main.postDelayed(this, 750L)
         }
     }
 
     @MainThread
     fun connect() {
-        if (released || future != null) return
+        if (released || future != null || controller != null) return
         try {
             val token = SessionToken(context, ComponentName(context, PlaybackService::class.java))
-            val pending = MediaController.Builder(context, token).buildAsync()
+            val pending = MediaController.Builder(context, token)
+                .setListener(controllerListener)
+                .buildAsync()
             future = pending
             pending.addListener({
-                if (released) {
-                    return@addListener
-                }
+                // An outdated or released controller must never be published
+                // over the new Activity's active session.
+                if (released || future !== pending) return@addListener
                 try {
                     val resolved = pending.get()
                     controller = resolved
@@ -100,17 +134,33 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
                     refreshQueue()
                     updateFromPlayer(resolved)
                 } catch (error: Exception) {
-                    state = state.copy(connected = false, error = "Can't connect to the music service.")
+                    // Previous versions retained a failed future forever:
+                    // subsequent UI resume could never connect again.
+                    Log.w("NightWaveMedia", "Media controller unavailable: " +
+                        error.javaClass.simpleName)
+                    future = null
+                    controller = null
+                    runCatching { MediaController.releaseFuture(pending) }
+                    state = state.copy(connected = false,
+                        error = "Music service disconnected. Tap Reconnect.")
                 }
             }, androidx.core.content.ContextCompat.getMainExecutor(context))
         } catch (error: Exception) {
-            state = state.copy(connected = false, error = "Music service connection failed.")
+            future = null
+            controller = null
+            Log.w("NightWaveMedia", "Controller setup failed: " +
+                error.javaClass.simpleName)
+            state = state.copy(connected = false,
+                error = "Music service connection failed. Tap Reconnect.")
         }
     }
 
     @MainThread
     fun resumeUiUpdates() {
-        if (released || ticking) return
+        if (released) return
+        // One bounded attempt on foreground re-entry, never a reconnect loop.
+        if (controller == null && future == null) connect()
+        if (ticking) return
         ticking = true
         main.post(ticker)
     }
@@ -254,7 +304,10 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
         }
     }
 
-    override fun retry() = action(PlaybackService.ACTION_RETRY_CURRENT)
+    override fun retry() {
+        if (!state.connected) connect()
+        else action(PlaybackService.ACTION_RETRY_CURRENT)
+    }
     override fun next() = action(PlaybackService.ACTION_NEXT)
     override fun previous() = action(PlaybackService.ACTION_PREVIOUS)
     override fun jumpTo(index: Int) = action(

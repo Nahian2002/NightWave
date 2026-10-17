@@ -21,7 +21,12 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0tools\build-window
 set "BUILD_EXIT=%ERRORLEVEL%"
 echo.
 if not "%BUILD_EXIT%"=="0" (
-  echo BUILD FAILED. No APK was produced.
+  echo BUILD FAILED. No new APK was verified.
+  echo An earlier successful APK, if present, was preserved as:
+  echo   dist\NightWave-debug-previous.apk
+  if exist "%~dp0dist\NightWave-build-status.txt" (
+    echo Build status: %~dp0dist\NightWave-build-status.txt
+  )
   if exist "%~dp0dist\NightWave-build-errors.txt" (
     echo.
     echo Error report: %~dp0dist\NightWave-build-errors.txt
@@ -32,7 +37,8 @@ if not "%BUILD_EXIT%"=="0" (
     echo Please share the earliest red error above.
   )
 ) else (
-  echo BUILD SUCCESS. See dist\NightWave-debug.apk
+  echo BUILD SUCCESS. Verified build 23: dist\NightWave-debug.apk
+  echo See dist\NightWave-build-status.txt for version and SHA256.
 )
 echo.
 pause

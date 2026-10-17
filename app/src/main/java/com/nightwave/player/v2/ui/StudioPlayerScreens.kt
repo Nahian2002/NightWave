@@ -399,7 +399,9 @@ fun StudioNowPlayingOverlay(
                 }
                 state.error?.takeIf { it.isNotBlank() }?.let { message ->
                     Text(message, style = MaterialTheme.typography.bodyMedium, color = colors.error)
-                    Button(onClick = actions::retry) { Text("Retry playback") }
+                    Button(onClick = actions::retry) {
+                        Text(if (state.connected) "Retry playback" else "Reconnect player")
+                    }
                 }
                 Spacer(Modifier.height(32.dp))
             }

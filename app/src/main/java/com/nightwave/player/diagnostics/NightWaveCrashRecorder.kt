@@ -64,8 +64,12 @@ object NightWaveCrashRecorder {
     fun report(context: Context): String = try {
         val saved = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .getString(KEY, "").orEmpty()
-        if (saved.isBlank()) "NightWave: no locally recorded fatal exceptions yet."
-        else "NightWave local crash summary:\n\n" + saved
+        val installedVersion = runCatching {
+            context.packageManager.getPackageInfo(context.packageName, 0).versionName
+        }.getOrNull()?.take(48) ?: "unknown"
+        if (saved.isBlank()) "NightWave " + installedVersion +
+            ": no locally recorded fatal exceptions yet."
+        else "NightWave " + installedVersion + " local crash summary:\n\n" + saved
     } catch (_: Exception) {
         "NightWave: unable to read local crash summary."
     }

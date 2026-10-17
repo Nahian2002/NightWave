@@ -206,9 +206,18 @@ class NightWaveStudioActivity : ComponentActivity() {
         library = MusicLibrary(this)
         playback = StudioPlaybackBridge(this)
         archiveManager = LibraryArchiveManager(this)
-        roomShadow = RoomShadowMigrator(this, NightWaveDatabase.get(this))
-        verifiedReader = VerifiedRoomReader(this, NightWaveDatabase.get(this))
-        profileShadow = ProfileDataStoreMirror(this)
+        // Room/DataStore are read-only previews at this phase. A failure
+        // opening the optional shadow must not take down the classic library
+        // or the premium player on app launch.
+        try {
+            val database = NightWaveDatabase.get(this)
+            roomShadow = RoomShadowMigrator(this, database)
+            verifiedReader = VerifiedRoomReader(this, database)
+            profileShadow = ProfileDataStoreMirror(this)
+        } catch (error: Exception) {
+            shadowStatus = "Optional storage preview unavailable; original library retained."
+            roomReadStatus = "Original library reads remain active."
+        }
         profile = profiles.load()
         refresh()
         setContent {
@@ -329,7 +338,8 @@ class NightWaveStudioActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         if (::library.isInitialized) refresh()
-        if (::roomShadow.isInitialized) refreshShadows()
+        if (::roomShadow.isInitialized && ::profileShadow.isInitialized &&
+            ::verifiedReader.isInitialized) refreshShadows()
     }
 
     private fun saveCurrentToPlaylist() {
@@ -481,7 +491,12 @@ class NightWaveStudioActivity : ComponentActivity() {
     }
 
     private fun refreshShadows() {
-        if (!::roomShadow.isInitialized || !::profileShadow.isInitialized) return
+        if (!::roomShadow.isInitialized || !::profileShadow.isInitialized ||
+            !::verifiedReader.isInitialized) {
+            roomPreviewRequested = false
+            roomReadStatus = "Storage preview unavailable; NightWave is using your original library."
+            return
+        }
         if (shadowRunning) {
             shadowRequested = true
             return
@@ -613,7 +628,8 @@ private fun StudioRoot(
         },
         bottomBar = {
             Column {
-                if (!playerState.error.isNullOrBlank() && playerState.hasTrack) {
+                if (!playerState.error.isNullOrBlank() &&
+                    (playerState.hasTrack || !playerState.connected)) {
                     Surface(color = MaterialTheme.colorScheme.surfaceVariant,
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth()
@@ -627,7 +643,7 @@ private fun StudioRoot(
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.error)
                             OutlinedButton(onClick = { playerActions.retry() }) {
-                                Text("Retry")
+                                Text(if (!playerState.connected) "Reconnect" else "Retry")
                             }
                         }
                     }

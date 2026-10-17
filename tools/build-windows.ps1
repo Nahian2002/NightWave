@@ -64,15 +64,35 @@ function Resolve-Java {
     Set-Java $jdkExe.FullName
 }
 
+# Build-state files are written even if Java, Gradle or Android SDK setup fails.
+# A stale success APK is archived rather than accidentally delivered as new.
+$project = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+$outDir = Join-Path $project 'dist'
+$buildLog = Join-Path $outDir 'NightWave-build-full.log'
+$errorReport = Join-Path $outDir 'NightWave-build-errors.txt'
+$statusFile = Join-Path $outDir 'NightWave-build-status.txt'
+$output = Join-Path $outDir 'NightWave-debug.apk'
+$previousApk = Join-Path $outDir 'NightWave-debug-previous.apk'
+$stage = 'Preflight'
+New-Item -ItemType Directory -Path $outDir -Force | Out-Null
+if (Test-Path -LiteralPath $errorReport) { Remove-Item -LiteralPath $errorReport -Force }
+'STARTED - not a verified build. Do not install an old APK.' |
+    Set-Content -LiteralPath $statusFile -Encoding UTF8
 try {
     if (-not [Environment]::Is64BitOperatingSystem) { throw '64-bit Windows is required.' }
-    $project = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
     $script:cache = Join-Path $env:LOCALAPPDATA 'NightWaveBuild'
     New-Item -ItemType Directory -Path $script:cache -Force | Out-Null
+    if (Test-Path -LiteralPath $output) {
+        Copy-Item -LiteralPath $output -Destination $previousApk -Force
+        Remove-Item -LiteralPath $output -Force
+        Say "Previous APK preserved as $previousApk"
+    }
     Say 'No GitHub billing or payment method is required.'
     Say 'The first build downloads official build tools and may take time and several GB of disk space.'
+    $stage = 'Java preparation'
     Resolve-Java
 
+    $stage = 'Gradle preparation'
     $gradleDir = Join-Path $script:cache 'gradle-8.11.1'
     $gradleBat = Join-Path $gradleDir 'bin\gradle.bat'
     if (-not (Test-Path -LiteralPath $gradleBat)) {
@@ -90,6 +110,7 @@ try {
     }
     if (-not (Test-Path -LiteralPath $gradleBat)) { throw 'Gradle executable missing after installation.' }
 
+    $stage = 'Android SDK preparation'
     $sdk = Join-Path $script:cache 'android-sdk'
     $sdkmanager = Join-Path $sdk 'cmdline-tools\latest\bin\sdkmanager.bat'
     if (-not (Test-Path -LiteralPath $sdkmanager)) {
@@ -116,15 +137,9 @@ try {
     & $sdkmanager "--sdk_root=$sdk" 'platforms;android-35' 'build-tools;35.0.0'
     if ($LASTEXITCODE -ne 0) { throw 'Android SDK package installation failed.' }
 
+    $stage = 'Gradle compile / unit tests'
     Say 'Running Android unit tests and compiling the debug APK'
-    # Always preserve the complete Gradle output and provide a small error report.
-    $outDir = Join-Path $project 'dist'
-    New-Item -ItemType Directory -Path $outDir -Force | Out-Null
-    $buildLog = Join-Path $outDir 'NightWave-build-full.log'
-    $errorReport = Join-Path $outDir 'NightWave-build-errors.txt'
-    if (Test-Path -LiteralPath $errorReport) {
-        Remove-Item -LiteralPath $errorReport -Force
-    }
+    # The complete Gradle output is retained; preflight failures also get a report.
     Say "Saving build output to $buildLog"
 
     Push-Location $project
@@ -139,7 +154,12 @@ try {
             $ErrorActionPreference = $previousErrorPreference
         }
 
-        if ($gradleResult -ne 0) {
+        # A zero exit code without Gradle's terminal success marker is not
+        # enough to publish a possibly stale APK from another checkout.
+        $gradleSucceeded = ($gradleResult -eq 0) -and [bool](
+            Select-String -LiteralPath $buildLog -Pattern '^BUILD SUCCESSFUL' -Quiet
+        )
+        if (-not $gradleSucceeded) {
             $patterns = @(
                 '^e:\s',
                 '(^|\s)error:\s',
@@ -186,17 +206,56 @@ try {
         Pop-Location
     }
 
+    $stage = 'APK verification'
     $apk = Join-Path $project 'app\build\outputs\apk\debug\app-debug.apk'
     if (-not (Test-Path -LiteralPath $apk)) {
         throw 'Gradle exited successfully but the debug APK was not found.'
     }
-    $output = Join-Path $outDir 'NightWave-debug.apk'
+    # Confirm Android actually packaged the correct ID and incremented version,
+    # rather than copying a build left by an older checkout.
+    $aapt = Join-Path $sdk 'build-tools\35.0.0\aapt.exe'
+    if (-not (Test-Path -LiteralPath $aapt)) {
+        throw 'Android aapt.exe missing; cannot validate the APK identity.'
+    }
+    $badging = (& $aapt dump badging $apk 2>&1 | Out-String)
+    if ($LASTEXITCODE -ne 0 -or
+        $badging -notmatch "package: name='com\.nightwave\.player' versionCode='23' versionName='2\.0\.0-alpha5g'") {
+        throw 'APK package/version does not match NightWave Alpha 5G, build 23.'
+    }
     Copy-Item -LiteralPath $apk -Destination $output -Force
+    $hash = (Get-FileHash -LiteralPath $output -Algorithm SHA256).Hash
+    @(
+        'SUCCESS - NightWave Android debug APK verified',
+        'Package: com.nightwave.player',
+        'Version: 2.0.0-alpha5g',
+        'Version code: 23',
+        "SHA256: $hash",
+        "APK: $output"
+    ) | Set-Content -LiteralPath $statusFile -Encoding UTF8
     Say 'BUILD SUCCESS'
     Say "APK: $output"
-    Write-Host "SHA256: $((Get-FileHash -LiteralPath $output -Algorithm SHA256).Hash)"
+    Write-Host "SHA256: $hash"
     exit 0
 } catch {
-    Write-Host "[NightWave] BUILD FAILED: $($_.Exception.Message)" -ForegroundColor Red
+    $reason = $_.Exception.Message
+    # Preflight failures previously had no errors.txt, causing the user to
+    # repeatedly upload stale logs from an older build.
+    if (-not (Test-Path -LiteralPath $errorReport)) {
+        @(
+            'NightWave build failure - diagnostic summary',
+            "Stage: $stage",
+            "Reason: $reason",
+            'No Android APK was verified or published by this build.'
+        ) | Set-Content -LiteralPath $errorReport -Encoding UTF8
+    }
+    @(
+        'FAILED - do not install dist\NightWave-debug.apk from this attempt.',
+        "Stage: $stage",
+        "Reason: $reason",
+        "Diagnostic: $errorReport",
+        "Previous verified copy, if present: $previousApk"
+    ) | Set-Content -LiteralPath $statusFile -Encoding UTF8
+    Write-Host "[NightWave] BUILD FAILED ($stage): $reason" -ForegroundColor Red
+    Write-Host "Diagnostics: $errorReport" -ForegroundColor Yellow
     exit 1
 }
