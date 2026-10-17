@@ -134,6 +134,10 @@ import com.nightwave.player.v2.data.room.RoomShadowMigrator
 import com.nightwave.player.v2.data.room.VerifiedRoomReader
 import com.nightwave.player.v2.playback.StudioPlaybackBridge
 import com.nightwave.player.v2.playback.StudioPlayerState
+import com.nightwave.player.v2.playback.SpotlightResumePolicy
+import com.nightwave.player.v2.playback.SpotlightAction
+import com.nightwave.player.v2.recommendation.PersonalMixEngine
+import com.nightwave.player.v2.recommendation.PersonalMix
 import com.nightwave.player.v2.model.MotionPreference
 import com.nightwave.player.v2.model.NightWaveTheme
 import com.nightwave.player.v2.model.ProfileSettings
@@ -1153,10 +1157,26 @@ private fun StudioRoot(
                     StudioTab.HOME -> StudioHome(
                         modifier = Modifier, profile = profile, recent = recent,
                         favorites = favorites,
+                        playlistTracks = remember(favorites, recent, playlistNames) {
+                            playlistNames.take(25).flatMap(getPlaylist).distinctBy { it.url }.take(350)
+                        },
                         playingUrl = playerState.videoUrl.takeIf { playerState.playing }.orEmpty(),
                         onSearch = { query ->
                             onPrepareSearch(query, SearchMode.SONGS)
                             navigateToTab(StudioTab.SEARCH)
+                        },
+                        onResumeSpotlight = { song, collection ->
+                            when (SpotlightResumePolicy.choose(
+                                tappedUrl = song.url, currentUrl = playerState.videoUrl,
+                                currentQueueIndex = playerState.queueIndex, offline = playerState.offline,
+                                playing = playerState.playing, buffering = playerState.buffering,
+                                hasError = playerState.error != null
+                            )) {
+                                SpotlightAction.KEEP_CURRENT -> Unit
+                                SpotlightAction.RESUME_CURRENT -> playerActions.playPause()
+                                SpotlightAction.RETRY_CURRENT -> playerActions.retry()
+                                SpotlightAction.START_SELECTED -> onPlay(song, collection)
+                            }
                         },
                         onPlay = onPlay, onSongOptions = onSongOptions,
                         openLibrary = { navigateToTab(StudioTab.LIBRARY) }
@@ -1236,10 +1256,18 @@ private fun StudioRoot(
 @Composable
 private fun StudioHome(
     modifier: Modifier, profile: ProfileSettings, recent: List<VideoPreview>,
-    favorites: List<VideoPreview>, playingUrl: String, onSearch: (String) -> Unit,
+    favorites: List<VideoPreview>, playlistTracks: List<VideoPreview>,
+    playingUrl: String, onSearch: (String) -> Unit,
+    onResumeSpotlight: (VideoPreview, List<VideoPreview>) -> Unit,
     onPlay: (VideoPreview, List<VideoPreview>) -> Unit,
     onSongOptions: (VideoPreview) -> Unit, openLibrary: () -> Unit
 ) {
+    val dayNumber = java.time.LocalDate.now().toEpochDay()
+    val mixes = remember(favorites, recent, playlistTracks, dayNumber) {
+        PersonalMixEngine.make(favorites, recent, playlistTracks, dayNumber)
+    }
+    var chosenMixKey by rememberSaveable { mutableStateOf<String?>(null) }
+    val chosenMix = mixes.firstOrNull { it.key == chosenMixKey }
     val palettes = listOf(
         listOf(Color(0xFF423163), Color(0xFF242B57)),
         listOf(Color(0xFF164F58), Color(0xFF19334D)),
@@ -1260,9 +1288,59 @@ private fun StudioHome(
         item {
             ListeningSpotlight(
                 lastTrack = recent.firstOrNull(),
-                onResume = { recent.firstOrNull()?.let { onPlay(it, recent) } },
+                onResume = { recent.firstOrNull()?.let { onResumeSpotlight(it, recent) } },
                 onDiscover = { onSearch("night drive music") }
             )
+        }
+        if (mixes.isNotEmpty()) {
+            item {
+                SectionHeading("Made for your listening",
+                    "Real tracks from your favorites, history and playlists · on-device")
+            }
+            mixes.chunked(2).forEachIndexed { row, pair ->
+                item(key = "personal-mix-$row") {
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        pair.forEach { mix ->
+                            Card(
+                                onClick = {
+                                    chosenMixKey = if (chosenMixKey == mix.key) null else mix.key
+                                },
+                                modifier = Modifier.weight(1f).height(126.dp),
+                                shape = RoundedCornerShape(18.dp)
+                            ) {
+                                Column(Modifier.fillMaxSize().padding(12.dp),
+                                    verticalArrangement = Arrangement.SpaceBetween) {
+                                    Icon(Icons.Outlined.AutoAwesome, contentDescription = null,
+                                        modifier = Modifier.size(19.dp),
+                                        tint = MaterialTheme.colorScheme.primary)
+                                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                        Text(mix.title, style = MaterialTheme.typography.titleSmall,
+                                            maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                        Text("${mix.tracks.size} saved tracks · " +
+                                            if (chosenMixKey == mix.key) "Hide" else "View",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (chosenMix != null) {
+                item(key = "mix-explanation") {
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(chosenMix.description, style = MaterialTheme.typography.titleSmall)
+                        Text(chosenMix.reason, style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+                items(chosenMix.tracks.take(6), key = { "mix:" + it.url }) { song ->
+                    MusicTrackTile(song, isPlaying = playingUrl == song.url,
+                        onOptions = { onSongOptions(song) },
+                        onClick = { onPlay(song, chosenMix.tracks) })
+                }
+            }
         }
         item { SectionHeading("Find your frequency", "Six directions. The next track is yours to choose.") }
         DiscoveryShortcuts.picks.chunked(2).forEachIndexed { row, shortcuts ->
