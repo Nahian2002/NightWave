@@ -67,7 +67,14 @@ class YouTubeGateway {
             } else {
                 val error = attempt.exceptionOrNull()
                 diagnostics.add(filter + ": " + error?.javaClass?.simpleName)
-                android.util.Log.w("NightWaveSearch", "Direct search failed; using alternate provider", error)
+                // The ALL filter uses the same YouTube backend. A transport/
+                // extractor exception isn't cured by issuing another nearly
+                // identical 45-second request; fail over to the independent
+                // public endpoint instead of leaving Search spinning.
+                android.util.Log.w("NightWaveSearch",
+                    "Direct extractor unavailable; trying independent public provider (" +
+                        error?.javaClass?.simpleName + ")")
+                break
             }
         }
 
