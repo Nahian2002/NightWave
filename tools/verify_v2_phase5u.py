@@ -81,7 +81,10 @@ assert 'cloudPendingAction = action' in activity
 assert 'requestCloudAction("connect")' in activity
 assert 'requestCloudAction("backup")' in activity
 assert 'requestCloudAction("preview")' in activity
-assert 'CloudBackupCodec.decode(drive.download(latest.id))' in activity
+assert 'drive.listSnapshots().takeIf { it.isNotEmpty() }' in activity
+assert 'showCloudSnapshotPicker(preview, token)' in activity
+assert 'setTitle("Choose a cloud backup")' in activity
+assert 'CloudBackupCodec.decode(NightWaveDriveClient(token).download(chosen.id))' in activity
 assert 'setTitle("Review cloud restore")' in activity
 assert 'setNegativeButton("Cancel", null)' in activity
 assert 'restoreCloudAfterConfirmation(preview, false)' in activity
