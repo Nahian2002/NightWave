@@ -199,14 +199,28 @@ fun StudioNowPlayingOverlay(
         val colors = MaterialTheme.colorScheme
         val background = Brush.verticalGradient(listOf(colors.surfaceVariant, colors.background, colors.background))
         BoxWithConstraints(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing).background(background)) {
-            val art = minOf(maxWidth - 82.dp, maxHeight * .41f, 430.dp)
+            val art = minOf(maxWidth - 76.dp, maxHeight * .34f, 330.dp)
             Column(
                 Modifier.fillMaxSize().verticalScroll(rememberScrollState())
                     .padding(horizontal = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
-                Row(Modifier.fillMaxWidth().padding(top = 9.dp, bottom = 20.dp),
+                Row(Modifier.fillMaxWidth().padding(top = 5.dp, bottom = 13.dp)
+                    .pointerInput(Unit) {
+                        var dragged = 0f
+                        detectVerticalDragGestures(
+                            onDragStart = { dragged = 0f },
+                            onVerticalDrag = { change, amount ->
+                                change.consume()
+                                dragged += amount
+                            },
+                            onDragEnd = {
+                                if (dragged > 65f) onDismiss()
+                                dragged = 0f
+                            }
+                        )
+                    },
                     verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = onDismiss, modifier = Modifier.size(48.dp)) {
                         Icon(Icons.Outlined.ArrowDownward, contentDescription = "Minimize player",
@@ -226,7 +240,7 @@ fun StudioNowPlayingOverlay(
                 Spacer(Modifier.height(8.dp))
                 CoverArt(state.thumbnail,
                     Modifier.size(art).clip(RoundedCornerShape(26.dp)), 26)
-                Spacer(Modifier.height(28.dp))
+                Spacer(Modifier.height(21.dp))
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text(state.title.ifBlank { "Choose a track" },
@@ -242,7 +256,7 @@ fun StudioNowPlayingOverlay(
                             tint = if (liked) colors.primary else colors.onBackground)
                     }
                 }
-                Spacer(Modifier.height(20.dp))
+                Spacer(Modifier.height(11.dp))
                 var dragFraction by remember { mutableStateOf<Float?>(null) }
                 val fraction = dragFraction ?: if (state.durationMs > 0L)
                     (state.positionMs.toFloat() / state.durationMs).coerceIn(0f, 1f) else 0f
@@ -289,7 +303,7 @@ fun StudioNowPlayingOverlay(
                                 colors.onSurfaceVariant else colors.primary)
                     }
                 }
-                Spacer(Modifier.height(20.dp))
+                Spacer(Modifier.height(12.dp))
                 Surface(
                     onClick = onOpenQueue, modifier = Modifier.fillMaxWidth().height(54.dp),
                     shape = RoundedCornerShape(17.dp), color = colors.surface
