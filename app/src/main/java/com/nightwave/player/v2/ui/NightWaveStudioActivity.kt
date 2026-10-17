@@ -90,6 +90,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -784,7 +786,8 @@ private fun StudioRoot(
                                 Modifier.weight(1f).fillMaxHeight()
                                     .clip(RoundedCornerShape(16.dp))
                                     .background(tabColor)
-                                    .clickable { navigateToTab(item) },
+                                    .clickable { navigateToTab(item) }
+                                    .semantics { this.selected = selected },
                                 verticalArrangement = Arrangement.Center,
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
