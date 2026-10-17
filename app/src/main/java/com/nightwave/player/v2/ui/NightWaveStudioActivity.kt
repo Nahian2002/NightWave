@@ -585,8 +585,14 @@ private fun StudioRoot(
     var showQueue by rememberSaveable { mutableStateOf(false) }
     var compactHidden by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(playerState.videoUrl) { compactHidden = false }
-    BackHandler(enabled = showQueue || expanded) {
-        if (showQueue) showQueue = false else expanded = false
+    BackHandler(enabled = showQueue || expanded ||
+        (tab == StudioTab.LIBRARY && selectedPlaylist != null) || tab != StudioTab.HOME) {
+        when {
+            showQueue -> showQueue = false
+            expanded -> expanded = false
+            tab == StudioTab.LIBRARY && selectedPlaylist != null -> selectedPlaylist = null
+            tab != StudioTab.HOME -> tab = StudioTab.HOME
+        }
     }
     Box(Modifier.fillMaxSize()) {
     Scaffold(
