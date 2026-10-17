@@ -32,7 +32,7 @@ object LegacyLibrarySnapshotParser {
                 val row = arr.getJSONObject(pos)
                 val url = VideoLink.normalize(row.getString("url"))
                     ?: throw IllegalArgumentException("Invalid video in $key")
-                require(row.keySet().all { it in setOf("url", "title", "creator", "artwork", "duration") }) {
+                require(row.keys().asSequence().toSet().all { it in setOf("url", "title", "creator", "artwork", "duration") }) {
                     "Unexpected video field in $key"
                 }
                 val duration = row.optLong("duration", 0)
