@@ -232,7 +232,8 @@ fun StudioNowPlayingOverlay(
                         Text("NOW PLAYING", style = MaterialTheme.typography.labelLarge,
                             color = colors.onBackground)
                     }
-                    IconButton(onClick = onSaveToPlaylist, modifier = Modifier.size(48.dp)) {
+                    IconButton(onClick = onSaveToPlaylist, enabled = !state.offline,
+                        modifier = Modifier.size(48.dp)) {
                         Icon(Icons.Outlined.MoreVert, contentDescription = "Save track to playlist",
                             tint = colors.onBackground)
                     }
@@ -250,7 +251,7 @@ fun StudioNowPlayingOverlay(
                         Text(state.artist, style = MaterialTheme.typography.bodyLarge,
                             color = colors.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
-                    IconButton(onClick = onLike) {
+                    IconButton(onClick = onLike, enabled = !state.offline) {
                         Icon(if (liked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                             contentDescription = if (liked) "Unlike song" else "Like song",
                             tint = if (liked) colors.primary else colors.onBackground)
@@ -275,7 +276,8 @@ fun StudioNowPlayingOverlay(
                 Spacer(Modifier.height(15.dp))
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween) {
-                    IconButton(onClick = actions::toggleShuffle, modifier = Modifier.size(48.dp)) {
+                    IconButton(onClick = actions::toggleShuffle, enabled = !state.offline,
+                        modifier = Modifier.size(48.dp)) {
                         Icon(Icons.Outlined.Shuffle, contentDescription = "Toggle shuffle",
                             tint = if (state.shuffle) colors.primary else colors.onSurfaceVariant)
                     }
@@ -295,7 +297,8 @@ fun StudioNowPlayingOverlay(
                         Icon(Icons.Outlined.SkipNext, contentDescription = "Next track",
                             modifier = Modifier.size(34.dp), tint = colors.onBackground)
                     }
-                    IconButton(onClick = actions::cycleRepeat, modifier = Modifier.size(48.dp)) {
+                    IconButton(onClick = actions::cycleRepeat, enabled = !state.offline,
+                        modifier = Modifier.size(48.dp)) {
                         Icon(if (state.repeat == PlaybackQueue.Repeat.ONE) Icons.Outlined.RepeatOne
                             else Icons.Outlined.Repeat,
                             contentDescription = "Repeat " + state.repeat.name,
@@ -339,7 +342,8 @@ fun StudioQueueSheet(
     ModalBottomSheet(onDismissRequest = onDismiss, containerColor = MaterialTheme.colorScheme.surface) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
             Text("Up next", style = MaterialTheme.typography.headlineSmall)
-            Text(state.queue.size.toString() + " saved tracks · tap to play",
+            Text(state.queue.size.toString() +
+                (if (state.offline) " offline tracks · tap to play" else " saved tracks · tap to play"),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.height(18.dp))
