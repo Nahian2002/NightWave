@@ -59,7 +59,7 @@ assert "active.play()" in bridge
 assert "if (sameQueue && (loaded || resolving))" in service
 assert "if (loaded) exoPlayer?.apply {" in service
 assert "playbackState == Player.STATE_ENDED" in service
-assert "resolvingPublicUrl == queue.current?.url" in service
+assert "PlaybackResolutionPolicy.awaitsSameResolution(entry.url, resolvingPublicUrl)" in service
 assert "resolvingPublicUrl = null" in service
 assert test_resume.count("@Test") >= 8
 
