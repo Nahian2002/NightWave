@@ -96,6 +96,16 @@ try {
     }
     Say 'No GitHub billing or payment method is required.'
     Say 'The first build downloads official build tools and may take time and several GB of disk space.'
+    $stage = 'Kotlin source compatibility preflight'
+    $kotlinPreflight = Join-Path $PSScriptRoot 'check-kotlin-compat.ps1'
+    if (-not (Test-Path -LiteralPath $kotlinPreflight -PathType Leaf)) {
+        throw 'NightWave Kotlin preflight script is missing.'
+    }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $kotlinPreflight
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Kotlin source preflight failed. Check the invalid import lines above.'
+    }
+    Say 'Fast Kotlin source preflight PASS (not an Android compilation).'
     $stage = 'Crash redaction self-test'
     $crashScript = Join-Path $PSScriptRoot 'capture-nightwave-crash.ps1'
     if (-not (Test-Path -LiteralPath $crashScript -PathType Leaf)) {
