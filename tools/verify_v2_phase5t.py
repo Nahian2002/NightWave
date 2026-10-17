@@ -40,7 +40,9 @@ assert 'Text(if (searching) "Checking quick results…" else "Try quick in-app r
 assert 'onPrimarySearch(shortcut.query, SearchMode.SONGS)' in search
 assert 'SavedTrackSearch.match(query, savedTracks)' in search
 assert 'onPlay(song, savedMatches)' in search
-assert "Quick results aren't available right now" in search
+# Copy evolved in 6I while the failover/Retry route was preserved.
+assert "Quick results temporarily unavailable" in search
+assert "Your library still works. Use Find music on YouTube above, or retry quick results." in search
 assert 'Text("Retry quick results")' in search
 assert 'Text("Online search is unavailable")' not in search
 assert "state.query.isNotBlank()" in search

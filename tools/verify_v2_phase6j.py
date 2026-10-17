@@ -67,8 +67,15 @@ assert "onPrimarySearch(creator.name" not in search
 assert "onNativeSearch(creator.name" not in search
 assert "Saved entries stay in your library. Public video audio still needs internet." in search
 assert "Saved entries · public videos require internet to play" in search
-assert "val label = MusicIdentity.display(track.title, track.author)" in saved
-assert "val label = MusicIdentity.display(it.value.title, it.value.author)" in saved
+# 6O1 delegates matching/ranking to a pure shared policy. Keep the 6J
+# display-only provenance requirement, but inspect that policy rather than
+# requiring identity derivation to remain duplicated in SavedTrackSearch.
+relevance = read(base + "net/SearchRelevancePolicy.kt")
+assert "SearchRelevancePolicy.savedMatches(prepared, track)" in saved
+assert "SearchRelevancePolicy.savedScore(prepared, it.value)" in saved
+assert "MusicIdentity.display(track.title, track.author)" in relevance
+assert "normalize(track.title)" in relevance
+assert "normalize(track.author)" in relevance
 
 # Bounded authored tests, no new permission or app identity change.
 assert test.count("@Test") >= 10
