@@ -60,8 +60,11 @@ object LibraryMutationPlan {
             }
             is LibraryChange.RecordRecent -> {
                 val song = video(operation.song) ?: return rejected()
+                // Keep the newest song plus up to 99 older distinct songs.
+                // Previously take(99) applied to the combined list, capping
+                // all listening history at 99 instead of the intended 100.
                 accepted(old.copy(recent = (listOf(song) +
-                    old.recent.filterNot { it.url == song.url }).take(99)))
+                    old.recent.filterNot { it.url == song.url }).take(100)))
             }
             is LibraryChange.CreatePlaylist -> {
                 val name = operation.name.trim().take(60)
