@@ -2170,6 +2170,14 @@ private fun StudioProfile(
         }
 
         item {
+            StudioProfileGroup("Your listening snapshot") {
+                Column(Modifier.fillMaxWidth().padding(14.dp)) {
+                    ListeningInsightsPanel(insights)
+                }
+            }
+        }
+
+        item {
             StudioProfileGroup("Library & backup") {
                 StudioProfileRow("Manage backups", "Export, restore and undo edits",
                     Icons.Outlined.LibraryMusic, { showBackup = !showBackup },
