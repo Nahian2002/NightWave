@@ -261,6 +261,7 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
             else (emptyList<VideoPreview>() to -1)
         val savedTrack = current.tracks.getOrNull(current.index)
         val savedBookmark = persistence.bookmark(savedTrack?.url)
+        val resolving = media == null && persistence.lookupPending(savedTrack?.url)
         state = state.copy(
             connected = true,
             title = if (offlineId != null) metadata?.title?.toString().orEmpty()
@@ -278,7 +279,7 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
                 else metadata?.artworkUri?.toString()?.takeIf { it.isNotBlank() }
                     ?: savedTrack?.artwork.orEmpty(),
             playing = player.isPlaying,
-            buffering = player.playbackState == Player.STATE_BUFFERING,
+            buffering = player.playbackState == Player.STATE_BUFFERING || resolving,
             positionMs = if (media != null) player.currentPosition.coerceAtLeast(0L)
                 else savedBookmark?.positionMs ?: 0L,
             durationMs = if (duration > 0L) duration
@@ -290,7 +291,8 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
             queueIndex = if (offlineId != null) offlineList.second else current.index,
             error = if (player.playerError != null)
                 "Audio playback failed. Tap Retry or choose another song."
-                else if (offlineId != null) null else persistence.failure(savedTrack?.url)
+                else if (offlineId != null || resolving) null
+                else persistence.failure(savedTrack?.url)
         )
     }
 
