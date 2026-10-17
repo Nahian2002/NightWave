@@ -85,6 +85,9 @@ try {
         if ($_ -match '^package:(/.+\.apk)\s*$') { $Matches[1].Trim() }
     })
     if ($remotePaths.Count -eq 0) {
+        if (($pmOutput -join ' ') -match '(?i)(error|exception|denied|failure|unable)') {
+            throw 'Android package manager returned an error. Device state is inconclusive.'
+        }
         $checked = 'PASS - FRESH INSTALL'
         $details = 'NightWave is not installed on this device. There is no existing NightWave data/signature to preserve.'
         $verifyResult = @(& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $signerVerifier -ApkPath $apk -BuildToolsDir $buildTools -VersionName $versionName -VersionCode $versionCode 2>&1)
