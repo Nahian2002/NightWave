@@ -1,5 +1,22 @@
 # NightWave
 
+## NightWave 2.0 Alpha 5B — Native Search & Playback Improvements
+
+**Version:** \`2.0.0-alpha5b\` (code 18). **Branch:** \`feature/nightwave-v2-phase5b-search-playback\` (source only, Android tests pending).
+
+[Download complete Phase 5B source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase5b-search-playback.zip) · [Full Phase 5B QA and known limits](docs/NIGHTWAVE_V2_PHASE5B_QA.md)
+
+- Premium Search now shows real native public Songs/Videos result rows when existing YouTube/community providers respond. Tapping a result builds a queue from the displayed collection, allowing Next through selected results. **Open YouTube search** remains a one-tap in-app fallback when providers fail.
+- Stream errors now appear with a **Retry** action. Media3 automatically refreshes a failed stream URL **at most once** for selected transient failures, with an explicit user retry available afterward. It never loops indefinitely or preserves signed/expiring streaming links.
+- Standard Previous behavior: restart current song if playback is already more than 3 seconds in; otherwise navigate backward. Existing shuffle, repeat, queue selection, seek, background/headset controls and Phase 5A lazy restoration are retained.
+- Imported offline tracks display their own metadata instead of the previous YouTube cover and are never treated as YouTube playlist favorites. Local offline-file playback remains private and independent from streaming.
+- Added queue-transition unit tests and public-video-scoped playback-failure storage checks. Prior Phase 5A source/safety checks remain available.
+
+**Important:** This work is implemented in the private GitHub source branch, but **Android Gradle, device tests and real-world YouTube playback have not been verified here**. YouTube may restrict streams or change parsing independently of NightWave. Build using \`build-windows.cmd\`; do not uninstall/clear NightWave when upgrading. Report compiler failures through \`dist/NightWave-build-errors.txt\`, or runtime exceptions using the included crash collector. Keep this branch DRAFT until hardware QA passes.
+
+---
+
+
 ## NightWave 2.0 — Phase 5A stability and crash diagnostics
 
 **Version:** \`2.0.0-alpha5a\` (code 17) · **branch:** \`feature/nightwave-v2-phase5a-stability\` · **not Android-verified yet**.
