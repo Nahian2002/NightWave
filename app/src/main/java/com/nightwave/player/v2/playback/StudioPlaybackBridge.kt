@@ -72,6 +72,21 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
     private var ticking = false
     private var cachedOfflineIds: List<String> = emptyList()
     private var cachedOfflineQueue: List<VideoPreview> = emptyList()
+    /** Media3 notifies us when Android kills/restarts the session process. */
+    private val controllerListener = object : MediaController.Listener {
+        override fun onDisconnected(disconnected: MediaController) {
+            // This callback also runs during a normal release. Never resurrect
+            // an Activity that has already been destroyed.
+            if (released || controller !== disconnected) return
+            controller = null
+            future = null
+            state = state.copy(
+                connected = false, playing = false, buffering = false,
+                error = "Music service disconnected. Tap Reconnect."
+            )
+        }
+    }
+
     private val listener = object : Player.Listener {
         override fun onEvents(player: Player, events: Player.Events) {
             try {
@@ -104,7 +119,9 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
         if (released || future != null || controller != null) return
         try {
             val token = SessionToken(context, ComponentName(context, PlaybackService::class.java))
-            val pending = MediaController.Builder(context, token).buildAsync()
+            val pending = MediaController.Builder(context, token)
+                .setListener(controllerListener)
+                .buildAsync()
             future = pending
             pending.addListener({
                 // An outdated or released controller must never be published
