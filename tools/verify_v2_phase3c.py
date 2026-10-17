@@ -17,8 +17,8 @@ ui = read(src / "v2/ui/NightWaveStudioActivity.kt")
 old = read(src / "library/MusicLibrary.kt")
 service = read(src / "playback/PlaybackService.kt")
 
-assert any(f'versionName = "{v}"' in gradle for v in ("2.0.0-alpha3c", "2.0.0-alpha3d", "2.0.0-alpha4", "2.0.0-alpha4-hotfix1", "2.0.0-alpha4-hotfix2", "2.0.0-alpha5a"))
-assert any(f"versionCode = {code}" in gradle for code in (12, 13, 14, 15, 16, 17))
+assert any(f'versionName = "{v}"' in gradle for v in ("2.0.0-alpha3c", "2.0.0-alpha3d", "2.0.0-alpha4", "2.0.0-alpha4-hotfix1", "2.0.0-alpha4-hotfix2", "2.0.0-alpha5a", "2.0.0-alpha5b"))
+assert any(f"versionCode = {code}" in gradle for code in (12, 13, 14, 15, 16, 17, 18))
 assert 'applicationId = "com.nightwave.player"' in gradle
 assert 'fallbackToDestructiveMigration' not in dao.replace(
     "// Never use fallbackToDestructiveMigration.", ""
