@@ -67,6 +67,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.LibraryMusic
@@ -1502,7 +1503,37 @@ private fun StudioSearch(
         contentPadding = PaddingValues(horizontal = 19.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item { SectionHeading("Explore sound", "Search for songs, artists and public videos") }
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                NightWaveMicroLabel("Discover")
+                SectionHeading("Explore sound", "Your next favorite starts here")
+            }
+        }
+        item {
+            OutlinedTextField(
+                value = query, onValueChange = { query = it.take(160) },
+                modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(17.dp),
+                singleLine = true, placeholder = { Text("Song or artist name") },
+                leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
+                trailingIcon = {
+                    if (query.isNotBlank()) IconButton(onClick = { query = "" }) {
+                        Icon(Icons.Outlined.Close, contentDescription = "Clear search")
+                    }
+                },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(onSearch = { submit() })
+            )
+        }
+        item {
+            Button(onClick = submit, enabled = query.isNotBlank(),
+                modifier = Modifier.fillMaxWidth().height(49.dp),
+                shape = RoundedCornerShape(15.dp)) {
+                Text("Find music on YouTube")
+            }
+            Text("Official YouTube discovery · Saved tracks match instantly below",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
         if (query.isBlank() && !searching) {
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
@@ -1525,32 +1556,10 @@ private fun StudioSearch(
                 }
             }
         }
-        item {
-            OutlinedTextField(
-                value = query, onValueChange = { query = it.take(160) },
-                modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(17.dp),
-                singleLine = true, placeholder = { Text("Song or artist name") },
-                leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                keyboardActions = KeyboardActions(onSearch = { submit() })
-            )
-        }
-        item {
-            Button(onClick = submit, enabled = query.isNotBlank(),
-                modifier = Modifier.fillMaxWidth().height(49.dp),
-                shape = RoundedCornerShape(15.dp)) {
-                Text("Find music on YouTube")
-            }
-            Text("Opens official YouTube search inside NightWave. Saved matches appear below.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
         if (query.isNotBlank()) {
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text("OPTIONAL QUICK RESULTS",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    NightWaveMicroLabel("Optional quick results")
                     Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
                         FilterChip(selected = mode == SearchMode.SONGS,
                             onClick = { mode = SearchMode.SONGS }, label = { Text("Songs") })
@@ -1612,7 +1621,7 @@ private fun StudioSearch(
                     .background(MaterialTheme.colorScheme.surface)
                     .padding(horizontal = 14.dp, vertical = 13.dp),
                     verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                    Text("Quick results aren't available right now",
+                    Text("Quick results temporarily unavailable",
                         style = MaterialTheme.typography.titleSmall)
                     Text("Your library still works. Use Find music on YouTube above, or retry quick results.",
                         style = MaterialTheme.typography.bodySmall,
