@@ -152,6 +152,7 @@ import com.nightwave.player.v2.playback.SpotlightResumePolicy
 import com.nightwave.player.v2.playback.SpotlightAction
 import com.nightwave.player.v2.recommendation.PersonalMixEngine
 import com.nightwave.player.v2.recommendation.PersonalMix
+import com.nightwave.player.v2.social.PlaylistShareFormatter
 import com.nightwave.player.v2.model.MotionPreference
 import com.nightwave.player.v2.model.NightWaveTheme
 import com.nightwave.player.v2.model.ProfileSettings
@@ -451,6 +452,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                     isFavorite = { url -> library.isFavorite(url) },
                     onToggleFavorite = { video -> library.toggleFavorite(video); refresh() },
                     onSongOptions = { video -> showSongOptions(video) },
+                    onSharePlaylist = { name, tracks -> sharePlaylist(name, tracks) },
                     onSaveCurrentToPlaylist = { saveCurrentToPlaylist() },
                     storageStatus = shadowStatus,
                     onCheckStorage = { refreshShadows() },
@@ -1035,6 +1037,21 @@ class NightWaveStudioActivity : ComponentActivity() {
             }.show()
     }
 
+    /** Explicit sharesheet only; never shares imported audio files or private data. */
+    private fun sharePlaylist(name: String, tracks: List<VideoPreview>) {
+        val text = PlaylistShareFormatter.format(name, tracks)
+        if (text == null) {
+            showMessage("No shareable public links in this playlist.")
+            return
+        }
+        runCatching {
+            startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_TEXT, text)
+            }, "Share NightWave playlist"))
+        }.onFailure { showMessage("No sharing app was available.") }
+    }
+
     private fun showMessage(message: String) {
         android.widget.Toast.makeText(this, message, android.widget.Toast.LENGTH_SHORT).show()
     }
@@ -1243,6 +1260,7 @@ private fun StudioRoot(
     isFavorite: (String) -> Boolean,
     onToggleFavorite: (VideoPreview) -> Unit,
     onSongOptions: (VideoPreview) -> Unit,
+    onSharePlaylist: (String, List<VideoPreview>) -> Unit,
     onSaveCurrentToPlaylist: () -> Unit,
     onSearch: (String, SearchMode) -> Unit,
     onPrimarySearch: (String, SearchMode) -> Unit,
@@ -1483,6 +1501,7 @@ private fun StudioRoot(
                         onSelectPlaylist = { selectedPlaylist = it },
                         getPlaylist = getPlaylist, onPlay = onPlay,
                         onSongOptions = onSongOptions,
+                        onSharePlaylist = onSharePlaylist,
                         onManage = onLegacyPlayer, onOffline = onOfflineLibrary,
                         offlineResumeTitle = offlineResumeTitle,
                         offlineResumePositionMs = offlineResumePositionMs,
@@ -1963,7 +1982,8 @@ private fun StudioLibrary(
     onOffline: () -> Unit,
     offlineResumeTitle: String?, offlineResumePositionMs: Long,
     onResumeOffline: () -> Unit,
-    onSongOptions: (VideoPreview) -> Unit
+    onSongOptions: (VideoPreview) -> Unit,
+    onSharePlaylist: (String, List<VideoPreview>) -> Unit
 ) {
     val tracks = if (selectedPlaylist == null || selectedPlaylist == LIKED_COLLECTION)
         favorites else getPlaylist(selectedPlaylist)
@@ -1993,6 +2013,16 @@ private fun StudioLibrary(
                     SectionHeading(if (selectedPlaylist == LIKED_COLLECTION) "Liked Songs" else selectedPlaylist ?: "Your library",
                         if (selectedPlaylist == null) "Saved music across your collections"
                         else tracks.size.toString() + " saved tracks")
+                }
+            }
+        }
+        if (selectedPlaylist != null &&
+            selectedPlaylist != LIKED_COLLECTION && tracks.isNotEmpty()
+        ) {
+            item(key = "share-current-playlist") {
+                OutlinedButton(onClick = { onSharePlaylist(selectedPlaylist, tracks) },
+                    modifier = Modifier.fillMaxWidth()) {
+                    Text("Share playlist")
                 }
             }
         }
