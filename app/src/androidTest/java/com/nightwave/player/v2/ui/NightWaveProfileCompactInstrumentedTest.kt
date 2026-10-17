@@ -1,6 +1,5 @@
 package com.nightwave.player.v2.ui
 
-import androidx.compose.ui.test.assertExists
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
