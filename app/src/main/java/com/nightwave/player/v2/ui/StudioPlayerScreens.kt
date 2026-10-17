@@ -55,6 +55,7 @@ import androidx.compose.material.icons.outlined.SkipNext
 import androidx.compose.material.icons.outlined.SkipPrevious
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -150,34 +151,66 @@ fun StudioMiniPlayer(
                 )
             }
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().height(58.dp)
-                .clickable(onClick = onExpand)
-                .padding(start = 7.dp, end = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            CoverArt(state.thumbnail, Modifier.size(44.dp), 9)
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(state.title.ifBlank { "Restoring your last track…" },
-                    style = MaterialTheme.typography.titleMedium,
-                    color = colors.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(
-                    if (state.buffering) "Connecting…" else state.artist.ifBlank { "NightWave" },
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = colors.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis
-                )
-            }
-            IconButton(onClick = actions::playPause, modifier = Modifier.size(48.dp)) {
-                Icon(if (state.playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                    contentDescription = if (state.playing) "Pause playback" else "Resume playback",
-                    tint = colors.onSurface)
-            }
-            if (state.queue.size > 1) {
-                IconButton(onClick = actions::next, modifier = Modifier.size(48.dp),
-                    enabled = state.connected && !state.buffering) {
-                    Icon(Icons.Outlined.SkipNext, contentDescription = "Next track",
+        // Visible gesture affordance. The parent still owns swipe-down hide and
+        // swipe-up expansion; this indicator does not add a competing gesture.
+        Box(Modifier.fillMaxWidth().height(16.dp),
+            contentAlignment = Alignment.Center) {
+            Box(Modifier.size(width = 32.dp, height = 3.dp)
+                .clip(CircleShape)
+                .background(colors.onSurfaceVariant.copy(alpha = .48f)))
+        }
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            // Preserve room for a legible title on 320–360dp screens.
+            // Next remains available in expanded Now Playing on narrow screens.
+            val showNext = state.queue.size > 1 && maxWidth >= 365.dp
+            Row(
+                modifier = Modifier.fillMaxWidth().height(58.dp)
+                    .padding(start = 7.dp, end = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Row(
+                    modifier = Modifier.weight(1f).fillMaxHeight()
+                        .clip(RoundedCornerShape(10.dp))
+                        .clickable(onClick = onExpand),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(9.dp)
+                ) {
+                    CoverArt(state.thumbnail, Modifier.size(44.dp), 9)
+                    Column(Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(state.title.ifBlank { "Restoring your last track…" },
+                            style = MaterialTheme.typography.titleMedium,
+                            color = colors.onSurface, maxLines = 1,
+                            overflow = TextOverflow.Ellipsis)
+                        Text(
+                            if (state.buffering) "Connecting…" else
+                                state.artist.ifBlank { "NightWave" },
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = colors.onSurfaceVariant, maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+                IconButton(onClick = actions::playPause, modifier = Modifier.size(48.dp)) {
+                    Icon(if (state.playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                        contentDescription = if (state.playing) "Pause playback" else "Resume playback",
                         tint = colors.onSurface)
+                }
+                if (showNext) {
+                    IconButton(onClick = actions::next, modifier = Modifier.size(48.dp),
+                        enabled = state.connected && !state.buffering) {
+                        Icon(Icons.Outlined.SkipNext, contentDescription = "Next track",
+                            tint = colors.onSurface)
+                    }
+                }
+                // Only updates the host's compactHidden UI flag. This MUST NOT
+                // invoke pause/stop/service intents or clear Media3's queue.
+                IconButton(onClick = onHide, modifier = Modifier.size(48.dp)) {
+                    Icon(Icons.Outlined.Close,
+                        contentDescription = "Hide mini-player; music keeps playing",
+                        tint = colors.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp))
                 }
             }
         }
