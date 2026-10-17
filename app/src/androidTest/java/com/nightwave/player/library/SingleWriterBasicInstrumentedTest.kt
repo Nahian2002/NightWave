@@ -60,6 +60,17 @@ class SingleWriterBasicInstrumentedTest {
         assertEquals("[]", raw.getString("list_unlisted", null))
     }
 
+    @Test fun rollbackRefusesChangesToUnlistedRecoveryKeys() {
+        val raw = app.getSharedPreferences("nightwave_library_v1", Context.MODE_PRIVATE)
+        raw.edit().putString("list_unlisted", "[]").commit()
+        assertTrue(library.toggleFavorite(song))
+        // Even though favorite and playlist counts did not change,
+        // an external edit to an orphan key invalidates recovery.
+        raw.edit().putString("list_unlisted", "[ ]").commit()
+        assertFalse(LegacyLibraryTransaction.recoverLastWriteIfUnchanged(app))
+        assertEquals(listOf(song), library.favorites())
+    }
+
     @Test fun recoveryIsOneShotAndRejectsNewerData() {
         assertTrue(library.toggleFavorite(song))
         assertTrue(library.toggleFavorite(song))
