@@ -18,8 +18,8 @@ gestureTests = read(root / "app/src/test/java/com/nightwave/player/v2/ui/PlayerG
 progressTests = read(root / "app/src/test/java/com/nightwave/player/v2/ui/PlayerProgressRulesTest.kt")
 manifest = read(root / "app/src/main/AndroidManifest.xml")
 
-assert 'versionCode = 32' in gradle
-assert 'versionName = "2.0.0-alpha5p"' in gradle
+assert 'versionCode = 33' in gradle
+assert 'versionName = "2.0.0-alpha5q"' in gradle
 assert 'applicationId = "com.nightwave.player"' in gradle
 
 # Gesture action is bounded and routed through the existing player controller.

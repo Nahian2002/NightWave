@@ -41,4 +41,46 @@ class CommunityVideoSearchTest {
             healthy.shutdown()
         }
     }
+
+    @Test fun failsOverAfterMalformedJsonChallenge() {
+        val blocked = MockWebServer()
+        val available = MockWebServer()
+        blocked.start()
+        available.start()
+        try {
+            blocked.enqueue(MockResponse().setResponseCode(200)
+                .setBody("<html>please enable cookies</html>"))
+            available.enqueue(MockResponse().setResponseCode(200).setBody(json))
+            val search = CommunityVideoSearch(instances = listOf(
+                blocked.url("/").toString().trimEnd('/'),
+                available.url("/").toString().trimEnd('/')
+            ))
+            assertEquals("Baby Shark", search.search("baby shark").videos.single().title)
+            assertEquals(1, blocked.requestCount)
+            assertEquals(1, available.requestCount)
+        } finally {
+            blocked.shutdown()
+            available.shutdown()
+        }
+    }
+
+    @Test fun emptyPublicResultsTryNextEndpoint() {
+        val empty = MockWebServer()
+        val available = MockWebServer()
+        empty.start()
+        available.start()
+        try {
+            empty.enqueue(MockResponse().setResponseCode(200).setBody("[]"))
+            available.enqueue(MockResponse().setResponseCode(200).setBody(json))
+            val search = CommunityVideoSearch(instances = listOf(
+                empty.url("/").toString().trimEnd('/'),
+                available.url("/").toString().trimEnd('/')
+            ))
+            assertEquals(1, search.search("baby shark").videos.size)
+            assertEquals("baby shark", available.takeRequest().requestUrl?.queryParameter("q"))
+        } finally {
+            empty.shutdown()
+            available.shutdown()
+        }
+    }
 }

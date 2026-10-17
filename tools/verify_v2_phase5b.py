@@ -17,8 +17,8 @@ classic = read(code / "ui/MainActivity.kt")
 offline = read(code / "offline/OfflineAudioLibrary.kt")
 manifest = read(root / "app/src/main/AndroidManifest.xml")
 
-assert 'versionCode = 32' in gradle
-assert 'versionName = "2.0.0-alpha5p"' in gradle
+assert 'versionCode = 33' in gradle
+assert 'versionName = "2.0.0-alpha5q"' in gradle
 assert 'applicationId = "com.nightwave.player"' in gradle
 assert "private data class StudioSearchSnapshot(" in studio
 assert "private var nativeSearchState by mutableStateOf" in studio
@@ -28,7 +28,7 @@ assert "nativeSearchJob?.cancel()" in studio
 assert "StudioTab.SEARCH -> StudioSearch(" in studio
 assert "items(state.videos, key = { it.url })" in studio
 assert "onClick = { onPlay(song, state.videos) }" in studio
-assert "Open YouTube search" in studio
+assert "Search on YouTube ↗" in studio
 assert "YouTubeSearchBrowser(this).show(query)" in studio
 assert "SearchMode.SONGS" in studio and "SearchMode.VIDEOS" in studio
 assert "playerActions.retry()" in studio
