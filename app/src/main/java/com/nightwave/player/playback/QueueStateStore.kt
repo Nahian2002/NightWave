@@ -29,14 +29,19 @@ class QueueStateStore(context: Context) {
 
     fun bookmark(expectedUrl: String?): Bookmark? {
         if (expectedUrl.isNullOrBlank()) return null
-        val url = prefs.getString("bookmark_url", null) ?: return null
-        if (url != expectedUrl) return null
-        val duration = prefs.getLong("bookmark_duration_ms", 0L).coerceIn(0L, 86_400_000L)
-        val raw = prefs.getLong("bookmark_position_ms", 0L).coerceIn(0L, 86_400_000L)
-        // Never restore into the last few seconds of an already finished song.
-        val position = if (duration > 0L && raw >= (duration - 4_000L).coerceAtLeast(0L))
-            0L else raw
-        return Bookmark(url, position, duration)
+        // Old/corrupt preference types must not kill either the player service
+        // or an Activity showing the restored previous song.
+        return try {
+            val url = prefs.getString("bookmark_url", null) ?: return null
+            if (url != expectedUrl) return null
+            val duration = prefs.getLong("bookmark_duration_ms", 0L).coerceIn(0L, 86_400_000L)
+            val raw = prefs.getLong("bookmark_position_ms", 0L).coerceIn(0L, 86_400_000L)
+            val position = if (duration > 0L &&
+                raw >= (duration - 4_000L).coerceAtLeast(0L)) 0L else raw
+            Bookmark(url, position, duration)
+        } catch (_: ClassCastException) {
+            null // Preserve the original bytes for an explicit backup/repair.
+        }
     }
 
     fun save(queue: PlaybackQueue) {

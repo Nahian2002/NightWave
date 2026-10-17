@@ -133,10 +133,12 @@ class OfflineLibraryActivity : ComponentActivity() {
                     if (library.fileFor(song) == null) {
                         status("Audio file not available: " + song.title)
                     } else {
-                        startService(Intent(this@OfflineLibraryActivity, PlaybackService::class.java)
-                            .setAction(PlaybackService.ACTION_PLAY_OFFLINE)
-                            .putExtra(PlaybackService.EXTRA_OFFLINE_ID, song.id))
-                        status("Playing " + song.title)
+                        runCatching {
+                            startService(Intent(this@OfflineLibraryActivity, PlaybackService::class.java)
+                                .setAction(PlaybackService.ACTION_PLAY_OFFLINE)
+                                .putExtra(PlaybackService.EXTRA_OFFLINE_ID, song.id))
+                        }.onSuccess { status("Opening " + song.title) }
+                            .onFailure { status("Offline playback could not start. Please retry.") }
                     }
                 }
             }, LinearLayout.LayoutParams(dp(49), dp(47)))

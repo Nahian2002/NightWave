@@ -14,6 +14,23 @@ class OfflineAudioLibraryInstrumentedTest {
     private val app: Context = ApplicationProvider.getApplicationContext()
     private val library = OfflineAudioLibrary(app)
 
+    @Test fun malformedOfflineIndexReturnsMissingFileWithoutCrashingService() {
+        val prefs = app.getSharedPreferences("nightwave_offline_v1", Context.MODE_PRIVATE)
+        val previous = prefs.getString("items", null)
+        try {
+            prefs.edit().putString("items", "invalid json").commit()
+            val missing = OfflineSong(
+                "00000000-0000-0000-0000-000000000000.mp3", "Test", "audio/mpeg", 50L
+            )
+            assertNull(library.fileFor(missing))
+            assertEquals("invalid json", prefs.getString("items", null))
+        } finally {
+            val editor = prefs.edit()
+            if (previous == null) editor.remove("items") else editor.putString("items", previous)
+            editor.commit()
+        }
+    }
+
     @Test fun importsAndRetainsPrivateAudioAfterReaderRecreation() {
         val source = File.createTempFile("nightwave-offline", ".mp3", app.cacheDir)
         source.writeBytes(ByteArray(128) { 0x42 })

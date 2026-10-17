@@ -50,6 +50,7 @@ import com.nightwave.player.net.VideoPreview
 import com.nightwave.player.net.YouTubeGateway
 import com.nightwave.player.library.MusicLibrary
 import com.nightwave.player.offline.OfflineLibraryActivity
+import com.nightwave.player.diagnostics.NightWaveCrashRecorder
 import com.nightwave.player.playback.PlaybackService
 import com.nightwave.player.playback.QueueStateStore
 import java.util.concurrent.Executors
@@ -192,11 +193,18 @@ class MainActivity : Activity() {
             if (action == EditorInfo.IME_ACTION_SEARCH) { searchOrPlay(); true } else false
         }
         binding.toggleButton.setOnClickListener {
-            controller?.let {
-                if (it.isPlaying) it.pause()
-                else if (it.mediaItemCount > 0) it.play()
-                else startService(Intent(this, PlaybackService::class.java)
-                    .setAction(PlaybackService.ACTION_RESUME_SAVED))
+            val live = controller
+            if (live?.isPlaying == true) {
+                live.pause()
+            } else if (live != null && live.mediaItemCount > 0) {
+                live.play()
+            } else {
+                runCatching {
+                    startService(Intent(this, PlaybackService::class.java)
+                        .setAction(PlaybackService.ACTION_RESUME_SAVED))
+                }.onFailure {
+                    showStatus("Music service is not ready. Try Play again.", true)
+                }
             }
         }
         binding.backButton.setOnClickListener { seekBy(-15_000) }
@@ -881,6 +889,17 @@ class MainActivity : Activity() {
         labelAction("Search for an exact song or artist") { openPage(Page.SEARCH) }
         labelAction("♫  Your offline music · Import audio") { openOfflineLibrary() }
         sectionTitle("Early access")
+        labelAction("Diagnostics · Share recent crash summary") {
+            val report = NightWaveCrashRecorder.report(this)
+            runCatching {
+                startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, report)
+                }, "Share NightWave diagnostics"))
+            }.onFailure {
+                showStatus("Unable to open a share app. Use the included crash-capture script.", true)
+            }
+        }
         labelAction("✦  Preview redesigned NightWave") {
             try {
                 startActivity(Intent(this, com.nightwave.player.v2.ui.NightWaveStudioActivity::class.java))

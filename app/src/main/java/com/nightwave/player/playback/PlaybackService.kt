@@ -58,6 +58,8 @@ class PlaybackService : MediaSessionService() {
     private var offlinePlaying = false
     private val progressWriter = object : Runnable {
         override fun run() {
+            val player = exoPlayer ?: return
+            if (!player.isPlaying) return
             persistProgress()
             main.postDelayed(this, 2500L)
         }
@@ -66,11 +68,21 @@ class PlaybackService : MediaSessionService() {
     private fun persistProgress() {
         val player = exoPlayer ?: return
         val url = player.currentMediaItem?.mediaId ?: return
+        if (!::savedQueue.isInitialized || !url.startsWith("https://www.youtube.com/watch?v=")) return
         val duration = player.duration.takeIf { it != C.TIME_UNSET && it > 0L } ?: 0L
-        savedQueue.saveBookmark(url, player.currentPosition.coerceAtLeast(0L), duration)
+        // A corrupt preference must never terminate the background playback service.
+        runCatching {
+            savedQueue.saveBookmark(url, player.currentPosition.coerceAtLeast(0L), duration)
+        }
     }
 
     private val trackListener = object : Player.Listener {
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            main.removeCallbacks(progressWriter)
+            if (isPlaying) main.postDelayed(progressWriter, 2500L)
+            else persistProgress()
+        }
+
         override fun onPlaybackStateChanged(state: Int) {
             if (state == Player.STATE_ENDED && !offlinePlaying) playNext(true)
         }
@@ -116,16 +128,21 @@ class PlaybackService : MediaSessionService() {
                     return when (event.keyCode) {
                         KeyEvent.KEYCODE_MEDIA_NEXT -> { playNext(false); true }
                         KeyEvent.KEYCODE_MEDIA_PREVIOUS -> { playPrevious(); true }
-                        else -> false // Media3 still handles play/pause/headset buttons.
+                        KeyEvent.KEYCODE_MEDIA_PLAY, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
+                        KeyEvent.KEYCODE_HEADSETHOOK -> {
+                            if (exoPlayer?.currentMediaItem == null && queue.current != null) {
+                                resumeSavedQueue()
+                                true
+                            } else false // Media3 handles ordinary play/pause.
+                        }
+                        else -> false
                     }
                 }
             }).build()
-        // Recover the last public video/queue paused: never surprise-play on reopen.
-        queue.current?.let { previous ->
-            resolveAndPlay(previous, autoPlay = false,
-                resumePositionMs = savedQueue.bookmark(previous.url)?.positionMs ?: 0L)
-        }
-        main.postDelayed(progressWriter, 2500L)
+        // The saved queue, artwork and bookmark are available immediately from
+        // QueueStateStore. Do NOT issue a network request on service creation.
+        // A MediaController may bind repeatedly while Android recovers an app.
+        // Only explicit Play / RESUME_SAVED is allowed to resolve streaming URLs.
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -181,14 +198,7 @@ class PlaybackService : MediaSessionService() {
                     }
                 }
             }
-            ACTION_RESUME_SAVED -> {
-                val current = queue.current
-                if (exoPlayer?.currentMediaItem != null) exoPlayer?.play()
-                else current?.let {
-                    resolveAndPlay(it, autoPlay = true,
-                        resumePositionMs = savedQueue.bookmark(it.url)?.positionMs ?: 0L)
-                }
-            }
+            ACTION_RESUME_SAVED -> resumeSavedQueue()
             ACTION_NEXT -> playNext(false)
             ACTION_PREVIOUS -> playPrevious()
             ACTION_JUMP -> queue.jump(intent.getIntExtra(EXTRA_INDEX, -1))?.let { savedQueue.save(queue); resolveAndPlay(it) }
@@ -203,6 +213,18 @@ class PlaybackService : MediaSessionService() {
             }
         }
         return result
+    }
+
+    /** Called only by a user/transport Play action, never by onCreate. */
+    private fun resumeSavedQueue() {
+        if (exoPlayer?.currentMediaItem != null) {
+            exoPlayer?.play()
+        } else {
+            queue.current?.let { entry ->
+                resolveAndPlay(entry, autoPlay = true,
+                    resumePositionMs = savedQueue.bookmark(entry.url)?.positionMs ?: 0L)
+            }
+        }
     }
 
     private fun playNext(automatic: Boolean) {
@@ -221,13 +243,15 @@ class PlaybackService : MediaSessionService() {
         offlinePlaying = false
         if (autoPlay && resumePositionMs == 0L) savedQueue.saveBookmark(entry.url, 0L, 0L)
         val request = ++generation
-        resolver.execute {
-            val outcome = runCatching { gateway.resolve(entry.url) }
-            main.post {
-                if (request != generation) return@post
-                outcome.onSuccess { playable ->
+        if (resolver.isShutdown) return
+        try {
+            resolver.execute {
+                val outcome = runCatching { gateway.resolve(entry.url) }
+                main.post {
+                    if (request != generation || exoPlayer == null) return@post
+                    outcome.onSuccess { playable ->
                     val video = playable.video
-                    if (autoPlay) MusicLibrary(this).addRecent(video)
+                    if (autoPlay) runCatching { MusicLibrary(this).addRecent(video) }
                     val metadata = MediaMetadata.Builder().setTitle(video.title).setArtist(video.author)
                         .apply { if (video.thumbnail.isNotEmpty()) setArtworkUri(Uri.parse(video.thumbnail)) }
                         .build()
@@ -243,8 +267,11 @@ class PlaybackService : MediaSessionService() {
                     }
                 }
                 // Never loop infinitely through unavailable streams.
-                outcome.onFailure { exoPlayer?.pause() }
+                    outcome.onFailure { exoPlayer?.pause() }
+                }
             }
+        } catch (_: java.util.concurrent.RejectedExecutionException) {
+            // Service is shutting down; never crash because an async resolve was queued.
         }
     }
 

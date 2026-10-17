@@ -370,7 +370,8 @@ class NightWaveStudioActivity : ComponentActivity() {
         favorites = library.favorites()
         recentlyPlayed = library.recent()
         names = library.playlistNames()
-        if (::roomShadow.isInitialized) refreshShadows()
+        // Do not enqueue a complete Room rewrite for every player/queue update.
+        // onResume and the explicit "Recheck" action handle shadow verification.
     }
 
     /**
