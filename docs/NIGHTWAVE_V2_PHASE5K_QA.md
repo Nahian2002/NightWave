@@ -22,6 +22,15 @@ It shows only **UTC timestamps and coarse exit reasons**, such as Java/Kotlin cr
 
 An Android instrumentation test was added to ensure the summary is bounded and can be read without modifying app data. It is **authored but not run** in this environment.
 
+## Additional release-blocking fix
+
+The read-only Windows device-check script still compared its build-status text
+against **alpha5i**, even though the app, builder and device-check version
+variables had moved forward. A correctly built newer APK could therefore be
+rejected as stale. Phase 5K updates that *regex itself* to alpha5k / code 27
+and strengthens the older Phase 5I plus current Phase 5K source gates to check
+the exact status comparison, not only the version variable.
+
 ## What still needs a Windows / Android run
 
 1. Download/extract a fresh full ZIP for Phase 5K. Run `build-windows.cmd` and require **SUCCESS**, `2.0.0-alpha5k`, code **27**, signer digest and SHA-256 in `dist/NightWave-build-status.txt`.
