@@ -69,6 +69,7 @@ function Resolve-Java {
 $project = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $outDir = Join-Path $project 'dist'
 $buildLog = Join-Path $outDir 'NightWave-build-full.log'
+$previousLog = Join-Path $outDir 'NightWave-build-full-previous.log'
 $errorReport = Join-Path $outDir 'NightWave-build-errors.txt'
 $statusFile = Join-Path $outDir 'NightWave-build-status.txt'
 $output = Join-Path $outDir 'NightWave-debug.apk'
@@ -76,7 +77,13 @@ $previousApk = Join-Path $outDir 'NightWave-debug-previous.apk'
 $stage = 'Preflight'
 New-Item -ItemType Directory -Path $outDir -Force | Out-Null
 if (Test-Path -LiteralPath $errorReport) { Remove-Item -LiteralPath $errorReport -Force }
-'STARTED - not a verified build. Do not install an old APK.' |
+# Archive the prior log; a preflight failure must not reuse yesterday's compiler errors.
+if (Test-Path -LiteralPath $buildLog) {
+    Copy-Item -LiteralPath $buildLog -Destination $previousLog -Force
+}
+'Gradle not yet started for this NightWave build attempt.' |
+    Set-Content -LiteralPath $buildLog -Encoding UTF8
+'FAILED - build has not yet passed all checks; do not install an old APK.' |
     Set-Content -LiteralPath $statusFile -Encoding UTF8
 try {
     if (-not [Environment]::Is64BitOperatingSystem) { throw '64-bit Windows is required.' }
