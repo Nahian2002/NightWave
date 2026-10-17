@@ -264,8 +264,10 @@ class PlaybackService : MediaSessionService() {
             ACTION_NEXT -> playNext(false)
             ACTION_PREVIOUS -> playPrevious()
             ACTION_JUMP -> if (!offlinePlaying) queue.jump(intent.getIntExtra(EXTRA_INDEX, -1))?.let { savedQueue.save(queue); resolveAndPlay(it) }
-            ACTION_SHUFFLE -> { queue.shuffle = !queue.shuffle; savedQueue.save(queue) }
-            ACTION_REPEAT -> {
+            ACTION_SHUFFLE -> if (!offlinePlaying) {
+                queue.shuffle = !queue.shuffle; savedQueue.save(queue)
+            }
+            ACTION_REPEAT -> if (!offlinePlaying) {
                 queue.repeat = when (queue.repeat) {
                     PlaybackQueue.Repeat.OFF -> PlaybackQueue.Repeat.ALL
                     PlaybackQueue.Repeat.ALL -> PlaybackQueue.Repeat.ONE
@@ -325,6 +327,7 @@ class PlaybackService : MediaSessionService() {
         val song = runCatching { localLibrary.find(id) }.getOrNull() ?: return false
         val file = localLibrary.fileFor(song) ?: return false
         val player = exoPlayer ?: return false
+        if (offlinePlaying) persistProgress(flush = true)
         val item = MediaItem.Builder().setMediaId("offline:" + song.id)
             .setUri(Uri.fromFile(file)).setMimeType(song.mimeType)
             .setMediaMetadata(MediaMetadata.Builder()
@@ -395,6 +398,9 @@ class PlaybackService : MediaSessionService() {
         entry: QueueEntry, autoPlay: Boolean = true,
         resumePositionMs: Long = 0L, recoveryAttempt: Boolean = false
     ) {
+        // Flush a local checkpoint before changing playback mode or clearing
+        // its MediaItem. Otherwise the last 2.5-second progress tick could be lost.
+        if (offlinePlaying) persistProgress(flush = true)
         offlinePlaying = false
         offlineQueue.reset()
         if (!recoveryAttempt) autoRetriedVideo = null
