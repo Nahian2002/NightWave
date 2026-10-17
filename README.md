@@ -1,5 +1,21 @@
 # NightWave
 
+## NightWave 2.0 — Phase 3C verified storage preview
+
+**Current development branch:** \`feature/nightwave-v2-phase3c-verified-read-routing\`  
+**Version:** \`2.0.0-alpha3c\` · code 12 · **not an APK verified on Android**
+
+[Download the Phase 3C source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase3c-verified-read-routing.zip) · [Full QA and safety requirements](docs/NIGHTWAVE_V2_PHASE3C_QA.md)
+
+Phase 3C adds an **optional, session-only Room library read preview** in the Compose Profile: choose **TRY VERIFIED ROOM READS** or **RETURN TO ORIGINAL LIBRARY**. The preview only activates if the copied Room database **exactly matches** the current legacy favorites, recent-history order, playlist order, track metadata and source checkpoint. Every unmatched or stale copy returns to legacy reads without exposing Room rows. Song and playlist **writes still go to the original preferences**. No migration deletes original songs, no account sync is claimed, and a vanished legacy source cannot silently clear a populated Room mirror.
+
+New tests: 10 JVM parity tests, six Room reader Android tests, and one unexpected-source-loss Android test (in addition to previous Phase 3B tests). **None have yet been executed in this environment.** Windows build with \`build-windows.cmd\` remains necessary; Android instrumentation requires a test phone/emulator and a separate \`:app:connectedDebugAndroidTest\` run. Keep a manual guest backup outside the app before installing any alpha release.
+
+**Stable main remains NightWave v0.8**, and the development branches have not been merged into main. Google login, cloud backup and the final Room write cutover are not yet implemented.
+
+---
+
+
 ## NightWave 2.0 Phase 3B — Room + DataStore storage preview
 
 **Branch:** \`feature/nightwave-v2-phase3b-room-datastore\` · **Version:** \`2.0.0-alpha3b\` · **Production main:** unchanged.

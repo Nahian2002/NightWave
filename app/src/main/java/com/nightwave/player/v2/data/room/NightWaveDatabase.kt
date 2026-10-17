@@ -117,6 +117,18 @@ interface NightWaveLibraryDao {
     @Query("SELECT saved_track.* FROM playlist_entry INNER JOIN saved_track ON playlist_entry.url = saved_track.url WHERE playlist_entry.playlistName = :name ORDER BY playlist_entry.position ASC")
     fun observePlaylistSongs(name: String): Flow<List<SavedTrack>>
 
+    @Query("SELECT * FROM playlist ORDER BY position ASC")
+    suspend fun readPlaylists(): List<SavedPlaylist>
+
+    @Query("SELECT saved_track.* FROM favorite INNER JOIN saved_track ON favorite.url = saved_track.url ORDER BY favorite.position ASC")
+    suspend fun readFavorites(): List<SavedTrack>
+
+    @Query("SELECT saved_track.* FROM recent INNER JOIN saved_track ON recent.url = saved_track.url ORDER BY recent.position ASC")
+    suspend fun readRecent(): List<SavedTrack>
+
+    @Query("SELECT saved_track.* FROM playlist_entry INNER JOIN saved_track ON playlist_entry.url = saved_track.url WHERE playlist_entry.playlistName = :name ORDER BY playlist_entry.position ASC")
+    suspend fun readPlaylistSongs(name: String): List<SavedTrack>
+
     @Query("SELECT COUNT(*) FROM playlist")
     suspend fun playlistCount(): Int
 

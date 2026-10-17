@@ -88,6 +88,7 @@ import com.nightwave.player.v2.data.GuestProfileStore
 import com.nightwave.player.v2.data.ProfileDataStoreMirror
 import com.nightwave.player.v2.data.room.NightWaveDatabase
 import com.nightwave.player.v2.data.room.RoomShadowMigrator
+import com.nightwave.player.v2.data.room.VerifiedRoomReader
 import com.nightwave.player.v2.playback.StudioPlaybackBridge
 import com.nightwave.player.v2.playback.StudioPlayerState
 import com.nightwave.player.v2.model.MotionPreference
@@ -104,6 +105,11 @@ class NightWaveStudioActivity : ComponentActivity() {
     private lateinit var playback: StudioPlaybackBridge
     private lateinit var archiveManager: LibraryArchiveManager
     private lateinit var roomShadow: RoomShadowMigrator
+    private lateinit var verifiedReader: VerifiedRoomReader
+    private var roomPreviewRequested = false
+    private var roomPreviewActive by mutableStateOf(false)
+    private var roomReadStatus by mutableStateOf("Legacy library reads are active")
+    private var roomPreviewPlaylists by mutableStateOf<Map<String, List<VideoPreview>>>(emptyMap())
     private lateinit var profileShadow: ProfileDataStoreMirror
     private var shadowStatus by mutableStateOf("Legacy storage active · Room/DataStore migration pending")
     private var shadowRunning = false
@@ -168,6 +174,7 @@ class NightWaveStudioActivity : ComponentActivity() {
         playback = StudioPlaybackBridge(this)
         archiveManager = LibraryArchiveManager(this)
         roomShadow = RoomShadowMigrator(this, NightWaveDatabase.get(this))
+        verifiedReader = VerifiedRoomReader(this, NightWaveDatabase.get(this))
         profileShadow = ProfileDataStoreMirror(this)
         profile = profiles.load()
         refresh()
@@ -175,7 +182,10 @@ class NightWaveStudioActivity : ComponentActivity() {
             NightWaveMaterialTheme(profile.theme) {
                 StudioRoot(
                     profile = profile, favorites = favorites, recent = recentlyPlayed,
-                    playlistNames = names, getPlaylist = { library.playlist(it) },
+                    playlistNames = names, getPlaylist = { name ->
+                        if (roomPreviewActive) roomPreviewPlaylists[name] ?: emptyList()
+                        else library.playlist(name)
+                    },
                     playerState = playback.state, playerActions = playback,
                     isFavorite = { url -> library.isFavorite(url) },
                     onToggleFavorite = { video -> library.toggleFavorite(video); refresh() },
@@ -183,6 +193,10 @@ class NightWaveStudioActivity : ComponentActivity() {
                     onSaveCurrentToPlaylist = { saveCurrentToPlaylist() },
                     storageStatus = shadowStatus,
                     onCheckStorage = { refreshShadows() },
+                    roomReadStatus = roomReadStatus,
+                    roomPreviewActive = roomPreviewActive,
+                    onEnableRoomPreview = { enableVerifiedRoomPreview() },
+                    onUseLegacyReads = { disableRoomPreview() },
                     onExportGuest = { exportFile.launch("nightwave-guest-backup.json") },
                     onImportGuest = { importFile.launch(arrayOf("application/json", "application/octet-stream")) },
                     onSaveProfile = { updated ->
@@ -315,6 +329,9 @@ class NightWaveStudioActivity : ComponentActivity() {
     }
 
     private fun refresh() {
+        // A legacy edit invalidates any previously displayed Room snapshot.
+        roomPreviewActive = false
+        roomPreviewPlaylists = emptyMap()
         favorites = library.favorites()
         recentlyPlayed = library.recent()
         names = library.playlistNames()
@@ -325,6 +342,22 @@ class NightWaveStudioActivity : ComponentActivity() {
      * A secondary, read-only-vs-legacy sync. On any failure the old library
      * remains unchanged and the UI can still play music.
      */
+    private fun enableVerifiedRoomPreview() {
+        roomPreviewRequested = true
+        roomReadStatus = "Validating every track before reading Room…"
+        refreshShadows()
+    }
+
+    private fun disableRoomPreview() {
+        roomPreviewRequested = false
+        roomPreviewActive = false
+        roomPreviewPlaylists = emptyMap()
+        favorites = library.favorites()
+        recentlyPlayed = library.recent()
+        names = library.playlistNames()
+        roomReadStatus = "Legacy library reads are active"
+    }
+
     private fun refreshShadows() {
         if (!::roomShadow.isInitialized || !::profileShadow.isInitialized) return
         if (shadowRunning) {
@@ -340,13 +373,39 @@ class NightWaveStudioActivity : ComponentActivity() {
                     try {
                         val libraryReport = roomShadow.reconcile()
                         profileShadow.reconcile()
-                        shadowStatus = "Room/DataStore preview ready · " +
+                        val check = verifiedReader.inspect()
+                        shadowStatus = "Room/DataStore copy · " +
                             libraryReport.favorites + " likes · " +
                             libraryReport.playlists + " playlists · " +
                             libraryReport.songs + " unique songs"
+                        roomReadStatus = if (check.canUseRoom)
+                            "Exact Room parity verified against the current legacy library"
+                        else "Legacy fallback · " + check.parity.blocker.name
+                        if (roomPreviewRequested && check.canUseRoom) {
+                            val snapshot = check.snapshot!!
+                            // Compose previews can read the validated Room snapshot.
+                            roomPreviewPlaylists = snapshot.playlists.toMap()
+                            favorites = snapshot.favorites
+                            recentlyPlayed = snapshot.recent
+                            names = snapshot.playlistNames()
+                            roomPreviewActive = true
+                            roomReadStatus = "Room read preview active for this session"
+                        } else if (roomPreviewActive || roomPreviewRequested) {
+                            roomPreviewActive = false
+                            roomPreviewPlaylists = emptyMap()
+                            favorites = library.favorites()
+                            recentlyPlayed = library.recent()
+                            names = library.playlistNames()
+                        }
                     } catch (error: kotlinx.coroutines.CancellationException) {
                         throw error
                     } catch (error: Exception) {
+                        roomPreviewActive = false
+                        roomPreviewPlaylists = emptyMap()
+                        favorites = library.favorites()
+                        recentlyPlayed = library.recent()
+                        names = library.playlistNames()
+                        roomReadStatus = "Legacy fallback · migration or validation failed"
                         shadowStatus = "Storage preview needs attention: " +
                             (error.message ?: "Could not migrate legacy data").take(150) +
                             ". Original library remains in use."
@@ -376,6 +435,10 @@ private fun StudioRoot(
     onImportGuest: () -> Unit,
     storageStatus: String,
     onCheckStorage: () -> Unit,
+    roomReadStatus: String,
+    roomPreviewActive: Boolean,
+    onEnableRoomPreview: () -> Unit,
+    onUseLegacyReads: () -> Unit,
     playerState: StudioPlayerState,
     playerActions: StudioPlaybackBridge,
     isFavorite: (String) -> Boolean,
@@ -457,7 +520,11 @@ private fun StudioRoot(
             StudioTab.PROFILE -> StudioProfile(
                 modifier = Modifier.padding(safe), profile = profile,
                 save = onSaveProfile, onExport = onExportGuest, onImport = onImportGuest,
-                storageStatus = storageStatus, onCheckStorage = onCheckStorage
+                storageStatus = storageStatus, onCheckStorage = onCheckStorage,
+                roomReadStatus = roomReadStatus,
+                roomPreviewActive = roomPreviewActive,
+                onEnableRoomPreview = onEnableRoomPreview,
+                onUseLegacyReads = onUseLegacyReads
             )
         }
         }
@@ -671,7 +738,9 @@ private fun StudioLibrary(
 @Composable
 private fun StudioProfile(modifier: Modifier, profile: ProfileSettings, save: (ProfileSettings) -> Unit,
     onExport: () -> Unit, onImport: () -> Unit,
-    storageStatus: String, onCheckStorage: () -> Unit) {
+    storageStatus: String, onCheckStorage: () -> Unit,
+    roomReadStatus: String, roomPreviewActive: Boolean,
+    onEnableRoomPreview: () -> Unit, onUseLegacyReads: () -> Unit) {
     var name by rememberSaveable(profile.localId) { mutableStateOf(profile.displayName) }
     LazyColumn(modifier.widthIn(max = 840.dp).fillMaxHeight(), contentPadding = PaddingValues(20.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp)) {
@@ -746,6 +815,28 @@ private fun StudioProfile(modifier: Modifier, profile: ProfileSettings, save: (P
         item {
             OutlinedButton(onClick = onCheckStorage, modifier = Modifier.fillMaxWidth().height(48.dp)) {
                 Text("RECHECK NEW STORAGE")
+            }
+        }
+        item {
+            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                shape = RoundedCornerShape(18.dp)) {
+                Column(Modifier.fillMaxWidth().padding(18.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Verified database read preview", style = MaterialTheme.typography.titleMedium)
+                    Text(roomReadStatus, style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("Optional and temporary. All changes still save to your original library. " +
+                        "If any track/order differs, NightWave automatically uses the original data.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+        item {
+            OutlinedButton(onClick = if (roomPreviewActive) onUseLegacyReads else onEnableRoomPreview,
+                modifier = Modifier.fillMaxWidth().height(50.dp)) {
+                Text(if (roomPreviewActive) "RETURN TO ORIGINAL LIBRARY"
+                    else "TRY VERIFIED ROOM READS")
             }
         }
         item { SectionHeading("Guest backup and restore", "Keep a copy before uninstalling NightWave") }
