@@ -44,6 +44,25 @@ class QueueStateStore(context: Context) {
         }
     }
 
+    /** Safe user-facing failure state, keyed ONLY by public watch URL. */
+    fun recordFailure(publicUrl: String, label: String) {
+        if (!publicUrl.startsWith("https://www.youtube.com/watch?v=")) return
+        prefs.edit().putString("last_failure_url", publicUrl)
+            .putString("last_failure_label", label.take(160)).apply()
+    }
+
+    fun failure(expectedUrl: String?): String? {
+        if (expectedUrl.isNullOrBlank()) return null
+        return try {
+            if (prefs.getString("last_failure_url", null) != expectedUrl) null
+            else prefs.getString("last_failure_label", null)
+        } catch (_: ClassCastException) { null }
+    }
+
+    fun clearFailure() {
+        prefs.edit().remove("last_failure_url").remove("last_failure_label").apply()
+    }
+
     fun save(queue: PlaybackQueue) {
         val tracks = JSONArray()
         queue.snapshot().forEach {
