@@ -17,8 +17,8 @@ diagnostics = read(source / "diagnostics/NightWaveCrashRecorder.kt")
 classic = read(source / "ui/MainActivity.kt")
 gradle = read(root / "app/build.gradle.kts")
 
-assert 'versionName = "2.0.0-alpha5e"' in gradle
-assert 'versionCode = 21' in gradle
+assert 'versionName = "2.0.0-alpha5f"' in gradle
+assert 'versionCode = 22' in gradle
 assert 'applicationId = "com.nightwave.player"' in gradle
 start = service.split("override fun onCreate()", 1)[1].split(
     "override fun onStartCommand", 1
