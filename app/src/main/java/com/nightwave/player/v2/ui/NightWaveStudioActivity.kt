@@ -1161,11 +1161,12 @@ private fun StudioRoot(
                     }
                 }
                 if (playerState.hasTrack && compactHidden) {
+                    // Collapsed UI keeps playback alive and offers one-tap restore.
                     Surface(onClick = { compactHidden = false },
                         color = MaterialTheme.colorScheme.surfaceVariant,
                         shape = RoundedCornerShape(13.dp),
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp)
-                            .height(36.dp)) {
+                            .height(40.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center) {
                             Icon(Icons.Outlined.PlayArrow,
@@ -1372,7 +1373,10 @@ private fun StudioHome(
     )
     LazyColumn(
         modifier = modifier.fillMaxWidth().widthIn(max = 740.dp).fillMaxHeight(),
-        contentPadding = PaddingValues(horizontal = 19.dp, vertical = 18.dp),
+        // Scaffold already reserves the mini-player and navigation height;
+        // only add breathing room, not an artificial 150dp blank spacer.
+        contentPadding = PaddingValues(start = 19.dp, end = 19.dp,
+            top = 18.dp, bottom = 36.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
@@ -1500,7 +1504,8 @@ private fun StudioSearch(
     val searching = responseMatchesQuery && state.loading
     LazyColumn(
         modifier.fillMaxWidth().widthIn(max = 740.dp).fillMaxHeight(),
-        contentPadding = PaddingValues(horizontal = 19.dp, vertical = 16.dp),
+        contentPadding = PaddingValues(start = 19.dp, end = 19.dp,
+            top = 16.dp, bottom = 34.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
@@ -1685,7 +1690,8 @@ private fun StudioLibrary(
     }
     val visibleTracks = if (selectedPlaylist == null) orderedTracks.take(5) else orderedTracks
     LazyColumn(modifier.fillMaxWidth().widthIn(max = 740.dp).fillMaxHeight(),
-        contentPadding = PaddingValues(19.dp),
+        contentPadding = PaddingValues(start = 19.dp, end = 19.dp,
+            top = 19.dp, bottom = 40.dp),
         verticalArrangement = Arrangement.spacedBy(13.dp)) {
         item {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1855,7 +1861,8 @@ private fun StudioProfile(
 
     LazyColumn(
         modifier = modifier.widthIn(max = 720.dp).fillMaxHeight(),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp,
+            top = 12.dp, bottom = 52.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         item {
