@@ -40,9 +40,11 @@ class PersonalMixEngineTest {
     }
 
     @Test fun recentReplayMaintainsListeningOrder() {
-        val mixes = PersonalMixEngine.make(listOf(a), listOf(c, b, a), emptyList(), 1L)
-        val replay = mixes.firstOrNull { it.key == "replay" }
-        if (replay != null) assertEquals(listOf(c, b, a), replay.tracks)
+        // Distinct pool contents ensure Replay is shown, not deduplicated away.
+        val mixes = PersonalMixEngine.make(listOf(a, d), listOf(c, b),
+            listOf(a, d), 1L)
+        val replay = mixes.single { it.key == "replay" }
+        assertEquals(listOf(c, b), replay.tracks)
     }
 
     @Test fun invalidSourcesAreFiltered() {
