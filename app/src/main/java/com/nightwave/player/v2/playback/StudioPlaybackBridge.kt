@@ -146,8 +146,9 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
             videoUrl = offlineId ?: media?.mediaId.orEmpty()
                 .takeIf { it.startsWith("https://www.youtube.com/watch?v=") }
                 ?: savedTrack?.url.orEmpty(),
-            thumbnail = metadata?.artworkUri?.toString()?.takeIf { it.isNotBlank() }
-                ?: savedTrack?.artwork.orEmpty(),
+            thumbnail = if (offlineId != null) metadata?.artworkUri?.toString().orEmpty()
+                else metadata?.artworkUri?.toString()?.takeIf { it.isNotBlank() }
+                    ?: savedTrack?.artwork.orEmpty(),
             playing = player.isPlaying,
             buffering = player.playbackState == Player.STATE_BUFFERING,
             positionMs = if (media != null) player.currentPosition.coerceAtLeast(0L)
@@ -158,7 +159,8 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
             queue = current.tracks.map { VideoPreview(it.title, it.creator, it.url, it.artwork, 0) },
             queueIndex = if (offlineId != null) -1 else current.index,
             error = if (player.playerError != null)
-                "This track could not be played. Retry or choose another song." else null
+                "Audio playback failed. Tap Retry or choose another song."
+                else if (offlineId != null) null else persistence.failure(savedTrack?.url)
         )
     }
 
@@ -244,7 +246,7 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
         val bookmark = persistence.bookmark(entry?.url)
         state = state.copy(
             queue = snapshot.tracks.map { VideoPreview(it.title, it.creator, it.url, it.artwork, 0L) },
-            queueIndex = snapshot.index,
+            queueIndex = if (state.offline) -1 else snapshot.index,
             shuffle = snapshot.shuffle,
             repeat = snapshot.repeat,
             title = entry?.title ?: state.title,
@@ -252,7 +254,8 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
             thumbnail = entry?.artwork ?: state.thumbnail,
             videoUrl = if (state.offline) state.videoUrl else entry?.url ?: state.videoUrl,
             positionMs = bookmark?.positionMs ?: state.positionMs,
-            durationMs = bookmark?.durationMs ?: state.durationMs
+            durationMs = bookmark?.durationMs ?: state.durationMs,
+            error = if (state.offline) state.error else persistence.failure(entry?.url)
         )
     }
 }
