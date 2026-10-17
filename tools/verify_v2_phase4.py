@@ -31,16 +31,17 @@ def intents(activity):
         {item.attrib.get(android_name) for item in intent.iter("category")}
         for intent in activity.findall("intent-filter")
     ]
-# Runtime hotfix: known-functional classic UI launches first, Compose remains opt-in.
+# Phase 5M: the premium Activity owns both the launcher and shared-text entry;
+# the classic activity stays private for an explicit fallback.
 assert any("android.intent.action.MAIN" in intent and
            "android.intent.category.LAUNCHER" in intent
-           for intent in intents(activities[".ui.MainActivity"]))
+           for intent in intents(activities[".v2.ui.NightWaveStudioActivity"]))
 assert not any("android.intent.category.LAUNCHER" in intent
-               for intent in intents(activities[".v2.ui.NightWaveStudioActivity"]))
+               for intent in intents(activities[".ui.MainActivity"]))
 assert "NightWaveStudioActivity::class.java" in classic
-assert "Intent(this, MainActivity::class.java)" in playback
+assert "Intent(this, NightWaveStudioActivity::class.java)" in playback
 assert any("android.intent.action.SEND" in intent
-           for intent in intents(activities[".ui.MainActivity"]))
+           for intent in intents(activities[".v2.ui.NightWaveStudioActivity"]))
 
 for string in ("saveBookmark(", "fun bookmark(", "bookmark_position_ms",
                "bookmark_duration_ms"):
@@ -74,8 +75,8 @@ assert "import androidx.compose.material3.Surface" in studio
 assert 'height(60.dp)' in studio
 assert 'Now playing · Tap to show' in studio
 assert 'showAdvanced' in studio
-assert 'BackHandler(enabled = showQueue || expanded)' in studio
-assert 'onClose = {' in studio and 'MainActivity::class.java' in studio
+assert 'BackHandler(enabled = showQueue || expanded ||' in studio
+assert 'onOpenClassic = {' in studio and 'MainActivity::class.java' in studio
 assert 'ROOM_PRIMARY_WRITES_ENABLED = false' in read("library/LibraryStoragePolicy.kt")
 assert 'MINI_PLAYER_HEIGHT_DP = 60' in design
 
@@ -88,6 +89,6 @@ for title, source in (("service", playback), ("queue", queue), ("bridge", bridge
     imports = [line for line in source.splitlines() if line.startswith("import ")]
     assert len(imports) == len(set(imports)), f"{title}: repeated import"
 
-print("PASS: safe classic launcher, opt-in Compose preview, compact player/nav, gestures,")
-print("      explicit classic fallback, queued session/bookmark resume and tests")
+print("PASS: premium launcher/share intent, compact player/nav, gestures,")
+print("      deliberate classic fallback, queued session/bookmark resume and tests")
 print("NOT VERIFIED: Gradle/Compose build, instrumental tests or phone playback")
