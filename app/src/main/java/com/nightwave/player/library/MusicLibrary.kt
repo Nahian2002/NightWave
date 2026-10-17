@@ -48,6 +48,10 @@ class MusicLibrary(context: Context) {
     fun addToPlaylist(name: String, video: VideoPreview): Boolean =
         LegacyLibraryTransaction.mutate(app, LibraryChange.AddToPlaylist(name, video)).accepted
 
+    /** Confirmed import is an all-or-nothing legacy-library transaction. */
+    fun importSharedPlaylist(name: String, tracks: List<VideoPreview>): LibraryChangeResult =
+        LegacyLibraryTransaction.mutate(app, LibraryChange.ImportSharedPlaylist(name, tracks))
+
     fun removeFromPlaylist(name: String, url: String): Boolean =
         LegacyLibraryTransaction.mutate(app, LibraryChange.RemoveFromPlaylist(name, url)).accepted
 
