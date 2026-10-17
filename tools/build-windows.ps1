@@ -117,14 +117,16 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Android SDK package installation failed.' }
 
     Say 'Running Android unit tests and compiling the debug APK'
-    # Always capture the FIRST compiler diagnostics, not just Gradle's stack trace.
-    # Save reports outside Gradle's own build/ directory so Clean won't erase them.
+    # Always preserve the complete Gradle output and provide a small error report.
     $outDir = Join-Path $project 'dist'
     New-Item -ItemType Directory -Path $outDir -Force | Out-Null
     $buildLog = Join-Path $outDir 'NightWave-build-full.log'
     $errorReport = Join-Path $outDir 'NightWave-build-errors.txt'
-    if (Test-Path -LiteralPath $errorReport) { Remove-Item -LiteralPath $errorReport -Force }
-    Say "Saving complete Gradle output to $buildLog"
+    if (Test-Path -LiteralPath $errorReport) {
+        Remove-Item -LiteralPath $errorReport -Force
+    }
+    Say "Saving build output to $buildLog"
+
     Push-Location $project
     try {
         $previousErrorPreference = $ErrorActionPreference
@@ -136,79 +138,58 @@ try {
         } finally {
             $ErrorActionPreference = $previousErrorPreference
         }
+
         if ($gradleResult -ne 0) {
             $patterns = @(
-                '^e:\s', '(^|\s)error:\s',
-                'Unresolved reference', 'Type mismatch', 'Cannot infer',
-                'No value passed for parameter', 'Overload resolution ambiguity',
-                '^> Task .* FAILED', '^Execution failed for task', '^FAILURE:',
-                '^Could not resolve', 'Compilation error', 'KSP.*error',
-                '\s>\s.*\sFAILED
-            $matches = @(Select-String -LiteralPath $buildLog -Pattern $patterns |
-                Select-Object -First 65 | ForEach-Object { $_.Line.TrimEnd() })
-            if ($matches.Count -eq 0) {
-                $matches = @(Get-Content -LiteralPath $buildLog -Tail 75)
-            }
-            $report = @(
-                'NightWave build failure - diagnostic summary'
-                "Build log: $buildLog"
-                'Compiler errors and failed tests appear below (deprecation warnings omitted):'
-                ''
-            ) + $matches
-            $report | Set-Content -LiteralPath $errorReport -Encoding UTF8
-            Write-Host ''
-            Write-Host '===== FIRST COMPILER ERRORS / FAILURE SUMMARY =====' -ForegroundColor Red
-            $matches | ForEach-Object { Write-Host $_ -ForegroundColor Yellow }
-            Write-Host '===================================================' -ForegroundColor Red
-            Write-Host "Send this file for repairs: $errorReport" -ForegroundColor Cyan
-            Write-Host "Complete build log:       $buildLog" -ForegroundColor Cyan
-            throw 'Gradle returned an Android compilation/test failure. A diagnostic report has been saved.'
-        }
-    } finally { Pop-Location }
-
-    $apk = Join-Path $project 'app\build\outputs\apk\debug\app-debug.apk'
-    if (-not (Test-Path -LiteralPath $apk)) { throw 'Gradle exited successfully but the debug APK was not found.' }
-    $outDir = Join-Path $project 'dist'
-    New-Item -ItemType Directory -Path $outDir -Force | Out-Null
-    $output = Join-Path $outDir 'NightWave-debug.apk'
-    Copy-Item -LiteralPath $apk -Destination $output -Force
-    Say 'BUILD SUCCESS'
-    Say "APK: $output"
-    Write-Host "SHA256: $((Get-FileHash -LiteralPath $output -Algorithm SHA256).Hash)"
-    exit 0
-} catch {
-    Write-Host "[NightWave] BUILD FAILED: $($_.Exception.Message)" -ForegroundColor Red
-    exit 1
-}
-, 'java\.lang\.AssertionError',
-                '\d+ tests completed, \d+ failed', 'There were failing tests'
+                '^e:\s',
+                '(^|\s)error:\s',
+                'Unresolved reference',
+                'Type mismatch',
+                'Cannot infer',
+                'No value passed for parameter',
+                'Overload resolution ambiguity',
+                '^> Task .* FAILED',
+                '^Execution failed for task',
+                '^FAILURE:',
+                '^Could not resolve',
+                'Compilation error',
+                'KSP.*error',
+                '\s>\s.*\sFAILED$',
+                'java\.lang\.AssertionError',
+                '\d+ tests completed, \d+ failed',
+                'There were failing tests'
             )
-            $matches = @(Select-String -LiteralPath $buildLog -Pattern $patterns |
-                Select-Object -First 65 | ForEach-Object { $_.Line.TrimEnd() })
-            if ($matches.Count -eq 0) {
-                $matches = @(Get-Content -LiteralPath $buildLog -Tail 75)
+            $matchedLines = @(
+                Select-String -LiteralPath $buildLog -Pattern $patterns |
+                    Select-Object -First 65 |
+                    ForEach-Object { $_.Line.TrimEnd() }
+            )
+            if ($matchedLines.Count -eq 0) {
+                $matchedLines = @(Get-Content -LiteralPath $buildLog -Tail 75)
             }
             $report = @(
-                'NightWave build failure - diagnostic summary'
-                "Build log: $buildLog"
-                'The first Kotlin compiler errors are the lines beginning with e: or mentioning .kt:'
+                'NightWave build failure - diagnostic summary',
+                "Build log: $buildLog",
+                'Compiler errors and failed tests appear below (deprecation warnings omitted):',
                 ''
-            ) + $matches
+            ) + $matchedLines
             $report | Set-Content -LiteralPath $errorReport -Encoding UTF8
             Write-Host ''
             Write-Host '===== FIRST COMPILER ERRORS / FAILURE SUMMARY =====' -ForegroundColor Red
-            $matches | ForEach-Object { Write-Host $_ -ForegroundColor Yellow }
+            $matchedLines | ForEach-Object { Write-Host $_ -ForegroundColor Yellow }
             Write-Host '===================================================' -ForegroundColor Red
             Write-Host "Send this file for repairs: $errorReport" -ForegroundColor Cyan
             Write-Host "Complete build log:       $buildLog" -ForegroundColor Cyan
             throw 'Gradle returned an Android compilation/test failure. A diagnostic report has been saved.'
         }
-    } finally { Pop-Location }
+    } finally {
+        Pop-Location
+    }
 
     $apk = Join-Path $project 'app\build\outputs\apk\debug\app-debug.apk'
-    if (-not (Test-Path -LiteralPath $apk)) { throw 'Gradle exited successfully but the debug APK was not found.' }
-    $outDir = Join-Path $project 'dist'
-    New-Item -ItemType Directory -Path $outDir -Force | Out-Null
+    if (-not (Test-Path -LiteralPath $apk)) {
+        throw 'Gradle exited successfully but the debug APK was not found.'
+    }
     $output = Join-Path $outDir 'NightWave-debug.apk'
     Copy-Item -LiteralPath $apk -Destination $output -Force
     Say 'BUILD SUCCESS'
