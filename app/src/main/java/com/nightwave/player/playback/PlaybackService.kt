@@ -602,6 +602,7 @@ class PlaybackService : MediaSessionService() {
         generation++
         resolvingPublicUrl = null
         resolver.shutdownNow()
+        listeningWriter.shutdown() // drain pending bounded, consent-fenced writes
         exoPlayer?.removeListener(trackListener)
         mediaSession?.release()
         mediaSession = null
