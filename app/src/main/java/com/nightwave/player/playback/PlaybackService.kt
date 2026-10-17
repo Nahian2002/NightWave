@@ -12,6 +12,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
@@ -19,6 +20,7 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import com.nightwave.player.library.MusicLibrary
 import com.nightwave.player.net.YouTubeGateway
+import com.nightwave.player.offline.OfflineAudioLibrary
 import com.nightwave.player.ui.MainActivity
 import java.util.concurrent.Executors
 
@@ -28,6 +30,8 @@ class PlaybackService : MediaSessionService() {
     companion object {
         const val ACTION_REPLACE = "com.nightwave.player.REPLACE_QUEUE"
         const val ACTION_RESUME_SAVED = "com.nightwave.player.RESUME_SAVED"
+        const val ACTION_PLAY_OFFLINE = "com.nightwave.player.PLAY_OFFLINE"
+        const val EXTRA_OFFLINE_ID = "offline_id"
         /** Atomic queue assignment followed by a single play request for the v2 interface. */
         const val ACTION_PLAY_QUEUE = "com.nightwave.player.PLAY_QUEUE"
         const val ACTION_ENQUEUE = "com.nightwave.player.ENQUEUE"
@@ -51,6 +55,7 @@ class PlaybackService : MediaSessionService() {
     private val resolver = Executors.newSingleThreadExecutor()
     private val gateway = YouTubeGateway()
     private var generation = 0
+    private var offlinePlaying = false
     private val progressWriter = object : Runnable {
         override fun run() {
             persistProgress()
@@ -67,7 +72,7 @@ class PlaybackService : MediaSessionService() {
 
     private val trackListener = object : Player.Listener {
         override fun onPlaybackStateChanged(state: Int) {
-            if (state == Player.STATE_ENDED) playNext(true)
+            if (state == Player.STATE_ENDED && !offlinePlaying) playNext(true)
         }
     }
 
@@ -81,7 +86,7 @@ class PlaybackService : MediaSessionService() {
             .setConnectTimeoutMs(20_000)
             .setReadTimeoutMs(20_000)
         val player = ExoPlayer.Builder(this)
-            .setMediaSourceFactory(DefaultMediaSourceFactory(networkSource))
+            .setMediaSourceFactory(DefaultMediaSourceFactory(DefaultDataSource.Factory(this, networkSource)))
             .build().apply {
                 setAudioAttributes(
                     AudioAttributes.Builder()
@@ -154,6 +159,28 @@ class PlaybackService : MediaSessionService() {
                     savedQueue.save(queue)
                 }
             }
+            ACTION_PLAY_OFFLINE -> {
+                val id = intent.getStringExtra(EXTRA_OFFLINE_ID).orEmpty()
+                val localLibrary = OfflineAudioLibrary(this)
+                val song = runCatching { localLibrary.find(id) }.getOrNull()
+                val localFile = song?.let { localLibrary.fileFor(it) }
+                if (song != null && localFile != null) {
+                    offlinePlaying = true
+                    generation++
+                    val item = MediaItem.Builder().setMediaId("offline:" + song.id)
+                        .setUri(Uri.fromFile(localFile)).setMimeType(song.mimeType)
+                        .setMediaMetadata(MediaMetadata.Builder()
+                            .setTitle(song.title).setArtist("Offline · NightWave").build())
+                        .build()
+                    exoPlayer?.apply {
+                        pause()
+                        setMediaItem(item)
+                        playWhenReady = true
+                        prepare()
+                        play()
+                    }
+                }
+            }
             ACTION_RESUME_SAVED -> {
                 val current = queue.current
                 if (exoPlayer?.currentMediaItem != null) exoPlayer?.play()
@@ -179,16 +206,19 @@ class PlaybackService : MediaSessionService() {
     }
 
     private fun playNext(automatic: Boolean) {
+        if (offlinePlaying) return
         queue.next(automatic)?.let { savedQueue.save(queue); resolveAndPlay(it) }
     }
 
     private fun playPrevious() {
+        if (offlinePlaying) return
         queue.previous()?.let { savedQueue.save(queue); resolveAndPlay(it) }
     }
 
     private fun resolveAndPlay(
         entry: QueueEntry, autoPlay: Boolean = true, resumePositionMs: Long = 0L
     ) {
+        offlinePlaying = false
         if (autoPlay && resumePositionMs == 0L) savedQueue.saveBookmark(entry.url, 0L, 0L)
         val request = ++generation
         resolver.execute {
