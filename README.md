@@ -1,5 +1,21 @@
 # NightWave
 
+## NightWave 2.0 Alpha 5S — Android build recovery
+
+**Version:** `2.0.0-alpha5s` · **Build 35** · Draft development branch: `feature/nightwave-v2-phase5s-build-recovery`.
+
+[Complete Phase 5S source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase5s-build-recovery.zip) · [Build recovery and on-device QA](docs/NIGHTWAVE_V2_PHASE5S_QA.md)
+
+- **Real Android compilation expanded:** `build-windows.cmd` now tests JVM code, assembles the app, and compiles all Android instrumentation Kotlin sources before treating a debug APK as a completed build. APK signer/version/SHA verification remains mandatory.
+- **Current-build diagnostics:** old complete build logs are archived rather than mistaken for today's compiler errors. Any failed build writes the ordinary errors/status files plus a shorter, redacted `dist/NightWave-build-diagnostic.txt` via the new **`diagnose-nightwave-build.cmd`** tool.
+- **Synthetic protection test:** the diagnostic script checks failure-line extraction and username/credential redaction before Gradle starts. The existing Windows PowerShell syntax preflight also includes this new tool.
+- **Real crash prevention:** Up Next no longer uses public video URL as its Compose LazyColumn key, which could crash when a restored queue contains the same song more than once. It now uses unique queue slot indexes without deleting or migrating any songs.
+- **Release safety:** CI jobs from 5R failed without usable steps/logs, so **there is still no verified Android APK**. CI artifacts may have unrelated debug signatures; do not install over the current NightWave app until the read-only device signing/version check passes. Stable `main` and local music data are unchanged.
+
+**Immediate Windows step:** Extract the Phase 5S ZIP to a new directory and run `build-windows.cmd`. On failure, run `diagnose-nightwave-build.cmd` and share `dist/NightWave-build-diagnostic.txt` to identify whether SDK provisioning, Kotlin compilation, Android instrumentation compilation or unit tests failed.
+
+---
+
 ## NightWave 2.0 Alpha 5R — Gesture stability and Android build verification
 
 **Version:** `2.0.0-alpha5r` · **Build code 34** · **Draft branch:** `feature/nightwave-v2-phase5r-accessibility-build-gates`.
