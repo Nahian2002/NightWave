@@ -24,6 +24,7 @@
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
+        <activity android:name=".v2.ui.NightWaveStudioActivity" android:exported="false" />
         <service
             android:name=".playback.PlaybackService"
             android:exported="true"
