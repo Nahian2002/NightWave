@@ -1,5 +1,16 @@
 # NightWave
 
+## Phase 6H2 — Compose Kotlin compile hotfix (draft)
+
+[Download complete Phase 6H2 source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase6h2-fillmaxsize-compile-hotfix.zip) · [Exact compiler failure and safe retry](docs/NIGHTWAVE_V2_PHASE6H2_COMPOSE_COMPILE_HOTFIX.md)
+
+- **Repairs three proven Android compiler failures** in `StudioComponents.kt` at lines 164, 198 and 203: `Modifier.fillMaxSize()` lacked the `androidx.compose.foundation.layout.fillMaxSize` import. The existing Listening Spotlight layout and artwork are unchanged.
+- **Prevents repeat errors:** Windows and CI preflight scripts now check for missing `fillMaxSize` imports before Gradle; a dedicated 6H2 source gate is included.
+- **Full stacked source:** Includes 6H1 redaction hotfix, earlier playback/lyrics/listening features and the unchanged app package/build35. No installed music, signing or cloud data changed.
+- **Status:** The prior 6H1 Windows Gradle run proved the three unresolved references. 6H2 has not yet passed a full Android build or device signer check. Extract the new ZIP into a fresh folder, run `build-windows.cmd`, and if anything fails use `send-build-report.cmd`.
+
+---
+
 ## Phase 6H1 — Windows diagnostic self-test hotfix (draft)
 
 [Download complete 6H1 source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase6h1-diagnostic-redaction-hotfix.zip) · [Root cause & safe retry steps](docs/NIGHTWAVE_V2_PHASE6H1_DIAGNOSTIC_HOTFIX.md)
