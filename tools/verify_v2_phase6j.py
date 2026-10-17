@@ -32,7 +32,8 @@ assert "fun creatorsFrom(tracks: List<VideoPreview>, limit: Int = 8)" in identit
 assert "distinctBy { it.url }" in identity
 assert "limit.coerceAtMost(12)" in identity
 assert "normalized in genericCreators" in identity
-assert "Network" not in identity or "network" in identity  # no provider dependency
+for forbidden in ("HttpURLConnection", "NewPipe", "Retrofit", "MediaController", "StreamInfo.getInfo"):
+    assert forbidden not in identity, forbidden + " must not be used to label a saved track"
 assert "data class VideoPreview(val title: String, val author: String, val url:" in model
 assert "fun resolve(url: String): PlayableAudio" in model
 # Original metadata storage model and playback remain unchanged.
