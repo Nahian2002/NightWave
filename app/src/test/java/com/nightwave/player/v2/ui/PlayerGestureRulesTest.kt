@@ -43,4 +43,36 @@ class PlayerGestureRulesTest {
         assertEquals(PlayerArtworkSwipe.NONE,
             PlayerGestureRules.decideHorizontalSwipe(-200f, 0f, true, false, 3))
     }
+
+    @Test fun verticalGesturesUseDensityScaledThresholdAndBothDirections() {
+        for (density in listOf(1f, 2f, 3.5f)) {
+            val threshold = PlayerGestureRules.MIN_VERTICAL_SWIPE_DP * density
+            assertEquals(PlayerVerticalSwipe.NONE,
+                PlayerGestureRules.decideVerticalSwipe(threshold - 1f, threshold))
+            assertEquals(PlayerVerticalSwipe.NONE,
+                PlayerGestureRules.decideVerticalSwipe(-threshold + 1f, threshold))
+            assertEquals(PlayerVerticalSwipe.MINIMIZE,
+                PlayerGestureRules.decideVerticalSwipe(threshold, threshold))
+            assertEquals(PlayerVerticalSwipe.EXPAND,
+                PlayerGestureRules.decideVerticalSwipe(-threshold, threshold))
+        }
+    }
+
+    @Test fun verticalSwipesRejectInvalidNumbersAndZeroThreshold() {
+        assertEquals(PlayerVerticalSwipe.NONE,
+            PlayerGestureRules.decideVerticalSwipe(Float.NaN, 72f))
+        assertEquals(PlayerVerticalSwipe.NONE,
+            PlayerGestureRules.decideVerticalSwipe(Float.NEGATIVE_INFINITY, 72f))
+        assertEquals(PlayerVerticalSwipe.NONE,
+            PlayerGestureRules.decideVerticalSwipe(100f, Float.POSITIVE_INFINITY))
+        assertEquals(PlayerVerticalSwipe.NONE,
+            PlayerGestureRules.decideVerticalSwipe(100f, 0f))
+    }
+
+    @Test fun verticalSwipeIsIndependentOfHorizontalPlaybackEligibility() {
+        assertEquals(PlayerVerticalSwipe.MINIMIZE,
+            PlayerGestureRules.decideVerticalSwipe(108f, 72f))
+        assertEquals(PlayerArtworkSwipe.NONE,
+            PlayerGestureRules.decideHorizontalSwipe(108f, 88f, false, false, 0))
+    }
 }
