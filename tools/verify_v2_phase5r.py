@@ -66,7 +66,7 @@ assert 'PlayerVerticalSwipe.MINIMIZE -> onHide()' in old_gate
 # CI is automatic only for the new stacked draft PR, and tests actual Kotlin
 # Android/debug unit/instrumentation-source compilations before artifact upload.
 assert 'pull_request:' in workflow
-assert 'feature/nightwave-v2-phase5q-search-recovery' in workflow
+assert 'feature/nightwave-v2-phase5r-accessibility-build-gates' in workflow
 assert 'workflow_dispatch:' in workflow
 assert "gradle-version: '8.11.1'" in workflow
 assert 'tools/verify_source.py' in workflow
