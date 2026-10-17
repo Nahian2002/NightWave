@@ -447,7 +447,10 @@ class PlaybackService : MediaSessionService() {
         // A second Resume tap while extractor work is pending must not queue
         // another resolution behind a slow first request.
         val entry = queue.current ?: return
-        if (PlaybackResolutionPolicy.awaitsSameResolution(entry.url, resolvingPublicUrl)) return
+        if (PlaybackResolutionPolicy.awaitsSameResolution(entry.url, resolvingPublicUrl)) {
+            exoPlayer?.play() // resume intent only; do NOT re-extract
+            return
+        }
         val player = exoPlayer ?: return
         if (PlaybackResolutionPolicy.reusesLoadedTrack(
                 entry.url, player.currentMediaItem?.mediaId, player.playerError != null)) {
@@ -577,7 +580,9 @@ class PlaybackService : MediaSessionService() {
         exoPlayer?.apply {
             stop()
             clearMediaItems()
-            playWhenReady = false
+            // Keep pending user intent observable by Media3 Play/Pause.
+            // A Pause during extraction must not be reversed at completion.
+            playWhenReady = autoPlay
         }
         if (autoPlay && resumePositionMs == 0L) savedQueue.saveBookmark(entry.url, 0L, 0L)
         val request = ++generation
@@ -625,11 +630,12 @@ class PlaybackService : MediaSessionService() {
                         .apply { playable.mimeType?.let { setMimeType(it) } }
                         .setMediaMetadata(metadata).build()
                     exoPlayer?.apply {
+                        val shouldPlay = autoPlay && playWhenReady
                         setMediaItem(mediaItem)
                         if (resumePositionMs > 0L) seekTo(resumePositionMs)
-                        playWhenReady = autoPlay
+                        playWhenReady = shouldPlay
                         prepare()
-                        if (autoPlay) play()
+                        if (shouldPlay) play()
                     }
                 }
                 // An unavailable public stream is not a reason to replay an old song.
