@@ -259,10 +259,10 @@ fun StudioNowPlayingOverlay(
     onLike: () -> Unit,
     onOpenQueue: () -> Unit,
     onSaveToPlaylist: () -> Unit,
-    lyrics: TimedLyrics?,
-    onImportLyrics: () -> Unit,
-    onRemoveLyrics: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    lyrics: TimedLyrics? = null,
+    onImportLyrics: () -> Unit = {},
+    onRemoveLyrics: () -> Unit = {}
 ) {
     val enter = if (reduceMotion) EnterTransition.None else slideInVertically(initialOffsetY = { it }) + fadeIn()
     val exit = if (reduceMotion) ExitTransition.None else slideOutVertically(targetOffsetY = { it }) + fadeOut()
