@@ -37,7 +37,7 @@ if not "%BUILD_EXIT%"=="0" (
     echo Please share the earliest red error above.
   )
 ) else (
-  echo BUILD SUCCESS. Verified build 24: dist\NightWave-debug.apk
+  echo BUILD SUCCESS. Verified build 25: dist\NightWave-debug.apk
   echo See dist\NightWave-build-status.txt for version and SHA256.
 )
 echo.
