@@ -93,13 +93,20 @@ class PlaybackService : MediaSessionService() {
 
         override fun onPlayerError(error: PlaybackException) {
             val video = exoPlayer?.currentMediaItem?.mediaId ?: return
-            if (offlinePlaying || queue.current?.url != video || autoRetriedVideo == video) return
+            if (offlinePlaying || queue.current?.url != video) return
+            if (autoRetriedVideo == video) {
+                savedQueue.recordFailure(video, "Stream refresh failed. Tap Retry to try again.")
+                return
+            }
             val retriable = error.errorCode in setOf(
                 PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED,
                 PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT,
                 PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS
             )
-            if (!retriable) return
+            if (!retriable) {
+                savedQueue.recordFailure(video, "Playback failed. Try another song or Retry.")
+                return
+            }
             autoRetriedVideo = video
             val position = exoPlayer?.currentPosition?.coerceAtLeast(0L) ?: 0L
             Log.w("NightWavePlayback", "Transient playback error; one stream refresh requested")
@@ -290,6 +297,7 @@ class PlaybackService : MediaSessionService() {
     ) {
         offlinePlaying = false
         if (!recoveryAttempt) autoRetriedVideo = null
+        savedQueue.clearFailure()
         // Drop expired previous stream metadata immediately; the UI can display
         // the current queue entry during fresh extraction instead of a stale song.
         exoPlayer?.apply {
@@ -307,6 +315,7 @@ class PlaybackService : MediaSessionService() {
                     if (request != generation || exoPlayer == null) return@post
                     outcome.onSuccess { playable ->
                     val video = playable.video
+                    savedQueue.clearFailure()
                     if (autoPlay) runCatching { MusicLibrary(this).addRecent(video) }
                     val metadata = MediaMetadata.Builder().setTitle(video.title).setArtist(video.author)
                         .apply { if (video.thumbnail.isNotEmpty()) setArtworkUri(Uri.parse(video.thumbnail)) }
@@ -326,6 +335,8 @@ class PlaybackService : MediaSessionService() {
                     outcome.onFailure {
                         Log.w("NightWavePlayback", "Stream extraction failed: " +
                             it.javaClass.simpleName)
+                        savedQueue.recordFailure(entry.url,
+                            "No playable audio was available. Retry or select another track.")
                         exoPlayer?.pause()
                     }
                 }
