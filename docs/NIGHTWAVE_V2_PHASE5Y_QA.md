@@ -7,7 +7,8 @@
 - Liked and recent sources are capped; playlist lists are read without network and deduplicated, with up to 12 tracks per mix and up to 6 initially displayed. Empty personal libraries don't display pretend playlists.
 - **Home "Pick up where you left off" fix:** previous code always replaced queue and re-resolved YouTube when clicked, even if the displayed last-played song was currently loaded. This could stop playback and wait for a slow extractor.
 - New `SpotlightResumePolicy` chooses KEEP_CURRENT for a playing/buffering same song; RESUME_CURRENT for a paused/loaded one; RETRY_CURRENT for known error; START_SELECTED if different/offline/unavailable.
-- Media3 bridge now has **resume-only** (not toggle) to prevent inadvertently pausing an already-playing controller. Playback service suppresses duplicate identical queue-play and duplicate RESUME_SAVED while an extractor request is already pending.
+- Media3 bridge now has **resume-only** (not toggle) to prevent inadvertently pausing an already-playing controller. An already-ended, still-loaded media item seeks to the beginning and prepares locally before playing. Playback service suppresses duplicate identical queue-play and duplicate RESUME_SAVED while an extractor request is already pending.
+- Playlist-only edits invalidate the local recommendation/search cache via the UI library revision; unchanged playlist names no longer leave old mix contents displayed.
 - No new permissions, schema changes, cloud exports, new radio streaming APIs, database deletion, or changes to music ownership. The 5U optional Google Drive backup remains distinct.
 
 ## Limits
