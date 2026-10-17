@@ -231,7 +231,7 @@ try {
     $buildTools = Join-Path $sdk 'build-tools\35.0.0'
     $verifyOutput = (& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $verifier `
         -ApkPath $apk -BuildToolsDir $buildTools `
-        -VersionName '2.0.0-alpha5l' -VersionCode '28' `
+        -VersionName '2.0.0-alpha5m' -VersionCode '29' `
         -PreviousApkPath $previousApk 2>&1 | Out-String)
     if ($LASTEXITCODE -ne 0) {
         throw ('APK signature/identity gate failed: ' + $verifyOutput.Trim())
@@ -250,8 +250,8 @@ try {
     @(
         'SUCCESS - NightWave Android debug APK locally verified',
         'Package: com.nightwave.player',
-        'Version: 2.0.0-alpha5l',
-        'Version code: 28',
+        'Version: 2.0.0-alpha5m',
+        'Version code: 29',
         $signerLine,
         $continuityLine,
         "SHA256: $hash",
