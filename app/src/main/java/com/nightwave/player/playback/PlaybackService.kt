@@ -138,7 +138,13 @@ class PlaybackService : MediaSessionService() {
                     playing = player.isPlaying && player.playbackState == Player.STATE_READY,
                     nowElapsedMs = elapsed, nowWallMs = wall
                 )
-            pulses.forEach { listeningMemory.record(it) }
+            // Never serialize/commit aggregates from a Media3 callback.
+            // A single worker preserves pulse order; store rechecks consent.
+            pulses.forEach { pulse ->
+                listeningWriter.execute {
+                    runCatching { listeningMemory.record(pulse, revision) }
+                }
+            }
         } catch (_: Exception) {
             // Personal insights must never interrupt streaming or offline music.
             listeningMeter.reset()
