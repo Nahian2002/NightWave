@@ -9,6 +9,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.IntentSenderRequest
 import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.auth.api.identity.AuthorizationResult
+import com.nightwave.player.v2.lyrics.PrivateLyricsStore
+import com.nightwave.player.v2.lyrics.TimedLyrics
+import com.nightwave.player.v2.lyrics.TimedLyricsCodec
+import com.nightwave.player.v2.insights.ListeningInsights
+import com.nightwave.player.v2.insights.ListeningInsightsEngine
 import com.nightwave.player.v2.cloud.CloudBackupStatus
 import com.nightwave.player.v2.cloud.CloudBackupState
 import com.nightwave.player.v2.cloud.CloudBackupCodec
@@ -166,6 +171,10 @@ class NightWaveStudioActivity : ComponentActivity() {
     private lateinit var library: MusicLibrary
     private lateinit var playback: StudioPlaybackBridge
     private lateinit var archiveManager: LibraryArchiveManager
+    private lateinit var lyricsStore: PrivateLyricsStore
+    private var pendingLyricsId: String? = null
+    private var lyricsRevision by mutableStateOf(0)
+    private var loadedLyrics by mutableStateOf<Pair<String, TimedLyrics>?>(null)
     private lateinit var cloudStore: CloudBackupState
     private var cloudInfo by mutableStateOf(CloudBackupStatus())
     private var cloudBusy by mutableStateOf(false)
@@ -204,6 +213,51 @@ class NightWaveStudioActivity : ComponentActivity() {
                     cloudStore.status("Google authorization was not completed")
                     refreshCloud()
                 }
+        }
+    }
+
+    private val importLyricsFile = registerForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        val id = pendingLyricsId
+        pendingLyricsId = null
+        if (uri == null || id == null) return@registerForActivityResult
+        if (playback.state.videoUrl != "offline:$id") {
+            showMessage("Song changed; import lyrics again for the correct track.")
+            return@registerForActivityResult
+        }
+        lifecycleScope.launch {
+            val outcome = withContext(Dispatchers.IO) {
+                runCatching {
+                    requireNotNull(contentResolver.openInputStream(uri)) {
+                        "Could not read the selected lyrics file"
+                    }.use { stream ->
+                        val data = java.io.ByteArrayOutputStream()
+                        val buffer = ByteArray(4096)
+                        while (true) {
+                            val count = stream.read(buffer)
+                            if (count < 0) break
+                            require(data.size() + count <= TimedLyricsCodec.MAX_BYTES) {
+                                "Lyrics exceed the 64 KB import limit"
+                            }
+                            data.write(buffer, 0, count)
+                        }
+                        // Reject a stale selector without associating it with
+                        // any other track or persisting arbitrary file contents.
+                        check(playback.state.videoUrl == "offline:$id") {
+                            "The currently playing track changed"
+                        }
+                        lyricsStore.save(id, data.toByteArray())
+                    }
+                }
+            }
+            outcome.onSuccess {
+                lyricsRevision++
+                showMessage("Synchronized lyrics imported for this local song.")
+            }.onFailure {
+                showMessage("Lyrics import unsuccessful: " +
+                    (it.message ?: "Invalid synchronized LRC file"))
+            }
         }
     }
 
@@ -269,6 +323,7 @@ class NightWaveStudioActivity : ComponentActivity() {
         library = MusicLibrary(this)
         playback = StudioPlaybackBridge(this)
         archiveManager = LibraryArchiveManager(this)
+        lyricsStore = PrivateLyricsStore(this)
         cloudStore = CloudBackupState(this)
         refreshCloud()
         // Room/DataStore are read-only previews at this phase. A failure
@@ -289,6 +344,19 @@ class NightWaveStudioActivity : ComponentActivity() {
             LaunchedEffect(playback.state.videoUrl) {
                 if (playback.state.videoUrl.isNotBlank()) refresh()
             }
+            LaunchedEffect(playback.state.videoUrl, lyricsRevision) {
+                loadedLyrics = null
+                val current = playback.state.videoUrl
+                if (current.startsWith("offline:")) {
+                    val id = current.removePrefix("offline:")
+                    val result = withContext(Dispatchers.IO) {
+                        runCatching { lyricsStore.read(id) }.getOrNull()
+                    }
+                    if (playback.state.videoUrl == current && result != null) {
+                        loadedLyrics = id to result
+                    }
+                }
+            }
             NightWaveMaterialTheme(profile.theme) {
                 StudioRoot(
                     profile = profile, favorites = favorites, recent = recentlyPlayed,
@@ -298,6 +366,32 @@ class NightWaveStudioActivity : ComponentActivity() {
                         else library.playlist(name)
                     },
                     playerState = playback.state, playerActions = playback,
+                    currentLyrics = loadedLyrics?.takeIf {
+                        playback.state.videoUrl == "offline:" + it.first
+                    }?.second,
+                    onImportLyrics = {
+                        val id = playback.state.videoUrl.takeIf {
+                            it.startsWith("offline:")
+                        }?.removePrefix("offline:")
+                        if (id != null) {
+                            pendingLyricsId = id
+                            importLyricsFile.launch(arrayOf("text/*", "application/octet-stream"))
+                        }
+                    },
+                    onRemoveLyrics = {
+                        val id = playback.state.videoUrl.takeIf {
+                            it.startsWith("offline:")
+                        }?.removePrefix("offline:")
+                        if (id != null) lifecycleScope.launch {
+                            val done = withContext(Dispatchers.IO) {
+                                runCatching { lyricsStore.delete(id) }.getOrDefault(false)
+                            }
+                            if (done) {
+                                lyricsRevision++
+                                showMessage("Private lyrics removed from this device.")
+                            } else showMessage("Lyrics could not be removed.")
+                        }
+                    },
                     offlineResumeTitle = offlineResumeTitle,
                     offlineResumePositionMs = offlineResumePositionMs,
                     onResumeOffline = {
@@ -1050,6 +1144,9 @@ private fun StudioRoot(
     onUseLegacyReads: () -> Unit,
     playerState: StudioPlayerState,
     playerActions: StudioPlaybackBridge,
+    currentLyrics: TimedLyrics?,
+    onImportLyrics: () -> Unit,
+    onRemoveLyrics: () -> Unit,
     offlineResumeTitle: String?,
     offlineResumePositionMs: Long,
     onResumeOffline: () -> Unit,
@@ -1315,6 +1412,9 @@ private fun StudioRoot(
                         roomPreviewActive = roomPreviewActive,
                         onEnableRoomPreview = onEnableRoomPreview,
                         onUseLegacyReads = onUseLegacyReads,
+                        insights = remember(recent, favorites, playlistNames) {
+                            ListeningInsightsEngine.calculate(recent, favorites, playlistNames)
+                        },
                         onShareDiagnostics = onShareDiagnostics,
                         onOpenClassic = onOpenClassic
                     )
@@ -1336,6 +1436,9 @@ private fun StudioRoot(
         },
         onOpenQueue = { showQueue = true },
         onSaveToPlaylist = onSaveCurrentToPlaylist,
+        lyrics = currentLyrics,
+        onImportLyrics = onImportLyrics,
+        onRemoveLyrics = onRemoveLyrics,
         onDismiss = { expanded = false }
     )
     if (showQueue) StudioQueueSheet(
@@ -1900,6 +2003,7 @@ private fun StudioProfile(
     onCloudDisconnect: () -> Unit,
     onCloudHistory: (Boolean) -> Unit,
     onCloudWifi: (Boolean) -> Unit,
+    insights: ListeningInsights,
     storageStatus: String, onCheckStorage: () -> Unit,
     roomReadStatus: String, roomPreviewActive: Boolean,
     onEnableRoomPreview: () -> Unit, onUseLegacyReads: () -> Unit,
