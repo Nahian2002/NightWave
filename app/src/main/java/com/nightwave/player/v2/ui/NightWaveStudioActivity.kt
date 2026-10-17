@@ -1,6 +1,7 @@
 package com.nightwave.player.v2.ui
 
 import android.app.AlertDialog
+import android.app.Dialog
 import android.widget.EditText
 import android.content.Intent
 import android.os.Bundle
@@ -78,6 +79,7 @@ import androidx.compose.ui.unit.dp
 import com.nightwave.player.library.MusicLibrary
 import com.nightwave.player.net.VideoPreview
 import com.nightwave.player.ui.MainActivity
+import com.nightwave.player.ui.YouTubeSearchBrowser
 import com.nightwave.player.v2.data.GuestProfileStore
 import com.nightwave.player.v2.playback.StudioPlaybackBridge
 import com.nightwave.player.v2.playback.StudioPlayerState
@@ -93,6 +95,7 @@ class NightWaveStudioActivity : ComponentActivity() {
     private lateinit var profiles: GuestProfileStore
     private lateinit var library: MusicLibrary
     private lateinit var playback: StudioPlaybackBridge
+    private var youtubeDialog: Dialog? = null
     private var profile by mutableStateOf(ProfileSettings(localId = "pending"))
     private var favorites by mutableStateOf<List<VideoPreview>>(emptyList())
     private var recentlyPlayed by mutableStateOf<List<VideoPreview>>(emptyList())
@@ -119,9 +122,10 @@ class NightWaveStudioActivity : ComponentActivity() {
                         if (profiles.save(updated)) profile = profiles.load()
                     },
                     onSearch = { query ->
-                        startActivity(Intent(this, MainActivity::class.java).apply {
-                            putExtra("nightwave_web_search", query)
-                        })
+                        youtubeDialog?.dismiss()
+                        youtubeDialog = YouTubeSearchBrowser(this).show(query) { url ->
+                            playback.play(VideoPreview("Loading track…", "YouTube", url, "", 0L))
+                        }
                     },
                     onPlay = { video, collection -> playback.play(video, collection) },
                     onLegacyPlayer = { manageLibrary() },
@@ -133,6 +137,8 @@ class NightWaveStudioActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        youtubeDialog?.dismiss()
+        youtubeDialog = null
         if (::playback.isInitialized) playback.release()
         super.onDestroy()
     }
