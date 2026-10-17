@@ -49,6 +49,6 @@ class NightWaveMixDensityInstrumentedTest {
                     onClick = {})
             }
         }
-        compose.onNodeWithText("1 tracks · Collapse").assertExists()
+        compose.onNodeWithText("1 track · Collapse").assertExists()
     }
 }
