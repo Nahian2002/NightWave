@@ -129,8 +129,13 @@ fun StudioMiniPlayer(
                         travel += delta
                     },
                     onDragEnd = {
-                        if (travel > 70f) onHide()
-                        else if (travel < -70f) onExpand()
+                        when (PlayerGestureRules.decideVerticalSwipe(
+                            travel, PlayerGestureRules.MIN_VERTICAL_SWIPE_DP.dp.toPx()
+                        )) {
+                            PlayerVerticalSwipe.MINIMIZE -> onHide()
+                            PlayerVerticalSwipe.EXPAND -> onExpand()
+                            PlayerVerticalSwipe.NONE -> Unit
+                        }
                         travel = 0f
                     },
                     onDragCancel = { travel = 0f }
@@ -161,7 +166,7 @@ fun StudioMiniPlayer(
                     tint = colors.onSurface)
             }
             if (state.queue.size > 1) {
-                IconButton(onClick = actions::next, modifier = Modifier.size(44.dp),
+                IconButton(onClick = actions::next, modifier = Modifier.size(48.dp),
                     enabled = state.connected && !state.buffering) {
                     Icon(Icons.Outlined.SkipNext, contentDescription = "Next track",
                         tint = colors.onSurface)
@@ -241,7 +246,9 @@ fun StudioNowPlayingOverlay(
                                 dragged += amount
                             },
                             onDragEnd = {
-                                if (dragged > 65f) onDismiss()
+                                if (PlayerGestureRules.decideVerticalSwipe(
+                                        dragged, PlayerGestureRules.MIN_VERTICAL_SWIPE_DP.dp.toPx()
+                                    ) == PlayerVerticalSwipe.MINIMIZE) onDismiss()
                                 dragged = 0f
                             }
                         )
