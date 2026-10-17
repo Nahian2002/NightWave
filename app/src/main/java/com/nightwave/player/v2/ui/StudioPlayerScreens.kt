@@ -73,6 +73,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -98,6 +99,7 @@ import com.nightwave.player.v2.model.NightWaveTheme
 import com.nightwave.player.v2.playback.StudioPlayerActions
 import com.nightwave.player.v2.playback.StudioPlayerState
 import com.nightwave.player.net.VideoPreview
+import com.nightwave.player.v2.lyrics.TimedLyrics
 import com.nightwave.player.playback.PlaybackQueue
 
 private fun timeLabel(ms: Long): String {
@@ -257,6 +259,9 @@ fun StudioNowPlayingOverlay(
     onLike: () -> Unit,
     onOpenQueue: () -> Unit,
     onSaveToPlaylist: () -> Unit,
+    lyrics: TimedLyrics?,
+    onImportLyrics: () -> Unit,
+    onRemoveLyrics: () -> Unit,
     onDismiss: () -> Unit
 ) {
     val enter = if (reduceMotion) EnterTransition.None else slideInVertically(initialOffsetY = { it }) + fadeIn()
@@ -272,6 +277,7 @@ fun StudioNowPlayingOverlay(
             val art = minOf(maxWidth - 64.dp, maxHeight * .36f, 356.dp)
             val canSwipeArtwork = state.connected && !state.buffering && state.queue.size > 1
             var horizontalTravel by remember(state.videoUrl) { mutableStateOf(0f) }
+            var lyricsOpen by remember(state.videoUrl) { mutableStateOf(false) }
             Column(
                 Modifier.fillMaxSize().verticalScroll(rememberScrollState())
                     .padding(horizontal = 24.dp),
@@ -465,6 +471,65 @@ fun StudioNowPlayingOverlay(
                         horizontalArrangement = Arrangement.SpaceBetween) {
                         Text("Up next · " + state.queue.size + " tracks", style = MaterialTheme.typography.titleMedium)
                         Icon(Icons.Outlined.QueueMusic, contentDescription = "Open queue", tint = colors.primary)
+                    }
+                }
+                Spacer(Modifier.height(12.dp))
+                Surface(
+                    onClick = { lyricsOpen = !lyricsOpen },
+                    modifier = Modifier.fillMaxWidth().height(54.dp),
+                    shape = RoundedCornerShape(17.dp),
+                    color = colors.surface,
+                    tonalElevation = 1.dp
+                ) {
+                    Row(Modifier.fillMaxSize().padding(horizontal = 17.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Lyrics", style = MaterialTheme.typography.titleMedium)
+                        Text(if (lyricsOpen) "Hide" else "View",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = colors.primary)
+                    }
+                }
+                if (lyricsOpen) {
+                    Spacer(Modifier.height(10.dp))
+                    if (!state.offline) {
+                        Text("Synchronized lyrics are not available for public videos. " +
+                            "NightWave does not copy lyrics from streaming sites.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.onSurfaceVariant)
+                    } else if (lyrics == null) {
+                        Text("Import your own timestamped .lrc file to show lyrics for this local song.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = colors.onSurfaceVariant)
+                        Spacer(Modifier.height(8.dp))
+                        OutlinedButton(onClick = onImportLyrics,
+                            modifier = Modifier.fillMaxWidth()) { Text("Import synchronized lyrics") }
+                    } else {
+                        val active = lyrics.activeIndex(state.positionMs)
+                        val start = (active - 2).coerceAtLeast(0)
+                        Text("Synchronized with this offline track",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = colors.onSurfaceVariant)
+                        Spacer(Modifier.height(8.dp))
+                        Column(Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                            lyrics.cues.drop(start).take(6).forEachIndexed { i, cue ->
+                                val current = start + i == active
+                                Text(cue.text, style = if (current)
+                                    MaterialTheme.typography.titleMedium
+                                    else MaterialTheme.typography.bodyLarge,
+                                    color = if (current) colors.primary
+                                        else colors.onSurfaceVariant)
+                            }
+                        }
+                        Spacer(Modifier.height(9.dp))
+                        Row(Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                            OutlinedButton(onClick = onImportLyrics,
+                                modifier = Modifier.weight(1f)) { Text("Replace .lrc") }
+                            OutlinedButton(onClick = onRemoveLyrics,
+                                modifier = Modifier.weight(1f)) { Text("Remove lyrics") }
+                        }
                     }
                 }
                 Spacer(Modifier.height(26.dp))
