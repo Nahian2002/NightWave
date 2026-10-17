@@ -75,7 +75,7 @@ class OfflineLibraryActivity : ComponentActivity() {
         })
         root.addView(label("+  Import audio files", 15f, 0xFF101A21.toInt(), true).apply {
             gravity = Gravity.CENTER
-            background = background(0xFF91E2D7.toInt())
+            background = cardBackground(0xFF91E2D7.toInt())
             setOnClickListener {
                 pick.launch(arrayOf("audio/*", "application/ogg", "application/octet-stream"))
             }
@@ -116,7 +116,7 @@ class OfflineLibraryActivity : ComponentActivity() {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
                 setPadding(dp(13), dp(5), dp(5), dp(5))
-                background = background(0xFF172432.toInt())
+                background = cardBackground(0xFF172432.toInt())
             }
             val description = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
             description.addView(label(song.title, 14f, Color.WHITE, true).apply {
@@ -172,7 +172,7 @@ class OfflineLibraryActivity : ComponentActivity() {
             if (bold) typeface = Typeface.create("sans-serif", Typeface.BOLD)
         }
 
-    private fun background(color: Int) = GradientDrawable().apply {
+    private fun cardBackground(color: Int) = GradientDrawable().apply {
         setColor(color)
         cornerRadius = dp(14).toFloat()
     }
