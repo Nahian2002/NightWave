@@ -47,4 +47,17 @@ class PlaybackCommandPolicyTest {
         assertFalse(PlaybackCommandPolicy.isPublicSelection("https://example.invalid/foo"))
         assertFalse(PlaybackCommandPolicy.isOfflineSelection(null))
     }
+    @Test fun homeResumeIsOnlyIdempotentForTheExactPlayingSelection() {
+        assertTrue(PlaybackCommandPolicy.resumeSatisfied(a, a, false, true))
+        assertFalse(PlaybackCommandPolicy.resumeSatisfied(a, b, false, true))
+        assertFalse(PlaybackCommandPolicy.resumeSatisfied(a, a, false, false))
+        assertFalse(PlaybackCommandPolicy.resumeSatisfied(a, a, true, true))
+        assertFalse(PlaybackCommandPolicy.resumeSatisfied(a, null, false, true))
+    }
+
+    @Test fun homeResumeRejectsCrossSourceCurrentlyPlayingTrack() {
+        assertFalse(PlaybackCommandPolicy.resumeSatisfied(a, offline, false, true))
+        assertFalse(PlaybackCommandPolicy.resumeSatisfied(offline, a, false, true))
+        assertTrue(PlaybackCommandPolicy.resumeSatisfied(offline, offline, false, true))
+    }
 }
