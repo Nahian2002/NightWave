@@ -406,14 +406,16 @@ class NightWaveStudioActivity : ComponentActivity() {
      * Android's share chooser. No telemetry is uploaded automatically.
      */
     private fun showCrashSummaryDialog() {
-        val report = NightWaveCrashRecorder.report(this) + "\n\n" +
+        // Share exactly the text displayed in the confirmation dialog.
+        // Keep the newest exception evidence, plus the OS exit history at end.
+        val report = NightWaveCrashRecorder.report(this).take(5000) + "\n\n" +
             NightWaveExitHistory.report(this)
         val contextText = "Includes app-only exception types/stack frames and recent " +
             "Android process-exit reasons. No song titles, URLs, file paths, " +
             "full system traces, account details or device identifiers are collected."
         AlertDialog.Builder(this)
             .setTitle("NightWave crash diagnostics")
-            .setMessage(contextText + "\n\n" + report.take(2400))
+            .setMessage(contextText + "\n\n" + report)
             .setNegativeButton("Close", null)
             .setPositiveButton("Share summary") { _, _ ->
                 try {
