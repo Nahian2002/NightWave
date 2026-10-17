@@ -434,10 +434,13 @@ class PlaybackService : MediaSessionService() {
         val entry = queue.current ?: return
         if (PlaybackResolutionPolicy.awaitsSameResolution(entry.url, resolvingPublicUrl)) return
         val currentId = exoPlayer?.currentMediaItem?.mediaId
-        if (currentId != null && currentId != entry.url) return
         val bookmark = savedQueue.bookmark(entry.url)?.positionMs ?: 0L
-        val position = exoPlayer?.currentPosition?.coerceAtLeast(0L)
-            ?.takeIf { it > 0 } ?: bookmark
+        // Retry targets the user's selected saved queue entry, not any stale
+        // media that happens to remain loaded. Never apply a different song's
+        // position to the requested public video.
+        val position = if (currentId == entry.url)
+            (exoPlayer?.currentPosition?.coerceAtLeast(0L)?.takeIf { it > 0 } ?: bookmark)
+        else bookmark
         resolveAndPlay(entry, autoPlay = true, resumePositionMs = position)
     }
 
