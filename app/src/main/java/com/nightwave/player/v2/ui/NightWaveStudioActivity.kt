@@ -319,7 +319,7 @@ class NightWaveStudioActivity : ComponentActivity() {
         if (watchUrl != null) {
             playback.play(VideoPreview("Shared track", "YouTube", watchUrl, "", 0L))
         } else {
-            nativeSearch(shared, SearchMode.SONGS)
+            prepareSearch(shared, SearchMode.SONGS)
         }
     }
 
@@ -1110,14 +1110,6 @@ private fun StudioSearch(
             )
         }
         item {
-            Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                FilterChip(selected = mode == SearchMode.SONGS,
-                    onClick = { mode = SearchMode.SONGS }, label = { Text("Songs") })
-                FilterChip(selected = mode == SearchMode.VIDEOS,
-                    onClick = { mode = SearchMode.VIDEOS }, label = { Text("Videos") })
-            }
-        }
-        item {
             Button(onClick = submit, enabled = query.isNotBlank(),
                 modifier = Modifier.fillMaxWidth().height(49.dp),
                 shape = RoundedCornerShape(15.dp)) {
@@ -1128,6 +1120,19 @@ private fun StudioSearch(
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         if (query.isNotBlank()) {
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text("OPTIONAL QUICK RESULTS",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                        FilterChip(selected = mode == SearchMode.SONGS,
+                            onClick = { mode = SearchMode.SONGS }, label = { Text("Songs") })
+                        FilterChip(selected = mode == SearchMode.VIDEOS,
+                            onClick = { mode = SearchMode.VIDEOS }, label = { Text("Videos") })
+                    }
+                }
+            }
             item {
                 OutlinedButton(
                     onClick = { onNativeSearch(query.trim(), mode) },
