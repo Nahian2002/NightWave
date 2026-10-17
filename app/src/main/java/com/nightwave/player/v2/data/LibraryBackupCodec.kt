@@ -5,6 +5,7 @@ import com.nightwave.player.net.VideoPreview
 import org.json.JSONArray
 import org.json.JSONObject
 import java.security.MessageDigest
+import java.util.Base64
 
 /** A data-only, deterministic and bounded backup format. No credentials or signed streams. */
 data class LibraryArchive(
@@ -82,7 +83,7 @@ object LibraryBackupCodec {
             })
         // History is deliberately not exported without explicit opt-in.
         val payload = data.toString()
-        val envelope = JSONObject().put("payload", data)
+        val envelope = JSONObject().put("payload_base64", Base64.getEncoder().encodeToString(payload.toByteArray(Charsets.UTF_8)))
             .put("sha256", hexDigest(payload.toByteArray(Charsets.UTF_8)))
         val bytes = envelope.toString().toByteArray(Charsets.UTF_8)
         require(bytes.size <= MAX_BYTES) { "Backup too large" }
@@ -92,10 +93,13 @@ object LibraryBackupCodec {
     fun decode(bytes: ByteArray): LibraryArchive {
         require(bytes.size in 1..MAX_BYTES) { "Invalid backup size" }
         val raw = JSONObject(bytes.toString(Charsets.UTF_8))
-        val data = raw.getJSONObject("payload")
-        require(raw.getString("sha256") == hexDigest(data.toString().toByteArray(Charsets.UTF_8))) {
+        require(raw.keySet() == setOf("payload_base64", "sha256")) { "Unexpected envelope fields" }
+        val payload = Base64.getDecoder().decode(raw.getString("payload_base64"))
+        require(payload.size <= MAX_BYTES) { "Invalid payload size" }
+        require(raw.getString("sha256") == hexDigest(payload)) {
             "Backup integrity check failed"
         }
+        val data = JSONObject(payload.toString(Charsets.UTF_8))
         require(data.getInt("format") == VERSION) { "Unsupported backup version" }
         require(data.keySet().all { it in setOf("format", "profile", "favorites", "playlists") }) {
             "Unexpected backup fields"
