@@ -17,8 +17,8 @@ store = read(app / "offline/OfflineSessionStore.kt")
 manifest = read(root / "app/src/main/AndroidManifest.xml")
 tests = read(root / "app/src/test/java/com/nightwave/player/v2/ui/DiscoveryShortcutsTest.kt")
 
-assert 'versionCode = 34' in gradle
-assert 'versionName = "2.0.0-alpha5r"' in gradle
+assert 'versionCode = 35' in gradle
+assert 'versionName = "2.0.0-alpha5s"' in gradle
 assert 'applicationId = "com.nightwave.player"' in gradle
 
 # Shortcuts are authored query helpers, not mock playable tracks.
