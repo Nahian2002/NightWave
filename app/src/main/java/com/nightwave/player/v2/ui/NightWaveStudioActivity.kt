@@ -1,5 +1,8 @@
 package com.nightwave.player.v2.ui
 
+import android.app.AlertDialog
+import android.app.Dialog
+import android.widget.EditText
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -9,13 +12,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -58,8 +63,8 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.LaunchedEffect
@@ -74,7 +79,10 @@ import androidx.compose.ui.unit.dp
 import com.nightwave.player.library.MusicLibrary
 import com.nightwave.player.net.VideoPreview
 import com.nightwave.player.ui.MainActivity
+import com.nightwave.player.ui.YouTubeSearchBrowser
 import com.nightwave.player.v2.data.GuestProfileStore
+import com.nightwave.player.v2.playback.StudioPlaybackBridge
+import com.nightwave.player.v2.playback.StudioPlayerState
 import com.nightwave.player.v2.model.MotionPreference
 import com.nightwave.player.v2.model.NightWaveTheme
 import com.nightwave.player.v2.model.ProfileSettings
@@ -86,6 +94,8 @@ import com.nightwave.player.v2.model.ProfileSettings
 class NightWaveStudioActivity : ComponentActivity() {
     private lateinit var profiles: GuestProfileStore
     private lateinit var library: MusicLibrary
+    private lateinit var playback: StudioPlaybackBridge
+    private var youtubeDialog: Dialog? = null
     private var profile by mutableStateOf(ProfileSettings(localId = "pending"))
     private var favorites by mutableStateOf<List<VideoPreview>>(emptyList())
     private var recentlyPlayed by mutableStateOf<List<VideoPreview>>(emptyList())
@@ -95,6 +105,7 @@ class NightWaveStudioActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         profiles = GuestProfileStore(this)
         library = MusicLibrary(this)
+        playback = StudioPlaybackBridge(this)
         profile = profiles.load()
         refresh()
         setContent {
@@ -102,31 +113,134 @@ class NightWaveStudioActivity : ComponentActivity() {
                 StudioRoot(
                     profile = profile, favorites = favorites, recent = recentlyPlayed,
                     playlistNames = names, getPlaylist = { library.playlist(it) },
+                    playerState = playback.state, playerActions = playback,
+                    isFavorite = { url -> library.isFavorite(url) },
+                    onToggleFavorite = { video -> library.toggleFavorite(video); refresh() },
+                    onSongOptions = { video -> showSongOptions(video) },
+                    onSaveCurrentToPlaylist = { saveCurrentToPlaylist() },
                     onSaveProfile = { updated ->
                         if (profiles.save(updated)) profile = profiles.load()
                     },
                     onSearch = { query ->
-                        startActivity(Intent(this, MainActivity::class.java).apply {
-                            putExtra("nightwave_web_search", query)
-                        })
+                        youtubeDialog?.dismiss()
+                        youtubeDialog = YouTubeSearchBrowser(this).show(query) { url ->
+                            playback.play(VideoPreview("Loading track…", "YouTube", url, "", 0L))
+                        }
                     },
-                    onPlay = { video ->
-                        startActivity(Intent(this, MainActivity::class.java).apply {
-                            action = Intent.ACTION_SEND
-                            type = "text/plain"
-                            putExtra(Intent.EXTRA_TEXT, video.url)
-                        })
-                    },
-                    onLegacyPlayer = { startActivity(Intent(this, MainActivity::class.java)) },
+                    onPlay = { video, collection -> playback.play(video, collection) },
+                    onLegacyPlayer = { manageLibrary() },
                     onClose = { finish() }
                 )
             }
         }
+        playback.connect()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        if (::playback.isInitialized) playback.resumeUiUpdates()
+    }
+
+    override fun onStop() {
+        if (::playback.isInitialized) playback.pauseUiUpdates()
+        super.onStop()
+    }
+
+    override fun onDestroy() {
+        youtubeDialog?.dismiss()
+        youtubeDialog = null
+        if (::playback.isInitialized) playback.release()
+        super.onDestroy()
     }
 
     override fun onResume() {
         super.onResume()
         if (::library.isInitialized) refresh()
+    }
+
+    private fun saveCurrentToPlaylist() {
+        val now = playback.state
+        if (now.hasTrack) saveSongToPlaylist(VideoPreview(
+            now.title.ifBlank { "YouTube video" }, now.artist, now.videoUrl,
+            now.thumbnail, now.durationMs / 1000L
+        ))
+    }
+
+    private fun saveSongToPlaylist(video: VideoPreview) {
+        val names = library.playlistNames()
+        val choices = names + "＋ Create playlist"
+        AlertDialog.Builder(this).setTitle("Save to playlist")
+            .setItems(choices.toTypedArray()) { _, option ->
+                if (option < names.size) {
+                    if (library.addToPlaylist(names[option], video)) refresh()
+                    else showMessage("Already saved or the playlist is full.")
+                } else promptPlaylistName { created ->
+                    if (library.createPlaylist(created)) {
+                        library.addToPlaylist(created, video)
+                        refresh()
+                    } else showMessage("Choose a different playlist name.")
+                }
+            }.setNegativeButton("Cancel", null).show()
+    }
+
+    private fun showSongOptions(video: VideoPreview) {
+        val likeText = if (library.isFavorite(video.url)) "Unlike song" else "Like song"
+        AlertDialog.Builder(this).setTitle(video.title)
+            .setItems(arrayOf(likeText, "Save to playlist", "Add to queue", "Play now")) { _, selected ->
+                when (selected) {
+                    0 -> { library.toggleFavorite(video); refresh() }
+                    1 -> saveSongToPlaylist(video)
+                    2 -> playback.enqueue(video)
+                    3 -> playback.play(video)
+                }
+            }.setNegativeButton("Close", null).show()
+    }
+
+    private fun promptPlaylistName(initial: String = "", onSave: (String) -> Unit) {
+        val name = EditText(this).apply {
+            setSingleLine(true)
+            hint = "Playlist name"
+            setText(initial)
+        }
+        AlertDialog.Builder(this).setTitle(if (initial.isBlank()) "New playlist" else "Rename playlist")
+            .setView(name)
+            .setNegativeButton("Cancel", null)
+            .setPositiveButton("Save") { _, _ -> onSave(name.text.toString().trim()) }
+            .show()
+    }
+
+    private fun showMessage(message: String) {
+        android.widget.Toast.makeText(this, message, android.widget.Toast.LENGTH_SHORT).show()
+    }
+
+    private fun manageLibrary() {
+        val names = library.playlistNames()
+        val choices = arrayOf("＋ Create playlist", *names.toTypedArray())
+        AlertDialog.Builder(this).setTitle("Manage your playlists")
+            .setItems(choices) { _, selected ->
+                if (selected == 0) {
+                    promptPlaylistName { name ->
+                        if (library.createPlaylist(name)) refresh()
+                        else showMessage("That playlist name is unavailable.")
+                    }
+                } else {
+                    val name = names[selected - 1]
+                    AlertDialog.Builder(this).setTitle(name)
+                        .setItems(arrayOf("Rename", "Delete")) { _, action ->
+                            if (action == 0) promptPlaylistName(name) { updated ->
+                                if (library.renamePlaylist(name, updated)) refresh()
+                                else showMessage("That playlist name is unavailable.")
+                            } else AlertDialog.Builder(this)
+                                .setTitle("Delete " + name + "?")
+                                .setMessage("Songs remain in your favorites and listening history.")
+                                .setNegativeButton("Cancel", null)
+                                .setPositiveButton("Delete") { _, _ ->
+                                    library.deletePlaylist(name)
+                                    refresh()
+                                }.show()
+                        }.show()
+                }
+            }.setNegativeButton("Close", null).show()
     }
 
     private fun refresh() {
@@ -149,13 +263,22 @@ private fun StudioRoot(
     playlistNames: List<String>,
     getPlaylist: (String) -> List<VideoPreview>,
     onSaveProfile: (ProfileSettings) -> Unit,
+    playerState: StudioPlayerState,
+    playerActions: StudioPlaybackBridge,
+    isFavorite: (String) -> Boolean,
+    onToggleFavorite: (VideoPreview) -> Unit,
+    onSongOptions: (VideoPreview) -> Unit,
+    onSaveCurrentToPlaylist: () -> Unit,
     onSearch: (String) -> Unit,
-    onPlay: (VideoPreview) -> Unit,
+    onPlay: (VideoPreview, List<VideoPreview>) -> Unit,
     onLegacyPlayer: () -> Unit,
     onClose: () -> Unit
 ) {
     var tab by rememberSaveable { mutableStateOf(StudioTab.HOME) }
     var selectedPlaylist by rememberSaveable { mutableStateOf<String?>(null) }
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    var showQueue by rememberSaveable { mutableStateOf(false) }
+    Box(Modifier.fillMaxSize()) {
     Scaffold(
         modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing),
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -171,6 +294,8 @@ private fun StudioRoot(
             }
         },
         bottomBar = {
+            Column {
+            StudioMiniPlayer(playerState, playerActions, onExpand = { expanded = true })
             NavigationBar(
                 containerColor = MaterialTheme.colorScheme.surface,
                 tonalElevation = 4.dp
@@ -193,15 +318,18 @@ private fun StudioRoot(
                     )
                 }
             }
+            }
         }
     ) { safe ->
         Crossfade(targetState = tab,
             animationSpec = tween(durationMillis = if (profile.motion == MotionPreference.REDUCED) 0 else 220),
             label = "NightWave navigation") { screen ->
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         when (screen) {
             StudioTab.HOME -> StudioHome(
                 modifier = Modifier.padding(safe), profile = profile, recent = recent,
                 favorites = favorites, onSearch = onSearch, onPlay = onPlay,
+                onSongOptions = onSongOptions,
                 openLibrary = { tab = StudioTab.LIBRARY }
             )
             StudioTab.SEARCH -> StudioSearch(Modifier.padding(safe), onSearch)
@@ -210,6 +338,7 @@ private fun StudioRoot(
                 favorites = favorites, names = playlistNames,
                 selectedPlaylist = selectedPlaylist, onSelectPlaylist = { selectedPlaylist = it },
                 getPlaylist = getPlaylist, onPlay = onPlay,
+                onSongOptions = onSongOptions,
                 onManage = onLegacyPlayer, onSearch = { tab = StudioTab.SEARCH }
             )
             StudioTab.PROFILE -> StudioProfile(
@@ -218,6 +347,27 @@ private fun StudioRoot(
             )
         }
         }
+        }
+    }
+    StudioNowPlayingOverlay(
+        expanded = expanded && playerState.hasTrack,
+        state = playerState, actions = playerActions,
+        reduceMotion = profile.motion == MotionPreference.REDUCED,
+        liked = playerState.hasTrack && isFavorite(playerState.videoUrl),
+        onLike = {
+            if (playerState.hasTrack) onToggleFavorite(VideoPreview(
+                playerState.title, playerState.artist, playerState.videoUrl,
+                playerState.thumbnail, playerState.durationMs / 1000L
+            ))
+        },
+        onOpenQueue = { showQueue = true },
+        onSaveToPlaylist = onSaveCurrentToPlaylist,
+        onDismiss = { expanded = false }
+    )
+    if (showQueue) StudioQueueSheet(
+        state = playerState, onDismiss = { showQueue = false },
+        onSelect = { index -> playerActions.jumpTo(index); showQueue = false }
+    )
     }
 }
 
@@ -225,10 +375,11 @@ private fun StudioRoot(
 private fun StudioHome(
     modifier: Modifier, profile: ProfileSettings, recent: List<VideoPreview>,
     favorites: List<VideoPreview>, onSearch: (String) -> Unit,
-    onPlay: (VideoPreview) -> Unit, openLibrary: () -> Unit
+    onPlay: (VideoPreview, List<VideoPreview>) -> Unit,
+    onSongOptions: (VideoPreview) -> Unit, openLibrary: () -> Unit
 ) {
     LazyColumn(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier.widthIn(max = 840.dp).fillMaxHeight(),
         contentPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp),
         verticalArrangement = Arrangement.spacedBy(17.dp)
     ) {
@@ -271,7 +422,7 @@ private fun StudioHome(
                 "Your actual listening history will appear here as you play.",
                 "Find a song") { onSearch("music") }
         } else items(recent.take(6), key = { it.url }) { song ->
-            MusicTrackTile(song, onClick = { onPlay(song) })
+            MusicTrackTile(song, onOptions = { onSongOptions(song) }, onClick = { onPlay(song, recent) })
         }
         item { SectionHeading("Liked by you", favorites.size.toString() + " saved tracks") }
         item {
@@ -305,7 +456,7 @@ private fun MoodTile(title: String, subtitle: String, gradient: List<Color>, mod
 private fun StudioSearch(modifier: Modifier, onSearch: (String) -> Unit) {
     var query by rememberSaveable { mutableStateOf("") }
     val submit = { if (query.isNotBlank()) onSearch(query.trim()) }
-    LazyColumn(modifier.fillMaxSize(), contentPadding = PaddingValues(20.dp),
+    LazyColumn(modifier.widthIn(max = 840.dp).fillMaxHeight(), contentPadding = PaddingValues(20.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp)) {
         item { SectionHeading("What are we playing?", "Find music by name, artist or mood.") }
         item {
@@ -340,11 +491,12 @@ private fun StudioSearch(modifier: Modifier, onSearch: (String) -> Unit) {
 private fun StudioLibrary(
     modifier: Modifier, favorites: List<VideoPreview>, names: List<String>,
     selectedPlaylist: String?, onSelectPlaylist: (String?) -> Unit,
-    getPlaylist: (String) -> List<VideoPreview>, onPlay: (VideoPreview) -> Unit,
-    onManage: () -> Unit, onSearch: () -> Unit
+    getPlaylist: (String) -> List<VideoPreview>, onPlay: (VideoPreview, List<VideoPreview>) -> Unit,
+    onManage: () -> Unit, onSearch: () -> Unit,
+    onSongOptions: (VideoPreview) -> Unit
 ) {
     val tracks = if (selectedPlaylist == null || selectedPlaylist == LIKED_COLLECTION) favorites else getPlaylist(selectedPlaylist)
-    LazyColumn(modifier.fillMaxSize(), contentPadding = PaddingValues(20.dp),
+    LazyColumn(modifier.widthIn(max = 840.dp).fillMaxHeight(), contentPadding = PaddingValues(20.dp),
         verticalArrangement = Arrangement.spacedBy(13.dp)) {
         item {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -392,11 +544,11 @@ private fun StudioLibrary(
                 "Your real songs and playlists will appear here once saved.",
                 "Search music", onAction = onSearch)
         } else items(tracks, key = { it.url }) { song ->
-            MusicTrackTile(song, onClick = { onPlay(song) })
+            MusicTrackTile(song, onOptions = { onSongOptions(song) }, onClick = { onPlay(song, tracks) })
         }
         item {
             OutlinedButton(onClick = onManage, modifier = Modifier.fillMaxWidth()) {
-                Text("Manage playlists in the current player")
+                Text("CREATE, RENAME OR DELETE PLAYLISTS")
             }
         }
     }
@@ -405,7 +557,7 @@ private fun StudioLibrary(
 @Composable
 private fun StudioProfile(modifier: Modifier, profile: ProfileSettings, save: (ProfileSettings) -> Unit) {
     var name by rememberSaveable(profile.localId) { mutableStateOf(profile.displayName) }
-    LazyColumn(modifier.fillMaxSize(), contentPadding = PaddingValues(20.dp),
+    LazyColumn(modifier.widthIn(max = 840.dp).fillMaxHeight(), contentPadding = PaddingValues(20.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp)) {
         item { SectionHeading("Make it yours.", "Your guest profile is saved on this phone.") }
         item {

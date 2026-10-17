@@ -1,10 +1,11 @@
 # NightWave
 
-> **Preview branch:** NightWave 2.0 Phase 1 is staged separately from the current v0.8 app. It adds an **opt-in Jetpack Compose design preview** without switching the launcher, deleting existing playlists, or pretending Google sign-in is live. The preview's four screens are Home, Search, Library and Guest Profile. Themes, display name, avatar style and reduced-motion settings persist locally. Real saved songs are read from the existing library.
+> **NightWave 2.0 Phase 2 — opt-in developer preview**: A new native Compose music player is available on this branch. It adds a Media3-connected mini-player, full-screen artwork player, track queue, shuffle/repeat, usable playlists and on-screen actions. YouTube website song searches now return to the Compose player. The legacy launch screen and playback service remain intact. **This is NOT a verified Android build or stable release yet.**
 >
-> **Testing required:** This branch has passed source-level checks only. It has **not** completed an Android Gradle build or real-device UI tests. Download the [phase-1 branch ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase1-foundation.zip), extract to a new folder, and run \`build-windows.cmd\`. On success, open NightWave **Home → Explore the new premium interface**. Your old player remains accessible. On build failure, leave your existing app installed and send the first compiler error.
+> **Download Phase 2:** [Source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase2-player-ui.zip) · [Phase 2 QA guide](docs/NIGHTWAVE_V2_PHASE2_QA.md) · [Overall phased plan](docs/NIGHTWAVE_2_PHASES.md)
 >
-> [NightWave 2.0 phased development plan](docs/NIGHTWAVE_2_PHASES.md) · [Phase 1 static verification](tools/verify_v2_phase1.py)
+> Extract ZIP to a fresh folder and run \`build-windows.cmd\` without GitHub Actions billing. If the Windows Gradle tests and build succeed, install the new debug APK **over**, not instead of, your previous app. Then open **Home → Explore the new premium interface**. If it fails compilation, keep the old app installed and share the first Kotlin compiler error. Version: **2.0.0-alpha2** / code **9**.
+
 
 ### A personal Android music player · v0.8.0
 

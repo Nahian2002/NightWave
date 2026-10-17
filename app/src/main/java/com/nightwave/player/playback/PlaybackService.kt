@@ -27,6 +27,8 @@ import java.util.concurrent.Executors
 class PlaybackService : MediaSessionService() {
     companion object {
         const val ACTION_REPLACE = "com.nightwave.player.REPLACE_QUEUE"
+        /** Atomic queue assignment followed by a single play request for the v2 interface. */
+        const val ACTION_PLAY_QUEUE = "com.nightwave.player.PLAY_QUEUE"
         const val ACTION_ENQUEUE = "com.nightwave.player.ENQUEUE"
         const val ACTION_NEXT = "com.nightwave.player.NEXT"
         const val ACTION_PREVIOUS = "com.nightwave.player.PREVIOUS"
@@ -104,7 +106,7 @@ class PlaybackService : MediaSessionService() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val result = super.onStartCommand(intent, flags, startId)
         when (intent?.action) {
-            ACTION_REPLACE -> {
+            ACTION_REPLACE, ACTION_PLAY_QUEUE -> {
                 val urls = intent.getStringArrayListExtra(EXTRA_URLS).orEmpty()
                 val titles = intent.getStringArrayListExtra(EXTRA_TITLES).orEmpty()
                 val creators = intent.getStringArrayListExtra(EXTRA_CREATORS).orEmpty()
@@ -116,6 +118,11 @@ class PlaybackService : MediaSessionService() {
                 queue.replace(entries, intent.getIntExtra(EXTRA_INDEX, 0))
                 generation++ // invalidate unresolved previous track jobs
                 savedQueue.save(queue)
+                if (intent.action == ACTION_PLAY_QUEUE) {
+                    // Current item belongs to the same queue snapshot; do not touch old app entry points.
+                    exoPlayer?.pause()
+                    queue.current?.let { resolveAndPlay(it) }
+                }
             }
             ACTION_ENQUEUE -> {
                 val url = intent.getStringExtra(EXTRA_URLS)
