@@ -10,7 +10,7 @@ on:
       - feature/nightwave-v2-phase5s-build-recovery
       - feature/nightwave-v2-phase5t-reliable-discovery
       - feature/nightwave-v2-phase5u-google-drive-backup
-  # Phase 6D and inherited UI/Cloud tests remain deferred;
+  # Phase 6E and inherited UI/Cloud tests remain deferred;
   # source and Android gates run by workflow_dispatch when requested.
   # Do not trigger a new PR build automatically while testing is deferred.
   workflow_dispatch:
@@ -55,6 +55,7 @@ jobs:
           python3 tools/verify_v2_phase6c.py
           python3 tools/verify_v2_phase6c2.py
           python3 tools/verify_v2_phase6d.py
+          python3 tools/verify_v2_phase6e.py
       - name: Compile debug app, JVM tests and Android instrumentation sources
         run: |
           gradle --no-daemon --stacktrace --console=plain :app:testDebugUnitTest :app:assembleDebug :app:compileDebugAndroidTestKotlin
@@ -68,7 +69,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: NightWave-6D-dev-debug-UNVERIFIED-FOR-DEVICE
+          name: NightWave-6E-dev-debug-UNVERIFIED-FOR-DEVICE
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 5
