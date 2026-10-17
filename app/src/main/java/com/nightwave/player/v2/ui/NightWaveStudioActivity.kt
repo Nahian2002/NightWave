@@ -14,6 +14,7 @@ import com.nightwave.player.v2.cloud.CloudBackupState
 import com.nightwave.player.v2.cloud.CloudBackupCodec
 import com.nightwave.player.v2.cloud.CloudBackupPreview
 import com.nightwave.player.v2.cloud.NightWaveDriveClient
+import com.nightwave.player.v2.cloud.DriveSnapshot
 import com.nightwave.player.v2.cloud.NightWaveCloudAuthorization
 import com.nightwave.player.v2.cloud.NightWaveCloudSchedule
 import com.nightwave.player.v2.data.LibraryArchiveManager
@@ -497,9 +498,8 @@ class NightWaveStudioActivity : ComponentActivity() {
                             null
                         }
                         "preview" -> {
-                            val latest = drive.listSnapshots().firstOrNull()
+                            drive.listSnapshots().takeIf { it.isNotEmpty() }
                                 ?: error("No NightWave cloud backup found")
-                            CloudBackupCodec.decode(drive.download(latest.id))
                         }
                         else -> error("Invalid cloud action")
                     }
@@ -520,7 +520,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                         showMessage("Backup uploaded, but scheduling needs a fresh connection.")
                     }
                 } else if (preview != null) {
-                    showCloudRestorePreview(preview)
+                    showCloudSnapshotPicker(preview, token)
                 }
             }.onFailure { error ->
                 // Only bounded, non-sensitive status to UI; never display an access token.
@@ -531,6 +531,40 @@ class NightWaveStudioActivity : ComponentActivity() {
                 showMessage(cloudStore.read().lastResult)
             }
         }
+    }
+
+    private fun showCloudSnapshotPicker(snapshots: List<DriveSnapshot>, token: String) {
+        val options = snapshots.take(20)
+        val labels = options.mapIndexed { index, snapshot ->
+            val timestamp = snapshot.name.removePrefix("nightwave-cloud-v2-")
+                .substringBefore("-").toLongOrNull()
+            val whenSaved = timestamp?.let {
+                java.text.DateFormat.getDateTimeInstance().format(java.util.Date(it))
+            } ?: "Unknown date"
+            "${index + 1}. $whenSaved"
+        }.toTypedArray()
+        AlertDialog.Builder(this)
+            .setTitle("Choose a cloud backup")
+            .setItems(labels) { _, which ->
+                val chosen = options[which]
+                cloudBusy = true
+                lifecycleScope.launch {
+                    val outcome = withContext(Dispatchers.IO) {
+                        runCatching {
+                            CloudBackupCodec.decode(NightWaveDriveClient(token).download(chosen.id))
+                        }
+                    }
+                    cloudBusy = false
+                    outcome.onSuccess { showCloudRestorePreview(it) }
+                        .onFailure {
+                            cloudStore.status("Selected backup unavailable or failed validation")
+                            refreshCloud()
+                            showMessage("Selected backup could not be opened; local data unchanged.")
+                        }
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun showCloudRestorePreview(preview: CloudBackupPreview) {
