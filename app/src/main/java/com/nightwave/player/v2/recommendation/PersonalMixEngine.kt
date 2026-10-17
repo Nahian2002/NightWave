@@ -54,12 +54,10 @@ object PersonalMixEngine {
             (if (track.url in latest) 4 else 0) +
             (if (track.url in curated) 2 else 0) +
             affinity(track) + memoryAffinity(track)
-        fun dailyTie(track: VideoPreview): Int =
-            track.url.hashCode() xor (dayNumber.toInt() * 31)
-        fun ordered(source: List<VideoPreview>) = source.distinctBy { it.url }
-            .sortedWith(compareByDescending<VideoPreview> { rank(it) }
-                .thenBy { dailyTie(it) })
-            .take(12)
+        // Keep strong saved/liked signals while rotating equally ranked tracks
+        // and preventing a single creator from monopolizing a daily mix.
+        fun ordered(source: List<VideoPreview>) =
+            MixDiversityPolicy.select(source, dayNumber, 12, ::rank)
         val outputs = mutableListOf<PersonalMix>()
         val signatures = mutableSetOf<String>()
         fun add(key: String, title: String, description: String, reason: String,
@@ -79,8 +77,9 @@ object PersonalMixEngine {
             val repeatCandidates = pool.filter { song ->
                 val stored = learned[song.url]
                 stored != null && (stored.qualifiedPlays > 0 || stored.listenedMs >= 60_000L)
-            }.sortedWith(compareByDescending<VideoPreview> { memoryAffinity(it) }
-                .thenBy { dailyTie(it) })
+            }.let { candidates ->
+                MixDiversityPolicy.select(candidates, dayNumber, 12, ::memoryAffinity)
+            }
             if (repeatCandidates.isNotEmpty()) {
                 add("memory", "Your listening rotation",
                     "Music you actually spent time listening to",
@@ -102,11 +101,11 @@ object PersonalMixEngine {
                 ordered(rediscover))
         }
         val familiarArtists = pool.filter { affinity(it) > 0 }
-        if (familiarArtists.size >= 2 && outputs.size < 3) {
-            add("artists", "Your familiar voices", "More from artists in your favorites",
+        if (familiarArtists.size >= 3 && outputs.size < 4) {
+            add("artists", "From your favorite creators", "More from creators in your favorites",
                 "Artists matched by creator name within your saved tracks",
                 ordered(familiarArtists))
         }
-        return outputs.take(3)
+        return outputs.take(4)
     }
 }
