@@ -46,10 +46,10 @@ assert 'isPlaying = playingUrl == song.url' in studio
 # Search suggestions use the existing real public search method, no fabricated results.
 assert 'DiscoveryShortcuts.picks.chunked(2)' in studio
 assert 'onSearch(shortcut.query)' in studio
-assert 'onNativeSearch(shortcut.query, SearchMode.SONGS)' in studio
-assert 'items(state.videos, key = { it.url })' in studio
+assert 'onPrimarySearch(shortcut.query, SearchMode.SONGS)' in studio
+assert 'items(state.videos, key = { "public:" + it.url })' in studio
 assert 'onClick = { onPlay(song, state.videos) }' in studio
-assert 'Search on YouTube ↗' in studio
+assert 'Text("Find music on YouTube")' in studio
 
 # Navigation stays in-app and respects reduced-motion settings.
 assert 'animateColorAsState(' in studio
