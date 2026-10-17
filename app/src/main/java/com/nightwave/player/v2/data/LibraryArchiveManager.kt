@@ -45,9 +45,14 @@ class LibraryArchiveManager(context: Context) {
      * Retain a separate recovery snapshot BEFORE mutation. Only then update
      * profile settings; if that step fails roll the library back immediately.
      */
-    fun restoreWithConfirmation(archive: LibraryArchive): Boolean = LegacyLibraryTransaction.exclusive {
-        // Round-trip normalization validates the entire input before modifying data.
+    fun restoreWithConfirmation(
+        archive: LibraryArchive, restoredHistory: List<VideoPreview>? = null
+    ): Boolean = LegacyLibraryTransaction.exclusive {
+        // Validate all library data before modifying anything.
         val checked = LibraryBackupCodec.decode(LibraryBackupCodec.encode(archive))
+        val validatedHistory = restoredHistory?.let {
+            com.nightwave.player.v2.cloud.CloudBackupCodec.validatedHistory(it)
+        }
         val previous = libraryPrefs.all.toMap()
         val backup = JSONObject().also { snapshot ->
             previous.forEach { (key, value) ->
@@ -61,7 +66,8 @@ class LibraryArchiveManager(context: Context) {
         val change = libraryPrefs.edit()
             .putString("favorites", serialize(checked.favorites))
             .putString("playlist_names", JSONArray(checked.playlists.map { it.first }).toString())
-            .putString("recent", serialize(library.recent())) // preserve local-only history
+            .putString("recent", serialize(validatedHistory ?: library.recent()))
+            // History changes only on explicit confirmed cloud-history restore.
         val replacementNames = checked.playlists.map { it.first }.toSet()
         for (name in currentNames) {
             if (name !in replacementNames) change.remove("list_" + name)

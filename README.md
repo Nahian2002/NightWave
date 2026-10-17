@@ -1,5 +1,19 @@
 # NightWave
 
+## Phase 5U — Opt-in Google Drive backups (draft)
+
+**Branch:** `feature/nightwave-v2-phase5u-google-drive-backup`. **No verified APK**, OAuth/Android Gradle/device checks required. Current source still carries development version `alpha5s`/code 35 until release build gates pass.
+
+[Download 5U source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase5u-google-drive-backup.zip) · [Google Cloud setup & device QA](docs/NIGHTWAVE_V2_PHASE5U_QA.md)
+
+- **Google-only opt-in:** narrow Drive `appDataFolder` scope, selected user account, no access tokens saved to disk, no broad Drive permission. Google Cloud OAuth Android package/signing SHA-1 must be registered for actual sign-in to work.
+- **Automatic daily backups:** WorkManager begins only after **Back up now** uploads a snapshot and verifies remote bytes. Wi-Fi-only default; actual execution depends on Android scheduling, network and battery policy. New installs connect first and may **Preview cloud restore** before uploading anything.
+- **Preserve historical data:** versioned append-only snapshots, integrity check, library and profile basics, explicit opt-in for recent listening history. No music files, passwords, signed stream links, private file paths, or raw searches are uploaded.
+- **Restore preview:** choose among older versioned snapshots; no automatic replacement. User can cancel, restore favorites/playlists while keeping local history, or separately restore history; original library recovery/undo protections remain. Disconnect cancels future work, not stored Drive snapshots.
+- **Limitations:** live multi-device merges, search-history sync, full profile settings and cloud snapshot retention are deferred. OAuth build, cloud uploads, background jobs and phone tests remain unverified.
+
+---
+
 ## Phase 5T — Official-first music discovery (draft)
 
 **Development source branch:** `feature/nightwave-v2-phase5t-reliable-discovery`. For now this source branch inherits the previous alpha5s/build35 identity pending a verified build and release-version alignment. Do not treat a ZIP or source gate as a confirmed APK.
