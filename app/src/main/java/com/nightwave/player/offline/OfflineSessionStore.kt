@@ -28,9 +28,11 @@ class OfflineSessionStore(context: Context) {
         val raw = runCatching {
             OfflineSessionCodec.encode(OfflineSession(ids, selectedId, positionMs))
         }.getOrNull() ?: return false
-        return prefs.edit().putString("snapshot", raw)
-            .putString("position_id", selectedId).putLong("position_ms", positionMs)
-            .commit()
+        return runCatching {
+            prefs.edit().putString("snapshot", raw)
+                .putString("position_id", selectedId).putLong("position_ms", positionMs)
+                .commit()
+        }.getOrDefault(false)
     }
 
     /** Bounded seek checkpoint; flush synchronously on pause / service destroy. */
@@ -38,8 +40,10 @@ class OfflineSessionStore(context: Context) {
     fun savePosition(id: String, positionMs: Long, flush: Boolean = false): Boolean {
         if (positionMs !in 0L..OfflineSessionCodec.MAX_POSITION_MS ||
             read()?.selectedId != id) return false
-        val update = prefs.edit().putString("position_id", id)
-            .putLong("position_ms", positionMs)
-        return if (flush) update.commit() else { update.apply(); true }
+        return runCatching {
+            val update = prefs.edit().putString("position_id", id)
+                .putLong("position_ms", positionMs)
+            if (flush) update.commit() else { update.apply(); true }
+        }.getOrDefault(false)
     }
 }
