@@ -36,7 +36,8 @@ assert "Version code: 27\\s*$" in device
 
 # Premium and classic surfaces both expose the opt-in private summary.
 assert 'private fun showCrashSummaryDialog()' in premium
-assert 'NightWaveCrashRecorder.report(this)' in premium
+assert 'NightWaveCrashRecorder.report(this).take(5000)' in premium
+assert '.setMessage(contextText + "\\n\\n" + report)' in premium
 assert 'NightWaveExitHistory.report(this)' in premium
 assert 'NightWaveExitHistory.report(this)' in classic
 assert 'onShareDiagnostics = { showCrashSummaryDialog() }' in premium
