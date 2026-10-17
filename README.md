@@ -1,5 +1,17 @@
 # NightWave
 
+## Phase 6F — Build stabilization and compatibility (draft)
+
+**Branch:** `feature/nightwave-v2-phase6f-build-stabilization`, stacked on 6E. [Phase 6F source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase6f-build-stabilization.zip) · [Build and signing acceptance plan](docs/NIGHTWAVE_V2_PHASE6F_QA.md)
+
+- **Repaired obsolete inherited source checks** for the renamed Home recommendation heading and Phase 6C/6C2 revision-guarded privacy refresh. No feature rollback.
+- **Fail-fast Windows source preflight:** `build-windows.cmd` checks every Kotlin import, Android package/version and known bad Compose test imports **before** downloading SDK/Gradle. No Python prerequisite for the client.
+- **Verification PR:** a 6F PR targeting 6E now runs the full Android GitHub Actions compile/test-source gate, Java 17/Gradle 8.11.1/Android 35, and APK identity check; CI never installs an APK on a personal phone. Success depends on the actual Actions result, not this README.
+- **Safety:** `com.nightwave.player`, build 35, previous signing safeguards, offline music, backups, 6E playback status and 6D resume remain unchanged. An artifact compiled by CI may use a different debug signing key; use read-only `check-device-update.cmd` before any phone installation.
+- **Not a release until verified:** source checks, Gradle compile, unit tests, instrumented test *compilation*, APK signer and later device acceptance are separate milestones. Never uninstall or clear app data to solve a signing mismatch.
+
+---
+
 ## Phase 6E — Playback Health & Controller Continuity (draft)
 
 **Development branch:** `feature/nightwave-v2-phase6e-playback-health-continuity`, built on 6D. **Source only — Android compilation, tests, screenshots and phone verification remain deferred.** The current installed library and stable `main` remain unchanged.
