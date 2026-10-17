@@ -27,6 +27,9 @@ assert 'YouTubeSearchBrowser(this).show(clean)' in activity
 assert 'onPrimarySearch = { query, mode -> primarySearch(query, mode) }' in activity
 assert 'onPrepareSearch = { query, mode -> prepareSearch(query, mode) }' in activity
 assert 'onWebSearch = { query -> openOfficialSearch(query) }' in activity
+assert 'prepareSearch(shared, SearchMode.SONGS)' in activity
+assert 'nativeSearch(shared, SearchMode.SONGS)' not in activity
+
 
 search = activity.split("private fun StudioSearch(", 1)[1].split("private fun StudioLibrary(", 1)[0]
 assert 'val submit = { if (query.isNotBlank()) onPrimarySearch(query.trim(), mode) }' in search
