@@ -16,8 +16,8 @@ offline = read(code / "offline/OfflineAudioLibrary.kt")
 offline_activity = read(code / "offline/OfflineLibraryActivity.kt")
 service = read(code / "playback/PlaybackService.kt")
 
-assert 'versionCode = 26' in gradle
-assert 'versionName = "2.0.0-alpha5j"' in gradle
+assert 'versionCode = 27' in gradle
+assert 'versionName = "2.0.0-alpha5k"' in gradle
 assert 'applicationId = "com.nightwave.player"' in gradle
 assert 'Color(raw.toInt())' in theme
 assert 'Color(raw.toULong())' not in theme
