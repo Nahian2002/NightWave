@@ -64,6 +64,10 @@ assert 'onHide: () -> Unit' in player
 assert 'if (travel > 70f) onHide()' in player
 assert 'if (dragged > 65f) onDismiss()' in player
 assert 'maxHeight * .34f, 330.dp' in player
+# Two Material3 Surface calls in the compact player/nav require the import:
+# without it Kotlin reports unresolved Surface and cascading @Composable errors.
+assert studio.count("Surface(") >= 2
+assert "import androidx.compose.material3.Surface" in studio
 assert 'height(60.dp)' in studio
 assert 'Now playing · Tap to show' in studio
 assert 'showAdvanced' in studio
