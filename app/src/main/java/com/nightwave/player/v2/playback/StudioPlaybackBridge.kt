@@ -64,12 +64,13 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
     private var future: ListenableFuture<MediaController>? = null
     private var controller: MediaController? = null
     private var released = false
+    private var ticking = false
     private val listener = object : Player.Listener {
         override fun onEvents(player: Player, events: Player.Events) = updateFromPlayer(player)
     }
     private val ticker = object : Runnable {
         override fun run() {
-            if (released) return
+            if (released || !ticking) return
             controller?.let { updateFromPlayer(it) }
             main.postDelayed(this, 750L)
         }
@@ -96,17 +97,29 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
                     state = state.copy(connected = false, error = "Can't connect to the music service.")
                 }
             }, androidx.core.content.ContextCompat.getMainExecutor(context))
-            main.post(ticker)
         } catch (error: Exception) {
             state = state.copy(connected = false, error = "Music service connection failed.")
         }
     }
 
     @MainThread
+    fun resumeUiUpdates() {
+        if (released || ticking) return
+        ticking = true
+        main.post(ticker)
+    }
+
+    @MainThread
+    fun pauseUiUpdates() {
+        ticking = false
+        main.removeCallbacks(ticker)
+    }
+
+    @MainThread
     fun release() {
         if (released) return
         released = true
-        main.removeCallbacks(ticker)
+        pauseUiUpdates()
         controller?.removeListener(listener)
         controller = null
         future?.let { MediaController.releaseFuture(it) }
