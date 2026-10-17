@@ -23,11 +23,11 @@ smoke = read(root / "app/src/androidTest/java/com/nightwave/player/diagnostics/N
 
 # App identity must match the builder and signer gate.
 assert 'applicationId = "com.nightwave.player"' in gradle
-assert 'versionCode = 34' in gradle
-assert 'versionName = "2.0.0-alpha5r"' in gradle
-assert 'Version: 2.0.0-alpha5r' in builder
-assert 'Version code: 34' in builder
-assert "-VersionName '2.0.0-alpha5r' -VersionCode '34'" in builder
+assert 'versionCode = 35' in gradle
+assert 'versionName = "2.0.0-alpha5s"' in gradle
+assert 'Version: 2.0.0-alpha5s' in builder
+assert 'Version code: 35' in builder
+assert "-VersionName '2.0.0-alpha5s' -VersionCode '35'" in builder
 assert "'com.nightwave.player'" in signer
 
 # Refuse unsigned, wrong-package, wrong-version, or mismatched-signer APKs.
@@ -57,7 +57,7 @@ assert 'if ($LASTEXITCODE -ne 0)' in builder
 assert "if (-not $signerLine -or -not $continuityLine)" in builder
 assert ':app:testDebugUnitTest :app:assembleDebug' in builder
 assert 'No new APK was verified.' in cmd
-assert 'Verified build 34' in cmd
+assert 'Verified build 35' in cmd
 
 # Emulator-only launch smoke checks must not mutate library, install or clear data.
 assert 'ActivityScenario.launch(MainActivity::class.java)' in smoke
