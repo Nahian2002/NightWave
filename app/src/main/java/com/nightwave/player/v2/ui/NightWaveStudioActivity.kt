@@ -73,6 +73,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -215,7 +216,10 @@ class NightWaveStudioActivity : ComponentActivity() {
                     },
                     onPlay = { video, collection -> playback.play(video, collection) },
                     onLegacyPlayer = { manageLibrary() },
-                    onClose = { finish() }
+                    onClose = {
+                        startActivity(Intent(this, MainActivity::class.java))
+                        finish()
+                    }
                 )
             }
         }
