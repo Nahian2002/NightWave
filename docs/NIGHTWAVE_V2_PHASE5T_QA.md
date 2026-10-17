@@ -8,6 +8,9 @@ The phone screenshot shows an ordinary keyword, "shape of you", ending in a publ
 - Typing immediately searches liked, recent and playlist metadata locally, without any network request.
 - "Try quick in-app results" explicitly offers legacy native results. If it fails, the smaller notice offers quick retry and an official YouTube route; the failure is not presented as a complete search outage.
 - Home discovery shortcuts prefill the Search tab without silently contacting a provider; Search-tab shortcuts use the primary route.
+
+- External shared plain-text searches also prefill Search instead of automatically triggering an unreliable provider; the user can choose the official route.
+- Songs/Videos chips are labeled under OPTIONAL QUICK RESULTS so they are not mistaken for filters controlling Google's official search.
 - Pasted valid YouTube video URLs still follow the same validated NightWave playback path; bad URLs remain rejected without contacting providers.
 - No changes to Media3, app-private offline files, playlist storage, profile storage, signing or manifest permissions.
 - Existing package identity/version code 35 / alpha5s is retained for this UNVERIFIED source branch pending a verified Android build and separately reviewed version bump.
