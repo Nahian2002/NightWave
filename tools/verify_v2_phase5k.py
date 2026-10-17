@@ -31,8 +31,9 @@ assert "$versionName = '2.0.0-alpha5l'" in device
 assert "$versionCode = 28" in device
 # Critically, the checker must compare the build-status *regex* against the
 # current version, not merely bind the correct $versionName variable.
-assert "Version: 2\\.0\\.0-alpha5k" in device
-assert "Version code: 28\\s*$" in device
+assert "$reportedVersion -ne $versionName" in device
+assert "$reportedCode -ne $versionCode" in device
+assert "Build status has no readable NightWave version code." in device
 
 # Premium and classic surfaces both expose the opt-in private summary.
 assert 'private fun showCrashSummaryDialog()' in premium
