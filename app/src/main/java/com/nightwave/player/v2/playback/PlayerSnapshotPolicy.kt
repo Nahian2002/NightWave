@@ -19,6 +19,10 @@ internal object PlayerSnapshotPolicy {
         if (currentMediaId != null && currentMediaId != shownMediaId) return true
         // No MediaItem after a playing track may mean a service restart.
         if (currentMediaId == null && previouslyPlaying) return true
+        // While the extractor is resolving, report a real loading/error state
+        // within ~2.25 s, not only after the ordinary ~6 s queue reconciliation.
+        if (currentMediaId == null && shownMediaId.isNotBlank() &&
+            ticksSinceReconcile >= 2) return true
         return false
     }
 }
