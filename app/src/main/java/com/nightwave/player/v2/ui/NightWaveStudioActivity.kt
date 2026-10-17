@@ -116,8 +116,16 @@ class NightWaveStudioActivity : ComponentActivity() {
         if (uri == null) return@registerForActivityResult
         runCatching {
             requireNotNull(contentResolver.openInputStream(uri)).use { input ->
-                val bytes = input.readNBytes(com.nightwave.player.v2.data.LibraryBackupCodec.MAX_BYTES + 1)
-                archiveManager.preview(bytes)
+                val limit = com.nightwave.player.v2.data.LibraryBackupCodec.MAX_BYTES
+                val buffer = ByteArray(8192)
+                val out = java.io.ByteArrayOutputStream()
+                while (true) {
+                    val count = input.read(buffer)
+                    if (count < 0) break
+                    require(out.size() + count <= limit) { "Backup exceeds the size limit" }
+                    out.write(buffer, 0, count)
+                }
+                archiveManager.preview(out.toByteArray())
             }
         }.onSuccess { archive ->
             AlertDialog.Builder(this)
