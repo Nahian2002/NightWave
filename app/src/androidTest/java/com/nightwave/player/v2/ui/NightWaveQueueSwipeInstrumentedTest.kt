@@ -89,4 +89,31 @@ class NightWaveQueueSwipeInstrumentedTest {
         compose.onNodeWithText("Track 1").assertDoesNotExist()
         compose.onNodeWithText("Track 0").assertExists()
     }
+
+    @Test fun duplicatedQueueUrlsUseUniqueComposeRowKeys() {
+        val duplicate = track(1)
+        compose.setContent {
+            MaterialTheme {
+                StudioQueueSheet(
+                    state = StudioPlayerState(
+                        connected = true,
+                        videoUrl = track(0).url,
+                        queue = listOf(track(0), duplicate, duplicate),
+                        queueIndex = 0,
+                        playing = true
+                    ),
+                    onDismiss = {},
+                    onSelect = {},
+                    onRemoveUpcoming = { _, _ -> null },
+                    onUndoRemoval = {},
+                    reduceMotion = true
+                )
+            }
+        }
+        compose.waitForIdle()
+        // Under old URL-based LazyColumn keys, rendering repeated public URLs
+        // threw a duplicate key exception before both items appeared.
+        compose.onNodeWithTag("nightwave-upcoming-2").assertExists()
+        compose.onNodeWithTag("nightwave-upcoming-3").assertExists()
+    }
 }
