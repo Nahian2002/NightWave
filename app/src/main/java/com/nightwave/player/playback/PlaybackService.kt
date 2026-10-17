@@ -79,6 +79,7 @@ class PlaybackService : MediaSessionService() {
     private lateinit var offlineSession: OfflineSessionStore
     private lateinit var listeningMemory: ListeningMemoryStore
     private val listeningMeter = ListeningSessionMeter()
+    private var lastMemoryConsentRevision = -1L
     private var autoRetriedVideo: String? = null
     private val progressWriter = object : Runnable {
         override fun run() {
@@ -116,7 +117,13 @@ class PlaybackService : MediaSessionService() {
     private fun sampleListening(endSession: Boolean = false) {
         val player = exoPlayer ?: return
         try {
-            if (!::listeningMemory.isInitialized || !listeningMemory.isEnabled()) {
+            if (!::listeningMemory.isInitialized) return
+            val revision = listeningMemory.consentRevision()
+            if (revision != lastMemoryConsentRevision) {
+                listeningMeter.reset()
+                lastMemoryConsentRevision = revision
+            }
+            if (!listeningMemory.isEnabled()) {
                 listeningMeter.reset()
                 return
             }
