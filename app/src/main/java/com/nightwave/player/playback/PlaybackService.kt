@@ -84,6 +84,9 @@ class PlaybackService : MediaSessionService() {
     // Suppress already-posted automatic Next callbacks after expiry, until
     // the listener observes a genuine new user-initiated Play event.
     private var sleepTimerPaused = false
+    // A delayed STATE_ENDED notification must not advance the same track twice.
+    private var handledEndGeneration = Int.MIN_VALUE
+    private var handledEndMediaId: String? = null
 
     private fun clearSleepTimer() {
         sleepTimerGeneration++
@@ -214,7 +217,11 @@ class PlaybackService : MediaSessionService() {
 
     private val trackListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
-            if (isPlaying) sleepTimerPaused = false
+            if (isPlaying) {
+                sleepTimerPaused = false
+                // Genuine playback after Repeat One/manual Replay permits a new natural end.
+                handledEndMediaId = null
+            }
             sampleListening()
             main.removeCallbacks(progressWriter)
             if (isPlaying) main.postDelayed(progressWriter, 2500L)
@@ -224,15 +231,37 @@ class PlaybackService : MediaSessionService() {
         override fun onPlaybackStateChanged(state: Int) {
             sampleListening()
             if (state == Player.STATE_ENDED) {
-                // Switching Media3 items inside a Player callback is unsafe on
-                // some devices; post the guarded transition onto the main loop.
+                // Media3 callbacks must not change their own player timeline.
+                // Capture the exact ended item and selection generation BEFORE
+                // posting; Next, Jump, Repeat, and app/process recovery may run
+                // before a deferred callback gets its chance to execute.
+                val ended = PlaybackTransitionPolicy.Ended(
+                    generation, exoPlayer?.currentMediaItem?.mediaId, offlinePlaying)
                 main.post {
                     if (!sleepTimerPaused && exoPlayer?.playbackState == Player.STATE_ENDED) {
-                        if (offlinePlaying) {
-                            if (!advanceOffline(forward = true)) {
-                                offlineQueue.current?.let { offlineSession.savePosition(it, 0L, flush = true) }
-                            }
-                        } else playNext(true)
+                        val selected = if (offlinePlaying) offlineQueue.current?.let { "offline:" + it }
+                            else queue.current?.url
+                        if (PlaybackTransitionPolicy.shouldAdvance(
+                                ended, generation, exoPlayer?.currentMediaItem?.mediaId,
+                                selected, offlinePlaying,
+                                isEnded = exoPlayer?.playbackState == Player.STATE_ENDED,
+                                timerPaused = sleepTimerPaused,
+                                alreadyHandled = handledEndGeneration == ended.generation &&
+                                    handledEndMediaId == ended.mediaId
+                            )
+                        ) {
+                            handledEndGeneration = ended.generation
+                            handledEndMediaId = ended.mediaId
+                            if (offlinePlaying) {
+                                if (!advanceOffline(forward = true)) {
+                                    // Last track is finished: keep queue/favorites/files,
+                                    // but restart from 0 only on the user's next Play.
+                                    offlineQueue.current?.let {
+                                        offlineSession.savePosition(it, 0L, flush = true)
+                                    }
+                                }
+                            } else playNext(true)
+                        }
                     }
                 }
             }
@@ -266,12 +295,14 @@ class PlaybackService : MediaSessionService() {
                 return
             }
             autoRetriedVideo = video
+            val retryGeneration = generation
             val position = exoPlayer?.currentPosition?.coerceAtLeast(0L) ?: 0L
             Log.w("NightWavePlayback", "Transient playback error; one stream refresh requested")
             // Avoid mutating ExoPlayer inside its error callback.
             main.post {
-                if (autoRetriedVideo == video && queue.current?.url == video &&
-                    exoPlayer != null) {
+                if (generation == retryGeneration && !offlinePlaying &&
+                    autoRetriedVideo == video && queue.current?.url == video &&
+                    exoPlayer?.currentMediaItem?.mediaId == video) {
                     queue.current?.let { resolveAndPlay(it, autoPlay = true,
                         resumePositionMs = position, recoveryAttempt = true) }
                 }
@@ -595,11 +626,13 @@ class PlaybackService : MediaSessionService() {
     }
 
     private fun advanceOffline(forward: Boolean): Boolean {
-        // Missing/deleted files are skipped in a bounded pass.
+        // One private-library facade per transition. Revalidate every ID/file;
+        // missing/deleted files are skipped in a bounded pass, never downloaded.
+        val localLibrary = OfflineAudioLibrary(this)
         repeat(offlineQueue.size) {
             val id = (if (forward) offlineQueue.next() else offlineQueue.previous())
                 ?: return false
-            if (playOfflineId(id)) return true
+            if (playOfflineId(id, localLibrary)) return true
         }
         return false
     }
