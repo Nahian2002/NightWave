@@ -410,7 +410,7 @@ class NightWaveStudioActivity : ComponentActivity() {
             NightWaveExitHistory.report(this)
         val contextText = "Includes app-only exception types/stack frames and recent " +
             "Android process-exit reasons. No song titles, URLs, file paths, " +
-            "traces, account details or device identifiers are collected."
+            "full system traces, account details or device identifiers are collected."
         AlertDialog.Builder(this)
             .setTitle("NightWave crash diagnostics")
             .setMessage(contextText + "\n\n" + report.take(2400))
