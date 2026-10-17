@@ -37,10 +37,10 @@ assert "LegacyLibrarySnapshotParser.parse" in migrator
 assert "SharedPreferencesMigration" not in store
 assert "nightwave_v2_guest_datastore" in store
 assert "nightwave_v2_guest_profile_1" in read(java / "v2/data/GuestProfileStore.kt")
-assert "RoomShadowMigrator(this, NightWaveDatabase.get(this))" in ui
+assert "RoomShadowMigrator(this, database)" in ui
 assert "ProfileDataStoreMirror(this)" in ui
-assert "Original library remains in use." in ui
-assert "if (::roomShadow.isInitialized)" in ui
+assert "Original library reads remain active." in ui
+assert "if (::roomShadow.isInitialized && ::profileShadow.isInitialized" in ui
 assert "fun toggleFavorite" in legacy
 assert "MediaSessionService" in service and "Player.STATE_ENDED" in service
 assert "onSaveProfile" in ui and "refreshShadows()" in ui
