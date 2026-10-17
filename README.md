@@ -1,5 +1,17 @@
 # NightWave
 
+## Phase 6H1 — Windows diagnostic self-test hotfix (draft)
+
+[Download complete 6H1 source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase6h1-diagnostic-redaction-hotfix.zip) · [Root cause & safe retry steps](docs/NIGHTWAVE_V2_PHASE6H1_DIAGNOSTIC_HOTFIX.md)
+
+- **Fixes the uploaded 6H build preflight failure:** a second redaction regex incorrectly swallowed a harmless `&name=public` query parameter after masking an access token, causing the synthetic diagnostic test to abort the build **before Gradle started**.
+- **Keeps privacy checks enabled:** preserves real URL secret masking; adds multiple parameter/assignment self-tests, plus specific fail messages if future synthetic checks break.
+- **Full source compatibility:** all 6H app/UI/player/backup logic is carried forward with no package/version/signing or user-data changes. Android build success is still **unverified**.
+- **Windows retry:** extract this **complete ZIP into a new folder**; run `build-windows.cmd`. Optional pre-check: `powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools\diagnose-build.ps1 -SelfTest`. If anything else fails, use `send-build-report.cmd`.
+- Never uninstall NightWave or clear music data because a debug APK's signing key does not match the installed app.
+
+---
+
 ## Phase 6H — Release readiness & exact-track Resume safety (draft)
 
 **Source branch:** `feature/nightwave-v2-phase6h-release-gates-resume-safety` stacked on 6G. Stable `main` and installed NightWave user data remain untouched. **An installable Android build has NOT yet been verified.**
