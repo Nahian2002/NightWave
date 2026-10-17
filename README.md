@@ -1,5 +1,21 @@
 # NightWave
 
+## NightWave 2.0 Alpha 5N — Compact premium You tab
+
+**Version:** `2.0.0-alpha5n` (build **30**) · Branch: `feature/nightwave-v2-phase5n-compact-profile` (draft).
+
+[Full Phase 5N source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase5n-compact-profile.zip) · [Design and swipe roadmap](docs/NIGHTWAVE_V2_PHASE5N_QA.md)
+
+- **Redesigned You:** condensed avatar/name header, inline profile editing and compact grouped panels, with tighter spacing and restrained typography.
+- **Appearance & playback:** themes and avatar choices open on demand; reduced-motion switch stays one tap away.
+- **Library & backup:** export, confirmed restore and protected undo are preserved under an expandable row. Advanced Room/DataStore read previews are collapsed by default. Classic UI fallback and crash diagnostics remain accessible.
+- **Zero migration:** original music, local playlists, offline files, queue/bookmarks, app ID, signing identity, premium launcher and media notification paths are unchanged.
+- **Gesture development, ordered:** **5O** swipe between four premium tabs; **5P** safe mini-player and Up Next gestures with Undo for queue-only removals; **5Q** native discovery/search recovery; **5R** animation, accessibility, Android build and playback/crash acceptance.
+
+Added `tools/verify_v2_phase5n.py` and two Android UI test cases. Source readback passed 20 targeted checks. **Android Gradle, emulator and phone validation remain pending**; don't install over an existing app until a real signed APK build and read-only device-update check succeed. Stable `main` remains unchanged.
+
+---
+
 ## NightWave 2.0 Alpha 5M — Premium interface by default
 
 **Version:** `2.0.0-alpha5m` · **code 29** · **draft branch:** `feature/nightwave-v2-phase5m-premium-default`.
