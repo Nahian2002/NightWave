@@ -6,6 +6,16 @@ import android.widget.EditText
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.IntentSenderRequest
+import com.google.android.gms.auth.api.identity.Identity
+import com.google.android.gms.auth.api.identity.AuthorizationResult
+import com.nightwave.player.v2.cloud.CloudBackupStatus
+import com.nightwave.player.v2.cloud.CloudBackupState
+import com.nightwave.player.v2.cloud.CloudBackupCodec
+import com.nightwave.player.v2.cloud.CloudBackupPreview
+import com.nightwave.player.v2.cloud.NightWaveDriveClient
+import com.nightwave.player.v2.cloud.NightWaveCloudAuthorization
+import com.nightwave.player.v2.cloud.NightWaveCloudSchedule
 import com.nightwave.player.v2.data.LibraryArchiveManager
 import com.nightwave.player.diagnostics.NightWaveCrashRecorder
 import com.nightwave.player.diagnostics.NightWaveExitHistory
@@ -147,6 +157,10 @@ class NightWaveStudioActivity : ComponentActivity() {
     private lateinit var library: MusicLibrary
     private lateinit var playback: StudioPlaybackBridge
     private lateinit var archiveManager: LibraryArchiveManager
+    private lateinit var cloudStore: CloudBackupState
+    private var cloudInfo by mutableStateOf(CloudBackupStatus())
+    private var cloudBusy by mutableStateOf(false)
+    private var cloudPendingAction = ""
     private lateinit var roomShadow: RoomShadowMigrator
     private lateinit var verifiedReader: VerifiedRoomReader
     private var roomPreviewRequested = false
@@ -163,6 +177,27 @@ class NightWaveStudioActivity : ComponentActivity() {
     private var shadowRunning = false
     private var shadowRequested = false
     private var youtubeDialog: Dialog? = null
+    private val cloudResolution = registerForActivityResult(
+        ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode != RESULT_OK || result.data == null) {
+            cloudBusy = false
+            cloudPendingAction = ""
+            cloudStore.status("Google authorization cancelled")
+            refreshCloud()
+        } else {
+            runCatching {
+                Identity.getAuthorizationClient(this).getAuthorizationResultFromIntent(result.data!!)
+            }.onSuccess { finishCloudAuthorization(it) }
+                .onFailure {
+                    cloudBusy = false
+                    cloudPendingAction = ""
+                    cloudStore.status("Google authorization was not completed")
+                    refreshCloud()
+                }
+        }
+    }
+
     private val exportFile = registerForActivityResult(
         ActivityResultContracts.CreateDocument("application/json")
     ) { uri ->
@@ -223,6 +258,8 @@ class NightWaveStudioActivity : ComponentActivity() {
         library = MusicLibrary(this)
         playback = StudioPlaybackBridge(this)
         archiveManager = LibraryArchiveManager(this)
+        cloudStore = CloudBackupState(this)
+        refreshCloud()
         // Room/DataStore are read-only previews at this phase. A failure
         // opening the optional shadow must not take down the classic library
         // or the premium player on app launch.
@@ -272,6 +309,21 @@ class NightWaveStudioActivity : ComponentActivity() {
                     onExportGuest = { exportFile.launch("nightwave-guest-backup.json") },
                     onImportGuest = { importFile.launch(arrayOf("application/json", "application/octet-stream")) },
                     onRecoverLastChange = { confirmLastWriteRecovery() },
+                    cloud = cloudInfo,
+                    cloudBusy = cloudBusy,
+                    onCloudConnect = { requestCloudAction("connect") },
+                    onCloudBackup = { requestCloudAction("backup") },
+                    onCloudPreviewRestore = { requestCloudAction("preview") },
+                    onCloudDisconnect = { disconnectCloud() },
+                    onCloudHistory = { enabled ->
+                        if (cloudStore.setHistory(enabled)) refreshCloud()
+                    },
+                    onCloudWifi = { enabled ->
+                        if (cloudStore.setWifiOnly(enabled)) {
+                            refreshCloud()
+                            NightWaveCloudSchedule.update(this)
+                        }
+                    },
                     onSaveProfile = { updated ->
                         if (profiles.save(updated)) {
                             profile = profiles.load()
@@ -355,6 +407,160 @@ class NightWaveStudioActivity : ComponentActivity() {
         youtubeDialog = YouTubeSearchBrowser(this).show(clean) { url ->
             playback.play(VideoPreview("Loading track…", "YouTube", url, "", 0L))
         }
+    }
+
+    private fun refreshCloud() {
+        if (::cloudStore.isInitialized) cloudInfo = cloudStore.read()
+    }
+
+    private fun requestCloudAction(action: String) {
+        if (cloudBusy) return
+        if (action != "connect" && cloudStore.read().account.isBlank()) {
+            showMessage("Connect Google Drive first.")
+            return
+        }
+        cloudPendingAction = action
+        cloudBusy = true
+        val name = if (action == "connect") null else cloudStore.read().account
+        Identity.getAuthorizationClient(this)
+            .authorize(NightWaveCloudAuthorization.request(name))
+            .addOnSuccessListener { response ->
+                if (response.hasResolution()) {
+                    val pending = response.pendingIntent
+                    if (pending == null) {
+                        cloudBusy = false
+                        cloudPendingAction = ""
+                        showMessage("Google could not open account authorization.")
+                    } else {
+                        cloudResolution.launch(IntentSenderRequest.Builder(pending.intentSender).build())
+                    }
+                } else finishCloudAuthorization(response)
+            }
+            .addOnFailureListener {
+                cloudBusy = false
+                cloudPendingAction = ""
+                cloudStore.status("Could not authorize Google Drive")
+                refreshCloud()
+                showMessage("Google authorization unavailable. Check Google Play services.")
+            }
+    }
+
+    private fun finishCloudAuthorization(result: AuthorizationResult) {
+        val action = cloudPendingAction
+        cloudPendingAction = ""
+        val account = NightWaveCloudAuthorization.authorizedAccount(result)
+        val token = runCatching { NightWaveCloudAuthorization.requireToken(result) }.getOrNull()
+        if (account.isNullOrBlank() || token == null) {
+            cloudBusy = false
+            cloudStore.status("Google account or Drive permission could not be verified")
+            refreshCloud()
+            return
+        }
+        if (action == "connect") {
+            cloudBusy = false
+            if (cloudStore.connect(account)) {
+                NightWaveCloudSchedule.stop(this)
+                refreshCloud()
+                showMessage("Drive connected. Choose Back up now or Preview restore.")
+            } else showMessage("Google account could not be saved.")
+            return
+        }
+        val expectedAccount = cloudStore.read().account
+        if (expectedAccount.isBlank() || !expectedAccount.equals(account, ignoreCase = true)) {
+            cloudBusy = false
+            cloudStore.status("Google account mismatch; reconnect before using backup")
+            refreshCloud()
+            return
+        }
+        lifecycleScope.launch {
+            val resultTask = withContext(Dispatchers.IO) {
+                runCatching {
+                    val drive = NightWaveDriveClient(token)
+                    when (action) {
+                        "backup" -> {
+                            val local = archiveManager.export()
+                            val settings = cloudStore.read()
+                            val history = if (settings.includeHistory) library.recent() else emptyList()
+                            val bytes = CloudBackupCodec.encode(local, history, settings.includeHistory)
+                            check(cloudStore.read().account.equals(expectedAccount, true)) {
+                                "Google account was disconnected"
+                            }
+                            drive.uploadVerified(bytes)
+                            null
+                        }
+                        "preview" -> {
+                            val latest = drive.listSnapshots().firstOrNull()
+                                ?: error("No NightWave cloud backup found")
+                            CloudBackupCodec.decode(drive.download(latest.id))
+                        }
+                        else -> error("Invalid cloud action")
+                    }
+                }
+            }
+            cloudBusy = false
+            resultTask.onSuccess { preview ->
+                if (action == "backup") {
+                    if (cloudStore.success(expectedAccount, System.currentTimeMillis())) {
+                        NightWaveCloudSchedule.update(this@NightWaveStudioActivity)
+                        refreshCloud()
+                        showMessage("Cloud backup uploaded and verified.")
+                    } else {
+                        showMessage("Backup uploaded, but scheduling needs a fresh connection.")
+                    }
+                } else if (preview != null) {
+                    showCloudRestorePreview(preview)
+                }
+            }.onFailure { error ->
+                // Only bounded, non-sensitive status to UI; never display an access token.
+                cloudStore.status(if (error.message == "No NightWave cloud backup found")
+                    "No cloud backups found in this Google account"
+                else "Drive operation unsuccessful; local library unchanged")
+                refreshCloud()
+                showMessage(cloudStore.read().lastResult)
+            }
+        }
+    }
+
+    private fun showCloudRestorePreview(preview: CloudBackupPreview) {
+        val message = "Cloud backup: ${preview.archive.favorites.size} liked songs and " +
+            "${preview.archive.playlists.size} playlists." +
+            if (preview.includesHistory) " Also contains ${preview.history.size} recent tracks."
+            else " No listening history included."
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Review cloud restore")
+            .setMessage(message + "\\n\\nRestoring replaces local favorites and playlists. " +
+                "Export your current library first if you need both copies. " +
+                "The existing recovery snapshot is preserved.")
+            .setNegativeButton("Cancel", null)
+            .setPositiveButton("Restore library") { _, _ ->
+                restoreCloudAfterConfirmation(preview, false)
+            }
+        if (preview.includesHistory && preview.history.isNotEmpty()) {
+            dialog.setNeutralButton("Restore + history") { _, _ ->
+                restoreCloudAfterConfirmation(preview, true)
+            }
+        }
+        dialog.show()
+    }
+
+    private fun restoreCloudAfterConfirmation(preview: CloudBackupPreview, withHistory: Boolean) {
+        val history = if (withHistory) preview.history else null
+        if (archiveManager.restoreWithConfirmation(preview.archive, history)) {
+            profile = profiles.load()
+            refresh()
+            showMessage("Cloud library restored. Automatic backup was not changed.")
+        } else showMessage("Restore could not finish; your previous library was preserved.")
+    }
+
+    private fun disconnectCloud() {
+        if (cloudBusy) {
+            showMessage("Wait for the current backup operation to finish.")
+            return
+        }
+        cloudStore.disconnect()
+        NightWaveCloudSchedule.stop(this)
+        refreshCloud()
+        showMessage("Disconnected locally. Existing cloud snapshots were not deleted.")
     }
 
     private fun nativeSearch(query: String, mode: SearchMode) {
@@ -700,6 +906,14 @@ private fun StudioRoot(
     onExportGuest: () -> Unit,
     onImportGuest: () -> Unit,
     onRecoverLastChange: () -> Unit,
+    cloud: CloudBackupStatus,
+    cloudBusy: Boolean,
+    onCloudConnect: () -> Unit,
+    onCloudBackup: () -> Unit,
+    onCloudPreviewRestore: () -> Unit,
+    onCloudDisconnect: () -> Unit,
+    onCloudHistory: (Boolean) -> Unit,
+    onCloudWifi: (Boolean) -> Unit,
     storageStatus: String,
     onCheckStorage: () -> Unit,
     roomReadStatus: String,
@@ -928,6 +1142,13 @@ private fun StudioRoot(
                         modifier = Modifier, profile = profile, save = onSaveProfile,
                         onExport = onExportGuest, onImport = onImportGuest,
                         onRecoverLastChange = onRecoverLastChange,
+                        cloud = cloud, cloudBusy = cloudBusy,
+                        onCloudConnect = onCloudConnect,
+                        onCloudBackup = onCloudBackup,
+                        onCloudPreviewRestore = onCloudPreviewRestore,
+                        onCloudDisconnect = onCloudDisconnect,
+                        onCloudHistory = onCloudHistory,
+                        onCloudWifi = onCloudWifi,
                         storageStatus = storageStatus, onCheckStorage = onCheckStorage,
                         roomReadStatus = roomReadStatus,
                         roomPreviewActive = roomPreviewActive,
@@ -1342,6 +1563,14 @@ private fun StudioLibrary(
 private fun StudioProfile(
     modifier: Modifier, profile: ProfileSettings, save: (ProfileSettings) -> Unit,
     onExport: () -> Unit, onImport: () -> Unit, onRecoverLastChange: () -> Unit,
+    cloud: CloudBackupStatus,
+    cloudBusy: Boolean,
+    onCloudConnect: () -> Unit,
+    onCloudBackup: () -> Unit,
+    onCloudPreviewRestore: () -> Unit,
+    onCloudDisconnect: () -> Unit,
+    onCloudHistory: (Boolean) -> Unit,
+    onCloudWifi: (Boolean) -> Unit,
     storageStatus: String, onCheckStorage: () -> Unit,
     roomReadStatus: String, roomPreviewActive: Boolean,
     onEnableRoomPreview: () -> Unit, onUseLegacyReads: () -> Unit,
@@ -1513,7 +1742,48 @@ private fun StudioProfile(
                         Icons.Outlined.LibraryMusic, onImport)
                     StudioProfileRow("Undo most recent library edit", "Restore last protected change",
                         Icons.Outlined.ArrowBack, onRecoverLastChange)
-                    Text("Backups do not include audio files or passwords. Cloud sync is not active.",
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    Text("GOOGLE DRIVE BACKUP", style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(start = 14.dp, top = 6.dp))
+                    Text(if (cloud.account.isBlank()) "Not connected"
+                        else "Connected: " + cloud.account,
+                        modifier = Modifier.padding(horizontal = 14.dp),
+                        style = MaterialTheme.typography.bodySmall)
+                    Text(cloud.lastResult + if (cloud.lastSuccessMs > 0L)
+                        " · Last verified: " + java.text.DateFormat.getDateTimeInstance()
+                            .format(java.util.Date(cloud.lastSuccessMs)) else "",
+                        modifier = Modifier.padding(horizontal = 14.dp),
+                        style = MaterialTheme.typography.bodySmall, color = muted)
+                    StudioProfileRow("Connect Google Drive", "Authorize private app-only backup access",
+                        Icons.Outlined.Settings, onCloudConnect)
+                    if (cloud.account.isNotBlank()) {
+                        StudioProfileRow("Back up now", "Verified, versioned Google Drive snapshot",
+                            Icons.Outlined.LibraryMusic, onCloudBackup)
+                        StudioProfileRow("Preview cloud restore", "Choose before replacing local collections",
+                            Icons.Outlined.LibraryMusic, onCloudPreviewRestore)
+                        StudioProfileRow("Back up listening history",
+                            "Off by default; old snapshots keep their previous contents",
+                            Icons.Outlined.Settings, { onCloudHistory(!cloud.includeHistory) },
+                            trailing = {
+                                Switch(checked = cloud.includeHistory,
+                                    onCheckedChange = onCloudHistory)
+                            })
+                        StudioProfileRow("Wi-Fi-only automatic backup",
+                            "Daily scheduling after first successful backup",
+                            Icons.Outlined.Settings, { onCloudWifi(!cloud.wifiOnly) },
+                            trailing = {
+                                Switch(checked = cloud.wifiOnly,
+                                    onCheckedChange = onCloudWifi)
+                            })
+                        StudioProfileRow("Disconnect Drive", "Stops backup; snapshots stay in Drive",
+                            Icons.Outlined.ArrowBack, onCloudDisconnect)
+                    }
+                    if (cloudBusy) Text("Connecting or transferring backup…",
+                        modifier = Modifier.padding(horizontal = 14.dp),
+                        style = MaterialTheme.typography.bodySmall, color = muted)
+                    Text("Backups contain metadata, never offline audio or passwords. " +
+                        "Google consent is optional. Automatic sync can run later than scheduled.",
                         modifier = Modifier.padding(start = 14.dp, end = 14.dp, bottom = 12.dp),
                         style = MaterialTheme.typography.bodySmall, color = muted)
                 }
@@ -1545,7 +1815,8 @@ private fun StudioProfile(
                             Text(if (roomPreviewActive) "RETURN TO ORIGINAL LIBRARY"
                                 else "TRY VERIFIED ROOM READS")
                         }
-                        Text("Cloud recovery is not available yet.",
+                        Text("Cloud recovery requires a Google-authorized, validated snapshot and " +
+                            "always asks before replacing local collections.",
                             style = MaterialTheme.typography.bodySmall, color = muted)
                     }
                 }
