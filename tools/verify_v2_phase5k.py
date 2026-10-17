@@ -29,6 +29,10 @@ assert 'applicationId = "com.nightwave.player"' in gradle
 assert "-VersionName '2.0.0-alpha5k' -VersionCode '27'" in builder
 assert "$versionName = '2.0.0-alpha5k'" in device
 assert "$versionCode = 27" in device
+# Critically, the checker must compare the build-status *regex* against the
+# current version, not merely bind the correct $versionName variable.
+assert "Version: 2\\.0\\.0-alpha5k" in device
+assert "Version code: 27\\s*$" in device
 
 # Premium and classic surfaces both expose the opt-in private summary.
 assert 'private fun showCrashSummaryDialog()' in premium
