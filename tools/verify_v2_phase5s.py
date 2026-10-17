@@ -104,5 +104,21 @@ for label, code in (("queue UI", sheet), ("premium UI", nightwave)):
     imports = [line for line in code.splitlines() if line.startswith("import ")]
     assert len(imports) == len(set(imports)), label + " duplicate imports"
 
+# Compose SemanticsNodeInteraction.assertExists/assertDoesNotExist are instance
+# methods in the pinned test dependency, not top-level functions to import.
+# Windows Gradle first exposed these compile failures in Phase 5S.
+for test_file in (
+    "app/src/androidTest/java/com/nightwave/player/v2/ui/NightWaveProfileCompactInstrumentedTest.kt",
+    "app/src/androidTest/java/com/nightwave/player/v2/ui/NightWaveQueueSwipeInstrumentedTest.kt",
+):
+    test_source = read(test_file)
+    for invalid_import in (
+        "import androidx.compose.ui.test.assertExists",
+        "import androidx.compose.ui.test.assertDoesNotExist",
+    ):
+        assert invalid_import not in test_source, (test_file, invalid_import)
+    assert ".assertExists()" in test_source, test_file
+assert ".assertDoesNotExist()" in queue_tests
+
 print("PASS: NightWave 5S build diagnostics, Android test compilation and repeated-queue crash source gates")
 print("PENDING: actual Windows PowerShell self-test, Android APK compile and signing/device checks")
