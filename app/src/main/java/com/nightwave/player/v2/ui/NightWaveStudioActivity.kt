@@ -181,6 +181,9 @@ class NightWaveStudioActivity : ComponentActivity() {
         profile = profiles.load()
         refresh()
         setContent {
+            LaunchedEffect(playback.state.videoUrl) {
+                if (playback.state.videoUrl.isNotBlank()) refresh()
+            }
             NightWaveMaterialTheme(profile.theme) {
                 StudioRoot(
                     profile = profile, favorites = favorites, recent = recentlyPlayed,
