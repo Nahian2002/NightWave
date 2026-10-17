@@ -19,7 +19,7 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import com.nightwave.player.library.MusicLibrary
 import com.nightwave.player.net.YouTubeGateway
-import com.nightwave.player.ui.MainActivity
+import com.nightwave.player.v2.ui.NightWaveStudioActivity
 import java.util.concurrent.Executors
 
 /** The service owns automatic next-track resolution, even while the Activity is stopped. */
@@ -27,6 +27,7 @@ import java.util.concurrent.Executors
 class PlaybackService : MediaSessionService() {
     companion object {
         const val ACTION_REPLACE = "com.nightwave.player.REPLACE_QUEUE"
+        const val ACTION_RESUME_SAVED = "com.nightwave.player.RESUME_SAVED"
         /** Atomic queue assignment followed by a single play request for the v2 interface. */
         const val ACTION_PLAY_QUEUE = "com.nightwave.player.PLAY_QUEUE"
         const val ACTION_ENQUEUE = "com.nightwave.player.ENQUEUE"
@@ -50,6 +51,19 @@ class PlaybackService : MediaSessionService() {
     private val resolver = Executors.newSingleThreadExecutor()
     private val gateway = YouTubeGateway()
     private var generation = 0
+    private val progressWriter = object : Runnable {
+        override fun run() {
+            persistProgress()
+            main.postDelayed(this, 2500L)
+        }
+    }
+
+    private fun persistProgress() {
+        val player = exoPlayer ?: return
+        val url = player.currentMediaItem?.mediaId ?: return
+        val duration = player.duration.takeIf { it != C.TIME_UNSET && it > 0L } ?: 0L
+        savedQueue.saveBookmark(url, player.currentPosition.coerceAtLeast(0L), duration)
+    }
 
     private val trackListener = object : Player.Listener {
         override fun onPlaybackStateChanged(state: Int) {
@@ -81,7 +95,7 @@ class PlaybackService : MediaSessionService() {
             }
         exoPlayer = player
         val openApp = PendingIntent.getActivity(
-            this, 0, Intent(this, MainActivity::class.java),
+            this, 0, Intent(this, NightWaveStudioActivity::class.java),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
         mediaSession = MediaSession.Builder(this, player).setSessionActivity(openApp)
@@ -101,6 +115,12 @@ class PlaybackService : MediaSessionService() {
                     }
                 }
             }).build()
+        // Recover the last public video/queue paused: never surprise-play on reopen.
+        queue.current?.let { previous ->
+            resolveAndPlay(previous, autoPlay = false,
+                resumePositionMs = savedQueue.bookmark(previous.url)?.positionMs ?: 0L)
+        }
+        main.postDelayed(progressWriter, 2500L)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -118,6 +138,7 @@ class PlaybackService : MediaSessionService() {
                 queue.replace(entries, intent.getIntExtra(EXTRA_INDEX, 0))
                 generation++ // invalidate unresolved previous track jobs
                 savedQueue.save(queue)
+                queue.current?.let { savedQueue.saveBookmark(it.url, 0L, 0L) }
                 if (intent.action == ACTION_PLAY_QUEUE) {
                     // Current item belongs to the same queue snapshot; do not touch old app entry points.
                     exoPlayer?.pause()
@@ -131,6 +152,14 @@ class PlaybackService : MediaSessionService() {
                         intent.getStringExtra(EXTRA_CREATORS).orEmpty(),
                         intent.getStringExtra(EXTRA_ARTWORKS).orEmpty()))
                     savedQueue.save(queue)
+                }
+            }
+            ACTION_RESUME_SAVED -> {
+                val current = queue.current
+                if (exoPlayer?.currentMediaItem != null) exoPlayer?.play()
+                else current?.let {
+                    resolveAndPlay(it, autoPlay = true,
+                        resumePositionMs = savedQueue.bookmark(it.url)?.positionMs ?: 0L)
                 }
             }
             ACTION_NEXT -> playNext(false)
@@ -157,7 +186,10 @@ class PlaybackService : MediaSessionService() {
         queue.previous()?.let { savedQueue.save(queue); resolveAndPlay(it) }
     }
 
-    private fun resolveAndPlay(entry: QueueEntry) {
+    private fun resolveAndPlay(
+        entry: QueueEntry, autoPlay: Boolean = true, resumePositionMs: Long = 0L
+    ) {
+        if (autoPlay && resumePositionMs == 0L) savedQueue.saveBookmark(entry.url, 0L, 0L)
         val request = ++generation
         resolver.execute {
             val outcome = runCatching { gateway.resolve(entry.url) }
@@ -165,14 +197,20 @@ class PlaybackService : MediaSessionService() {
                 if (request != generation) return@post
                 outcome.onSuccess { playable ->
                     val video = playable.video
-                    MusicLibrary(this).addRecent(video)
+                    if (autoPlay) MusicLibrary(this).addRecent(video)
                     val metadata = MediaMetadata.Builder().setTitle(video.title).setArtist(video.author)
                         .apply { if (video.thumbnail.isNotEmpty()) setArtworkUri(Uri.parse(video.thumbnail)) }
                         .build()
                     val mediaItem = MediaItem.Builder().setMediaId(video.url).setUri(playable.audioUrl)
                         .apply { playable.mimeType?.let { setMimeType(it) } }
                         .setMediaMetadata(metadata).build()
-                    exoPlayer?.apply { setMediaItem(mediaItem); prepare(); play() }
+                    exoPlayer?.apply {
+                        setMediaItem(mediaItem)
+                        if (resumePositionMs > 0L) seekTo(resumePositionMs)
+                        playWhenReady = autoPlay
+                        prepare()
+                        if (autoPlay) play()
+                    }
                 }
                 // Never loop infinitely through unavailable streams.
                 outcome.onFailure { exoPlayer?.pause() }
@@ -183,6 +221,8 @@ class PlaybackService : MediaSessionService() {
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = mediaSession
 
     override fun onDestroy() {
+        persistProgress()
+        main.removeCallbacks(progressWriter)
         generation++
         resolver.shutdownNow()
         exoPlayer?.removeListener(trackListener)

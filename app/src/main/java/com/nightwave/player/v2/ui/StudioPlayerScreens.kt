@@ -10,6 +10,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -69,6 +70,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -96,44 +98,67 @@ fun StudioMiniPlayer(
     state: StudioPlayerState,
     actions: StudioPlayerActions,
     onExpand: () -> Unit,
+    onHide: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     if (!state.hasTrack) return
-    val scheme = MaterialTheme.colorScheme
+    val colors = MaterialTheme.colorScheme
+    var travel by remember(state.videoUrl) { mutableStateOf(0f) }
     Column(
-        modifier = modifier.fillMaxWidth().padding(horizontal = 9.dp, vertical = 5.dp)
-            .clip(RoundedCornerShape(19.dp)).background(
-                Brush.horizontalGradient(listOf(scheme.surfaceVariant, scheme.surface))
-            ).clickable(onClick = onExpand)
+        modifier = modifier.fillMaxWidth().padding(horizontal = 11.dp, vertical = 3.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(colors.surfaceVariant)
+            .pointerInput(state.videoUrl) {
+                detectVerticalDragGestures(
+                    onDragStart = { travel = 0f },
+                    onVerticalDrag = { change, delta ->
+                        change.consume()
+                        travel += delta
+                    },
+                    onDragEnd = {
+                        if (travel > 70f) onHide()
+                        else if (travel < -70f) onExpand()
+                        travel = 0f
+                    },
+                    onDragCancel = { travel = 0f }
+                )
+            }
     ) {
-        Row(Modifier.fillMaxWidth().height(74.dp).padding(horizontal = 11.dp),
-            horizontalArrangement = Arrangement.spacedBy(11.dp), verticalAlignment = Alignment.CenterVertically) {
-            CoverArt(state.thumbnail, Modifier.size(53.dp), 12)
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(state.title.ifBlank { "Loading..." }, style = schemeTypographyTitle(),
-                    color = scheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(if (state.buffering) "BUFFERING..." else state.artist.ifBlank { "NightWave" },
+        Row(
+            modifier = Modifier.fillMaxWidth().height(58.dp)
+                .clickable(onClick = onExpand)
+                .padding(start = 7.dp, end = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            CoverArt(state.thumbnail, Modifier.size(44.dp), 9)
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(state.title.ifBlank { "Restoring your last track…" },
+                    style = MaterialTheme.typography.titleMedium,
+                    color = colors.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(
+                    if (state.buffering) "Connecting…" else state.artist.ifBlank { "NightWave" },
                     style = MaterialTheme.typography.bodyMedium,
-                    color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    color = colors.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis
+                )
             }
             IconButton(onClick = actions::playPause, modifier = Modifier.size(48.dp)) {
                 Icon(if (state.playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                    contentDescription = if (state.playing) "Pause" else "Play", tint = scheme.onSurface)
-            }
-            IconButton(onClick = actions::next, modifier = Modifier.size(48.dp)) {
-                Icon(Icons.Outlined.SkipNext, contentDescription = "Next track", tint = scheme.onSurface)
+                    contentDescription = if (state.playing) "Pause playback" else "Resume playback",
+                    tint = colors.onSurface)
             }
         }
         LinearProgressIndicator(
-            progress = { if (state.durationMs > 0) (state.positionMs.toFloat() / state.durationMs).coerceIn(0f, 1f) else 0f },
-            modifier = Modifier.fillMaxWidth().height(3.dp), color = scheme.primary,
-            trackColor = scheme.outline.copy(alpha = .45f)
+            progress = {
+                if (state.durationMs > 0L)
+                    (state.positionMs.toFloat() / state.durationMs).coerceIn(0f, 1f) else 0f
+            },
+            modifier = Modifier.fillMaxWidth().height(2.dp),
+            color = colors.primary,
+            trackColor = colors.outline.copy(alpha = .28f)
         )
     }
 }
-
-@Composable
-private fun schemeTypographyTitle() = MaterialTheme.typography.titleMedium
 
 @Composable
 private fun CoverArt(url: String, modifier: Modifier = Modifier, radius: Int = 24) {
@@ -174,14 +199,28 @@ fun StudioNowPlayingOverlay(
         val colors = MaterialTheme.colorScheme
         val background = Brush.verticalGradient(listOf(colors.surfaceVariant, colors.background, colors.background))
         BoxWithConstraints(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing).background(background)) {
-            val art = minOf(maxWidth - 82.dp, maxHeight * .41f, 430.dp)
+            val art = minOf(maxWidth - 76.dp, maxHeight * .34f, 330.dp)
             Column(
                 Modifier.fillMaxSize().verticalScroll(rememberScrollState())
                     .padding(horizontal = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
-                Row(Modifier.fillMaxWidth().padding(top = 9.dp, bottom = 20.dp),
+                Row(Modifier.fillMaxWidth().padding(top = 5.dp, bottom = 13.dp)
+                    .pointerInput(Unit) {
+                        var dragged = 0f
+                        detectVerticalDragGestures(
+                            onDragStart = { dragged = 0f },
+                            onVerticalDrag = { change, amount ->
+                                change.consume()
+                                dragged += amount
+                            },
+                            onDragEnd = {
+                                if (dragged > 65f) onDismiss()
+                                dragged = 0f
+                            }
+                        )
+                    },
                     verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = onDismiss, modifier = Modifier.size(48.dp)) {
                         Icon(Icons.Outlined.ArrowDownward, contentDescription = "Minimize player",
@@ -201,7 +240,7 @@ fun StudioNowPlayingOverlay(
                 Spacer(Modifier.height(8.dp))
                 CoverArt(state.thumbnail,
                     Modifier.size(art).clip(RoundedCornerShape(26.dp)), 26)
-                Spacer(Modifier.height(28.dp))
+                Spacer(Modifier.height(21.dp))
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text(state.title.ifBlank { "Choose a track" },
@@ -217,7 +256,7 @@ fun StudioNowPlayingOverlay(
                             tint = if (liked) colors.primary else colors.onBackground)
                     }
                 }
-                Spacer(Modifier.height(20.dp))
+                Spacer(Modifier.height(11.dp))
                 var dragFraction by remember { mutableStateOf<Float?>(null) }
                 val fraction = dragFraction ?: if (state.durationMs > 0L)
                     (state.positionMs.toFloat() / state.durationMs).coerceIn(0f, 1f) else 0f
@@ -264,7 +303,7 @@ fun StudioNowPlayingOverlay(
                                 colors.onSurfaceVariant else colors.primary)
                     }
                 }
-                Spacer(Modifier.height(20.dp))
+                Spacer(Modifier.height(12.dp))
                 Surface(
                     onClick = onOpenQueue, modifier = Modifier.fillMaxWidth().height(54.dp),
                     shape = RoundedCornerShape(17.dp), color = colors.surface

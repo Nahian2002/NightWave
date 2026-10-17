@@ -24,25 +24,25 @@ object NightWaveDesign {
     const val VIDEO_ART_ASPECT = 16f / 9f
     const val CARD_CORNER_DP = 20
     const val HERO_CORNER_DP = 28
-    const val NAV_HEIGHT_DP = 68
-    const val MINI_PLAYER_HEIGHT_DP = 76
+    const val NAV_HEIGHT_DP = 60
+    const val MINI_PLAYER_HEIGHT_DP = 60
 
     fun palette(theme: NightWaveTheme): Palette = when (theme) {
         NightWaveTheme.MIDNIGHT -> Palette(
-            0xFF090B13, 0xFF151929, 0xFF21253A, 0xFFF7F6FF, 0xFFABB0C7,
-            0xFFB6A4FF, 0xFF3C345E, 0xFF343A51, 0xFFFF9FAF, true
+            0xFF090D14, 0xFF111B28, 0xFF1B2939, 0xFFF4F8FD, 0xFFA7B7CA,
+            0xFF8BE4D6, 0xFF1C4B4B, 0xFF29394B, 0xFFFFB0B9, true
         )
         NightWaveTheme.AURORA -> Palette(
-            0xFF091215, 0xFF132327, 0xFF1B353A, 0xFFE8FFF8, 0xFFA3C7C2,
-            0xFF72E3D0, 0xFF205652, 0xFF335B5B, 0xFFFFB1B5, true
+            0xFF11101D, 0xFF1B1A2E, 0xFF292742, 0xFFF8F6FF, 0xFFBEB6D5,
+            0xFFC6B6FF, 0xFF4A3E6C, 0xFF363251, 0xFFFFB1B5, true
         )
         NightWaveTheme.PEARL -> Palette(
             0xFFF9F7F2, 0xFFF0EAE2, 0xFFE4D9CB, 0xFF29262B, 0xFF6C646A,
             0xFFB48883, 0xFFE8D4CF, 0xFFCEC4C0, 0xFFB53D51, false
         )
         NightWaveTheme.AMOLED -> Palette(
-            0xFF000000, 0xFF111113, 0xFF1A1A20, 0xFFFFFFFF, 0xFFB4B4BC,
-            0xFFDFD9FF, 0xFF282530, 0xFF393943, 0xFFFFA9B5, true
+            0xFF000000, 0xFF121518, 0xFF1B2228, 0xFFFFFFFF, 0xFFA8B6C0,
+            0xFF9CE9DF, 0xFF1A3939, 0xFF313D43, 0xFFFFA9B5, true
         )
     }
 }

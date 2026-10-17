@@ -94,9 +94,21 @@ class MainActivity : Activity() {
         setContentView(binding.root)
         thumbs = ThumbnailLoader(this)
         library = MusicLibrary(this)
-        val restoredQueue = QueueStateStore(this).read()
+        val persistence = QueueStateStore(this)
+        val restoredQueue = persistence.read()
         shuffle = restoredQueue.shuffle
         repeat = restoredQueue.repeat.ordinal
+        restoredQueue.tracks.getOrNull(restoredQueue.index)?.let { entry ->
+            currentVideoUrl = entry.url
+            binding.playerPanel.visibility = View.VISIBLE
+            binding.currentTitle.text = entry.title
+            binding.currentCreator.text = entry.creator
+            setPlayerArtwork(entry.artwork)
+            val saved = persistence.bookmark(entry.url)
+            binding.timeText.text = TimeLabel.format(saved?.positionMs ?: 0L) +
+                " / " + TimeLabel.format(saved?.durationMs ?: 0L)
+            binding.toggleButton.text = "▶"
+        }
         if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 100)
         }
@@ -151,7 +163,12 @@ class MainActivity : Activity() {
             if (action == EditorInfo.IME_ACTION_SEARCH) { searchOrPlay(); true } else false
         }
         binding.toggleButton.setOnClickListener {
-            controller?.let { if (it.isPlaying) it.pause() else if (it.mediaItemCount > 0) it.play() }
+            controller?.let {
+                if (it.isPlaying) it.pause()
+                else if (it.mediaItemCount > 0) it.play()
+                else startService(Intent(this, PlaybackService::class.java)
+                    .setAction(PlaybackService.ACTION_RESUME_SAVED))
+            }
         }
         binding.backButton.setOnClickListener { seekBy(-15_000) }
         binding.forwardButton.setOnClickListener { seekBy(15_000) }

@@ -11,6 +11,7 @@ import androidx.activity.ComponentActivity
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import androidx.activity.compose.setContent
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -63,6 +64,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -73,6 +75,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -180,6 +183,9 @@ class NightWaveStudioActivity : ComponentActivity() {
         profile = profiles.load()
         refresh()
         setContent {
+            LaunchedEffect(playback.state.videoUrl) {
+                if (playback.state.videoUrl.isNotBlank()) refresh()
+            }
             NightWaveMaterialTheme(profile.theme) {
                 StudioRoot(
                     profile = profile, favorites = favorites, recent = recentlyPlayed,
@@ -215,7 +221,10 @@ class NightWaveStudioActivity : ComponentActivity() {
                     },
                     onPlay = { video, collection -> playback.play(video, collection) },
                     onLegacyPlayer = { manageLibrary() },
-                    onClose = { finish() }
+                    onClose = {
+                        startActivity(Intent(this, MainActivity::class.java))
+                        finish()
+                    }
                 )
             }
         }
@@ -479,46 +488,89 @@ private fun StudioRoot(
     var selectedPlaylist by rememberSaveable { mutableStateOf<String?>(null) }
     var expanded by rememberSaveable { mutableStateOf(false) }
     var showQueue by rememberSaveable { mutableStateOf(false) }
+    var compactHidden by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(playerState.videoUrl) { compactHidden = false }
+    BackHandler(enabled = showQueue || expanded) {
+        if (showQueue) showQueue = false else expanded = false
+    }
     Box(Modifier.fillMaxSize()) {
     Scaffold(
         modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing),
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 13.dp),
-                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+            Row(Modifier.fillMaxWidth().height(62.dp)
+                    .padding(horizontal = 19.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween) {
                 NightWaveWordmark()
                 IconButton(onClick = onClose) {
-                    Icon(Icons.Outlined.ArrowBack, contentDescription = "Return to current player",
+                    Icon(Icons.Outlined.Settings, contentDescription = "Open classic player",
                         tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         },
         bottomBar = {
             Column {
-            StudioMiniPlayer(playerState, playerActions, onExpand = { expanded = true })
-            NavigationBar(
-                containerColor = MaterialTheme.colorScheme.surface,
-                tonalElevation = 4.dp
-            ) {
-                for (item in StudioTab.entries) {
-                    val image = when (item) {
-                        StudioTab.HOME -> Icons.Outlined.Home
-                        StudioTab.SEARCH -> Icons.Outlined.Search
-                        StudioTab.LIBRARY -> Icons.Outlined.LibraryMusic
-                        StudioTab.PROFILE -> Icons.Outlined.PersonOutline
+                if (playerState.hasTrack && compactHidden) {
+                    Surface(onClick = { compactHidden = false },
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(13.dp),
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp)
+                            .height(36.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center) {
+                            Icon(Icons.Outlined.PlayArrow,
+                                contentDescription = null, modifier = Modifier.size(17.dp))
+                            Spacer(Modifier.width(7.dp))
+                            Text("Now playing · Tap to show",
+                                style = MaterialTheme.typography.labelLarge)
+                        }
                     }
-                    NavigationBarItem(
-                        selected = tab == item, onClick = {
-                            tab = item
-                            selectedPlaylist = null
-                        },
-                        icon = { Icon(image, contentDescription = item.caption) },
-                        label = { Text(item.caption, style = MaterialTheme.typography.labelSmall) },
-                        alwaysShowLabel = true
-                    )
+                } else if (playerState.hasTrack) {
+                    StudioMiniPlayer(playerState, playerActions,
+                        onExpand = { expanded = true },
+                        onHide = { compactHidden = true })
                 }
-            }
+                Surface(color = MaterialTheme.colorScheme.background,
+                    shadowElevation = 4.dp) {
+                    Row(
+                        Modifier.fillMaxWidth().height(60.dp)
+                            .padding(horizontal = 10.dp, vertical = 5.dp),
+                        horizontalArrangement = Arrangement.spacedBy(5.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        for (item in StudioTab.entries) {
+                            val image = when (item) {
+                                StudioTab.HOME -> Icons.Outlined.Home
+                                StudioTab.SEARCH -> Icons.Outlined.Search
+                                StudioTab.LIBRARY -> Icons.Outlined.LibraryMusic
+                                StudioTab.PROFILE -> Icons.Outlined.PersonOutline
+                            }
+                            val selected = tab == item
+                            Column(
+                                Modifier.weight(1f).fillMaxHeight()
+                                    .clip(RoundedCornerShape(13.dp))
+                                    .background(if (selected) MaterialTheme.colorScheme.surfaceVariant
+                                        else Color.Transparent)
+                                    .clickable {
+                                        tab = item
+                                        selectedPlaylist = null
+                                    },
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(image, contentDescription = item.caption,
+                                    modifier = Modifier.size(19.dp),
+                                    tint = if (selected) MaterialTheme.colorScheme.primary
+                                        else MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(item.caption, style = MaterialTheme.typography.labelSmall,
+                                    color = if (selected) MaterialTheme.colorScheme.onSurface
+                                        else MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                    }
+                }
             }
         }
     ) { safe ->
@@ -592,17 +644,17 @@ private fun StudioHome(
     ) {
         item {
             SectionHeading(
-                "Good to see you, " + profile.displayName.substringBefore(' ').take(18) + ".",
-                "Set the mood. We'll handle the atmosphere."
+                "Listen your way",
+                "Welcome back, " + profile.displayName.substringBefore(' ').take(18)
             )
         }
         item {
             MusicFeatureCard(
-                "CURATED BY YOU", "Every mood.\nOne place.",
-                "Your library and the sounds you love, beautifully together."
+                "DISCOVER", "Find your next favorite",
+                "Search music from YouTube"
             ) { onSearch("night drive music") }
         }
-        item { SectionHeading("Explore by mood", "Tap a collection to search real music.") }
+        item { SectionHeading("Browse by mood") }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 MoodTile("After dark", "Night drive music",
@@ -623,7 +675,7 @@ private fun StudioHome(
                     Modifier.weight(1f)) { onSearch("workout music") }
             }
         }
-        item { SectionHeading("Back in rotation", "Recently played on this device") }
+        item { SectionHeading("Recently played") }
         if (recent.isEmpty()) item {
             EmptyMusicCard("Start your first session",
                 "Your actual listening history will appear here as you play.",
@@ -631,7 +683,7 @@ private fun StudioHome(
         } else items(recent.take(6), key = { it.url }) { song ->
             MusicTrackTile(song, onOptions = { onSongOptions(song) }, onClick = { onPlay(song, recent) })
         }
-        item { SectionHeading("Liked by you", favorites.size.toString() + " saved tracks") }
+        item { SectionHeading("Your favorites", favorites.size.toString() + " liked tracks") }
         item {
             OutlinedButton(onClick = openLibrary, modifier = Modifier.fillMaxWidth().height(51.dp)) {
                 Icon(Icons.Outlined.FavoriteBorder, contentDescription = null)
@@ -644,7 +696,7 @@ private fun StudioHome(
 
 @Composable
 private fun MoodTile(title: String, subtitle: String, gradient: List<Color>, modifier: Modifier, onClick: () -> Unit) {
-    Card(onClick = onClick, modifier = modifier.height(152.dp),
+    Card(onClick = onClick, modifier = modifier.height(112.dp),
         shape = RoundedCornerShape(21.dp)) {
         Column(Modifier.fillMaxSize().background(Brush.linearGradient(gradient)).padding(16.dp),
             verticalArrangement = Arrangement.SpaceBetween) {
@@ -711,8 +763,8 @@ private fun StudioLibrary(
                     Icon(Icons.Outlined.ArrowBack, contentDescription = "Back to Library")
                 }
                 Column {
-                    SectionHeading(if (selectedPlaylist == LIKED_COLLECTION) "Liked Songs" else selectedPlaylist ?: "Your music.",
-                        if (selectedPlaylist == null) "Every collection, under one roof."
+                    SectionHeading(if (selectedPlaylist == LIKED_COLLECTION) "Liked Songs" else selectedPlaylist ?: "Your library",
+                        if (selectedPlaylist == null) "Playlists and liked songs"
                         else tracks.size.toString() + " songs in this playlist")
                 }
             }
@@ -720,7 +772,7 @@ private fun StudioLibrary(
         if (selectedPlaylist == null) {
             item {
                 MusicFeatureCard("YOUR PRIVATE COLLECTION",
-                    "Liked songs.", favorites.size.toString() + " tracks saved locally") {
+                    "Liked songs", favorites.size.toString() + " tracks") {
                     onSelectPlaylist(LIKED_COLLECTION)
                 }
             }
@@ -769,9 +821,10 @@ private fun StudioProfile(modifier: Modifier, profile: ProfileSettings, save: (P
     roomReadStatus: String, roomPreviewActive: Boolean,
     onEnableRoomPreview: () -> Unit, onUseLegacyReads: () -> Unit) {
     var name by rememberSaveable(profile.localId) { mutableStateOf(profile.displayName) }
+    var showAdvanced by rememberSaveable { mutableStateOf(false) }
     LazyColumn(modifier.widthIn(max = 840.dp).fillMaxHeight(), contentPadding = PaddingValues(20.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp)) {
-        item { SectionHeading("Make it yours.", "Your guest profile is saved on this phone.") }
+        item { SectionHeading("Your profile", "A listening space that feels like yours.") }
         item {
             Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 shape = RoundedCornerShape(23.dp), modifier = Modifier.fillMaxWidth()) {
@@ -791,7 +844,7 @@ private fun StudioProfile(modifier: Modifier, profile: ProfileSettings, save: (P
                     }
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text(profile.displayName, style = MaterialTheme.typography.titleLarge)
-                        Text("GUEST PROFILE · ON THIS DEVICE",
+                        Text("GUEST · LOCAL PROFILE",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
@@ -806,7 +859,7 @@ private fun StudioProfile(modifier: Modifier, profile: ProfileSettings, save: (P
         item {
             Button(onClick = { save(profile.copy(displayName = name)) },
                 modifier = Modifier.fillMaxWidth().height(50.dp)) {
-                Text("SAVE PROFILE NAME")
+                Text("Save profile")
             }
         }
         item { SectionHeading("Profile icon", "Choose a look without uploading personal photos") }
@@ -826,6 +879,65 @@ private fun StudioProfile(modifier: Modifier, profile: ProfileSettings, save: (P
                 }
             }
         }
+        item { SectionHeading("Guest backup and restore", "Keep a copy before uninstalling NightWave") }
+        item {
+            OutlinedButton(onClick = onRecoverLastChange,
+                modifier = Modifier.fillMaxWidth().height(50.dp)) {
+                Text("Undo recent library edit")
+            }
+        }
+        item {
+            OutlinedButton(onClick = onExport, modifier = Modifier.fillMaxWidth().height(52.dp)) {
+                Text("Export music library")
+            }
+        }
+        item {
+            OutlinedButton(onClick = onImport, modifier = Modifier.fillMaxWidth().height(52.dp)) {
+                Text("Restore from backup")
+            }
+        }
+        item {
+            Text("Backups contain your profile, favorites and playlists—not audio files or passwords. " +
+                "Import replaces your current collections after confirmation. Cloud sync is not active.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        item { SectionHeading("App appearance", "Your chosen theme persists across restarts") }
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                for (options in NightWaveTheme.entries.chunked(2)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        for (option in options) {
+                            FilterChip(selected = profile.theme == option,
+                                onClick = { save(profile.copy(theme = option)) },
+                                label = { Text(option.name.lowercase().replaceFirstChar { it.titlecase() }) },
+                                modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
+            }
+        }
+        item { SectionHeading("Motion and comfort") }
+        item {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween) {
+                Column {
+                    Text("Reduced animations", style = MaterialTheme.typography.titleMedium)
+                    Text("Prefer fewer moving effects",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Switch(checked = profile.motion == MotionPreference.REDUCED,
+                    onCheckedChange = { save(profile.copy(motion = if (it) MotionPreference.REDUCED else MotionPreference.SYSTEM)) })
+            }
+        }
+        item {
+            OutlinedButton(onClick = { showAdvanced = !showAdvanced },
+                modifier = Modifier.fillMaxWidth().height(49.dp)) {
+                Text(if (showAdvanced) "Hide advanced storage" else "Advanced storage tools")
+            }
+        }
+        if (showAdvanced) {
         item { SectionHeading("Storage upgrade preview", "Safe migration without deleting the old library") }
         item {
             Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -866,65 +978,14 @@ private fun StudioProfile(modifier: Modifier, profile: ProfileSettings, save: (P
                     else "TRY VERIFIED ROOM READS")
             }
         }
-        item { SectionHeading("Guest backup and restore", "Keep a copy before uninstalling NightWave") }
-        item {
-            OutlinedButton(onClick = onRecoverLastChange,
-                modifier = Modifier.fillMaxWidth().height(50.dp)) {
-                Text("UNDO MOST RECENT LIBRARY EDIT")
-            }
-        }
-        item {
-            OutlinedButton(onClick = onExport, modifier = Modifier.fillMaxWidth().height(52.dp)) {
-                Text("EXPORT LIBRARY BACKUP")
-            }
-        }
-        item {
-            OutlinedButton(onClick = onImport, modifier = Modifier.fillMaxWidth().height(52.dp)) {
-                Text("IMPORT SAVED BACKUP")
-            }
-        }
-        item {
-            Text("Backups contain your profile, favorites and playlists—not audio files or passwords. " +
-                "Import replaces your current collections after confirmation. Cloud sync is not active.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        item { SectionHeading("App appearance", "Your chosen theme persists across restarts") }
-        item {
-            Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                for (options in NightWaveTheme.entries.chunked(2)) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        for (option in options) {
-                            FilterChip(selected = profile.theme == option,
-                                onClick = { save(profile.copy(theme = option)) },
-                                label = { Text(option.name.lowercase().replaceFirstChar { it.titlecase() }) },
-                                modifier = Modifier.weight(1f))
-                        }
-                    }
-                }
-            }
-        }
-        item { SectionHeading("Motion and comfort") }
-        item {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween) {
-                Column {
-                    Text("Reduced animations", style = MaterialTheme.typography.titleMedium)
-                    Text("Prefer fewer moving effects",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-                Switch(checked = profile.motion == MotionPreference.REDUCED,
-                    onCheckedChange = { save(profile.copy(motion = if (it) MotionPreference.REDUCED else MotionPreference.SYSTEM)) })
-            }
         }
         item { HorizontalDivider(color = MaterialTheme.colorScheme.outline) }
         item {
             Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 shape = RoundedCornerShape(19.dp)) {
                 Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                    Text("Google recovery — planned", style = MaterialTheme.typography.titleMedium)
-                    Text("This guest profile is stored locally. Google sign-in and private Drive recovery will be added after migration and restore tests. No account is connected yet.",
+                    Text("Cloud recovery", style = MaterialTheme.typography.titleMedium)
+                    Text("Google account recovery is coming later. Guest profiles and local backup already work without signing in.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
