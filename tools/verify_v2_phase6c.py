@@ -26,7 +26,8 @@ assert 'fun setEnabled(enabled: Boolean)' in store
 assert 'fun eraseAndDisable()' in store
 assert 'prefs.edit().clear().commit()' in store
 assert 'private val lock = Any()' in store
-assert 'if (!prefs.getBoolean("consent", false)) return@synchronized false' in store
+assert 'prefs.getLong("revision", 0L) != expectedRevision' in store
+assert 'fun record(pulse: ListeningPulse, expectedRevision: Long)' in store
 assert 'MAX_TRACKS = 250' in store
 assert 'MAX_JSON_BYTES = 120_000' in store
 assert 'fun snapshot(): ListeningMemorySummary' in store
@@ -58,7 +59,10 @@ assert 'if (!listeningMemory.isEnabled())' in service
 assert 'putLong("revision", next)' in store
 assert 'prefs.edit().clear().putLong("revision", next).commit()' in store
 assert 'listeningMeter.reset()' in service
-assert 'pulses.forEach { listeningMemory.record(it) }' in service
+assert 'private val listeningWriter = Executors.newSingleThreadExecutor()' in service
+assert 'listeningWriter.execute {' in service
+assert 'listeningMemory.record(pulse, revision)' in service
+assert 'listeningWriter.shutdown()' in service
 assert 'sampleListening()' in service
 assert 'sampleListening(endSession = true)' in service
 assert 'Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT' in service
