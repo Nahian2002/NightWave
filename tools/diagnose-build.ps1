@@ -20,7 +20,11 @@ function Redact-Line([string]$line) {
     # Never surface auth header values or common URL credential parameters.
     $clean = $clean -replace '(?i)(Authorization:\s*(?:Bearer|Basic)\s+)\S+', '$1<redacted>'
     $clean = $clean -replace '(?i)([?&](?:token|access_token|refresh_token|api_key|key|client_secret|signature|sig|code)=)[^\s&#]+', '$1<redacted>'
-    $clean = $clean -replace '(?i)((?:client_secret|refresh_token|access_token|id_token)\s*[:=]\s*)\S+', '$1<redacted>'
+    # Assignment-format values must stop at URL query delimiters. A prior
+    # rule may already have replaced ?access_token=... with <redacted>;
+    # consuming the following &name=public would remove harmless context and
+    # falsely fail the synthetic privacy test.
+    $clean = $clean -replace '(?i)((?:client_secret|refresh_token|access_token|id_token)\s*[:=]\s*)[^\s&#]+', '${1}<redacted>'
     return $clean.TrimEnd()
 }
 function Summarize([string[]]$lines) {
@@ -55,9 +59,20 @@ if ($SelfTest) {
     $credentialCheck = Redact-Line 'Authorization: Bearer imaginary-test-secret'
     $urlCheck = Redact-Line 'Could not resolve https://example.org/file?access_token=imaginary-secret&name=public'
     if ($urlCheck -match 'imaginary-secret' -or
-        $urlCheck -notmatch 'access_token=<redacted>' -or
-        $urlCheck -notmatch 'name=public') {
-        Write-Host 'FAIL: URL credential redaction.' -ForegroundColor Red
+        $urlCheck -notmatch 'access_token=<redacted>&name=public') {
+        Write-Host 'FAIL: URL token replacement must preserve non-secret query parameters.' -ForegroundColor Red
+        exit 1
+    }
+    $mixedCheck = Redact-Line 'Could not resolve https://example.org/?client_secret=imaginary-client&name=public&token=imaginary-token'
+    if ($mixedCheck -match 'imaginary-client|imaginary-token' -or
+        $mixedCheck -notmatch 'client_secret=<redacted>&name=public&token=<redacted>') {
+        Write-Host 'FAIL: multiple URL query credentials must be redacted independently.' -ForegroundColor Red
+        exit 1
+    }
+    $assignmentCheck = Redact-Line 'refresh_token = imaginary-refresh&name=public'
+    if ($assignmentCheck -match 'imaginary-refresh' -or
+        $assignmentCheck -notmatch 'refresh_token = <redacted>&name=public') {
+        Write-Host 'FAIL: token assignment redaction must stop at ampersand.' -ForegroundColor Red
         exit 1
     }
     if ($got -notmatch 'Unresolved reference' -or $got -notmatch 'compileDebugKotlin FAILED' -or
