@@ -26,6 +26,13 @@ class PlayerSnapshotPolicyTest {
             "https://www.youtube.com/watch?v=restored", 0, false))
     }
 
+    @Test fun pendingPublicLookupReconcilesFasterWithoutReadingEveryTick() {
+        val url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        assertFalse(PlayerSnapshotPolicy.needsFullRefresh(null, url, 0, false))
+        assertFalse(PlayerSnapshotPolicy.needsFullRefresh(null, url, 1, false))
+        assertTrue(PlayerSnapshotPolicy.needsFullRefresh(null, url, 2, false))
+    }
+
     @Test fun mediaLossAfterActivePlaybackMustReconcile() {
         assertTrue(PlayerSnapshotPolicy.needsFullRefresh(null,
             "https://www.youtube.com/watch?v=old", 0, true))
