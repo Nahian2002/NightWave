@@ -44,6 +44,24 @@ class QueueStateBookmarkInstrumentedTest {
         assertEquals(18, prefs.getInt("bookmark_url", 0))
     }
 
+    @Test fun playbackFailureIsScopedToOnlyCurrentPublicVideo() {
+        store.recordFailure(first, "Unavailable public stream")
+        assertEquals("Unavailable public stream", QueueStateStore(app).failure(first))
+        assertNull(store.failure(next))
+        store.clearFailure()
+        assertNull(store.failure(first))
+    }
+
+    @Test fun streamFailureNeverStoresPrivateSignedAudioUrl() {
+        val privateAudio = "https://rr.example.googlevideo.com/audio?sig=private"
+        store.recordFailure(privateAudio, "Do not store")
+        assertNull(store.failure(privateAudio))
+        assertFalse(
+            app.getSharedPreferences("nightwave_queue_v1", Context.MODE_PRIVATE).all.values
+                .any { it.toString().contains("sig=private") }
+        )
+    }
+
     @Test fun savedQueueAndPlaybackBookmarkSurviveNewStoreInstance() {
         val queue = PlaybackQueue()
         queue.replace(
