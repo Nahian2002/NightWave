@@ -20,6 +20,7 @@ on:
       - feature/nightwave-v2-phase6h2-fillmaxsize-compile-hotfix
       - feature/nightwave-v2-phase6i-compact-editorial-ui
       - feature/nightwave-v2-phase6j-music-identity-discovery
+      - feature/nightwave-v2-phase6k-service-sleep-timer
   # Earlier phase Android/device tests were intentionally deferred.
   # Workflow dispatch stays available for controlled rechecks.
   workflow_dispatch:
@@ -63,6 +64,7 @@ jobs:
           python3 tools/verify_v2_phase6i.py
           python3 tools/verify_v2_phase6j.py
           python3 tools/verify_v2_phase6k.py
+          python3 tools/verify_v2_phase6l.py
           python3 tools/ci_compile_summary.py --self-test
       - uses: actions/setup-java@v4
         with:
@@ -102,7 +104,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: NightWave-6K-dev-debug-UNVERIFIED-FOR-DEVICE
+          name: NightWave-6L-dev-debug-UNVERIFIED-FOR-DEVICE
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 5
