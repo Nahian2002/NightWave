@@ -47,7 +47,9 @@ assert 'onPlay(song, savedMatches)' in studio
 assert 'Text("Online search is unavailable"' in studio
 assert 'Text("Retry")' in studio
 assert 'Text("YouTube ↗")' in studio
-assert 'state.error.isBlank() && query.isNotBlank()' in studio
+assert '(!responseMatchesQuery || state.error.isBlank()) && query.isNotBlank()' in studio
+assert 'val responseMatchesQuery = state.query.isNotBlank()' in studio
+assert 'val searching = responseMatchesQuery && state.loading' in studio
 assert 'Native results are unavailable right now' not in studio
 assert 'EmptyMusicCard("Search needs a different route"' not in studio
 assert 'val previous = nativeSearchState.takeIf {' in studio
