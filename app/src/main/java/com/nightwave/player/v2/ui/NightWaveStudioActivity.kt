@@ -891,7 +891,10 @@ private fun StudioRoot(
     )
     if (showQueue) StudioQueueSheet(
         state = playerState, onDismiss = { showQueue = false },
-        onSelect = { index -> playerActions.jumpTo(index); showQueue = false }
+        onSelect = { index -> playerActions.jumpTo(index); showQueue = false },
+        onRemoveUpcoming = { index, url -> playerActions.removeUpcoming(index, url) },
+        onUndoRemoval = { token -> playerActions.undoUpcoming(token) },
+        reduceMotion = profile.motion == MotionPreference.REDUCED
     )
     }
 }
