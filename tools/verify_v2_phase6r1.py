@@ -32,7 +32,9 @@ assert 'MessageDigest.getInstance("MD5")' in policy
 assert 'privateId = Regex' in policy
 assert 'suffixToMime[extension] == song.mimeType' in policy
 assert 'fun list(): List<LockerRemoteTrack>' in client
-assert 'folder(createIfMissing = false)?.let { listInFolder(it) }.orEmpty()' in client
+assert 'fun inventory(): LockerCloudInventory' in client
+assert 'folder(createIfMissing = false)?.let { inventoryInFolder(it) }' in client
+assert 'fun list(): List<LockerRemoteTrack> = inventory().tracks' in client
 assert 'folder(createIfMissing = true)' in client
 assert '!Thread.currentThread().isInterrupted' in client
 assert 'fun upload(song: OfflineSong, file: File, progress: (Int) -> Unit)' in client
@@ -40,8 +42,8 @@ assert 'LockerAudioPolicy.validateLocal(song, file)' in client
 assert 'val (sha256, md5) = LockerAudioPolicy.hashes(file)' in client
 assert 'LockerAudioPolicy.FOLDER_NAME' in client
 assert 'application/vnd.google-apps.folder' in client
-assert 'repeat(2)' in client
-assert 'addQueryParameter("pageSize", "100")' in client
+assert 'repeat(LockerVaultBrowsePolicy.MAX_PAGES)' in client
+assert 'addQueryParameter("pageSize", LockerVaultBrowsePolicy.PAGE_SIZE.toString())' in client
 assert 'nightwave_sha256' in client and 'nightwave_local_id' in client
 assert 'addQueryParameter("uploadType", "resumable")' in client
 assert '"X-Upload-Content-Type"' in client
@@ -69,7 +71,8 @@ assert 'NightWaveLockerAuthorization.request(' in ui
 assert 'state.connect(name)' in ui
 assert 'fun begin(action: String, download: LockerRemoteTrack? = null)' in ui
 assert 'client.upload(song, file)' in ui
-assert 'client.list()' in ui
+assert 'client.inventory()' in ui
+assert 'is LockerCloudInventory ->' in ui
 assert 'selected = runCatching { offline.find(id) }.getOrNull()' in ui
 assert 'offline.fileFor(song)' in ui
 assert 'Downloaded files are checked before entering Offline Library.' in ui
