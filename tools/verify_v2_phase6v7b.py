@@ -22,7 +22,7 @@ REQUIRED = {
         "fun countLabel(", "fun libraryCounts(",
         "fun showCompactCollections(",
         "Source.SAVED_LIBRARY", "Source.PUBLIC_VIDEO",
-        "Saved on this device", "internet required",
+        "Saved in your library · playback may need internet", "internet required",
     ),
     UI + "NightWavePremiumBrowse.kt": (
         "fun NightWaveBrowseHeader(",
