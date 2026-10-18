@@ -269,7 +269,7 @@ fun NightWaveLyricsEditorDialog(
                                     contentDescription = "Lyric line " + (index + 1) +
                                         " of " + draft.cues.size + ", " +
                                         LyricsEditorPolicy.timeLabel(cue.timeMs) + ", " + cue.text +
-                                        if (searchHit) ", search match" else ""
+                                        (if (searchHit) ", search match" else "")
                                 }
                                 .testTag("lyrics-edit-row-$index"),
                             color = when {
