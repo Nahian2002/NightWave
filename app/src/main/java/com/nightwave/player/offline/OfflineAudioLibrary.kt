@@ -38,6 +38,10 @@ class OfflineAudioLibrary(private val context: Context) {
         const val MAX_SONGS = 400
         private val extensions = setOf("mp3", "m4a", "aac", "flac", "wav",
             "ogg", "opus", "mp4", "webm", "3gp")
+        // Keep older index IDs valid, while excluding separators and paths.
+        private val indexedFileId = Regex(
+            "[0-9a-f-]{36}\\.(mp3|m4a|aac|flac|wav|ogg|opus|mp4|webm|3gp)"
+        )
         private val mimeByExtension = mapOf(
             "mp3" to "audio/mpeg", "m4a" to "audio/mp4",
             "aac" to "audio/aac", "flac" to "audio/flac",
@@ -53,7 +57,7 @@ class OfflineAudioLibrary(private val context: Context) {
         return (0 until arr.length()).map { i ->
             val obj = arr.getJSONObject(i)
             val id = obj.getString("id")
-            require(Regex("[0-9a-f-]{36}\\.(mp3|m4a|aac|flac|wav|ogg|opus|mp4|webm|3gp)").matches(id)) {
+            require(indexedFileId.matches(id)) {
                 "Invalid offline song identifier"
             }
             OfflineSong(id, obj.getString("title"), obj.getString("mime"), obj.getLong("size"))
@@ -75,10 +79,7 @@ class OfflineAudioLibrary(private val context: Context) {
     private fun inspectFile(song: OfflineSong): Pair<OfflineFileHealth, File?> {
         // Legacy IDs are kept compatible with the existing index parser; they
         // cannot contain separators, and extension/MIME/size must still agree.
-        val safeId = Regex(
-            "[0-9a-f-]{36}\\.(mp3|m4a|aac|flac|wav|ogg|opus|mp4|webm|3gp)"
-        )
-        if (!safeId.matches(song.id) ||
+        if (!indexedFileId.matches(song.id) ||
             mimeByExtension[song.id.substringAfterLast('.')] != song.mimeType ||
             song.bytes !in 1L..MAX_SONG_BYTES) {
             return OfflineFileHealth.UNSAFE_METADATA to null
