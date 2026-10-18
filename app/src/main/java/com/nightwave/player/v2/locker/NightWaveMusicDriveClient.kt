@@ -11,6 +11,8 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileOutputStream
+import java.util.UUID
 import java.io.InputStream
 import java.io.RandomAccessFile
 import java.util.concurrent.TimeUnit
@@ -99,7 +101,8 @@ class NightWaveMusicDriveClient(private val token: String) {
                 val size = record.optString("size").toLongOrNull() ?: continue
                 val track = LockerRemoteTrack(record.optString("id"), record.optString("name"),
                     record.optString("mimeType"), size, record.optString("md5Checksum"),
-                    props?.optString("nightwave_sha256").orEmpty())
+                    props?.optString("nightwave_sha256").orEmpty(),
+                    props?.optString("nightwave_local_id").orEmpty())
                 if (runCatching { LockerAudioPolicy.validateRemote(track) }.isSuccess &&
                     seenIds.add(track.id)) result.add(track)
             }
@@ -109,6 +112,101 @@ class NightWaveMusicDriveClient(private val token: String) {
             token = next
         }
         return result
+    }
+
+    /**
+     * Foreground, explicitly selected Drive download. Never trusts only a
+     * list row: check the file's exact current metadata, parent and download
+     * capability before accepting bytes. A temporary file is deleted on any
+     * network, cancellation, length or checksum failure.
+     */
+    fun downloadToStaging(
+        selected: LockerRemoteTrack, stagingDirectory: File, progress: (Int) -> Unit
+    ): File {
+        LockerAudioPolicy.requireDownloadable(selected)
+        val parent = requireNotNull(folder(createIfMissing = false)) {
+            "No NightWave Music folder found"
+        }
+        val latest = listInFolder(parent).firstOrNull { it.id == selected.id }
+            ?: error("Selected cloud song is no longer in the music folder")
+        require(latest == selected) { "Cloud song changed; refresh before downloading" }
+        val metaUrl = "https://www.googleapis.com/drive/v3/files/${selected.id}"
+            .toHttpUrl().newBuilder()
+            .addQueryParameter("fields",
+                "id,name,mimeType,size,md5Checksum,appProperties,parents,capabilities(canDownload)")
+            .build().toString()
+        val metadata = json(request(metaUrl).get().build(), 32_000)
+        val properties = metadata.optJSONObject("appProperties")
+        val current = LockerAudioPolicy.requireDownloadable(LockerRemoteTrack(
+            metadata.optString("id"), metadata.optString("name"),
+            metadata.optString("mimeType"),
+            metadata.optString("size").toLongOrNull() ?: -1L,
+            metadata.optString("md5Checksum"),
+            properties?.optString("nightwave_sha256").orEmpty(),
+            properties?.optString("nightwave_local_id").orEmpty()
+        ))
+        require(current == selected &&
+            metadata.optJSONArray("parents")?.let { arr ->
+                (0 until arr.length()).any { arr.optString(it) == parent }
+            } == true &&
+            metadata.optJSONObject("capabilities")?.optBoolean("canDownload") == true) {
+            "Cloud song metadata or download permission changed"
+        }
+        require(stagingDirectory.canonicalFile.name == "locker_staging" &&
+            stagingDirectory.parentFile?.canonicalFile?.isDirectory == true) {
+            "Invalid NightWave staging directory"
+        }
+        require(stagingDirectory.isDirectory || stagingDirectory.mkdirs()) {
+            "Could not create private download staging area"
+        }
+        val partial = File(stagingDirectory,
+            UUID.randomUUID().toString() + ".pending")
+        require(partial.createNewFile()) { "Unable to create a private download file" }
+        try {
+            val downloadUrl = "https://www.googleapis.com/drive/v3/files/${selected.id}"
+                .toHttpUrl().newBuilder().addQueryParameter("alt", "media")
+                .build().toString()
+            http.newCall(request(downloadUrl).get().build()).execute().use { response ->
+                require(response.code == 200) {
+                    "Google Drive audio download failed (${response.code})"
+                }
+                val announced = response.body?.contentLength() ?: -1L
+                require(announced == -1L || announced == selected.bytes) {
+                    "Google Drive audio length changed"
+                }
+                val input = response.body?.byteStream() ?: error("Empty cloud audio response")
+                var received = 0L
+                FileOutputStream(partial).use { output ->
+                    val buffer = ByteArray(32 * 1024)
+                    while (true) {
+                        check(!Thread.currentThread().isInterrupted) {
+                            "Cloud download cancelled"
+                        }
+                        val read = input.read(buffer)
+                        if (read < 0) break
+                        received += read
+                        require(received <= selected.bytes &&
+                            received <= LockerAudioPolicy.MAX_FILE_BYTES) {
+                            "Cloud audio exceeded expected length"
+                        }
+                        output.write(buffer, 0, read)
+                        progress((received * 100L / selected.bytes).toInt().coerceAtMost(99))
+                    }
+                    output.fd.sync()
+                }
+                require(received == selected.bytes) { "Cloud audio download incomplete" }
+            }
+            val (sha256, md5) = LockerAudioPolicy.hashes(partial)
+            require(sha256 == selected.sha256 &&
+                md5.equals(selected.md5, ignoreCase = true)) {
+                "Downloaded audio failed SHA-256 or MD5 verification"
+            }
+            progress(100)
+            return partial
+        } catch (failure: Exception) {
+            partial.delete()
+            throw failure
+        }
     }
 
     /** Upload one already-imported user audio file; no automatic media scraping. */
@@ -177,7 +275,8 @@ class NightWaveMusicDriveClient(private val token: String) {
                             result.optString("mimeType"),
                             result.optString("size").toLongOrNull() ?: -1,
                             result.optString("md5Checksum"),
-                            props?.optString("nightwave_sha256").orEmpty()))
+                            props?.optString("nightwave_sha256").orEmpty(),
+                            props?.optString("nightwave_local_id").orEmpty()))
                         require(row.bytes == song.bytes && row.md5.equals(md5, true) &&
                             row.sha256 == sha256 &&
                             result.optJSONArray("parents")?.optString(0) == parent) {
