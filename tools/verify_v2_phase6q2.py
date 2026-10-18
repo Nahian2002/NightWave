@@ -40,6 +40,7 @@ assert "LibraryBackupCodec.decode(LibraryBackupCodec.encode(remote.archive))" in
 assert "val remoteLikes = cloud.favorites.map { it.url }.toHashSet()" in recovery
 assert "localPlaylistsNotInCloud = lostLists" in recovery
 assert "localPlaylistsWithChangedContent = changedLists" in recovery
+assert "replacement.second != songs" in recovery
 assert "profileWouldChange = local.displayName != cloud.displayName" in recovery
 assert "CloudBackupCodec.validatedHistory(remote.history)" in recovery
 assert "expectedLocalBackup = localBytes.copyOf()" in recovery
@@ -78,7 +79,7 @@ assert "https://www.googleapis.com/auth/drive.appdata" in auth
 assert 'applicationId = "com.nightwave.player"' in gradle
 assert "versionCode = 35" in gradle
 assert 'android:allowBackup="false"' in manifest
-assert tests.count("@Test") >= 15
+assert tests.count("@Test") >= 16
 assert "tools/verify_v2_phase6q2.py" in workflow
 assert "feature/nightwave-v2-phase6q1-smart-drive-snapshots" in workflow
 for name,s in [("drive",drive),("recovery",recovery),("manager",manager),
