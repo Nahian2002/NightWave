@@ -39,13 +39,13 @@ assert "remember(names, libraryRevision, roomPreviewActive)" in library
 assert "LibraryPlaylistPreview(name, getPlaylist(name))" in library
 assert "LibraryBrowsePolicy.playlists(playlistPreviews," in library
 assert "LibraryBrowsePolicy.songs(tracks, localFilter, sortMode)" in library
-assert 'Text("Sort & filter playlists")' not in library or "Sort & filter playlists" in library
+assert "Sort & filter playlists" in library
 assert "playlistToolsOpen" in library
 assert "playlistFilter = it.take(80)" in library
 assert "selected = showFilledOnly" in library
 assert "playlistSort = LibraryBrowsePolicy.SORT_MOST_TRACKS" in library
 assert "playlistSort = LibraryBrowsePolicy.SORT_NAME_DESC" in library
-assert 'items(visiblePlaylists, key = { it.name })' in library
+assert 'items(visiblePlaylists, key = { "playlist:" + it.name })' in library
 assert "onSelectPlaylist(collection.name)" in library
 assert "collection.cover" in library
 assert "onPlay(song, if (selectedPlaylist == null) tracks else orderedTracks)" in library
