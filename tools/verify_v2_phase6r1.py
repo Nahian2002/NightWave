@@ -47,15 +47,15 @@ assert 'addQueryParameter("uploadType", "resumable")' in client
 assert '"X-Upload-Content-Type"' in client
 assert '"X-Upload-Content-Length"' in client
 assert 'header("Content-Range", "bytes $offset-$end/' in client
-assert 'if (response.code == 308)' in client
-assert 'accepted > offset && accepted <= end + 1' in client
-assert 'session.isHttps' in client
-assert 'session.host == "www.googleapis.com"' in client
-assert 'row.md5.equals(md5, true)' in client
-assert 'row.sha256 == sha256' in client
-assert 'result.optJSONArray("parents")?.optString(0) == parent' in client
+assert '308 -> {' in client
+assert 'require(next <= end + 1)' in client
+assert 'uri.isHttps' in client
+assert 'uri.host == "www.googleapis.com"' in client
+assert 'track.md5.equals(md5, ignoreCase = true)' in client
+assert 'track.sha256 == sha256' in client
+assert 'data.optJSONArray("parents")?.let' in client
 assert 'LockerUploadOutcome(existing, created = false)' in client
-assert 'return LockerUploadOutcome(row, created = true)' in client
+assert 'return LockerUploadOutcome(track, created = true)' in client
 # Staging cleanup uses File.delete(); forbid remote Drive DELETE/PATCH instead.
 assert 'request(' + 'url).delete(' not in client
 assert '.method("DELETE"' not in client
