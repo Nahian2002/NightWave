@@ -195,7 +195,7 @@ class NightWaveLockerActivity : ComponentActivity() {
                             @Suppress("UNCHECKED_CAST")
                             val songs = value.filterIsInstance<LockerRemoteTrack>()
                             showSongs(songs)
-                            status("\${songs.size} cloud audio files found (browse only).")
+                            status("${songs.size} cloud audio files found (browse only).")
                         }
                     }
                 }.onFailure {
