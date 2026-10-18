@@ -793,6 +793,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                             onApply = { onLyricsEditorDraft(it) },
                             onUndo = { undoLyricsEditorDraft() },
                             onSave = { saveLyricsEditorDraft() },
+                            onExport = { exportLyricsEditorDraft() },
                             onDiscard = { discardLyricsEditorDraft() }
                         )
                     }
@@ -1605,6 +1606,26 @@ class NightWaveStudioActivity : ComponentActivity() {
         if (editor.saving) return
         lyricsEditorEpoch++
         lyricsEditorSession = null
+    }
+
+    /** Export the current validated draft; exporting never saves it to NightWave. */
+    private fun exportLyricsEditorDraft() {
+        val editor = lyricsEditorSession ?: return
+        if (editor.saving || lyricsEditorEpoch != editor.requestId ||
+            playback.state.videoUrl != "offline:" + editor.songId) return
+        val prepared = runCatching {
+            LyricsExportPolicy.prepare(editor.songTitle, editor.baseline, editor.draft)
+        }.getOrElse {
+            showMessage("Draft export rejected: correct invalid lines or timestamps.")
+            return
+        }
+        pendingLyricsExport = PendingLyricsExport(editor.requestId, editor.songId, prepared)
+        runCatching {
+            exportLyricsFile.launch(prepared.suggestedName)
+        }.onFailure {
+            pendingLyricsExport = null
+            showMessage("Could not open the document picker. Your lyrics are unchanged.")
+        }
     }
 
     /** Actual private LRC write only happens after the explicit Save tap. */
