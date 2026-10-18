@@ -288,6 +288,7 @@ fun StudioNowPlayingOverlay(
     lyricsOffsetMs: Int = 0,
     onLyricsOffsetChange: (Int) -> Unit = {},
     onImportLyrics: () -> Unit = {},
+    onEditLyrics: () -> Unit = {},
     onRemoveLyrics: () -> Unit = {}
 ) {
     val enter = if (reduceMotion) EnterTransition.None else slideInVertically(initialOffsetY = { it }) + fadeIn()
@@ -358,10 +359,17 @@ fun StudioNowPlayingOverlay(
                                 tint = colors.onBackground)
                         }
                     }
-                    Text("Your imported LRC · Tap any line to seek",
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                        color = colors.onSurfaceVariant,
-                        style = MaterialTheme.typography.labelSmall)
+                    Row(Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Your imported LRC · Tap any line to seek",
+                            modifier = Modifier.weight(1f).padding(vertical = 8.dp),
+                            color = colors.onSurfaceVariant,
+                            style = MaterialTheme.typography.labelSmall)
+                        OutlinedButton(onClick = onEditLyrics) {
+                            Text("Edit LRC")
+                        }
+                    }
                     LazyColumn(
                         state = lyricListState,
                         modifier = Modifier.weight(1f).fillMaxWidth(),
@@ -826,6 +834,12 @@ fun StudioNowPlayingOverlay(
                             style = MaterialTheme.typography.labelSmall,
                             color = colors.onSurfaceVariant)
                         Spacer(Modifier.height(9.dp))
+                        OutlinedButton(onClick = onEditLyrics,
+                            modifier = Modifier.fillMaxWidth()
+                                .testTag("lyrics-open-editor")) {
+                            Text("Edit lyric lines & timestamps")
+                        }
+                        Spacer(Modifier.height(7.dp))
                         Row(Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(9.dp)) {
                             OutlinedButton(onClick = onImportLyrics,
