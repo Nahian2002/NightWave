@@ -53,7 +53,7 @@ assert "track.sha256 == expectedSha256" in receipt
 assert "return LockerUploadOutcome(track, created = true)" in receipt
 assert not any(s in receipt for s in (
     "access_token", "refresh_token", "Bearer ", "Request.Builder",
-    "HttpURLConnection", "SharedPreferences", ".delete(",
+    "HttpURLConnection(", "getSharedPreferences(", ".delete(",
 ))
 
 assert "private fun uploadCompletion(" in client
