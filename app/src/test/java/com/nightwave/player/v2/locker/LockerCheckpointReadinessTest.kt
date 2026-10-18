@@ -49,6 +49,12 @@ class LockerCheckpointReadinessTest {
                 regular = false, bytes = 0))
     }
 
+    @Test fun zeroCheckpointWithExistingTemporaryFileRequiresManualDiscard() {
+        assertEquals(LockerCheckpointState.UNSAFE_STAGING,
+            state(item = pending(committed = 0), exists = true,
+                regular = true, bytes = 0))
+    }
+
     @Test fun shortFileCannotResumeAndIsNeverAutoDeleted() {
         assertEquals(LockerCheckpointState.SHORT_DATA,
             state(bytes = 1_024L))
