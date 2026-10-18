@@ -74,6 +74,7 @@ fun NightWaveLyricsEditorDialog(
     val listState = rememberLazyListState()
     var selected by rememberSaveable(songId) { mutableStateOf(0) }
     var searchQuery by rememberSaveable(songId) { mutableStateOf("") }
+    var searchOpen by rememberSaveable(songId) { mutableStateOf(false) }
     var editingCue by remember { mutableStateOf<LyricCue?>(null) }
     var deletingCue by remember { mutableStateOf<LyricCue?>(null) }
     var editingText by remember { mutableStateOf("") }
@@ -82,8 +83,9 @@ fun NightWaveLyricsEditorDialog(
     var editDialogError by remember { mutableStateOf<String?>(null) }
     var discardConfirm by remember { mutableStateOf(false) }
     val current = LyricsEditorNavigationPolicy.follow(draft, playbackMs, offsetMs)
-    val searchMatches = remember(draft, searchQuery) {
-        LyricsEditorSearchPolicy.matches(draft, searchQuery)
+    val effectiveQuery = if (searchOpen) searchQuery else ""
+    val searchMatches = remember(draft, effectiveQuery) {
+        LyricsEditorSearchPolicy.matches(draft, effectiveQuery)
     }
     val searchMatchSet = remember(searchMatches) { searchMatches.toSet() }
     val searchOrdinal = LyricsEditorSearchPolicy.ordinal(searchMatches, selected)
@@ -162,9 +164,17 @@ fun NightWaveLyricsEditorDialog(
                     }, enabled = !saving && selected < draft.cues.lastIndex,
                         modifier = Modifier.weight(1f)) { Text("Next") }
                 }
+                OutlinedButton(
+                    onClick = { searchOpen = !searchOpen },
+                    enabled = !saving,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                        .testTag("lyrics-search-toggle")
+                ) {
+                    Text(if (searchOpen) "Hide lyric search" else "Find a lyric line")
+                }
                 // Search uses the current unsaved draft. It does not
                 // open files, change the playing position or send network data.
-                Surface(
+                if (searchOpen) Surface(
                     color = colors.surfaceVariant.copy(alpha = 0.58f),
                     shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
                     modifier = Modifier.fillMaxWidth().testTag("lyrics-search-panel")
