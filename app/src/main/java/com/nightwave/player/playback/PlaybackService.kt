@@ -417,8 +417,8 @@ class PlaybackService : MediaSessionService() {
                     PlaybackResolutionPolicy.awaitsSameResolution(selectedEntry.url, resolvingPublicUrl)
                 if (sameQueue && (loaded || resolving)) {
                     // The same-queue fast path must honor explicit Library ordering.
-                    if (explicitDisplayOrder && queue.shuffle) {
-                        queue.shuffle = false
+                    if (explicitDisplayOrder) {
+                        queue.useExplicitDisplayOrder()
                         savedQueue.save(queue)
                     }
                     // Double-tap/recomposition must not drop an already buffered
@@ -431,7 +431,7 @@ class PlaybackService : MediaSessionService() {
                     }
                 } else {
                     queue.replace(entries, selected)
-                    if (explicitDisplayOrder) queue.shuffle = false
+                    if (explicitDisplayOrder) queue.useExplicitDisplayOrder()
                     generation++ // invalidate unresolved previous track jobs
                     cancelPendingResolution()
                     savedQueue.save(queue)

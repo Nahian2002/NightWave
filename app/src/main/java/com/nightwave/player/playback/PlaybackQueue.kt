@@ -14,6 +14,16 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
         private set
     var shuffle: Boolean = false
     var repeat: Repeat = Repeat.OFF
+
+    /**
+     * A user-initiated Library Play list request selects an explicit order.
+     * Forget the previous shuffle cycle; normal song taps and restored queues
+     * keep their existing Shuffle setting.
+     */
+    fun useExplicitDisplayOrder() {
+        shuffle = false
+        shuffledSeen.clear()
+    }
     val size: Int get() = entries.size
     val current: QueueEntry? get() = entries.getOrNull(index)
     fun snapshot(): List<QueueEntry> = entries.toList()
