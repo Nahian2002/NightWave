@@ -18,8 +18,7 @@ object LyricsSyncPolicy {
 
     fun activeIndex(lyrics: TimedLyrics, positionMs: Long, offsetMs: Int): Int {
         require(validOffset(offsetMs)) { "Unsupported lyric offset" }
-        return lyrics.activeIndex((positionMs.coerceAtLeast(0L) - offsetMs)
-            .coerceAtLeast(0L))
+        return lyrics.activeIndex(positionMs.coerceAtLeast(0L) - offsetMs)
     }
 
     fun seekPosition(cue: LyricCue, offsetMs: Int, durationMs: Long): Long {
