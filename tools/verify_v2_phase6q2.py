@@ -62,7 +62,8 @@ assert "localLikedNotInCloud" in activity
 assert "localPlaylistsNotInCloud" in activity
 assert "localPlaylistsWithChangedContent" in activity
 assert "profileWouldChange" in activity
-assert "Offline audio and imported LRC lyrics are not included" in activity
+assert "Offline audio files are never included." in activity
+assert "showCloudOptionalRestorePrompt(preview, account)" in activity
 assert "restoreCloudAfterConfirmation(preview, report, false, account)" in activity
 assert "restoreCloudAfterConfirmation(preview, report, true, account)" in activity
 assert "archiveManager.restoreCloudIfUnchanged(" in activity
