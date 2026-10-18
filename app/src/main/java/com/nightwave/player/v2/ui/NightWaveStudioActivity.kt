@@ -2211,9 +2211,28 @@ private fun StudioRoot(
                                 val choices = mutableListOf("Off (recommended)")
                                 choices.addAll(caps.presetNames)
                                 if (caps.sessionReady && caps.centersHz.isNotEmpty()) choices.add("Manual · ${caps.centersHz.size} bands")
+                                // Android AlertDialog displays a message OR the setItems list,
+                                // not both. Put status in the custom title so options stay visible.
+                                val header = android.widget.LinearLayout(context).apply {
+                                    orientation = android.widget.LinearLayout.VERTICAL
+                                    setPadding(48, 32, 48, 16)
+                                    addView(android.widget.TextView(context).apply {
+                                        text = "Audio equalizer"
+                                        textSize = 22f
+                                        setTypeface(typeface, android.graphics.Typeface.BOLD)
+                                    })
+                                    addView(android.widget.TextView(context).apply {
+                                        text = if (caps.sessionReady) {
+                                            "Last report: ${status.message}  •  Range: ${caps.minimumMb / 100f} to ${caps.maximumMb / 100f} dB"
+                                        } else {
+                                            "Start playing a song to detect supported presets and bands."
+                                        }
+                                        textSize = 13f
+                                        setPadding(0, 10, 0, 0)
+                                    })
+                                }
                                 AlertDialog.Builder(context)
-                                    .setTitle("Audio equalizer")
-                                    .setMessage("Last service report: ${status.message}. ${if (caps.sessionReady) "Gain range: ${caps.minimumMb / 100f} to ${caps.maximumMb / 100f} dB." else "Start a song to discover device controls."}")
+                                    .setCustomTitle(header)
                                     .setItems(choices.toTypedArray()) { _, which ->
                                         if (which == choices.lastIndex && caps.sessionReady && caps.centersHz.isNotEmpty()) {
                                             val layout = android.widget.LinearLayout(context).apply {
