@@ -74,6 +74,7 @@ Tests 'app/src/test/java/com/nightwave/player/v2/lyrics/LyricsEditorPolicyTest.k
 Tests 'app/src/test/java/com/nightwave/player/v2/lyrics/LyricsExportPolicyTest.kt' 10
 Tests 'app/src/test/java/com/nightwave/player/v2/lyrics/LyricsEditorNavigationPolicyTest.kt' 10
 Tests 'app/src/androidTest/java/com/nightwave/player/v2/ui/LyricsEditorRetainedStateInstrumentedTest.kt' 2
+Tests 'app/src/androidTest/java/com/nightwave/player/v2/ui/NightWaveLyricsSearchUiInstrumentedTest.kt' 3
 
 if ($problems.Count -gt 0) {
     Write-Host ('FAIL: 6V6E source integration found {0} issue(s).' -f $problems.Count) -ForegroundColor Red
