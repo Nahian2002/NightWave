@@ -148,10 +148,7 @@ class NightWaveMusicDriveClient(private val token: String) {
             if (next.isBlank()) return LockerCloudInventory(
                 tracks = result, hasMore = false, pagesRead = previousPages + pageIndex + 1,
                 folderId = folder, seenTokens = emptySet())
-            require(next.length <= 2048 && seenTokens.add(next)) {
-                "Invalid or repeated Drive page token"
-            }
-            token = next
+            token = LockerVaultPagingPolicy.acceptNextToken(next, seenTokens)
         }
         // A maximum of 4,000 records is deliberately held in memory. A
         // remaining cursor is retained only while another batch is allowed.
@@ -455,9 +452,7 @@ class NightWaveMusicDriveClient(private val token: String) {
     private fun findMatchingUpload(
         folder: String, song: OfflineSong, sha256: String, md5: String
     ): LockerRemoteTrack? {
-        require(fileId.matches(folder) && LockerAudioPolicy.validSha256(sha256))
-        val q = "'$folder' in parents and trashed = false and " +
-            "appProperties has { key='nightwave_sha256' and value='$sha256' }"
+        val q = LockerVaultPagingPolicy.uploadChecksumQuery(folder, sha256)
         var cursor: String? = null
         val seenTokens = mutableSetOf<String>()
         repeat(LockerVaultBrowsePolicy.MAX_DUPLICATE_QUERY_PAGES) {
@@ -481,21 +476,16 @@ class NightWaveMusicDriveClient(private val token: String) {
                     properties?.optString("nightwave_sha256").orEmpty(),
                     properties?.optString("nightwave_local_id").orEmpty()
                 )
-                // Invalid / mismatched targeted records need investigation,
-                // not a speculative duplicate upload.
-                LockerAudioPolicy.validateRemote(candidate)
-                require(candidate.sha256 == sha256) {
-                    "Drive returned a mismatched upload checksum"
+                // Invalid or mismatched targeted records fail closed; a
+                // truncated global listing is never used for deduplication.
+                if (LockerVaultPagingPolicy.hasUploadMatch(
+                        candidate, sha256, song.bytes, song.mimeType, md5)) {
+                    return candidate
                 }
-                if (candidate.bytes == song.bytes && candidate.mimeType == song.mimeType &&
-                    candidate.md5.equals(md5, ignoreCase = true)) return candidate
             }
             val next = page.optString("nextPageToken")
             if (next.isBlank()) return null
-            require(next.length in 1..2048 && seenTokens.add(next)) {
-                "Invalid or repeated upload-check cursor"
-            }
-            cursor = next
+            cursor = LockerVaultPagingPolicy.acceptNextToken(next, seenTokens)
         }
         error("Cloud duplicate search incomplete; upload not started.")
     }
