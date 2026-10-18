@@ -8,6 +8,8 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.json.JSONArray
+import org.json.JSONObject
 
 @RunWith(AndroidJUnit4::class)
 class QueueStateBookmarkInstrumentedTest {
@@ -106,4 +108,57 @@ class QueueStateBookmarkInstrumentedTest {
         store.saveBookmark(first, Long.MAX_VALUE, 0L)
         assertEquals(86_400_000L, store.bookmark(first)?.positionMs)
     }
+    private fun storedQueue(urls: List<String>, index: Int, selectedUrl: String? = null): String {
+        val tracks = JSONArray()
+        urls.forEach { url ->
+            tracks.put(JSONObject().put("url", url).put("title", "Saved song")
+                .put("creator", "Saved artist").put("artwork", ""))
+        }
+        val state = JSONObject().put("tracks", tracks).put("index", index)
+            .put("shuffle", false).put("repeat", "OFF")
+        if (selectedUrl != null) state.put("selected_url", selectedUrl)
+        return state.toString()
+    }
+
+    @Test fun legacySnapshotKeepsSelectedSongAfterInvalidRowIsRemoved() {
+        val prefs = app.getSharedPreferences("nightwave_queue_v1", Context.MODE_PRIVATE)
+        val original = storedQueue(listOf(first,
+            "https://www.youtube.com/watch?v=invalid", next), 2)
+        assertTrue(prefs.edit().putString("snapshot", original).commit())
+
+        val recovered = store.read()
+        assertEquals(2, recovered.tracks.size)
+        assertEquals(1, recovered.index)
+        assertEquals(next, recovered.tracks[recovered.index].url)
+        val queue = PlaybackQueue()
+        store.restore(queue)
+        assertEquals(next, queue.current?.url)
+        // Repair on read is intentionally non-destructive.
+        assertEquals(original, prefs.getString("snapshot", null))
+    }
+
+    @Test fun mismatchedSavedSelectionFailsClosedWithoutDeletingSnapshot() {
+        val prefs = app.getSharedPreferences("nightwave_queue_v1", Context.MODE_PRIVATE)
+        val original = storedQueue(listOf(first, next), 0, next)
+        assertTrue(prefs.edit().putString("snapshot", original).commit())
+
+        assertTrue(store.read().tracks.isEmpty())
+        val queue = PlaybackQueue()
+        store.restore(queue)
+        assertNull(queue.current)
+        assertEquals(original, prefs.getString("snapshot", null))
+    }
+
+    @Test fun modernSnapshotSavesExplicitSongIdentity() {
+        val prefs = app.getSharedPreferences("nightwave_queue_v1", Context.MODE_PRIVATE)
+        val queue = PlaybackQueue()
+        queue.replace(listOf(
+            QueueEntry(first, "First", "Artist", ""),
+            QueueEntry(next, "Second", "Artist", "")), 1)
+        store.save(queue)
+        val saved = JSONObject(prefs.getString("snapshot", "{}")!!)
+        assertEquals(next, saved.getString("selected_url"))
+        assertEquals(next, QueueStateStore(app).read().tracks[1].url)
+    }
+
 }
