@@ -11,6 +11,8 @@ import androidx.work.WorkerParameters
 import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.tasks.Tasks
 import com.nightwave.player.library.MusicLibrary
+import com.nightwave.player.v2.lyrics.PrivateLyricsStore
+import com.nightwave.player.v2.data.GuestProfileStore
 import com.nightwave.player.v2.data.LibraryArchiveManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -49,10 +51,18 @@ class NightWaveCloudWorker(
             val backup = LibraryArchiveManager(applicationContext).export()
             val history = if (settings.includeHistory)
                 MusicLibrary(applicationContext).recent() else emptyList()
-            val payload = CloudBackupCodec.encode(backup, history, settings.includeHistory)
+            val extraPreferences = if (settings.includePreferences)
+                CloudPlaybackPreferences.from(GuestProfileStore(applicationContext).load())
+                else null
+            val extraLyrics = if (settings.includeLyrics)
+                PrivateLyricsStore(applicationContext).exportCloud() else emptyList()
+            val payload = CloudBackupCodec.encode(backup, history, settings.includeHistory,
+                extraPreferences, extraLyrics, settings.includeLyrics)
             val beforeUpload = store.read()
             if (!beforeUpload.enabled || beforeUpload.account != settings.account ||
                 beforeUpload.includeHistory != settings.includeHistory ||
+                beforeUpload.includeLyrics != settings.includeLyrics ||
+                beforeUpload.includePreferences != settings.includePreferences ||
                 beforeUpload.wifiOnly != settings.wifiOnly) {
                 // Preferences changed while the worker prepared its payload:
                 // never upload with a stale history/privacy or network choice.
