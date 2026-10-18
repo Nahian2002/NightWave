@@ -116,13 +116,11 @@ class NightWaveLockerActivity : ComponentActivity() {
         layout.addView(button("Refresh my uploaded songs") { begin("list") })
         resumeButton = button("Resume interrupted download") {
             if (busy) return@button
-            val saved = checkpoints.read()
-            if (saved == null) {
-                status("No incomplete download to resume.")
-                return@button
-            }
-            if (!saved.account.equals(state.account(), true)) {
-                status("Reconnect the original Google account to resume this download.")
+            val readiness = checkpoints.inspect(state.account())
+            val saved = readiness.pending
+            if (!readiness.canResume || saved == null) {
+                status(readiness.explanation)
+                updatePending()
                 return@button
             }
             AlertDialog.Builder(this)
@@ -130,7 +128,8 @@ class NightWaveLockerActivity : ComponentActivity() {
                 .setMessage("Resume ${saved.remote.name} from " +
                     "${saved.committedBytes / 1024} KB of " +
                     "${saved.remote.bytes / 1024} KB? " +
-                    "Google Drive will be reauthorized and the remote file rechecked.")
+                    readiness.explanation + " Google Drive will be reauthorized, " +
+                    "and the file will be checked before entering your library.")
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Resume") { _, _ -> begin("download", saved.remote) }
                 .show()
@@ -150,9 +149,14 @@ class NightWaveLockerActivity : ComponentActivity() {
                     "will not be deleted automatically.")
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Discard") { _, _ ->
-                    checkpoints.discard()
-                    updatePending()
-                    status("Temporary download discarded. Google Drive file preserved.")
+                    runCatching { checkpoints.discard() }
+                        .onSuccess {
+                            updatePending()
+                            status("Temporary download discarded. Google Drive file preserved.")
+                        }.onFailure {
+                            updatePending()
+                            status("Unable to discard the recovery record. No remote file changed.")
+                        }
                 }
                 .show()
         }
@@ -537,18 +541,74 @@ class NightWaveLockerActivity : ComponentActivity() {
     }
 
     private fun updatePending() {
-        if (!::resumeButton.isInitialized || !::discardButton.isInitialized) return
-        val pending = checkpoints.read()
-        val repair = checkpoints.needsRepair()
-        resumeButton.visibility = if (pending == null) android.view.View.GONE
-            else android.view.View.VISIBLE
-        discardButton.visibility = if (pending == null && !repair) android.view.View.GONE
-            else android.view.View.VISIBLE
-        discardButton.text = if (repair) "Discard damaged download checkpoint"
-            else "Discard incomplete download"
-        resumeButton.text = pending?.let {
+        if (!::resumeButton.isInitialized || !::discardButton.isInitialized ||
+            !::recoveryView.isInitialized) return
+        val preview = checkpoints.inspect(state.account())
+        resumeButton.visibility = if (preview.canResume) View.VISIBLE else View.GONE
+        discardButton.visibility = if (preview.state == LockerCheckpointState.NONE)
+            View.GONE else View.VISIBLE
+        discardButton.text = if (preview.state == LockerCheckpointState.NEEDS_REPAIR)
+            "Discard damaged download checkpoint" else "Discard incomplete download"
+        resumeButton.text = preview.pending?.takeIf { preview.canResume }?.let {
             "Resume: ${it.remote.name} (${LockerResumePolicy.percent(it.committedBytes, it.remote.bytes)}%)"
         } ?: "Resume interrupted download"
+        recoveryView.visibility = if (preview.state == LockerCheckpointState.NONE)
+            View.GONE else View.VISIBLE
+        recoveryView.text = preview.explanation
+    }
+
+    private fun renderTransferHistory() {
+        if (!::historyView.isInitialized) return
+        historyView.removeAllViews()
+        val snapshot = history.read()
+        if (snapshot.unreadable) {
+            historyView.addView(text(
+                "Local transfer journal unreadable. No records were overwritten. " +
+                    "You can clear only this history using the control below.",
+                12f, 0xFFFFC07D.toInt()))
+            return
+        }
+        if (snapshot.entries.isEmpty()) {
+            historyView.addView(text("No transfers recorded on this device.",
+                12f, 0xFF94A9BB.toInt()))
+            return
+        }
+        val display = if (historyExpanded) snapshot.entries else snapshot.entries.take(5)
+        display.forEach { event ->
+            val heading = (if (event.kind == LockerTransferKind.UPLOAD)
+                "↑ Upload · " else "↓ Download · ") + event.title
+            val date = DateFormat.getDateTimeInstance(
+                DateFormat.SHORT, DateFormat.SHORT).format(Date(event.timeMs))
+            val detail = LockerVaultBrowsePolicy.bytesLabel(event.bytes) + " · " +
+                LockerTransferHistoryPolicy.description(event.state) + " · " + date
+            historyView.addView(text(heading, 13f, Color.WHITE, true).apply {
+                maxLines = 1
+                ellipsize = android.text.TextUtils.TruncateAt.END
+                setPadding(dp(8), dp(6), dp(8), dp(0))
+            })
+            historyView.addView(text(detail, 12f,
+                if (event.state == LockerTransferState.COMPLETED ||
+                    event.state == LockerTransferState.REUSED) 0xFF9DE4D8.toInt()
+                else 0xFFFFC07D.toInt()).apply {
+                setPadding(dp(8), 0, dp(8), dp(6))
+                maxLines = 2
+            })
+        }
+        if (snapshot.entries.size > 5) {
+            historyView.addView(button(if (historyExpanded) "Show recent five"
+                else "Show all ${snapshot.entries.size} transfers") {
+                historyExpanded = !historyExpanded
+                renderTransferHistory()
+            })
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (::historyView.isInitialized) {
+            updatePending()
+            renderTransferHistory()
+        }
     }
 
     private fun updateAccount() {
