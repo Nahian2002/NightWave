@@ -191,9 +191,15 @@ class OfflineAudioLibrary(private val context: Context) {
         // Both directories live under app filesDir, so Files.move is local.
         // With no REPLACE_EXISTING option, an existing destination is not replaced.
         Files.move(file.toPath(), finalFile.toPath())
-        if (!prefs.edit().putString("items", encode(previous + saved)).commit()) {
+        try {
+            check(prefs.edit().putString("items", encode(previous + saved)).commit()) {
+                "Could not register the downloaded audio"
+            }
+        } catch (error: Exception) {
+            // No persisted library entry means the new file must not remain as
+            // a hidden, unindexed download. Older tracks remain untouched.
             finalFile.delete()
-            error("Could not register the downloaded audio")
+            throw error
         }
         return CloudOfflineImportResult(saved, created = true,
             originalIdPreserved = saved.id == remote.sourceLocalId)
