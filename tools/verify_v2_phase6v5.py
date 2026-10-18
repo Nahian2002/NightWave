@@ -27,8 +27,10 @@ REQUIRED = {
         "repeat(LockerVaultBrowsePolicy.MAX_PAGES)",
         'addQueryParameter("pageSize", LockerVaultBrowsePolicy.PAGE_SIZE.toString())',
         "if (next.isBlank()) return LockerCloudInventory(",
-        "hasMore = true", "val cloud = inventoryInFolder(parent)",
-        "require(!cloud.hasMore)", "upload not started.",
+        "hasMore = true", "fun inventoryMore(previous: LockerCloudInventory)",
+        "findMatchingUpload(parent, song, sha256, md5)",
+        "LockerVaultPagingPolicy.uploadChecksumQuery(folder, sha256)",
+        "LockerVaultPagingPolicy.hasUploadMatch(", "upload not started.",
         "fun downloadWithRecovery(", "LockerAudioPolicy.hashes(partial)",
         "LockerDriveReceiptPolicy.requireCompletedUpload(",
     ),
@@ -133,8 +135,10 @@ def self_test() -> None:
         assert not audit(root), audit(root)
         target = root / "app/src/main/java/com/nightwave/player/v2/locker/NightWaveMusicDriveClient.kt"
         target.write_text(target.read_text(encoding="utf-8").replace(
-            "require(!cloud.hasMore)", "unsafe_allow_all_uploads()"), encoding="utf-8")
-        assert any("require(!cloud.hasMore)" in e for e in audit(root))
+            "findMatchingUpload(parent, song, sha256, md5)",
+            "unsafe_allow_all_uploads()"), encoding="utf-8")
+        assert any("findMatchingUpload(parent, song, sha256, md5)" in e
+                   for e in audit(root))
         target.write_text(target.read_text(encoding="utf-8") +
                           "\n.method(\"DELETE\"", encoding="utf-8")
         assert any("Unsafe Drive mutation" in e for e in audit(root))
