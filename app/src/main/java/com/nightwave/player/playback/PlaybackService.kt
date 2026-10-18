@@ -71,6 +71,7 @@ class PlaybackService : MediaSessionService() {
         const val ACTION_EQ_BANDS_APPLY = "com.nightwave.player.EQ_BANDS_APPLY"
         const val ACTION_EQ_DISCOVER = "com.nightwave.player.EQ_DISCOVER"
         const val EXTRA_EQ_LEVELS_MB = "eq_levels_mb"
+        const val EXTRA_EQ_COMMAND_ID = "eq_command_id"
         const val EXTRA_EQ_BAND = "eq_band"
         const val EXTRA_EQ_LEVEL_MB = "eq_level_mb"
         const val EXTRA_LISTENING_LEVEL_PERCENT = "listening_level_percent"
@@ -660,6 +661,13 @@ class PlaybackService : MediaSessionService() {
                     PlaybackQueue.Repeat.ONE -> PlaybackQueue.Repeat.OFF
                 }
                 savedQueue.save(queue)
+            }
+        }
+        if (intent?.action == ACTION_EQ_PRESET_SET || intent?.action == ACTION_EQ_BANDS_APPLY) {
+            val id = intent.getStringExtra(EXTRA_EQ_COMMAND_ID).orEmpty()
+            if (id.length in 1..80) {
+                val receipt = eqStatus.read()
+                eqStatus.write(receipt.selected, receipt.active, receipt.message, id)
             }
         }
         return result
