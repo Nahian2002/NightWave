@@ -38,7 +38,7 @@ object CloudRecoveryPolicy {
             val replacement = remotePlaylists[name.lowercase(Locale.ROOT)]
             replacement != null && (
                 replacement.first != name ||
-                replacement.second.map { it.url } != songs.map { it.url }
+                replacement.second != songs
             )
         }
         val recent = if (remote.includesHistory)
