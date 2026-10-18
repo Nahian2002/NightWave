@@ -47,7 +47,7 @@ REQUIRED = {
         'client.upload(song, file)',
         'client.downloadWithRecovery(',
         "is CloudOfflineImportResult ->",
-        "verify before being added",
+        "verified before being added",
         "checkpoints.discard()",
     ),
     "tools/build-windows.ps1": (
