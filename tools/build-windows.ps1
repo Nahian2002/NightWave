@@ -189,6 +189,17 @@ try {
     }
     Say '6V5B journal/recovery source gate PASS (not a compiled or device test).'
 
+    $stage = 'Phase 6V5C scalable Music Vault source integration preflight'
+    $phase6v5c = Join-Path $PSScriptRoot 'check-phase6v5c-integration.ps1'
+    if (-not (Test-Path -LiteralPath $phase6v5c -PathType Leaf)) {
+        throw 'NightWave 6V5C scalable vault gate missing. Use the full project ZIP.'
+    }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $phase6v5c
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Phase 6V5C Music Vault preflight failed; Gradle not started.'
+    }
+    Say '6V5C cursor vault source audit PASS (Android compilation remains mandatory).'
+
     $stage = 'Java preparation'
     Resolve-Java
 
