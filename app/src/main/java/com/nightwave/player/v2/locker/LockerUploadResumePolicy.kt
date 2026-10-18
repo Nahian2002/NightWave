@@ -12,7 +12,7 @@ object LockerUploadResumePolicy {
 
     fun acknowledged(range: String?, total: Long, previouslyConfirmed: Long): Long {
         require(total in 1..LockerAudioPolicy.MAX_FILE_BYTES)
-        require(previouslyConfirmed in 0 until total)
+        require(previouslyConfirmed in 0..total)
         if (range.isNullOrBlank()) {
             require(previouslyConfirmed == 0L) {
                 "Drive upload status unexpectedly lost confirmed progress"
