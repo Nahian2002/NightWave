@@ -447,6 +447,59 @@ class NightWaveMusicDriveClient(private val token: String) {
         }
     }
 
+    /**
+     * Targeted Drive query for a matching SHA-256 in this authorized folder.
+     * Unlike a 500-file inventory scan, it scales with the number of matching
+     * hashes and refuses to upload when Drive cannot prove the search ended.
+     */
+    private fun findMatchingUpload(
+        folder: String, song: OfflineSong, sha256: String, md5: String
+    ): LockerRemoteTrack? {
+        require(fileId.matches(folder) && LockerAudioPolicy.validSha256(sha256))
+        val q = "'$folder' in parents and trashed = false and " +
+            "appProperties has { key='nightwave_sha256' and value='$sha256' }"
+        var cursor: String? = null
+        val seenTokens = mutableSetOf<String>()
+        repeat(LockerVaultBrowsePolicy.MAX_DUPLICATE_QUERY_PAGES) {
+            val builder = "https://www.googleapis.com/drive/v3/files".toHttpUrl()
+                .newBuilder()
+                .addQueryParameter("q", q)
+                .addQueryParameter("fields",
+                    "nextPageToken,files(id,name,mimeType,size,md5Checksum,appProperties)")
+                .addQueryParameter("pageSize", LockerVaultBrowsePolicy.PAGE_SIZE.toString())
+            cursor?.let { builder.addQueryParameter("pageToken", it) }
+            val page = json(request(builder.build().toString()).get().build(), 150_000)
+            val items = page.getJSONArray("files")
+            require(items.length() <= LockerVaultBrowsePolicy.PAGE_SIZE)
+            for (index in 0 until items.length()) {
+                val obj = items.getJSONObject(index)
+                val properties = obj.optJSONObject("appProperties")
+                val candidate = LockerRemoteTrack(
+                    obj.optString("id"), obj.optString("name"), obj.optString("mimeType"),
+                    obj.optString("size").toLongOrNull() ?: -1L,
+                    obj.optString("md5Checksum"),
+                    properties?.optString("nightwave_sha256").orEmpty(),
+                    properties?.optString("nightwave_local_id").orEmpty()
+                )
+                // Invalid / mismatched targeted records need investigation,
+                // not a speculative duplicate upload.
+                LockerAudioPolicy.validateRemote(candidate)
+                require(candidate.sha256 == sha256) {
+                    "Drive returned a mismatched upload checksum"
+                }
+                if (candidate.bytes == song.bytes && candidate.mimeType == song.mimeType &&
+                    candidate.md5.equals(md5, ignoreCase = true)) return candidate
+            }
+            val next = page.optString("nextPageToken")
+            if (next.isBlank()) return null
+            require(next.length in 1..2048 && seenTokens.add(next)) {
+                "Invalid or repeated upload-check cursor"
+            }
+            cursor = next
+        }
+        error("Cloud duplicate search incomplete; upload not started.")
+    }
+
     /** Upload user-imported audio with bounded, status-reconciled in-process recovery. */
     fun upload(song: OfflineSong, file: File, progress: (Int) -> Unit): LockerUploadOutcome {
         LockerAudioPolicy.validateLocal(song, file)
@@ -454,16 +507,10 @@ class NightWaveMusicDriveClient(private val token: String) {
         val parent = requireNotNull(folder(createIfMissing = true)) {
             "Could not create the NightWave Music folder"
         }
-        val cloud = inventoryInFolder(parent)
-        // Avoid silently creating duplicates if the bounded listing did not
-        // inspect every cloud file. Read-only browsing remains available.
-        require(!cloud.hasMore) {
-            "Too many cloud songs to verify duplicates safely; upload not started."
-        }
-        val existing = cloud.tracks.firstOrNull {
-            it.sha256 == sha256 && it.bytes == song.bytes && it.mimeType == song.mimeType &&
-                it.md5.equals(md5, true)
-        }
+        // Only a complete, SHA-targeted query can authorize a new upload.
+        // Search failure, pagination loops or an excess of matching hashes
+        // prevent uploading instead of accidentally duplicating cloud audio.
+        val existing = findMatchingUpload(parent, song, sha256, md5)
         if (existing != null) return LockerUploadOutcome(existing, created = false)
         val metadata = JSONObject().put("name", LockerAudioPolicy.fileName(song))
             .put("mimeType", song.mimeType).put("parents", JSONArray().put(parent))
