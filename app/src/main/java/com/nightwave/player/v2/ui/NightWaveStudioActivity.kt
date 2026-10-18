@@ -2188,7 +2188,7 @@ private fun StudioRoot(
                                             var confirmed = false
                                             repeat(10) {
                                                 delay(100L)
-                                                val receipt = eqStatusStore.read()
+                                                val receipt = com.nightwave.player.playback.EqualizerStatusStore(context).read()
                                                 if (receipt.commandId == commandId) {
                                                     android.widget.Toast.makeText(context, "Equalizer: ${receipt.message}", android.widget.Toast.LENGTH_SHORT).show()
                                                     confirmed = true
@@ -2207,7 +2207,7 @@ private fun StudioRoot(
                             scope.launch {
                                 delay(350L)
                                 val caps = com.nightwave.player.playback.EqualizerCapabilities(context).read()
-                                val status = eqStatusStore.read()
+                                val status = com.nightwave.player.playback.EqualizerStatusStore(context).read()
                                 val choices = mutableListOf("Off (recommended)")
                                 choices.addAll(caps.presetNames)
                                 if (caps.sessionReady && caps.centersHz.isNotEmpty()) choices.add("Manual · ${caps.centersHz.size} bands")
