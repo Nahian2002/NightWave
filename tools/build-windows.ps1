@@ -167,6 +167,17 @@ try {
     }
     Say '6V4 source/regression discovery PASS (still not compiler/test execution).'
 
+    $stage = 'Phase 6V5 Google Drive Music Vault integration preflight'
+    $phase6v5 = Join-Path $PSScriptRoot 'check-phase6v5-integration.ps1'
+    if (-not (Test-Path -LiteralPath $phase6v5 -PathType Leaf)) {
+        throw 'NightWave 6V5 Music Vault integration gate is missing. Use the full ZIP.'
+    }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $phase6v5
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Phase 6V5 Music Vault preflight failed; Gradle was not started.'
+    }
+    Say '6V5 vault source/regression discovery PASS (not a Google or Android runtime test).'
+
     $stage = 'Java preparation'
     Resolve-Java
 
