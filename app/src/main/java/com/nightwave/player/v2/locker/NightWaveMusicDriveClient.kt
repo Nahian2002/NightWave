@@ -419,7 +419,13 @@ class NightWaveMusicDriveClient(private val token: String) {
         val parent = requireNotNull(folder(createIfMissing = true)) {
             "Could not create the NightWave Music folder"
         }
-        val existing = listInFolder(parent).firstOrNull {
+        val cloud = inventoryInFolder(parent)
+        // Avoid silently creating duplicates if the bounded listing did not
+        // inspect every cloud file. Read-only browsing remains available.
+        require(!cloud.hasMore) {
+            "Too many cloud songs to verify duplicates safely; upload not started."
+        }
+        val existing = cloud.tracks.firstOrNull {
             it.sha256 == sha256 && it.bytes == song.bytes && it.mimeType == song.mimeType &&
                 it.md5.equals(md5, true)
         }
