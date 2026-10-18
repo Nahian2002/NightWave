@@ -86,7 +86,8 @@ object LyricsImportReviewPolicy {
             .decode(ByteBuffer.wrap(bytes)).toString().removePrefix("\uFEFF")
         val tag = declaredTitle.find(text)?.groupValues?.getOrNull(1)?.trim()
         val name = sourceLabel.substringAfterLast('/').substringAfterLast('\\')
-            .take(100).ifBlank { "Selected LRC" }
+            .replace(Regex("""[\p{Cntrl}]"""), " ")
+            .take(100).trim().ifBlank { "Selected LRC" }
         var invalid = 0
         var repeats = 0
         var unordered = 0
@@ -132,6 +133,9 @@ object LyricsImportReviewPolicy {
                     add("Song identity cannot be verified from this filename.")
                 LyricsImportMatch.LIKELY ->
                     add("Name looks similar; this is not audio-content verification.")
+            }
+            if (!name.endsWith(".lrc", ignoreCase = true)) {
+                add("Selected filename is not .lrc; verify the file contains timed lyrics.")
             }
             if (invalid > 0) add("$invalid malformed or empty timestamp row(s) ignored.")
             if (repeats > 0) add("$repeats duplicate timestamp/text cue(s) collapsed.")
