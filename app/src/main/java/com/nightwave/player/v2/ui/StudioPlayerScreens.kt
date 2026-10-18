@@ -37,6 +37,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
@@ -77,6 +78,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -105,6 +107,7 @@ import com.nightwave.player.v2.playback.PlaybackPhase
 import com.nightwave.player.net.VideoPreview
 import com.nightwave.player.net.MusicIdentity
 import com.nightwave.player.v2.lyrics.TimedLyrics
+import com.nightwave.player.v2.lyrics.LyricsSyncPolicy
 import com.nightwave.player.playback.PlaybackQueue
 import com.nightwave.player.playback.SleepTimerPolicy
 import com.nightwave.player.playback.OfflinePlaybackSpeedPolicy
@@ -282,6 +285,8 @@ fun StudioNowPlayingOverlay(
     onListeningLevel: (Int) -> Unit,
     onDismiss: () -> Unit,
     lyrics: TimedLyrics? = null,
+    lyricsOffsetMs: Int = 0,
+    onLyricsOffsetChange: (Int) -> Unit = {},
     onImportLyrics: () -> Unit = {},
     onRemoveLyrics: () -> Unit = {}
 ) {
@@ -299,6 +304,7 @@ fun StudioNowPlayingOverlay(
             val canSwipeArtwork = state.connected && !state.buffering && state.queue.size > 1
             var horizontalTravel by remember(state.videoUrl) { mutableStateOf(0f) }
             var lyricsOpen by remember(state.videoUrl) { mutableStateOf(false) }
+            var lyricsImmersive by remember(state.videoUrl) { mutableStateOf(false) }
             var sleepOptionsOpen by remember { mutableStateOf(false) }
             var speedOptionsOpen by remember { mutableStateOf(false) }
             var listeningOptionsOpen by remember { mutableStateOf(false) }
@@ -616,7 +622,8 @@ fun StudioNowPlayingOverlay(
                         OutlinedButton(onClick = onImportLyrics,
                             modifier = Modifier.fillMaxWidth()) { Text("Import synchronized lyrics") }
                     } else {
-                        val active = lyrics.activeIndex(state.positionMs)
+                        val active = LyricsSyncPolicy.activeIndex(
+                            lyrics, state.positionMs, lyricsOffsetMs)
                         val start = (active - 2).coerceAtLeast(0)
                         Text("Synchronized with this offline track",
                             style = MaterialTheme.typography.labelSmall,
