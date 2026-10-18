@@ -43,6 +43,7 @@ import androidx.compose.ui.window.DialogProperties
 import com.nightwave.player.v2.lyrics.LyricCue
 import com.nightwave.player.v2.lyrics.LyricsEditorDraft
 import com.nightwave.player.v2.lyrics.LyricsEditorPolicy
+import com.nightwave.player.v2.lyrics.LyricsEditorNavigationPolicy
 import com.nightwave.player.v2.lyrics.LyricsSyncPolicy
 import com.nightwave.player.v2.lyrics.TimedLyrics
 
@@ -76,7 +77,7 @@ fun NightWaveLyricsEditorDialog(
     var error by remember { mutableStateOf<String?>(null) }
     var editDialogError by remember { mutableStateOf<String?>(null) }
     var discardConfirm by remember { mutableStateOf(false) }
-    val current = LyricsSyncPolicy.activeIndex(TimedLyrics(draft.cues), playbackMs, offsetMs)
+    val current = LyricsEditorNavigationPolicy.follow(draft, playbackMs, offsetMs)
 
     fun applySafe(
         action: () -> LyricsEditorDraft,
@@ -84,7 +85,7 @@ fun NightWaveLyricsEditorDialog(
     ) {
         runCatching(action).onSuccess { revised ->
             error = null
-            selected = selection(revised).coerceIn(0, revised.cues.lastIndex)
+            selected = LyricsEditorNavigationPolicy.clamp(selection(revised), revised.cues.size)
             onApply(revised)
         }.onFailure { error = it.message?.take(130) ?: "Invalid lyric edit" }
     }
@@ -136,19 +137,24 @@ fun NightWaveLyricsEditorDialog(
                 }
                 Row(Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                    OutlinedButton(onClick = { selected = (selected - 1).coerceAtLeast(0) },
+                    OutlinedButton(onClick = {
+                        selected = LyricsEditorNavigationPolicy.step(selected, draft.cues.size, -1)
+                    },
                         enabled = !saving && selected > 0,
                         modifier = Modifier.weight(1f)) { Text("Previous") }
-                    OutlinedButton(onClick = { selected = current.coerceIn(0, draft.cues.lastIndex) },
+                    OutlinedButton(onClick = {
+                        selected = LyricsEditorNavigationPolicy.followOrKeep(
+                            draft, playbackMs, offsetMs, selected)
+                    },
                         enabled = !saving && current >= 0,
                         modifier = Modifier.weight(1f)) { Text("Playing") }
                     OutlinedButton(onClick = {
-                        selected = (selected + 1).coerceAtMost(draft.cues.lastIndex)
+                        selected = LyricsEditorNavigationPolicy.step(selected, draft.cues.size, 1)
                     }, enabled = !saving && selected < draft.cues.lastIndex,
                         modifier = Modifier.weight(1f)) { Text("Next") }
                 }
                 LaunchedEffect(draft.cues.size) {
-                    selected = selected.coerceIn(0, draft.cues.lastIndex)
+                    selected = LyricsEditorNavigationPolicy.clamp(selected, draft.cues.size)
                 }
                 LaunchedEffect(selected, reduceMotion) {
                     if (selected in draft.cues.indices) {
@@ -207,7 +213,8 @@ fun NightWaveLyricsEditorDialog(
                                             { after ->
                                                 val expected = cue.copy(
                                                     timeMs = (cue.timeMs - 250L).coerceAtLeast(0L))
-                                                after.cues.indexOf(expected)
+                                                LyricsEditorNavigationPolicy.afterEdit(
+                                                    after, expected, selected)
                                             }
                                         )
                                     }, enabled = !saving,
@@ -233,7 +240,8 @@ fun NightWaveLyricsEditorDialog(
                                                 val expected = cue.copy(
                                                     timeMs = (cue.timeMs + 250L)
                                                         .coerceAtMost(LyricsEditorPolicy.MAX_TIME_MS))
-                                                after.cues.indexOf(expected)
+                                                LyricsEditorNavigationPolicy.afterEdit(
+                                                    after, expected, selected)
                                             }
                                         )
                                     }, enabled = !saving,
