@@ -590,7 +590,7 @@ class PlaybackService : MediaSessionService() {
                 if (preset in 0..21) {
                     requestedEqPreset = preset
                     applyEqualizer(exoPlayer?.audioSessionId ?: C.AUDIO_SESSION_ID_UNSET)
-                }
+                } else eqStatus.write(requestedEqPreset, activeEqualizer?.enabled == true, "Rejected: invalid preset")
             }
             ACTION_EQ_DISCOVER -> {
                 val session = exoPlayer?.audioSessionId ?: C.AUDIO_SESSION_ID_UNSET
