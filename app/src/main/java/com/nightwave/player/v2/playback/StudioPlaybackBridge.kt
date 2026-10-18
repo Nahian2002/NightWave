@@ -78,8 +78,9 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
     private var ticksSinceReconcile = 0
     private var foregroundReconnectAvailable = true
     private val oneShotReconnect = Runnable {
-        if (!released && ticking && foregroundReconnectAvailable &&
-            controller == null && future == null) {
+        if (MediaReconnectPolicy.mayAttempt(
+                released, ticking, foregroundReconnectAvailable,
+                controller != null, future != null)) {
             foregroundReconnectAvailable = false
             connect() // one attempt while visible; never auto-play an old session
         }
@@ -87,8 +88,9 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
 
     /** One visible-screen retry only; no background loop or automatic Play. */
     private fun scheduleForegroundReconnect() {
-        if (released || !ticking || !foregroundReconnectAvailable ||
-            controller != null || future != null) return
+        if (!MediaReconnectPolicy.mayAttempt(
+                released, ticking, foregroundReconnectAvailable,
+                controller != null, future != null)) return
         main.removeCallbacks(oneShotReconnect)
         main.postDelayed(oneShotReconnect, 1_200L)
     }
