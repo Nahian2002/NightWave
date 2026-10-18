@@ -30,6 +30,7 @@ data class LockerVaultSummary(
 object LockerVaultBrowsePolicy {
     const val MAX_PAGES = 5 // bounded calls per explicit Refresh / Load More
     const val MAX_TOTAL_PAGES = 40 // safety cap; not a claim of complete Drive storage
+    const val MAX_DUPLICATE_QUERY_PAGES = 20 // targeted SHA search must finish
     const val PAGE_SIZE = 100
     const val PAGE_INCREMENT = 40
     const val MAX_FILTER_LENGTH = 100
