@@ -1,0 +1,25 @@
+NightWave Phase 6R1: Personal Google Drive Music Locker
+=======================================================
+
+This is the first incremental upload-and-browse milestone, not a complete Google Drive music sync or offline download service. Based on 6Q3; stable main and installed user library untouched.
+
+WORKFLOW
+1. Open NightWave > Offline library.
+2. Tap My Google Drive music to authorize the new narrow drive.file scope, separate from existing drive.appdata JSON backup authorization.
+3. On a previously imported audio track, tap its cloud icon to open a selected-song locker screen. Tap Upload selected local song as a second explicit action. No automatic upload.
+4. NightWave creates or discovers an app-created visible NightWave Music folder in the user's My Drive, hashes the app-private file, checks for an existing identical cloud upload, and uses a Google resumable upload session with bounded 1 MiB chunks. Upload progress shows percentages while the foreground app stays alive.
+5. A new upload only reports success if the Google response includes an expected size, parent folder, SHA-256 stored metadata and server-calculated MD5 matching the local source. Refresh my uploaded songs lists up to 200 app-visible files and shows the first 100. No audio is removed from the phone.
+
+PERMISSIONS / SETUP
+The new music-specific OAuth scope is https://www.googleapis.com/auth/drive.file, and it must be configured on the Google Cloud OAuth consent screen for the relevant signed Android client before live login works. The old hidden backup remains on https://www.googleapis.com/auth/drive.appdata. The new user-visible folder consumes the user's own Google Drive quota. NightWave itself has no server, account service, token persistence, or new Android storage permissions. The locker preferences only remember the connected account email; logout on the phone does not delete uploaded files.
+
+BOUNDARIES
+Only files already imported into NightWave private offline storage are eligible: MP3/M4A/AAC/FLAC/WAV/OGG/OPUS/MP4/WebM/3GP. No streaming URL download, YouTube audio extraction, media conversion, automatic cloud upload, broad Drive access, delete, patch or sharing features. The uploaded file's private NightWave ID is stored in app-owned Drive appProperties for future safe music/LRC restoration.
+
+In 6R1 there is NO cloud-to-device media download and no cloud audio playback. An upload session is resumable across chunks while the current process is running; upload sessions are not persisted across restarts, so a process crash or network disconnect requires a deliberate retry. Duplicate checks can reduce unnecessary copies but do not guarantee absence of concurrent remote duplicates. No remote deletions or cleanup are attempted.
+
+VERIFICATION
+17 pure JUnit policy methods authored, new source-level gate integrated with existing Android workflow. Real Kotlin/Android compilation and JVM test execution, OAuth consent, Google Drive resumable upload and playback on a phone are NOT verified. The prior CI issue with no allocated GitHub Actions runner remains possible. Do not interpret static source checks as a successful APK build or install a differently signed APK over the existing app.
+
+NEXT
+Phase 6R2 will implement secure remote-to-device import via temporary files, length/checksum verification, duplicate-safe offline library commit and imported LRC reassociation only after exact audio verification. Phase 6R3 can add persistent interrupted transfer progress.
