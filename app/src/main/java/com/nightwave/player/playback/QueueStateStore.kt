@@ -20,7 +20,7 @@ class QueueStateStore(context: Context) {
 
     /** Signed audio URLs are never persisted. This records only public IDs and position. */
     fun saveBookmark(url: String, positionMs: Long, durationMs: Long) {
-        if (!url.startsWith("https://www.youtube.com/watch?v=")) return
+        if (!QueueRestorePolicy.isCanonicalPublicWatchUrl(url)) return
         prefs.edit()
             .putString("bookmark_url", url)
             .putLong("bookmark_position_ms", positionMs.coerceIn(0L, 86_400_000L))
@@ -29,7 +29,7 @@ class QueueStateStore(context: Context) {
     }
 
     fun bookmark(expectedUrl: String?): Bookmark? {
-        if (expectedUrl.isNullOrBlank()) return null
+        if (expectedUrl == null || !QueueRestorePolicy.isCanonicalPublicWatchUrl(expectedUrl)) return null
         // Old/corrupt preference types must not kill either the player service
         // or an Activity showing the restored previous song.
         return try {
@@ -51,7 +51,7 @@ class QueueStateStore(context: Context) {
      * crash or reboot fail closed instead of showing a permanent spinner.
      */
     fun markLookup(publicUrl: String) {
-        if (!publicUrl.startsWith("https://www.youtube.com/watch?v=")) return
+        if (!QueueRestorePolicy.isCanonicalPublicWatchUrl(publicUrl)) return
         prefs.edit().putString("resolving_url", publicUrl)
             .putLong("resolving_at_elapsed", SystemClock.elapsedRealtime()).apply()
     }
@@ -61,7 +61,7 @@ class QueueStateStore(context: Context) {
     }
 
     fun lookupPending(expectedUrl: String?): Boolean {
-        if (expectedUrl.isNullOrBlank()) return false
+        if (expectedUrl == null || !QueueRestorePolicy.isCanonicalPublicWatchUrl(expectedUrl)) return false
         return try {
             val saved = prefs.getString("resolving_url", null)
             val then = prefs.getLong("resolving_at_elapsed", -1L)
@@ -75,13 +75,13 @@ class QueueStateStore(context: Context) {
 
     /** Safe user-facing failure state, keyed ONLY by public watch URL. */
     fun recordFailure(publicUrl: String, label: String) {
-        if (!publicUrl.startsWith("https://www.youtube.com/watch?v=")) return
+        if (!QueueRestorePolicy.isCanonicalPublicWatchUrl(publicUrl)) return
         prefs.edit().putString("last_failure_url", publicUrl)
             .putString("last_failure_label", label.take(160)).apply()
     }
 
     fun failure(expectedUrl: String?): String? {
-        if (expectedUrl.isNullOrBlank()) return null
+        if (expectedUrl == null || !QueueRestorePolicy.isCanonicalPublicWatchUrl(expectedUrl)) return null
         return try {
             if (prefs.getString("last_failure_url", null) != expectedUrl) null
             else prefs.getString("last_failure_label", null)
