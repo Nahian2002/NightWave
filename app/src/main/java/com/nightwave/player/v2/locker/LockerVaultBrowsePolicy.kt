@@ -9,7 +9,11 @@ package com.nightwave.player.v2.locker
 data class LockerCloudInventory(
     val tracks: List<LockerRemoteTrack>,
     val hasMore: Boolean = false,
-    val pagesRead: Int = 0
+    val pagesRead: Int = 0,
+    /** In-memory only; never persist or log Drive continuation tokens. */
+    val nextPageToken: String? = null,
+    val folderId: String? = null,
+    val seenTokens: Set<String> = emptySet()
 )
 
 enum class LockerVaultFilter { ALL, VERIFIED, NEEDS_ATTENTION }
@@ -24,10 +28,16 @@ data class LockerVaultSummary(
 )
 
 object LockerVaultBrowsePolicy {
-    const val MAX_PAGES = 5
+    const val MAX_PAGES = 5 // bounded calls per explicit Refresh / Load More
+    const val MAX_TOTAL_PAGES = 40 // safety cap; not a claim of complete Drive storage
     const val PAGE_SIZE = 100
     const val PAGE_INCREMENT = 40
     const val MAX_FILTER_LENGTH = 100
+
+    fun canLoadMore(inventory: LockerCloudInventory): Boolean =
+        inventory.hasMore && inventory.pagesRead in 1 until MAX_TOTAL_PAGES &&
+            inventory.nextPageToken?.length in 1..2048 &&
+            LockerAudioPolicy.validDriveId(inventory.folderId.orEmpty())
 
     fun downloadable(track: LockerRemoteTrack): Boolean =
         runCatching { LockerAudioPolicy.requireDownloadable(track) }.isSuccess
@@ -71,7 +81,7 @@ object LockerVaultBrowsePolicy {
             verifiedCount = verified,
             needsAttentionCount = inventory.tracks.size - verified,
             listedBytes = inventory.tracks.fold(0L) { sum, track ->
-                // Each validated file is <=250 MiB; 500 entries cannot overflow Long.
+                // Each validated file is <=250 MiB; even 4,000 entries cannot overflow Long.
                 sum + track.bytes.coerceAtLeast(0L)
             },
             partialListing = inventory.hasMore
@@ -80,7 +90,7 @@ object LockerVaultBrowsePolicy {
 
     /** UI display budget; never silently hide filtered rows without a More control. */
     fun visible(filtered: List<LockerRemoteTrack>, count: Int): List<LockerRemoteTrack> =
-        filtered.take(count.coerceIn(0, MAX_PAGES * PAGE_SIZE))
+        filtered.take(count.coerceIn(0, MAX_TOTAL_PAGES * PAGE_SIZE))
 
     fun bytesLabel(bytes: Long): String {
         val safe = bytes.coerceAtLeast(0L)
