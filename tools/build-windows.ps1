@@ -266,6 +266,21 @@ try {
     }
     Say '6V6F integrated source guard PASS. Gradle and APK signer gates still mandatory.'
 
+    $stage = 'Phase 6V6G Kotlin fixture compile-safety preflight'
+    $fixtureGate = Join-Path $PSScriptRoot 'check-kotlin-bytearray-fixtures.ps1'
+    if (-not (Test-Path -LiteralPath $fixtureGate -PathType Leaf)) {
+        throw '6V6G Kotlin ByteArray fixture gate is missing. Download the full ZIP.'
+    }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $fixtureGate -SelfTest
+    if ($LASTEXITCODE -ne 0) {
+        throw '6V6G fixture checker self-test failed.'
+    }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $fixtureGate
+    if ($LASTEXITCODE -ne 0) {
+        throw '6V6G invalid Kotlin test ByteArray fixture. Gradle not started.'
+    }
+    Say '6V6G regression preflight PASS (Android compiler still mandatory).'
+
     $stage = 'Java preparation'
     Resolve-Java
 
