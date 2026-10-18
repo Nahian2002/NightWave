@@ -71,7 +71,7 @@ class NightWavePremiumBrowseInstrumentedTest {
         }
         compose.onNodeWithTag("nightwave-saved-results-count").assertExists()
         compose.onNodeWithTag("nightwave-public-results-count").assertExists()
-        compose.onNodeWithText("Saved on this device").assertExists()
+        compose.onNodeWithText("Saved in your library · playback may need internet").assertExists()
         compose.onNodeWithText("Public YouTube results · internet required").assertExists()
     }
 
