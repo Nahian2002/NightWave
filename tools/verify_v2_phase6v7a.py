@@ -56,7 +56,7 @@ CHECKS = {
         "queueCount = state.queue.size",
         "actions::playPause",
         "actions::next",
-        "onHide = onHide",
+        "IconButton(onClick = onHide",
         "detectVerticalDragGestures(",
         "PlayerGestureRules.decideVerticalSwipe(",
         "PlayerProgressRules.fraction(",
