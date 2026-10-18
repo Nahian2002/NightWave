@@ -1952,6 +1952,7 @@ private fun StudioRoot(
         StudioTab.entries.size
     }
     val scope = rememberCoroutineScope()
+    val eqUiContext = androidx.compose.ui.platform.LocalContext.current
     val keyboard = LocalSoftwareKeyboardController.current
     val focus = LocalFocusManager.current
     val tab = StudioTab.entries[pagerState.currentPage]
@@ -2172,7 +2173,7 @@ private fun StudioRoot(
                         onShareDiagnostics = onShareDiagnostics,
                         onOpenClassic = onOpenClassic,
                         onEqualizer = {
-                            val context = this@NightWaveStudioActivity
+                            val context = eqUiContext
                             fun sendEqCommand(actionName: String, fill: (Intent) -> Unit) {
                                 val commandId = java.util.UUID.randomUUID().toString()
                                 val request = Intent(context, PlaybackService::class.java).apply {
@@ -2180,30 +2181,30 @@ private fun StudioRoot(
                                     putExtra(PlaybackService.EXTRA_EQ_COMMAND_ID, commandId)
                                     fill(this)
                                 }
-                                runCatching { startService(request) }
-                                    .onFailure { showMessage("Equalizer service request failed.") }
+                                runCatching { context.startService(request) }
+                                    .onFailure { android.widget.Toast.makeText(context, "Equalizer service request failed.", android.widget.Toast.LENGTH_SHORT).show() }
                                     .onSuccess {
-                                        lifecycleScope.launch {
+                                        scope.launch {
                                             var confirmed = false
                                             repeat(10) {
                                                 delay(100L)
                                                 val receipt = eqStatusStore.read()
                                                 if (receipt.commandId == commandId) {
-                                                    showMessage("Equalizer: ${receipt.message}")
+                                                    android.widget.Toast.makeText(context, "Equalizer: ${receipt.message}", android.widget.Toast.LENGTH_SHORT).show()
                                                     confirmed = true
                                                     return@launch
                                                 }
                                             }
-                                            if (!confirmed) showMessage("Equalizer response unavailable. Playback remains unchanged.")
+                                            if (!confirmed) android.widget.Toast.makeText(context, "Equalizer response unavailable.", android.widget.Toast.LENGTH_SHORT).show()
                                         }
                                     }
                             }
                             runCatching {
-                                startService(Intent(context, PlaybackService::class.java).apply {
+                                context.startService(Intent(context, PlaybackService::class.java).apply {
                                     action = PlaybackService.ACTION_EQ_DISCOVER
                                 })
-                            }.onFailure { showMessage("Cannot inspect equalizer on this device.") }
-                            lifecycleScope.launch {
+                            }.onFailure { android.widget.Toast.makeText(context, "Cannot inspect equalizer on this device.", android.widget.Toast.LENGTH_SHORT).show() }
+                            scope.launch {
                                 delay(350L)
                                 val caps = com.nightwave.player.playback.EqualizerCapabilities(context).read()
                                 val status = eqStatusStore.read()
