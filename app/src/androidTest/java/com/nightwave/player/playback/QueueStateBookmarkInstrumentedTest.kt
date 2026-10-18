@@ -161,4 +161,30 @@ class QueueStateBookmarkInstrumentedTest {
         assertEquals(next, QueueStateStore(app).read().tracks[1].url)
     }
 
+    @Test fun invalidUpcomingSignedUrlIsNeverWrittenToDisk() {
+        val queue = PlaybackQueue()
+        queue.replace(listOf(QueueEntry(first, "Good", "Artist", ""),
+            QueueEntry(next + "&sig=private", "Invalid", "Artist", "")), 0)
+        store.save(queue)
+        val prefs = app.getSharedPreferences("nightwave_queue_v1", Context.MODE_PRIVATE)
+        val raw = prefs.getString("snapshot", null)!!
+        assertFalse(raw.contains("sig=private"))
+        val restored = store.read()
+        assertEquals(listOf(first), restored.tracks.map { it.url })
+        assertEquals(first, restored.tracks[restored.index].url)
+    }
+
+    @Test fun invalidCurrentTrackCannotOverwritePreviousSafeSnapshot() {
+        val prefs = app.getSharedPreferences("nightwave_queue_v1", Context.MODE_PRIVATE)
+        val clean = PlaybackQueue()
+        clean.replace(listOf(QueueEntry(first, "Good", "Artist", "")), 0)
+        store.save(clean)
+        val original = prefs.getString("snapshot", null)
+        val untrusted = PlaybackQueue()
+        untrusted.replace(listOf(
+            QueueEntry(first + "&sig=private", "Invalid", "Artist", "")), 0)
+        store.save(untrusted)
+        assertEquals(original, prefs.getString("snapshot", null))
+    }
+
 }
