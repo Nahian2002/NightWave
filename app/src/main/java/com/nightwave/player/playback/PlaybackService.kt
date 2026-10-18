@@ -283,7 +283,8 @@ class PlaybackService : MediaSessionService() {
 
         override fun onPlayerError(error: PlaybackException) {
             sampleListening()
-            val video = exoPlayer?.currentMediaItem?.mediaId ?: return
+            val player = exoPlayer ?: return
+            val video = player.currentMediaItem?.mediaId ?: return
             if (offlinePlaying || queue.current?.url != video) return
             if (autoRetriedVideo == video) {
                 savedQueue.recordFailure(video, "Stream refresh failed. Tap Retry to try again.")
@@ -294,19 +295,37 @@ class PlaybackService : MediaSessionService() {
                 PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT,
                 PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS
             )
-            if (!retriable) {
-                savedQueue.recordFailure(video, "Playback failed. Try another song or Retry.")
+            if (!PlaybackRecoveryPolicy.mayAutoRetry(
+                    expectedUrl = video, selectedUrl = queue.current?.url,
+                    loadedMediaId = player.currentMediaItem?.mediaId,
+                    offline = offlinePlaying, timerPaused = sleepTimerPaused,
+                    wantsPlayback = player.playWhenReady,
+                    alreadyRetried = autoRetriedVideo == video,
+                    retriableError = retriable, resolvingUrl = resolvingPublicUrl
+                )) {
+                savedQueue.recordFailure(video,
+                    "Playback stopped. Tap Retry or choose another song.")
                 return
             }
             autoRetriedVideo = video
             val retryGeneration = generation
-            val position = exoPlayer?.currentPosition?.coerceAtLeast(0L) ?: 0L
-            Log.w("NightWavePlayback", "Transient playback error; one stream refresh requested")
-            // Avoid mutating ExoPlayer inside its error callback.
+            val position = player.currentPosition.coerceAtLeast(0L)
+            Log.w("NightWavePlayback", "Transient playback error; one guarded refresh requested")
+            // Avoid changing ExoPlayer inside its error callback. Recheck the
+            // *current* user intent before posting any fresh network request.
             main.post {
-                if (generation == retryGeneration && !offlinePlaying &&
-                    autoRetriedVideo == video && queue.current?.url == video &&
-                    exoPlayer?.currentMediaItem?.mediaId == video) {
+                val currentPlayer = exoPlayer
+                if (PlaybackRecoveryPolicy.acceptsPostedRetry(
+                        expectedUrl = video,
+                        scheduledGeneration = retryGeneration,
+                        currentGeneration = generation,
+                        selectedUrl = queue.current?.url,
+                        loadedMediaId = currentPlayer?.currentMediaItem?.mediaId,
+                        offline = offlinePlaying, timerPaused = sleepTimerPaused,
+                        wantsPlayback = currentPlayer?.playWhenReady == true,
+                        retryMarkerUrl = autoRetriedVideo,
+                        resolvingUrl = resolvingPublicUrl
+                    )) {
                     queue.current?.let { resolveAndPlay(it, autoPlay = true,
                         resumePositionMs = position, recoveryAttempt = true) }
                 }
@@ -758,6 +777,7 @@ class PlaybackService : MediaSessionService() {
                 PlaybackResolutionPolicy.timedOut(startElapsedMs, SystemClock.elapsedRealtime())) {
                 generation++ // future resolution is now invalid
                 cancelPendingResolution()
+                exoPlayer?.playWhenReady = false
                 savedQueue.recordFailure(entry.url,
                     "Audio lookup took too long. Tap Retry or choose another song.")
                 Log.w("NightWavePlayback", "Stream extraction timed out; waiting for user retry")
@@ -778,6 +798,16 @@ class PlaybackService : MediaSessionService() {
                     cancelPendingResolution()
                     outcome.onSuccess { playable ->
                     val video = playable.video
+                    if (!PlaybackRecoveryPolicy.acceptsResolvedTrack(entry.url, video.url)) {
+                        // A provider redirect or malformed extractor result may
+                        // describe another track. Never replace the selected
+                        // song with it, regardless of callback generation.
+                        exoPlayer?.playWhenReady = false
+                        savedQueue.recordFailure(entry.url,
+                            "Audio identity could not be verified. Tap Retry.")
+                        Log.w("NightWavePlayback", "Stream identity mismatch; result discarded")
+                        return@onSuccess
+                    }
                     savedQueue.clearFailure()
                     if (autoPlay) runCatching { MusicLibrary(this).addRecent(video) }
                     val metadata = MediaMetadata.Builder().setTitle(video.title).setArtist(video.author)
@@ -808,6 +838,7 @@ class PlaybackService : MediaSessionService() {
         } catch (_: java.util.concurrent.RejectedExecutionException) {
             generation++
             cancelPendingResolution()
+            exoPlayer?.playWhenReady = false
             savedQueue.recordFailure(entry.url,
                 "Music lookup is busy. Tap Retry in a moment.")
             // Bounded workers are occupied; fail visibly, never queue indefinitely.
