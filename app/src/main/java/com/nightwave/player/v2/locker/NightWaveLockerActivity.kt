@@ -117,11 +117,16 @@ class NightWaveLockerActivity : ComponentActivity() {
         layout.addView(resumeButton)
         discardButton = button("Discard incomplete download") {
             if (busy) return@button
-            val saved = checkpoints.read() ?: return@button
+            val saved = checkpoints.read()
+            if (saved == null && !checkpoints.needsRepair()) return@button
             AlertDialog.Builder(this)
                 .setTitle("Discard incomplete download?")
-                .setMessage("Remove only the temporary download of ${saved.remote.name} " +
-                    "from this phone. Your Drive upload and saved offline songs are untouched.")
+                .setMessage(saved?.let {
+                    "Remove only the temporary download of ${it.remote.name} " +
+                        "from this phone. Drive audio and existing songs are untouched."
+                } ?: "Discard an unreadable recovery record? Google Drive audio " +
+                    "and saved songs are untouched. Unknown orphan temporary files " +
+                    "will not be deleted automatically.")
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Discard") { _, _ ->
                     checkpoints.discard()
@@ -334,10 +339,13 @@ class NightWaveLockerActivity : ComponentActivity() {
     private fun updatePending() {
         if (!::resumeButton.isInitialized || !::discardButton.isInitialized) return
         val pending = checkpoints.read()
+        val repair = checkpoints.needsRepair()
         resumeButton.visibility = if (pending == null) android.view.View.GONE
             else android.view.View.VISIBLE
-        discardButton.visibility = if (pending == null) android.view.View.GONE
+        discardButton.visibility = if (pending == null && !repair) android.view.View.GONE
             else android.view.View.VISIBLE
+        discardButton.text = if (repair) "Discard damaged download checkpoint"
+            else "Discard incomplete download"
         resumeButton.text = pending?.let {
             "Resume: ${it.remote.name} (${LockerResumePolicy.percent(it.committedBytes, it.remote.bytes)}%)"
         } ?: "Resume interrupted download"
