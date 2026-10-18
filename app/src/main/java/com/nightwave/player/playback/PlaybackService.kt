@@ -1,5 +1,6 @@
 package com.nightwave.player.playback
 
+import android.media.audiofx.Equalizer
 import android.app.PendingIntent
 import android.content.Intent
 import android.net.Uri
@@ -64,6 +65,8 @@ class PlaybackService : MediaSessionService() {
         const val ACTION_SLEEP_TIMER_CANCEL = "com.nightwave.player.SLEEP_TIMER_CANCEL"
         const val ACTION_OFFLINE_SPEED_SET = "com.nightwave.player.OFFLINE_SPEED_SET"
         const val ACTION_LISTENING_LEVEL_SET = "com.nightwave.player.LISTENING_LEVEL_SET"
+        const val ACTION_EQ_PRESET_SET = "com.nightwave.player.EQ_PRESET_SET"
+        const val EXTRA_EQ_PRESET = "eq_preset"
         const val EXTRA_LISTENING_LEVEL_PERCENT = "listening_level_percent"
         const val EXTRA_OFFLINE_SPEED_PERCENT = "offline_speed_percent"
         const val EXTRA_SLEEP_MINUTES = "sleep_minutes"
@@ -88,6 +91,37 @@ class PlaybackService : MediaSessionService() {
     // Suppress already-posted automatic Next callbacks after expiry, until
     // the listener observes a genuine new user-initiated Play event.
     private var sleepTimerPaused = false
+    // 6W1: explicit, session-scoped and OFF by default. No volume amplification or file changes.
+    private var requestedEqPreset = 0
+    private var activeEqualizer: Equalizer? = null
+    private var equalizerSessionId = C.AUDIO_SESSION_ID_UNSET
+
+    private fun releaseEqualizer() {
+        try { activeEqualizer?.release() } catch (_: RuntimeException) { }
+        activeEqualizer = null
+        equalizerSessionId = C.AUDIO_SESSION_ID_UNSET
+    }
+
+    private fun applyEqualizer(sessionId: Int) {
+        if (requestedEqPreset == 0 || sessionId <= 0) { releaseEqualizer(); return }
+        if (activeEqualizer != null && equalizerSessionId == sessionId) return
+        releaseEqualizer()
+        try {
+            val effect = Equalizer(0, sessionId)
+            // Built-in platform presets differ by device: clamp and reject unsupported devices.
+            val presetIndex = requestedEqPreset - 1
+            if (presetIndex !in 0 until effect.numberOfPresets.toInt()) {
+                effect.release(); return
+            }
+            effect.usePreset(presetIndex.toShort())
+            effect.enabled = true
+            activeEqualizer = effect
+            equalizerSessionId = sessionId
+        } catch (_: Exception) {
+            // Effects are optional: unsupported routes must never interrupt playback.
+            releaseEqualizer()
+        }
+    }
     // A delayed STATE_ENDED notification must not advance the same track twice.
     private var handledEndGeneration = Int.MIN_VALUE
     private var handledEndMediaId: String? = null
@@ -220,6 +254,9 @@ class PlaybackService : MediaSessionService() {
     }
 
     private val trackListener = object : Player.Listener {
+        override fun onAudioSessionIdChanged(audioSessionId: Int) {
+            applyEqualizer(audioSessionId)
+        }
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             if (isPlaying) {
                 sleepTimerPaused = false
@@ -518,6 +555,13 @@ class PlaybackService : MediaSessionService() {
             ACTION_RETRY_CURRENT -> retryCurrent()
             ACTION_SLEEP_TIMER_SET -> setSleepTimer(intent.getIntExtra(EXTRA_SLEEP_MINUTES, 0))
             ACTION_SLEEP_TIMER_CANCEL -> clearSleepTimer()
+            ACTION_EQ_PRESET_SET -> {
+                val preset = intent.getIntExtra(EXTRA_EQ_PRESET, -1)
+                if (preset in 0..20) {
+                    requestedEqPreset = preset
+                    applyEqualizer(exoPlayer?.audioSessionId ?: C.AUDIO_SESSION_ID_UNSET)
+                }
+            }
             ACTION_LISTENING_LEVEL_SET -> {
                 val percent = intent.getIntExtra(EXTRA_LISTENING_LEVEL_PERCENT, -1)
                 if (ListeningLevelPolicy.accepts(percent) &&
@@ -857,6 +901,7 @@ class PlaybackService : MediaSessionService() {
         resolver.shutdownNow()
         listeningWriter.shutdown() // drain pending bounded, consent-fenced writes
         exoPlayer?.removeListener(trackListener)
+        releaseEqualizer()
         mediaSession?.release()
         mediaSession = null
         exoPlayer?.release()
