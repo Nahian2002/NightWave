@@ -35,8 +35,12 @@ object LockerTransferHistoryPolicy {
     }
 
     fun displayTitle(source: String): String {
-        val clean = source.replace(Regex("[\\p{Cntrl}/\\\\]"), " ")
-            .replace(Regex("(?i)(https?://|bearer\\s|access_token|refresh_token)"), " ")
+        val clean = source
+            .replace(Regex("(?i)https?://\\S+"), " ")
+            .replace(Regex("(?i)(?:bearer\\s+|access_token\\s*[:=]\\s*|" +
+                "refresh_token\\s*[:=]\\s*|id_token\\s*[:=]\\s*)\\S+"), " ")
+            .replace(Regex("(?i)[?&](?:token|sig|signature|key)=\\S+"), " ")
+            .replace(Regex("[\\p{Cntrl}/\\\\]"), " ")
             .trim().take(MAX_TITLE)
         return clean.ifBlank { "Music file" }
     }
