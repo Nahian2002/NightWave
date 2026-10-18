@@ -207,6 +207,8 @@ class NightWaveStudioActivity : ComponentActivity() {
     private lateinit var lyricsStore: PrivateLyricsStore
     private lateinit var lyricsOffsetStore: PrivateLyricsOffsetStore
     private var currentLyricsOffsetMs by mutableStateOf(0)
+    // Main-thread UI changes invalidate earlier queued disk writes.
+    @Volatile private var lyricsOffsetWriteVersion = 0
     private lateinit var listeningMemoryStore: ListeningMemoryStore
     private var memorySummary by mutableStateOf(
         ListeningMemorySummary(false, 0L, 0, 0, emptyList())
@@ -498,16 +500,23 @@ class NightWaveStudioActivity : ComponentActivity() {
                         }?.removePrefix("offline:")
                         if (id != null && loadedLyrics?.first == id &&
                             LyricsSyncPolicy.validOffset(desiredOffset)) {
+                            val version = ++lyricsOffsetWriteVersion
+                            // Immediate response to repeated taps; only the
+                            // latest scheduled adjustment may commit to disk.
+                            currentLyricsOffsetMs = desiredOffset
                             lifecycleScope.launch {
                                 val saved = withContext(Dispatchers.IO) {
-                                    runCatching {
-                                        lyricsOffsetStore.save(id, desiredOffset)
-                                    }.getOrDefault(false)
+                                    synchronized(lyricsOffsetStore) {
+                                        if (version != lyricsOffsetWriteVersion) true
+                                        else runCatching {
+                                            lyricsOffsetStore.save(id, desiredOffset)
+                                        }.getOrDefault(false)
+                                    }
                                 }
-                                if (saved && playback.state.videoUrl == current &&
-                                    loadedLyrics?.first == id) {
-                                    currentLyricsOffsetMs = desiredOffset
-                                } else if (!saved) {
+                                if (version == lyricsOffsetWriteVersion &&
+                                    playback.state.videoUrl == current &&
+                                    loadedLyrics?.first == id && !saved) {
+                                    currentLyricsOffsetMs = lyricsOffsetStore.read(id)
                                     showMessage("Lyric timing could not be saved.")
                                 }
                             }
