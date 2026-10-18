@@ -66,7 +66,10 @@ assert '${favorites.size} liked tracks  ·  ${names.size} playlists' in library
 assert 'MusicCollectionTile("Offline music"' in library
 assert 'MusicCollectionTile("Liked songs"' in library
 assert 'if (names.isNotEmpty())' in library
-assert 'MusicCollectionTile(name, songs.size.toString()' in library
+# Phase 6O3 passes a pure view-only sorted snapshot to collection tiles.
+assert 'items(visiblePlaylists, key = { "playlist:" + it.name })' in library
+assert 'MusicCollectionTile(collection.name, collection.size.toString()' in library
+assert 'onSelectPlaylist(collection.name)' in library
 assert 'onManage' in library and 'localFilter' in library
 
 # The You page exposes privacy/diagnostics through visible disclosure rows.
