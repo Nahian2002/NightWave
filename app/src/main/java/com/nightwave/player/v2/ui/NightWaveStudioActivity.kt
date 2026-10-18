@@ -261,9 +261,18 @@ class NightWaveStudioActivity : ComponentActivity() {
     @Volatile private var lyricsImportEpoch = 0
     private var lyricsRevision by mutableStateOf(0)
     private var loadedLyrics by mutableStateOf<Pair<String, TimedLyrics>?>(null)
-    @Volatile private var lyricsEditorEpoch = 0
-    private var lyricsEditorSession by mutableStateOf<LyricsEditorSession?>(null)
-    private var pendingLyricsExport: PendingLyricsExport? = null
+    private val lyricsEditorRetained by lazy {
+        ViewModelProvider(this)[LyricsEditorRetainedState::class.java]
+    }
+    private var lyricsEditorEpoch: Int
+        get() = lyricsEditorRetained.epoch
+        set(value) { lyricsEditorRetained.epoch = value }
+    private var lyricsEditorSession: LyricsEditorSession?
+        get() = lyricsEditorRetained.session
+        set(value) { lyricsEditorRetained.session = value }
+    private var pendingLyricsExport: PendingLyricsExport?
+        get() = lyricsEditorRetained.pendingExport
+        set(value) { lyricsEditorRetained.pendingExport = value }
     private lateinit var cloudStore: CloudBackupState
     private var cloudInfo by mutableStateOf(CloudBackupStatus())
     private var cloudBusy by mutableStateOf(false)
