@@ -685,30 +685,22 @@ fun StudioNowPlayingOverlay(
                     ) {
                         Text(SleepTimerPolicy.label(sleepRemainingMs))
                     }
-                    DropdownMenu(
-                        expanded = sleepOptionsOpen,
-                        onDismissRequest = { sleepOptionsOpen = false }
-                    ) {
-                        SleepTimerPolicy.choicesMinutes.forEach { minutes ->
-                            DropdownMenuItem(
-                                text = { Text("Pause music after " + minutes + " min") },
-                                onClick = {
-                                    sleepOptionsOpen = false
-                                    onSleepTimer(minutes)
-                                }
-                            )
-                        }
-                        if (sleepRemainingMs > 0L) {
-                            DropdownMenuItem(
-                                text = { Text("Cancel sleep timer") },
-                                onClick = {
-                                    sleepOptionsOpen = false
-                                    onSleepTimer(null)
-                                }
-                            )
-                        }
-                    }
                 }
+                if (sleepOptionsOpen) {
+                    NightWaveSleepTimerDialog(
+                        remainingMs = sleepRemainingMs,
+                        onDismiss = { sleepOptionsOpen = false },
+                        onSet = { minutes ->
+                            sleepOptionsOpen = false
+                            onSleepTimer(minutes)
+                        },
+                        onCancel = {
+                            sleepOptionsOpen = false
+                            onSleepTimer(null)
+                        }
+                    )
+                }
+
                 if (state.offline) {
                     Spacer(Modifier.height(11.dp))
                     Box(Modifier.fillMaxWidth()) {
