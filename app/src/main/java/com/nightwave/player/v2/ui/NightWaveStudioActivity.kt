@@ -454,6 +454,15 @@ class NightWaveStudioActivity : ComponentActivity() {
         lifecycleScope.launch {
             val result = withContext(Dispatchers.IO) {
                 runCatching {
+                    // Document pickers may return after a song change. Check
+                    // again on the writing path, not only on callback entry.
+                    val activeEditor = lyricsEditorSession
+                    check(pending.requestId == lyricsEditorEpoch &&
+                        activeEditor?.requestId == pending.requestId &&
+                        activeEditor.songId == pending.songId &&
+                        playback.state.videoUrl == "offline:" + pending.songId) {
+                        "Lyrics export session changed before opening destination"
+                    }
                     val bytes = pending.prepared.bytes
                     require(bytes.size in 1..TimedLyricsCodec.MAX_BYTES)
                     requireNotNull(contentResolver.openOutputStream(uri, "w")) {
