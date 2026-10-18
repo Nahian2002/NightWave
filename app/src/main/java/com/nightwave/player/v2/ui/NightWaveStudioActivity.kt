@@ -580,9 +580,14 @@ class NightWaveStudioActivity : ComponentActivity() {
                     val current = playback.state.videoUrl
                     if (current.isNotBlank() &&
                         current != "offline:" + session.songId) {
+                        val unsaved = LyricsEditorPolicy.changed(
+                            session.baseline, session.draft)
                         lyricsEditorEpoch++
                         lyricsEditorSession = null
                         pendingLyricsExport = null
+                        if (unsaved) showMessage(
+                            "Song changed; unsaved lyric edits were discarded. " +
+                                "Previously saved lyrics are unchanged.")
                     }
                 }
                 loadedLyrics = null
