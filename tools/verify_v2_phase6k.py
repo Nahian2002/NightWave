@@ -12,16 +12,20 @@ store = source(base + "playback/SleepTimerStatusStore.kt")
 service = source(base + "playback/PlaybackService.kt")
 activity = source(base + "v2/ui/NightWaveStudioActivity.kt")
 player = source(base + "v2/ui/StudioPlayerScreens.kt")
+dial = source(base + "v2/ui/NightWaveSleepTimerDialog.kt")
 bridge = source(base + "v2/playback/StudioPlaybackBridge.kt")
 test = source("app/src/test/java/com/nightwave/player/playback/SleepTimerPolicyTest.kt")
 gradle = source("app/build.gradle.kts")
 workflow = source(".github/workflows/android.yml")
 
-# The service is the sole timer owner, clamped to safe options and using
+# The service is the sole timer owner, bounded to 1–1440 minutes and using
 # monotonic elapsed time. UI does not start a second countdown to pause audio.
 assert "object SleepTimerPolicy" in policy
 assert "val choicesMinutes = listOf(15, 30, 45, 60)" in policy
-assert "minutes !in choicesMinutes" in policy
+assert "const val MIN_MINUTES = 1" in policy
+assert "const val MAX_MINUTES = 24 * 60" in policy
+assert "if (!accepts(minutes) || nowMs < 0L) return null" in policy
+assert "fun dialMinutes(" in policy
 assert "Long.MAX_VALUE - duration" in policy
 assert "SystemClock.elapsedRealtime()" in service
 assert "private var sleepTimerGeneration = 0" in service
@@ -40,7 +44,8 @@ assert "if (isPlaying) sleepTimerPaused = false" in service
 
 # Unrequested service recreation must not automatically re-arm the timer or
 # play a saved song. A status store is ephemeral and lacks any song IDs.
-assert "clearSleepTimer()\n        savedQueue.clearLookup()" in service
+assert "clearSleepTimer()\n        eqCapabilities.clear()" in service
+assert "savedQueue.clearLookup()" in service
 assert "override fun onDestroy()" in service
 assert "ACTION_SLEEP_TIMER_SET -> setSleepTimer(" in service
 assert "ACTION_SLEEP_TIMER_CANCEL -> clearSleepTimer()" in service
@@ -57,11 +62,17 @@ assert "onSleepTimer = onSleepTimer" in activity
 assert "PlaybackService.ACTION_SLEEP_TIMER_SET" in activity
 assert "PlaybackService.ACTION_SLEEP_TIMER_CANCEL" in activity
 assert "onSleepTimer: (Int?) -> Unit" in player
-assert "SleepTimerPolicy.choicesMinutes.forEach" in player
+assert "NightWaveSleepTimerDialog(" in player
 assert "onSleepTimer(minutes)" in player
 assert "onSleepTimer(null)" in player
-assert "Cancel sleep timer" in player
 assert "SleepTimerPolicy.label(sleepRemainingMs)" in player
+assert "SleepTimerPolicy.dialMinutes(" in dial
+assert "SleepTimerPolicy.choicesMinutes.forEach" in dial
+assert "Exact minutes (1–1440)" in dial
+assert "if (valid) onSet(requireNotNull(minutes))" in dial
+assert "Cancel timer" in dial
+assert "onCancel = {" in player
+assert "onSet = { minutes ->" in player
 
 # No new Media3 ownership, arbitrary background alarms, app-data migration or
 # package/signing changes. No automated stream extraction on service start.
@@ -76,9 +87,9 @@ assert 'applicationId = "com.nightwave.player"' in gradle
 assert test.count("@Test") >= 8
 assert "tools/verify_v2_phase6k.py" in workflow
 for name, text in (("policy", policy), ("store", store), ("service", service),
-                   ("activity", activity), ("player", player), ("tests", test)):
+                   ("activity", activity), ("player", player), ("dial", dial), ("tests", test)):
     assert text.count("{") == text.count("}"), name + " unmatched braces"
     imports = [line for line in text.splitlines() if line.startswith("import ")]
     assert len(imports) == len(set(imports)), name + " duplicate imports"
-print("PASS: 6K bounded service-owned sleep timer, no auto next after expiry and preserved Media3 data")
+print("PASS: 6K/6W9 bounded 1–1440 minute dial, service-owned timer, no auto next after expiry and preserved Media3 data")
 print("PENDING: actual Android Gradle/JVM, notification/background timing and physical-device signing QA")
