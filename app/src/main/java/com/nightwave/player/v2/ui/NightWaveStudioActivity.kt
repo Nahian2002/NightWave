@@ -574,9 +574,15 @@ class NightWaveStudioActivity : ComponentActivity() {
             }
             LaunchedEffect(playback.state.videoUrl, lyricsRevision) {
                 lyricsEditorSession?.let { session ->
-                    if (playback.state.videoUrl != "offline:" + session.songId) {
+                    // Media3 can briefly report a blank track while a
+                    // recreated Activity reconnects. Keep the retained draft
+                    // until an actual, different track becomes known.
+                    val current = playback.state.videoUrl
+                    if (current.isNotBlank() &&
+                        current != "offline:" + session.songId) {
                         lyricsEditorEpoch++
                         lyricsEditorSession = null
+                        pendingLyricsExport = null
                     }
                 }
                 loadedLyrics = null
