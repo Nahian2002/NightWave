@@ -43,7 +43,7 @@ REQUIRED = {
         "TrackArtwork(video,",
         "TrackArtwork(cover,",
         "contentDescription = \"Artwork for \" + video.title",
-        "onOptions = onOptions",
+        "IconButton(onClick = onOptions",
     ),
     UI + "NightWaveStudioActivity.kt": (
         "private fun StudioSearch(",
