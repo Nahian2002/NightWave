@@ -32,6 +32,9 @@ assert 'MessageDigest.getInstance("MD5")' in policy
 assert 'privateId = Regex' in policy
 assert 'suffixToMime[extension] == song.mimeType' in policy
 assert 'fun list(): List<LockerRemoteTrack>' in client
+assert 'folder(createIfMissing = false)?.let { listInFolder(it) }.orEmpty()' in client
+assert 'folder(createIfMissing = true)' in client
+assert '!Thread.currentThread().isInterrupted' in client
 assert 'fun upload(song: OfflineSong, file: File, progress: (Int) -> Unit)' in client
 assert 'LockerAudioPolicy.validateLocal(song, file)' in client
 assert 'val (sha256, md5) = LockerAudioPolicy.hashes(file)' in client
