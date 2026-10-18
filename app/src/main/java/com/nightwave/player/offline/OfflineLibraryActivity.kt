@@ -31,6 +31,7 @@ class OfflineLibraryActivity : ComponentActivity() {
     private var searchText = ""
     private var sortMode = 0
     private var visibleSongs: List<OfflineSong> = emptyList()
+    private var playableIds: Set<String> = emptySet()
     private val sortLabels = arrayOf("Recently imported", "Title A–Z", "Smallest first", "Largest first")
     private val worker = Executors.newSingleThreadExecutor()
     private val pick = registerForActivityResult(
@@ -141,7 +142,9 @@ class OfflineLibraryActivity : ComponentActivity() {
             gravity = Gravity.CENTER
             contentDescription = "Play all visible offline tracks"
             setOnClickListener {
-                val first = visibleSongs.firstOrNull { library.fileFor(it) != null }
+                val first = visibleSongs.firstOrNull {
+                    it.id in playableIds && library.fileFor(it) != null
+                }
                 if (first == null) status("No playable audio in the current view.")
                 else launchPlayback(first)
             }
@@ -193,12 +196,26 @@ class OfflineLibraryActivity : ComponentActivity() {
     }
 
     private fun refresh() {
-        val all = try { library.songs() } catch (e: Exception) {
+        val report = library.healthReport()
+        if (!report.indexReadable) {
             tracks.removeAllViews()
             visibleSongs = emptyList()
-            status("Library index needs attention: " + e.message)
+            playableIds = emptySet()
+            resumeControl.visibility = View.GONE
+            playAllControl.alpha = 0.45f
+            status("Offline index unreadable · No files or entries changed")
+            tracks.addView(label(
+                "Your saved index needs attention. NightWave has not deleted or repaired anything. " +
+                    "Keep the app installed and preserve its data before attempting recovery.",
+                14f, 0xFFFFC07D.toInt()
+            ).apply { setPadding(dp(5), dp(25), dp(5), 0) })
             return
         }
+        val all = report.entries.map { it.song }
+        val healthById = report.entries.associate { it.song.id to it.health }
+        playableIds = report.entries.asSequence()
+            .filter { it.health == OfflineFileHealth.AVAILABLE }
+            .map { it.song.id }.toSet()
         val filtered = all.filter { it.title.contains(searchText, ignoreCase = true) }
         visibleSongs = when (sortMode) {
             1 -> filtered.sortedWith(compareBy<OfflineSong> { it.title.lowercase() }.thenBy { it.id })
@@ -208,7 +225,7 @@ class OfflineLibraryActivity : ComponentActivity() {
         }
         val checkpoint = OfflineSessionStore(this).read()
         val resumeSong = all.firstOrNull { it.id == checkpoint?.selectedId }
-            ?.takeIf { library.fileFor(it) != null }
+            ?.takeIf { it.id in playableIds && library.fileFor(it) != null }
         resumeControl.visibility = if (resumeSong == null) View.GONE else View.VISIBLE
         if (resumeSong != null) {
             val minute = (checkpoint?.positionMs ?: 0L) / 60_000
@@ -218,8 +235,11 @@ class OfflineLibraryActivity : ComponentActivity() {
             resumeControl.ellipsize = android.text.TextUtils.TruncateAt.END
         }
         status(visibleSongs.size.toString() + " of " + all.size +
-            " tracks · Offline · " + (all.sumOf { it.bytes } / (1024 * 1024)) + " MB stored")
-        playAllControl.alpha = if (visibleSongs.isEmpty()) 0.45f else 1f
+            " tracks · " + report.playableCount + " available · " +
+            (all.sumOf { it.bytes } / (1024 * 1024)) + " MB indexed" +
+            if (report.attentionCount > 0)
+                " · " + report.attentionCount + " need attention (nothing removed)" else "")
+        playAllControl.alpha = if (visibleSongs.any { it.id in playableIds }) 1f else 0.45f
         tracks.removeAllViews()
         if (visibleSongs.isEmpty()) tracks.addView(label(
             if (all.isEmpty()) "No offline songs yet. Import audio you own or are licensed to use."
@@ -227,6 +247,15 @@ class OfflineLibraryActivity : ComponentActivity() {
             14f, 0xFFABB8CC.toInt()
         ).apply { setPadding(dp(5), dp(25), 0, 0) })
         visibleSongs.forEach { song ->
+            val health = healthById[song.id] ?: OfflineFileHealth.UNREADABLE
+            val available = health == OfflineFileHealth.AVAILABLE
+            val availability = when (health) {
+                OfflineFileHealth.AVAILABLE -> "Offline"
+                OfflineFileHealth.MISSING -> "File missing · Entry retained"
+                OfflineFileHealth.SIZE_CHANGED -> "File size changed · Entry retained"
+                OfflineFileHealth.UNREADABLE -> "File unreadable · Entry retained"
+                OfflineFileHealth.UNSAFE_METADATA -> "Unsafe metadata · Entry retained"
+            }
             val row = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
@@ -238,34 +267,56 @@ class OfflineLibraryActivity : ComponentActivity() {
                 maxLines = 1
                 ellipsize = android.text.TextUtils.TruncateAt.END
             })
-            description.addView(label((song.bytes / 1024 / 1024).toString() + " MB · Offline",
-                12f, 0xFF94A9BB.toInt()))
+            description.addView(label((song.bytes / 1024 / 1024).toString() +
+                " MB · " + availability,
+                12f, if (available) 0xFF94A9BB.toInt() else 0xFFFFC07D.toInt()).apply {
+                maxLines = 2
+            })
             row.addView(description, LinearLayout.LayoutParams(0, -2, 1f))
             row.addView(label("▶", 21f, 0xFF91E2D7.toInt()).apply {
                 gravity = Gravity.CENTER
+                alpha = if (available) 1f else 0.35f
                 contentDescription = "Play " + song.title
-                setOnClickListener { launchPlayback(song) }
+                setOnClickListener {
+                    if (available) launchPlayback(song)
+                    else status(availability + ". File was not removed.")
+                }
             }, LinearLayout.LayoutParams(dp(49), dp(47)))
             row.addView(label("☁", 20f, 0xFF91E2D7.toInt()).apply {
                 gravity = Gravity.CENTER
+                alpha = if (available) 1f else 0.35f
                 contentDescription = "Upload " + song.title + " to your own Google Drive"
                 setOnClickListener {
-                    startActivity(Intent(this@OfflineLibraryActivity, NightWaveLockerActivity::class.java)
-                        .putExtra(NightWaveLockerActivity.EXTRA_OFFLINE_ID, song.id))
+                    if (available && library.fileFor(song) != null) {
+                        startActivity(Intent(this@OfflineLibraryActivity, NightWaveLockerActivity::class.java)
+                            .putExtra(NightWaveLockerActivity.EXTRA_OFFLINE_ID, song.id))
+                    } else {
+                        status("Audio unavailable for upload. Entry preserved.")
+                    }
                 }
             }, LinearLayout.LayoutParams(dp(43), dp(47)))
             row.addView(label("⋮", 24f, 0xFFB9C9D6.toInt()).apply {
                 gravity = Gravity.CENTER
                 contentDescription = "Remove offline track " + song.title
                 setOnClickListener {
-                    AlertDialog.Builder(this@OfflineLibraryActivity)
-                        .setTitle("Remove offline song?")
-                        .setMessage("Delete " + song.title + " from NightWave offline storage?")
-                        .setNegativeButton("Cancel", null)
-                        .setPositiveButton("Remove") { _, _ ->
-                            if (library.delete(song)) refresh()
-                            else status("Unable to delete offline copy")
-                        }.show()
+                    if (!available || library.fileFor(song) == null) {
+                        AlertDialog.Builder(this@OfflineLibraryActivity)
+                            .setTitle("Offline audio needs attention")
+                            .setMessage(song.title + ": " + availability + ". " +
+                                "The entry and file (if present) remain untouched. " +
+                                "Re-import the original audio or seek manual recovery; " +
+                                "NightWave will not delete an unverified copy.")
+                            .setPositiveButton("OK", null).show()
+                    } else {
+                        AlertDialog.Builder(this@OfflineLibraryActivity)
+                            .setTitle("Remove offline song?")
+                            .setMessage("Delete " + song.title + " from NightWave offline storage?")
+                            .setNegativeButton("Cancel", null)
+                            .setPositiveButton("Remove") { _, _ ->
+                                if (library.delete(song)) refresh()
+                                else status("Unable to delete offline copy; entry kept if unverified")
+                            }.show()
+                    }
                 }
             }, LinearLayout.LayoutParams(dp(39), dp(47)))
             tracks.addView(row, LinearLayout.LayoutParams(-1, dp(65)).apply {
@@ -281,7 +332,9 @@ class OfflineLibraryActivity : ComponentActivity() {
         }
         // Only app-private UUID IDs are passed; playback validates against its own
         // library index before opening any media file.
-        val ids = ArrayList(visibleSongs.map { it.id }.take(OfflinePlaybackQueue.MAX_ITEMS))
+        val ids = ArrayList(visibleSongs
+            .filter { it.id in playableIds }
+            .map { it.id }.take(OfflinePlaybackQueue.MAX_ITEMS))
         runCatching {
             startService(Intent(this, PlaybackService::class.java)
                 .setAction(PlaybackService.ACTION_PLAY_OFFLINE)
