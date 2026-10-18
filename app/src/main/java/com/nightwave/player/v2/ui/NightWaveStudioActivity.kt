@@ -2168,7 +2168,22 @@ private fun StudioRoot(
                         playbackState = playerState,
                         onRecoverPlayback = { playerActions.retry() },
                         onShareDiagnostics = onShareDiagnostics,
-                        onOpenClassic = onOpenClassic
+                        onOpenClassic = onOpenClassic,
+                        onEqualizer = {
+                            val choices = arrayOf("Off (recommended)", "Device preset 1", "Device preset 2", "Device preset 3", "Device preset 4", "Device preset 5")
+                            AlertDialog.Builder(this@NightWaveStudioActivity)
+                                .setTitle("Audio equalizer · Experimental")
+                                .setMessage("Device presets vary. A missing or unsupported preset leaves playback unchanged. Settings reset when the playback service restarts.")
+                                .setSingleChoiceItems(choices, -1) { dialog, which ->
+                                    runCatching {
+                                        startService(Intent(this@NightWaveStudioActivity, PlaybackService::class.java).apply {
+                                            action = PlaybackService.ACTION_EQ_PRESET_SET
+                                            putExtra(PlaybackService.EXTRA_EQ_PRESET, which)
+                                        })
+                                    }.onFailure { showMessage("Equalizer is unavailable on this device.") }
+                                    dialog.dismiss()
+                                }.setNegativeButton("Cancel", null).show()
+                        }
                     )
                 }
             }
@@ -3042,7 +3057,8 @@ private fun StudioProfile(
     storageStatus: String, onCheckStorage: () -> Unit,
     roomReadStatus: String, roomPreviewActive: Boolean,
     onEnableRoomPreview: () -> Unit, onUseLegacyReads: () -> Unit,
-    onShareDiagnostics: () -> Unit, onOpenClassic: () -> Unit
+    onShareDiagnostics: () -> Unit, onOpenClassic: () -> Unit,
+    onEqualizer: () -> Unit
 ) {
     var name by rememberSaveable(profile.localId) { mutableStateOf(profile.displayName) }
     var editing by rememberSaveable { mutableStateOf(false) }
@@ -3151,6 +3167,11 @@ private fun StudioProfile(
 
         item {
             StudioProfileGroup("Appearance & playback") {
+                StudioProfileRow(
+                    "Audio equalizer", "Optional device presets · Off by default",
+                    Icons.Outlined.Settings, onEqualizer
+                )
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 StudioProfileRow(
                     "Theme", profile.theme.name.lowercase().replaceFirstChar { it.titlecase() },
                     Icons.Outlined.AutoAwesome, { showAppearance = !showAppearance },
