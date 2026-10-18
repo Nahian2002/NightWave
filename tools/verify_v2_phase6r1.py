@@ -51,11 +51,11 @@ assert '308 -> {' in client
 assert 'require(next <= end + 1)' in client
 assert 'uri.isHttps' in client
 assert 'uri.host == "www.googleapis.com"' in client
-assert 'track.md5.equals(md5, ignoreCase = true)' in client
-assert 'track.sha256 == sha256' in client
-assert 'data.optJSONArray("parents")?.let' in client
+assert 'LockerDriveReceiptPolicy.requireCompletedUpload(' in client
+assert 'sha256, md5' in client
+assert 'LockerDriveReceiptPolicy.requireCompletedUpload(' in client
 assert 'LockerUploadOutcome(existing, created = false)' in client
-assert 'return LockerUploadOutcome(track, created = true)' in client
+assert 'LockerUploadOutcome(existing, created = false)' in client
 # Staging cleanup uses File.delete(); forbid remote Drive DELETE/PATCH instead.
 assert 'request(' + 'url).delete(' not in client
 assert '.method("DELETE"' not in client

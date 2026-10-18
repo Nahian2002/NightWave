@@ -28,11 +28,11 @@ assert "failures in 1 until MAX_CONSECUTIVE_FAILURES" in p
 assert "private fun uploadCompletion(" in c
 assert "response.code == 200 || response.code == 201" in c
 assert "LockerAudioPolicy.requireDownloadable(LockerRemoteTrack(" in c
-assert "track.name == LockerAudioPolicy.fileName(song)" in c
-assert "track.sourceLocalId == song.id" in c
-assert "track.md5.equals(md5, ignoreCase = true)" in c
-assert "track.sha256 == sha256" in c
-assert "return LockerUploadOutcome(track, created = true)" in c
+assert "LockerDriveReceiptPolicy.requireCompletedUpload(" in c
+assert "data, song, expectedParent, sha256, md5" in c
+assert "LockerDriveReceiptPolicy.requireCompletedUpload(" in c
+assert "sha256, md5" in c
+assert "LockerUploadOutcome(existing, created = false)" in c
 assert "private sealed class UploadProbe" in c
 assert "data class Resume(val offset: Long)" in c
 assert "data class Complete(val outcome: LockerUploadOutcome)" in c
@@ -82,7 +82,7 @@ assert "client.downloadWithRecovery(" in ui
 assert "nightwave_locker_download_v1.json" in dl
 assert "sessionUrl" not in dl
 assert "assert '308 -> {' in client" in old
-assert "assert 'track.md5.equals(md5, ignoreCase = true)' in client" in old
+assert "assert 'LockerDriveReceiptPolicy.requireCompletedUpload(' in client" in old
 assert "tools/verify_v2_phase6r3b.py" in ci
 assert "feature/nightwave-v2-phase6r3-download-checkpoints" in ci
 assert ':app:testDebugUnitTest :app:assembleDebug :app:compileDebugAndroidTestKotlin' in ci

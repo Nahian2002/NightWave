@@ -91,7 +91,7 @@ Require $lockerClient 'fun upload(song: OfflineSong, file: File, progress: (Int)
 Require $lockerClient 'fun downloadWithRecovery(' 'resumable audio download'
 Require $lockerClient 'private fun queryUploadStatus(' 'Drive-upload status probe'
 Require $lockerClient 'LockerAudioPolicy.hashes(partial)' 'download integrity'
-Require $lockerClient 'track.md5.equals(md5, ignoreCase = true)' 'upload integrity'
+Require $lockerClient 'LockerDriveReceiptPolicy.requireCompletedUpload(' 'upload integrity delegate'
 Require $lockerClient 'progress(100)' 'only verified transfer completion'
 Require $lockerClient 'coerceAtMost(99)' 'upload progress cap'
 Require $lockerUI 'setTitle("Resume verified download?")' 'explicit download resume'
