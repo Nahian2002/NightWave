@@ -79,33 +79,60 @@ class NightWaveMusicDriveClient(private val token: String) {
     }
 
     /**
-     * Read-only, bounded cloud inventory. Explicitly marks results incomplete
-     * when Drive has further pages; never claim this is the account's quota.
+     * Read-only, bounded metadata inventory. Drive continuation tokens stay
+     * in Activity memory only and are never included in logs or on disk.
      */
     fun inventory(): LockerCloudInventory =
         folder(createIfMissing = false)?.let { inventoryInFolder(it) }
             ?: LockerCloudInventory(emptyList())
 
-    /** Compatibility for existing callers; prefer inventory() in UI. */
+    /** Explicit user-initiated next batch. Reject stale folder/cursor state. */
+    fun inventoryMore(previous: LockerCloudInventory): LockerCloudInventory {
+        require(LockerVaultBrowsePolicy.canLoadMore(previous)) {
+            "No safe Drive continuation is available; refresh the folder."
+        }
+        val folder = requireNotNull(folder(createIfMissing = false)) {
+            "NightWave Music folder is no longer accessible"
+        }
+        require(folder == previous.folderId) {
+            "Drive folder changed; refresh before continuing"
+        }
+        return inventoryInFolder(folder, previous)
+    }
+
+    /** Compatibility for older callers; no remote mutation. */
     fun list(): List<LockerRemoteTrack> = inventory().tracks
 
-    private fun listInFolder(folder: String): List<LockerRemoteTrack> =
-        inventoryInFolder(folder).tracks
-
-    private fun inventoryInFolder(folder: String): LockerCloudInventory {
+    private fun inventoryInFolder(
+        folder: String,
+        previous: LockerCloudInventory? = null
+    ): LockerCloudInventory {
         require(fileId.matches(folder))
-        val result = mutableListOf<LockerRemoteTrack>()
-        val seenIds = mutableSetOf<String>()
-        val seenTokens = mutableSetOf<String>()
-        var token: String? = null
-        repeat(LockerVaultBrowsePolicy.MAX_PAGES) { pageIndex ->
+        if (previous != null) require(previous.folderId == folder &&
+            previous.pagesRead in 1 until LockerVaultBrowsePolicy.MAX_TOTAL_PAGES &&
+            previous.tracks.size <= LockerVaultBrowsePolicy.MAX_TOTAL_PAGES *
+                LockerVaultBrowsePolicy.PAGE_SIZE)
+
+        val result = (previous?.tracks.orEmpty()).toMutableList()
+        val seenIds = result.mapTo(mutableSetOf()) { it.id }
+        val seenTokens = (previous?.seenTokens.orEmpty()).toMutableSet()
+        var token: String? = previous?.nextPageToken
+        if (previous != null) require(token != null && token in seenTokens)
+        val previousPages = previous?.pagesRead ?: 0
+        val remaining = LockerVaultBrowsePolicy.MAX_TOTAL_PAGES - previousPages
+        repeat(minOf(LockerVaultBrowsePolicy.MAX_PAGES, remaining)) { pageIndex ->
             val builder = "https://www.googleapis.com/drive/v3/files".toHttpUrl().newBuilder()
                 .addQueryParameter("q", "'$folder' in parents and trashed = false")
-                .addQueryParameter("fields", "nextPageToken,files(id,name,mimeType,size,md5Checksum,appProperties)")
+                .addQueryParameter("fields",
+                    "nextPageToken,files(id,name,mimeType,size,md5Checksum,appProperties)")
                 .addQueryParameter("pageSize", LockerVaultBrowsePolicy.PAGE_SIZE.toString())
-            token?.let { builder.addQueryParameter("pageToken", it) }
+            token?.let {
+                require(it.length in 1..2048) { "Drive cursor is invalid" }
+                builder.addQueryParameter("pageToken", it)
+            }
             val page = json(request(builder.build().toString()).get().build(), 150_000)
             val records = page.getJSONArray("files")
+            require(records.length() <= LockerVaultBrowsePolicy.PAGE_SIZE)
             for (i in 0 until records.length()) {
                 val record = records.getJSONObject(i)
                 val props = record.optJSONObject("appProperties")
@@ -119,16 +146,25 @@ class NightWaveMusicDriveClient(private val token: String) {
             }
             val next = page.optString("nextPageToken")
             if (next.isBlank()) return LockerCloudInventory(
-                tracks = result, hasMore = false, pagesRead = pageIndex + 1)
+                tracks = result, hasMore = false, pagesRead = previousPages + pageIndex + 1,
+                folderId = folder, seenTokens = emptySet())
             require(next.length <= 2048 && seenTokens.add(next)) {
-                "Invalid Drive page token"
+                "Invalid or repeated Drive page token"
             }
             token = next
         }
-        // The user may have more files; callers requiring a complete scan
-        // (e.g. duplicate-avoiding uploads) must not guess from these rows.
+        // A maximum of 4,000 records is deliberately held in memory. A
+        // remaining cursor is retained only while another batch is allowed.
+        val totalPages = previousPages +
+            minOf(LockerVaultBrowsePolicy.MAX_PAGES, remaining)
         return LockerCloudInventory(
-            tracks = result, hasMore = true, pagesRead = LockerVaultBrowsePolicy.MAX_PAGES)
+            tracks = result, hasMore = true, pagesRead = totalPages,
+            nextPageToken = token.takeIf {
+                totalPages < LockerVaultBrowsePolicy.MAX_TOTAL_PAGES
+            }, folderId = folder,
+            seenTokens = if (totalPages < LockerVaultBrowsePolicy.MAX_TOTAL_PAGES)
+                seenTokens else emptySet()
+        )
     }
 
     /**
