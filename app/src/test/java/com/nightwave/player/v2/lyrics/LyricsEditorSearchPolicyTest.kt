@@ -34,6 +34,7 @@ class LyricsEditorSearchPolicyTest {
     @Test fun searchCanJumpToTimestampPrefixWhenRequested() {
         assertEquals(listOf(1), LyricsEditorSearchPolicy.matches(original, "00:02"))
         assertEquals(listOf(3), LyricsEditorSearchPolicy.matches(original, "04.750"))
+        assertEquals(listOf(3), LyricsEditorSearchPolicy.matches(original, "00:04.750"))
     }
 
     @Test fun whitespaceRunsAreNormalizedForMatching() {
