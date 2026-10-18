@@ -629,12 +629,25 @@ fun StudioNowPlayingOverlay(
                         Icon(Icons.Outlined.SkipNext, contentDescription = "Next track",
                             modifier = Modifier.size(34.dp), tint = colors.onBackground)
                     }
-                    IconButton(onClick = actions::cycleRepeat, enabled = !state.offline,
-                        modifier = Modifier.size(48.dp)) {
-                        Icon(if (state.repeat == PlaybackQueue.Repeat.ONE) Icons.Outlined.RepeatOne
-                            else Icons.Outlined.Repeat,
-                            contentDescription = "Repeat " + state.repeat.name,
-                            tint = if (state.repeat == PlaybackQueue.Repeat.OFF)
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        IconButton(onClick = actions::cycleRepeat, enabled = !state.offline,
+                            modifier = Modifier.size(44.dp)) {
+                            Icon(if (state.repeat == PlaybackQueue.Repeat.ONE) Icons.Outlined.RepeatOne
+                                else Icons.Outlined.Repeat,
+                                contentDescription = "Repeat mode: " + when (state.repeat) {
+                                    PlaybackQueue.Repeat.OFF -> "Off"
+                                    PlaybackQueue.Repeat.ALL -> "All songs"
+                                    PlaybackQueue.Repeat.ONE -> "Current song"
+                                },
+                                tint = if (state.repeat == PlaybackQueue.Repeat.OFF)
+                                    colors.onSurfaceVariant else colors.primary)
+                        }
+                        Text(when (state.repeat) {
+                            PlaybackQueue.Repeat.OFF -> "Off"
+                            PlaybackQueue.Repeat.ALL -> "All"
+                            PlaybackQueue.Repeat.ONE -> "One"
+                        }, style = MaterialTheme.typography.labelSmall,
+                            color = if (state.repeat == PlaybackQueue.Repeat.OFF)
                                 colors.onSurfaceVariant else colors.primary)
                     }
                 }
