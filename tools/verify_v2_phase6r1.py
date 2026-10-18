@@ -56,7 +56,9 @@ assert 'row.sha256 == sha256' in client
 assert 'result.optJSONArray("parents")?.optString(0) == parent' in client
 assert 'LockerUploadOutcome(existing, created = false)' in client
 assert 'return LockerUploadOutcome(row, created = true)' in client
-assert not any(x in client for x in ('delete(', 'PATCH', 'appDataFolder', 'auth/drive"'))
+assert not any(x in client for x in ('delete(', 'PATCH', 'auth/drive"'))
+assert '.addQueryParameter("spaces", "appDataFolder")' not in client
+assert 'JSONArray().put("appDataFolder")' not in client
 assert 'Identity.getAuthorizationClient(this)' in ui
 assert 'ActivityResultContracts.StartIntentSenderForResult()' in ui
 assert 'NightWaveLockerAuthorization.request(' in ui
