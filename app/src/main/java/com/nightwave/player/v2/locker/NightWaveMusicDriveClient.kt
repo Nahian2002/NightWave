@@ -180,9 +180,9 @@ class NightWaveMusicDriveClient(private val token: String) {
         val parent = requireNotNull(folder(createIfMissing = false)) {
             "No NightWave Music folder found"
         }
-        val latest = listInFolder(parent).firstOrNull { it.id == selected.id }
-            ?: error("Selected cloud song is no longer in the music folder")
-        require(latest == selected) { "Cloud song changed; refresh before downloading" }
+        // Exact file metadata below independently verifies selected identity,
+        // current parent membership and canDownload. A capped folder scan
+        // would incorrectly reject valid songs beyond the first 500 records.
         val metaUrl = "https://www.googleapis.com/drive/v3/files/${selected.id}"
             .toHttpUrl().newBuilder()
             .addQueryParameter("fields",
@@ -280,9 +280,8 @@ class NightWaveMusicDriveClient(private val token: String) {
         val parent = requireNotNull(folder(createIfMissing = false)) {
             "No NightWave Music folder found"
         }
-        val latest = listInFolder(parent).firstOrNull { it.id == selected.id }
-            ?: error("Selected cloud song disappeared; refresh the list")
-        require(latest == selected) { "Cloud audio changed; review before resuming" }
+        // Exact file metadata below independently verifies selected identity,
+        // current parent membership and canDownload for any browsed page.
         val metaUrl = "https://www.googleapis.com/drive/v3/files/${selected.id}"
             .toHttpUrl().newBuilder()
             .addQueryParameter("fields",
