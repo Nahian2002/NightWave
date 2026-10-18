@@ -347,6 +347,21 @@ class NightWaveLockerActivity : ComponentActivity() {
         }
         worker.execute {
             val expected = name
+            // The journal is optional; failure to write a history row must
+            // not abort a user-authorized transfer or decide its outcome.
+            val journalId = runCatching {
+                when (action) {
+                    "upload" -> {
+                        val song = requireNotNull(selected)
+                        history.start(LockerTransferKind.UPLOAD, song.title, song.bytes)
+                    }
+                    "download" -> {
+                        val track = requireNotNull(chosenRemote)
+                        history.start(LockerTransferKind.DOWNLOAD, track.name, track.bytes)
+                    }
+                    else -> null
+                }
+            }.getOrNull()
             val outcome = runCatching {
                 val client = NightWaveMusicDriveClient(token)
                 if (action == "upload") {
@@ -387,10 +402,22 @@ class NightWaveLockerActivity : ComponentActivity() {
                     }
                 } else client.inventory()
             }
+            if (journalId != null) {
+                val resultState = when (val value = outcome.getOrNull()) {
+                    is LockerUploadOutcome -> if (value.created)
+                        LockerTransferState.COMPLETED else LockerTransferState.REUSED
+                    is CloudOfflineImportResult -> if (value.created)
+                        LockerTransferState.COMPLETED else LockerTransferState.REUSED
+                    else -> LockerTransferState.NOT_VERIFIED
+                }
+                // No account, token, remote ID or exception detail is written.
+                runCatching { history.finish(journalId, resultState) }
+            }
             runOnUiThread {
                 if (isFinishing || isDestroyed) return@runOnUiThread
                 busy = false
                 updatePending()
+                renderTransferHistory()
                 if (!state.account().equals(expected, true)) {
                     status("Account changed. Result discarded.")
                     return@runOnUiThread
