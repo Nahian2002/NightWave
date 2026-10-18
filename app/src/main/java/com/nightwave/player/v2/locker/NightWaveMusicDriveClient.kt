@@ -41,7 +41,7 @@ class NightWaveMusicDriveClient(private val token: String) {
 
     private fun json(request: Request, limit: Int = 100_000): JSONObject =
         http.newCall(request).execute().use { response ->
-            require(response.isSuccessful) { "Drive metadata request failed (\${response.code})" }
+            require(response.isSuccessful) { "Drive metadata request failed (${response.code})" }
             JSONObject(readLimited(response.body?.byteStream()
                 ?: error("Empty Drive response"), limit).toString(Charsets.UTF_8))
         }
@@ -131,7 +131,7 @@ class NightWaveMusicDriveClient(private val token: String) {
             .header("X-Upload-Content-Type", song.mimeType)
             .header("X-Upload-Content-Length", song.bytes.toString())
             .post(meta.toString().toRequestBody(jsonType)).build()).execute().use { response ->
-            require(response.isSuccessful) { "Drive upload setup failed (\${response.code})" }
+            require(response.isSuccessful) { "Drive upload setup failed (${response.code})" }
             response.header("Location") ?: error("Missing resumable upload session")
         }
         val session = location.toHttpUrlOrNull() ?: error("Invalid upload session")
@@ -147,7 +147,7 @@ class NightWaveMusicDriveClient(private val token: String) {
                 reader.readFully(chunk)
                 val end = offset + count - 1L
                 val upload = request(session.toString())
-                    .header("Content-Range", "bytes $offset-$end/\${song.bytes}")
+                    .header("Content-Range", "bytes $offset-$end/${song.bytes}")
                     .put(chunk.toRequestBody(song.mimeType.toMediaType())).build()
                 http.newCall(upload).execute().use { response ->
                     if (response.code == 308) {
@@ -161,7 +161,7 @@ class NightWaveMusicDriveClient(private val token: String) {
                         progress((offset * 100L / song.bytes).toInt())
                     } else {
                         require(response.isSuccessful && end + 1 == song.bytes) {
-                            "Drive transfer failed (\${response.code})"
+                            "Drive transfer failed (${response.code})"
                         }
                         val result = JSONObject(readLimited(response.body?.byteStream()
                             ?: error("Missing upload acknowledgement"), 16_384)
