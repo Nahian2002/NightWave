@@ -2059,58 +2059,14 @@ private fun StudioRoot(
                         onExpand = { expanded = true },
                         onHide = { compactHidden = true })
                 }
-                Surface(
-                    color = MaterialTheme.colorScheme.surface,
-                    shadowElevation = 3.dp,
-                    tonalElevation = 1.dp,
-                    shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
-                ) {
-                    Row(
-                        Modifier.fillMaxWidth().height(58.dp)
-                            .padding(horizontal = 10.dp, vertical = 4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(5.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        for (item in StudioTab.entries) {
-                            val image = when (item) {
-                                StudioTab.HOME -> Icons.Outlined.Home
-                                StudioTab.SEARCH -> Icons.Outlined.Search
-                                StudioTab.LIBRARY -> Icons.Outlined.LibraryMusic
-                                StudioTab.PROFILE -> Icons.Outlined.PersonOutline
-                            }
-                            val active = tab == item
-                            val tabColor by animateColorAsState(
-                                targetValue = if (active) MaterialTheme.colorScheme.primary.copy(alpha = .17f)
-                                    else Color.Transparent,
-                                animationSpec = tween(durationMillis =
-                                    if (profile.motion == MotionPreference.REDUCED) 0 else 170),
-                                label = "NightWave navigation focus"
-                            )
-                            Row(
-                                Modifier.weight(if (active) 1.25f else 1f).fillMaxHeight()
-                                    .clip(RoundedCornerShape(15.dp))
-                                    .background(tabColor)
-                                    .clickable { navigateToTab(item) }
-                                    .semantics { this.selected = active }
-                                    .testTag("nightwave-tab-" + item.name.lowercase()),
-                                horizontalArrangement = Arrangement.Center,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(image, contentDescription = item.caption,
-                                    modifier = Modifier.size(22.dp),
-                                    tint = if (active) MaterialTheme.colorScheme.primary
-                                        else MaterialTheme.colorScheme.onSurfaceVariant)
-                                if (active) {
-                                    Spacer(Modifier.width(7.dp))
-                                    Text(item.caption,
-                                        style = MaterialTheme.typography.labelLarge,
-                                        maxLines = 1,
-                                        color = MaterialTheme.colorScheme.onSurface)
-                                }
-                            }
-                        }
+                NightWavePremiumNavigation(
+                    selectedIndex = tab.ordinal,
+                    reducedMotion = profile.motion == MotionPreference.REDUCED,
+                    onNavigate = { target ->
+                        navigateToTab(StudioTab.entries[
+                            NightWaveChromePolicy.selectedTab(target)])
                     }
-                }
+                )
             }
         }
     ) { safe ->
@@ -2291,22 +2247,11 @@ private fun StudioHome(
             top = 18.dp, bottom = 36.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item {
-            Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                NightWaveMicroLabel("Your listening space")
-                val greeting = when (java.time.LocalTime.now().hour) {
-                    in 5..11 -> "Good morning"
-                    in 12..17 -> "Good afternoon"
-                    else -> "Good evening"
-                }
-                Text(greeting, style = MaterialTheme.typography.headlineLarge.copy(
-                    fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onBackground)
-                Text(profile.displayName.substringBefore(' ').take(20) +
-                    " · Your music, your pace",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+        item(key = "nightwave-premium-home-header") {
+            NightWaveHomeHero(
+                greeting = NightWaveChromePolicy.greeting(java.time.LocalTime.now().hour),
+                displayName = profile.displayName
+            )
         }
         item {
             NightWaveLibraryNumbers(favorites.size, recent.size, onLibrary = openLibrary)

@@ -54,6 +54,7 @@ on:
       - feature/nightwave-v2-phase6v6e-lyrics-search-workspace
       - feature/nightwave-v2-phase6v6f-build-stabilization-lyrics-qa
       - feature/nightwave-v2-phase6v6g-android-test-compile-recovery
+      - feature/nightwave-v2-phase6v7a-premium-home-navigation-chrome
   # Earlier phase Android/device tests were intentionally deferred.
   # Workflow dispatch stays available for controlled rechecks.
   workflow_dispatch:
@@ -144,6 +145,8 @@ jobs:
           python3 tools/verify_v2_phase6v6f.py
           python3 tools/check_kotlin_bytearray_fixtures.py --self-test
           python3 tools/check_kotlin_bytearray_fixtures.py
+          python3 tools/verify_v2_phase6v7a.py --self-test
+          python3 tools/verify_v2_phase6v7a.py
           python3 tools/ci_compile_summary.py --self-test
       - uses: actions/setup-java@v4
         with:
@@ -183,7 +186,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: NightWave-6V6G-dev-debug-UNVERIFIED-FOR-DEVICE
+          name: NightWave-6V7A-dev-debug-UNVERIFIED-FOR-DEVICE
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 5

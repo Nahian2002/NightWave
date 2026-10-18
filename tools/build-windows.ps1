@@ -281,6 +281,17 @@ try {
     }
     Say '6V6G regression preflight PASS (Android compiler still mandatory).'
 
+    $stage = 'Phase 6V7A premium Home and navigation preflight'
+    $phase6v7a = Join-Path $PSScriptRoot 'check-phase6v7a-integration.ps1'
+    if (-not (Test-Path -LiteralPath $phase6v7a -PathType Leaf)) {
+        throw 'NightWave 6V7A premium UI source gate missing. Use the complete ZIP.'
+    }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $phase6v7a
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Phase 6V7A premium UI preflight failed; Gradle not started.'
+    }
+    Say '6V7A source regression checks PASS (real Compose compiler still required).'
+
     $stage = 'Java preparation'
     Resolve-Java
 
