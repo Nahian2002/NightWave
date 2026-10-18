@@ -35,10 +35,13 @@ object LockerVaultBrowsePolicy {
     const val PAGE_INCREMENT = 40
     const val MAX_FILTER_LENGTH = 100
 
-    fun canLoadMore(inventory: LockerCloudInventory): Boolean =
-        inventory.hasMore && inventory.pagesRead in 1 until MAX_TOTAL_PAGES &&
-            inventory.nextPageToken?.length in 1..2048 &&
+    fun canLoadMore(inventory: LockerCloudInventory): Boolean {
+        val cursor = inventory.nextPageToken ?: return false
+        return inventory.hasMore && inventory.pagesRead in 1 until MAX_TOTAL_PAGES &&
+            cursor.length in 1..2048 &&
+            cursor in inventory.seenTokens &&
             LockerAudioPolicy.validDriveId(inventory.folderId.orEmpty())
+    }
 
     fun downloadable(track: LockerRemoteTrack): Boolean =
         runCatching { LockerAudioPolicy.requireDownloadable(track) }.isSuccess
