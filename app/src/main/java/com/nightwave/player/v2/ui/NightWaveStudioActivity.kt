@@ -20,6 +20,7 @@ import com.nightwave.player.v2.cloud.CloudBackupStatus
 import com.nightwave.player.v2.cloud.CloudBackupState
 import com.nightwave.player.v2.cloud.CloudBackupCodec
 import com.nightwave.player.v2.cloud.CloudBackupPreview
+import com.nightwave.player.v2.cloud.CloudPlaybackPreferences
 import com.nightwave.player.v2.cloud.CloudRecoveryPolicy
 import com.nightwave.player.v2.cloud.CloudRecoveryReport
 import com.nightwave.player.v2.data.CloudRestoreApplyResult
@@ -537,6 +538,12 @@ class NightWaveStudioActivity : ComponentActivity() {
                     onCloudHistory = { enabled ->
                         if (cloudStore.setHistory(enabled)) refreshCloud()
                     },
+                    onCloudLyrics = { enabled ->
+                        if (cloudStore.setLyrics(enabled)) refreshCloud()
+                    },
+                    onCloudPreferences = { enabled ->
+                        if (cloudStore.setPreferences(enabled)) refreshCloud()
+                    },
                     onCloudWifi = { enabled ->
                         if (cloudStore.setWifiOnly(enabled)) {
                             refreshCloud()
@@ -725,10 +732,17 @@ class NightWaveStudioActivity : ComponentActivity() {
                             val local = archiveManager.export()
                             val settings = cloudStore.read()
                             val history = if (settings.includeHistory) library.recent() else emptyList()
-                            val bytes = CloudBackupCodec.encode(local, history, settings.includeHistory)
+                            val extraPreferences = if (settings.includePreferences)
+                                CloudPlaybackPreferences.from(profiles.load()) else null
+                            val extraLyrics = if (settings.includeLyrics)
+                                lyricsStore.exportCloud() else emptyList()
+                            val bytes = CloudBackupCodec.encode(local, history, settings.includeHistory,
+                                extraPreferences, extraLyrics, settings.includeLyrics)
                             val latestSettings = cloudStore.read()
                             check(latestSettings.account.equals(expectedAccount, true) &&
-                                latestSettings.includeHistory == settings.includeHistory) {
+                                latestSettings.includeHistory == settings.includeHistory &&
+                                latestSettings.includeLyrics == settings.includeLyrics &&
+                                latestSettings.includePreferences == settings.includePreferences) {
                                 "Google account or history preference changed during backup"
                             }
                             val outcome = drive.backUpIfChangedVerified(bytes)
@@ -906,7 +920,15 @@ class NightWaveStudioActivity : ComponentActivity() {
             if (report.optionalHistoryCount > 0) {
                 append("\nOptional: ${report.optionalHistoryCount} recent listening entries can be restored.")
             } else append("\nCurrent listening history remains unless separately chosen.")
-            append("\n\nOffline audio and imported LRC lyrics are not included in this cloud backup.")
+            if (preview.preferences != null) {
+                append("\n\nOptional playback preferences are available (not restored automatically).")
+            }
+            if (preview.includesLyrics) {
+                append("\nOptional imported LRC entries: ${preview.lyrics.size} (audio not included).")
+            } else {
+                append("\nImported LRC lyrics are not included in this cloud backup.")
+            }
+            append("\nOffline audio files are never included.")
             append("\nA recovery checkpoint is kept before replacement. Export locally if you need both versions.")
         }
         val dialog = AlertDialog.Builder(this)
@@ -947,6 +969,9 @@ class NightWaveStudioActivity : ComponentActivity() {
                     profile = profiles.load()
                     refresh()
                     showMessage("Cloud library restored. Automatic backup remains unchanged.")
+                    if (preview.preferences != null || preview.lyrics.isNotEmpty()) {
+                        showCloudOptionalRestorePrompt(preview, account)
+                    }
                 }
                 CloudRestoreApplyResult.STALE_PREVIEW ->
                     showMessage("Your library changed. Review this backup again before restoring.")
@@ -954,6 +979,62 @@ class NightWaveStudioActivity : ComponentActivity() {
                     showMessage("Restore could not finish. Your previous library is preserved.")
             }
         }
+    }
+
+    private fun showCloudOptionalRestorePrompt(
+        backup: CloudBackupPreview, account: String
+    ) {
+        val options = buildString {
+            append("This cloud backup also contains ")
+            append(if (backup.preferences == null) "no preferences"
+                else "selected playback preferences")
+            append(" and ${backup.lyrics.size} imported LRC entries.\n\n")
+            append("Applying preferences changes only motion, audio quality, crossfade, " +
+                "lock-screen artwork and browsing screen-awake. Account, local identity, " +
+                "and privacy choices are preserved.\n\n")
+            append("Imported lyrics are added ONLY when a matching offline song ID exists " +
+                "and has no lyrics. Audio files and unmatched lyrics are not restored.")
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Restore optional backup data?")
+            .setMessage(options)
+            .setNegativeButton("Keep local options", null)
+            .setPositiveButton("Apply optional data") { _, _ ->
+                if (cloudBusy || !cloudStore.read().account.equals(account, true)) {
+                    showMessage("Google account changed or backup is busy. Open backup again.")
+                    return@setPositiveButton
+                }
+                cloudBusy = true
+                lifecycleScope.launch {
+                    val outcome = withContext(Dispatchers.IO) {
+                        runCatching {
+                            val restoredLyrics = if (backup.includesLyrics)
+                                lyricsStore.restoreCloudMissing(backup.lyrics) else 0
+                            val changedPreferences = backup.preferences?.let { restored ->
+                                val current = profiles.load()
+                                check(profiles.save(restored.applyTo(current))) {
+                                    "Playback preferences could not be saved"
+                                }
+                                true
+                            } ?: false
+                            Pair(restoredLyrics, changedPreferences)
+                        }
+                    }
+                    cloudBusy = false
+                    outcome.onSuccess { (addedLyrics, changedPreferences) ->
+                        profile = profiles.load()
+                        lyricsRevision++
+                        refresh()
+                        showMessage("Optional restore: ${addedLyrics} LRC entries added" +
+                            if (changedPreferences) "; playback preferences applied."
+                            else "; phone preferences unchanged.")
+                    }.onFailure {
+                        showMessage("Optional data could not fully restore. " +
+                            "Existing lyrics were not overwritten; review local settings.")
+                    }
+                }
+            }
+            .show()
     }
 
     private fun disconnectCloud() {
@@ -1428,6 +1509,8 @@ private fun StudioRoot(
     onCloudCompare: () -> Unit,
     onCloudDisconnect: () -> Unit,
     onCloudHistory: (Boolean) -> Unit,
+    onCloudLyrics: (Boolean) -> Unit,
+    onCloudPreferences: (Boolean) -> Unit,
     onCloudWifi: (Boolean) -> Unit,
     storageStatus: String,
     onCheckStorage: () -> Unit,
@@ -1723,6 +1806,8 @@ private fun StudioRoot(
                         onCloudCompare = onCloudCompare,
                         onCloudDisconnect = onCloudDisconnect,
                         onCloudHistory = onCloudHistory,
+                        onCloudLyrics = onCloudLyrics,
+                        onCloudPreferences = onCloudPreferences,
                         onCloudWifi = onCloudWifi,
                         storageStatus = storageStatus, onCheckStorage = onCheckStorage,
                         roomReadStatus = roomReadStatus,
@@ -2602,6 +2687,8 @@ private fun StudioProfile(
     onCloudCompare: () -> Unit,
     onCloudDisconnect: () -> Unit,
     onCloudHistory: (Boolean) -> Unit,
+    onCloudLyrics: (Boolean) -> Unit,
+    onCloudPreferences: (Boolean) -> Unit,
     onCloudWifi: (Boolean) -> Unit,
     insights: ListeningInsights,
     memory: ListeningMemorySummary,
@@ -2864,6 +2951,21 @@ private fun StudioProfile(
                             trailing = {
                                 Switch(checked = cloud.includeHistory,
                                     onCheckedChange = onCloudHistory)
+                            })
+                        StudioProfileRow("Back up imported LRC lyrics",
+                            "Off by default · max 20 entries · audio not included",
+                            Icons.Outlined.Settings, { onCloudLyrics(!cloud.includeLyrics) },
+                            trailing = {
+                                Switch(checked = cloud.includeLyrics,
+                                    onCheckedChange = onCloudLyrics)
+                            })
+                        StudioProfileRow("Back up playback preferences",
+                            "Off by default · excludes account and privacy choices",
+                            Icons.Outlined.Settings,
+                            { onCloudPreferences(!cloud.includePreferences) },
+                            trailing = {
+                                Switch(checked = cloud.includePreferences,
+                                    onCheckedChange = onCloudPreferences)
                             })
                         StudioProfileRow("Wi-Fi-only automatic backup",
                             "Daily scheduling after first successful backup",

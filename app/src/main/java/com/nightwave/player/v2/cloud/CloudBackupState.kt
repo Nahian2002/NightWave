@@ -7,6 +7,8 @@ data class CloudBackupStatus(
     val account: String = "",
     val enabled: Boolean = false,
     val includeHistory: Boolean = false,
+    val includeLyrics: Boolean = false,
+    val includePreferences: Boolean = false,
     val wifiOnly: Boolean = true,
     val lastSuccessMs: Long = 0L,
     val lastResult: String = "Cloud backup is off"
@@ -21,6 +23,8 @@ class CloudBackupState(context: Context) {
         account = prefs.getString("account", "").orEmpty(),
         enabled = prefs.getBoolean("enabled", false),
         includeHistory = prefs.getBoolean("history", false),
+        includeLyrics = prefs.getBoolean("lyrics", false),
+        includePreferences = prefs.getBoolean("preferences", false),
         wifiOnly = prefs.getBoolean("wifi_only", true),
         lastSuccessMs = prefs.getLong("last_success_ms", 0L),
         lastResult = prefs.getString("last_result", "Cloud backup is off").orEmpty()
@@ -41,6 +45,8 @@ class CloudBackupState(context: Context) {
     }
 
     fun setHistory(value: Boolean) = prefs.edit().putBoolean("history", value).commit()
+    fun setLyrics(value: Boolean) = prefs.edit().putBoolean("lyrics", value).commit()
+    fun setPreferences(value: Boolean) = prefs.edit().putBoolean("preferences", value).commit()
     fun setWifiOnly(value: Boolean) = prefs.edit().putBoolean("wifi_only", value).commit()
 
     fun success(account: String, whenMs: Long): Boolean {
