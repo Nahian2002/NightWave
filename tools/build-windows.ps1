@@ -222,6 +222,17 @@ try {
     }
     Say '6V6B LRC import source gate PASS (real Android compile still required).'
 
+    $stage = 'Phase 6V6C local lyrics editing source preflight'
+    $phase6v6c = Join-Path $PSScriptRoot 'check-phase6v6c-integration.ps1'
+    if (-not (Test-Path -LiteralPath $phase6v6c -PathType Leaf)) {
+        throw 'NightWave 6V6C lyrics editor gate is missing. Use the full source ZIP.'
+    }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $phase6v6c
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Phase 6V6C lyrics editor source preflight failed; no APK built.'
+    }
+    Say '6V6C editor source gate PASS (full Gradle compilation still required).'
+
     $stage = 'Java preparation'
     Resolve-Java
 
