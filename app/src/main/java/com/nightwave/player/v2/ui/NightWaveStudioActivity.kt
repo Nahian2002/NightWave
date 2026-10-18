@@ -811,6 +811,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                 lyricsEditorSession?.let { session ->
                     if (playback.state.videoUrl == "offline:" + session.songId) {
                         NightWaveLyricsEditorDialog(
+                            songId = session.songId,
                             songTitle = session.songTitle,
                             draft = session.draft,
                             dirty = LyricsEditorPolicy.changed(session.baseline, session.draft),

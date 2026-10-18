@@ -28,6 +28,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,6 +45,7 @@ import com.nightwave.player.v2.lyrics.LyricCue
 import com.nightwave.player.v2.lyrics.LyricsEditorDraft
 import com.nightwave.player.v2.lyrics.LyricsEditorPolicy
 import com.nightwave.player.v2.lyrics.LyricsEditorNavigationPolicy
+import com.nightwave.player.v2.lyrics.LyricsEditorSearchPolicy
 import com.nightwave.player.v2.lyrics.LyricsSyncPolicy
 import com.nightwave.player.v2.lyrics.TimedLyrics
 
@@ -53,6 +55,7 @@ import com.nightwave.player.v2.lyrics.TimedLyrics
  */
 @Composable
 fun NightWaveLyricsEditorDialog(
+    songId: String,
     songTitle: String,
     draft: LyricsEditorDraft,
     dirty: Boolean,
@@ -69,7 +72,9 @@ fun NightWaveLyricsEditorDialog(
 ) {
     val colors = MaterialTheme.colorScheme
     val listState = rememberLazyListState()
-    var selected by remember { mutableStateOf(0) }
+    var selected by rememberSaveable(songId) { mutableStateOf(0) }
+    var searchQuery by rememberSaveable(songId) { mutableStateOf("") }
+    var searchOpen by rememberSaveable(songId) { mutableStateOf(false) }
     var editingCue by remember { mutableStateOf<LyricCue?>(null) }
     var deletingCue by remember { mutableStateOf<LyricCue?>(null) }
     var editingText by remember { mutableStateOf("") }
@@ -78,6 +83,12 @@ fun NightWaveLyricsEditorDialog(
     var editDialogError by remember { mutableStateOf<String?>(null) }
     var discardConfirm by remember { mutableStateOf(false) }
     val current = LyricsEditorNavigationPolicy.follow(draft, playbackMs, offsetMs)
+    val effectiveQuery = if (searchOpen) searchQuery else ""
+    val searchMatches = remember(draft, effectiveQuery) {
+        LyricsEditorSearchPolicy.matches(draft, effectiveQuery)
+    }
+    val searchMatchSet = remember(searchMatches) { searchMatches.toSet() }
+    val searchOrdinal = LyricsEditorSearchPolicy.ordinal(searchMatches, selected)
 
     fun applySafe(
         action: () -> LyricsEditorDraft,
@@ -153,6 +164,81 @@ fun NightWaveLyricsEditorDialog(
                     }, enabled = !saving && selected < draft.cues.lastIndex,
                         modifier = Modifier.weight(1f)) { Text("Next") }
                 }
+                OutlinedButton(
+                    onClick = { searchOpen = !searchOpen },
+                    enabled = !saving,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                        .testTag("lyrics-search-toggle")
+                ) {
+                    Text(if (searchOpen) "Hide lyric search" else "Find a lyric line")
+                }
+                // Search uses the current unsaved draft. It does not
+                // open files, change the playing position or send network data.
+                if (searchOpen) Surface(
+                    color = colors.surfaceVariant.copy(alpha = 0.58f),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth().testTag("lyrics-search-panel")
+                ) {
+                    Column(Modifier.padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                        Row(Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedTextField(
+                                value = searchQuery,
+                                onValueChange = { incoming ->
+                                    if (incoming.length <= LyricsEditorSearchPolicy.MAX_QUERY_LENGTH)
+                                        searchQuery = incoming
+                                },
+                                label = { Text("Search lyric words or 00:12") },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f).testTag("lyrics-search-input")
+                            )
+                            TextButton(onClick = { searchQuery = "" },
+                                enabled = searchQuery.isNotEmpty(),
+                                modifier = Modifier.heightIn(min = 48.dp)) {
+                                Text("Clear")
+                            }
+                        }
+                        if (searchQuery.isNotBlank()) {
+                            Text(
+                                if (searchMatches.isEmpty()) "No matching lyric lines"
+                                else if (searchOrdinal != null)
+                                    "Match $searchOrdinal of ${searchMatches.size} · ${draft.cues.size} lines"
+                                else "${searchMatches.size} matches · Choose Next match",
+                                color = if (searchMatches.isEmpty()) colors.onSurfaceVariant
+                                    else colors.primary,
+                                style = MaterialTheme.typography.labelMedium,
+                                modifier = Modifier.testTag("lyrics-search-status")
+                            )
+                            Row(Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                OutlinedButton(
+                                    onClick = {
+                                        LyricsEditorSearchPolicy.nearest(
+                                            searchMatches, selected, false)?.let {
+                                            selected = it
+                                        }
+                                    },
+                                    enabled = !saving && searchMatches.isNotEmpty(),
+                                    modifier = Modifier.weight(1f).heightIn(min = 48.dp)
+                                        .testTag("lyrics-match-previous")
+                                ) { Text("Previous match") }
+                                OutlinedButton(
+                                    onClick = {
+                                        LyricsEditorSearchPolicy.nearest(
+                                            searchMatches, selected, true)?.let {
+                                            selected = it
+                                        }
+                                    },
+                                    enabled = !saving && searchMatches.isNotEmpty(),
+                                    modifier = Modifier.weight(1f).heightIn(min = 48.dp)
+                                        .testTag("lyrics-match-next")
+                                ) { Text("Next match") }
+                            }
+                        }
+                    }
+                }
                 LaunchedEffect(draft.cues.size) {
                     selected = LyricsEditorNavigationPolicy.clamp(selected, draft.cues.size)
                 }
@@ -174,6 +260,7 @@ fun NightWaveLyricsEditorDialog(
                     contentPadding = PaddingValues(bottom = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     itemsIndexed(draft.cues, key = { index, _ -> index }) { index, cue ->
+                        val searchHit = index in searchMatchSet
                         Surface(onClick = { selected = index }, enabled = !saving,
                             modifier = Modifier.fillMaxWidth()
                                 .semantics {
@@ -181,11 +268,15 @@ fun NightWaveLyricsEditorDialog(
                                         "Selected lyric line" else "Not selected"
                                     contentDescription = "Lyric line " + (index + 1) +
                                         " of " + draft.cues.size + ", " +
-                                        LyricsEditorPolicy.timeLabel(cue.timeMs) + ", " + cue.text
+                                        LyricsEditorPolicy.timeLabel(cue.timeMs) + ", " + cue.text +
+                                        (if (searchHit) ", search match" else "")
                                 }
                                 .testTag("lyrics-edit-row-$index"),
-                            color = if (index == selected) colors.primaryContainer
-                                else colors.surfaceVariant,
+                            color = when {
+                                index == selected -> colors.primaryContainer
+                                searchHit -> colors.tertiaryContainer.copy(alpha = 0.62f)
+                                else -> colors.surfaceVariant
+                            },
                             shape = androidx.compose.foundation.shape.RoundedCornerShape(14.dp)
                         ) {
                             Column(Modifier.padding(12.dp),
@@ -194,16 +285,26 @@ fun NightWaveLyricsEditorDialog(
                                     Text(LyricsEditorPolicy.timeLabel(cue.timeMs),
                                         style = MaterialTheme.typography.labelLarge,
                                         fontWeight = FontWeight.Bold,
-                                        color = colors.primary)
+                                        color = if (index == selected)
+                                            colors.onPrimaryContainer else colors.primary)
                                     Spacer(Modifier.weight(1f))
+                                    if (searchHit) {
+                                        Text("MATCH", color = if (index == selected)
+                                            colors.onPrimaryContainer else colors.onTertiaryContainer,
+                                            style = MaterialTheme.typography.labelSmall)
+                                    }
                                     if (index == current) {
-                                        Text("PLAYING", color = colors.primary,
+                                        Text("PLAYING", color = if (index == selected)
+                                            colors.onPrimaryContainer else colors.primary,
                                             style = MaterialTheme.typography.labelSmall)
                                     }
                                 }
                                 Text(cue.text, style = MaterialTheme.typography.bodyLarge,
-                                    color = if (index == selected)
-                                        colors.onPrimaryContainer else colors.onSurface)
+                                    color = when {
+                                        index == selected -> colors.onPrimaryContainer
+                                        searchHit -> colors.onTertiaryContainer
+                                        else -> colors.onSurface
+                                    })
                                 Row(Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween) {
                                     TextButton(onClick = {

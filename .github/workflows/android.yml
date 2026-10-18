@@ -51,6 +51,7 @@ on:
       - feature/nightwave-v2-phase6v6b-safe-lrc-import-review
       - feature/nightwave-v2-phase6v6c-local-lrc-editor
       - feature/nightwave-v2-phase6v6d-lyrics-export-accessibility
+      - feature/nightwave-v2-phase6v6e-lyrics-search-workspace
   # Earlier phase Android/device tests were intentionally deferred.
   # Workflow dispatch stays available for controlled rechecks.
   workflow_dispatch:
@@ -134,6 +135,8 @@ jobs:
           python3 tools/verify_v2_phase6v6c.py
           python3 tools/verify_v2_phase6v6d.py --self-test
           python3 tools/verify_v2_phase6v6d.py
+          python3 tools/verify_v2_phase6v6e.py --self-test
+          python3 tools/verify_v2_phase6v6e.py
           python3 tools/ci_compile_summary.py --self-test
       - uses: actions/setup-java@v4
         with:
@@ -173,7 +176,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: NightWave-6V6D-dev-debug-UNVERIFIED-FOR-DEVICE
+          name: NightWave-6V6E-dev-debug-UNVERIFIED-FOR-DEVICE
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 5

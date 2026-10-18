@@ -244,6 +244,17 @@ try {
     }
     Say '6V6D source audit PASS; real Android/Gradle build still required.'
 
+    $stage = 'Phase 6V6E searchable lyrics editor cumulative preflight'
+    $phase6v6e = Join-Path $PSScriptRoot 'check-phase6v6e-integration.ps1'
+    if (-not (Test-Path -LiteralPath $phase6v6e -PathType Leaf)) {
+        throw 'NightWave 6V6E lyric search gate missing. Download the full source ZIP.'
+    }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $phase6v6e
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Phase 6V6E lyrics source integration preflight failed.'
+    }
+    Say '6V6E cumulative source checks PASS. Android compilation remains mandatory.'
+
     $stage = 'Java preparation'
     Resolve-Java
 
