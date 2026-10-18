@@ -66,6 +66,8 @@ class NightWaveLockerActivity : ComponentActivity() {
         if (result.resultCode != RESULT_OK || result.data == null) {
             busy = false
             pendingAction = ""
+            if (::transferView.isInitialized)
+                transferView.text = "Authorization cancelled · No transfer started"
             status("Google permission was cancelled.")
         } else {
             runCatching {
@@ -75,6 +77,8 @@ class NightWaveLockerActivity : ComponentActivity() {
                 .onFailure {
                     busy = false
                     pendingAction = ""
+                    if (::transferView.isInitialized)
+                        transferView.text = "Authorization failed · No transfer started"
                     status("Google authorization failed. Try reconnecting.")
                 }
         }
@@ -309,12 +313,14 @@ class NightWaveLockerActivity : ComponentActivity() {
                     if (intent == null) {
                         busy = false
                         pendingAction = ""
+                        transferView.text = "Authorization unavailable · No transfer started"
                         status("Google could not open the permission screen.")
                     } else runCatching {
                         resolution.launch(IntentSenderRequest.Builder(intent.intentSender).build())
                     }.onFailure {
                         busy = false
                         pendingAction = ""
+                        transferView.text = "Authorization unavailable · No transfer started"
                         status("Unable to open Google's music permission screen.")
                     }
                 } else authorized(response)
@@ -322,6 +328,7 @@ class NightWaveLockerActivity : ComponentActivity() {
             .addOnFailureListener {
                 busy = false
                 pendingAction = ""
+                transferView.text = "Permission denied · No transfer started"
                 status("Drive permission failed. Check Google Play services and OAuth setup.")
             }
     }
@@ -335,6 +342,7 @@ class NightWaveLockerActivity : ComponentActivity() {
         val token = runCatching { NightWaveLockerAuthorization.token(result) }.getOrNull()
         if (name.isNullOrBlank() || token == null || !state.connect(name)) {
             busy = false
+            transferView.text = "Account mismatch · No transfer started"
             status("Google account mismatch or Drive music permission missing. " +
                 "Disconnect locally before changing accounts.")
             return
