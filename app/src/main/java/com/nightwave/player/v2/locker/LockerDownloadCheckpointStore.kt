@@ -50,6 +50,15 @@ class LockerDownloadCheckpointStore(context: Context) {
         LockerPendingDownload(account, remote, name, committed)
     }.getOrNull()
 
+    /**
+     * Corrupt checkpoints are never resumed or overwritten. They can be
+     * explicitly discarded from the locker UI after an explanation.
+     */
+    @Synchronized
+    fun needsRepair(): Boolean = read() == null &&
+        (File(root, "nightwave_locker_download_v1.json").exists() ||
+            File(root, "nightwave_locker_download_v1.json.bak").exists())
+
     /** Do not silently replace a prior incomplete download. */
     @Synchronized
     fun begin(account: String, track: LockerRemoteTrack): LockerPendingDownload {
@@ -63,8 +72,8 @@ class LockerDownloadCheckpointStore(context: Context) {
             return old
         }
         // Do not create a new checkpoint over a corrupted legacy checkpoint.
-        require(!File(root, "nightwave_locker_download_v1.json").exists()) {
-            "Download checkpoint needs manual repair"
+        require(!needsRepair()) {
+            "Download checkpoint needs explicit discard before retrying"
         }
         val new = LockerPendingDownload(account, track,
             UUID.randomUUID().toString() + ".pending", 0)
