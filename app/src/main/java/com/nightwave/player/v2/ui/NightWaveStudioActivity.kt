@@ -2828,15 +2828,8 @@ private fun StudioLibrary(
             }
         }
         if (selectedPlaylist == null) {
-            // Actual collection rows below serve as navigation. Avoid
-            // duplicating them with two oversized, noninteractive counters.
-            item {
-                Text(NightWaveBrowseChromePolicy.libraryCounts(
-                    favorites.size, names.size),
-                    modifier = Modifier.padding(horizontal = 3.dp, vertical = 2.dp),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            // The header owns real collection counts; these rows are actual
+            // navigation actions, not duplicate decorative statistics.
             if (offlineResumeTitle != null) {
                 item {
                     Card(onClick = onResumeOffline, modifier = Modifier.fillMaxWidth(),
