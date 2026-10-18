@@ -255,6 +255,17 @@ try {
     }
     Say '6V6E cumulative source checks PASS. Android compilation remains mandatory.'
 
+    $stage = 'Phase 6V6F lyrics build-stabilization source preflight'
+    $phase6v6f = Join-Path $PSScriptRoot 'check-phase6v6f-integration.ps1'
+    if (-not (Test-Path -LiteralPath $phase6v6f -PathType Leaf)) {
+        throw 'NightWave 6V6F build stabilization gate missing. Use complete source ZIP.'
+    }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $phase6v6f
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Phase 6V6F lyrics build source preflight failed; Gradle not started.'
+    }
+    Say '6V6F integrated source guard PASS. Gradle and APK signer gates still mandatory.'
+
     $stage = 'Java preparation'
     Resolve-Java
 
