@@ -16,10 +16,31 @@ class SleepTimerPolicyTest {
         }
     }
 
-    @Test fun arbitraryIntentsCannotArmTimer() {
-        for (minutes in listOf(-1, 0, 1, 14, 61, Int.MAX_VALUE)) {
+    @Test fun invalidOrOutOfRangeIntentsCannotArmTimer() {
+        for (minutes in listOf(Int.MIN_VALUE, -1, 0, 1441, Int.MAX_VALUE)) {
             assertNull(SleepTimerPolicy.deadlineMs(123L, minutes))
+            assertFalse(SleepTimerPolicy.accepts(minutes))
         }
+    }
+
+    @Test fun exactMinuteInputsAreAllowedWithinOneDay() {
+        for (minutes in listOf(1, 2, 7, 14, 61, 119, 120, 121, 1439, 1440)) {
+            assertTrue(SleepTimerPolicy.accepts(minutes))
+            assertEquals(minutes.toLong() * 60_000L,
+                SleepTimerPolicy.deadlineMs(0L, minutes))
+        }
+    }
+
+    @Test fun dialQuadrantsAreDeterministic() {
+        assertEquals(120, SleepTimerPolicy.dialMinutes(100f, 0f, 200f, 200f))
+        assertEquals(30, SleepTimerPolicy.dialMinutes(200f, 100f, 200f, 200f))
+        assertEquals(60, SleepTimerPolicy.dialMinutes(100f, 200f, 200f, 200f))
+        assertEquals(90, SleepTimerPolicy.dialMinutes(0f, 100f, 200f, 200f))
+    }
+
+    @Test fun dialInvalidGeometryFailsSafely() {
+        assertEquals(1, SleepTimerPolicy.dialMinutes(0f, 0f, 0f, 200f))
+        assertEquals(1, SleepTimerPolicy.dialMinutes(Float.NaN, 0f, 200f, 200f))
     }
 
     @Test fun invalidClockCannotArmTimer() {
