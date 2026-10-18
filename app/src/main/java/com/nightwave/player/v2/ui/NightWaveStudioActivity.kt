@@ -723,8 +723,10 @@ class NightWaveStudioActivity : ComponentActivity() {
                             val settings = cloudStore.read()
                             val history = if (settings.includeHistory) library.recent() else emptyList()
                             val bytes = CloudBackupCodec.encode(local, history, settings.includeHistory)
-                            check(cloudStore.read().account.equals(expectedAccount, true)) {
-                                "Google account was disconnected"
+                            val latestSettings = cloudStore.read()
+                            check(latestSettings.account.equals(expectedAccount, true) &&
+                                latestSettings.includeHistory == settings.includeHistory) {
+                                "Google account or history preference changed during backup"
                             }
                             val outcome = drive.backUpIfChangedVerified(bytes)
                             CloudActionResult.Backup(outcome.created)
