@@ -2172,13 +2172,47 @@ private fun StudioRoot(
                         onShareDiagnostics = onShareDiagnostics,
                         onOpenClassic = onOpenClassic,
                         onEqualizer = {
-                            val choices = arrayOf("Off (recommended)", "Device preset 1", "Device preset 2", "Device preset 3", "Device preset 4", "Device preset 5")
+                            val choices = arrayOf("Off (recommended)", "Device preset 1", "Device preset 2", "Device preset 3", "Device preset 4", "Device preset 5", "Manual · 5 bands")
                             val statusBefore = eqStatusStore.read()
                             AlertDialog.Builder(this@NightWaveStudioActivity)
                                 .setTitle("Audio equalizer · Experimental")
                                 .setMessage("Last service report: ${statusBefore.message}. Device presets differ; Android may decline them. Presets reset when service restarts.")
                                 .setSingleChoiceItems(choices, -1) { dialog, which ->
-                                    runCatching {
+                                    if (which == 6) {
+                                        dialog.dismiss()
+                                        val container = android.widget.LinearLayout(this@NightWaveStudioActivity).apply {
+                                            orientation = android.widget.LinearLayout.VERTICAL
+                                            setPadding(32, 12, 32, 12)
+                                        }
+                                        val sliders = (0 until 5).map { band ->
+                                            val title = android.widget.TextView(this@NightWaveStudioActivity).apply {
+                                                text = "Band ${band + 1} · 0 dB (device range may vary)"
+                                            }
+                                            val slider = android.widget.SeekBar(this@NightWaveStudioActivity).apply {
+                                                max = 30
+                                                progress = 15
+                                            }
+                                            container.addView(title)
+                                            container.addView(slider)
+                                            slider
+                                        }
+                                        AlertDialog.Builder(this@NightWaveStudioActivity)
+                                            .setTitle("Manual EQ · Experimental")
+                                            .setMessage("Five device bands; neutral by default. Android may reject unsupported gains.")
+                                            .setView(container)
+                                            .setNegativeButton("Cancel", null)
+                                            .setPositiveButton("Apply") { _, _ ->
+                                                sliders.forEachIndexed { band, slider ->
+                                                    runCatching {
+                                                        startService(Intent(this@NightWaveStudioActivity, PlaybackService::class.java).apply {
+                                                            action = PlaybackService.ACTION_EQ_BAND_SET
+                                                            putExtra(PlaybackService.EXTRA_EQ_BAND, band)
+                                                            putExtra(PlaybackService.EXTRA_EQ_LEVEL_MB, (slider.progress - 15) * 100)
+                                                        })
+                                                    }.onFailure { showMessage("Audio effect request failed.") }
+                                                }
+                                            }.show()
+                                    } else runCatching {
                                         startService(Intent(this@NightWaveStudioActivity, PlaybackService::class.java).apply {
                                             action = PlaybackService.ACTION_EQ_PRESET_SET
                                             putExtra(PlaybackService.EXTRA_EQ_PRESET, which)
