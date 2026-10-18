@@ -40,6 +40,7 @@ class NightWaveLockerActivity : ComponentActivity() {
     private lateinit var uploadButton: TextView
     private lateinit var vaultSummary: TextView
     private lateinit var moreButton: TextView
+    private lateinit var nextCloudPageButton: TextView
     private lateinit var sortButton: TextView
     private lateinit var filterButton: TextView
     private lateinit var transferView: TextView
@@ -277,10 +278,19 @@ class NightWaveLockerActivity : ComponentActivity() {
             LinearLayout.LayoutParams(-1, 0, 1f))
         moreButton = button("Show more listed songs") {
             shownCount = (shownCount + LockerVaultBrowsePolicy.PAGE_INCREMENT)
-                .coerceAtMost(LockerVaultBrowsePolicy.MAX_PAGES * LockerVaultBrowsePolicy.PAGE_SIZE)
+                .coerceAtMost(LockerVaultBrowsePolicy.MAX_TOTAL_PAGES *
+                    LockerVaultBrowsePolicy.PAGE_SIZE)
             renderVault()
         }
         layout.addView(moreButton)
+        nextCloudPageButton = button("Load next cloud page") {
+            if (busy) {
+                status("Wait for the current transfer or Drive request to finish.")
+            } else if (!LockerVaultBrowsePolicy.canLoadMore(inventory)) {
+                status("No further safe continuation is available. Refresh to start a new scan.")
+            } else begin("more")
+        }
+        layout.addView(nextCloudPageButton)
         layout.addView(text("Upload only with permission. Tap a cloud track to review and " +
             "download it. Downloaded files are checked before entering Offline Library.",
             12f, 0xFF8AA0B3.toInt()))
@@ -298,6 +308,10 @@ class NightWaveLockerActivity : ComponentActivity() {
             return
         }
         if (action == "download" && download == null) return
+        if (action == "more" && !LockerVaultBrowsePolicy.canLoadMore(inventory)) {
+            status("Cloud cursor is unavailable. Refresh to browse again.")
+            return
+        }
         busy = true
         pendingAction = action
         pendingDownload = download
@@ -408,7 +422,8 @@ class NightWaveLockerActivity : ComponentActivity() {
                         if (!staging.exists()) checkpoints.discard()
                         throw error
                     }
-                } else client.inventory()
+                } else if (action == "more") client.inventoryMore(inventory)
+                else client.inventory()
             }
             if (journalId != null) {
                 val resultState = when (val value = outcome.getOrNull()) {
@@ -452,7 +467,11 @@ class NightWaveLockerActivity : ComponentActivity() {
                             })
                         }
                         is LockerCloudInventory -> {
-                            showInventory(value)
+                            if (action == "more") {
+                                // Keep user's search/filter/show-more state.
+                                inventory = value
+                                renderVault()
+                            } else showInventory(value)
                             status(if (value.hasMore)
                                 "${value.tracks.size} files listed. More cloud files exist beyond this scan."
                             else "${value.tracks.size} cloud audio files listed. Choose a verified song.")
@@ -469,9 +488,9 @@ class NightWaveLockerActivity : ComponentActivity() {
                         status("Upload could not be verified. No local song changed. " +
                             "Retry explicitly: NightWave first checks for a matching " +
                             "Drive copy before starting another session.")
-                    } else if (action == "list") {
-                        status("Cloud refresh failed. Previously listed songs, if shown, " +
-                            "may be stale. No local or Drive audio was modified.")
+                    } else if (action == "list" || action == "more") {
+                        status("Cloud browsing request failed. Previously listed songs, if shown, " +
+                            "may be stale; your music was not modified. Retry explicitly.")
                     } else {
                         status("Music Drive action failed; local audio was not modified. " +
                             "Check connection and try again.")
@@ -490,7 +509,7 @@ class NightWaveLockerActivity : ComponentActivity() {
     /** All browsing is on the already received metadata; no Drive search calls. */
     private fun renderVault() {
         if (!::listView.isInitialized || !::vaultSummary.isInitialized ||
-            !::moreButton.isInitialized) return
+            !::moreButton.isInitialized || !::nextCloudPageButton.isInitialized) return
         val summary = LockerVaultBrowsePolicy.summary(inventory)
         val matching = LockerVaultBrowsePolicy.browse(
             inventory, searchQuery, activeFilter, activeSort)
@@ -504,6 +523,7 @@ class NightWaveLockerActivity : ComponentActivity() {
             LockerVaultBrowsePolicy.bytesLabel(summary.listedBytes) +
             " in listed NightWave music" + warning + "\n" +
             "${matching.size} match current filters; showing ${shown.size}. " +
+            "Scanned ${inventory.pagesRead} Drive page(s). " +
             "This is not your total Google Drive usage."
         filterButton.text = when (activeFilter) {
             LockerVaultFilter.ALL -> "Filter: All ▾"
@@ -517,6 +537,14 @@ class NightWaveLockerActivity : ComponentActivity() {
         }
         moreButton.visibility = if (matching.size > shown.size) View.VISIBLE else View.GONE
         moreButton.text = "Show more · ${matching.size - shown.size} listed matches remaining"
+        val moreFromDrive = LockerVaultBrowsePolicy.canLoadMore(inventory)
+        nextCloudPageButton.visibility = if (moreFromDrive) View.VISIBLE else View.GONE
+        nextCloudPageButton.text =
+            "Load next Drive batch · ${inventory.pagesRead}/${LockerVaultBrowsePolicy.MAX_TOTAL_PAGES} pages"
+        if (inventory.hasMore && !moreFromDrive) {
+            status("Cloud inventory reached its safe scan limit. " +
+                "Listed totals are partial; no music has been changed.")
+        }
         listView.removeAllViews()
         if (matching.isEmpty()) {
             listView.addView(text(
