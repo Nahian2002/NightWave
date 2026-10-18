@@ -548,6 +548,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                     onPrepareSearch = { query, mode -> prepareSearch(query, mode) },
                     onWebSearch = { query -> openOfficialSearch(query) },
                     onPlay = { video, collection -> playback.play(video, collection) },
+                    onLibraryQuickPlay = { collection -> playback.playLibraryCollection(collection) },
                     onLegacyPlayer = { manageLibrary() },
                     onCreatePlaylist = {
                         promptPlaylistName { name ->
@@ -1400,6 +1401,7 @@ private fun StudioRoot(
     onWebSearch: (String) -> Unit,
     searchState: StudioSearchSnapshot,
     onPlay: (VideoPreview, List<VideoPreview>) -> Unit,
+    onLibraryQuickPlay: (List<VideoPreview>) -> Unit,
     onLegacyPlayer: () -> Unit,
     onCreatePlaylist: () -> Unit,
     onOfflineLibrary: () -> Unit,
@@ -1634,6 +1636,7 @@ private fun StudioRoot(
                         selectedPlaylist = selectedPlaylist,
                         onSelectPlaylist = { selectedPlaylist = it },
                         getPlaylist = getPlaylist, onPlay = onPlay,
+                        onQuickPlay = onLibraryQuickPlay,
                         onSongOptions = onSongOptions,
                         onSharePlaylist = onSharePlaylist,
                         onImportSharedPlaylist = onImportSharedPlaylist,
@@ -2211,6 +2214,7 @@ private fun StudioLibrary(
     playingUrl: String,
     selectedPlaylist: String?, onSelectPlaylist: (String?) -> Unit,
     getPlaylist: (String) -> List<VideoPreview>, onPlay: (VideoPreview, List<VideoPreview>) -> Unit,
+    onQuickPlay: (List<VideoPreview>) -> Unit,
     onManage: () -> Unit, onSearch: () -> Unit,
     onCreatePlaylist: () -> Unit, onOffline: () -> Unit,
     offlineResumeTitle: String?, offlineResumePositionMs: Long,
@@ -2244,6 +2248,9 @@ private fun StudioLibrary(
         else LibraryBrowsePolicy.songs(tracks, localFilter, sortMode)
     }
     val visibleTracks = if (selectedPlaylist == null) tracks.take(5) else orderedTracks
+    val quickPlayableTracks = remember(orderedTracks) {
+        LibraryQuickPlayPolicy.plan(orderedTracks, shuffle = false, seed = 0L).songs
+    }
     LazyColumn(modifier.fillMaxWidth().widthIn(max = 740.dp).fillMaxHeight(),
         contentPadding = PaddingValues(start = 19.dp, end = 19.dp,
             top = 19.dp, bottom = 40.dp),
@@ -2270,9 +2277,9 @@ private fun StudioLibrary(
                             onClick = {
                                 val plan = LibraryQuickPlayPolicy.plan(
                                     orderedTracks, shuffle = false, seed = 0L)
-                                plan.first?.let { onPlay(it, plan.songs) }
+                                plan.first?.let { onQuickPlay(plan.songs) }
                             },
-                            enabled = orderedTracks.isNotEmpty(),
+                            enabled = quickPlayableTracks.isNotEmpty(),
                             modifier = Modifier.weight(1f).height(46.dp),
                             shape = RoundedCornerShape(14.dp)
                         ) {
@@ -2282,9 +2289,9 @@ private fun StudioLibrary(
                             onClick = {
                                 val plan = LibraryQuickPlayPolicy.plan(
                                     orderedTracks, shuffle = true, seed = System.nanoTime())
-                                plan.first?.let { onPlay(it, plan.songs) }
+                                plan.first?.let { onQuickPlay(plan.songs) }
                             },
-                            enabled = orderedTracks.isNotEmpty(),
+                            enabled = quickPlayableTracks.isNotEmpty(),
                             modifier = Modifier.weight(1f).height(46.dp),
                             shape = RoundedCornerShape(14.dp)
                         ) {
