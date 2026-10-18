@@ -209,6 +209,137 @@ class NightWaveMusicDriveClient(private val token: String) {
         }
     }
 
+    /**
+     * Explicitly resumed foreground download. The file is re-authorized and
+     * remote metadata checked before using a local checkpoint. Range bytes
+     * are appended only after the server proves the exact requested offset.
+     * A failed network request retains only fsynced, journaled bytes.
+     */
+    fun downloadWithRecovery(
+        selected: LockerRemoteTrack,
+        stagingDirectory: File,
+        account: String,
+        checkpoints: LockerDownloadCheckpointStore,
+        progress: (Int) -> Unit
+    ): File {
+        LockerAudioPolicy.requireDownloadable(selected)
+        require(account.contains('@') && account.length in 3..254)
+        val parent = requireNotNull(folder(createIfMissing = false)) {
+            "No NightWave Music folder found"
+        }
+        val latest = listInFolder(parent).firstOrNull { it.id == selected.id }
+            ?: error("Selected cloud song disappeared; refresh the list")
+        require(latest == selected) { "Cloud audio changed; review before resuming" }
+        val metaUrl = "https://www.googleapis.com/drive/v3/files/${selected.id}"
+            .toHttpUrl().newBuilder()
+            .addQueryParameter("fields",
+                "id,name,mimeType,size,md5Checksum,appProperties,parents,capabilities(canDownload)")
+            .build().toString()
+        val metadata = json(request(metaUrl).get().build(), 32_000)
+        val props = metadata.optJSONObject("appProperties")
+        val fresh = LockerAudioPolicy.requireDownloadable(LockerRemoteTrack(
+            metadata.optString("id"), metadata.optString("name"),
+            metadata.optString("mimeType"), metadata.optString("size").toLongOrNull() ?: -1L,
+            metadata.optString("md5Checksum"),
+            props?.optString("nightwave_sha256").orEmpty(),
+            props?.optString("nightwave_local_id").orEmpty()
+        ))
+        require(fresh == selected && metadata.optJSONArray("parents")?.let { arr ->
+            (0 until arr.length()).any { arr.optString(it) == parent }
+        } == true &&
+            metadata.optJSONObject("capabilities")?.optBoolean("canDownload") == true) {
+            "Cloud download authorization or song identity changed"
+        }
+        val checkpoint = checkpoints.begin(account, selected)
+        val partial = checkpoints.stagedFile(checkpoint)
+        require(partial.parentFile == stagingDirectory.canonicalFile) {
+            "Download staging folder changed"
+        }
+        if (!partial.exists()) {
+            require(checkpoint.committedBytes == 0L && partial.createNewFile()) {
+                "Partial download disappeared; discard the old checkpoint"
+            }
+        }
+        require(partial.isFile && partial.canRead() &&
+            partial.length() >= checkpoint.committedBytes) {
+            "Partial file was truncated; discard the old checkpoint"
+        }
+
+        val endpoint = "https://www.googleapis.com/drive/v3/files/${selected.id}"
+            .toHttpUrl().newBuilder().addQueryParameter("alt", "media").build().toString()
+        // A crash can leave bytes beyond the last durable checkpoint. Never
+        // accept or request a Range based on those uncommitted bytes.
+        var attempts = 0
+        while (attempts < LockerResumePolicy.MAX_ATTEMPTS) {
+            check(!Thread.currentThread().isInterrupted) { "Download paused" }
+            val durable = requireNotNull(checkpoints.read()) { "Recovery record missing" }
+            require(durable.account.equals(account, true) && durable.remote == selected &&
+                durable.fileName == checkpoint.fileName) { "Recovery record changed" }
+            java.io.RandomAccessFile(partial, "rw").use { file ->
+                require(file.length() >= durable.committedBytes)
+                file.setLength(durable.committedBytes)
+            }
+            val offset = durable.committedBytes
+            if (offset == selected.bytes) break
+            try {
+                val builder = request(endpoint)
+                if (offset > 0L) builder.header("Range", "bytes=$offset-")
+                http.newCall(builder.get().build()).execute().use { response ->
+                    if (response.code in listOf(408, 429, 500, 502, 503, 504)) {
+                        throw java.io.IOException("Google Drive temporarily unavailable")
+                    }
+                    val body = response.body ?: error("Drive audio response missing")
+                    val span = LockerResumePolicy.verifiedSpan(
+                        offset, selected.bytes, response.code,
+                        response.header("Content-Range"), body.contentLength()
+                    )
+                    var received = 0L
+                    var sinceSync = 0L
+                    FileOutputStream(partial, true).use { output ->
+                        val input = body.byteStream()
+                        val buffer = ByteArray(32 * 1024)
+                        while (received < span) {
+                            check(!Thread.currentThread().isInterrupted) { "Download paused" }
+                            val count = input.read(buffer, 0,
+                                minOf(buffer.size.toLong(), span - received).toInt())
+                            if (count < 0) throw java.io.EOFException("Short Drive audio response")
+                            if (count == 0) throw java.io.IOException("Drive stalled during resume")
+                            received += count
+                            require(offset + received <= selected.bytes)
+                            output.write(buffer, 0, count)
+                            sinceSync += count
+                            if (sinceSync >= LockerResumePolicy.CHECKPOINT_STEP) {
+                                output.fd.sync()
+                                checkpoints.commit(durable, offset + received)
+                                progress(LockerResumePolicy.percent(offset + received, selected.bytes))
+                                sinceSync = 0L
+                            }
+                        }
+                        output.fd.sync()
+                        checkpoints.commit(durable, offset + received)
+                        progress(LockerResumePolicy.percent(offset + received, selected.bytes))
+                    }
+                }
+                attempts = 0
+            } catch (ex: java.io.IOException) {
+                attempts++
+                if (!LockerResumePolicy.shouldRetry(attempts, ex)) throw ex
+                check(!Thread.currentThread().isInterrupted) { "Download paused" }
+                Thread.sleep(250L * attempts)
+            }
+        }
+        val completed = requireNotNull(checkpoints.read()) { "Download checkpoint missing" }
+        require(completed.remote == selected && completed.committedBytes == selected.bytes &&
+            partial.length() == selected.bytes) { "Cloud audio transfer incomplete" }
+        val (sha256, md5) = LockerAudioPolicy.hashes(partial)
+        if (sha256 != selected.sha256 || !md5.equals(selected.md5, true)) {
+            checkpoints.discard()
+            error("Recovered download failed checksum verification")
+        }
+        progress(100)
+        return partial
+    }
+
     /** Upload one already-imported user audio file; no automatic media scraping. */
     fun upload(song: OfflineSong, file: File, progress: (Int) -> Unit): LockerUploadOutcome {
         LockerAudioPolicy.validateLocal(song, file)

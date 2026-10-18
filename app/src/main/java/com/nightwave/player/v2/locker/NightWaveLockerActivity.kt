@@ -32,6 +32,9 @@ class NightWaveLockerActivity : ComponentActivity() {
     private lateinit var listView: LinearLayout
     private lateinit var accountView: TextView
     private lateinit var uploadButton: TextView
+    private lateinit var checkpoints: LockerDownloadCheckpointStore
+    private lateinit var resumeButton: TextView
+    private lateinit var discardButton: TextView
     private var selected: OfflineSong? = null
     private var pendingAction = ""
     private var pendingDownload: LockerRemoteTrack? = null
@@ -61,6 +64,7 @@ class NightWaveLockerActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         offline = OfflineAudioLibrary(this)
         state = LockerAccountState(this)
+        checkpoints = LockerDownloadCheckpointStore(this)
         val id = intent.getStringExtra(EXTRA_OFFLINE_ID).orEmpty()
         selected = runCatching { offline.find(id) }.getOrNull()
         val layout = LinearLayout(this).apply {
@@ -89,6 +93,49 @@ class NightWaveLockerActivity : ComponentActivity() {
         }
         layout.addView(uploadButton)
         layout.addView(button("Refresh my uploaded songs") { begin("list") })
+        resumeButton = button("Resume interrupted download") {
+            if (busy) return@button
+            val saved = checkpoints.read()
+            if (saved == null) {
+                status("No incomplete download to resume.")
+                return@button
+            }
+            if (!saved.account.equals(state.account(), true)) {
+                status("Reconnect the original Google account to resume this download.")
+                return@button
+            }
+            AlertDialog.Builder(this)
+                .setTitle("Resume verified download?")
+                .setMessage("Resume ${saved.remote.name} from " +
+                    "${saved.committedBytes / 1024} KB of " +
+                    "${saved.remote.bytes / 1024} KB? " +
+                    "Google Drive will be reauthorized and the remote file rechecked.")
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Resume") { _, _ -> begin("download", saved.remote) }
+                .show()
+        }
+        layout.addView(resumeButton)
+        discardButton = button("Discard incomplete download") {
+            if (busy) return@button
+            val saved = checkpoints.read()
+            if (saved == null && !checkpoints.needsRepair()) return@button
+            AlertDialog.Builder(this)
+                .setTitle("Discard incomplete download?")
+                .setMessage(saved?.let {
+                    "Remove only the temporary download of ${it.remote.name} " +
+                        "from this phone. Drive audio and existing songs are untouched."
+                } ?: "Discard an unreadable recovery record? Google Drive audio " +
+                    "and saved songs are untouched. Unknown orphan temporary files " +
+                    "will not be deleted automatically.")
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Discard") { _, _ ->
+                    checkpoints.discard()
+                    updatePending()
+                    status("Temporary download discarded. Google Drive file preserved.")
+                }
+                .show()
+        }
+        layout.addView(discardButton)
         layout.addView(button("Disconnect this phone's music access") {
             if (busy) return@button
             if (state.disconnect()) {
@@ -109,6 +156,7 @@ class NightWaveLockerActivity : ComponentActivity() {
             12f, 0xFF8AA0B3.toInt()))
         setContentView(layout)
         updateAccount()
+        updatePending()
         status("Connect Google Drive, then choose a manual upload or browse your cloud library.")
     }
 
@@ -184,25 +232,31 @@ class NightWaveLockerActivity : ComponentActivity() {
                     }
                 } else if (action == "download") {
                     val track = requireNotNull(chosenRemote)
-                    val staging = client.downloadToStaging(track,
-                        File(filesDir, "locker_staging")) { percent ->
+                    val staging = client.downloadWithRecovery(
+                        track, File(filesDir, "locker_staging"),
+                        expected, checkpoints
+                    ) { percent ->
                         runOnUiThread {
                             if (!isFinishing && !isDestroyed)
                                 status("Downloading and verifying audio… $percent%")
                         }
                     }
                     try {
-                        offline.importVerifiedCloud(staging, track)
-                    } finally {
-                        // The import moves a verified file into offline_audio.
-                        // Every failed/incomplete staged copy is cleaned up.
-                        staging.delete()
+                        val imported = offline.importVerifiedCloud(staging, track)
+                        checkpoints.discard()
+                        imported
+                    } catch (error: Exception) {
+                        // If import moved the staging file but index commit
+                        // failed, its old checkpoint must not be replayed.
+                        if (!staging.exists()) checkpoints.discard()
+                        throw error
                     }
                 } else client.list()
             }
             runOnUiThread {
                 if (isFinishing || isDestroyed) return@runOnUiThread
                 busy = false
+                updatePending()
                 if (!state.account().equals(expected, true)) {
                     status("Account changed. Result discarded.")
                     return@runOnUiThread
@@ -232,8 +286,13 @@ class NightWaveLockerActivity : ComponentActivity() {
                         }
                     }
                 }.onFailure {
-                    status("Music Drive action failed; local audio was not modified. " +
-                        "Check connection and try again.")
+                    if (action == "download" && checkpoints.read() != null) {
+                        status("Download interrupted. Resume after checking your connection, " +
+                            "or discard the temporary copy. Saved songs are unchanged.")
+                    } else {
+                        status("Music Drive action failed; local audio was not modified. " +
+                            "Check connection and try again.")
+                    }
                 }
             }
         }
@@ -275,6 +334,21 @@ class NightWaveLockerActivity : ComponentActivity() {
         if (songs.size > LockerAudioPolicy.MAX_VISIBLE)
             listView.addView(text("Additional uploads are not displayed in this first release.",
                 12f, 0xFFABBCCE.toInt()))
+    }
+
+    private fun updatePending() {
+        if (!::resumeButton.isInitialized || !::discardButton.isInitialized) return
+        val pending = checkpoints.read()
+        val repair = checkpoints.needsRepair()
+        resumeButton.visibility = if (pending == null) android.view.View.GONE
+            else android.view.View.VISIBLE
+        discardButton.visibility = if (pending == null && !repair) android.view.View.GONE
+            else android.view.View.VISIBLE
+        discardButton.text = if (repair) "Discard damaged download checkpoint"
+            else "Discard incomplete download"
+        resumeButton.text = pending?.let {
+            "Resume: ${it.remote.name} (${LockerResumePolicy.percent(it.committedBytes, it.remote.bytes)}%)"
+        } ?: "Resume interrupted download"
     }
 
     private fun updateAccount() {
