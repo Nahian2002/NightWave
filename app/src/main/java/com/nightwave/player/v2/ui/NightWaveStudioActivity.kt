@@ -10,6 +10,8 @@ import androidx.activity.result.IntentSenderRequest
 import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.auth.api.identity.AuthorizationResult
 import com.nightwave.player.v2.lyrics.PrivateLyricsStore
+import com.nightwave.player.v2.lyrics.PrivateLyricsOffsetStore
+import com.nightwave.player.v2.lyrics.LyricsSyncPolicy
 import com.nightwave.player.v2.lyrics.TimedLyrics
 import com.nightwave.player.v2.lyrics.TimedLyricsCodec
 import com.nightwave.player.v2.insights.ListeningInsights
@@ -203,6 +205,8 @@ class NightWaveStudioActivity : ComponentActivity() {
     private var listeningLevelPercent by mutableStateOf(ListeningLevelPolicy.DEFAULT_PERCENT)
     private lateinit var archiveManager: LibraryArchiveManager
     private lateinit var lyricsStore: PrivateLyricsStore
+    private lateinit var lyricsOffsetStore: PrivateLyricsOffsetStore
+    private var currentLyricsOffsetMs by mutableStateOf(0)
     private lateinit var listeningMemoryStore: ListeningMemoryStore
     private var memorySummary by mutableStateOf(
         ListeningMemorySummary(false, 0L, 0, 0, emptyList())
@@ -365,6 +369,7 @@ class NightWaveStudioActivity : ComponentActivity() {
         listeningLevelPercent = listeningLevelStore.read()
         archiveManager = LibraryArchiveManager(this)
         lyricsStore = PrivateLyricsStore(this)
+        lyricsOffsetStore = PrivateLyricsOffsetStore(this)
         listeningMemoryStore = ListeningMemoryStore(this)
         refreshListeningMemory()
         cloudStore = CloudBackupState(this)
@@ -397,14 +402,19 @@ class NightWaveStudioActivity : ComponentActivity() {
             }
             LaunchedEffect(playback.state.videoUrl, lyricsRevision) {
                 loadedLyrics = null
+                currentLyricsOffsetMs = 0
                 val current = playback.state.videoUrl
                 if (current.startsWith("offline:")) {
                     val id = current.removePrefix("offline:")
                     val result = withContext(Dispatchers.IO) {
-                        runCatching { lyricsStore.read(id) }.getOrNull()
+                        val lines = runCatching { lyricsStore.read(id) }.getOrNull()
+                        val offset = if (lines != null)
+                            lyricsOffsetStore.read(id) else 0
+                        lines to offset
                     }
-                    if (playback.state.videoUrl == current && result != null) {
-                        loadedLyrics = id to result
+                    if (playback.state.videoUrl == current && result.first != null) {
+                        loadedLyrics = id to requireNotNull(result.first)
+                        currentLyricsOffsetMs = result.second
                     }
                 }
             }
@@ -480,6 +490,29 @@ class NightWaveStudioActivity : ComponentActivity() {
                     currentLyrics = loadedLyrics?.takeIf {
                         playback.state.videoUrl == "offline:" + it.first
                     }?.second,
+                    lyricsOffsetMs = currentLyricsOffsetMs,
+                    onLyricsOffsetChange = { desiredOffset ->
+                        val current = playback.state.videoUrl
+                        val id = current.takeIf {
+                            it.startsWith("offline:")
+                        }?.removePrefix("offline:")
+                        if (id != null && loadedLyrics?.first == id &&
+                            LyricsSyncPolicy.validOffset(desiredOffset)) {
+                            lifecycleScope.launch {
+                                val saved = withContext(Dispatchers.IO) {
+                                    runCatching {
+                                        lyricsOffsetStore.save(id, desiredOffset)
+                                    }.getOrDefault(false)
+                                }
+                                if (saved && playback.state.videoUrl == current &&
+                                    loadedLyrics?.first == id) {
+                                    currentLyricsOffsetMs = desiredOffset
+                                } else if (!saved) {
+                                    showMessage("Lyric timing could not be saved.")
+                                }
+                            }
+                        }
+                    },
                     onImportLyrics = {
                         val id = playback.state.videoUrl.takeIf {
                             it.startsWith("offline:")
@@ -1531,6 +1564,8 @@ private fun StudioRoot(
     onMemoryErase: () -> Unit,
     onMemoryRefresh: () -> Unit,
     currentLyrics: TimedLyrics?,
+    lyricsOffsetMs: Int,
+    onLyricsOffsetChange: (Int) -> Unit,
     onImportLyrics: () -> Unit,
     onRemoveLyrics: () -> Unit,
     offlineResumeTitle: String?,
@@ -1851,6 +1886,8 @@ private fun StudioRoot(
         listeningLevelPercent = listeningLevelPercent,
         onListeningLevel = onListeningLevel,
         lyrics = currentLyrics,
+        lyricsOffsetMs = lyricsOffsetMs,
+        onLyricsOffsetChange = onLyricsOffsetChange,
         onImportLyrics = onImportLyrics,
         onRemoveLyrics = onRemoveLyrics,
         onDismiss = { expanded = false }
