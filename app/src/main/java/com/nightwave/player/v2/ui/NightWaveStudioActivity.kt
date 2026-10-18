@@ -226,7 +226,7 @@ class NightWaveStudioActivity : ComponentActivity() {
     )
     private var memoryReadGeneration = 0
     private var pendingLyricsId: String? = null
-    private var lyricsImportEpoch = 0
+    @Volatile private var lyricsImportEpoch = 0
     private var lyricsRevision by mutableStateOf(0)
     private var loadedLyrics by mutableStateOf<Pair<String, TimedLyrics>?>(null)
     private lateinit var cloudStore: CloudBackupState
@@ -364,6 +364,10 @@ class NightWaveStudioActivity : ComponentActivity() {
                 lifecycleScope.launch {
                     val saved = withContext(Dispatchers.IO) {
                         runCatching {
+                            check(requestEpoch == lyricsImportEpoch &&
+                                playback.state.videoUrl == "offline:$id") {
+                                "The selected offline song changed before saving"
+                            }
                             lyricsStore.saveReviewed(
                                 id, selection.bytes, selection.previousFingerprint)
                         }
