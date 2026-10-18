@@ -40,7 +40,7 @@ try {
 import com.nightwave.player.v2.lyrics.*
 
 fun main() {
-    val raw = "[00:01.000]Hello\\n[00:02.000]World\\n[00:03.000]HELLO"
+    val raw = "[00:01.000]Hello\n[00:02.000]World\n[00:03.000]HELLO"
     val original = TimedLyricsCodec.parse(raw.toByteArray(Charsets.UTF_8))
     check(original.cues.size == 3)
     val base = LyricsEditorPolicy.begin(original)
@@ -66,7 +66,7 @@ fun main() {
     check(exported.unsavedDraft)
     check(TimedLyricsCodec.parse(exported.bytes).cues == moved.cues)
     val review = LyricsImportReviewPolicy.inspect(
-        "[ti:Different Title]\\n[00:01.000]One".replace("\\n", "\n")
+        "[ti:Different Title]\n[00:01.000]One"
             .toByteArray(Charsets.UTF_8), "Test.lrc", "Other Title", 5000
     )
     check(review.match == LyricsImportMatch.DIFFERENT)
