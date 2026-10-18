@@ -161,6 +161,73 @@ fun NightWaveLyricsEditorDialog(
                     }, enabled = !saving && selected < draft.cues.lastIndex,
                         modifier = Modifier.weight(1f)) { Text("Next") }
                 }
+                // Search uses the current unsaved draft. It does not
+                // open files, change the playing position or send network data.
+                Surface(
+                    color = colors.surfaceVariant.copy(alpha = 0.58f),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth().testTag("lyrics-search-panel")
+                ) {
+                    Column(Modifier.padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                        Row(Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedTextField(
+                                value = searchQuery,
+                                onValueChange = { incoming ->
+                                    if (incoming.length <= LyricsEditorSearchPolicy.MAX_QUERY_LENGTH)
+                                        searchQuery = incoming
+                                },
+                                label = { Text("Search lyric words or 00:12") },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f).testTag("lyrics-search-input")
+                            )
+                            TextButton(onClick = { searchQuery = "" },
+                                enabled = searchQuery.isNotEmpty(),
+                                modifier = Modifier.heightIn(min = 48.dp)) {
+                                Text("Clear")
+                            }
+                        }
+                        if (searchQuery.isNotBlank()) {
+                            Text(
+                                if (searchMatches.isEmpty()) "No matching lyric lines"
+                                else if (searchOrdinal != null)
+                                    "Match $searchOrdinal of ${searchMatches.size} · ${draft.cues.size} lines"
+                                else "${searchMatches.size} matches · Choose Next match",
+                                color = if (searchMatches.isEmpty()) colors.onSurfaceVariant
+                                    else colors.primary,
+                                style = MaterialTheme.typography.labelMedium,
+                                modifier = Modifier.testTag("lyrics-search-status")
+                            )
+                            Row(Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                OutlinedButton(
+                                    onClick = {
+                                        LyricsEditorSearchPolicy.nearest(
+                                            searchMatches, selected, false)?.let {
+                                            selected = it
+                                        }
+                                    },
+                                    enabled = !saving && searchMatches.isNotEmpty(),
+                                    modifier = Modifier.weight(1f).heightIn(min = 48.dp)
+                                        .testTag("lyrics-match-previous")
+                                ) { Text("Previous match") }
+                                OutlinedButton(
+                                    onClick = {
+                                        LyricsEditorSearchPolicy.nearest(
+                                            searchMatches, selected, true)?.let {
+                                            selected = it
+                                        }
+                                    },
+                                    enabled = !saving && searchMatches.isNotEmpty(),
+                                    modifier = Modifier.weight(1f).heightIn(min = 48.dp)
+                                        .testTag("lyrics-match-next")
+                                ) { Text("Next match") }
+                            }
+                        }
+                    }
+                }
                 LaunchedEffect(draft.cues.size) {
                     selected = LyricsEditorNavigationPolicy.clamp(selected, draft.cues.size)
                 }
