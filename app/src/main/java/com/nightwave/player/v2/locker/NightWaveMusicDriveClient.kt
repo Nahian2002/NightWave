@@ -357,26 +357,9 @@ class NightWaveMusicDriveClient(private val token: String) {
         val bytes = readLimited(response.body?.byteStream()
             ?: error("Missing Drive upload acknowledgement"), 16_384)
         val data = JSONObject(bytes.toString(Charsets.UTF_8))
-        val props = data.optJSONObject("appProperties")
-        val track = LockerAudioPolicy.requireDownloadable(LockerRemoteTrack(
-            data.optString("id"), data.optString("name"),
-            data.optString("mimeType"),
-            data.optString("size").toLongOrNull() ?: -1,
-            data.optString("md5Checksum"),
-            props?.optString("nightwave_sha256").orEmpty(),
-            props?.optString("nightwave_local_id").orEmpty()
-        ))
-        require(track.bytes == song.bytes && track.mimeType == song.mimeType &&
-            track.name == LockerAudioPolicy.fileName(song) &&
-            track.sourceLocalId == song.id &&
-            track.md5.equals(md5, ignoreCase = true) &&
-            track.sha256 == sha256 &&
-            data.optJSONArray("parents")?.let { parents ->
-                (0 until parents.length()).any { parents.optString(it) == expectedParent }
-            } == true) {
-            "Drive upload completed with mismatched audio metadata"
-        }
-        return LockerUploadOutcome(track, created = true)
+        return LockerDriveReceiptPolicy.requireCompletedUpload(
+            data, song, expectedParent, sha256, md5
+        )
     }
 
     private sealed class UploadProbe {
