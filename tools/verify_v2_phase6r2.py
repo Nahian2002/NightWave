@@ -89,10 +89,10 @@ assert 'setTitle("Download to NightWave?")' in ui
 assert 'setPositiveButton("Download to phone")' in ui
 assert 'begin("download", song)' in ui
 assert "LockerAudioPolicy.requireDownloadable(song)" in ui
-assert "client.downloadToStaging(track," in ui
+assert "client.downloadWithRecovery(" in ui
 assert 'File(filesDir, "locker_staging")' in ui
 assert "offline.importVerifiedCloud(staging, track)" in ui
-assert "staging.delete()" in ui
+assert "checkpoints.discard()" in ui
 assert "is CloudOfflineImportResult ->" in ui
 assert "Original song ID retained for LRC recovery" in ui
 assert "No local audio selected for upload." in ui
