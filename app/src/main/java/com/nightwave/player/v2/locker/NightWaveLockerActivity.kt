@@ -5,6 +5,10 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
 import android.view.Gravity
+import android.view.View
+import android.text.Editable
+import android.text.TextWatcher
+import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
@@ -32,6 +36,16 @@ class NightWaveLockerActivity : ComponentActivity() {
     private lateinit var listView: LinearLayout
     private lateinit var accountView: TextView
     private lateinit var uploadButton: TextView
+    private lateinit var vaultSummary: TextView
+    private lateinit var moreButton: TextView
+    private lateinit var sortButton: TextView
+    private lateinit var filterButton: TextView
+    private lateinit var transferView: TextView
+    private var inventory = LockerCloudInventory(emptyList())
+    private var searchQuery = ""
+    private var activeFilter = LockerVaultFilter.ALL
+    private var activeSort = LockerVaultSort.NAME
+    private var shownCount = LockerVaultBrowsePolicy.PAGE_INCREMENT
     private lateinit var checkpoints: LockerDownloadCheckpointStore
     private lateinit var resumeButton: TextView
     private lateinit var discardButton: TextView
@@ -140,7 +154,7 @@ class NightWaveLockerActivity : ComponentActivity() {
             if (busy) return@button
             if (state.disconnect()) {
                 updateAccount()
-                listView.removeAllViews()
+                showInventory(LockerCloudInventory(emptyList()))
                 status("Disconnected on this phone. Music files remain in Google Drive.")
             }
         })
@@ -148,9 +162,71 @@ class NightWaveLockerActivity : ComponentActivity() {
             setPadding(0, dp(12), 0, dp(12))
         }
         layout.addView(statusView)
+        transferView = text("No transfer active · One verified transfer at a time.",
+            12f, 0xFF9DE4D8.toInt())
+        layout.addView(transferView)
+        vaultSummary = text("Cloud library not loaded yet.", 12f, 0xFFBAC8D4.toInt())
+            .apply { setPadding(0, dp(8), 0, dp(6)) }
+        layout.addView(vaultSummary)
+        val search = EditText(this).apply {
+            hint = "Search your listed cloud songs"
+            setSingleLine(true)
+            textSize = 14f
+            setTextColor(Color.WHITE)
+            setHintTextColor(0xFF8095A8.toInt())
+            setBackgroundColor(0xFF172432.toInt())
+            setPadding(dp(12), dp(6), dp(12), dp(6))
+            addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(
+                    s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun onTextChanged(
+                    s: CharSequence?, start: Int, before: Int, count: Int) {
+                    searchQuery = s?.toString().orEmpty()
+                    shownCount = LockerVaultBrowsePolicy.PAGE_INCREMENT
+                    if (::listView.isInitialized) renderVault()
+                }
+                override fun afterTextChanged(s: Editable?) {}
+            })
+        }
+        layout.addView(search, LinearLayout.LayoutParams(-1, dp(44)))
+        val browseControls = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        filterButton = button("Filter: All ▾") {
+            val names = arrayOf("All listed", "Verified downloads", "Needs attention")
+            AlertDialog.Builder(this)
+                .setTitle("Cloud library filter")
+                .setSingleChoiceItems(names, activeFilter.ordinal) { dialog, which ->
+                    activeFilter = LockerVaultFilter.values()[which]
+                    shownCount = LockerVaultBrowsePolicy.PAGE_INCREMENT
+                    dialog.dismiss()
+                    renderVault()
+                }.setNegativeButton("Cancel", null).show()
+        }
+        browseControls.addView(filterButton, LinearLayout.LayoutParams(0, dp(45), 1f))
+        sortButton = button("Sort: Name ▾") {
+            val names = arrayOf("Name A–Z", "Largest first", "Smallest first")
+            AlertDialog.Builder(this)
+                .setTitle("Sort cloud songs")
+                .setSingleChoiceItems(names, activeSort.ordinal) { dialog, which ->
+                    activeSort = LockerVaultSort.values()[which]
+                    shownCount = LockerVaultBrowsePolicy.PAGE_INCREMENT
+                    dialog.dismiss()
+                    renderVault()
+                }.setNegativeButton("Cancel", null).show()
+        }
+        browseControls.addView(sortButton, LinearLayout.LayoutParams(0, dp(45), 1f))
+        layout.addView(browseControls)
         listView = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         layout.addView(ScrollView(this).apply { addView(listView) },
             LinearLayout.LayoutParams(-1, 0, 1f))
+        moreButton = button("Show more listed songs") {
+            shownCount = (shownCount + LockerVaultBrowsePolicy.PAGE_INCREMENT)
+                .coerceAtMost(LockerVaultBrowsePolicy.MAX_PAGES * LockerVaultBrowsePolicy.PAGE_SIZE)
+            renderVault()
+        }
+        layout.addView(moreButton)
         layout.addView(text("Upload only with permission. Tap a cloud track to review and " +
             "download it. Downloaded files are checked before entering Offline Library.",
             12f, 0xFF8AA0B3.toInt()))
@@ -171,6 +247,9 @@ class NightWaveLockerActivity : ComponentActivity() {
         pendingAction = action
         pendingDownload = download
         status("Requesting limited Google Drive music permission…")
+        if (action == "upload" || action == "download") {
+            transferView.text = "Preparing verified " + action + "…"
+        }
         Identity.getAuthorizationClient(this)
             .authorize(NightWaveLockerAuthorization.request(state.account().takeIf { it.isNotBlank() }))
             .addOnSuccessListener { response ->
@@ -226,8 +305,10 @@ class NightWaveLockerActivity : ComponentActivity() {
                     }
                     client.upload(song, file) { percent ->
                         runOnUiThread {
-                            if (!isFinishing && !isDestroyed)
+                            if (!isFinishing && !isDestroyed) {
                                 status("Uploading authorized audio… $percent%")
+                                transferView.text = "Upload · $percent% (verification required)"
+                            }
                         }
                     }
                 } else if (action == "download") {
@@ -237,8 +318,10 @@ class NightWaveLockerActivity : ComponentActivity() {
                         expected, checkpoints
                     ) { percent ->
                         runOnUiThread {
-                            if (!isFinishing && !isDestroyed)
+                            if (!isFinishing && !isDestroyed) {
                                 status("Downloading and verifying audio… $percent%")
+                                transferView.text = "Download · $percent% (verification required)"
+                            }
                         }
                     }
                     try {
@@ -251,7 +334,7 @@ class NightWaveLockerActivity : ComponentActivity() {
                         if (!staging.exists()) checkpoints.discard()
                         throw error
                     }
-                } else client.list()
+                } else client.inventory()
             }
             runOnUiThread {
                 if (isFinishing || isDestroyed) return@runOnUiThread
@@ -264,11 +347,15 @@ class NightWaveLockerActivity : ComponentActivity() {
                 outcome.onSuccess { value ->
                     when (value) {
                         is LockerUploadOutcome -> {
+                            transferView.text = if (value.created)
+                                "Upload complete · Google Drive verified"
+                            else "Existing verified cloud copy reused"
                             status(if (value.created) "Audio uploaded and checksum verified."
                                 else "Matching uploaded song already exists.")
                             // A later explicit refresh lists remote files.
                         }
                         is CloudOfflineImportResult -> {
+                            transferView.text = "Download complete · Saved audio verified"
                             status(when {
                                 !value.created ->
                                     "This audio is already saved offline; no duplicate was added."
@@ -278,14 +365,17 @@ class NightWaveLockerActivity : ComponentActivity() {
                                     "Downloaded and verified. Saved as a new offline song."
                             })
                         }
-                        is List<*> -> {
-                            @Suppress("UNCHECKED_CAST")
-                            val songs = value.filterIsInstance<LockerRemoteTrack>()
-                            showSongs(songs)
-                            status("${songs.size} cloud audio files found. Tap a track to download.")
+                        is LockerCloudInventory -> {
+                            showInventory(value)
+                            status(if (value.hasMore)
+                                "${value.tracks.size} files listed. More cloud files exist beyond this scan."
+                            else "${value.tracks.size} cloud audio files listed. Choose a verified song.")
                         }
                     }
                 }.onFailure {
+                    if (action == "upload" || action == "download") {
+                        transferView.text = "Transfer interrupted or unverified · No success recorded"
+                    }
                     if (action == "download" && checkpoints.read() != null) {
                         status("Download interrupted. Resume after checking your connection, " +
                             "or discard the temporary copy. Saved songs are unchanged.")
