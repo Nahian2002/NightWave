@@ -55,6 +55,7 @@ import com.nightwave.player.v2.lyrics.TimedLyrics
  */
 @Composable
 fun NightWaveLyricsEditorDialog(
+    songId: String,
     songTitle: String,
     draft: LyricsEditorDraft,
     dirty: Boolean,
@@ -71,8 +72,8 @@ fun NightWaveLyricsEditorDialog(
 ) {
     val colors = MaterialTheme.colorScheme
     val listState = rememberLazyListState()
-    var selected by rememberSaveable { mutableStateOf(0) }
-    var searchQuery by rememberSaveable { mutableStateOf("") }
+    var selected by rememberSaveable(songId) { mutableStateOf(0) }
+    var searchQuery by rememberSaveable(songId) { mutableStateOf("") }
     var editingCue by remember { mutableStateOf<LyricCue?>(null) }
     var deletingCue by remember { mutableStateOf<LyricCue?>(null) }
     var editingText by remember { mutableStateOf("") }
@@ -249,6 +250,7 @@ fun NightWaveLyricsEditorDialog(
                     contentPadding = PaddingValues(bottom = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     itemsIndexed(draft.cues, key = { index, _ -> index }) { index, cue ->
+                        val searchHit = index in searchMatchSet
                         Surface(onClick = { selected = index }, enabled = !saving,
                             modifier = Modifier.fillMaxWidth()
                                 .semantics {
@@ -256,11 +258,15 @@ fun NightWaveLyricsEditorDialog(
                                         "Selected lyric line" else "Not selected"
                                     contentDescription = "Lyric line " + (index + 1) +
                                         " of " + draft.cues.size + ", " +
-                                        LyricsEditorPolicy.timeLabel(cue.timeMs) + ", " + cue.text
+                                        LyricsEditorPolicy.timeLabel(cue.timeMs) + ", " + cue.text +
+                                        if (searchHit) ", search match" else ""
                                 }
                                 .testTag("lyrics-edit-row-$index"),
-                            color = if (index == selected) colors.primaryContainer
-                                else colors.surfaceVariant,
+                            color = when {
+                                index == selected -> colors.primaryContainer
+                                searchHit -> colors.tertiaryContainer.copy(alpha = 0.62f)
+                                else -> colors.surfaceVariant
+                            },
                             shape = androidx.compose.foundation.shape.RoundedCornerShape(14.dp)
                         ) {
                             Column(Modifier.padding(12.dp),
@@ -269,16 +275,26 @@ fun NightWaveLyricsEditorDialog(
                                     Text(LyricsEditorPolicy.timeLabel(cue.timeMs),
                                         style = MaterialTheme.typography.labelLarge,
                                         fontWeight = FontWeight.Bold,
-                                        color = colors.primary)
+                                        color = if (index == selected)
+                                            colors.onPrimaryContainer else colors.primary)
                                     Spacer(Modifier.weight(1f))
+                                    if (searchHit) {
+                                        Text("MATCH", color = if (index == selected)
+                                            colors.onPrimaryContainer else colors.onTertiaryContainer,
+                                            style = MaterialTheme.typography.labelSmall)
+                                    }
                                     if (index == current) {
-                                        Text("PLAYING", color = colors.primary,
+                                        Text("PLAYING", color = if (index == selected)
+                                            colors.onPrimaryContainer else colors.primary,
                                             style = MaterialTheme.typography.labelSmall)
                                     }
                                 }
                                 Text(cue.text, style = MaterialTheme.typography.bodyLarge,
-                                    color = if (index == selected)
-                                        colors.onPrimaryContainer else colors.onSurface)
+                                    color = when {
+                                        index == selected -> colors.onPrimaryContainer
+                                        searchHit -> colors.onTertiaryContainer
+                                        else -> colors.onSurface
+                                    })
                                 Row(Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween) {
                                     TextButton(onClick = {
