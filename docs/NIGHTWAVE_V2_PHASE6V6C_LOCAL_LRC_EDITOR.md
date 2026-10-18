@@ -64,6 +64,11 @@ capability was added.
 - The original Windows pipeline must still pass
   `testDebugUnitTest`, `assembleDebug`,
   `compileDebugAndroidTestKotlin`, and APK identity/signature checks.
+- **Isolated Kotlin 1.9 JVM smoke compilation passed:** the lyric editor
+  policy and existing parser were compiled locally, with 11 core editing
+  assertions passing. An additional large-file stress run confirmed the
+  64 KiB cap rejected an edit after 242 valid modifications. This smoke
+  harness is not the full Gradle/JUnit suite or an Android/Compose build.
 - **No APK is certified by source contract checks alone.** Full Compose
   compilation, unit-test execution and emulator/device smoke checks are
   independent release requirements.
