@@ -7,6 +7,10 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
+import java.nio.file.Files
+import java.util.Locale
+import com.nightwave.player.v2.locker.LockerAudioPolicy
+import com.nightwave.player.v2.locker.LockerRemoteTrack
 import java.util.UUID
 
 /**
@@ -135,6 +139,72 @@ class OfflineAudioLibrary(private val context: Context) {
         }
     }
 
+    /**
+     * Accept a complete, SHA+MD5 verified app-private staging file only.
+     * No SAF URI, cloud permission, stream link or unverified remote metadata
+     * can be used as a shortcut to register playback.
+     *
+     * Duplicate content is reused, never overwritten. When possible the
+     * original private NightWave song ID is preserved so already backed-up
+     * LRC lyrics can be attached after explicit cloud-library restore.
+     */
+    @Synchronized
+    fun importVerifiedCloud(
+        staged: File, remote: LockerRemoteTrack
+    ): CloudOfflineImportResult {
+        LockerAudioPolicy.requireDownloadable(remote)
+        val stagedRoot = File(context.applicationContext.filesDir, "locker_staging").canonicalFile
+        val file = staged.canonicalFile
+        require(file.parentFile == stagedRoot &&
+            Regex("[0-9a-f-]{36}\\.pending").matches(file.name)) {
+            "Refusing untrusted staged audio location"
+        }
+        require(file.isFile && file.canRead() && file.length() == remote.bytes) {
+            "Staged audio incomplete"
+        }
+        val (sha, md5) = LockerAudioPolicy.hashes(file)
+        require(sha == remote.sha256 && md5.equals(remote.md5, true)) {
+            "Staged audio checksum mismatch"
+        }
+        val previous = songs()
+        for (song in previous) {
+            if (song.bytes != remote.bytes || song.mimeType != remote.mimeType) continue
+            val current = fileFor(song) ?: continue
+            if (LockerAudioPolicy.hashes(current).first == sha) {
+                return CloudOfflineImportResult(song, created = false,
+                    originalIdPreserved = song.id == remote.sourceLocalId)
+            }
+        }
+        require(previous.size < MAX_SONGS) { "Offline library reached 400 songs" }
+        require(previous.sumOf { it.bytes } + remote.bytes <= MAX_LIBRARY_BYTES) {
+            "Not enough NightWave offline library space"
+        }
+        val songId = LockerAudioPolicy.chooseRestoredId(remote) { id ->
+            previous.any { song -> song.id == id } || File(root, id).exists()
+        }
+        val saved = OfflineSong(
+            songId, LockerAudioPolicy.safeTitle(remote.name), remote.mimeType, remote.bytes
+        )
+        require(root.isDirectory || root.mkdirs()) { "Offline storage unavailable" }
+        val finalFile = File(root, songId)
+        require(!finalFile.exists()) { "Offline filename already exists" }
+        // Both directories live under app filesDir, so Files.move is local.
+        // With no REPLACE_EXISTING option, an existing destination is not replaced.
+        Files.move(file.toPath(), finalFile.toPath())
+        try {
+            check(prefs.edit().putString("items", encode(previous + saved)).commit()) {
+                "Could not register the downloaded audio"
+            }
+        } catch (error: Exception) {
+            // No persisted library entry means the new file must not remain as
+            // a hidden, unindexed download. Older tracks remain untouched.
+            finalFile.delete()
+            throw error
+        }
+        return CloudOfflineImportResult(saved, created = true,
+            originalIdPreserved = saved.id == remote.sourceLocalId)
+    }
+
     @Synchronized
     fun delete(song: OfflineSong): Boolean {
         val previous = songs()
@@ -145,3 +215,8 @@ class OfflineAudioLibrary(private val context: Context) {
         return true
     }
 }
+
+/** A separate result prevents a duplicate cloud download from changing local IDs. */
+data class CloudOfflineImportResult(
+    val song: OfflineSong, val created: Boolean, val originalIdPreserved: Boolean
+)
