@@ -146,6 +146,16 @@ try {
         throw 'Phase 6P integration preflight failed; Android build was not started.'
     }
     Say 'Cross-phase source preflight PASS (not Gradle compilation).'
+    $stage = 'Phase 6V cloud and Android integration preflight'
+    $phase6v = Join-Path $PSScriptRoot 'check-phase6v-integration.ps1'
+    if (-not (Test-Path -LiteralPath $phase6v -PathType Leaf)) {
+        throw 'NightWave Phase 6V integration preflight is missing.'
+    }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $phase6v
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Phase 6V cloud/integration preflight failed. No Android build was started.'
+    }
+    Say '6V source/cloud integration PASS (still not Kotlin compilation).'
     $stage = 'Java preparation'
     Resolve-Java
 
