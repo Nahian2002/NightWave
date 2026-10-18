@@ -304,6 +304,7 @@ fun StudioNowPlayingOverlay(
             val canSwipeArtwork = state.connected && !state.buffering && state.queue.size > 1
             var horizontalTravel by remember(state.videoUrl) { mutableStateOf(0f) }
             var lyricsOpen by remember(state.videoUrl) { mutableStateOf(false) }
+            var lyricsGuideOpen by remember(state.videoUrl) { mutableStateOf(false) }
             var lyricsImmersive by remember(state.videoUrl) { mutableStateOf(false) }
             var sleepOptionsOpen by remember { mutableStateOf(false) }
             var speedOptionsOpen by remember { mutableStateOf(false) }
@@ -744,6 +745,47 @@ fun StudioNowPlayingOverlay(
                 }
                 if (lyricsOpen) {
                     Spacer(Modifier.height(10.dp))
+                    if (state.offline) {
+                        OutlinedButton(
+                            onClick = { lyricsGuideOpen = !lyricsGuideOpen },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(if (lyricsGuideOpen) "Hide LRC import guide"
+                                else "How to import synchronized lyrics")
+                        }
+                        if (lyricsGuideOpen) {
+                            Surface(
+                                modifier = Modifier.fillMaxWidth()
+                                    .padding(top = 8.dp, bottom = 10.dp),
+                                color = colors.surfaceVariant.copy(alpha = 0.55f),
+                                shape = RoundedCornerShape(14.dp)
+                            ) {
+                                Column(
+                                    Modifier.padding(14.dp),
+                                    verticalArrangement = Arrangement.spacedBy(7.dp)
+                                ) {
+                                    Text("TIMESTAMPED LRC · QUICK GUIDE",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = colors.primary)
+                                    Text("[00:12.50] First lyric line",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = colors.onSurface)
+                                    Text("[00:15.25] Next lyric line",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = colors.onSurface)
+                                    Text("Choose a UTF-8 .lrc file under 64 KB. " +
+                                        "NightWave reviews song-name hints, timestamp problems " +
+                                        "and an optional replacement before saving.",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = colors.onSurfaceVariant)
+                                    Text("LRC files must be supplied by you. " +
+                                        "Matching filenames do not prove matching lyrics.",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = colors.onSurfaceVariant)
+                                }
+                            }
+                        }
+                    }
                     if (!state.offline) {
                         Text("Synchronized lyrics are not available for public videos. " +
                             "NightWave does not copy lyrics from streaming sites.",
