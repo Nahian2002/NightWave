@@ -13,7 +13,7 @@ Second bounded phase of Google Drive Backup 3.0. Stacked draft on 6Q1. Stable ma
 - The narrow Google OAuth drive.appdata scope and v2 envelope containing a v1 library archive are unchanged. No automatic cloud restore, broad Google Drive access, authorized audio file sync or lyrics backup is claimed.
 
 ## Verification
-- 15 pure JVM CloudRecoveryPolicyTest methods authored, covering local data losses, name/case/order conflicts, profile changes, optional history, invalid/cloud-corrupt data and no mutation.
+- 16 pure JVM CloudRecoveryPolicyTest methods authored, covering local data losses, name/case/order conflicts, profile changes, optional history, invalid/cloud-corrupt data and no mutation.
 - A dedicated 6Q2 source preservation gate is added to the stacked Android workflow; older 5U gate updated for the richer explicit confirmed-restore callback.
 - Source assertions are not a compiled Android app. CI runner scheduling, real Gradle/JUnit compilation, actual Drive OAuth/list/pagination and small-screen dialogs remain UNVERIFIED. Keep this phase draft until a real build and controlled restore test occur.
 
