@@ -50,11 +50,18 @@ class NightWaveCloudWorker(
             val history = if (settings.includeHistory)
                 MusicLibrary(applicationContext).recent() else emptyList()
             val payload = CloudBackupCodec.encode(backup, history, settings.includeHistory)
-            if (!store.read().enabled || store.read().account != settings.account) {
+            val beforeUpload = store.read()
+            if (!beforeUpload.enabled || beforeUpload.account != settings.account ||
+                beforeUpload.includeHistory != settings.includeHistory ||
+                beforeUpload.wifiOnly != settings.wifiOnly) {
+                // Preferences changed while the worker prepared its payload:
+                // never upload with a stale history/privacy or network choice.
                 return@withContext Result.success()
             }
-            NightWaveDriveClient(token).uploadVerified(payload)
-            store.success(settings.account, System.currentTimeMillis())
+            val outcome = NightWaveDriveClient(token).backUpIfChangedVerified(payload)
+            if (store.success(settings.account, System.currentTimeMillis()) && !outcome.created) {
+                store.status("Already backed up; library unchanged")
+            }
             Result.success()
         } catch (_: Exception) {
             store.status("Automatic backup could not finish; will retry when available")

@@ -82,7 +82,7 @@ assert 'requestCloudAction("connect")' in activity
 assert 'requestCloudAction("backup")' in activity
 assert 'requestCloudAction("preview")' in activity
 assert 'drive.listSnapshots().takeIf { it.isNotEmpty() }' in activity
-assert 'showCloudSnapshotPicker(preview, token,' in activity
+assert 'showCloudSnapshotPicker(outcome.items, token,' in activity
 assert 'else "Choose a cloud backup"' in activity
 assert 'NightWaveDriveClient(token).download(chosen.id)' in activity
 assert 'setTitle("Review cloud restore")' in activity

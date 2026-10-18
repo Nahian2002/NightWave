@@ -178,6 +178,11 @@ private data class StudioSearchSnapshot(
     val hint: String = ""
 )
 
+private sealed interface CloudActionResult {
+    data class Backup(val created: Boolean) : CloudActionResult
+    data class Snapshots(val items: List<DriveSnapshot>) : CloudActionResult
+}
+
 /**
  * Default NightWave 2.0 application surface. The original UI remains an
  * explicit, reversible fallback in Profile and keeps the same local library.
@@ -718,37 +723,48 @@ class NightWaveStudioActivity : ComponentActivity() {
                             val settings = cloudStore.read()
                             val history = if (settings.includeHistory) library.recent() else emptyList()
                             val bytes = CloudBackupCodec.encode(local, history, settings.includeHistory)
-                            check(cloudStore.read().account.equals(expectedAccount, true)) {
-                                "Google account was disconnected"
+                            val latestSettings = cloudStore.read()
+                            check(latestSettings.account.equals(expectedAccount, true) &&
+                                latestSettings.includeHistory == settings.includeHistory) {
+                                "Google account or history preference changed during backup"
                             }
-                            drive.uploadVerified(bytes)
-                            null
+                            val outcome = drive.backUpIfChangedVerified(bytes)
+                            CloudActionResult.Backup(outcome.created)
                         }
                         "preview", "merge" -> {
-                            drive.listSnapshots().takeIf { it.isNotEmpty() }
+                            val options = drive.listSnapshots().takeIf { it.isNotEmpty() }
                                 ?: error("No NightWave cloud backup found")
+                            CloudActionResult.Snapshots(options)
                         }
                         else -> error("Invalid cloud action")
                     }
                 }
             }
             cloudBusy = false
-            resultTask.onSuccess { preview ->
-                if (action == "backup") {
-                    if (cloudStore.success(expectedAccount, System.currentTimeMillis())) {
-                        runCatching {
-                            NightWaveCloudSchedule.update(this@NightWaveStudioActivity)
-                        }.onFailure {
-                            cloudStore.status("Upload verified; backup schedule needs attention")
+            resultTask.onSuccess { outcome ->
+                when (outcome) {
+                    is CloudActionResult.Backup -> {
+                        if (cloudStore.success(expectedAccount, System.currentTimeMillis())) {
+                            runCatching {
+                                NightWaveCloudSchedule.update(this@NightWaveStudioActivity)
+                            }.onFailure {
+                                cloudStore.status("Upload verified; backup schedule needs attention")
+                            }
+                            if (!outcome.created &&
+                                cloudStore.read().lastResult == "Backup verified") {
+                                cloudStore.status("Already backed up; library unchanged")
+                            }
+                            refreshCloud()
+                            showMessage(if (outcome.created) "Cloud backup uploaded and verified."
+                                else "Cloud backup already current; nothing uploaded.")
+                        } else {
+                            showMessage("Backup checked, but scheduling needs a fresh connection.")
                         }
-                        refreshCloud()
-                        showMessage("Cloud backup uploaded and verified.")
-                    } else {
-                        showMessage("Backup uploaded, but scheduling needs a fresh connection.")
                     }
-                } else if (preview != null) {
-                    showCloudSnapshotPicker(preview, token,
-                        forMerge = action == "merge", expectedAccount = expectedAccount)
+                    is CloudActionResult.Snapshots -> {
+                        showCloudSnapshotPicker(outcome.items, token,
+                            forMerge = action == "merge", expectedAccount = expectedAccount)
+                    }
                 }
             }.onFailure { error ->
                 // Only bounded, non-sensitive status to UI; never display an access token.

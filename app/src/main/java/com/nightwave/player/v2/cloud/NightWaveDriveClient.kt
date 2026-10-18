@@ -12,6 +12,8 @@ import java.util.concurrent.TimeUnit
 
 data class DriveSnapshot(val id: String, val name: String)
 
+data class DriveBackupOutcome(val snapshot: DriveSnapshot, val created: Boolean)
+
 /**
  * Uses only the Drive appDataFolder. Each successful upload creates a separate
  * snapshot; never overwrites/deletes existing remote data. OAuth tokens are
@@ -78,6 +80,24 @@ class NightWaveDriveClient(private val accessToken: String) {
         val url = "https://www.googleapis.com/drive/v3/files/$id".toHttpUrl()
             .newBuilder().addQueryParameter("alt", "media").build().toString()
         return perform(request(url).get().build(), CloudBackupCodec.MAX_BYTES)
+    }
+
+    /**
+     * Smart, no-deletion upload. Compare with the latest *verified* Drive
+     * snapshot, not a local checksum/cache that could survive remote deletion.
+     * Network/validation failures during the comparison cannot claim success.
+     * A new copy-on-write snapshot is still uploaded and read back.
+     */
+    fun backUpIfChangedVerified(bytes: ByteArray): DriveBackupOutcome {
+        CloudBackupCodec.decode(bytes)
+        val latest = listSnapshots().firstOrNull()
+        if (latest != null) {
+            val remote = runCatching { download(latest.id) }.getOrNull()
+            if (remote != null && CloudSnapshotPolicy.sameVerifiedContent(bytes, remote)) {
+                return DriveBackupOutcome(latest, created = false)
+            }
+        }
+        return DriveBackupOutcome(uploadVerified(bytes), created = true)
     }
 
     fun uploadVerified(bytes: ByteArray): DriveSnapshot {
