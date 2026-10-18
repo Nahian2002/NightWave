@@ -81,6 +81,15 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
     private var ticksSinceReconcile = 0
     private data class PendingRepeat(val mode: PlaybackQueue.Repeat, val id: String, val expiresAt: Long)
     private var pendingRepeat: PendingRepeat? = null
+    private val repeatReconcile = object : Runnable {
+        override fun run() {
+            if (released) return
+            refreshQueue()
+            // Coalesce bursts into one bounded receipt poll, never one poll
+            // chain per tap. Stop as soon as the last requested mode is saved.
+            if (pendingRepeat != null) main.postDelayed(this, 220L)
+        }
+    }
 
     /** Protect instantaneous repeat icon feedback from stale saved-queue reads. */
     private fun visibleRepeat(persisted: PlaybackQueue.Repeat): PlaybackQueue.Repeat {
@@ -254,6 +263,7 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
         pauseUiUpdates()
         ticksSinceReconcile = 0
         pendingRepeat = null
+        main.removeCallbacks(repeatReconcile)
         controller?.removeListener(listener)
         controller = null
         future?.let { MediaController.releaseFuture(it) }
@@ -584,13 +594,13 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
                 .setAction(PlaybackService.ACTION_REPEAT)
                 .putExtra(PlaybackService.EXTRA_REPEAT_MODE, mode.name)
                 .putExtra(PlaybackService.EXTRA_REPEAT_REQUEST_ID, id))
-            // Reconcile only with this command's service receipt. Older events
-            // and tickers cannot revert a newer optimistic tap.
-            for (delayMs in longArrayOf(100L, 350L, 900L, 2_600L)) {
-                main.postDelayed({ if (!released) refreshQueue() }, delayMs)
-            }
+            // Coalesce rapid taps into one short-lived reconciliation loop.
+            // Other playback events still respect the newest pending mode.
+            main.removeCallbacks(repeatReconcile)
+            main.postDelayed(repeatReconcile, 120L)
         } catch (_: Exception) {
             pendingRepeat = null
+            main.removeCallbacks(repeatReconcile)
             state = state.copy(repeat = original, error = "Could not change repeat mode.")
         }
     }
