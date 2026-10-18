@@ -56,6 +56,7 @@ import kotlinx.coroutines.delay
 import com.nightwave.player.playback.SleepTimerStatusStore
 import com.nightwave.player.playback.OfflinePlaybackSpeedStore
 import com.nightwave.player.playback.OfflinePlaybackSpeedPolicy
+import com.nightwave.player.playback.EqualizerStatusStore
 import com.nightwave.player.playback.ListeningLevelStore
 import com.nightwave.player.playback.ListeningLevelPolicy
 import androidx.activity.compose.setContent
@@ -244,6 +245,7 @@ class NightWaveStudioActivity : ComponentActivity() {
     private var sleepRemainingMs by mutableStateOf(0L)
     private lateinit var offlineSpeedStore: OfflinePlaybackSpeedStore
     private var offlineSpeedPercent by mutableStateOf(OfflinePlaybackSpeedPolicy.NORMAL_PERCENT)
+    private val eqStatusStore by lazy { EqualizerStatusStore(this) }
     private lateinit var listeningLevelStore: ListeningLevelStore
     private var listeningLevelPercent by mutableStateOf(ListeningLevelPolicy.DEFAULT_PERCENT)
     private lateinit var archiveManager: LibraryArchiveManager
@@ -2171,9 +2173,10 @@ private fun StudioRoot(
                         onOpenClassic = onOpenClassic,
                         onEqualizer = {
                             val choices = arrayOf("Off (recommended)", "Device preset 1", "Device preset 2", "Device preset 3", "Device preset 4", "Device preset 5")
+                            val statusBefore = eqStatusStore.read()
                             AlertDialog.Builder(this@NightWaveStudioActivity)
                                 .setTitle("Audio equalizer · Experimental")
-                                .setMessage("Device presets vary. A missing or unsupported preset leaves playback unchanged. Settings reset when the playback service restarts.")
+                                .setMessage("Last service report: ${statusBefore.message}. Device presets differ; Android may decline them. Presets reset when service restarts.")
                                 .setSingleChoiceItems(choices, -1) { dialog, which ->
                                     runCatching {
                                         startService(Intent(this@NightWaveStudioActivity, PlaybackService::class.java).apply {
@@ -2181,6 +2184,11 @@ private fun StudioRoot(
                                             putExtra(PlaybackService.EXTRA_EQ_PRESET, which)
                                         })
                                     }.onFailure { showMessage("Equalizer is unavailable on this device.") }
+                                    lifecycleScope.launch {
+                                        delay(400L)
+                                        val status = eqStatusStore.read()
+                                        showMessage(if (status.active) "Equalizer enabled. ${status.message}" else "Equalizer: ${status.message}")
+                                    }
                                     dialog.dismiss()
                                 }.setNegativeButton("Cancel", null).show()
                         }
