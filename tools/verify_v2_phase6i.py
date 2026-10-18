@@ -67,7 +67,7 @@ assert 'MusicCollectionTile("Offline music"' in library
 assert 'MusicCollectionTile("Liked songs"' in library
 assert 'if (names.isNotEmpty())' in library
 # Phase 6O3 passes a pure view-only sorted snapshot to collection tiles.
-assert 'items(visiblePlaylists, key = { it.name })' in library
+assert 'items(visiblePlaylists, key = { "playlist:" + it.name })' in library
 assert 'MusicCollectionTile(collection.name, collection.size.toString()' in library
 assert 'onSelectPlaylist(collection.name)' in library
 assert 'onManage' in library and 'localFilter' in library
