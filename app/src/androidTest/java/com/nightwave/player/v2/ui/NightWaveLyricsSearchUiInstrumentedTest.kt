@@ -28,8 +28,8 @@ class NightWaveLyricsSearchUiInstrumentedTest {
 
     private val baseline: LyricsEditorDraft = LyricsEditorPolicy.begin(
         TimedLyricsCodec.parse(
-            "[00:01.000]Hello first\n[00:02.000]Another line\n" +
-                "[00:03.000]HELLO last".toByteArray(Charsets.UTF_8)
+            ("[00:01.000]Hello first\n[00:02.000]Another line\n" +
+                "[00:03.000]HELLO last").toByteArray(Charsets.UTF_8)
         )
     )
 
