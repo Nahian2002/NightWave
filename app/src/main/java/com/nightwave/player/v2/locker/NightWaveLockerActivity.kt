@@ -21,6 +21,8 @@ import com.nightwave.player.offline.OfflineAudioLibrary
 import com.nightwave.player.offline.OfflineSong
 import com.nightwave.player.offline.CloudOfflineImportResult
 import java.io.File
+import java.text.DateFormat
+import java.util.Date
 import java.util.concurrent.Executors
 
 /**
@@ -47,6 +49,10 @@ class NightWaveLockerActivity : ComponentActivity() {
     private var activeSort = LockerVaultSort.NAME
     private var shownCount = LockerVaultBrowsePolicy.PAGE_INCREMENT
     private lateinit var checkpoints: LockerDownloadCheckpointStore
+    private lateinit var history: LockerTransferHistoryStore
+    private lateinit var historyView: LinearLayout
+    private lateinit var recoveryView: TextView
+    private var historyExpanded = false
     private lateinit var resumeButton: TextView
     private lateinit var discardButton: TextView
     private var selected: OfflineSong? = null
@@ -79,6 +85,7 @@ class NightWaveLockerActivity : ComponentActivity() {
         offline = OfflineAudioLibrary(this)
         state = LockerAccountState(this)
         checkpoints = LockerDownloadCheckpointStore(this)
+        history = LockerTransferHistoryStore(this)
         val id = intent.getStringExtra(EXTRA_OFFLINE_ID).orEmpty()
         selected = runCatching { offline.find(id) }.getOrNull()
         val layout = LinearLayout(this).apply {
@@ -150,6 +157,10 @@ class NightWaveLockerActivity : ComponentActivity() {
                 .show()
         }
         layout.addView(discardButton)
+        recoveryView = text("", 12f, 0xFFFFC07D.toInt()).apply {
+            setPadding(0, dp(3), 0, dp(5))
+        }
+        layout.addView(recoveryView)
         layout.addView(button("Disconnect this phone's music access") {
             if (busy) return@button
             if (state.disconnect()) {
@@ -219,7 +230,42 @@ class NightWaveLockerActivity : ComponentActivity() {
         browseControls.addView(sortButton, LinearLayout.LayoutParams(0, dp(45), 1f))
         layout.addView(browseControls)
         listView = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        layout.addView(ScrollView(this).apply { addView(listView) },
+        historyView = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        val scrollItems = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+        }
+        scrollItems.addView(text("RECENT TRANSFERS · On this device only",
+            12f, 0xFF9DE4D8.toInt(), true).apply {
+            setPadding(0, dp(12), 0, dp(5))
+        })
+        scrollItems.addView(historyView)
+        scrollItems.addView(button("Clear local transfer history") {
+            if (busy) {
+                status("Wait for the current transfer to finish before clearing history.")
+            } else {
+                AlertDialog.Builder(this)
+                    .setTitle("Clear local transfer history?")
+                    .setMessage("This clears only the local transfer journal. " +
+                        "No Google Drive audio, offline songs, or resumable " +
+                        "download checkpoints will be deleted.")
+                    .setNegativeButton("Cancel", null)
+                    .setPositiveButton("Clear history") { _, _ ->
+                        runCatching { history.clear() }
+                            .onSuccess {
+                                historyExpanded = false
+                                renderTransferHistory()
+                                status("Local transfer history cleared; music and checkpoints preserved.")
+                            }
+                            .onFailure { status("Could not clear the local transfer history.") }
+                    }.show()
+            }
+        })
+        scrollItems.addView(text("YOUR LISTED CLOUD MUSIC", 12f,
+            0xFF9DE4D8.toInt(), true).apply {
+            setPadding(0, dp(14), 0, dp(5))
+        })
+        scrollItems.addView(listView)
+        layout.addView(ScrollView(this).apply { addView(scrollItems) },
             LinearLayout.LayoutParams(-1, 0, 1f))
         moreButton = button("Show more listed songs") {
             shownCount = (shownCount + LockerVaultBrowsePolicy.PAGE_INCREMENT)
@@ -233,6 +279,7 @@ class NightWaveLockerActivity : ComponentActivity() {
         setContentView(layout)
         updateAccount()
         updatePending()
+        renderTransferHistory()
         status("Connect Google Drive, then choose a manual upload or browse your cloud library.")
     }
 
