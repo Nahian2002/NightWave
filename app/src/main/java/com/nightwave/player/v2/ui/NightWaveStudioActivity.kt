@@ -1495,6 +1495,112 @@ class NightWaveStudioActivity : ComponentActivity() {
             }.show()
     }
 
+    /** Show only user-imported offline lyrics. Read baseline before editing. */
+    private fun openLyricsEditor() {
+        val chosen = playback.state.videoUrl
+        val id = chosen.takeIf { it.startsWith("offline:") }
+            ?.removePrefix("offline:") ?: return
+        if (loadedLyrics?.first != id) {
+            showMessage("Import an LRC for this offline song before editing.")
+            return
+        }
+        val requestId = ++lyricsEditorEpoch
+        val expectedRevision = lyricsRevision
+        lifecycleScope.launch {
+            val snapshot = withContext(Dispatchers.IO) {
+                runCatching {
+                    val song = requireNotNull(OfflineAudioLibrary(this@NightWaveStudioActivity)
+                        .find(id)) { "Offline song is no longer indexed" }
+                    val imported = requireNotNull(lyricsStore.read(id)) {
+                        "No imported LRC is available for this song"
+                    }
+                    Triple(song.title, LyricsEditorPolicy.begin(imported),
+                        lyricsStore.fingerprint(id))
+                }
+            }
+            if (lyricsEditorEpoch != requestId ||
+                lyricsRevision != expectedRevision ||
+                playback.state.videoUrl != chosen || isFinishing || isDestroyed) return@launch
+            snapshot.onSuccess { (title, original, fingerprint) ->
+                lyricsEditorSession = LyricsEditorSession(
+                    requestId = requestId, songId = id, songTitle = title,
+                    expectedFingerprint = fingerprint,
+                    baseline = original, draft = original
+                )
+            }.onFailure {
+                showMessage("Lyrics editor could not open. Imported LRC remains unchanged.")
+            }
+        }
+    }
+
+    private fun onLyricsEditorDraft(edited: LyricsEditorDraft) {
+        val editor = lyricsEditorSession ?: return
+        if (editor.saving || lyricsEditorEpoch != editor.requestId ||
+            playback.state.videoUrl != "offline:" + editor.songId ||
+            !LyricsEditorPolicy.changed(editor.draft, edited)) return
+        val undo = (editor.undo + editor.draft).takeLast(LyricsEditorPolicy.MAX_UNDO)
+        lyricsEditorSession = editor.copy(draft = edited, undo = undo)
+    }
+
+    private fun undoLyricsEditorDraft() {
+        val editor = lyricsEditorSession ?: return
+        if (editor.saving || lyricsEditorEpoch != editor.requestId ||
+            playback.state.videoUrl != "offline:" + editor.songId ||
+            editor.undo.isEmpty()) return
+        lyricsEditorSession = editor.copy(
+            draft = editor.undo.last(), undo = editor.undo.dropLast(1))
+    }
+
+    private fun discardLyricsEditorDraft() {
+        val editor = lyricsEditorSession ?: return
+        if (editor.saving) return
+        lyricsEditorEpoch++
+        lyricsEditorSession = null
+    }
+
+    /** Actual private LRC write only happens after the explicit Save tap. */
+    private fun saveLyricsEditorDraft() {
+        val editor = lyricsEditorSession ?: return
+        if (editor.saving || lyricsEditorEpoch != editor.requestId ||
+            playback.state.videoUrl != "offline:" + editor.songId ||
+            !LyricsEditorPolicy.changed(editor.baseline, editor.draft)) return
+        val output = runCatching { LyricsEditorPolicy.serialize(editor.draft) }
+            .getOrElse {
+                showMessage("Draft contains invalid lyrics or exceeds the LRC limits.")
+                return
+            }
+        lyricsEditorSession = editor.copy(saving = true)
+        lifecycleScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                runCatching {
+                    check(editor.requestId == lyricsEditorEpoch &&
+                        playback.state.videoUrl == "offline:" + editor.songId) {
+                        "Song changed before LRC could be saved"
+                    }
+                    lyricsStore.saveReviewed(
+                        editor.songId, output, editor.expectedFingerprint)
+                }
+            }
+            if (editor.requestId != lyricsEditorEpoch ||
+                playback.state.videoUrl != "offline:" + editor.songId) return@launch
+            result.onSuccess { accepted ->
+                if (accepted) {
+                    lyricsEditorEpoch++
+                    lyricsEditorSession = null
+                    lyricsRevision++
+                    showMessage("Edited lyrics saved to this offline song.")
+                } else {
+                    lyricsEditorSession = editor.copy(saving = false)
+                    showMessage("Saved lyrics changed since the editor opened. " +
+                        "Draft preserved; reload before saving.")
+                }
+            }.onFailure {
+                lyricsEditorSession = editor.copy(saving = false)
+                showMessage("Lyrics could not be saved. Your original LRC is intact.")
+            }
+        }
+    }
+
     private fun showMessage(message: String) {
         android.widget.Toast.makeText(this, message, android.widget.Toast.LENGTH_SHORT).show()
     }
