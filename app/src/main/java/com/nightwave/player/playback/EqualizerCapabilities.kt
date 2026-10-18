@@ -9,6 +9,7 @@ class EqualizerCapabilities(context: Context) {
 
     data class Snapshot(
         val sessionReady: Boolean,
+        val audioSessionId: Int,
         val centersHz: List<Int>,
         val minimumMb: Int,
         val maximumMb: Int,
@@ -20,6 +21,7 @@ class EqualizerCapabilities(context: Context) {
         val presets = preferences.getInt("presets", 0).coerceIn(0, 32)
         return Snapshot(
             preferences.getBoolean("ready", false),
+            preferences.getInt("session", -1),
             (0 until count).map { preferences.getInt("frequency_$it", 0) },
             preferences.getInt("min", 0),
             preferences.getInt("max", 0),
@@ -31,13 +33,13 @@ class EqualizerCapabilities(context: Context) {
         preferences.edit().clear().commit()
     }
 
-    fun publish(effect: Equalizer) {
+    fun publish(effect: Equalizer, sessionId: Int) {
         val bands = effect.numberOfBands.toInt().coerceIn(0, 32)
         val presets = effect.numberOfPresets.toInt().coerceIn(0, 20)
         val range = effect.bandLevelRange
         if (range.size < 2 || range[0] > range[1]) return
         val editor = preferences.edit().clear()
-            .putBoolean("ready", true).putInt("count", bands)
+            .putBoolean("ready", true).putInt("session", sessionId).putInt("count", bands)
             .putInt("presets", presets)
             .putInt("min", range[0].toInt()).putInt("max", range[1].toInt())
         for (i in 0 until bands) {
