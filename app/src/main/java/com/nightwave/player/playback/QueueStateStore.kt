@@ -99,25 +99,44 @@ class QueueStateStore(context: Context) {
                 .put("creator", it.creator).put("artwork", it.artwork))
         }
         val state = JSONObject().put("tracks", tracks).put("index", queue.index)
+            .put("selected_url", queue.current?.url.orEmpty())
             .put("shuffle", queue.shuffle).put("repeat", queue.repeat.name)
-        prefs.edit().putString("snapshot", state.toString()).apply()
+        // Queue changes happen on explicit selections / transitions, not the
+        // 2.5-second playhead ticker. Flush them so a process kill cannot
+        // silently revert the selected track to a stale persisted index.
+        prefs.edit().putString("snapshot", state.toString()).commit()
     }
 
     fun read(): Snapshot = try {
-        val state = JSONObject(prefs.getString("snapshot", "{}") ?: "{}")
+        val raw = prefs.getString("snapshot", "{}") ?: "{}"
+        require(raw.length <= 300_000) { "Oversized queue snapshot" }
+        val state = JSONObject(raw)
         val data = state.optJSONArray("tracks") ?: JSONArray()
-        val tracks = (0 until data.length().coerceAtMost(100)).mapNotNull { i ->
+        require(data.length() <= 100) { "Oversized queue" }
+        // Keep original slot identities until after validation and duplicate
+        // removal, otherwise a numeric index can shift onto the wrong song.
+        val originalUrls = (0 until data.length()).map { i ->
+            data.optJSONObject(i)?.optString("url")
+        }
+        val tracks = (0 until data.length()).mapNotNull { i ->
             val obj = data.optJSONObject(i) ?: return@mapNotNull null
             val url = obj.optString("url")
-            if (!url.startsWith("https://www.youtube.com/watch?v=")) return@mapNotNull null
-            QueueEntry(url, obj.optString("title"), obj.optString("creator"), obj.optString("artwork"))
+            if (!QueueRestorePolicy.isCanonicalPublicWatchUrl(url)) return@mapNotNull null
+            QueueEntry(url, obj.optString("title").take(250),
+                obj.optString("creator").take(150), obj.optString("artwork").take(2_000))
         }.distinctBy { it.url }
+        val expectedSelection = if (state.has("selected_url"))
+            state.optString("selected_url") else null
+        val restoredIndex = QueueRestorePolicy.selectedIndex(originalUrls,
+            state.optInt("index", -1), expectedSelection, tracks)
+            ?: return Snapshot(emptyList(), -1, false, PlaybackQueue.Repeat.OFF)
         val repeat = runCatching {
             PlaybackQueue.Repeat.valueOf(state.optString("repeat", "OFF"))
         }.getOrDefault(PlaybackQueue.Repeat.OFF)
-        Snapshot(tracks, state.optInt("index", 0), state.optBoolean("shuffle", false), repeat)
+        Snapshot(tracks, restoredIndex, state.optBoolean("shuffle", false), repeat)
     } catch (_: Exception) {
-        Snapshot(emptyList(), 0, false, PlaybackQueue.Repeat.OFF)
+        // Preserve raw preferences for explicit user-controlled recovery.
+        Snapshot(emptyList(), -1, false, PlaybackQueue.Repeat.OFF)
     }
 
     fun restore(queue: PlaybackQueue) {
