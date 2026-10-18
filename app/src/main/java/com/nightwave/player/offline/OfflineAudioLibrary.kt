@@ -33,6 +33,10 @@ class OfflineAudioLibrary(private val context: Context) {
     private val root = File(context.applicationContext.filesDir, "offline_audio")
 
     companion object {
+        // Shared across every OfflineAudioLibrary instance in this Android
+        // process. @Synchronized on instance methods does NOT protect one
+        // screen from another screen's SharedPreferences read-modify-write.
+        private val indexLock = Any()
         const val MAX_SONG_BYTES = 250L * 1024L * 1024L
         const val MAX_LIBRARY_BYTES = 3L * 1024L * 1024L * 1024L
         const val MAX_SONGS = 400
@@ -85,8 +89,7 @@ class OfflineAudioLibrary(private val context: Context) {
 
     fun find(id: String): OfflineSong? = songs().firstOrNull { it.id == id }
 
-    @Synchronized
-    fun import(uri: Uri): OfflineSong {
+    fun import(uri: Uri): OfflineSong = synchronized(indexLock) {
         val previous = songs()
         require(previous.size < MAX_SONGS) { "Offline library reached its 400-song limit" }
         val displayName = runCatching {
@@ -148,10 +151,9 @@ class OfflineAudioLibrary(private val context: Context) {
      * original private NightWave song ID is preserved so already backed-up
      * LRC lyrics can be attached after explicit cloud-library restore.
      */
-    @Synchronized
     fun importVerifiedCloud(
         staged: File, remote: LockerRemoteTrack
-    ): CloudOfflineImportResult {
+    ): CloudOfflineImportResult = synchronized(indexLock) {
         LockerAudioPolicy.requireDownloadable(remote)
         val stagedRoot = File(context.applicationContext.filesDir, "locker_staging").canonicalFile
         val file = staged.canonicalFile
@@ -205,8 +207,7 @@ class OfflineAudioLibrary(private val context: Context) {
             originalIdPreserved = saved.id == remote.sourceLocalId)
     }
 
-    @Synchronized
-    fun delete(song: OfflineSong): Boolean {
+    fun delete(song: OfflineSong): Boolean = synchronized(indexLock) {
         val previous = songs()
         if (song !in previous) return false
         val updated = previous.filterNot { it.id == song.id }
