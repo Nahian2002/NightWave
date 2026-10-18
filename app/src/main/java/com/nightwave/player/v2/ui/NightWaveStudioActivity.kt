@@ -319,11 +319,10 @@ class NightWaveStudioActivity : ComponentActivity() {
                 playback.state.videoUrl != selectedMedia) return@launch
             outcome.onSuccess { selection ->
                 showLyricsImportReview(id, requestEpoch, selection)
-            }.onFailure {
+            }.onFailure { error ->
                 // Never expose the provider path, song content, or exception
                 // stack trace in diagnostics or a notification.
-                showMessage("Lyrics preview failed. Choose a UTF-8 .lrc file " +
-                    "with valid timestamps, no larger than 64 KB.")
+                showMessage(LyricsImportReviewPolicy.failureHint(error))
             }
         }
     }
