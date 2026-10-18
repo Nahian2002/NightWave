@@ -68,6 +68,9 @@ class PlaybackService : MediaSessionService() {
         const val ACTION_EQ_PRESET_SET = "com.nightwave.player.EQ_PRESET_SET"
         const val EXTRA_EQ_PRESET = "eq_preset"
         const val ACTION_EQ_BAND_SET = "com.nightwave.player.EQ_BAND_SET"
+        const val ACTION_EQ_BANDS_APPLY = "com.nightwave.player.EQ_BANDS_APPLY"
+        const val ACTION_EQ_DISCOVER = "com.nightwave.player.EQ_DISCOVER"
+        const val EXTRA_EQ_LEVELS_MB = "eq_levels_mb"
         const val EXTRA_EQ_BAND = "eq_band"
         const val EXTRA_EQ_LEVEL_MB = "eq_level_mb"
         const val EXTRA_LISTENING_LEVEL_PERCENT = "listening_level_percent"
@@ -98,6 +101,7 @@ class PlaybackService : MediaSessionService() {
     private var requestedEqPreset = 0
     private val manualLevels = mutableMapOf<Int, Short>()
     private val eqStatus by lazy { EqualizerStatusStore(this) }
+    private val eqCapabilities by lazy { EqualizerCapabilities(this) }
     private var activeEqualizer: Equalizer? = null
     private var equalizerSessionId = C.AUDIO_SESSION_ID_UNSET
 
@@ -105,6 +109,7 @@ class PlaybackService : MediaSessionService() {
         val previous = activeEqualizer
         activeEqualizer = null
         equalizerSessionId = C.AUDIO_SESSION_ID_UNSET
+        eqCapabilities.clear()
         eqStatus.write(requestedEqPreset, false, if (requestedEqPreset == 0) "Off" else "Not active")
         runCatching { previous?.enabled = false }
         runCatching { previous?.release() }
@@ -117,6 +122,7 @@ class PlaybackService : MediaSessionService() {
         var candidate: Equalizer? = null
         try {
             candidate = Equalizer(0, sessionId)
+            eqCapabilities.publish(candidate)
             if (requestedEqPreset == 21) {
                 // Manual mode: range and band count come from this exact device/session.
                 val range = candidate.bandLevelRange
@@ -399,6 +405,7 @@ class PlaybackService : MediaSessionService() {
         // A process/service restart never silently resurrects an old timer.
         // Playback itself also requires an explicit user resume after restart.
         clearSleepTimer()
+        eqCapabilities.clear()
         eqStatus.write(0, false, "Off")
         savedQueue.clearLookup() // process restart must not leave a ghost spinner
         offlineSession = OfflineSessionStore(this)
@@ -581,6 +588,35 @@ class PlaybackService : MediaSessionService() {
                 if (preset in 0..21) {
                     requestedEqPreset = preset
                     applyEqualizer(exoPlayer?.audioSessionId ?: C.AUDIO_SESSION_ID_UNSET)
+                }
+            }
+            ACTION_EQ_DISCOVER -> {
+                val session = exoPlayer?.audioSessionId ?: C.AUDIO_SESSION_ID_UNSET
+                if (session > 0) {
+                    var probe: Equalizer? = null
+                    try {
+                        probe = activeEqualizer ?: Equalizer(0, session)
+                        eqCapabilities.publish(probe)
+                    } catch (_: Exception) {
+                        eqCapabilities.clear()
+                    } finally {
+                        if (probe !== activeEqualizer) runCatching { probe?.release() }
+                    }
+                } else eqCapabilities.clear()
+            }
+            ACTION_EQ_BANDS_APPLY -> {
+                val values = intent.getIntArrayExtra(EXTRA_EQ_LEVELS_MB)
+                if (values != null && values.size in 1..32 && values.all { it in -1500..1500 }) {
+                    val session = exoPlayer?.audioSessionId ?: C.AUDIO_SESSION_ID_UNSET
+                    val caps = eqCapabilities.read()
+                    if (session > 0 && caps.sessionReady && values.size == caps.centersHz.size &&
+                        values.all { it in caps.minimumMb..caps.maximumMb }) {
+                        manualLevels.clear()
+                        values.forEachIndexed { index, level -> manualLevels[index] = level.toShort() }
+                        requestedEqPreset = 21
+                        releaseEqualizer()
+                        applyEqualizer(session)
+                    } else eqStatus.write(21, false, "Bands unavailable or unsupported")
                 }
             }
             ACTION_EQ_BAND_SET -> {
