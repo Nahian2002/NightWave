@@ -113,15 +113,18 @@ class OfflineAudioLibrary(private val context: Context) {
      * reported without rewriting it or touching any audio. Intended for UI
      * diagnostics, not as a background auto-cleanup job.
      */
-    fun healthReport(): OfflineLibraryHealthReport =
-        synchronized(OfflineLibraryIndexLock.monitor) {
-            val indexed = try { songs() } catch (_: Exception) {
-                return@synchronized OfflineLibraryHealthReport(false, emptyList())
-            }
-            OfflineLibraryHealthReport(true, indexed.map { song ->
-                OfflineLibraryHealthEntry(song, inspectFile(song).first)
-            })
+    fun healthReport(): OfflineLibraryHealthReport {
+        // SharedPreferences supplies one consistent index value per read.
+        // Don't wait on the write lock: a concurrent cloud import may hash a
+        // large file under that lock. Playback/upload/delete revalidate each
+        // selected file before using or mutating it.
+        val indexed = try { songs() } catch (_: Exception) {
+            return OfflineLibraryHealthReport(false, emptyList())
         }
+        return OfflineLibraryHealthReport(true, indexed.map { song ->
+            OfflineLibraryHealthEntry(song, inspectFile(song).first)
+        })
+    }
 
     fun fileFor(song: OfflineSong): File? = try {
         // Legacy app code may supply a stale row. Validate exact membership
