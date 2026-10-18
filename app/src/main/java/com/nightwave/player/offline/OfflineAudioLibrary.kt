@@ -179,12 +179,9 @@ class OfflineAudioLibrary(private val context: Context) {
         require(previous.sumOf { it.bytes } + remote.bytes <= MAX_LIBRARY_BYTES) {
             "Not enough NightWave offline library space"
         }
-        val ext = LockerAudioPolicy.extensionFor(remote.mimeType, remote.name)
-        val preferred = remote.sourceLocalId.takeIf {
-            LockerAudioPolicy.validLocalId(it) && it.endsWith(".$ext") &&
-                previous.none { song -> song.id == it } && !File(root, it).exists()
+        val songId = LockerAudioPolicy.chooseRestoredId(remote) { id ->
+            previous.any { song -> song.id == id } || File(root, id).exists()
         }
-        val songId = preferred ?: (UUID.randomUUID().toString() + "." + ext)
         val saved = OfflineSong(
             songId, LockerAudioPolicy.safeTitle(remote.name), remote.mimeType, remote.bytes
         )
