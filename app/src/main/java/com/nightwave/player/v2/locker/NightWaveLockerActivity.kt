@@ -383,6 +383,9 @@ class NightWaveLockerActivity : ComponentActivity() {
                         status("Upload could not be verified. No local song changed. " +
                             "Retry explicitly: NightWave first checks for a matching " +
                             "Drive copy before starting another session.")
+                    } else if (action == "list") {
+                        status("Cloud refresh failed. Previously listed songs, if shown, " +
+                            "may be stale. No local or Drive audio was modified.")
                     } else {
                         status("Music Drive action failed; local audio was not modified. " +
                             "Check connection and try again.")
