@@ -5,6 +5,9 @@ import android.content.Context
 import android.content.Intent
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
+import com.nightwave.player.playback.RepeatModePolicy
+import com.nightwave.player.playback.RepeatModeReceiptStore
 import android.util.Log
 import java.util.UUID
 import androidx.annotation.MainThread
@@ -76,6 +79,22 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
     private var released = false
     private var ticking = false
     private var ticksSinceReconcile = 0
+    private data class PendingRepeat(val mode: PlaybackQueue.Repeat, val id: String, val expiresAt: Long)
+    private var pendingRepeat: PendingRepeat? = null
+
+    /** Protect instantaneous repeat icon feedback from stale saved-queue reads. */
+    private fun visibleRepeat(persisted: PlaybackQueue.Repeat): PlaybackQueue.Repeat {
+        val pending = pendingRepeat ?: return persisted
+        if (RepeatModeReceiptStore(context).matches(pending.id, pending.mode)) {
+            pendingRepeat = null
+            return persisted
+        }
+        if (SystemClock.uptimeMillis() >= pending.expiresAt) {
+            pendingRepeat = null
+            return persisted
+        }
+        return pending.mode
+    }
     private var foregroundReconnectAvailable = true
     private val oneShotReconnect = Runnable {
         if (MediaReconnectPolicy.mayAttempt(
@@ -234,6 +253,7 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
         released = true
         pauseUiUpdates()
         ticksSinceReconcile = 0
+        pendingRepeat = null
         controller?.removeListener(listener)
         controller = null
         future?.let { MediaController.releaseFuture(it) }
@@ -325,7 +345,7 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
             durationMs = if (duration > 0L) duration
                 else if (offlineId != null) 0L else savedBookmark?.durationMs ?: 0L,
             shuffle = current.shuffle,
-            repeat = current.repeat,
+            repeat = visibleRepeat(current.repeat),
             queue = if (offlineId != null) offlineList.first
                 else current.tracks.map { VideoPreview(it.title, it.creator, it.url, it.artwork, 0) },
             queueIndex = if (offlineId != null) offlineList.second else current.index,
@@ -552,7 +572,27 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
         if (!state.offline) action(PlaybackService.ACTION_SHUFFLE)
     }
     override fun cycleRepeat() {
-        if (!state.offline) action(PlaybackService.ACTION_REPEAT)
+        if (released || state.offline) return
+        val original = state.repeat
+        val mode = RepeatModePolicy.next(pendingRepeat?.mode ?: original)
+        val id = java.util.UUID.randomUUID().toString()
+        pendingRepeat = PendingRepeat(mode, id, SystemClock.uptimeMillis() + 2_500L)
+        // Respond synchronously on tap. The service still owns the durable queue mode.
+        state = state.copy(repeat = mode)
+        try {
+            context.startService(Intent(context, PlaybackService::class.java)
+                .setAction(PlaybackService.ACTION_REPEAT)
+                .putExtra(PlaybackService.EXTRA_REPEAT_MODE, mode.name)
+                .putExtra(PlaybackService.EXTRA_REPEAT_REQUEST_ID, id))
+            // Reconcile only with this command's service receipt. Older events
+            // and tickers cannot revert a newer optimistic tap.
+            for (delayMs in longArrayOf(100L, 350L, 900L, 2_600L)) {
+                main.postDelayed({ if (!released) refreshQueue() }, delayMs)
+            }
+        } catch (_: Exception) {
+            pendingRepeat = null
+            state = state.copy(repeat = original, error = "Could not change repeat mode.")
+        }
     }
 
     override fun seekTo(positionMs: Long) {
@@ -578,7 +618,7 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
                 else snapshot.tracks.map { VideoPreview(it.title, it.creator, it.url, it.artwork, 0L) },
             queueIndex = if (state.offline) state.queueIndex else snapshot.index,
             shuffle = snapshot.shuffle,
-            repeat = snapshot.repeat,
+            repeat = visibleRepeat(snapshot.repeat),
             title = if (state.offline) state.title else entry?.title ?: state.title,
             artist = if (state.offline) state.artist else entry?.creator ?: state.artist,
             thumbnail = if (state.offline) state.thumbnail else entry?.artwork ?: state.thumbnail,
