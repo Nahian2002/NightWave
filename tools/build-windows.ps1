@@ -292,6 +292,17 @@ try {
     }
     Say '6V7A source regression checks PASS (real Compose compiler still required).'
 
+    $stage = 'Phase 6V7B Search and Library source preflight'
+    $phase6v7b = Join-Path $PSScriptRoot 'check-phase6v7b-integration.ps1'
+    if (-not (Test-Path -LiteralPath $phase6v7b -PathType Leaf)) {
+        throw 'NightWave 6V7B Search/Library source check is missing. Use the full ZIP.'
+    }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $phase6v7b
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Phase 6V7B Search/Library source preflight failed.'
+    }
+    Say '6V7B source check PASS; full Android compile still required.'
+
     $stage = 'Java preparation'
     Resolve-Java
 
