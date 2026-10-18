@@ -139,8 +139,18 @@ class CloudRecoveryPolicyTest {
 
     @Test fun reportDoesNotModifyCallerLists() {
         val original = archive(playlists = listOf("A" to listOf(a), "B" to listOf(b)))
-        val after = CloudRecoveryPolicy.inspect(local(original), remote(archive()))
+        // The cloud contains A, so exactly B would be lost during replacement.
+        val cloud = archive(playlists = listOf("A" to listOf(a)))
+        val after = CloudRecoveryPolicy.inspect(local(original), remote(cloud))
         assertEquals(listOf("A", "B"), original.playlists.map { it.first })
         assertEquals(1, after.localPlaylistsNotInCloud)
+    }
+
+    @Test fun reportCountsEveryMissingPlaylistWithoutModifyingInputs() {
+        val original = archive(playlists = listOf("A" to listOf(a), "B" to listOf(b)))
+        // Neither A nor B is in this cloud backup; both must be reported.
+        val after = CloudRecoveryPolicy.inspect(local(original), remote(archive()))
+        assertEquals(listOf("A", "B"), original.playlists.map { it.first })
+        assertEquals(2, after.localPlaylistsNotInCloud)
     }
 }
