@@ -45,6 +45,8 @@ import com.nightwave.player.diagnostics.NightWaveCrashRecorder
 import com.nightwave.player.diagnostics.NightWaveExitHistory
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -200,7 +202,7 @@ private data class PendingLyricsReview(
 )
 
 /** An unsaved LRC editing session, scoped to one private offline song. */
-private data class LyricsEditorSession(
+internal data class LyricsEditorSession(
     val requestId: Int,
     val songId: String,
     val songTitle: String,
@@ -212,7 +214,7 @@ private data class LyricsEditorSession(
 )
 
 /** An in-memory, user-approved file export awaiting Android document picker. */
-private data class PendingLyricsExport(
+internal data class PendingLyricsExport(
     val requestId: Int,
     val songId: String,
     val prepared: PreparedLyricsExport
