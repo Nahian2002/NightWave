@@ -331,7 +331,18 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
         }
     }
 
-    override fun play(video: VideoPreview, collection: List<VideoPreview>) {
+    override fun play(video: VideoPreview, collection: List<VideoPreview>) =
+        playValidated(video, collection, explicitDisplayOrder = false)
+
+    /** Only the Library quick actions request one-time displayed queue order. */
+    fun playLibraryCollection(collection: List<VideoPreview>) {
+        val selected = collection.firstOrNull() ?: return
+        playValidated(selected, collection, explicitDisplayOrder = true)
+    }
+
+    private fun playValidated(
+        video: VideoPreview, collection: List<VideoPreview>, explicitDisplayOrder: Boolean
+    ) {
         val plan = QueueSelectionRules.plan(video, collection)
         val tracks = plan.songs
         if (tracks.isEmpty()) {
@@ -347,6 +358,7 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
                 .putStringArrayListExtra(PlaybackService.EXTRA_CREATORS, ArrayList(tracks.map { it.author }))
                 .putStringArrayListExtra(PlaybackService.EXTRA_ARTWORKS, ArrayList(tracks.map { it.thumbnail }))
                 .putExtra(PlaybackService.EXTRA_INDEX, index)
+                .putExtra(PlaybackService.EXTRA_QUEUE_DISPLAY_ORDER, explicitDisplayOrder)
             context.startService(request)
         } catch (e: Exception) {
             state = state.copy(error = "Could not start this track.")

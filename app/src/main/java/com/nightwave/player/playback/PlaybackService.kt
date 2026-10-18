@@ -49,6 +49,7 @@ class PlaybackService : MediaSessionService() {
         const val EXTRA_OFFLINE_IDS = "offline_ids"
         /** Atomic queue assignment followed by a single play request for the v2 interface. */
         const val ACTION_PLAY_QUEUE = "com.nightwave.player.PLAY_QUEUE"
+        const val EXTRA_QUEUE_DISPLAY_ORDER = "queue_display_order"
         const val ACTION_ENQUEUE = "com.nightwave.player.ENQUEUE"
         const val ACTION_REMOVE_UPCOMING = "com.nightwave.player.REMOVE_UPCOMING"
         const val ACTION_UNDO_REMOVE_UPCOMING = "com.nightwave.player.UNDO_REMOVE_UPCOMING"
@@ -400,6 +401,8 @@ class PlaybackService : MediaSessionService() {
                     QueueEntry(url, titles.getOrNull(index).orEmpty(), creators.getOrNull(index).orEmpty(), artworks.getOrNull(index).orEmpty())
                 }
                 val selected = intent.getIntExtra(EXTRA_INDEX, 0)
+                val explicitDisplayOrder = intent.action == ACTION_PLAY_QUEUE &&
+                    intent.getBooleanExtra(EXTRA_QUEUE_DISPLAY_ORDER, false)
                 val proposedQueue = entries.distinctBy { it.url }.take(100)
                 val selectedEntry = proposedQueue.getOrNull(selected.coerceIn(
                     0, (proposedQueue.size - 1).coerceAtLeast(0)))
@@ -413,6 +416,11 @@ class PlaybackService : MediaSessionService() {
                 val resolving = selectedEntry != null &&
                     PlaybackResolutionPolicy.awaitsSameResolution(selectedEntry.url, resolvingPublicUrl)
                 if (sameQueue && (loaded || resolving)) {
+                    // The same-queue fast path must honor explicit Library ordering.
+                    if (explicitDisplayOrder) {
+                        queue.useExplicitDisplayOrder()
+                        savedQueue.save(queue)
+                    }
                     // Double-tap/recomposition must not drop an already buffered
                     // stream or enqueue another slow extraction of the same URL.
                     if (loaded) exoPlayer?.apply {
@@ -423,6 +431,7 @@ class PlaybackService : MediaSessionService() {
                     }
                 } else {
                     queue.replace(entries, selected)
+                    if (explicitDisplayOrder) queue.useExplicitDisplayOrder()
                     generation++ // invalidate unresolved previous track jobs
                     cancelPendingResolution()
                     savedQueue.save(queue)

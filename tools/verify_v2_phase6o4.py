@@ -26,7 +26,10 @@ assert "urls.take(100)" in service
 assert "LibraryQuickPlayPolicy.plan(" in activity
 assert "shuffle = true, seed = System.nanoTime()" in activity
 assert "shuffle = false, seed = 0L" in activity
-assert "plan.first?.let { onPlay(it, plan.songs) }" in activity
+assert "plan.first?.let { onQuickPlay(plan.songs) }" in activity
+assert "onLibraryQuickPlay = { collection -> playback.playLibraryCollection(collection) }" in activity
+assert "LibraryQuickPlayPolicy.plan(orderedTracks, shuffle = false, seed = 0L).songs" in activity
+assert "enabled = quickPlayableTracks.isNotEmpty()" in activity
 assert "onCreatePlaylist = onCreatePlaylist" in activity
 assert "promptPlaylistName { name ->" in activity
 assert "library.createPlaylist(name)" in activity

@@ -30,6 +30,7 @@ on:
       - feature/nightwave-v2-phase6o1-relevant-music-search
       - feature/nightwave-v2-phase6o2-saved-creator-browser
       - feature/nightwave-v2-phase6o3-premium-library-browsing
+      - feature/nightwave-v2-phase6o4-library-quick-actions
   # Earlier phase Android/device tests were intentionally deferred.
   # Workflow dispatch stays available for controlled rechecks.
   workflow_dispatch:
@@ -83,6 +84,7 @@ jobs:
           python3 tools/verify_v2_phase6o2.py
           python3 tools/verify_v2_phase6o3.py
           python3 tools/verify_v2_phase6o4.py
+          python3 tools/verify_v2_phase6p.py
           python3 tools/ci_compile_summary.py --self-test
       - uses: actions/setup-java@v4
         with:
@@ -122,7 +124,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: NightWave-6O4-dev-debug-UNVERIFIED-FOR-DEVICE
+          name: NightWave-6P-dev-debug-UNVERIFIED-FOR-DEVICE
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 5
