@@ -71,15 +71,65 @@ class OfflineAudioLibrary(private val context: Context) {
 
     fun songs(): List<OfflineSong> = parse(prefs.getString("items", "[]") ?: "[]")
 
-    fun fileFor(song: OfflineSong): File? = try {
-        if (song !in songs()) null else {
-            val parent = root.canonicalFile
-            val file = File(parent, song.id).canonicalFile
-            if (file.parentFile != parent || !file.isFile || !file.canRead()) null else file
+    /** Never opens untrusted paths or assumes a matching index proves a file exists. */
+    private fun inspectFile(song: OfflineSong): Pair<OfflineFileHealth, File?> {
+        // Legacy IDs are kept compatible with the existing index parser; they
+        // cannot contain separators, and extension/MIME/size must still agree.
+        val safeId = Regex(
+            "[0-9a-f-]{36}\\.(mp3|m4a|aac|flac|wav|ogg|opus|mp4|webm|3gp)"
+        )
+        if (!safeId.matches(song.id) ||
+            mimeByExtension[song.id.substringAfterLast('.')] != song.mimeType ||
+            song.bytes !in 1L..MAX_SONG_BYTES) {
+            return OfflineFileHealth.UNSAFE_METADATA to null
         }
+        return try {
+            val appHome = context.applicationContext.filesDir.canonicalFile
+            val base = root.canonicalFile
+            if (base.parentFile != appHome || base.name != "offline_audio") {
+                return OfflineFileHealth.UNSAFE_METADATA to null
+            }
+            val direct = File(root, song.id)
+            // Refuse symlinks even if their canonical destination is in the
+            // private directory: the indexed path must name a regular file.
+            if (Files.isSymbolicLink(direct.toPath())) {
+                return OfflineFileHealth.UNSAFE_METADATA to null
+            }
+            val file = direct.canonicalFile
+            if (file.parentFile != base) {
+                return OfflineFileHealth.UNSAFE_METADATA to null
+            }
+            val health = OfflineLibraryHealthPolicy.classify(
+                song.bytes, file.exists(), file.isFile, file.canRead(), file.length()
+            )
+            health to if (health == OfflineFileHealth.AVAILABLE) file else null
+        } catch (_: Exception) {
+            OfflineFileHealth.UNREADABLE to null
+        }
+    }
+
+    /**
+     * Reads the existing index and file metadata only. A corrupted index is
+     * reported without rewriting it or touching any audio. Intended for UI
+     * diagnostics, not as a background auto-cleanup job.
+     */
+    fun healthReport(): OfflineLibraryHealthReport =
+        synchronized(OfflineLibraryIndexLock.monitor) {
+            val indexed = try { songs() } catch (_: Exception) {
+                return@synchronized OfflineLibraryHealthReport(false, emptyList())
+            }
+            OfflineLibraryHealthReport(true, indexed.map { song ->
+                OfflineLibraryHealthEntry(song, inspectFile(song).first)
+            })
+        }
+
+    fun fileFor(song: OfflineSong): File? = try {
+        // Legacy app code may supply a stale row. Validate exact membership
+        // before handing Media3 or the Drive uploader a private file path.
+        if (song !in songs()) null else inspectFile(song).second
     } catch (_: Exception) {
         // Malformed index, permission or missing file must not crash Media3.
-        // Keep the index intact for user-guided recovery.
+        // Keep the original index untouched for explicit recovery.
         null
     }
 
@@ -206,6 +256,9 @@ class OfflineAudioLibrary(private val context: Context) {
     fun delete(song: OfflineSong): Boolean = synchronized(OfflineLibraryIndexLock.monitor) {
         val previous = songs()
         if (song !in previous) return false
+        // A missing, changed or unreadable file might still be recoverable.
+        // Never discard its index entry through the normal delete path.
+        if (inspectFile(song).first != OfflineFileHealth.AVAILABLE) return false
         val updated = previous.filterNot { it.id == song.id }
         if (!prefs.edit().putString("items", encode(updated)).commit()) return false
         File(root, song.id).delete()
