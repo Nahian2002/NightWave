@@ -2,6 +2,7 @@ package com.nightwave.player.v2.ui
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.border
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -223,7 +225,7 @@ fun ListeningSpotlight(
 /** Artwork placeholder remains visible if upstream thumbnails cannot load. */
 @Composable
 private fun TrackArtwork(video: VideoPreview, modifier: Modifier = Modifier) {
-    Box(modifier.clip(RoundedCornerShape(11.dp))
+    Box(modifier.clip(RoundedCornerShape(14.dp))
         .background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.surfaceVariant,
             MaterialTheme.colorScheme.surface))),
         contentAlignment = Alignment.Center) {
@@ -252,15 +254,22 @@ fun MusicTrackTile(
 ) {
     val scheme = MaterialTheme.colorScheme
     val identity = MusicIdentity.display(video.title, video.author)
+    val shape = RoundedCornerShape(17.dp)
     Row(
-        modifier = modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp))
-            .background(if (isPlaying) scheme.primary.copy(alpha = .15f)
-                else scheme.surface.copy(alpha = .65f))
-            .clickable(onClick = onClick).padding(vertical = 8.dp, horizontal = 9.dp),
+        modifier = modifier.fillMaxWidth()
+            .heightIn(min = NightWaveBrowseChromePolicy.MIN_TILE_HEIGHT_DP.dp)
+            .clip(shape)
+            .background(if (isPlaying) scheme.primary.copy(alpha = .13f)
+                else scheme.surface)
+            .border(1.dp,
+                if (isPlaying) scheme.primary.copy(alpha = .29f)
+                else scheme.outline.copy(alpha = .08f), shape)
+            .clickable(onClick = onClick)
+            .padding(vertical = 7.dp, horizontal = 9.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        TrackArtwork(video, Modifier.size(51.dp))
+        TrackArtwork(video, Modifier.size(NightWaveBrowseChromePolicy.TRACK_ART_DP.dp))
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
             Text(identity.title, style = MaterialTheme.typography.titleMedium,
                 color = if (isPlaying) scheme.primary else scheme.onSurface,
@@ -286,35 +295,45 @@ fun MusicCollectionTile(
     name: String,
     subtitle: String,
     cover: VideoPreview?,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
     Card(
-        onClick = onClick, modifier = Modifier.fillMaxWidth().height(78.dp),
-        shape = RoundedCornerShape(19.dp),
-        colors = CardDefaults.cardColors(containerColor = colors.surfaceVariant),
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth()
+            .heightIn(min = NightWaveBrowseChromePolicy.MIN_TILE_HEIGHT_DP.dp),
+        shape = RoundedCornerShape(17.dp),
+        colors = CardDefaults.cardColors(containerColor = colors.surface),
+        border = BorderStroke(1.dp, colors.outline.copy(alpha = .10f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Row(Modifier.fillMaxWidth().padding(horizontal = 11.dp, vertical = 10.dp),
+        Row(Modifier.fillMaxWidth().padding(horizontal = 9.dp, vertical = 9.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             if (cover != null) {
-                TrackArtwork(cover, Modifier.size(60.dp))
+                TrackArtwork(cover,
+                    Modifier.size(NightWaveBrowseChromePolicy.COLLECTION_ART_DP.dp))
             } else {
-                Box(Modifier.size(60.dp).clip(RoundedCornerShape(11.dp))
-                    .background(colors.primary.copy(alpha = .13f)), contentAlignment = Alignment.Center) {
+                Box(Modifier.size(NightWaveBrowseChromePolicy.COLLECTION_ART_DP.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(Brush.linearGradient(listOf(
+                        colors.primary.copy(alpha = .23f),
+                        colors.surfaceVariant))),
+                    contentAlignment = Alignment.Center) {
                     Icon(Icons.Outlined.PlayArrow, contentDescription = null,
-                        tint = colors.primary, modifier = Modifier.size(29.dp))
+                        tint = colors.primary, modifier = Modifier.size(25.dp))
                 }
             }
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(name, style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(subtitle, style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    color = colors.onSurface)
+                Text(subtitle, style = MaterialTheme.typography.bodySmall,
                     maxLines = 1, overflow = TextOverflow.Ellipsis,
                     color = colors.onSurfaceVariant)
             }
-            Text("›", style = MaterialTheme.typography.titleLarge,
+            Text("›", style = MaterialTheme.typography.titleMedium,
                 color = colors.primary)
         }
     }

@@ -67,6 +67,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -77,6 +78,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
@@ -2405,11 +2407,12 @@ private fun StudioSearch(
             top = 16.dp, bottom = 34.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item {
-            Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                NightWaveMicroLabel("Discover")
-                SectionHeading("Explore sound", "Your next favorite starts here")
-            }
+        item(key = "premium-search-header") {
+            NightWaveBrowseHeader(
+                title = "Explore sound",
+                subtitle = "Find saved favorites or discover new music online",
+                search = true
+            )
         }
         item {
             OutlinedTextField(
@@ -2417,8 +2420,10 @@ private fun StudioSearch(
                     query = it.take(160)
                     selectedCreator = null
                 },
-                modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(17.dp),
-                singleLine = true, placeholder = { Text("Song or artist name") },
+                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)
+                    .testTag("nightwave-search-field"),
+                shape = RoundedCornerShape(18.dp),
+                singleLine = true, placeholder = { Text("Song, video or artist") },
                 leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
                 trailingIcon = {
                     if (query.isNotBlank()) IconButton(onClick = { query = "" }) {
@@ -2614,9 +2619,12 @@ private fun StudioSearch(
             }
         }
         if (savedMatches.isNotEmpty()) {
-            item {
-                SectionHeading("In your library",
-                    savedMatches.size.toString() + " matches from liked, recent and playlists")
+            item(key = "premium-saved-result-heading") {
+                NightWaveSearchSourceHeading(
+                    title = "In your library",
+                    resultCount = savedMatches.size,
+                    source = NightWaveBrowseChromePolicy.Source.SAVED_LIBRARY
+                )
             }
             items(savedMatches, key = { "saved:" + it.url }) { song ->
                 MusicTrackTile(song, isPlaying = playingUrl == song.url,
@@ -2631,8 +2639,16 @@ private fun StudioSearch(
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         } else if (responseMatchesQuery && state.videos.isNotEmpty()) {
-            item { SectionHeading("Public results",
-                state.videos.size.toString() + " tracks · " + state.provider) }
+            item(key = "premium-public-result-heading") {
+                NightWaveSearchSourceHeading(
+                    title = "Public results",
+                    resultCount = state.videos.size,
+                    source = NightWaveBrowseChromePolicy.Source.PUBLIC_VIDEO
+                )
+                Text(state.provider,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.labelSmall)
+            }
             if (state.error.isNotBlank()) {
                 item {
                     Text("Showing earlier results for this search. Online refresh failed.",
@@ -2740,17 +2756,27 @@ private fun StudioLibrary(
         contentPadding = PaddingValues(start = 19.dp, end = 19.dp,
             top = 19.dp, bottom = 40.dp),
         verticalArrangement = Arrangement.spacedBy(13.dp)) {
-        item {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                if (selectedPlaylist != null) IconButton(onClick = { onSelectPlaylist(null) }) {
-                    Icon(Icons.Outlined.ArrowBack, contentDescription = "Back to Library")
+        item(key = "premium-library-header") {
+            Row(verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                if (selectedPlaylist != null) {
+                    IconButton(onClick = { onSelectPlaylist(null) },
+                        modifier = Modifier.size(48.dp)) {
+                        Icon(Icons.Outlined.ArrowBack,
+                            contentDescription = "Back to Library")
+                    }
                 }
-                Column {
-                    NightWaveMicroLabel(if (selectedPlaylist == null) "Your collection" else "Playlist view")
-                    SectionHeading(if (selectedPlaylist == LIKED_COLLECTION) "Liked Songs" else selectedPlaylist ?: "Your library",
-                        if (selectedPlaylist == null) "Saved music across your collections"
-                        else tracks.size.toString() + " saved tracks")
-                }
+                NightWaveBrowseHeader(
+                    title = if (selectedPlaylist == LIKED_COLLECTION) "Liked Songs"
+                        else selectedPlaylist ?: "Your library",
+                    subtitle = if (selectedPlaylist == null)
+                        NightWaveBrowseChromePolicy.libraryCounts(
+                            favorites.size, names.size)
+                    else NightWaveBrowseChromePolicy.countLabel(
+                        tracks.size, "saved track", "saved tracks"),
+                    search = false,
+                    modifier = Modifier.weight(1f)
+                )
             }
         }
         if (selectedPlaylist != null && tracks.isNotEmpty()) {
@@ -2802,14 +2828,8 @@ private fun StudioLibrary(
             }
         }
         if (selectedPlaylist == null) {
-            // Actual collection rows below serve as navigation. Avoid
-            // duplicating them with two oversized, noninteractive counters.
-            item {
-                Text("${favorites.size} liked tracks  ·  ${names.size} playlists",
-                    modifier = Modifier.padding(horizontal = 3.dp, vertical = 2.dp),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            // The header owns real collection counts; these rows are actual
+            // navigation actions, not duplicate decorative statistics.
             if (offlineResumeTitle != null) {
                 item {
                     Card(onClick = onResumeOffline, modifier = Modifier.fillMaxWidth(),
@@ -2831,16 +2851,37 @@ private fun StudioLibrary(
                     }
                 }
             }
-            item {
-                MusicCollectionTile("Offline music",
-                    "Your imported audio · listen without Wi-Fi",
-                    cover = null, onClick = onOffline)
-            }
-            item {
-                MusicCollectionTile("Liked songs",
-                    favorites.size.toString() + " tracks",
-                    cover = favorites.firstOrNull()) {
-                    onSelectPlaylist(LIKED_COLLECTION)
+            item(key = "premium-library-collections") {
+                BoxWithConstraints(Modifier.fillMaxWidth()
+                    .testTag("nightwave-collection-shortcuts")) {
+                    if (NightWaveBrowseChromePolicy.showCompactCollections(
+                        maxWidth.value)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                            MusicCollectionTile(
+                                "Offline music", "Your imported audio",
+                                cover = null, onClick = onOffline)
+                            MusicCollectionTile(
+                                "Liked songs",
+                                NightWaveBrowseChromePolicy.countLabel(
+                                    favorites.size, "track", "tracks"),
+                                cover = favorites.firstOrNull(),
+                                onClick = { onSelectPlaylist(LIKED_COLLECTION) })
+                        }
+                    } else {
+                        Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                            MusicCollectionTile(
+                                "Offline music", "Your imported audio",
+                                cover = null, modifier = Modifier.weight(1f),
+                                onClick = onOffline)
+                            MusicCollectionTile(
+                                "Liked songs",
+                                NightWaveBrowseChromePolicy.countLabel(
+                                    favorites.size, "track", "tracks"),
+                                cover = favorites.firstOrNull(),
+                                modifier = Modifier.weight(1f),
+                                onClick = { onSelectPlaylist(LIKED_COLLECTION) })
+                        }
+                    }
                 }
             }
             item(key = "library-quick-navigation") {
