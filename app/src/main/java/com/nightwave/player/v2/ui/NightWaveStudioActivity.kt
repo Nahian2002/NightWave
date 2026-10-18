@@ -2406,10 +2406,7 @@ private fun StudioSearch(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
-            Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                NightWaveMicroLabel("Discover")
-                SectionHeading("Explore sound", "Your next favorite starts here")
-            }
+            NightWaveDiscoveryHeader()
         }
         item {
             OutlinedTextField(
@@ -2460,6 +2457,7 @@ private fun StudioSearch(
             }
             items(selectedCreatorGroup.tracks, key = { "creator-track:" + it.url }) { song ->
                 MusicTrackTile(song, isPlaying = playingUrl == song.url,
+                    surface = NightWaveTrackSurface.SEARCH,
                     onOptions = { onSongOptions(song) },
                     onClick = { onPlay(song, selectedCreatorGroup.tracks) })
             }
@@ -2566,6 +2564,7 @@ private fun StudioSearch(
                 }
                 items(savedTracks.take(3), key = { "search-starter:" + it.url }) { song ->
                     MusicTrackTile(song, isPlaying = playingUrl == song.url,
+                    surface = NightWaveTrackSurface.SEARCH,
                         onOptions = { onSongOptions(song) },
                         onClick = { onPlay(song, savedTracks) })
                 }
@@ -2620,6 +2619,7 @@ private fun StudioSearch(
             }
             items(savedMatches, key = { "saved:" + it.url }) { song ->
                 MusicTrackTile(song, isPlaying = playingUrl == song.url,
+                    surface = NightWaveTrackSurface.SEARCH,
                     onOptions = { onSongOptions(song) },
                     onClick = { onPlay(song, savedMatches) })
             }
@@ -2642,6 +2642,7 @@ private fun StudioSearch(
             }
             items(state.videos, key = { "public:" + it.url }) { song ->
                 MusicTrackTile(song, isPlaying = playingUrl == song.url,
+                    surface = NightWaveTrackSurface.SEARCH,
                     onOptions = { onSongOptions(song) },
                     onClick = { onPlay(song, state.videos) })
             }
@@ -2745,11 +2746,15 @@ private fun StudioLibrary(
                 if (selectedPlaylist != null) IconButton(onClick = { onSelectPlaylist(null) }) {
                     Icon(Icons.Outlined.ArrowBack, contentDescription = "Back to Library")
                 }
-                Column {
-                    NightWaveMicroLabel(if (selectedPlaylist == null) "Your collection" else "Playlist view")
-                    SectionHeading(if (selectedPlaylist == LIKED_COLLECTION) "Liked Songs" else selectedPlaylist ?: "Your library",
-                        if (selectedPlaylist == null) "Saved music across your collections"
-                        else tracks.size.toString() + " saved tracks")
+                Column(Modifier.weight(1f)) {
+                    NightWaveCollectionHeader(
+                        name = if (selectedPlaylist == LIKED_COLLECTION) "Liked Songs"
+                            else selectedPlaylist ?: "Your library",
+                        description = if (selectedPlaylist == null)
+                            "Saved music across your collections"
+                        else NightWaveCollectionChrome.sectionSubtitle(
+                            tracks.size, "saved track", "saved tracks")
+                    )
                 }
             }
         }
@@ -3000,6 +3005,7 @@ private fun StudioLibrary(
             }
         } else items(visibleTracks, key = { it.url }) { song ->
             MusicTrackTile(song, isPlaying = playingUrl == song.url,
+                surface = NightWaveTrackSurface.LIBRARY,
                 onOptions = { onSongOptions(song) },
                 onClick = { onPlay(song, if (selectedPlaylist == null) tracks else orderedTracks) })
         }

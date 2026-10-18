@@ -36,6 +36,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
@@ -248,19 +249,25 @@ fun MusicTrackTile(
     modifier: Modifier = Modifier,
     onOptions: (() -> Unit)? = null,
     isPlaying: Boolean = false,
+    surface: NightWaveTrackSurface = NightWaveTrackSurface.HOME,
     onClick: () -> Unit
 ) {
     val scheme = MaterialTheme.colorScheme
     val identity = MusicIdentity.display(video.title, video.author)
+    val shape = RoundedCornerShape(if (surface == NightWaveTrackSurface.SEARCH) 14.dp else 18.dp)
+    val background = if (isPlaying) scheme.primary.copy(alpha = .15f)
+        else if (surface == NightWaveTrackSurface.SEARCH) scheme.surfaceVariant.copy(alpha = .56f)
+        else scheme.surface
     Row(
-        modifier = modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp))
-            .background(if (isPlaying) scheme.primary.copy(alpha = .15f)
-                else scheme.surface.copy(alpha = .65f))
-            .clickable(onClick = onClick).padding(vertical = 8.dp, horizontal = 9.dp),
+        modifier = modifier.fillMaxWidth().clip(shape)
+            .background(background)
+            .testTag("nightwave-track-" + surface.name.lowercase())
+            .clickable(onClick = onClick)
+            .padding(vertical = 7.dp, horizontal = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        TrackArtwork(video, Modifier.size(51.dp))
+        TrackArtwork(video, Modifier.size(NightWaveCollectionChrome.TRACK_ARTWORK_DP.dp))
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
             Text(identity.title, style = MaterialTheme.typography.titleMedium,
                 color = if (isPlaying) scheme.primary else scheme.onSurface,
@@ -290,18 +297,21 @@ fun MusicCollectionTile(
 ) {
     val colors = MaterialTheme.colorScheme
     Card(
-        onClick = onClick, modifier = Modifier.fillMaxWidth().height(78.dp),
-        shape = RoundedCornerShape(19.dp),
-        colors = CardDefaults.cardColors(containerColor = colors.surfaceVariant),
+        onClick = onClick, modifier = Modifier.fillMaxWidth()
+            .height(NightWaveCollectionChrome.COLLECTION_MIN_HEIGHT_DP.dp)
+            .testTag("nightwave-library-collection"),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = colors.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Row(Modifier.fillMaxWidth().padding(horizontal = 11.dp, vertical = 10.dp),
+        Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             if (cover != null) {
-                TrackArtwork(cover, Modifier.size(60.dp))
+                TrackArtwork(cover, Modifier.size(NightWaveCollectionChrome.COLLECTION_ARTWORK_DP.dp))
             } else {
-                Box(Modifier.size(60.dp).clip(RoundedCornerShape(11.dp))
+                Box(Modifier.size(NightWaveCollectionChrome.COLLECTION_ARTWORK_DP.dp)
+                    .clip(RoundedCornerShape(12.dp))
                     .background(colors.primary.copy(alpha = .13f)), contentAlignment = Alignment.Center) {
                     Icon(Icons.Outlined.PlayArrow, contentDescription = null,
                         tint = colors.primary, modifier = Modifier.size(29.dp))
