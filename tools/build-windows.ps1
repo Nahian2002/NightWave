@@ -200,6 +200,17 @@ try {
     }
     Say '6V5C cursor vault source audit PASS (Android compilation remains mandatory).'
 
+    $stage = 'Phase 6V6A synchronized-lyrics integration preflight'
+    $phase6v6a = Join-Path $PSScriptRoot 'check-phase6v6a-integration.ps1'
+    if (-not (Test-Path -LiteralPath $phase6v6a -PathType Leaf)) {
+        throw 'NightWave 6V6A lyrics gate missing. Download the full ZIP.'
+    }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $phase6v6a
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Phase 6V6A synchronized-lyrics preflight failed.'
+    }
+    Say '6V6A imported lyrics integration gate PASS (Kotlin compile still required).'
+
     $stage = 'Java preparation'
     Resolve-Java
 
