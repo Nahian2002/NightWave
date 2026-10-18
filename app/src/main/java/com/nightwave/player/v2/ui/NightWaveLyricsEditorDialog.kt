@@ -170,6 +170,13 @@ fun NightWaveLyricsEditorDialog(
                     itemsIndexed(draft.cues, key = { index, _ -> index }) { index, cue ->
                         Surface(onClick = { selected = index }, enabled = !saving,
                             modifier = Modifier.fillMaxWidth()
+                                .semantics {
+                                    stateDescription = if (selected == index)
+                                        "Selected lyric line" else "Not selected"
+                                    contentDescription = "Lyric line " + (index + 1) +
+                                        " of " + draft.cues.size + ", " +
+                                        LyricsEditorPolicy.timeLabel(cue.timeMs) + ", " + cue.text
+                                }
                                 .testTag("lyrics-edit-row-$index"),
                             color = if (index == selected) colors.primaryContainer
                                 else colors.surfaceVariant,
