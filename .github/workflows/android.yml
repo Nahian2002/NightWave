@@ -41,6 +41,7 @@ on:
       - feature/nightwave-v2-phase6r3b-upload-session-recovery
       - feature/nightwave-v2-phase6v-integrated-build-audit
       - feature/nightwave-v2-phase6v1-receipt-contract-build-hardening
+      - feature/nightwave-v2-phase6v2-offline-index-serialization
   # Earlier phase Android/device tests were intentionally deferred.
   # Workflow dispatch stays available for controlled rechecks.
   workflow_dispatch:
@@ -105,6 +106,9 @@ jobs:
           python3 tools/verify_v2_phase6v.py
           python3 tools/verify_v2_phase6v1.py
           python3 tools/verify_v2_phase6v2.py
+          python3 tools/check-kotlin-internal-imports.py --self-test
+          python3 tools/check-kotlin-internal-imports.py
+          python3 tools/verify_v2_phase6v3.py
           python3 tools/ci_compile_summary.py --self-test
       - uses: actions/setup-java@v4
         with:
@@ -144,7 +148,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: NightWave-6V2-dev-debug-UNVERIFIED-FOR-DEVICE
+          name: NightWave-6V3-dev-debug-UNVERIFIED-FOR-DEVICE
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 5
