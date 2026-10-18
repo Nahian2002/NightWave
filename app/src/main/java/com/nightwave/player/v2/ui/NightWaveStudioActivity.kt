@@ -144,6 +144,8 @@ import com.nightwave.player.net.SearchMode
 import com.nightwave.player.net.SavedTrackSearch
 import com.nightwave.player.net.MusicIdentity
 import com.nightwave.player.net.SavedCreatorBrowser
+import com.nightwave.player.v2.library.LibraryBrowsePolicy
+import com.nightwave.player.v2.library.LibraryPlaylistPreview
 import com.nightwave.player.ui.MainActivity
 import com.nightwave.player.ui.YouTubeSearchBrowser
 import com.nightwave.player.v2.data.GuestProfileStore
@@ -1619,6 +1621,7 @@ private fun StudioRoot(
                     )
                     StudioTab.LIBRARY -> StudioLibrary(
                         modifier = Modifier, favorites = favorites, names = playlistNames,
+                        libraryRevision = libraryRevision, roomPreviewActive = roomPreviewActive,
                         playingUrl = playerState.videoUrl.takeIf { playerState.playing }.orEmpty(),
                         selectedPlaylist = selectedPlaylist,
                         onSelectPlaylist = { selectedPlaylist = it },
@@ -2194,6 +2197,7 @@ private fun StudioSearch(
 @Composable
 private fun StudioLibrary(
     modifier: Modifier, favorites: List<VideoPreview>, names: List<String>,
+    libraryRevision: Int, roomPreviewActive: Boolean,
     playingUrl: String,
     selectedPlaylist: String?, onSelectPlaylist: (String?) -> Unit,
     getPlaylist: (String) -> List<VideoPreview>, onPlay: (VideoPreview, List<VideoPreview>) -> Unit,
@@ -2205,20 +2209,31 @@ private fun StudioLibrary(
     onSharePlaylist: (String, List<VideoPreview>) -> Unit,
     onImportSharedPlaylist: () -> Unit
 ) {
+    // The library's name/order and song lists are read-only. Cache snapshots
+    // by a real library/preview revision, not the per-750ms playback UI ticker.
+    val playlistPreviews = remember(names, libraryRevision, roomPreviewActive) {
+        names.map { name -> LibraryPlaylistPreview(name, getPlaylist(name)) }
+    }
+    var playlistFilter by rememberSaveable { mutableStateOf("") }
+    var playlistSort by rememberSaveable { mutableStateOf(LibraryBrowsePolicy.SORT_SAVED) }
+    var showFilledOnly by rememberSaveable { mutableStateOf(false) }
+    var playlistToolsOpen by rememberSaveable { mutableStateOf(false) }
+    val visiblePlaylists = remember(playlistPreviews, playlistFilter,
+        playlistSort, showFilledOnly) {
+        LibraryBrowsePolicy.playlists(playlistPreviews, playlistFilter,
+            playlistSort, showFilledOnly)
+    }
     val tracks = if (selectedPlaylist == null || selectedPlaylist == LIKED_COLLECTION)
-        favorites else getPlaylist(selectedPlaylist)
+        favorites else playlistPreviews.firstOrNull { it.name == selectedPlaylist }?.songs.orEmpty()
     var localFilter by rememberSaveable(selectedPlaylist) { mutableStateOf("") }
-    var sortMode by rememberSaveable(selectedPlaylist) { mutableStateOf("saved") }
-    val matched = if (selectedPlaylist == null || localFilter.isBlank()) tracks else tracks.filter {
-        it.title.contains(localFilter.trim(), ignoreCase = true) ||
-            it.author.contains(localFilter.trim(), ignoreCase = true)
+    var sortMode by rememberSaveable(selectedPlaylist) {
+        mutableStateOf(LibraryBrowsePolicy.SORT_SAVED)
     }
-    val orderedTracks = when (sortMode) {
-        "title" -> matched.sortedWith(compareBy({ it.title.lowercase() }, { it.url }))
-        "artist" -> matched.sortedWith(compareBy({ it.author.lowercase() }, { it.title.lowercase() }))
-        else -> matched
+    val orderedTracks = remember(tracks, localFilter, sortMode) {
+        if (selectedPlaylist == null) tracks
+        else LibraryBrowsePolicy.songs(tracks, localFilter, sortMode)
     }
-    val visibleTracks = if (selectedPlaylist == null) orderedTracks.take(5) else orderedTracks
+    val visibleTracks = if (selectedPlaylist == null) tracks.take(5) else orderedTracks
     LazyColumn(modifier.fillMaxWidth().widthIn(max = 740.dp).fillMaxHeight(),
         contentPadding = PaddingValues(start = 19.dp, end = 19.dp,
             top = 19.dp, bottom = 40.dp),
@@ -2295,11 +2310,86 @@ private fun StudioLibrary(
                 }
             }
             if (names.isNotEmpty()) {
-                item { SectionHeading("Your playlists", names.size.toString() + " collections") }
-                items(names, key = { it }) { name ->
-                    val songs = getPlaylist(name)
-                    MusicCollectionTile(name, songs.size.toString() + " tracks",
-                        cover = songs.firstOrNull()) { onSelectPlaylist(name) }
+                item(key = "playlist-section") {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        SectionHeading("Your playlists",
+                            visiblePlaylists.size.toString() + " of " + names.size + " collections")
+                        OutlinedButton(onClick = { playlistToolsOpen = !playlistToolsOpen },
+                            modifier = Modifier.fillMaxWidth().height(44.dp),
+                            shape = RoundedCornerShape(14.dp)) {
+                            Text(if (playlistToolsOpen) "Hide sorting & filters"
+                                else "Sort & filter playlists")
+                        }
+                    }
+                }
+                if (playlistToolsOpen) {
+                    item(key = "playlist-filter-input") {
+                        OutlinedTextField(
+                            value = playlistFilter,
+                            onValueChange = { playlistFilter = it.take(80) },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(15.dp),
+                            singleLine = true,
+                            placeholder = { Text("Search your playlist names") },
+                            leadingIcon = {
+                                Icon(Icons.Outlined.Search, contentDescription = null)
+                            },
+                            trailingIcon = {
+                                if (playlistFilter.isNotBlank()) {
+                                    IconButton(onClick = { playlistFilter = "" }) {
+                                        Icon(Icons.Outlined.Close,
+                                            contentDescription = "Clear playlist search")
+                                    }
+                                }
+                            }
+                        )
+                    }
+                    item(key = "playlist-sorting") {
+                        Row(Modifier.horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                            FilterChip(
+                                selected = playlistSort == LibraryBrowsePolicy.SORT_SAVED,
+                                onClick = { playlistSort = LibraryBrowsePolicy.SORT_SAVED },
+                                label = { Text("Saved order") })
+                            FilterChip(
+                                selected = playlistSort == LibraryBrowsePolicy.SORT_NAME,
+                                onClick = { playlistSort = LibraryBrowsePolicy.SORT_NAME },
+                                label = { Text("A–Z") })
+                            FilterChip(
+                                selected = playlistSort == LibraryBrowsePolicy.SORT_NAME_DESC,
+                                onClick = { playlistSort = LibraryBrowsePolicy.SORT_NAME_DESC },
+                                label = { Text("Z–A") })
+                            FilterChip(
+                                selected = playlistSort == LibraryBrowsePolicy.SORT_MOST_TRACKS,
+                                onClick = { playlistSort = LibraryBrowsePolicy.SORT_MOST_TRACKS },
+                                label = { Text("Most songs") })
+                            FilterChip(
+                                selected = showFilledOnly,
+                                onClick = { showFilledOnly = !showFilledOnly },
+                                label = { Text("Hide empty") })
+                        }
+                    }
+                }
+                if (visiblePlaylists.isEmpty()) {
+                    item(key = "no-matching-playlists") {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("No playlists match these filters.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            OutlinedButton(onClick = {
+                                playlistFilter = ""
+                                playlistSort = LibraryBrowsePolicy.SORT_SAVED
+                                showFilledOnly = false
+                            }) { Text("Clear playlist filters") }
+                        }
+                    }
+                } else {
+                    items(visiblePlaylists, key = { it.name }) { collection ->
+                        MusicCollectionTile(collection.name, collection.size.toString() + " tracks",
+                            cover = collection.cover) {
+                            onSelectPlaylist(collection.name)
+                        }
+                    }
                 }
             }
         }
@@ -2326,12 +2416,22 @@ private fun StudioLibrary(
             item {
                 Row(Modifier.horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                    FilterChip(selected = sortMode == "saved", onClick = { sortMode = "saved" },
+                    FilterChip(
+                        selected = sortMode == LibraryBrowsePolicy.SORT_SAVED,
+                        onClick = { sortMode = LibraryBrowsePolicy.SORT_SAVED },
                         label = { Text("Saved order") })
-                    FilterChip(selected = sortMode == "title", onClick = { sortMode = "title" },
-                        label = { Text("Title") })
-                    FilterChip(selected = sortMode == "artist", onClick = { sortMode = "artist" },
-                        label = { Text("Artist") })
+                    FilterChip(
+                        selected = sortMode == LibraryBrowsePolicy.SORT_TITLE,
+                        onClick = { sortMode = LibraryBrowsePolicy.SORT_TITLE },
+                        label = { Text("Title A–Z") })
+                    FilterChip(
+                        selected = sortMode == LibraryBrowsePolicy.SORT_TITLE_DESC,
+                        onClick = { sortMode = LibraryBrowsePolicy.SORT_TITLE_DESC },
+                        label = { Text("Title Z–A") })
+                    FilterChip(
+                        selected = sortMode == LibraryBrowsePolicy.SORT_CREATOR,
+                        onClick = { sortMode = LibraryBrowsePolicy.SORT_CREATOR },
+                        label = { Text("Creator") })
                 }
             }
         }
