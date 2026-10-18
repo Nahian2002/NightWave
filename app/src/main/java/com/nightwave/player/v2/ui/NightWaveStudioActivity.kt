@@ -354,7 +354,7 @@ class NightWaveStudioActivity : ComponentActivity() {
         AlertDialog.Builder(this)
             .setTitle(if (replacing) "Review lyric replacement" else "Review imported lyrics")
             .setMessage(summary)
-            .setNegativeButton("Keep existing lyrics", null)
+            .setNegativeButton(if (replacing) "Keep existing lyrics" else "Cancel", null)
             .setPositiveButton(if (replacing) "Replace LRC" else "Import LRC") { _, _ ->
                 if (requestEpoch != lyricsImportEpoch ||
                     playback.state.videoUrl != "offline:$id") {
