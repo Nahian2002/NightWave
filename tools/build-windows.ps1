@@ -136,6 +136,16 @@ try {
             $testFailure + " No APK was published.")
     }
     Say 'Build diagnostics self-test PASS; no APK or device was accessed.'
+    $stage = 'Phase 6P integration source preflight'
+    $integrationGate = Join-Path $PSScriptRoot 'check-phase6p-integration.ps1'
+    if (-not (Test-Path -LiteralPath $integrationGate -PathType Leaf)) {
+        throw 'NightWave Phase 6P integration gate is missing.'
+    }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $integrationGate
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Phase 6P integration preflight failed; Android build was not started.'
+    }
+    Say 'Cross-phase source preflight PASS (not Gradle compilation).'
     $stage = 'Java preparation'
     Resolve-Java
 
