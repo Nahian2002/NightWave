@@ -178,6 +178,17 @@ try {
     }
     Say '6V5 vault source/regression discovery PASS (not a Google or Android runtime test).'
 
+    $stage = 'Phase 6V5B local transfer history and recovery preflight'
+    $phase6v5b = Join-Path $PSScriptRoot 'check-phase6v5b-integration.ps1'
+    if (-not (Test-Path -LiteralPath $phase6v5b -PathType Leaf)) {
+        throw 'NightWave 6V5B transfer history gate missing. Use the full ZIP.'
+    }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $phase6v5b
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Phase 6V5B local transfer integration preflight failed.'
+    }
+    Say '6V5B journal/recovery source gate PASS (not a compiled or device test).'
+
     $stage = 'Java preparation'
     Resolve-Java
 
