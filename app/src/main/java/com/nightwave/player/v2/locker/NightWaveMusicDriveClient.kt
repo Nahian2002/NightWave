@@ -530,7 +530,7 @@ class NightWaveMusicDriveClient(private val token: String) {
         // A 308 acknowledgement that covered all source bytes isn't proof of
         // final file creation. Demand the Drive 200/201 resource before success.
         when (val completion = queryUploadStatus(
-            session, song, parent, sha256, md5, offset.coerceAtMost(song.bytes - 1))) {
+            session, song, parent, sha256, md5, offset)) {
             is UploadProbe.Complete -> {
                 progress(100)
                 return completion.outcome
