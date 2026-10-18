@@ -7,7 +7,7 @@ $ErrorActionPreference = 'Stop'
 $project = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $dist = Join-Path $project 'dist'
 New-Item -ItemType Directory -Path $dist -Force | Out-Null
-$scripts = @('build-windows.ps1', 'verify-apk-signature.ps1', 'check-device-update.ps1', 'capture-nightwave-crash.ps1', 'diagnose-build.ps1', 'check-kotlin-compat.ps1', 'check-phase6p-integration.ps1', 'check-phase6v-integration.ps1', 'check-phase6v4-integration.ps1', 'check-phase6v5-integration.ps1', 'check-phase6v5b-integration.ps1', 'check-phase6v5c-integration.ps1', 'check-phase6v6a-integration.ps1', 'check-phase6v6b-integration.ps1')
+$scripts = @('build-windows.ps1', 'verify-apk-signature.ps1', 'check-device-update.ps1', 'capture-nightwave-crash.ps1', 'diagnose-build.ps1', 'check-kotlin-compat.ps1', 'check-phase6p-integration.ps1', 'check-phase6v-integration.ps1', 'check-phase6v4-integration.ps1', 'check-phase6v5-integration.ps1', 'check-phase6v5b-integration.ps1', 'check-phase6v5c-integration.ps1', 'check-phase6v6a-integration.ps1', 'check-phase6v6b-integration.ps1', 'check-phase6v6c-integration.ps1')
 $issues = @()
 
 foreach ($name in $scripts) {
