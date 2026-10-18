@@ -97,29 +97,32 @@ class PlaybackService : MediaSessionService() {
     private var equalizerSessionId = C.AUDIO_SESSION_ID_UNSET
 
     private fun releaseEqualizer() {
-        try { activeEqualizer?.release() } catch (_: RuntimeException) { }
+        val previous = activeEqualizer
         activeEqualizer = null
         equalizerSessionId = C.AUDIO_SESSION_ID_UNSET
+        runCatching { previous?.enabled = false }
+        runCatching { previous?.release() }
     }
 
     private fun applyEqualizer(sessionId: Int) {
         if (requestedEqPreset == 0 || sessionId <= 0) { releaseEqualizer(); return }
         if (activeEqualizer != null && equalizerSessionId == sessionId) return
         releaseEqualizer()
+        var candidate: Equalizer? = null
         try {
-            val effect = Equalizer(0, sessionId)
-            // Built-in platform presets differ by device: clamp and reject unsupported devices.
+            candidate = Equalizer(0, sessionId)
             val presetIndex = requestedEqPreset - 1
-            if (presetIndex !in 0 until effect.numberOfPresets.toInt()) {
-                effect.release(); return
-            }
-            effect.usePreset(presetIndex.toShort())
-            effect.enabled = true
-            activeEqualizer = effect
+            if (presetIndex !in 0 until candidate.numberOfPresets.toInt()) return
+            candidate.usePreset(presetIndex.toShort())
+            candidate.enabled = true
+            if (!candidate.enabled) return
+            activeEqualizer = candidate
             equalizerSessionId = sessionId
+            candidate = null // ownership transferred
         } catch (_: Exception) {
-            // Effects are optional: unsupported routes must never interrupt playback.
-            releaseEqualizer()
+            // Unsupported or already-owned audio sessions must not interrupt playback.
+        } finally {
+            runCatching { candidate?.release() }
         }
     }
     // A delayed STATE_ENDED notification must not advance the same track twice.
