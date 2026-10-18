@@ -15,6 +15,8 @@ import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.auth.api.identity.AuthorizationResult
 import com.nightwave.player.offline.OfflineAudioLibrary
 import com.nightwave.player.offline.OfflineSong
+import com.nightwave.player.offline.CloudOfflineImportResult
+import java.io.File
 import java.util.concurrent.Executors
 
 /**
@@ -32,6 +34,7 @@ class NightWaveLockerActivity : ComponentActivity() {
     private lateinit var uploadButton: TextView
     private var selected: OfflineSong? = null
     private var pendingAction = ""
+    private var pendingDownload: LockerRemoteTrack? = null
     private var busy = false
     private val worker = Executors.newSingleThreadExecutor()
     private val resolution = registerForActivityResult(
@@ -101,22 +104,24 @@ class NightWaveLockerActivity : ComponentActivity() {
         listView = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         layout.addView(ScrollView(this).apply { addView(listView) },
             LinearLayout.LayoutParams(-1, 0, 1f))
-        layout.addView(text("Upload only with permission. Drive uses your Google storage. " +
-            "Cloud-to-phone downloads are not yet enabled.",
+        layout.addView(text("Upload only with permission. Tap a cloud track to review and " +
+            "download it. Downloaded files are checked before entering Offline Library.",
             12f, 0xFF8AA0B3.toInt()))
         setContentView(layout)
         updateAccount()
         status("Choose Connect, then explicitly upload or browse local music copies.")
     }
 
-    private fun begin(action: String) {
+    private fun begin(action: String, download: LockerRemoteTrack? = null) {
         if (busy) return
         if (action == "upload" && selected == null) {
             status("No local audio selected for upload.")
             return
         }
+        if (action == "download" && download == null) return
         busy = true
         pendingAction = action
+        pendingDownload = download
         status("Requesting limited Google Drive music permission…")
         Identity.getAuthorizationClient(this)
             .authorize(NightWaveLockerAuthorization.request(state.account().takeIf { it.isNotBlank() }))
@@ -145,7 +150,9 @@ class NightWaveLockerActivity : ComponentActivity() {
 
     private fun authorized(result: AuthorizationResult) {
         val action = pendingAction
+        val chosenRemote = pendingDownload
         pendingAction = ""
+        pendingDownload = null
         val name = NightWaveLockerAuthorization.account(result)
         val token = runCatching { NightWaveLockerAuthorization.token(result) }.getOrNull()
         if (name.isNullOrBlank() || token == null || !state.connect(name)) {
@@ -175,6 +182,22 @@ class NightWaveLockerActivity : ComponentActivity() {
                                 status("Uploading authorized audio… $percent%")
                         }
                     }
+                } else if (action == "download") {
+                    val track = requireNotNull(chosenRemote)
+                    val staging = client.downloadToStaging(track,
+                        File(filesDir, "locker_staging")) { percent ->
+                        runOnUiThread {
+                            if (!isFinishing && !isDestroyed)
+                                status("Downloading and verifying audio… $percent%")
+                        }
+                    }
+                    try {
+                        offline.importVerifiedCloud(staging, track)
+                    } finally {
+                        // The import moves a verified file into offline_audio.
+                        // Every failed/incomplete staged copy is cleaned up.
+                        staging.delete()
+                    }
                 } else client.list()
             }
             runOnUiThread {
@@ -190,6 +213,16 @@ class NightWaveLockerActivity : ComponentActivity() {
                             status(if (value.created) "Audio uploaded and checksum verified."
                                 else "Matching uploaded song already exists.")
                             // A later explicit refresh lists remote files.
+                        }
+                        is CloudOfflineImportResult -> {
+                            status(when {
+                                !value.created ->
+                                    "This audio is already saved offline; no duplicate was added."
+                                value.originalIdPreserved ->
+                                    "Downloaded and verified. Original song ID retained for LRC recovery."
+                                else ->
+                                    "Downloaded and verified. Saved as a new offline song."
+                            })
                         }
                         is List<*> -> {
                             @Suppress("UNCHECKED_CAST")
@@ -214,8 +247,30 @@ class NightWaveLockerActivity : ComponentActivity() {
         }
         songs.take(LockerAudioPolicy.MAX_VISIBLE).forEach { song ->
             listView.addView(text(song.name + " · " +
-                ((song.bytes + 1023L) / 1024L) + " KB · In Google Drive",
-                13f, Color.WHITE).apply { setPadding(0, dp(8), 0, dp(8)) })
+                ((song.bytes + 1023L) / 1024L) + " KB · Tap to download",
+                13f, Color.WHITE).apply {
+                setPadding(0, dp(8), 0, dp(8))
+                setOnClickListener {
+                    val verified = runCatching {
+                        LockerAudioPolicy.requireDownloadable(song)
+                    }.isSuccess
+                    if (!verified) {
+                        status("This cloud file has no verified checksums; download is blocked.")
+                    } else {
+                        AlertDialog.Builder(this@NightWaveLockerActivity)
+                            .setTitle("Download to NightWave?")
+                            .setMessage("Download ${song.name} to this phone (" +
+                                ((song.bytes + 1023L) / 1024L) + " KB)? " +
+                                "The file is verified before being added. " +
+                                "Existing offline songs and lyrics are not overwritten.")
+                            .setNegativeButton("Cancel", null)
+                            .setPositiveButton("Download to phone") { _, _ ->
+                                begin("download", song)
+                            }
+                            .show()
+                    }
+                }
+            })
         }
         if (songs.size > LockerAudioPolicy.MAX_VISIBLE)
             listView.addView(text("Additional uploads are not displayed in this first release.",
