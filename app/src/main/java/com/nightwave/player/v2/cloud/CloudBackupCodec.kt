@@ -4,7 +4,6 @@ import com.nightwave.player.core.VideoLink
 import com.nightwave.player.net.VideoPreview
 import com.nightwave.player.v2.data.LibraryArchive
 import com.nightwave.player.v2.data.LibraryBackupCodec
-import com.nightwave.player.v2.lyrics.TimedLyricsCodec
 import org.json.JSONArray
 import org.json.JSONObject
 import java.security.MessageDigest
