@@ -28,22 +28,22 @@ function Source([string]$Relative) {
 }
 
 $a = @{
-    gradle = Source 'app/build.gradle.kts'
-    ci = Source '.github/workflows/android.yml'
-    svc = Source 'app/src/main/java/com/nightwave/player/playback/PlaybackService.kt'
-    queue = Source 'app/src/main/java/com/nightwave/player/playback/PlaybackQueue.kt'
-    bridge = Source 'app/src/main/java/com/nightwave/player/v2/playback/StudioPlaybackBridge.kt'
-    ui = Source 'app/src/main/java/com/nightwave/player/v2/ui/NightWaveStudioActivity.kt'
-    level = Source 'app/src/main/java/com/nightwave/player/playback/ListeningLevelPolicy.kt'
-    store = Source 'app/src/main/java/com/nightwave/player/playback/ListeningLevelStore.kt'
-    search = Source 'app/src/main/java/com/nightwave/player/net/SearchRelevancePolicy.kt'
-    saved = Source 'app/src/main/java/com/nightwave/player/net/SavedTrackSearch.kt'
-    gateway = Source 'app/src/main/java/com/nightwave/player/net/YouTubeGateway.kt'
-    creators = Source 'app/src/main/java/com/nightwave/player/net/SavedCreatorBrowser.kt'
-    browsing = Source 'app/src/main/java/com/nightwave/player/v2/library/LibraryBrowsePolicy.kt'
-    quick = Source 'app/src/main/java/com/nightwave/player/v2/library/LibraryQuickPlayPolicy.kt'
-    library = Source 'app/src/main/java/com/nightwave/player/library/MusicLibrary.kt'
-    windows = Source 'tools/build-windows.ps1'
+    gradle = (Source 'app/build.gradle.kts')
+    ci = (Source '.github/workflows/android.yml')
+    svc = (Source 'app/src/main/java/com/nightwave/player/playback/PlaybackService.kt')
+    queue = (Source 'app/src/main/java/com/nightwave/player/playback/PlaybackQueue.kt')
+    bridge = (Source 'app/src/main/java/com/nightwave/player/v2/playback/StudioPlaybackBridge.kt')
+    ui = (Source 'app/src/main/java/com/nightwave/player/v2/ui/NightWaveStudioActivity.kt')
+    level = (Source 'app/src/main/java/com/nightwave/player/playback/ListeningLevelPolicy.kt')
+    store = (Source 'app/src/main/java/com/nightwave/player/playback/ListeningLevelStore.kt')
+    search = (Source 'app/src/main/java/com/nightwave/player/net/SearchRelevancePolicy.kt')
+    saved = (Source 'app/src/main/java/com/nightwave/player/net/SavedTrackSearch.kt')
+    gateway = (Source 'app/src/main/java/com/nightwave/player/net/YouTubeGateway.kt')
+    creators = (Source 'app/src/main/java/com/nightwave/player/net/SavedCreatorBrowser.kt')
+    browsing = (Source 'app/src/main/java/com/nightwave/player/v2/library/LibraryBrowsePolicy.kt')
+    quick = (Source 'app/src/main/java/com/nightwave/player/v2/library/LibraryQuickPlayPolicy.kt')
+    library = (Source 'app/src/main/java/com/nightwave/player/library/MusicLibrary.kt')
+    windows = (Source 'tools/build-windows.ps1')
 }
 Require-Token $a.gradle 'applicationId = "com.nightwave.player"' 'app identity'
 Require-Token $a.gradle 'versionCode = 35' 'app version code'
