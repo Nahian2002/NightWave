@@ -51,6 +51,8 @@ class OfflineLibraryHealthInstrumentedTest {
         assertTrue(root.isDirectory || root.mkdirs())
         val file = File(root, id)
         try {
+            // Never overwrite another file, even in the unlikely case of an ID collision.
+            assertTrue(file.createNewFile())
             file.writeBytes(ByteArray(256) { 7 })
             val raw = indexedSong(song)
             withIndex(raw) {
