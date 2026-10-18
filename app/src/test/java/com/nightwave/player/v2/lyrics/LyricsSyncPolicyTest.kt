@@ -10,7 +10,7 @@ class LyricsSyncPolicyTest {
     )
 
     @Test fun zeroOffsetMaintainsExistingLrcBehavior() {
-        assertEquals(-1, LyricsSyncPolicy.activeIndex(lrc, -3L, 0).takeIf { it != 0 } ?: 0)
+        assertEquals(0, LyricsSyncPolicy.activeIndex(lrc, -3L, 0))
         assertEquals(0, LyricsSyncPolicy.activeIndex(lrc, 250L, 0))
         assertEquals(1, LyricsSyncPolicy.activeIndex(lrc, 1_000L, 0))
         assertEquals(2, LyricsSyncPolicy.activeIndex(lrc, 2_500L, 0))
