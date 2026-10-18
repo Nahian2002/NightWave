@@ -63,6 +63,11 @@ class LyricsSyncPolicyTest {
         assertEquals("-1.50s", LyricsSyncPolicy.label(-1_500))
     }
 
+    @Test fun extremePlaybackClockDoesNotWrapBehindFirstCue() {
+        assertEquals(lrc.cues.lastIndex,
+            LyricsSyncPolicy.activeIndex(lrc, Long.MAX_VALUE, -10_000))
+    }
+
     @Test fun invalidOffsetsAreRejectedBeforeUse() {
         assertThrows(IllegalArgumentException::class.java) {
             LyricsSyncPolicy.activeIndex(lrc, 10_000, 333)
