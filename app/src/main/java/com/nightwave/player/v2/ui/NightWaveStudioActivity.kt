@@ -2229,7 +2229,8 @@ private fun StudioRoot(
                                         }
                                     }.setNegativeButton("Cancel", null).show()
                             }
-                        }                    )
+                        }
+                    )
                 }
             }
         }
