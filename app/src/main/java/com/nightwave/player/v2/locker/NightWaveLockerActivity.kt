@@ -119,7 +119,7 @@ class NightWaveLockerActivity : ComponentActivity() {
         pendingAction = action
         status("Requesting limited Google Drive music permission…")
         Identity.getAuthorizationClient(this)
-            .authorize(NightWaveLockerAuthorization.request(state.account().ifBlank { null }))
+            .authorize(NightWaveLockerAuthorization.request(state.account().takeIf { it.isNotBlank() }))
             .addOnSuccessListener { response ->
                 if (response.hasResolution()) {
                     val intent = response.pendingIntent
@@ -241,7 +241,7 @@ class NightWaveLockerActivity : ComponentActivity() {
             setTextColor(0xFF98E0D5.toInt())
             gravity = Gravity.CENTER_VERTICAL
             setPadding(dp(13), dp(7), dp(7), dp(7))
-            minHeight = dp(47)
+            minimumHeight = dp(47)
             setOnClickListener { action() }
         }
     private fun dp(v: Int) = (resources.displayMetrics.density * v + .5f).toInt()

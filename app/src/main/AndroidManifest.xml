@@ -34,6 +34,7 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
         <activity android:name=".offline.OfflineLibraryActivity" android:exported="false" />
+        <activity android:name=".v2.locker.NightWaveLockerActivity" android:exported="false" />
         <service
             android:name=".playback.PlaybackService"
             android:exported="true"

@@ -66,7 +66,6 @@ object LockerAudioPolicy {
                 md5.update(buffer, 0, n)
             }
         }
-        fun String.hex() = this
         return Pair(sha.digest().joinToString("") { "%02x".format(it) },
             md5.digest().joinToString("") { "%02x".format(it) })
     }

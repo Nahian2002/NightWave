@@ -154,7 +154,7 @@ class NightWaveMusicDriveClient(private val token: String) {
                         val last = response.header("Range")?.substringAfter("bytes=0-")
                             ?.toLongOrNull()
                         val accepted = if (last == null) 0L else last + 1
-                        require(accepted >= offset && accepted <= end + 1) {
+                        require(accepted > offset && accepted <= end + 1) {
                             "Drive upload progress inconsistent"
                         }
                         offset = accepted
