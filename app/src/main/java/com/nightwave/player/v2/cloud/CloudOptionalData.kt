@@ -5,7 +5,6 @@ import com.nightwave.player.v2.model.AudioQualityPreference
 import com.nightwave.player.v2.model.MotionPreference
 import com.nightwave.player.v2.model.ProfileSettings
 import org.json.JSONObject
-import java.util.Locale
 
 /** Explicit allowlist. Never exports IDs, account, history-privacy or credentials. */
 data class CloudPlaybackPreferences(
