@@ -13,7 +13,8 @@ playlist databases or existing user preferences.
 - If the selected song cannot be verified, restore an empty queue rather than
   silently switching to another item. Do **not** erase the raw old snapshot.
 - Only canonical public YouTube video watch URLs are written into queue
-  snapshots; never retain signed audio links or untrusted HTTP URLs.
+  snapshots, playback bookmarks, lookup markers or failure labels; never
+  retain signed audio links or untrusted HTTP URLs.
 - Cap persisted title/artist/artwork fields, serialized queue length and
   restored snapshot size.
 - Synchronously commit queue changes (not high-frequency playhead bookmarks)
@@ -36,6 +37,7 @@ playlist databases or existing user preferences.
 - Save and restore explicit selection identity.
 - Never write signed links in upcoming queue entries.
 - An unsafe selected entry cannot overwrite the prior safe snapshot.
+- Signed query parameters on watch URLs cannot leak into bookmarks or lookup/failure metadata.
 - Existing bookmark/queue regression tests remain enabled.
 
 ## Verification status
