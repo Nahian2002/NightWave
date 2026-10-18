@@ -70,7 +70,7 @@ assert "SleepTimerPolicy.dialMinutes(" in dial
 assert "SleepTimerPolicy.choicesMinutes.forEach" in dial
 assert "Exact minutes (1–1440)" in dial
 assert "if (valid) onSet(requireNotNull(minutes))" in dial
-assert "Cancel timer" in dial
+assert "Cancel active timer" in dial
 assert "onCancel = {" in player
 assert "onSet = { minutes ->" in player
 
