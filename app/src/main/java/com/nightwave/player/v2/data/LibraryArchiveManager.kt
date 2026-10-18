@@ -62,6 +62,27 @@ class LibraryArchiveManager(context: Context) {
         else CloudMergeApplyResult.FAILED
     }
 
+    /**
+     * Cloud recovery may proceed only if the exact local library and profile
+     * are unchanged since the preview. Both check and commit use the same
+     * legacy transaction lock; no intervening playlist write can race them.
+     */
+    fun restoreCloudIfUnchanged(
+        expectedLocalBackup: ByteArray,
+        archive: LibraryArchive,
+        restoredHistory: List<VideoPreview>? = null
+    ): CloudRestoreApplyResult = LegacyLibraryTransaction.exclusive {
+        val current = runCatching { export() }.getOrNull()
+            ?: return@exclusive CloudRestoreApplyResult.FAILED
+        if (!current.contentEquals(expectedLocalBackup)) {
+            return@exclusive CloudRestoreApplyResult.STALE_PREVIEW
+        }
+        if (runCatching {
+                restoreWithConfirmation(archive, restoredHistory)
+            }.getOrDefault(false)) CloudRestoreApplyResult.APPLIED
+        else CloudRestoreApplyResult.FAILED
+    }
+
     private fun serialize(videos: List<VideoPreview>): String = JSONArray().also { arr ->
         videos.forEach {
             arr.put(JSONObject().put("url", it.url).put("title", it.title)
@@ -137,3 +158,5 @@ class LibraryArchiveManager(context: Context) {
 }
 
 enum class CloudMergeApplyResult { APPLIED, NO_CHANGES, STALE_PREVIEW, FAILED }
+
+enum class CloudRestoreApplyResult { APPLIED, STALE_PREVIEW, FAILED }
