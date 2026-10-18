@@ -17,6 +17,8 @@ import com.nightwave.player.v2.lyrics.TimedLyrics
 import com.nightwave.player.v2.lyrics.TimedLyricsCodec
 import com.nightwave.player.v2.lyrics.LyricsEditorDraft
 import com.nightwave.player.v2.lyrics.LyricsEditorPolicy
+import com.nightwave.player.v2.lyrics.LyricsExportPolicy
+import com.nightwave.player.v2.lyrics.PreparedLyricsExport
 import com.nightwave.player.v2.lyrics.LyricsImportReviewPolicy
 import com.nightwave.player.v2.lyrics.LyricsImportReview
 import com.nightwave.player.v2.insights.ListeningInsights
@@ -209,6 +211,13 @@ private data class LyricsEditorSession(
     val saving: Boolean = false
 )
 
+/** An in-memory, user-approved file export awaiting Android document picker. */
+private data class PendingLyricsExport(
+    val requestId: Int,
+    val songId: String,
+    val prepared: PreparedLyricsExport
+)
+
 private sealed interface CloudActionResult {
     data class Backup(val created: Boolean) : CloudActionResult
     data class Snapshots(val items: List<DriveSnapshot>) : CloudActionResult
@@ -245,6 +254,7 @@ class NightWaveStudioActivity : ComponentActivity() {
     private var loadedLyrics by mutableStateOf<Pair<String, TimedLyrics>?>(null)
     @Volatile private var lyricsEditorEpoch = 0
     private var lyricsEditorSession by mutableStateOf<LyricsEditorSession?>(null)
+    private var pendingLyricsExport: PendingLyricsExport? = null
     private lateinit var cloudStore: CloudBackupState
     private var cloudInfo by mutableStateOf(CloudBackupStatus())
     private var cloudBusy by mutableStateOf(false)
