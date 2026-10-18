@@ -10,6 +10,8 @@ WORKFLOW
 4. NightWave creates or discovers an app-created visible NightWave Music folder in the user's My Drive, hashes the app-private file, checks for an existing identical cloud upload, and uses a Google resumable upload session with bounded 1 MiB chunks. Upload progress shows percentages while the foreground app stays alive.
 5. A new upload only reports success if the Google response includes an expected size, parent folder, SHA-256 stored metadata and server-calculated MD5 matching the local source. Refresh my uploaded songs lists up to 200 app-visible files and shows the first 100. No audio is removed from the phone.
 
+Opening the cloud browser does not create an empty folder. A folder is created only after an explicit upload. Leaving the screen interrupts the worker and each further upload chunk checks cancellation; one in-flight network chunk may still finish.
+
 PERMISSIONS / SETUP
 The new music-specific OAuth scope is https://www.googleapis.com/auth/drive.file, and it must be configured on the Google Cloud OAuth consent screen for the relevant signed Android client before live login works. The old hidden backup remains on https://www.googleapis.com/auth/drive.appdata. The new user-visible folder consumes the user's own Google Drive quota. NightWave itself has no server, account service, token persistence, or new Android storage permissions. The locker preferences only remember the connected account email; logout on the phone does not delete uploaded files.
 
