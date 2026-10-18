@@ -303,7 +303,7 @@ class NightWaveMusicDriveClient(private val token: String) {
                             val count = input.read(buffer, 0,
                                 minOf(buffer.size.toLong(), span - received).toInt())
                             if (count < 0) throw java.io.EOFException("Short Drive audio response")
-                            if (count == 0) continue
+                            if (count == 0) throw java.io.IOException("Drive stalled during resume")
                             received += count
                             require(offset + received <= selected.bytes)
                             output.write(buffer, 0, count)
