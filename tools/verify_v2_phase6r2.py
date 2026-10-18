@@ -97,7 +97,8 @@ assert "is CloudOfflineImportResult ->" in ui
 assert "Original song ID retained for LRC recovery" in ui
 assert "No local audio selected for upload." in ui
 assert "client.upload(song, file)" in ui
-assert "client.list()" in ui
+assert "client.inventory()" in ui
+assert "is LockerCloudInventory ->" in ui
 assert "Cloud-to-phone downloads are not yet enabled." not in ui
 assert "fun restoreCloudMissing(entries: List<CloudLyricEntry>)" in lyrics
 assert '!existing.containsKey("lrc:" + it.localSongId)' in lyrics
