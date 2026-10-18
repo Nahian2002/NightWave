@@ -99,6 +99,18 @@ class LyricsImportReviewPolicyTest {
             IllegalStateException("content://private/stolen-token")).contains("stolen-token"))
     }
 
+    @Test fun nonLrcTextFilenameIsWarnedButValidTimingStillAccepted() {
+        val preview = inspect(filename = "Blue Skies.txt", text = "[00:01.00]one")
+        assertEquals(1, preview.cueCount)
+        assertTrue(preview.warnings.any { it.contains("not .lrc") })
+    }
+
+    @Test fun sourceNameCannotInsertControlCharactersIntoConfirmation() {
+        val preview = inspect(filename = "Blue\nSkies\t.lrc")
+        assertFalse(preview.sourceLabel.contains("\n"))
+        assertFalse(preview.sourceLabel.contains("\t"))
+    }
+
     @Test fun reviewNeverIncludesRawLyricTextInWarningMessages() {
         val report = inspect(text = "[00:01.00]SECRET-WORDS")
         assertFalse(report.warnings.joinToString(" ").contains("SECRET-WORDS"))
