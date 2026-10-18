@@ -15,6 +15,8 @@ import com.nightwave.player.v2.lyrics.PrivateLyricsOffsetStore
 import com.nightwave.player.v2.lyrics.LyricsSyncPolicy
 import com.nightwave.player.v2.lyrics.TimedLyrics
 import com.nightwave.player.v2.lyrics.TimedLyricsCodec
+import com.nightwave.player.v2.lyrics.LyricsEditorDraft
+import com.nightwave.player.v2.lyrics.LyricsEditorPolicy
 import com.nightwave.player.v2.lyrics.LyricsImportReviewPolicy
 import com.nightwave.player.v2.lyrics.LyricsImportReview
 import com.nightwave.player.v2.insights.ListeningInsights
@@ -195,6 +197,18 @@ private data class PendingLyricsReview(
     val previousFingerprint: String?
 )
 
+/** An unsaved LRC editing session, scoped to one private offline song. */
+private data class LyricsEditorSession(
+    val requestId: Int,
+    val songId: String,
+    val songTitle: String,
+    val expectedFingerprint: String?,
+    val baseline: LyricsEditorDraft,
+    val draft: LyricsEditorDraft,
+    val undo: List<LyricsEditorDraft> = emptyList(),
+    val saving: Boolean = false
+)
+
 private sealed interface CloudActionResult {
     data class Backup(val created: Boolean) : CloudActionResult
     data class Snapshots(val items: List<DriveSnapshot>) : CloudActionResult
@@ -229,6 +243,8 @@ class NightWaveStudioActivity : ComponentActivity() {
     @Volatile private var lyricsImportEpoch = 0
     private var lyricsRevision by mutableStateOf(0)
     private var loadedLyrics by mutableStateOf<Pair<String, TimedLyrics>?>(null)
+    @Volatile private var lyricsEditorEpoch = 0
+    private var lyricsEditorSession by mutableStateOf<LyricsEditorSession?>(null)
     private lateinit var cloudStore: CloudBackupState
     private var cloudInfo by mutableStateOf(CloudBackupStatus())
     private var cloudBusy by mutableStateOf(false)
@@ -490,6 +506,12 @@ class NightWaveStudioActivity : ComponentActivity() {
                 if (playback.state.videoUrl.isNotBlank()) refresh()
             }
             LaunchedEffect(playback.state.videoUrl, lyricsRevision) {
+                lyricsEditorSession?.let { session ->
+                    if (playback.state.videoUrl != "offline:" + session.songId) {
+                        lyricsEditorEpoch++
+                        lyricsEditorSession = null
+                    }
+                }
                 loadedLyrics = null
                 currentLyricsOffsetMs = 0
                 val current = playback.state.videoUrl
@@ -609,6 +631,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                             }
                         }
                     },
+                    onEditLyrics = { openLyricsEditor() },
                     onImportLyrics = {
                         val id = playback.state.videoUrl.takeIf {
                             it.startsWith("offline:")
@@ -707,6 +730,24 @@ class NightWaveStudioActivity : ComponentActivity() {
                     },
                     searchNavigationToken = searchNavigationToken
                 )
+                lyricsEditorSession?.let { session ->
+                    if (playback.state.videoUrl == "offline:" + session.songId) {
+                        NightWaveLyricsEditorDialog(
+                            songTitle = session.songTitle,
+                            draft = session.draft,
+                            dirty = LyricsEditorPolicy.changed(session.baseline, session.draft),
+                            canUndo = session.undo.isNotEmpty(),
+                            saving = session.saving,
+                            playbackMs = playback.state.positionMs,
+                            offsetMs = currentLyricsOffsetMs,
+                            reduceMotion = profile.motion == MotionPreference.REDUCED,
+                            onApply = { onLyricsEditorDraft(it) },
+                            onUndo = { undoLyricsEditorDraft() },
+                            onSave = { saveLyricsEditorDraft() },
+                            onDiscard = { discardLyricsEditorDraft() }
+                        )
+                    }
+                }
             }
         }
         playback.connect()
@@ -1663,6 +1704,7 @@ private fun StudioRoot(
     lyricsOffsetMs: Int,
     onLyricsOffsetChange: (Int) -> Unit,
     onImportLyrics: () -> Unit,
+    onEditLyrics: () -> Unit,
     onRemoveLyrics: () -> Unit,
     offlineResumeTitle: String?,
     offlineResumePositionMs: Long,
@@ -1985,6 +2027,7 @@ private fun StudioRoot(
         lyricsOffsetMs = lyricsOffsetMs,
         onLyricsOffsetChange = onLyricsOffsetChange,
         onImportLyrics = onImportLyrics,
+        onEditLyrics = onEditLyrics,
         onRemoveLyrics = onRemoveLyrics,
         onDismiss = { expanded = false }
     )
