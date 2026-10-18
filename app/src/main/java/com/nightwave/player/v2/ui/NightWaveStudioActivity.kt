@@ -5,6 +5,7 @@ import android.app.Dialog
 import android.widget.EditText
 import android.content.Intent
 import android.os.Bundle
+import android.provider.OpenableColumns
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.IntentSenderRequest
 import com.google.android.gms.auth.api.identity.Identity
@@ -14,6 +15,8 @@ import com.nightwave.player.v2.lyrics.PrivateLyricsOffsetStore
 import com.nightwave.player.v2.lyrics.LyricsSyncPolicy
 import com.nightwave.player.v2.lyrics.TimedLyrics
 import com.nightwave.player.v2.lyrics.TimedLyricsCodec
+import com.nightwave.player.v2.lyrics.LyricsImportReviewPolicy
+import com.nightwave.player.v2.lyrics.LyricsImportReview
 import com.nightwave.player.v2.insights.ListeningInsights
 import com.nightwave.player.v2.insights.ListeningInsightsEngine
 import com.nightwave.player.v2.insights.ListeningMemoryStore
@@ -184,6 +187,14 @@ private data class StudioSearchSnapshot(
     val hint: String = ""
 )
 
+/** One short-lived in-memory LRC preview; the file is never cached to disk. */
+private data class PendingLyricsReview(
+    val bytes: ByteArray,
+    val report: LyricsImportReview,
+    val title: String,
+    val previousFingerprint: String?
+)
+
 private sealed interface CloudActionResult {
     data class Backup(val created: Boolean) : CloudActionResult
     data class Snapshots(val items: List<DriveSnapshot>) : CloudActionResult
@@ -215,6 +226,7 @@ class NightWaveStudioActivity : ComponentActivity() {
     )
     private var memoryReadGeneration = 0
     private var pendingLyricsId: String? = null
+    private var lyricsImportEpoch = 0
     private var lyricsRevision by mutableStateOf(0)
     private var loadedLyrics by mutableStateOf<Pair<String, TimedLyrics>?>(null)
     private lateinit var cloudStore: CloudBackupState
@@ -264,43 +276,115 @@ class NightWaveStudioActivity : ComponentActivity() {
         val id = pendingLyricsId
         pendingLyricsId = null
         if (uri == null || id == null) return@registerForActivityResult
-        if (playback.state.videoUrl != "offline:$id") {
-            showMessage("Song changed; import lyrics again for the correct track.")
+        val selectedMedia = "offline:$id"
+        if (playback.state.videoUrl != selectedMedia) {
+            showMessage("Song changed. Choose lyrics again for the current offline track.")
             return@registerForActivityResult
         }
+        val requestEpoch = ++lyricsImportEpoch
+        val duration = playback.state.durationMs
         lifecycleScope.launch {
             val outcome = withContext(Dispatchers.IO) {
                 runCatching {
-                    requireNotNull(contentResolver.openInputStream(uri)) {
-                        "Could not read the selected lyrics file"
+                    val song = requireNotNull(OfflineAudioLibrary(this@NightWaveStudioActivity)
+                        .find(id)) { "This offline track is no longer available" }
+                    val displayName = runCatching {
+                        contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME),
+                            null, null, null)?.use { cursor ->
+                            if (cursor.moveToFirst()) cursor.getString(0) else null
+                        }
+                    }.getOrNull().orEmpty().take(100).ifBlank { "Selected LRC" }
+                    val data = requireNotNull(contentResolver.openInputStream(uri)) {
+                        "Could not open the selected LRC file"
                     }.use { stream ->
-                        val data = java.io.ByteArrayOutputStream()
+                        val result = java.io.ByteArrayOutputStream()
                         val buffer = ByteArray(4096)
                         while (true) {
                             val count = stream.read(buffer)
                             if (count < 0) break
-                            require(data.size() + count <= TimedLyricsCodec.MAX_BYTES) {
+                            require(result.size() + count <= TimedLyricsCodec.MAX_BYTES) {
                                 "Lyrics exceed the 64 KB import limit"
                             }
-                            data.write(buffer, 0, count)
+                            result.write(buffer, 0, count)
                         }
-                        // Reject a stale selector without associating it with
-                        // any other track or persisting arbitrary file contents.
-                        check(playback.state.videoUrl == "offline:$id") {
-                            "The currently playing track changed"
-                        }
-                        lyricsStore.save(id, data.toByteArray())
+                        result.toByteArray()
                     }
+                    val report = LyricsImportReviewPolicy.inspect(
+                        data, displayName, song.title, duration)
+                    PendingLyricsReview(data, report, song.title,
+                        lyricsStore.fingerprint(id))
                 }
             }
-            outcome.onSuccess {
-                lyricsRevision++
-                showMessage("Synchronized lyrics imported for this local song.")
+            if (requestEpoch != lyricsImportEpoch ||
+                playback.state.videoUrl != selectedMedia) return@launch
+            outcome.onSuccess { selection ->
+                showLyricsImportReview(id, requestEpoch, selection)
             }.onFailure {
-                showMessage("Lyrics import unsuccessful: " +
-                    (it.message ?: "Invalid synchronized LRC file"))
+                // Never expose the provider path, song content, or exception
+                // stack trace in diagnostics or a notification.
+                showMessage("Lyrics preview failed. Choose a UTF-8 .lrc file " +
+                    "with valid timestamps, no larger than 64 KB.")
             }
         }
+    }
+
+    /** The final Replace/Import tap is the only path that writes a picked LRC. */
+    private fun showLyricsImportReview(
+        id: String, requestEpoch: Int, selection: PendingLyricsReview
+    ) {
+        if (playback.state.videoUrl != "offline:$id" ||
+            requestEpoch != lyricsImportEpoch || isFinishing || isDestroyed) return
+        val report = selection.report
+        val replacing = selection.previousFingerprint != null
+        val warnings = report.warnings.take(5).joinToString("\n") { "• $it" }
+        val samples = report.lyrics.cues.take(2).joinToString("\n") {
+            val minutes = it.timeMs / 60_000L
+            val seconds = (it.timeMs / 1_000L) % 60
+            "[%02d:%02d] %s".format(java.util.Locale.ROOT, minutes,
+                seconds, it.text.take(64))
+        }
+        val summary = "Offline song: " + selection.title.take(85) +
+            "\nSelected file: " + report.sourceLabel +
+            "\nTimed lyric lines: " + report.cueCount +
+            "\nLast timestamp: " + (report.lastCueMs / 1_000L) + "s" +
+            "\n" + (if (replacing) "Existing LRC will be replaced only if you confirm."
+                else "No existing LRC will be overwritten.") +
+            "\n\nReview notes:\n" + warnings +
+            "\n\nPreview:\n" + samples +
+            "\n\nFilename/title matching is advisory. Confirm the song yourself."
+        AlertDialog.Builder(this)
+            .setTitle(if (replacing) "Review lyric replacement" else "Review imported lyrics")
+            .setMessage(summary)
+            .setNegativeButton("Keep existing lyrics", null)
+            .setPositiveButton(if (replacing) "Replace LRC" else "Import LRC") { _, _ ->
+                if (requestEpoch != lyricsImportEpoch ||
+                    playback.state.videoUrl != "offline:$id") {
+                    showMessage("Song changed; lyrics were not imported.")
+                    return@setPositiveButton
+                }
+                lifecycleScope.launch {
+                    val saved = withContext(Dispatchers.IO) {
+                        runCatching {
+                            lyricsStore.saveReviewed(
+                                id, selection.bytes, selection.previousFingerprint)
+                        }
+                    }
+                    if (requestEpoch != lyricsImportEpoch ||
+                        playback.state.videoUrl != "offline:$id") return@launch
+                    saved.onSuccess { accepted ->
+                        if (accepted) {
+                            lyricsRevision++
+                            showMessage("Imported lyrics saved for this offline song.")
+                        } else {
+                            showMessage("Existing lyrics changed during preview. " +
+                                "Select the file again; no lyrics were replaced.")
+                        }
+                    }.onFailure {
+                        showMessage("Could not save the reviewed LRC. " +
+                            "Previously saved lyrics were kept.")
+                    }
+                }
+            }.show()
     }
 
     private val exportFile = registerForActivityResult(
