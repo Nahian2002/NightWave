@@ -93,6 +93,7 @@ class PlaybackService : MediaSessionService() {
     private var sleepTimerPaused = false
     // 6W1: explicit, session-scoped and OFF by default. No volume amplification or file changes.
     private var requestedEqPreset = 0
+    private val eqStatus by lazy { EqualizerStatusStore(this) }
     private var activeEqualizer: Equalizer? = null
     private var equalizerSessionId = C.AUDIO_SESSION_ID_UNSET
 
@@ -100,6 +101,7 @@ class PlaybackService : MediaSessionService() {
         val previous = activeEqualizer
         activeEqualizer = null
         equalizerSessionId = C.AUDIO_SESSION_ID_UNSET
+        eqStatus.write(requestedEqPreset, false, if (requestedEqPreset == 0) "Off" else "Not active")
         runCatching { previous?.enabled = false }
         runCatching { previous?.release() }
     }
@@ -118,8 +120,10 @@ class PlaybackService : MediaSessionService() {
             if (!candidate.enabled) return
             activeEqualizer = candidate
             equalizerSessionId = sessionId
+            eqStatus.write(requestedEqPreset, true, "Enabled by Android effect API")
             candidate = null // ownership transferred
         } catch (_: Exception) {
+            eqStatus.write(requestedEqPreset, false, "Unavailable on this audio session")
             // Unsupported or already-owned audio sessions must not interrupt playback.
         } finally {
             runCatching { candidate?.release() }
@@ -382,6 +386,7 @@ class PlaybackService : MediaSessionService() {
         // A process/service restart never silently resurrects an old timer.
         // Playback itself also requires an explicit user resume after restart.
         clearSleepTimer()
+        eqStatus.write(0, false, "Off")
         savedQueue.clearLookup() // process restart must not leave a ghost spinner
         offlineSession = OfflineSessionStore(this)
         listeningMemory = ListeningMemoryStore(this)
