@@ -32,6 +32,18 @@ object LockerAudioPolicy {
         require(suffixToMime[ext] == mime) { "Unsupported cloud audio type" }
         return ext
     }
+    /**
+     * Preserve the uploaded phone's private song ID only if there is no local
+     * collision. Never rebind a different piece of audio to an occupied ID.
+     */
+    fun chooseRestoredId(remote: LockerRemoteTrack, occupied: (String) -> Boolean): String {
+        val ext = extensionFor(remote.mimeType, remote.name)
+        val preferred = remote.sourceLocalId
+        if (validLocalId(preferred) && preferred.endsWith(".$ext") &&
+            !occupied(preferred)) return preferred
+        return java.util.UUID.randomUUID().toString() + "." + ext
+    }
+
     fun safeTitle(name: String): String = name.substringBeforeLast('.')
         .replace(Regex("[\\p{Cntrl}/\\\\]"), " ")
         .trim().take(110).ifBlank { "Audio track" }
