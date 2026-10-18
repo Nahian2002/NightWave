@@ -78,6 +78,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
@@ -2755,17 +2756,27 @@ private fun StudioLibrary(
         contentPadding = PaddingValues(start = 19.dp, end = 19.dp,
             top = 19.dp, bottom = 40.dp),
         verticalArrangement = Arrangement.spacedBy(13.dp)) {
-        item {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                if (selectedPlaylist != null) IconButton(onClick = { onSelectPlaylist(null) }) {
-                    Icon(Icons.Outlined.ArrowBack, contentDescription = "Back to Library")
+        item(key = "premium-library-header") {
+            Row(verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                if (selectedPlaylist != null) {
+                    IconButton(onClick = { onSelectPlaylist(null) },
+                        modifier = Modifier.size(48.dp)) {
+                        Icon(Icons.Outlined.ArrowBack,
+                            contentDescription = "Back to Library")
+                    }
                 }
-                Column {
-                    NightWaveMicroLabel(if (selectedPlaylist == null) "Your collection" else "Playlist view")
-                    SectionHeading(if (selectedPlaylist == LIKED_COLLECTION) "Liked Songs" else selectedPlaylist ?: "Your library",
-                        if (selectedPlaylist == null) "Saved music across your collections"
-                        else tracks.size.toString() + " saved tracks")
-                }
+                NightWaveBrowseHeader(
+                    title = if (selectedPlaylist == LIKED_COLLECTION) "Liked Songs"
+                        else selectedPlaylist ?: "Your library",
+                    subtitle = if (selectedPlaylist == null)
+                        NightWaveBrowseChromePolicy.libraryCounts(
+                            favorites.size, names.size)
+                    else NightWaveBrowseChromePolicy.countLabel(
+                        tracks.size, "saved track", "saved tracks"),
+                    search = false,
+                    modifier = Modifier.weight(1f)
+                )
             }
         }
         if (selectedPlaylist != null && tracks.isNotEmpty()) {
@@ -2820,7 +2831,8 @@ private fun StudioLibrary(
             // Actual collection rows below serve as navigation. Avoid
             // duplicating them with two oversized, noninteractive counters.
             item {
-                Text("${favorites.size} liked tracks  ·  ${names.size} playlists",
+                Text(NightWaveBrowseChromePolicy.libraryCounts(
+                    favorites.size, names.size),
                     modifier = Modifier.padding(horizontal = 3.dp, vertical = 2.dp),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -2846,16 +2858,37 @@ private fun StudioLibrary(
                     }
                 }
             }
-            item {
-                MusicCollectionTile("Offline music",
-                    "Your imported audio · listen without Wi-Fi",
-                    cover = null, onClick = onOffline)
-            }
-            item {
-                MusicCollectionTile("Liked songs",
-                    favorites.size.toString() + " tracks",
-                    cover = favorites.firstOrNull()) {
-                    onSelectPlaylist(LIKED_COLLECTION)
+            item(key = "premium-library-collections") {
+                BoxWithConstraints(Modifier.fillMaxWidth()
+                    .testTag("nightwave-collection-shortcuts")) {
+                    if (NightWaveBrowseChromePolicy.showCompactCollections(
+                        maxWidth.value)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                            MusicCollectionTile(
+                                "Offline music", "Your imported audio",
+                                cover = null, onClick = onOffline)
+                            MusicCollectionTile(
+                                "Liked songs",
+                                NightWaveBrowseChromePolicy.countLabel(
+                                    favorites.size, "track", "tracks"),
+                                cover = favorites.firstOrNull(),
+                                onClick = { onSelectPlaylist(LIKED_COLLECTION) })
+                        }
+                    } else {
+                        Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                            MusicCollectionTile(
+                                "Offline music", "Your imported audio",
+                                cover = null, modifier = Modifier.weight(1f),
+                                onClick = onOffline)
+                            MusicCollectionTile(
+                                "Liked songs",
+                                NightWaveBrowseChromePolicy.countLabel(
+                                    favorites.size, "track", "tracks"),
+                                cover = favorites.firstOrNull(),
+                                modifier = Modifier.weight(1f),
+                                onClick = { onSelectPlaylist(LIKED_COLLECTION) })
+                        }
+                    }
                 }
             }
             item(key = "library-quick-navigation") {
