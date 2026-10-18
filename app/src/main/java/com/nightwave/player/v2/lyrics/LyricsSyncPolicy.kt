@@ -18,7 +18,10 @@ object LyricsSyncPolicy {
 
     fun activeIndex(lyrics: TimedLyrics, positionMs: Long, offsetMs: Int): Int {
         require(validOffset(offsetMs)) { "Unsupported lyric offset" }
-        return lyrics.activeIndex(positionMs.coerceAtLeast(0L) - offsetMs)
+        // Clamp impossible clock values before subtracting a negative offset.
+        // Do not clamp the result to zero: silence before the first cue is -1.
+        val clock = positionMs.coerceIn(0L, Long.MAX_VALUE - MAX_OFFSET_MS)
+        return lyrics.activeIndex(clock - offsetMs)
     }
 
     fun seekPosition(cue: LyricCue, offsetMs: Int, durationMs: Long): Long {
