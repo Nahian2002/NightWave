@@ -129,11 +129,14 @@ class QueueStateStore(context: Context) {
             state.optString("selected_url") else null
         val restoredIndex = QueueRestorePolicy.selectedIndex(originalUrls,
             state.optInt("index", -1), expectedSelection, tracks)
-            ?: return Snapshot(emptyList(), -1, false, PlaybackQueue.Repeat.OFF)
-        val repeat = runCatching {
-            PlaybackQueue.Repeat.valueOf(state.optString("repeat", "OFF"))
-        }.getOrDefault(PlaybackQueue.Repeat.OFF)
-        Snapshot(tracks, restoredIndex, state.optBoolean("shuffle", false), repeat)
+        if (restoredIndex == null) {
+            Snapshot(emptyList(), -1, false, PlaybackQueue.Repeat.OFF)
+        } else {
+            val repeat = runCatching {
+                PlaybackQueue.Repeat.valueOf(state.optString("repeat", "OFF"))
+            }.getOrDefault(PlaybackQueue.Repeat.OFF)
+            Snapshot(tracks, restoredIndex, state.optBoolean("shuffle", false), repeat)
+        }
     } catch (_: Exception) {
         // Preserve raw preferences for explicit user-controlled recovery.
         Snapshot(emptyList(), -1, false, PlaybackQueue.Repeat.OFF)
