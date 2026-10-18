@@ -2173,6 +2173,31 @@ private fun StudioRoot(
                         onOpenClassic = onOpenClassic,
                         onEqualizer = {
                             val context = this@NightWaveStudioActivity
+                            fun sendEqCommand(actionName: String, fill: (Intent) -> Unit) {
+                                val commandId = java.util.UUID.randomUUID().toString()
+                                val request = Intent(context, PlaybackService::class.java).apply {
+                                    action = actionName
+                                    putExtra(PlaybackService.EXTRA_EQ_COMMAND_ID, commandId)
+                                    fill(this)
+                                }
+                                runCatching { startService(request) }
+                                    .onFailure { showMessage("Equalizer service request failed.") }
+                                    .onSuccess {
+                                        lifecycleScope.launch {
+                                            var confirmed = false
+                                            repeat(10) {
+                                                delay(100L)
+                                                val receipt = eqStatusStore.read()
+                                                if (receipt.commandId == commandId) {
+                                                    showMessage("Equalizer: ${receipt.message}")
+                                                    confirmed = true
+                                                    return@launch
+                                                }
+                                            }
+                                            if (!confirmed) showMessage("Equalizer response unavailable. Playback remains unchanged.")
+                                        }
+                                    }
+                            }
                             runCatching {
                                 startService(Intent(context, PlaybackService::class.java).apply {
                                     action = PlaybackService.ACTION_EQ_DISCOVER
@@ -2212,20 +2237,14 @@ private fun StudioRoot(
                                                 .setNegativeButton("Cancel", null)
                                                 .setPositiveButton("Apply") { _, _ ->
                                                     val values = sliders.map { it.progress + caps.minimumMb }.toIntArray()
-                                                    runCatching {
-                                                        startService(Intent(context, PlaybackService::class.java).apply {
-                                                            action = PlaybackService.ACTION_EQ_BANDS_APPLY
-                                                            putExtra(PlaybackService.EXTRA_EQ_LEVELS_MB, values)
-                                                        })
-                                                    }.onFailure { showMessage("Equalizer request failed.") }
+                                                    sendEqCommand(PlaybackService.ACTION_EQ_BANDS_APPLY) {
+                                                        it.putExtra(PlaybackService.EXTRA_EQ_LEVELS_MB, values)
+                                                    }
                                                 }.show()
                                         } else {
-                                            runCatching {
-                                                startService(Intent(context, PlaybackService::class.java).apply {
-                                                    action = PlaybackService.ACTION_EQ_PRESET_SET
-                                                    putExtra(PlaybackService.EXTRA_EQ_PRESET, which)
-                                                })
-                                            }.onFailure { showMessage("Equalizer request failed.") }
+                                            sendEqCommand(PlaybackService.ACTION_EQ_PRESET_SET) {
+                                                it.putExtra(PlaybackService.EXTRA_EQ_PRESET, which)
+                                            }
                                         }
                                     }.setNegativeButton("Cancel", null).show()
                             }
