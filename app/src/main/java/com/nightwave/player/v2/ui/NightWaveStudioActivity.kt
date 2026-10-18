@@ -416,6 +416,45 @@ class NightWaveStudioActivity : ComponentActivity() {
             }.show()
     }
 
+    /** Android asks the user where to save a separate .lrc document. */
+    private val exportLyricsFile = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("text/plain")
+    ) { uri ->
+        val pending = pendingLyricsExport
+        pendingLyricsExport = null
+        if (uri == null) return@registerForActivityResult
+        val editor = lyricsEditorSession
+        if (pending == null || editor == null ||
+            pending.requestId != lyricsEditorEpoch ||
+            editor.requestId != pending.requestId ||
+            editor.songId != pending.songId ||
+            playback.state.videoUrl != "offline:" + pending.songId ||
+            isFinishing || isDestroyed) {
+            showMessage("Lyrics export expired or song changed. No data was written.")
+            return@registerForActivityResult
+        }
+        lifecycleScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                runCatching {
+                    val bytes = pending.prepared.bytes
+                    require(bytes.size in 1..TimedLyricsCodec.MAX_BYTES)
+                    requireNotNull(contentResolver.openOutputStream(uri, "w")) {
+                        "Destination was unavailable"
+                    }.use { out -> out.write(bytes); out.flush() }
+                }
+            }
+            if (isFinishing || isDestroyed) return@launch
+            result.onSuccess {
+                showMessage(if (pending.prepared.unsavedDraft)
+                    "LRC draft exported. Your NightWave edits are still unsaved."
+                    else "Synchronized LRC exported to your chosen folder.")
+            }.onFailure {
+                showMessage("LRC export could not finish. The selected document " +
+                    "may be incomplete; your saved NightWave lyrics are unchanged.")
+            }
+        }
+    }
+
     private val exportFile = registerForActivityResult(
         ActivityResultContracts.CreateDocument("application/json")
     ) { uri ->
