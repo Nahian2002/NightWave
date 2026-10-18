@@ -55,6 +55,7 @@ on:
       - feature/nightwave-v2-phase6v6f-build-stabilization-lyrics-qa
       - feature/nightwave-v2-phase6v6g-android-test-compile-recovery
       - feature/nightwave-v2-phase6v7a-premium-home-navigation-chrome
+      - feature/nightwave-v2-phase6v7b-search-library-premium-cards
   # Earlier phase Android/device tests were intentionally deferred.
   # Workflow dispatch stays available for controlled rechecks.
   workflow_dispatch:
