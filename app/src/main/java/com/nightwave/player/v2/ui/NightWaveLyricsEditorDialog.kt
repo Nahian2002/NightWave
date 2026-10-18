@@ -69,6 +69,7 @@ fun NightWaveLyricsEditorDialog(
     var editingText by remember { mutableStateOf("") }
     var editingTime by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
+    var editDialogError by remember { mutableStateOf<String?>(null) }
     var discardConfirm by remember { mutableStateOf(false) }
     val current = LyricsSyncPolicy.activeIndex(TimedLyrics(draft.cues), playbackMs, offsetMs)
 
@@ -190,6 +191,7 @@ fun NightWaveLyricsEditorDialog(
                                         editingText = cue.text
                                         editingTime = LyricsEditorPolicy.timeLabel(cue.timeMs)
                                         error = null
+                                        editDialogError = null
                                     }, enabled = !saving) { Text("Edit") }
                                     TextButton(onClick = {
                                         selected = index
@@ -239,12 +241,16 @@ fun NightWaveLyricsEditorDialog(
                         if (it.length <= LyricsEditorPolicy.MAX_TEXT_LENGTH) editingText = it
                     }, label = { Text("Lyric text") },
                         maxLines = 3, modifier = Modifier.fillMaxWidth())
+                    editDialogError?.let {
+                        Text(it, style = MaterialTheme.typography.labelSmall,
+                            color = colors.error)
+                    }
                 }
             },
             confirmButton = {
                 Button(onClick = {
                     val i = draft.cues.indexOf(original)
-                    if (i < 0) error = "Cue changed. Select it again."
+                    if (i < 0) editDialogError = "Cue changed. Select it again."
                     else {
                         val result = runCatching {
                             val textDraft = LyricsEditorPolicy.updateText(draft, i, editingText)
@@ -256,9 +262,12 @@ fun NightWaveLyricsEditorDialog(
                         }
                         result.onSuccess {
                             error = null
+                            editDialogError = null
                             onApply(it)
                             editingCue = null
-                        }.onFailure { error = it.message?.take(130) }
+                        }.onFailure {
+                            editDialogError = it.message?.take(130)
+                        }
                     }
                 }, enabled = !saving) { Text("Apply to draft") }
             },
