@@ -24,6 +24,9 @@ data class LockerVaultSummary(
     val verifiedCount: Int,
     val needsAttentionCount: Int,
     val listedBytes: Long,
+    val verifiedBytes: Long = 0L,
+    val needsAttentionBytes: Long = 0L,
+    val formatCounts: List<Pair<String, Int>> = emptyList(),
     val partialListing: Boolean
 )
 
@@ -79,15 +82,24 @@ object LockerVaultBrowsePolicy {
     }
 
     fun summary(inventory: LockerCloudInventory): LockerVaultSummary {
-        val verified = inventory.tracks.count(::downloadable)
+        val accepted = inventory.tracks.filter(::downloadable)
+        val verified = accepted.size
+        val totalBytes = inventory.tracks.sumOf { it.bytes.coerceAtLeast(0L) }
+        val verifiedBytes = accepted.sumOf { it.bytes.coerceAtLeast(0L) }
+        val formats = inventory.tracks.groupingBy {
+            it.name.substringAfterLast('.', "audio").uppercase(java.util.Locale.ROOT)
+        }.eachCount().entries.sortedWith(
+            compareByDescending<Map.Entry<String, Int>> { it.value }
+                .thenBy { it.key }
+        ).take(4).map { it.key to it.value }
         return LockerVaultSummary(
             listedCount = inventory.tracks.size,
             verifiedCount = verified,
             needsAttentionCount = inventory.tracks.size - verified,
-            listedBytes = inventory.tracks.fold(0L) { sum, track ->
-                // Each validated file is <=250 MiB; even 4,000 entries cannot overflow Long.
-                sum + track.bytes.coerceAtLeast(0L)
-            },
+            listedBytes = totalBytes,
+            verifiedBytes = verifiedBytes,
+            needsAttentionBytes = totalBytes - verifiedBytes,
+            formatCounts = formats,
             partialListing = inventory.hasMore
         )
     }
