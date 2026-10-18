@@ -524,7 +524,13 @@ class NightWaveLockerActivity : ComponentActivity() {
             " in listed NightWave music" + warning + "\n" +
             "${matching.size} match current filters; showing ${shown.size}. " +
             "Scanned ${inventory.pagesRead} Drive page(s). " +
-            "This is not your total Google Drive usage."
+            "This is not your total Google Drive usage." + "\n" +
+            "Verified files: " + LockerVaultBrowsePolicy.bytesLabel(summary.verifiedBytes) +
+            " · Needs attention: " +
+            LockerVaultBrowsePolicy.bytesLabel(summary.needsAttentionBytes) +
+            " · Formats: " + summary.formatCounts.joinToString(", ") {
+                "${it.first} ${it.second}"
+            }
         filterButton.text = when (activeFilter) {
             LockerVaultFilter.ALL -> "Filter: All ▾"
             LockerVaultFilter.VERIFIED -> "Filter: Verified ▾"
