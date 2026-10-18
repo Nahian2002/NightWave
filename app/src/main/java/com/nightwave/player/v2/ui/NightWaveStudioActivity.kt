@@ -229,6 +229,13 @@ private sealed interface CloudActionResult {
  * Default NightWave 2.0 application surface. The original UI remains an
  * explicit, reversible fallback in Profile and keeps the same local library.
  */
+/** Retains unsaved drafts across rotation; no disk or cloud persistence. */
+internal class LyricsEditorRetainedState : ViewModel() {
+    @Volatile var epoch: Int = 0
+    var session by mutableStateOf<LyricsEditorSession?>(null)
+    var pendingExport: PendingLyricsExport? = null
+}
+
 class NightWaveStudioActivity : ComponentActivity() {
     private lateinit var profiles: GuestProfileStore
     private lateinit var library: MusicLibrary
