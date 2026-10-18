@@ -211,6 +211,17 @@ try {
     }
     Say '6V6A imported lyrics integration gate PASS (Kotlin compile still required).'
 
+    $stage = 'Phase 6V6B reviewed LRC import and replacement preflight'
+    $phase6v6b = Join-Path $PSScriptRoot 'check-phase6v6b-integration.ps1'
+    if (-not (Test-Path -LiteralPath $phase6v6b -PathType Leaf)) {
+        throw 'NightWave 6V6B lyric import gate missing. Use the full project ZIP.'
+    }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $phase6v6b
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Phase 6V6B lyrics import source preflight failed.'
+    }
+    Say '6V6B LRC import source gate PASS (real Android compile still required).'
+
     $stage = 'Java preparation'
     Resolve-Java
 
