@@ -112,7 +112,9 @@ class LyricsEditorPolicyTest {
     @Test fun serializedLrcByteLimitRemainsMandatory() {
         val many = TimedLyricsCodec.parse(
             (0 until 300).joinToString("\n") { i ->
-                "[00:00.000] ${i.toString().padStart(3, '0')}" +
+                val min = (i / 60).toString().padStart(2, '0')
+                val sec = (i % 60).toString().padStart(2, '0')
+                "[$min:$sec.000] ${i.toString().padStart(3, '0')}" +
                     "x".repeat(150)
             }.toByteArray()
         )
