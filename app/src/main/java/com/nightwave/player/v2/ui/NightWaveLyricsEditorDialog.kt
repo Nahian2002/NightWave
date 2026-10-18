@@ -214,10 +214,15 @@ fun NightWaveLyricsEditorDialog(
                     }
                 }
                 HorizontalDivider()
-                Text("Only Save changes writes to private LRC. Your audio and " +
-                    "cloud backups stay untouched.",
+                Text("Only Save changes writes to private LRC. Export creates a " +
+                    "separate file you choose; it does not save this draft in NightWave.",
                     style = MaterialTheme.typography.labelSmall,
                     color = colors.onSurfaceVariant)
+                OutlinedButton(onClick = onExport, enabled = !saving,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                        .testTag("lyrics-export-lrc")) {
+                    Text(if (dirty) "Export unsaved draft .lrc" else "Export saved .lrc")
+                }
                 Row(Modifier.fillMaxWidth().padding(bottom = 12.dp),
                     horizontalArrangement = Arrangement.spacedBy(9.dp)) {
                     OutlinedButton(onClick = ::exitEditor, enabled = !saving,
