@@ -10,12 +10,15 @@ class RepeatModeReceiptStore(context: Context) {
 
     fun acknowledge(requestId: String, mode: PlaybackQueue.Repeat): Boolean {
         if (requestId.length !in 1..64) return false
-        return prefs.edit().putString("request_id", requestId)
-            .putString("mode", mode.name).commit()
+        return runCatching {
+            prefs.edit().putString("request_id", requestId)
+                .putString("mode", mode.name).commit()
+        }.getOrDefault(false)
     }
 
     fun matches(requestId: String, mode: PlaybackQueue.Repeat): Boolean =
-        requestId.isNotEmpty() &&
+        requestId.isNotEmpty() && runCatching {
             prefs.getString("request_id", null) == requestId &&
-            prefs.getString("mode", null) == mode.name
+                prefs.getString("mode", null) == mode.name
+        }.getOrDefault(false)
 }
