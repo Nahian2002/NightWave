@@ -57,7 +57,8 @@ assert not any(s in store for s in ('access_token', 'refresh_token', 'Bearer ', 
 
 assert 'fun downloadWithRecovery(' in client
 assert 'LockerAudioPolicy.requireDownloadable(selected)' in client
-assert 'listInFolder(parent).firstOrNull { it.id == selected.id }' in client
+assert 'require(fresh == selected' in client
+assert 'metadata.optJSONArray("parents")' in client
 assert 'require(latest == selected)' in client
 assert 'capabilities(canDownload)' in client
 assert 'metadata.optJSONArray("parents")' in client
