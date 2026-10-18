@@ -93,7 +93,7 @@ class NightWaveMusicDriveClient(private val token: String) {
                 .addQueryParameter("fields", "nextPageToken,files(id,name,mimeType,size,md5Checksum,appProperties)")
                 .addQueryParameter("pageSize", "100")
             token?.let { builder.addQueryParameter("pageToken", it) }
-            val page = json(request(builder.build().toString()), 150_000)
+            val page = json(request(builder.build().toString()).get().build(), 150_000)
             val records = page.getJSONArray("files")
             for (i in 0 until records.length()) {
                 val record = records.getJSONObject(i)
