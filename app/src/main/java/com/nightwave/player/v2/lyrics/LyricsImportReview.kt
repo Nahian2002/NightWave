@@ -57,6 +57,20 @@ object LyricsImportReviewPolicy {
         else LyricsImportMatch.DIFFERENT
     }
 
+    /** Fixed user-facing reasons; never echo provider errors or private file paths. */
+    fun failureHint(error: Throwable): String = when {
+        error is java.nio.charset.CharacterCodingException ->
+            "The selected LRC is not valid UTF-8. Convert it to UTF-8 and retry."
+        error.message?.contains("64 KB") == true ->
+            "The selected lyrics exceed 64 KB. Choose a smaller timestamped LRC."
+        error.message?.contains("too many timed lines") == true ->
+            "This LRC contains more than 1,200 timestamped lines."
+        error.message?.contains("No synchronized LRC timestamps") == true ->
+            "No valid timestamps were found. Use [mm:ss.xx] before each lyric."
+        else ->
+            "The file could not be reviewed. Choose a UTF-8 LRC file under 64 KB."
+    }
+
     fun inspect(
         bytes: ByteArray,
         sourceLabel: String,
