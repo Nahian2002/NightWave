@@ -52,6 +52,9 @@ object LockerCheckpointReadiness {
             LockerCheckpointState.UNSAFE_STAGING
         !fileExists && pending.committedBytes > 0L -> LockerCheckpointState.MISSING_DATA
         fileExists && actualBytes < pending.committedBytes -> LockerCheckpointState.SHORT_DATA
+        // The underlying downloader is create-only at offset zero. A file
+        // already present cannot be trusted or replaced automatically.
+        fileExists && pending.committedBytes == 0L -> LockerCheckpointState.UNSAFE_STAGING
         pending.committedBytes == pending.remote.bytes -> LockerCheckpointState.HASH_CHECK_PENDING
         else -> LockerCheckpointState.READY
     }
