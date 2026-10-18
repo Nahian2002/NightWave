@@ -93,13 +93,25 @@ class QueueStateStore(context: Context) {
     }
 
     fun save(queue: PlaybackQueue) {
+        val selectedUrl = queue.current?.url
+        if (selectedUrl != null && !QueueRestorePolicy.isCanonicalPublicWatchUrl(selectedUrl)) return
+        // Only public, canonical IDs may be persisted, including upcoming rows.
+        // A service command must never save signed audio URLs or arbitrary URIs.
+        val entries = queue.snapshot().filter {
+            QueueRestorePolicy.isCanonicalPublicWatchUrl(it.url)
+        }.distinctBy { it.url }.take(100)
+        val selectedIndex = if (selectedUrl == null) -1
+            else entries.indexOfFirst { it.url == selectedUrl }
+        if (selectedUrl != null && selectedIndex < 0) return
         val tracks = JSONArray()
-        queue.snapshot().forEach {
-            tracks.put(JSONObject().put("url", it.url).put("title", it.title)
-                .put("creator", it.creator).put("artwork", it.artwork))
+        entries.forEach {
+            tracks.put(JSONObject().put("url", it.url)
+                .put("title", it.title.take(250))
+                .put("creator", it.creator.take(150))
+                .put("artwork", it.artwork.take(2_000)))
         }
-        val state = JSONObject().put("tracks", tracks).put("index", queue.index)
-            .put("selected_url", queue.current?.url.orEmpty())
+        val state = JSONObject().put("tracks", tracks).put("index", selectedIndex)
+            .put("selected_url", selectedUrl.orEmpty())
             .put("shuffle", queue.shuffle).put("repeat", queue.repeat.name)
         // Queue changes happen on explicit selections / transitions, not the
         // 2.5-second playhead ticker. Flush them so a process kill cannot
