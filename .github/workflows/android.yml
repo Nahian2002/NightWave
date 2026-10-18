@@ -34,6 +34,7 @@ on:
       - feature/nightwave-v2-phase6p-integration-build-gate
       - feature/nightwave-v2-phase6q1-smart-drive-snapshots
       - feature/nightwave-v2-phase6q2-recovery-history
+      - feature/nightwave-v2-phase6q3-optional-settings-lyrics-backup
   # Earlier phase Android/device tests were intentionally deferred.
   # Workflow dispatch stays available for controlled rechecks.
   workflow_dispatch:
@@ -91,6 +92,7 @@ jobs:
           python3 tools/verify_v2_phase6q1.py
           python3 tools/verify_v2_phase6q2.py
           python3 tools/verify_v2_phase6q3.py
+          python3 tools/verify_v2_phase6r1.py
           python3 tools/ci_compile_summary.py --self-test
       - uses: actions/setup-java@v4
         with:
@@ -130,7 +132,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: NightWave-6Q3-dev-debug-UNVERIFIED-FOR-DEVICE
+          name: NightWave-6R1-dev-debug-UNVERIFIED-FOR-DEVICE
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 5

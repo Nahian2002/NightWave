@@ -17,6 +17,7 @@ import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import com.nightwave.player.playback.PlaybackService
+import com.nightwave.player.v2.locker.NightWaveLockerActivity
 import java.util.concurrent.Executors
 
 /** Native offline UI: safe to open even if the new Compose preview crashes. */
@@ -84,6 +85,13 @@ class OfflineLibraryActivity : ComponentActivity() {
         root.addView(label("Saved audio, available without internet.", 14f, 0xFFABB8CC.toInt()).apply {
             setPadding(0, 0, 0, dp(15))
         })
+        root.addView(label("☁  My Google Drive music", 14f, 0xFF91E2D7.toInt(), true).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(13), 0, 0, 0)
+            setOnClickListener {
+                startActivity(Intent(this@OfflineLibraryActivity, NightWaveLockerActivity::class.java))
+            }
+        }, LinearLayout.LayoutParams(-1, dp(48)))
         root.addView(label("+  Import audio files", 15f, 0xFF101A21.toInt(), true).apply {
             gravity = Gravity.CENTER
             background = cardBackground(0xFF91E2D7.toInt())
@@ -238,6 +246,14 @@ class OfflineLibraryActivity : ComponentActivity() {
                 contentDescription = "Play " + song.title
                 setOnClickListener { launchPlayback(song) }
             }, LinearLayout.LayoutParams(dp(49), dp(47)))
+            row.addView(label("☁", 20f, 0xFF91E2D7.toInt()).apply {
+                gravity = Gravity.CENTER
+                contentDescription = "Upload " + song.title + " to your own Google Drive"
+                setOnClickListener {
+                    startActivity(Intent(this@OfflineLibraryActivity, NightWaveLockerActivity::class.java)
+                        .putExtra(NightWaveLockerActivity.EXTRA_OFFLINE_ID, song.id))
+                }
+            }, LinearLayout.LayoutParams(dp(43), dp(47)))
             row.addView(label("⋮", 24f, 0xFFB9C9D6.toInt()).apply {
                 gravity = Gravity.CENTER
                 contentDescription = "Remove offline track " + song.title
