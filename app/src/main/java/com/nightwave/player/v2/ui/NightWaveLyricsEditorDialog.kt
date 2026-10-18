@@ -142,7 +142,7 @@ fun NightWaveLyricsEditorDialog(
                         enabled = canUndo && !saving,
                         modifier = Modifier.weight(1f)) { Text("Undo") }
                     OutlinedButton(onClick = {
-                        applySafe { LyricsEditorPolicy.add(draft, playbackMs) }
+                        applySafe(action = { LyricsEditorPolicy.add(draft, playbackMs) })
                     }, enabled = !saving && draft.cues.size < 1200,
                         modifier = Modifier.weight(1f)) { Text("Add at playhead") }
                 }
@@ -449,9 +449,9 @@ fun NightWaveLyricsEditorDialog(
             confirmButton = {
                 Button(onClick = {
                     val index = draft.cues.indexOf(original)
-                    if (index >= 0) applySafe {
+                    if (index >= 0) applySafe(action = {
                         LyricsEditorPolicy.delete(draft, index)
-                    }
+                    })
                     selected = selected.coerceAtMost((draft.cues.size - 2).coerceAtLeast(0))
                     deletingCue = null
                 }, enabled = !saving) { Text("Remove line") }
