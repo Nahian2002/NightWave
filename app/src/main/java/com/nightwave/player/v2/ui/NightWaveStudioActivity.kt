@@ -797,10 +797,8 @@ class NightWaveStudioActivity : ComponentActivity() {
             "${index + 1}. $whenSaved$size"
         }.toTypedArray()
         AlertDialog.Builder(this)
-            .setTitle(if (forMerge) "Compare with cloud snapshot" else "Choose a cloud backup")
-            .setMessage("Showing ${options.size} of ${snapshots.size} available snapshots. " +
-                "Date and size are Drive metadata, not integrity verification. " +
-                "NightWave checks the chosen backup before previewing it.")
+            .setTitle(if (forMerge) "Compare backups (${options.size} of ${snapshots.size})"
+                else "Choose a cloud backup (${options.size} of ${snapshots.size})")
             .setItems(labels) { _, which ->
                 val chosen = options[which]
                 cloudBusy = true
