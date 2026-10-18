@@ -64,12 +64,12 @@ class LockerVaultBrowsePolicyTest {
     }
 
     @Test fun visiblePageIsBoundedEvenWithHugeRequest() {
-        val many = List(560) { index ->
+        val many = List(4500) { index ->
             song("VaultFile${index.toString().padStart(4, '0')}",
                 "song${index}.mp3", 100L)
         }
         assertEquals(40, LockerVaultBrowsePolicy.visible(many, 40).size)
-        assertEquals(500, LockerVaultBrowsePolicy.visible(many, 9000).size)
+        assertEquals(4000, LockerVaultBrowsePolicy.visible(many, 9000).size)
         assertTrue(LockerVaultBrowsePolicy.visible(many, -1).isEmpty())
     }
 
