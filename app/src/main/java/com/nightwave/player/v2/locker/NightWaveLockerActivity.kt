@@ -289,6 +289,10 @@ class NightWaveLockerActivity : ComponentActivity() {
                     if (action == "download" && checkpoints.read() != null) {
                         status("Download interrupted. Resume after checking your connection, " +
                             "or discard the temporary copy. Saved songs are unchanged.")
+                    } else if (action == "upload") {
+                        status("Upload could not be verified. No local song changed. " +
+                            "Retry explicitly: NightWave first checks for a matching " +
+                            "Drive copy before starting another session.")
                     } else {
                         status("Music Drive action failed; local audio was not modified. " +
                             "Check connection and try again.")
