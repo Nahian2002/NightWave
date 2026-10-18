@@ -61,6 +61,8 @@ class PlaybackService : MediaSessionService() {
         const val ACTION_JUMP = "com.nightwave.player.JUMP"
         const val ACTION_SHUFFLE = "com.nightwave.player.SHUFFLE"
         const val ACTION_REPEAT = "com.nightwave.player.REPEAT"
+        const val EXTRA_REPEAT_MODE = "repeat_mode"
+        const val EXTRA_REPEAT_REQUEST_ID = "repeat_request_id"
         const val ACTION_SLEEP_TIMER_SET = "com.nightwave.player.SLEEP_TIMER_SET"
         const val ACTION_SLEEP_TIMER_CANCEL = "com.nightwave.player.SLEEP_TIMER_CANCEL"
         const val ACTION_OFFLINE_SPEED_SET = "com.nightwave.player.OFFLINE_SPEED_SET"
@@ -655,12 +657,21 @@ class PlaybackService : MediaSessionService() {
                 queue.shuffle = !queue.shuffle; savedQueue.save(queue)
             }
             ACTION_REPEAT -> if (!offlinePlaying) {
-                queue.repeat = when (queue.repeat) {
-                    PlaybackQueue.Repeat.OFF -> PlaybackQueue.Repeat.ALL
-                    PlaybackQueue.Repeat.ALL -> PlaybackQueue.Repeat.ONE
-                    PlaybackQueue.Repeat.ONE -> PlaybackQueue.Repeat.OFF
+                // Explicit selection is safe under rapid taps: the service must never
+                // reinterpret an old command against a newer queue state.
+                val explicit = intent?.hasExtra(EXTRA_REPEAT_MODE) == true
+                val mode = RepeatModePolicy.resolve(
+                    queue.repeat, explicit, intent?.getStringExtra(EXTRA_REPEAT_MODE))
+                if (mode != null) {
+                    queue.repeat = mode
+                    savedQueue.save(queue)
+                    val requestId = intent?.getStringExtra(EXTRA_REPEAT_REQUEST_ID)
+                    // Acknowledge only a mode that is actually present in the
+                    // persisted queue snapshot. Old legacy toggle calls have no ID.
+                    if (!requestId.isNullOrEmpty() && savedQueue.read().repeat == mode) {
+                        RepeatModeReceiptStore(this).acknowledge(requestId, mode)
+                    }
                 }
-                savedQueue.save(queue)
             }
         }
         if (intent?.action == ACTION_EQ_PRESET_SET || intent?.action == ACTION_EQ_BANDS_APPLY) {
