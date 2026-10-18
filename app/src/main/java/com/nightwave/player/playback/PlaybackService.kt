@@ -67,6 +67,9 @@ class PlaybackService : MediaSessionService() {
         const val ACTION_LISTENING_LEVEL_SET = "com.nightwave.player.LISTENING_LEVEL_SET"
         const val ACTION_EQ_PRESET_SET = "com.nightwave.player.EQ_PRESET_SET"
         const val EXTRA_EQ_PRESET = "eq_preset"
+        const val ACTION_EQ_BAND_SET = "com.nightwave.player.EQ_BAND_SET"
+        const val EXTRA_EQ_BAND = "eq_band"
+        const val EXTRA_EQ_LEVEL_MB = "eq_level_mb"
         const val EXTRA_LISTENING_LEVEL_PERCENT = "listening_level_percent"
         const val EXTRA_OFFLINE_SPEED_PERCENT = "offline_speed_percent"
         const val EXTRA_SLEEP_MINUTES = "sleep_minutes"
@@ -93,6 +96,7 @@ class PlaybackService : MediaSessionService() {
     private var sleepTimerPaused = false
     // 6W1: explicit, session-scoped and OFF by default. No volume amplification or file changes.
     private var requestedEqPreset = 0
+    private val manualLevels = mutableMapOf<Int, Short>()
     private val eqStatus by lazy { EqualizerStatusStore(this) }
     private var activeEqualizer: Equalizer? = null
     private var equalizerSessionId = C.AUDIO_SESSION_ID_UNSET
@@ -113,9 +117,18 @@ class PlaybackService : MediaSessionService() {
         var candidate: Equalizer? = null
         try {
             candidate = Equalizer(0, sessionId)
-            val presetIndex = requestedEqPreset - 1
-            if (presetIndex !in 0 until candidate.numberOfPresets.toInt()) return
-            candidate.usePreset(presetIndex.toShort())
+            if (requestedEqPreset == 21) {
+                // Manual mode: range and band count come from this exact device/session.
+                val range = candidate.bandLevelRange
+                for ((index, level) in manualLevels) {
+                    if (index >= candidate.numberOfBands.toInt() || level < range[0] || level > range[1]) return
+                    candidate.setBandLevel(index.toShort(), level)
+                }
+            } else {
+                val presetIndex = requestedEqPreset - 1
+                if (presetIndex !in 0 until candidate.numberOfPresets.toInt()) return
+                candidate.usePreset(presetIndex.toShort())
+            }
             candidate.enabled = true
             if (!candidate.enabled) return
             activeEqualizer = candidate
@@ -565,8 +578,18 @@ class PlaybackService : MediaSessionService() {
             ACTION_SLEEP_TIMER_CANCEL -> clearSleepTimer()
             ACTION_EQ_PRESET_SET -> {
                 val preset = intent.getIntExtra(EXTRA_EQ_PRESET, -1)
-                if (preset in 0..20) {
+                if (preset in 0..21) {
                     requestedEqPreset = preset
+                    applyEqualizer(exoPlayer?.audioSessionId ?: C.AUDIO_SESSION_ID_UNSET)
+                }
+            }
+            ACTION_EQ_BAND_SET -> {
+                val band = intent.getIntExtra(EXTRA_EQ_BAND, -1)
+                val level = intent.getIntExtra(EXTRA_EQ_LEVEL_MB, Int.MIN_VALUE)
+                if (band in 0..4 && level in -1500..1500) {
+                    manualLevels[band] = level.toShort()
+                    requestedEqPreset = 21
+                    releaseEqualizer()
                     applyEqualizer(exoPlayer?.audioSessionId ?: C.AUDIO_SESSION_ID_UNSET)
                 }
             }
