@@ -28,7 +28,7 @@ class NightWaveBrowseChromePolicyTest {
     }
 
     @Test fun savedResultsNeverPretendToBePublicVideos() {
-        assertEquals("Saved on this device", NightWaveBrowseChromePolicy.sourceDetail(
+        assertEquals("Saved in your library · playback may need internet", NightWaveBrowseChromePolicy.sourceDetail(
             NightWaveBrowseChromePolicy.Source.SAVED_LIBRARY))
     }
 
@@ -36,7 +36,7 @@ class NightWaveBrowseChromePolicyTest {
         val message = NightWaveBrowseChromePolicy.sourceDetail(
             NightWaveBrowseChromePolicy.Source.PUBLIC_VIDEO)
         assertTrue(message.contains("internet required"))
-        assertFalse(message.contains("Saved on this device"))
+        assertFalse(message.contains("Saved in your library · playback may need internet"))
     }
 
     @Test fun titleStripsWhitespaceAndRespectsMaximumLength() {
