@@ -87,6 +87,18 @@ class LyricsImportReviewPolicyTest {
             LyricsImportReviewPolicy.compare("", "", null))
     }
 
+    @Test fun rejectedFilesGetSpecificSafeErrorsWithoutRawProviderDetails() {
+        assertTrue(LyricsImportReviewPolicy.failureHint(
+            IllegalArgumentException("No synchronized LRC timestamps were found"))
+            .contains("[mm:ss.xx]"))
+        assertTrue(LyricsImportReviewPolicy.failureHint(
+            IllegalArgumentException("Lyrics file exceeds 64 KB")).contains("64 KB"))
+        assertTrue(LyricsImportReviewPolicy.failureHint(
+            IllegalArgumentException("Lyrics file has too many timed lines")).contains("1,200"))
+        assertFalse(LyricsImportReviewPolicy.failureHint(
+            IllegalStateException("content://private/stolen-token")).contains("stolen-token"))
+    }
+
     @Test fun reviewNeverIncludesRawLyricTextInWarningMessages() {
         val report = inspect(text = "[00:01.00]SECRET-WORDS")
         assertFalse(report.warnings.joinToString(" ").contains("SECRET-WORDS"))
