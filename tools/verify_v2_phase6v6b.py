@@ -22,7 +22,7 @@ REQUIRED = {
         "fun inspect(", "TimedLyricsCodec.parse(bytes)",
         "fun compare(", "declaredTitle.find(text)", "fun failureHint(",
         "ignoredTimestampRows", "repeatedCues", "outOfOrderCues",
-        "trackDurationMs + 5_000L", "Filename/title matching is advisory.",
+        "trackDurationMs + 5_000L", "Name looks similar; this is not audio-content verification.",
     ),
     P + "lyrics/PrivateLyricsStore.kt": (
         "nightwave_private_lrc_v1", "fun fingerprint(id: String): String?",
