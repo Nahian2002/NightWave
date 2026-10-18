@@ -308,6 +308,141 @@ fun StudioNowPlayingOverlay(
             var sleepOptionsOpen by remember { mutableStateOf(false) }
             var speedOptionsOpen by remember { mutableStateOf(false) }
             var listeningOptionsOpen by remember { mutableStateOf(false) }
+            if (lyricsImmersive && state.offline && lyrics != null) {
+                val activeCue = LyricsSyncPolicy.activeIndex(
+                    lyrics, state.positionMs, lyricsOffsetMs)
+                val lyricListState = rememberLazyListState()
+                LaunchedEffect(activeCue, state.videoUrl, reduceMotion) {
+                    if (activeCue >= 0) {
+                        val target = (activeCue - 2).coerceAtLeast(0)
+                        if (reduceMotion) lyricListState.scrollToItem(target)
+                        else lyricListState.animateScrollToItem(target)
+                    }
+                }
+                Column(
+                    Modifier.fillMaxSize().padding(horizontal = 22.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Row(
+                        Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        IconButton(onClick = { lyricsImmersive = false }) {
+                            Icon(Icons.Outlined.ArrowDownward,
+                                contentDescription = "Return to now playing",
+                                tint = colors.onBackground)
+                        }
+                        Column(
+                            Modifier.weight(1f),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text("NIGHTWAVE LYRICS",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = colors.primary)
+                            Text(state.title, maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                style = MaterialTheme.typography.titleMedium)
+                            Text(state.artist, maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = colors.onSurfaceVariant)
+                        }
+                        IconButton(onClick = {
+                            lyricsImmersive = false
+                            onDismiss()
+                        }) {
+                            Icon(Icons.Outlined.Close,
+                                contentDescription = "Minimize lyrics and player",
+                                tint = colors.onBackground)
+                        }
+                    }
+                    Text("Your imported LRC · Tap any line to seek",
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                        color = colors.onSurfaceVariant,
+                        style = MaterialTheme.typography.labelSmall)
+                    LazyColumn(
+                        state = lyricListState,
+                        modifier = Modifier.weight(1f).fillMaxWidth(),
+                        contentPadding = PaddingValues(vertical = 28.dp),
+                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        itemsIndexed(lyrics.cues,
+                            key = { index, _ -> index }) { index, cue ->
+                            val current = index == activeCue
+                            Surface(
+                                onClick = {
+                                    actions.seekTo(LyricsSyncPolicy.seekPosition(
+                                        cue, lyricsOffsetMs, state.durationMs))
+                                },
+                                enabled = state.connected && state.hasTrack,
+                                modifier = Modifier.fillMaxWidth()
+                                    .testTag("lyrics-cue-$index"),
+                                shape = RoundedCornerShape(14.dp),
+                                color = if (current) colors.primaryContainer
+                                    else Color.Transparent
+                            ) {
+                                Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+                                    Text(cue.text,
+                                        style = if (current)
+                                            MaterialTheme.typography.titleLarge
+                                        else MaterialTheme.typography.titleMedium,
+                                        fontWeight = if (current)
+                                            FontWeight.Bold else FontWeight.Normal,
+                                        color = if (current) colors.onPrimaryContainer
+                                            else colors.onSurfaceVariant)
+                                    if (current) {
+                                        Text(timeLabel(LyricsSyncPolicy.seekPosition(
+                                            cue, lyricsOffsetMs, state.durationMs)),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = colors.onPrimaryContainer)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Surface(
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 14.dp),
+                        shape = RoundedCornerShape(20.dp),
+                        color = colors.surface,
+                        tonalElevation = 1.dp
+                    ) {
+                        Column(Modifier.padding(14.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("Lyric timing · " + LyricsSyncPolicy.label(lyricsOffsetMs),
+                                style = MaterialTheme.typography.labelLarge)
+                            Text("Positive timing delays words; negative timing moves them earlier.",
+                                color = colors.onSurfaceVariant,
+                                style = MaterialTheme.typography.labelSmall)
+                            Row(Modifier.fillMaxWidth().padding(top = 10.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically) {
+                                OutlinedButton(
+                                    onClick = {
+                                        onLyricsOffsetChange(
+                                            LyricsSyncPolicy.adjust(lyricsOffsetMs, -1))
+                                    },
+                                    enabled = lyricsOffsetMs > -LyricsSyncPolicy.MAX_OFFSET_MS,
+                                    modifier = Modifier.weight(1f)
+                                ) { Text("−0.25s") }
+                                OutlinedButton(
+                                    onClick = { onLyricsOffsetChange(0) },
+                                    enabled = lyricsOffsetMs != 0,
+                                    modifier = Modifier.weight(1f)
+                                ) { Text("Reset") }
+                                OutlinedButton(
+                                    onClick = {
+                                        onLyricsOffsetChange(
+                                            LyricsSyncPolicy.adjust(lyricsOffsetMs, 1))
+                                    },
+                                    enabled = lyricsOffsetMs < LyricsSyncPolicy.MAX_OFFSET_MS,
+                                    modifier = Modifier.weight(1f)
+                                ) { Text("+0.25s") }
+                            }
+                        }
+                    }
+                }
+            } else {
             Column(
                 Modifier.fillMaxSize().verticalScroll(rememberScrollState())
                     .padding(horizontal = 24.dp),
@@ -641,6 +776,14 @@ fun StudioNowPlayingOverlay(
                             }
                         }
                         Spacer(Modifier.height(9.dp))
+                        OutlinedButton(onClick = { lyricsImmersive = true },
+                            modifier = Modifier.fillMaxWidth()) {
+                            Text("Open full-screen synchronized lyrics")
+                        }
+                        Text("Lyric timing · " + LyricsSyncPolicy.label(lyricsOffsetMs),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = colors.onSurfaceVariant)
+                        Spacer(Modifier.height(9.dp))
                         Row(Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(9.dp)) {
                             OutlinedButton(onClick = onImportLyrics,
@@ -670,6 +813,7 @@ fun StudioNowPlayingOverlay(
                     }
                 }
                 Spacer(Modifier.height(32.dp))
+            }
             }
         }
     }
