@@ -145,6 +145,7 @@ import com.nightwave.player.net.SavedTrackSearch
 import com.nightwave.player.net.MusicIdentity
 import com.nightwave.player.net.SavedCreatorBrowser
 import com.nightwave.player.v2.library.LibraryBrowsePolicy
+import com.nightwave.player.v2.library.LibraryQuickPlayPolicy
 import com.nightwave.player.v2.library.LibraryPlaylistPreview
 import com.nightwave.player.ui.MainActivity
 import com.nightwave.player.ui.YouTubeSearchBrowser
@@ -548,6 +549,12 @@ class NightWaveStudioActivity : ComponentActivity() {
                     onWebSearch = { query -> openOfficialSearch(query) },
                     onPlay = { video, collection -> playback.play(video, collection) },
                     onLegacyPlayer = { manageLibrary() },
+                    onCreatePlaylist = {
+                        promptPlaylistName { name ->
+                            if (library.createPlaylist(name)) refresh()
+                            else showMessage("That playlist name is unavailable.")
+                        }
+                    },
                     onOfflineLibrary = { startActivity(Intent(this, OfflineLibraryActivity::class.java)) },
                     onShareDiagnostics = { showCrashSummaryDialog() },
                     onOpenClassic = {
@@ -1394,6 +1401,7 @@ private fun StudioRoot(
     searchState: StudioSearchSnapshot,
     onPlay: (VideoPreview, List<VideoPreview>) -> Unit,
     onLegacyPlayer: () -> Unit,
+    onCreatePlaylist: () -> Unit,
     onOfflineLibrary: () -> Unit,
     onShareDiagnostics: () -> Unit,
     onOpenClassic: () -> Unit,
@@ -1629,7 +1637,9 @@ private fun StudioRoot(
                         onSongOptions = onSongOptions,
                         onSharePlaylist = onSharePlaylist,
                         onImportSharedPlaylist = onImportSharedPlaylist,
-                        onManage = onLegacyPlayer, onOffline = onOfflineLibrary,
+                        onManage = onLegacyPlayer,
+                        onCreatePlaylist = onCreatePlaylist,
+                        onOffline = onOfflineLibrary,
                         offlineResumeTitle = offlineResumeTitle,
                         offlineResumePositionMs = offlineResumePositionMs,
                         onResumeOffline = onResumeOffline,
@@ -2202,7 +2212,7 @@ private fun StudioLibrary(
     selectedPlaylist: String?, onSelectPlaylist: (String?) -> Unit,
     getPlaylist: (String) -> List<VideoPreview>, onPlay: (VideoPreview, List<VideoPreview>) -> Unit,
     onManage: () -> Unit, onSearch: () -> Unit,
-    onOffline: () -> Unit,
+    onCreatePlaylist: () -> Unit, onOffline: () -> Unit,
     offlineResumeTitle: String?, offlineResumePositionMs: Long,
     onResumeOffline: () -> Unit,
     onSongOptions: (VideoPreview) -> Unit,
@@ -2248,6 +2258,44 @@ private fun StudioLibrary(
                     SectionHeading(if (selectedPlaylist == LIKED_COLLECTION) "Liked Songs" else selectedPlaylist ?: "Your library",
                         if (selectedPlaylist == null) "Saved music across your collections"
                         else tracks.size.toString() + " saved tracks")
+                }
+            }
+        }
+        if (selectedPlaylist != null && tracks.isNotEmpty()) {
+            item(key = "library-quick-play-actions") {
+                Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                    Row(Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                        OutlinedButton(
+                            onClick = {
+                                val plan = LibraryQuickPlayPolicy.plan(
+                                    orderedTracks, shuffle = false, seed = 0L)
+                                plan.first?.let { onPlay(it, plan.songs) }
+                            },
+                            enabled = orderedTracks.isNotEmpty(),
+                            modifier = Modifier.weight(1f).height(46.dp),
+                            shape = RoundedCornerShape(14.dp)
+                        ) {
+                            Text("Play list", maxLines = 1)
+                        }
+                        OutlinedButton(
+                            onClick = {
+                                val plan = LibraryQuickPlayPolicy.plan(
+                                    orderedTracks, shuffle = true, seed = System.nanoTime())
+                                plan.first?.let { onPlay(it, plan.songs) }
+                            },
+                            enabled = orderedTracks.isNotEmpty(),
+                            modifier = Modifier.weight(1f).height(46.dp),
+                            shape = RoundedCornerShape(14.dp)
+                        ) {
+                            Text("Shuffle play", maxLines = 1)
+                        }
+                    }
+                    if (orderedTracks.size > LibraryQuickPlayPolicy.MAX_QUEUE) {
+                        Text("Playback queues up to 100 visible tracks. Your saved collection stays intact.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                 }
             }
         }
@@ -2301,6 +2349,21 @@ private fun StudioLibrary(
                     favorites.size.toString() + " tracks",
                     cover = favorites.firstOrNull()) {
                     onSelectPlaylist(LIKED_COLLECTION)
+                }
+            }
+            item(key = "library-quick-navigation") {
+                Row(Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                    OutlinedButton(onClick = onCreatePlaylist,
+                        modifier = Modifier.weight(1f).height(46.dp),
+                        shape = RoundedCornerShape(14.dp)) {
+                        Text("New playlist", maxLines = 1)
+                    }
+                    OutlinedButton(onClick = onSearch,
+                        modifier = Modifier.weight(1f).height(46.dp),
+                        shape = RoundedCornerShape(14.dp)) {
+                        Text("Find music", maxLines = 1)
+                    }
                 }
             }
             item(key = "import-shared-playlist") {
