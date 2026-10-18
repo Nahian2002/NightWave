@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -87,7 +86,7 @@ fun NightWaveSleepTimerDialog(
                 Text("SLEEP TIMER", color = colors.primary,
                     style = MaterialTheme.typography.labelMedium,
                     letterSpacing = 1.8.sp)
-                Text("Fade into the night", style = MaterialTheme.typography.titleLarge,
+                Text("Set a duration", style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold)
                 Text(
                     "Choose an exact duration. NightWave will pause music when the timer ends.",
@@ -176,13 +175,18 @@ fun NightWaveSleepTimerDialog(
                         style = MaterialTheme.typography.bodySmall,
                         color = colors.onSurfaceVariant)
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically) {
-                    TextButton(onClick = onDismiss) { Text("Back") }
-                    if (remainingMs > 0L) {
-                        TextButton(onClick = onCancel) { Text("Cancel timer") }
+                if (remainingMs > 0L) {
+                    OutlinedButton(onClick = onCancel,
+                        modifier = Modifier.fillMaxWidth()) {
+                        Text("Cancel active timer")
                     }
-                    Spacer(Modifier.weight(1f))
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(onClick = onDismiss) { Text("Back") }
                     Button(onClick = { if (valid) onSet(requireNotNull(minutes)) },
                         enabled = valid,
                         modifier = Modifier.testTag("sleep-timer-confirm")) {
