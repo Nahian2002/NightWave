@@ -126,6 +126,8 @@ jobs:
           python3 tools/verify_v2_phase6v5c.py
           python3 tools/verify_v2_phase6v6a.py --self-test
           python3 tools/verify_v2_phase6v6a.py
+          python3 tools/verify_v2_phase6v6b.py --self-test
+          python3 tools/verify_v2_phase6v6b.py
           python3 tools/ci_compile_summary.py --self-test
       - uses: actions/setup-java@v4
         with:
@@ -165,7 +167,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: NightWave-6V6A-dev-debug-UNVERIFIED-FOR-DEVICE
+          name: NightWave-6V6B-dev-debug-UNVERIFIED-FOR-DEVICE
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 5
