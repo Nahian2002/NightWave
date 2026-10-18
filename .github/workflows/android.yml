@@ -52,6 +52,7 @@ on:
       - feature/nightwave-v2-phase6v6c-local-lrc-editor
       - feature/nightwave-v2-phase6v6d-lyrics-export-accessibility
       - feature/nightwave-v2-phase6v6e-lyrics-search-workspace
+      - feature/nightwave-v2-phase6v6f-build-stabilization-lyrics-qa
   # Earlier phase Android/device tests were intentionally deferred.
   # Workflow dispatch stays available for controlled rechecks.
   workflow_dispatch:
