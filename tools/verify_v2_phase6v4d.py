@@ -47,7 +47,7 @@ REQUIRED: dict[str, tuple[str, ...]] = {
         "PlaybackRecoveryPolicy.mayAutoRetry(",
         "PlaybackRecoveryPolicy.acceptsPostedRetry(",
         "PlaybackRecoveryPolicy.acceptsResolvedTrack(entry.url, video.url)",
-        "ex oPlayer?.playWhenReady = false".replace("ex o", "exo"),
+        "exoPlayer?.playWhenReady = false",
         "savedQueue.restore(queue)",
         "PlaybackTransitionPolicy.shouldAdvance(",
     ),
