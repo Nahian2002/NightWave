@@ -67,6 +67,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -2405,11 +2406,12 @@ private fun StudioSearch(
             top = 16.dp, bottom = 34.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item {
-            Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                NightWaveMicroLabel("Discover")
-                SectionHeading("Explore sound", "Your next favorite starts here")
-            }
+        item(key = "premium-search-header") {
+            NightWaveBrowseHeader(
+                title = "Explore sound",
+                subtitle = "Find saved favorites or discover new music online",
+                search = true
+            )
         }
         item {
             OutlinedTextField(
@@ -2417,8 +2419,10 @@ private fun StudioSearch(
                     query = it.take(160)
                     selectedCreator = null
                 },
-                modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(17.dp),
-                singleLine = true, placeholder = { Text("Song or artist name") },
+                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)
+                    .testTag("nightwave-search-field"),
+                shape = RoundedCornerShape(18.dp),
+                singleLine = true, placeholder = { Text("Song, video or artist") },
                 leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
                 trailingIcon = {
                     if (query.isNotBlank()) IconButton(onClick = { query = "" }) {
@@ -2614,9 +2618,12 @@ private fun StudioSearch(
             }
         }
         if (savedMatches.isNotEmpty()) {
-            item {
-                SectionHeading("In your library",
-                    savedMatches.size.toString() + " matches from liked, recent and playlists")
+            item(key = "premium-saved-result-heading") {
+                NightWaveSearchSourceHeading(
+                    title = "In your library",
+                    resultCount = savedMatches.size,
+                    source = NightWaveBrowseChromePolicy.Source.SAVED_LIBRARY
+                )
             }
             items(savedMatches, key = { "saved:" + it.url }) { song ->
                 MusicTrackTile(song, isPlaying = playingUrl == song.url,
@@ -2631,8 +2638,16 @@ private fun StudioSearch(
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         } else if (responseMatchesQuery && state.videos.isNotEmpty()) {
-            item { SectionHeading("Public results",
-                state.videos.size.toString() + " tracks · " + state.provider) }
+            item(key = "premium-public-result-heading") {
+                NightWaveSearchSourceHeading(
+                    title = "Public results",
+                    resultCount = state.videos.size,
+                    source = NightWaveBrowseChromePolicy.Source.PUBLIC_VIDEO
+                )
+                Text(state.provider,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.labelSmall)
+            }
             if (state.error.isNotBlank()) {
                 item {
                     Text("Showing earlier results for this search. Online refresh failed.",
