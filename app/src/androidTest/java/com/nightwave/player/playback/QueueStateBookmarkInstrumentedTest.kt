@@ -187,4 +187,18 @@ class QueueStateBookmarkInstrumentedTest {
         assertEquals(original, prefs.getString("snapshot", null))
     }
 
+
+    @Test fun signedWatchLinkCannotLeakIntoBookmarkOrLookupMetadata() {
+        val suspicious = first + "&sig=secret"
+        store.saveBookmark(suspicious, 10_000L, 60_000L)
+        store.markLookup(suspicious)
+        store.recordFailure(suspicious, "Cannot persist token")
+        assertNull(store.bookmark(suspicious))
+        assertFalse(store.lookupPending(suspicious))
+        assertNull(store.failure(suspicious))
+        assertFalse(
+            app.getSharedPreferences("nightwave_queue_v1", Context.MODE_PRIVATE)
+                .all.values.any { it.toString().contains("sig=secret") }
+        )
+    }
 }
