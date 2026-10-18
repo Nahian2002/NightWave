@@ -142,6 +142,8 @@ jobs:
           python3 tools/triage_github_actions.py --self-test
           python3 tools/verify_v2_phase6v6f.py --self-test
           python3 tools/verify_v2_phase6v6f.py
+          python3 tools/check_kotlin_bytearray_fixtures.py --self-test
+          python3 tools/check_kotlin_bytearray_fixtures.py
           python3 tools/ci_compile_summary.py --self-test
       - uses: actions/setup-java@v4
         with:
@@ -181,7 +183,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: NightWave-6V6F-dev-debug-UNVERIFIED-FOR-DEVICE
+          name: NightWave-6V6G-dev-debug-UNVERIFIED-FOR-DEVICE
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 5
