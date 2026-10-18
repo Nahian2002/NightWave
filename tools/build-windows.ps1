@@ -292,6 +292,17 @@ try {
     }
     Say '6V7A source regression checks PASS (real Compose compiler still required).'
 
+    $stage = 'Phase 6V7B premium Search and Library preflight'
+    $phase6v7b = Join-Path $PSScriptRoot 'check-phase6v7b-integration.ps1'
+    if (-not (Test-Path -LiteralPath $phase6v7b -PathType Leaf)) {
+        throw 'NightWave 6V7B browse gate missing. Extract the complete source ZIP.'
+    }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $phase6v7b
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Phase 6V7B Search/Library source verification failed; Gradle not started.'
+    }
+    Say '6V7B premium browse source gate PASS; Compose compilation still required.'
+
     $stage = 'Java preparation'
     Resolve-Java
 
