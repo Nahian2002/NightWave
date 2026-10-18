@@ -122,7 +122,7 @@ class PlaybackService : MediaSessionService() {
         var candidate: Equalizer? = null
         try {
             candidate = Equalizer(0, sessionId)
-            eqCapabilities.publish(candidate)
+            eqCapabilities.publish(candidate, sessionId)
             if (requestedEqPreset == 21) {
                 // Manual mode: range and band count come from this exact device/session.
                 val range = candidate.bandLevelRange
@@ -281,6 +281,7 @@ class PlaybackService : MediaSessionService() {
 
     private val trackListener = object : Player.Listener {
         override fun onAudioSessionIdChanged(audioSessionId: Int) {
+            eqCapabilities.clear()
             applyEqualizer(audioSessionId)
         }
         override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -596,7 +597,7 @@ class PlaybackService : MediaSessionService() {
                     var probe: Equalizer? = null
                     try {
                         probe = activeEqualizer ?: Equalizer(0, session)
-                        eqCapabilities.publish(probe)
+                        eqCapabilities.publish(probe, session)
                     } catch (_: Exception) {
                         eqCapabilities.clear()
                     } finally {
@@ -609,15 +610,15 @@ class PlaybackService : MediaSessionService() {
                 if (values != null && values.size in 1..32 && values.all { it in -1500..1500 }) {
                     val session = exoPlayer?.audioSessionId ?: C.AUDIO_SESSION_ID_UNSET
                     val caps = eqCapabilities.read()
-                    if (session > 0 && caps.sessionReady && values.size == caps.centersHz.size &&
+                    if (session > 0 && caps.sessionReady && caps.audioSessionId == session && values.size == caps.centersHz.size &&
                         values.all { it in caps.minimumMb..caps.maximumMb }) {
                         manualLevels.clear()
                         values.forEachIndexed { index, level -> manualLevels[index] = level.toShort() }
                         requestedEqPreset = 21
                         releaseEqualizer()
                         applyEqualizer(session)
-                    } else eqStatus.write(21, false, "Bands unavailable or unsupported")
-                }
+                    } else eqStatus.write(requestedEqPreset, activeEqualizer?.enabled == true, "Rejected: stale session or unsupported bands")
+                } else eqStatus.write(requestedEqPreset, activeEqualizer?.enabled == true, "Rejected: invalid band input")
             }
             ACTION_EQ_BAND_SET -> {
                 val band = intent.getIntExtra(EXTRA_EQ_BAND, -1)
