@@ -19,7 +19,7 @@ object NightWaveBrowseChromePolicy {
     }
 
     fun sourceDetail(source: Source): String = when (source) {
-        Source.SAVED_LIBRARY -> "Saved on this device"
+        Source.SAVED_LIBRARY -> "Saved in your library · playback may need internet"
         Source.PUBLIC_VIDEO -> "Public YouTube results · internet required"
     }
 
