@@ -115,7 +115,7 @@ Require $workflow 'python3 tools/verify_v2_phase6v.py' 'current cross-phase sour
 Require $windows 'check-phase6p-integration.ps1' 'prior integration gate'
 Require $windows 'check-phase6v-integration.ps1' 'new integration gate'
 Require $windows 'verify-apk-signature.ps1' 'APK signer continuity'
-Require $sourceGate 'def main()' 'portable integration source checker'
+Require $sourceGate 'def main() -> int:' 'portable integration source checker'
 
 if ($issues.Count -gt 0) {
     Write-Host ('FAIL: Phase 6V cross-phase preflight found {0} issue(s):' -f $issues.Count) -ForegroundColor Red
