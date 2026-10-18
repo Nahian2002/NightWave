@@ -109,7 +109,7 @@ class NightWaveLockerActivity : ComponentActivity() {
             12f, 0xFF8AA0B3.toInt()))
         setContentView(layout)
         updateAccount()
-        status("Choose Connect, then explicitly upload or browse local music copies.")
+        status("Connect Google Drive, then choose a manual upload or browse your cloud library.")
     }
 
     private fun begin(action: String, download: LockerRemoteTrack? = null) {
@@ -164,7 +164,7 @@ class NightWaveLockerActivity : ComponentActivity() {
         updateAccount()
         if (action == "connect") {
             busy = false
-            status("Music Drive permission granted. Upload and browse are separate actions.")
+            status("Music Drive permission granted. Uploads, browsing and downloads require separate actions.")
             return
         }
         worker.execute {
@@ -228,7 +228,7 @@ class NightWaveLockerActivity : ComponentActivity() {
                             @Suppress("UNCHECKED_CAST")
                             val songs = value.filterIsInstance<LockerRemoteTrack>()
                             showSongs(songs)
-                            status("${songs.size} cloud audio files found (browse only).")
+                            status("${songs.size} cloud audio files found. Tap a track to download.")
                         }
                     }
                 }.onFailure {
