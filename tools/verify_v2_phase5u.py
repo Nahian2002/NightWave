@@ -83,12 +83,12 @@ assert 'requestCloudAction("backup")' in activity
 assert 'requestCloudAction("preview")' in activity
 assert 'drive.listSnapshots().takeIf { it.isNotEmpty() }' in activity
 assert 'showCloudSnapshotPicker(outcome.items, token,' in activity
-assert 'else "Choose a cloud backup"' in activity
+assert 'else "Choose a cloud backup (' in activity
 assert 'NightWaveDriveClient(token).download(chosen.id)' in activity
 assert 'setTitle("Review cloud restore")' in activity
 assert 'setNegativeButton("Cancel", null)' in activity
-assert 'restoreCloudAfterConfirmation(preview, false)' in activity
-assert 'restoreCloudAfterConfirmation(preview, true)' in activity
+assert 'restoreCloudAfterConfirmation(preview, report, false, account)' in activity
+assert 'restoreCloudAfterConfirmation(preview, report, true, account)' in activity
 assert 'cloudStore.disconnect()' in activity
 assert 'NightWaveCloudSchedule.stop(this)' in activity
 assert 'cloudStore.success(expectedAccount, System.currentTimeMillis())' in activity
