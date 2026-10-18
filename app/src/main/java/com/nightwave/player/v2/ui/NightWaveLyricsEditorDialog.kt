@@ -28,6 +28,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,6 +45,7 @@ import com.nightwave.player.v2.lyrics.LyricCue
 import com.nightwave.player.v2.lyrics.LyricsEditorDraft
 import com.nightwave.player.v2.lyrics.LyricsEditorPolicy
 import com.nightwave.player.v2.lyrics.LyricsEditorNavigationPolicy
+import com.nightwave.player.v2.lyrics.LyricsEditorSearchPolicy
 import com.nightwave.player.v2.lyrics.LyricsSyncPolicy
 import com.nightwave.player.v2.lyrics.TimedLyrics
 
@@ -69,7 +71,8 @@ fun NightWaveLyricsEditorDialog(
 ) {
     val colors = MaterialTheme.colorScheme
     val listState = rememberLazyListState()
-    var selected by remember { mutableStateOf(0) }
+    var selected by rememberSaveable { mutableStateOf(0) }
+    var searchQuery by rememberSaveable { mutableStateOf("") }
     var editingCue by remember { mutableStateOf<LyricCue?>(null) }
     var deletingCue by remember { mutableStateOf<LyricCue?>(null) }
     var editingText by remember { mutableStateOf("") }
@@ -78,6 +81,11 @@ fun NightWaveLyricsEditorDialog(
     var editDialogError by remember { mutableStateOf<String?>(null) }
     var discardConfirm by remember { mutableStateOf(false) }
     val current = LyricsEditorNavigationPolicy.follow(draft, playbackMs, offsetMs)
+    val searchMatches = remember(draft, searchQuery) {
+        LyricsEditorSearchPolicy.matches(draft, searchQuery)
+    }
+    val searchMatchSet = remember(searchMatches) { searchMatches.toSet() }
+    val searchOrdinal = LyricsEditorSearchPolicy.ordinal(searchMatches, selected)
 
     fun applySafe(
         action: () -> LyricsEditorDraft,
