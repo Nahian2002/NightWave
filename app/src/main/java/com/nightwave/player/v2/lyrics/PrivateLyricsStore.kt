@@ -2,6 +2,8 @@ package com.nightwave.player.v2.lyrics
 
 import android.content.Context
 import com.nightwave.player.offline.OfflineAudioLibrary
+import com.nightwave.player.v2.cloud.CloudLyricEntry
+import com.nightwave.player.v2.cloud.CloudLyricsPolicy
 
 /**
  * Lyrics live in separate, app-private preferences; 5U backup and
@@ -47,6 +49,37 @@ class PrivateLyricsStore(context: Context) {
         require(preferences.edit().putString(key, normalized).commit()) {
             "Could not save the imported lyrics"
         }
+    }
+
+    /**
+     * Export only explicit LRC attached to currently present user-imported
+     * audio. No audio bytes, source URI or physical file path ever leaves.
+     */
+    fun exportCloud(): List<CloudLyricEntry> {
+        val values = preferences.all
+        val records = offline.songs().mapNotNull { song ->
+            val text = values["lrc:" + song.id] as? String ?: return@mapNotNull null
+            CloudLyricEntry(song.id, text)
+        }
+        return CloudLyricsPolicy.validated(records)
+    }
+
+    /**
+     * Reattach only on the SAME local audio ID and only if no LRC already
+     * exists. Cross-device offline IDs normally differ; never invent a match.
+     */
+    @Synchronized
+    fun restoreCloudMissing(entries: List<CloudLyricEntry>): Int {
+        val clean = CloudLyricsPolicy.validated(entries)
+        val validIds = offline.songs().map { it.id }.toSet()
+        val existing = preferences.all
+        val additions = clean.filter { it.localSongId in validIds &&
+            !existing.containsKey("lrc:" + it.localSongId) }
+        if (additions.isEmpty()) return 0
+        val editor = preferences.edit()
+        additions.forEach { editor.putString("lrc:" + it.localSongId, it.lrc) }
+        check(editor.commit()) { "Could not restore private LRC" }
+        return additions.size
     }
 
     fun delete(id: String): Boolean {
