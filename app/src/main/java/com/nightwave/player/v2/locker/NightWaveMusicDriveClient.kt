@@ -46,7 +46,7 @@ class NightWaveMusicDriveClient(private val token: String) {
                 ?: error("Empty Drive response"), limit).toString(Charsets.UTF_8))
         }
 
-    private fun folder(): String {
+    private fun folder(createIfMissing: Boolean): String? {
         val query = "name = 'NightWave Music' and " +
             "mimeType = 'application/vnd.google-apps.folder' and trashed = false"
         val list = "https://www.googleapis.com/drive/v3/files".toHttpUrl().newBuilder()
@@ -60,6 +60,7 @@ class NightWaveMusicDriveClient(private val token: String) {
                 record.optString("name") == LockerAudioPolicy.FOLDER_NAME &&
                 record.optString("mimeType") == "application/vnd.google-apps.folder") return id
         }
+        if (!createIfMissing) return null
         val metadata = JSONObject().put("name", LockerAudioPolicy.FOLDER_NAME)
             .put("mimeType", "application/vnd.google-apps.folder")
         val create = "https://www.googleapis.com/drive/v3/files".toHttpUrl().newBuilder()
@@ -75,7 +76,8 @@ class NightWaveMusicDriveClient(private val token: String) {
         return id
     }
 
-    fun list(): List<LockerRemoteTrack> = listInFolder(folder())
+    fun list(): List<LockerRemoteTrack> =
+        folder(createIfMissing = false)?.let { listInFolder(it) }.orEmpty()
 
     private fun listInFolder(folder: String): List<LockerRemoteTrack> {
         require(fileId.matches(folder))
@@ -113,7 +115,9 @@ class NightWaveMusicDriveClient(private val token: String) {
     fun upload(song: OfflineSong, file: File, progress: (Int) -> Unit): LockerUploadOutcome {
         LockerAudioPolicy.validateLocal(song, file)
         val (sha256, md5) = LockerAudioPolicy.hashes(file)
-        val parent = folder()
+        val parent = requireNotNull(folder(createIfMissing = true)) {
+            "Could not create the NightWave Music folder"
+        }
         val existing = listInFolder(parent).firstOrNull {
             it.sha256 == sha256 && it.bytes == song.bytes && it.mimeType == song.mimeType &&
                 it.md5.equals(md5, true)
@@ -140,6 +144,7 @@ class NightWaveMusicDriveClient(private val token: String) {
         var offset = 0L
         RandomAccessFile(file, "r").use { reader ->
             while (offset < song.bytes) {
+                check(!Thread.currentThread().isInterrupted) { "Transfer cancelled" }
                 val count = minOf(LockerAudioPolicy.CHUNK_BYTES.toLong(),
                     song.bytes - offset).toInt()
                 val chunk = ByteArray(count)
