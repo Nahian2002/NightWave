@@ -28,7 +28,8 @@ object LyricsEditorSearchPolicy {
         require(query.length <= MAX_QUERY_LENGTH) { "Search is limited to 80 characters" }
         val needle = normalized(query)
         if (needle.isEmpty()) return emptyList()
-        val searchTime = ':' in needle
+        val searchTime = ':' in needle ||
+            ('.' in needle && needle.first().isDigit())
         return draft.cues.mapIndexedNotNull { index, cue ->
             val found = normalized(cue.text).contains(needle) ||
                 (searchTime && LyricsEditorPolicy.timeLabel(cue.timeMs).contains(needle))
