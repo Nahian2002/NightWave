@@ -2384,7 +2384,7 @@ private fun StudioLibrary(
                         }
                     }
                 } else {
-                    items(visiblePlaylists, key = { it.name }) { collection ->
+                    items(visiblePlaylists, key = { "playlist:" + it.name }) { collection ->
                         MusicCollectionTile(collection.name, collection.size.toString() + " tracks",
                             cover = collection.cover) {
                             onSelectPlaylist(collection.name)
