@@ -24,7 +24,7 @@ REQUIRED = {
     "app/src/main/java/com/nightwave/player/v2/locker/NightWaveMusicDriveClient.kt": (
         "fun inventory(): LockerCloudInventory",
         "fun list(): List<LockerRemoteTrack> = inventory().tracks",
-        "repeat(LockerVaultBrowsePolicy.MAX_PAGES)",
+        "repeat(minOf(LockerVaultBrowsePolicy.MAX_PAGES, remaining))",
         'addQueryParameter("pageSize", LockerVaultBrowsePolicy.PAGE_SIZE.toString())',
         "if (next.isBlank()) return LockerCloudInventory(",
         "hasMore = true", "fun inventoryMore(previous: LockerCloudInventory)",
@@ -68,7 +68,7 @@ REQUIRED = {
     ),
     "tools/verify_v2_phase6r1.py": (
         "assert 'client.inventory()' in ui",
-        "assert 'repeat(LockerVaultBrowsePolicy.MAX_PAGES)' in client",
+        "assert 'repeat(minOf(LockerVaultBrowsePolicy.MAX_PAGES, remaining))' in client",
     ),
     "tools/verify_v2_phase6r2.py": (
         'assert "client.inventory()" in ui',
