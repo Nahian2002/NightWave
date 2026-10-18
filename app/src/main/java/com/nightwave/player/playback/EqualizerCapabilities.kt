@@ -33,7 +33,7 @@ class EqualizerCapabilities(context: Context) {
 
     fun publish(effect: Equalizer) {
         val bands = effect.numberOfBands.toInt().coerceIn(0, 32)
-        val presets = effect.numberOfPresets.toInt().coerceIn(0, 32)
+        val presets = effect.numberOfPresets.toInt().coerceIn(0, 20)
         val range = effect.bandLevelRange
         if (range.size < 2 || range[0] > range[1]) return
         val editor = preferences.edit().clear()
