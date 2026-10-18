@@ -323,8 +323,8 @@ fun NightWaveLyricsEditorDialog(
                             val revised = original.copy(
                                 text = editingText.replace('\n', ' ').replace('\r', ' ').trim(),
                                 timeMs = LyricsEditorPolicy.parseTime(editingTime))
-                            val newIndex = updated.cues.indexOf(revised)
-                            if (newIndex >= 0) selected = newIndex
+                            selected = LyricsEditorNavigationPolicy.afterEdit(
+                                LyricsEditorDraft(updated.cues), revised, selected)
                             onApply(updated)
                             editingCue = null
                         }.onFailure {
