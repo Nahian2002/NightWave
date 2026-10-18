@@ -20,6 +20,9 @@ import com.nightwave.player.v2.cloud.CloudBackupStatus
 import com.nightwave.player.v2.cloud.CloudBackupState
 import com.nightwave.player.v2.cloud.CloudBackupCodec
 import com.nightwave.player.v2.cloud.CloudBackupPreview
+import com.nightwave.player.v2.cloud.CloudRecoveryPolicy
+import com.nightwave.player.v2.cloud.CloudRecoveryReport
+import com.nightwave.player.v2.data.CloudRestoreApplyResult
 import com.nightwave.player.v2.cloud.NightWaveDriveClient
 import com.nightwave.player.v2.cloud.DriveSnapshot
 import com.nightwave.player.v2.cloud.CloudLibraryMerger
@@ -781,17 +784,23 @@ class NightWaveStudioActivity : ComponentActivity() {
         snapshots: List<DriveSnapshot>, token: String,
         forMerge: Boolean, expectedAccount: String
     ) {
-        val options = snapshots.take(20)
+        val options = snapshots.take(50)
         val labels = options.mapIndexed { index, snapshot ->
             val timestamp = snapshot.name.removePrefix("nightwave-cloud-v2-")
                 .substringBefore("-").toLongOrNull()
             val whenSaved = timestamp?.let {
                 java.text.DateFormat.getDateTimeInstance().format(java.util.Date(it))
             } ?: "Unknown date"
-            "${index + 1}. $whenSaved"
+            val size = snapshot.sizeBytes?.let {
+                " · " + (it / 1024L).coerceAtLeast(1L) + " KB"
+            }.orEmpty()
+            "${index + 1}. $whenSaved$size"
         }.toTypedArray()
         AlertDialog.Builder(this)
             .setTitle(if (forMerge) "Compare with cloud snapshot" else "Choose a cloud backup")
+            .setMessage("Showing ${options.size} of ${snapshots.size} available snapshots. " +
+                "Date and size are Drive metadata, not integrity verification. " +
+                "NightWave checks the chosen backup before previewing it.")
             .setItems(labels) { _, which ->
                 val chosen = options[which]
                 cloudBusy = true
@@ -803,17 +812,22 @@ class NightWaveStudioActivity : ComponentActivity() {
                             }
                             val remote = CloudBackupCodec.decode(
                                 NightWaveDriveClient(token).download(chosen.id))
+                            val localBytes = archiveManager.export()
                             val plan = if (forMerge) CloudLibraryMerger.preview(
-                                archiveManager.export(), remote.archive) else null
-                            remote to plan
+                                localBytes, remote.archive) else null
+                            val comparison = if (forMerge) null
+                                else CloudRecoveryPolicy.inspect(localBytes, remote)
+                            Triple(remote, plan, comparison)
                         }
                     }
                     cloudBusy = false
-                    outcome.onSuccess { (remote, plan) ->
+                    outcome.onSuccess { (remote, plan, comparison) ->
                         if (!cloudStore.read().account.equals(expectedAccount, true)) {
                             showMessage("Google account changed; compare again.")
                         } else if (plan != null) showCloudMergePreview(plan, expectedAccount)
-                        else showCloudRestorePreview(remote)
+                        else if (comparison != null) {
+                            showCloudRestorePreview(remote, comparison, expectedAccount)
+                        }
                     }
                         .onFailure {
                             cloudStore.status("Selected backup unavailable or failed validation")
@@ -877,35 +891,71 @@ class NightWaveStudioActivity : ComponentActivity() {
         dialog.show()
     }
 
-    private fun showCloudRestorePreview(preview: CloudBackupPreview) {
-        val message = "Cloud backup: ${preview.archive.favorites.size} liked songs and " +
-            "${preview.archive.playlists.size} playlists." +
-            if (preview.includesHistory) " Also contains ${preview.history.size} recent tracks."
-            else " No listening history included."
+    private fun showCloudRestorePreview(
+        preview: CloudBackupPreview, report: CloudRecoveryReport, account: String
+    ) {
+        val message = buildString {
+            append("IN GOOGLE DRIVE\n")
+            append("${report.cloudLiked} liked songs · ${report.cloudPlaylistCount} playlists")
+            append(" · ${report.cloudPlaylistTracks} playlist entries\n\n")
+            append("CURRENTLY ON THIS PHONE\n")
+            append("${report.localLiked} liked songs · ${report.localPlaylistCount} playlists\n\n")
+            append("IF YOU RESTORE THIS BACKUP\n")
+            append("${report.localLikedNotInCloud} currently liked songs would be removed.\n")
+            append("${report.localPlaylistsNotInCloud} local playlists would be removed.\n")
+            append("${report.localPlaylistsWithChangedContent} playlists would be replaced or renamed.\n")
+            if (report.profileWouldChange) append("The local profile appearance/name would change.\n")
+            if (report.optionalHistoryCount > 0) {
+                append("\nOptional: ${report.optionalHistoryCount} recent listening entries can be restored.")
+            } else append("\nCurrent listening history remains unless separately chosen.")
+            append("\n\nOffline audio and imported LRC lyrics are not included in this cloud backup.")
+            append("\nA recovery checkpoint is kept before replacement. Export locally if you need both versions.")
+        }
         val dialog = AlertDialog.Builder(this)
             .setTitle("Review cloud restore")
-            .setMessage(message + "\n\nRestoring replaces local favorites and playlists. " +
-                "Export your current library first if you need both copies. " +
-                "The existing recovery snapshot is preserved.")
+            .setMessage(message)
             .setNegativeButton("Cancel", null)
             .setPositiveButton("Restore library") { _, _ ->
-                restoreCloudAfterConfirmation(preview, false)
+                restoreCloudAfterConfirmation(preview, report, false, account)
             }
         if (preview.includesHistory && preview.history.isNotEmpty()) {
             dialog.setNeutralButton("Restore + history") { _, _ ->
-                restoreCloudAfterConfirmation(preview, true)
+                restoreCloudAfterConfirmation(preview, report, true, account)
             }
         }
         dialog.show()
     }
 
-    private fun restoreCloudAfterConfirmation(preview: CloudBackupPreview, withHistory: Boolean) {
+    private fun restoreCloudAfterConfirmation(
+        preview: CloudBackupPreview, report: CloudRecoveryReport,
+        withHistory: Boolean, account: String
+    ) {
+        if (cloudBusy || !cloudStore.read().account.equals(account, ignoreCase = true)) {
+            showMessage("Google account changed or backup is busy; review again.")
+            return
+        }
+        cloudBusy = true
         val history = if (withHistory) preview.history else null
-        if (archiveManager.restoreWithConfirmation(preview.archive, history)) {
-            profile = profiles.load()
-            refresh()
-            showMessage("Cloud library restored. Automatic backup was not changed.")
-        } else showMessage("Restore could not finish; your previous library was preserved.")
+        lifecycleScope.launch {
+            val outcome = withContext(Dispatchers.IO) {
+                runCatching {
+                    archiveManager.restoreCloudIfUnchanged(
+                        report.expectedLocalBackup, preview.archive, history)
+                }.getOrDefault(CloudRestoreApplyResult.FAILED)
+            }
+            cloudBusy = false
+            when (outcome) {
+                CloudRestoreApplyResult.APPLIED -> {
+                    profile = profiles.load()
+                    refresh()
+                    showMessage("Cloud library restored. Automatic backup remains unchanged.")
+                }
+                CloudRestoreApplyResult.STALE_PREVIEW ->
+                    showMessage("Your library changed. Review this backup again before restoring.")
+                CloudRestoreApplyResult.FAILED ->
+                    showMessage("Restore could not finish. Your previous library is preserved.")
+            }
+        }
     }
 
     private fun disconnectCloud() {
