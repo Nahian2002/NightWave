@@ -18,7 +18,7 @@ object LyricsExportPolicy {
 
     fun suggestedFileName(title: String): String {
         val clean = unsafe.replace(title, " ")
-            .removeSuffix(".lrc").removeSuffix(".LRC")
+            .replace(Regex("""(?i)\.lrc$"""), "")
             .trim().trimEnd('.').trim()
         val base = spaces.replace(clean, " ")
             .take(MAX_BASENAME_LENGTH).trim().trimEnd('.').trim()
