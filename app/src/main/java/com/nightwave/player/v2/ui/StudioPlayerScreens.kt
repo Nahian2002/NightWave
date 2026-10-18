@@ -137,15 +137,16 @@ fun StudioMiniPlayer(
     var travel by remember(state.videoUrl) { mutableStateOf(0f) }
     Column(
         modifier = modifier.fillMaxWidth().padding(horizontal = 11.dp, vertical = 3.dp)
-            .clip(RoundedCornerShape(18.dp))
+            .testTag("nightwave-mini-player")
+            .clip(RoundedCornerShape(20.dp))
             .background(
                 Brush.horizontalGradient(listOf(
-                    NightWaveVisualLanguage.accent(state.videoUrl).copy(alpha = .24f),
+                    NightWaveVisualLanguage.accent(state.videoUrl).copy(alpha = .20f),
                     colors.surfaceVariant,
                     colors.surface
                 ))
             )
-            .border(1.dp, colors.outline.copy(alpha = .17f), RoundedCornerShape(18.dp))
+            .border(1.dp, colors.outline.copy(alpha = .13f), RoundedCornerShape(20.dp))
             .pointerInput(state.videoUrl) {
                 detectVerticalDragGestures(
                     onDragStart = { travel = 0f },
@@ -178,10 +179,11 @@ fun StudioMiniPlayer(
         BoxWithConstraints(Modifier.fillMaxWidth()) {
             // Preserve room for a legible title on 320–360dp screens.
             // Next remains available in expanded Now Playing on narrow screens.
-            val showNext = state.queue.size > 1 && maxWidth >= 365.dp
+            val showNext = NightWaveChromePolicy.showMiniNext(
+                queueCount = state.queue.size, availableWidthDp = maxWidth.value)
             Row(
-                modifier = Modifier.fillMaxWidth().height(54.dp)
-                    .padding(start = 7.dp, end = 4.dp),
+                modifier = Modifier.fillMaxWidth().height(56.dp)
+                    .padding(start = 8.dp, end = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
