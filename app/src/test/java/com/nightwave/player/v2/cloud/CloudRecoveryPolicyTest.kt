@@ -70,6 +70,14 @@ class CloudRecoveryPolicyTest {
         assertEquals(3, report.cloudPlaylistTracks)
     }
 
+    @Test fun changedTrackMetadataCountsAsReplacement() {
+        val updatedTitle = a.copy(title = "A corrected title")
+        val result = CloudRecoveryPolicy.inspect(
+            local(archive(playlists = listOf("Mix" to listOf(a)))),
+            remote(archive(playlists = listOf("Mix" to listOf(updatedTitle)))))
+        assertEquals(1, result.localPlaylistsWithChangedContent)
+    }
+
     @Test fun samePlaylistCaseChangedWarnsUser() {
         val report = CloudRecoveryPolicy.inspect(
             local(archive(playlists = listOf("Mix" to listOf(a)))),
