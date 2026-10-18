@@ -8,6 +8,7 @@ Stacked on 6P, stable main unchanged. This is the first bounded Google Drive Bac
 - When data changes, latest remote download fails, or the remote snapshot is corrupt, the client creates a new copy-on-write snapshot and reads the exact bytes back for verification through the existing \`uploadVerified\` path.
 - A failed Drive list or new upload does not count as a successful backup. There is **no on-device-only hash shortcut** that could falsely claim remote backup success after a snapshot was deleted.
 - Background uploads recheck that the account, enablement, listening-history opt-in and Wi-Fi-only preference have not changed after the worker built the payload. If changed, this stale job exits without uploading. The next scheduled run can use the latest settings.
+- Manual backup also rechecks the account and listening-history opt-in immediately before starting its Drive operation; if the user changed the privacy choice while the backup was being prepared, it fails without uploading that stale payload.
 - Manual backup shows **Cloud backup already current; nothing uploaded** for unchanged data, or the original verified-upload confirmation if a snapshot was created. Background status similarly distinguishes unchanged backups.
 - Existing narrow \`drive.appdata\` Google scope, local privacy settings, 3 MB backup cap, checksum format, version 2 content compatibility, snapshot picker, confirmed restore, merge, Recovery snapshot and media restrictions remain.
 
