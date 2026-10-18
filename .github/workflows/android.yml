@@ -50,6 +50,7 @@ on:
       - feature/nightwave-v2-phase6v6a-synced-lyrics-studio
       - feature/nightwave-v2-phase6v6b-safe-lrc-import-review
       - feature/nightwave-v2-phase6v6c-local-lrc-editor
+      - feature/nightwave-v2-phase6v6d-lyrics-export-accessibility
   # Earlier phase Android/device tests were intentionally deferred.
   # Workflow dispatch stays available for controlled rechecks.
   workflow_dispatch:
