@@ -117,14 +117,17 @@ class LyricsEditorPolicyTest {
             }.toByteArray()
         )
         val baseline = LyricsEditorPolicy.begin(many)
-        val bigger = "z".repeat(220)
         var changed = baseline
-        var failed = false
+        var rejectedForSize = false
         for (i in 0 until changed.cues.size) {
-            try { changed = LyricsEditorPolicy.updateText(changed, i, bigger) }
-            catch (_: IllegalArgumentException) { failed = true; break }
+            val unique = "z".repeat(215) + i.toString().padStart(3, '0')
+            try { changed = LyricsEditorPolicy.updateText(changed, i, unique) }
+            catch (problem: IllegalArgumentException) {
+                rejectedForSize = problem.message?.contains("64 KB") == true
+                break
+            }
         }
-        assertTrue(failed)
+        assertTrue("Expected the 64 KB storage limit to stop the edit", rejectedForSize)
         assertTrue(LyricsEditorPolicy.serialize(changed).size <= TimedLyricsCodec.MAX_BYTES)
     }
 
