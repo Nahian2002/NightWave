@@ -10,7 +10,9 @@ import java.io.ByteArrayOutputStream
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
-data class DriveSnapshot(val id: String, val name: String)
+data class DriveSnapshot(
+    val id: String, val name: String, val sizeBytes: Long? = null
+)
 
 data class DriveBackupOutcome(val snapshot: DriveSnapshot, val created: Boolean)
 
@@ -53,26 +55,46 @@ class NightWaveDriveClient(private val accessToken: String) {
         .url(url).header("Authorization", "Bearer $accessToken")
         .header("Accept", "application/json")
 
+    /**
+     * List bounded app-only backup history. Metadata from Drive is a display
+     * hint, never a validation or a basis for recovery; selected snapshots are
+     * downloaded and checksum-verified before any restore preview.
+     */
     fun listSnapshots(): List<DriveSnapshot> {
-        val endpoint = "https://www.googleapis.com/drive/v3/files".toHttpUrl()
-            .newBuilder()
-            .addQueryParameter("spaces", "appDataFolder")
-            .addQueryParameter("q", "name contains 'nightwave-cloud-v2-' and trashed = false")
-            .addQueryParameter("orderBy", "createdTime desc")
-            .addQueryParameter("fields", "nextPageToken,files(id,name)")
-            .addQueryParameter("pageSize", "100")
-            .build().toString()
-        val json = JSONObject(perform(request(endpoint).get().build(), 100_000)
-            .toString(Charsets.UTF_8))
-        val files = json.getJSONArray("files")
-        // Prefer a visible bounded snapshot set; never guess or read other files.
-        return (0 until files.length()).mapNotNull { i ->
-            val file = files.getJSONObject(i)
-            val id = file.optString("id")
-            val name = file.optString("name")
-            if (id.isBlank() || !expectedName.matches(name)) null
-            else DriveSnapshot(id, name)
-        }.sortedByDescending { it.name }
+        val output = mutableListOf<DriveSnapshot>()
+        val seenIds = mutableSetOf<String>()
+        val seenTokens = mutableSetOf<String>()
+        var nextToken: String? = null
+        repeat(3) {
+            val builder = "https://www.googleapis.com/drive/v3/files".toHttpUrl()
+                .newBuilder()
+                .addQueryParameter("spaces", "appDataFolder")
+                .addQueryParameter("q", "name contains 'nightwave-cloud-v2-' and trashed = false")
+                .addQueryParameter("orderBy", "createdTime desc")
+                .addQueryParameter("fields", "nextPageToken,files(id,name,size)")
+                .addQueryParameter("pageSize", "100")
+            nextToken?.let { builder.addQueryParameter("pageToken", it) }
+            val json = JSONObject(perform(request(builder.build().toString()).get().build(), 100_000)
+                .toString(Charsets.UTF_8))
+            val files = json.getJSONArray("files")
+            for (i in 0 until files.length()) {
+                val file = files.getJSONObject(i)
+                val id = file.optString("id")
+                val name = file.optString("name")
+                if (id.isBlank() || !expectedName.matches(name) || !seenIds.add(id)) continue
+                val size = file.optString("size").toLongOrNull()?.takeIf {
+                    it in 1..CloudBackupCodec.MAX_BYTES.toLong()
+                }
+                output.add(DriveSnapshot(id, name, size))
+            }
+            val upcoming = json.optString("nextPageToken").takeIf { it.isNotBlank() }
+                ?: return output.sortedByDescending { it.name }
+            require(upcoming.length <= 2048 && seenTokens.add(upcoming)) {
+                "Invalid Drive listing page token"
+            }
+            nextToken = upcoming
+        }
+        return output.sortedByDescending { it.name }
     }
 
     fun download(id: String): ByteArray {
