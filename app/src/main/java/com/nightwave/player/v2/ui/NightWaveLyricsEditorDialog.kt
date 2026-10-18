@@ -202,8 +202,18 @@ fun NightWaveLyricsEditorDialog(
                                     horizontalArrangement = Arrangement.SpaceBetween) {
                                     TextButton(onClick = {
                                         selected = index
-                                        applySafe { LyricsEditorPolicy.nudge(draft, index, -1) }
-                                    }, enabled = !saving) { Text("−.25s") }
+                                        applySafe(
+                                            { LyricsEditorPolicy.nudge(draft, index, -1) },
+                                            { after ->
+                                                val expected = cue.copy(
+                                                    timeMs = (cue.timeMs - 250L).coerceAtLeast(0L))
+                                                after.cues.indexOf(expected)
+                                            }
+                                        )
+                                    }, enabled = !saving,
+                                        modifier = Modifier.heightIn(min = 48.dp)) {
+                                        Text("−.25s")
+                                    }
                                     TextButton(onClick = {
                                         selected = index
                                         editingCue = cue
@@ -211,15 +221,30 @@ fun NightWaveLyricsEditorDialog(
                                         editingTime = LyricsEditorPolicy.timeLabel(cue.timeMs)
                                         error = null
                                         editDialogError = null
-                                    }, enabled = !saving) { Text("Edit") }
+                                    }, enabled = !saving,
+                                        modifier = Modifier.heightIn(min = 48.dp)) {
+                                        Text("Edit")
+                                    }
                                     TextButton(onClick = {
                                         selected = index
-                                        applySafe { LyricsEditorPolicy.nudge(draft, index, 1) }
-                                    }, enabled = !saving) { Text("+.25s") }
+                                        applySafe(
+                                            { LyricsEditorPolicy.nudge(draft, index, 1) },
+                                            { after ->
+                                                val expected = cue.copy(
+                                                    timeMs = (cue.timeMs + 250L)
+                                                        .coerceAtMost(LyricsEditorPolicy.MAX_TIME_MS))
+                                                after.cues.indexOf(expected)
+                                            }
+                                        )
+                                    }, enabled = !saving,
+                                        modifier = Modifier.heightIn(min = 48.dp)) {
+                                        Text("+.25s")
+                                    }
                                     TextButton(onClick = {
                                         selected = index
                                         deletingCue = cue
-                                    }, enabled = !saving && draft.cues.size > 1) {
+                                    }, enabled = !saving && draft.cues.size > 1,
+                                        modifier = Modifier.heightIn(min = 48.dp)) {
                                         Text("Delete")
                                     }
                                 }
@@ -284,10 +309,15 @@ fun NightWaveLyricsEditorDialog(
                             require(newI >= 0) { "Cue changed. Select it again." }
                             LyricsEditorPolicy.updateTime(textDraft, newI, editingTime)
                         }
-                        result.onSuccess {
+                        result.onSuccess { updated ->
                             error = null
                             editDialogError = null
-                            onApply(it)
+                            val revised = original.copy(
+                                text = editingText.replace('\n', ' ').replace('\r', ' ').trim(),
+                                timeMs = LyricsEditorPolicy.parseTime(editingTime))
+                            val newIndex = updated.cues.indexOf(revised)
+                            if (newIndex >= 0) selected = newIndex
+                            onApply(updated)
                             editingCue = null
                         }.onFailure {
                             editDialogError = it.message?.take(130)
