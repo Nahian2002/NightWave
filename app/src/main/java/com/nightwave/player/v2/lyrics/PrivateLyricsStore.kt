@@ -30,7 +30,33 @@ class PrivateLyricsStore(context: Context) {
             .getOrNull()
     }
 
+    /**
+     * Stable fingerprint of the existing imported lyric text for explicit
+     * preview/replace decisions. Null means this song has no saved LRC.
+     * Raw LRC is never added to diagnostics, intent extras or logs.
+     */
+    @Synchronized
+    fun fingerprint(id: String): String? {
+        val key = "lrc:" + validatedId(id)
+        val saved = preferences.getString(key, null) ?: return null
+        return java.security.MessageDigest.getInstance("SHA-256")
+            .digest(saved.toByteArray(Charsets.UTF_8))
+            .joinToString("") { "%02x".format(java.util.Locale.ROOT, it.toInt() and 0xff) }
+    }
+
+    /**
+     * Commit only the file the user explicitly reviewed, and reject a
+     * replacement if the previous LRC changed after preview was shown.
+     */
+    @Synchronized
+    fun saveReviewed(id: String, bytes: ByteArray, expectedFingerprint: String?): Boolean {
+        if (fingerprint(id) != expectedFingerprint) return false
+        save(id, bytes) // Uses the same parser and byte/line bounds as old imports.
+        return true
+    }
+
     /** Parse and validate before mutating any saved lyrics. */
+    @Synchronized
     fun save(id: String, bytes: ByteArray) {
         val key = "lrc:" + validatedId(id)
         val parsed = TimedLyricsCodec.parse(bytes)
