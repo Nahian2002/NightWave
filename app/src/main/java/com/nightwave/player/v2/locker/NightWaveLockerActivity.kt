@@ -392,42 +392,98 @@ class NightWaveLockerActivity : ComponentActivity() {
         }
     }
 
-    private fun showSongs(songs: List<LockerRemoteTrack>) {
-        listView.removeAllViews()
-        if (songs.isEmpty()) {
-            listView.addView(text("No authorized uploads found.", 13f,
-                0xFFABBCCE.toInt()))
+    private fun showInventory(loaded: LockerCloudInventory) {
+        inventory = loaded
+        shownCount = LockerVaultBrowsePolicy.PAGE_INCREMENT
+        renderVault()
+    }
+
+    /** All browsing is on the already received metadata; no Drive search calls. */
+    private fun renderVault() {
+        if (!::listView.isInitialized || !::vaultSummary.isInitialized ||
+            !::moreButton.isInitialized) return
+        val summary = LockerVaultBrowsePolicy.summary(inventory)
+        val matching = LockerVaultBrowsePolicy.browse(
+            inventory, searchQuery, activeFilter, activeSort)
+        val shown = LockerVaultBrowsePolicy.visible(matching, shownCount)
+        val warning = if (summary.partialListing)
+            " · Partial Drive scan: more files may exist"
+        else ""
+        vaultSummary.text = "${summary.listedCount} listed · " +
+            "${summary.verifiedCount} verified · " +
+            "${summary.needsAttentionCount} need attention · " +
+            LockerVaultBrowsePolicy.bytesLabel(summary.listedBytes) +
+            " in listed NightWave music" + warning + "\n" +
+            "${matching.size} match current filters; showing ${shown.size}. " +
+            "This is not your total Google Drive usage."
+        filterButton.text = when (activeFilter) {
+            LockerVaultFilter.ALL -> "Filter: All ▾"
+            LockerVaultFilter.VERIFIED -> "Filter: Verified ▾"
+            LockerVaultFilter.NEEDS_ATTENTION -> "Filter: Attention ▾"
         }
-        songs.take(LockerAudioPolicy.MAX_VISIBLE).forEach { song ->
-            listView.addView(text(song.name + " · " +
-                ((song.bytes + 1023L) / 1024L) + " KB · Tap to download",
-                13f, Color.WHITE).apply {
-                setPadding(0, dp(8), 0, dp(8))
-                setOnClickListener {
-                    val verified = runCatching {
-                        LockerAudioPolicy.requireDownloadable(song)
-                    }.isSuccess
-                    if (!verified) {
+        sortButton.text = when (activeSort) {
+            LockerVaultSort.NAME -> "Sort: Name ▾"
+            LockerVaultSort.LARGEST -> "Sort: Largest ▾"
+            LockerVaultSort.SMALLEST -> "Sort: Smallest ▾"
+        }
+        moreButton.visibility = if (matching.size > shown.size) View.VISIBLE else View.GONE
+        moreButton.text = "Show more · ${matching.size - shown.size} listed matches remaining"
+        listView.removeAllViews()
+        if (matching.isEmpty()) {
+            listView.addView(text(
+                if (inventory.tracks.isEmpty())
+                    "No music files listed. Connect and tap Refresh to browse."
+                else "No matching songs in this Drive scan. Try another search or filter.",
+                13f, 0xFFABBCCE.toInt()
+            ).apply { setPadding(0, dp(12), 0, dp(12)) })
+            return
+        }
+        shown.forEach { song ->
+            val verified = LockerVaultBrowsePolicy.downloadable(song)
+            val info = if (verified) "Verified download available"
+                else "Missing verification metadata · Download blocked"
+            val row = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(dp(12), dp(9), dp(10), dp(9))
+                setBackgroundColor(0xFF172432.toInt())
+            }
+            row.addView(text(song.name, 14f, Color.WHITE, true).apply {
+                maxLines = 1
+                ellipsize = android.text.TextUtils.TruncateAt.END
+            })
+            row.addView(text(
+                LockerVaultBrowsePolicy.bytesLabel(song.bytes) + " · " + info,
+                12f, if (verified) 0xFF9DE4D8.toInt()
+                    else 0xFFFFC07D.toInt()
+            ).apply { maxLines = 2 })
+            row.setOnClickListener {
+                if (busy) {
+                    status("Wait for the current Drive action to finish.")
+                } else if (!verified) {
+                    status("This cloud file lacks verified checksums; download is blocked.")
+                } else {
+                    // Existing Drive client independently rechecks current
+                    // metadata, folder membership and both hashes.
+                    if (runCatching { LockerAudioPolicy.requireDownloadable(song) }.isFailure) {
                         status("This cloud file has no verified checksums; download is blocked.")
                     } else {
                         AlertDialog.Builder(this@NightWaveLockerActivity)
                             .setTitle("Download to NightWave?")
                             .setMessage("Download ${song.name} to this phone (" +
-                                ((song.bytes + 1023L) / 1024L) + " KB)? " +
+                                LockerVaultBrowsePolicy.bytesLabel(song.bytes) + ")? " +
                                 "The file is verified before being added. " +
                                 "Existing offline songs and lyrics are not overwritten.")
                             .setNegativeButton("Cancel", null)
                             .setPositiveButton("Download to phone") { _, _ ->
                                 begin("download", song)
-                            }
-                            .show()
+                            }.show()
                     }
                 }
+            }
+            listView.addView(row, LinearLayout.LayoutParams(-1, -2).apply {
+                bottomMargin = dp(7)
             })
         }
-        if (songs.size > LockerAudioPolicy.MAX_VISIBLE)
-            listView.addView(text("Additional uploads are not displayed in this first release.",
-                12f, 0xFFABBCCE.toInt()))
     }
 
     private fun updatePending() {
