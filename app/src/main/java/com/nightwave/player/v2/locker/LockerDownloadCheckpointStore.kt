@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.AtomicFile
 import org.json.JSONObject
 import java.io.File
+import java.nio.file.Files
 import java.util.UUID
 
 /**
@@ -94,13 +95,50 @@ class LockerDownloadCheckpointStore(context: Context) {
         return next
     }
 
+    /**
+     * Read-only readiness check. Corrupt checkpoints and missing/truncated
+     * temporary audio remain untouched until the user explicitly discards.
+     */
+    @Synchronized
+    fun inspect(connectedAccount: String): LockerCheckpointPreview {
+        val item = read()
+        if (item == null) return LockerCheckpointPreview(
+            LockerCheckpointReadiness.classify(null, needsRepair(),
+                false, false, false, false, 0L))
+        if (!item.account.equals(connectedAccount, ignoreCase = true)) {
+            return LockerCheckpointPreview(LockerCheckpointState.ACCOUNT_MISMATCH)
+        }
+        return try {
+            val rawDir = File(root, "locker_staging")
+            val path = File(rawDir, item.fileName)
+            val unsafe = Files.isSymbolicLink(rawDir.toPath()) ||
+                Files.isSymbolicLink(path.toPath()) ||
+                (rawDir.exists() && !rawDir.isDirectory) ||
+                path.canonicalFile.parentFile != rawDir.canonicalFile ||
+                rawDir.canonicalFile.parentFile != root.canonicalFile
+            val exists = path.exists()
+            val regular = path.isFile
+            val actual = if (regular) path.length() else 0L
+            LockerCheckpointPreview(LockerCheckpointReadiness.classify(
+                item, false, true, exists, regular, unsafe, actual), item, actual)
+        } catch (_: Exception) {
+            LockerCheckpointPreview(LockerCheckpointState.UNSAFE_STAGING, item)
+        }
+    }
+
     /** Returns a canonical, app-private file path only. */
     fun stagedFile(item: LockerPendingDownload): File {
         require(pendingPattern.matches(item.fileName))
-        val dir = File(root, "locker_staging").canonicalFile
+        val rawDir = File(root, "locker_staging")
+        require(!Files.isSymbolicLink(rawDir.toPath())) {
+            "Unsafe private staging folder"
+        }
+        val dir = rawDir.canonicalFile
         require(dir.parentFile == root.canonicalFile) { "Bad private staging folder" }
         require(dir.isDirectory || dir.mkdirs()) { "Private staging folder unavailable" }
-        val file = File(dir, item.fileName).canonicalFile
+        val candidate = File(dir, item.fileName)
+        require(!Files.isSymbolicLink(candidate.toPath())) { "Staging path is a link" }
+        val file = candidate.canonicalFile
         require(file.parentFile == dir) { "Invalid staged audio path" }
         return file
     }
