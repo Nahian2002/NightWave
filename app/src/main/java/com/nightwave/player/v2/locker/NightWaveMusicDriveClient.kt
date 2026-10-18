@@ -340,7 +340,79 @@ class NightWaveMusicDriveClient(private val token: String) {
         return partial
     }
 
-    /** Upload one already-imported user audio file; no automatic media scraping. */
+    /**
+     * Parse an actual Drive 200/201 completion acknowledgement. The local SHA
+     * and Google-computed MD5 must match; no speculative 100% on a 308 reply.
+     */
+    private fun uploadCompletion(
+        response: okhttp3.Response,
+        song: OfflineSong,
+        expectedParent: String,
+        sha256: String,
+        md5: String
+    ): LockerUploadOutcome {
+        require(response.code == 200 || response.code == 201) {
+            "Upload has not completed"
+        }
+        val bytes = readLimited(response.body?.byteStream()
+            ?: error("Missing Drive upload acknowledgement"), 16_384)
+        val data = JSONObject(bytes.toString(Charsets.UTF_8))
+        val props = data.optJSONObject("appProperties")
+        val track = LockerAudioPolicy.requireDownloadable(LockerRemoteTrack(
+            data.optString("id"), data.optString("name"),
+            data.optString("mimeType"),
+            data.optString("size").toLongOrNull() ?: -1,
+            data.optString("md5Checksum"),
+            props?.optString("nightwave_sha256").orEmpty(),
+            props?.optString("nightwave_local_id").orEmpty()
+        ))
+        require(track.bytes == song.bytes && track.mimeType == song.mimeType &&
+            track.name == LockerAudioPolicy.fileName(song) &&
+            track.sourceLocalId == song.id &&
+            track.md5.equals(md5, ignoreCase = true) &&
+            track.sha256 == sha256 &&
+            data.optJSONArray("parents")?.let { parents ->
+                (0 until parents.length()).any { parents.optString(it) == expectedParent }
+            } == true) {
+            "Drive upload completed with mismatched audio metadata"
+        }
+        return LockerUploadOutcome(track, created = true)
+    }
+
+    private sealed class UploadProbe {
+        data class Resume(val offset: Long) : UploadProbe()
+        data class Complete(val outcome: LockerUploadOutcome) : UploadProbe()
+    }
+
+    /** Google requires a zero-byte PUT status query to the current session. */
+    private fun queryUploadStatus(
+        session: String,
+        song: OfflineSong,
+        parent: String,
+        sha256: String,
+        md5: String,
+        confirmed: Long
+    ): UploadProbe {
+        val request = request(session)
+            .header("Content-Range", "bytes */${song.bytes}")
+            .put(ByteArray(0).toRequestBody()).build()
+        http.newCall(request).execute().use { response ->
+            return when (response.code) {
+                200, 201 -> UploadProbe.Complete(
+                    uploadCompletion(response, song, parent, sha256, md5))
+                308 -> UploadProbe.Resume(LockerUploadResumePolicy.acknowledged(
+                    response.header("Range"), song.bytes, confirmed))
+                else -> {
+                    if (LockerUploadResumePolicy.transientStatus(response.code)) {
+                        throw java.io.IOException("Temporary Drive upload status failure")
+                    }
+                    error("Drive upload session expired or refused status check")
+                }
+            }
+        }
+    }
+
+    /** Upload user-imported audio with bounded, status-reconciled in-process recovery. */
     fun upload(song: OfflineSong, file: File, progress: (Int) -> Unit): LockerUploadOutcome {
         LockerAudioPolicy.validateLocal(song, file)
         val (sha256, md5) = LockerAudioPolicy.hashes(file)
@@ -352,10 +424,11 @@ class NightWaveMusicDriveClient(private val token: String) {
                 it.md5.equals(md5, true)
         }
         if (existing != null) return LockerUploadOutcome(existing, created = false)
-        val meta = JSONObject().put("name", LockerAudioPolicy.fileName(song))
+        val metadata = JSONObject().put("name", LockerAudioPolicy.fileName(song))
             .put("mimeType", song.mimeType).put("parents", JSONArray().put(parent))
             .put("appProperties", JSONObject()
-                .put("nightwave_sha256", sha256).put("nightwave_local_id", song.id))
+                .put("nightwave_sha256", sha256)
+                .put("nightwave_local_id", song.id))
         val start = "https://www.googleapis.com/upload/drive/v3/files".toHttpUrl()
             .newBuilder().addQueryParameter("uploadType", "resumable")
             .addQueryParameter("fields", "id,name,mimeType,size,md5Checksum,parents,appProperties")
@@ -363,62 +436,106 @@ class NightWaveMusicDriveClient(private val token: String) {
         val location = http.newCall(request(start)
             .header("X-Upload-Content-Type", song.mimeType)
             .header("X-Upload-Content-Length", song.bytes.toString())
-            .post(meta.toString().toRequestBody(jsonType)).build()).execute().use { response ->
+            .post(metadata.toString().toRequestBody(jsonType)).build()).execute().use { response ->
             require(response.isSuccessful) { "Drive upload setup failed (${response.code})" }
             response.header("Location") ?: error("Missing resumable upload session")
         }
-        val session = location.toHttpUrlOrNull() ?: error("Invalid upload session")
-        require(session.isHttps && (session.host == "www.googleapis.com" ||
-            session.host.endsWith(".googleapis.com"))) { "Untrusted upload host" }
+        val uri = location.toHttpUrlOrNull() ?: error("Invalid upload session URI")
+        require(uri.isHttps &&
+            (uri.host == "www.googleapis.com" || uri.host.endsWith(".googleapis.com"))) {
+            "Untrusted Drive upload session host"
+        }
+        // Never write uri (an upload-bearing capability) to disk or diagnostics.
+        val session = uri.toString()
         var offset = 0L
+        var failures = 0
         RandomAccessFile(file, "r").use { reader ->
             while (offset < song.bytes) {
-                check(!Thread.currentThread().isInterrupted) { "Transfer cancelled" }
-                val count = minOf(LockerAudioPolicy.CHUNK_BYTES.toLong(),
-                    song.bytes - offset).toInt()
-                val chunk = ByteArray(count)
+                check(!Thread.currentThread().isInterrupted) { "Upload cancelled" }
+                check(LockerUploadResumePolicy.canSendNext(offset, song.bytes)) {
+                    "Drive status returned an unsupported non-final chunk boundary"
+                }
+                val remaining = song.bytes - offset
+                val count = minOf(LockerAudioPolicy.CHUNK_BYTES.toLong(), remaining).toInt()
+                val bytes = ByteArray(count)
                 reader.seek(offset)
-                reader.readFully(chunk)
-                val end = offset + count - 1L
-                val upload = request(session.toString())
-                    .header("Content-Range", "bytes $offset-$end/${song.bytes}")
-                    .put(chunk.toRequestBody(song.mimeType.toMediaType())).build()
-                http.newCall(upload).execute().use { response ->
-                    if (response.code == 308) {
-                        val last = response.header("Range")?.substringAfter("bytes=0-")
-                            ?.toLongOrNull()
-                        val accepted = if (last == null) 0L else last + 1
-                        require(accepted > offset && accepted <= end + 1) {
-                            "Drive upload progress inconsistent"
+                reader.readFully(bytes)
+                val end = offset + count - 1
+                try {
+                    val part = request(session)
+                        .header("Content-Range", "bytes $offset-$end/${song.bytes}")
+                        .put(bytes.toRequestBody(song.mimeType.toMediaType())).build()
+                    http.newCall(part).execute().use { response ->
+                        when (response.code) {
+                            200, 201 -> {
+                                val complete = uploadCompletion(
+                                    response, song, parent, sha256, md5)
+                                progress(100)
+                                return complete
+                            }
+                            308 -> {
+                                val next = LockerUploadResumePolicy.acknowledged(
+                                    response.header("Range"), song.bytes, offset)
+                                require(next <= end + 1) {
+                                    "Drive acknowledged bytes not sent in this chunk"
+                                }
+                                if (next == offset) {
+                                    throw java.io.IOException("No accepted upload progress")
+                                }
+                                offset = next
+                                failures = 0
+                                progress((offset * 100 / song.bytes).toInt().coerceAtMost(99))
+                            }
+                            else -> {
+                                if (LockerUploadResumePolicy.transientStatus(response.code)) {
+                                    throw java.io.IOException("Temporary Drive upload failure")
+                                }
+                                error("Drive rejected the upload request")
+                            }
                         }
-                        offset = accepted
-                        progress((offset * 100L / song.bytes).toInt())
-                    } else {
-                        require(response.isSuccessful && end + 1 == song.bytes) {
-                            "Drive transfer failed (${response.code})"
+                    }
+                } catch (interrupted: java.io.IOException) {
+                    failures++
+                    if (!LockerUploadResumePolicy.retryAllowed(failures)) throw interrupted
+                    check(!Thread.currentThread().isInterrupted) { "Upload cancelled" }
+                    Thread.sleep(300L * failures)
+                    // Status probe is essential: the network may have lost a
+                    // successful chunk acknowledgement. Never resend blindly.
+                    val status = try {
+                        queryUploadStatus(session, song, parent, sha256, md5, offset)
+                    } catch (probeFailure: java.io.IOException) {
+                        failures++
+                        if (!LockerUploadResumePolicy.retryAllowed(failures))
+                            throw probeFailure
+                        continue
+                    }
+                    when (status) {
+                        is UploadProbe.Complete -> {
+                            progress(100)
+                            return status.outcome
                         }
-                        val result = JSONObject(readLimited(response.body?.byteStream()
-                            ?: error("Missing upload acknowledgement"), 16_384)
-                            .toString(Charsets.UTF_8))
-                        val props = result.optJSONObject("appProperties")
-                        val row = LockerAudioPolicy.validateRemote(LockerRemoteTrack(
-                            result.optString("id"), result.optString("name"),
-                            result.optString("mimeType"),
-                            result.optString("size").toLongOrNull() ?: -1,
-                            result.optString("md5Checksum"),
-                            props?.optString("nightwave_sha256").orEmpty(),
-                            props?.optString("nightwave_local_id").orEmpty()))
-                        require(row.bytes == song.bytes && row.md5.equals(md5, true) &&
-                            row.sha256 == sha256 &&
-                            result.optJSONArray("parents")?.optString(0) == parent) {
-                            "Drive upload checksum or parent mismatch"
+                        is UploadProbe.Resume -> {
+                            if (status.offset > offset) {
+                                offset = status.offset
+                                failures = 0
+                                progress((offset * 100 / song.bytes).toInt().coerceAtMost(99))
+                            }
+                            // An unchanged status is not success: bounded retry
+                            // will resend only from Drive's confirmed offset.
                         }
-                        progress(100)
-                        return LockerUploadOutcome(row, created = true)
                     }
                 }
             }
         }
-        error("Drive did not acknowledge upload")
+        // A 308 acknowledgement that covered all source bytes isn't proof of
+        // final file creation. Demand the Drive 200/201 resource before success.
+        when (val completion = queryUploadStatus(
+            session, song, parent, sha256, md5, offset.coerceAtMost(song.bytes - 1))) {
+            is UploadProbe.Complete -> {
+                progress(100)
+                return completion.outcome
+            }
+            is UploadProbe.Resume -> error("Drive has not finalized the upload")
+        }
     }
 }
