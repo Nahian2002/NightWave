@@ -84,6 +84,15 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
             connect() // one attempt while visible; never auto-play an old session
         }
     }
+
+    /** One visible-screen retry only; no background loop or automatic Play. */
+    private fun scheduleForegroundReconnect() {
+        if (released || !ticking || !foregroundReconnectAvailable ||
+            controller != null || future != null) return
+        main.removeCallbacks(oneShotReconnect)
+        main.postDelayed(oneShotReconnect, 1_200L)
+    }
+
     private var cachedOfflineIds: List<String> = emptyList()
     private var cachedOfflineQueue: List<VideoPreview> = emptyList()
     /** Media3 notifies us when Android kills/restarts the session process. */
@@ -96,6 +105,7 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
             // has already disconnected its underlying MediaSession. Release
             // that stale future before allowing another controller to bind.
             val disconnectedFuture = future
+            runCatching { disconnected.removeListener(listener) }
             controller = null
             future = null
             disconnectedFuture?.let { pending ->
@@ -112,15 +122,15 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
             )
             // Only one bounded, visible-screen recovery; never a background
             // loop and never touch the queue/media or restart playback.
-            if (ticking && foregroundReconnectAvailable) {
-                main.removeCallbacks(oneShotReconnect)
-                main.postDelayed(oneShotReconnect, 1_200L)
-            }
+            scheduleForegroundReconnect()
         }
     }
 
     private val listener = object : Player.Listener {
         override fun onEvents(player: Player, events: Player.Events) {
+            // Media3 can deliver already-enqueued events after disconnect.
+            // Never let an obsolete controller overwrite a replacement state.
+            if (released || controller !== player) return
             try {
                 updateFromPlayer(player)
             } catch (error: Exception) {
@@ -176,7 +186,9 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
                     controller = null
                     runCatching { MediaController.releaseFuture(pending) }
                     state = state.copy(connected = false,
+                        playing = false, buffering = false, resolving = false,
                         error = "Music service disconnected. Tap Reconnect.")
+                    scheduleForegroundReconnect()
                 }
             }, androidx.core.content.ContextCompat.getMainExecutor(context))
         } catch (error: Exception) {
@@ -185,7 +197,9 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
             Log.w("NightWaveMedia", "Controller setup failed: " +
                 error.javaClass.simpleName)
             state = state.copy(connected = false,
+                playing = false, buffering = false, resolving = false,
                 error = "Music service connection failed. Tap Reconnect.")
+            scheduleForegroundReconnect()
         }
     }
 
@@ -393,6 +407,7 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
         future = null
         state = state.copy(connected = false, playing = false, buffering = false,
             resolving = false, error = "Playback connection was interrupted. Tap Reconnect.")
+        scheduleForegroundReconnect()
     }
 
     /**
