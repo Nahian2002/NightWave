@@ -18,8 +18,7 @@ if ($SelfTest) {
     exit 0
 }
 function Source([string]$Relative) {
-    $portable = $Relative.Replace('/', [IO.Path]::DirectorySeparatorChar)
-    $path = Join-Path -Path $root -ChildPath $portable
+    $path = Join-Path -Path $root -ChildPath $Relative
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
         $script:issues.Add("Missing source $Relative")
         return ''
