@@ -2172,61 +2172,64 @@ private fun StudioRoot(
                         onShareDiagnostics = onShareDiagnostics,
                         onOpenClassic = onOpenClassic,
                         onEqualizer = {
-                            val choices = arrayOf("Off (recommended)", "Device preset 1", "Device preset 2", "Device preset 3", "Device preset 4", "Device preset 5", "Manual · 5 bands")
-                            val statusBefore = eqStatusStore.read()
-                            AlertDialog.Builder(this@NightWaveStudioActivity)
-                                .setTitle("Audio equalizer · Experimental")
-                                .setMessage("Last service report: ${statusBefore.message}. Device presets differ; Android may decline them. Presets reset when service restarts.")
-                                .setSingleChoiceItems(choices, -1) { dialog, which ->
-                                    if (which == 6) {
-                                        dialog.dismiss()
-                                        val container = android.widget.LinearLayout(this@NightWaveStudioActivity).apply {
-                                            orientation = android.widget.LinearLayout.VERTICAL
-                                            setPadding(32, 12, 32, 12)
-                                        }
-                                        val sliders = (0 until 5).map { band ->
-                                            val title = android.widget.TextView(this@NightWaveStudioActivity).apply {
-                                                text = "Band ${band + 1} · 0 dB (device range may vary)"
+                            val context = this@NightWaveStudioActivity
+                            runCatching {
+                                startService(Intent(context, PlaybackService::class.java).apply {
+                                    action = PlaybackService.ACTION_EQ_DISCOVER
+                                })
+                            }.onFailure { showMessage("Cannot inspect equalizer on this device.") }
+                            lifecycleScope.launch {
+                                delay(350L)
+                                val caps = com.nightwave.player.playback.EqualizerCapabilities(context).read()
+                                val status = eqStatusStore.read()
+                                val choices = mutableListOf("Off (recommended)")
+                                choices.addAll(caps.presetNames)
+                                if (caps.sessionReady && caps.centersHz.isNotEmpty()) choices.add("Manual · ${caps.centersHz.size} bands")
+                                AlertDialog.Builder(context)
+                                    .setTitle("Audio equalizer")
+                                    .setMessage("Last service report: ${status.message}. ${if (caps.sessionReady) "Gain range: ${caps.minimumMb / 100f} to ${caps.maximumMb / 100f} dB." else "Start a song to discover device controls."}")
+                                    .setItems(choices.toTypedArray()) { _, which ->
+                                        if (which == choices.lastIndex && caps.sessionReady && caps.centersHz.isNotEmpty()) {
+                                            val layout = android.widget.LinearLayout(context).apply {
+                                                orientation = android.widget.LinearLayout.VERTICAL
+                                                setPadding(32, 14, 32, 14)
                                             }
-                                            val slider = android.widget.SeekBar(this@NightWaveStudioActivity).apply {
-                                                max = 30
-                                                progress = 15
-                                            }
-                                            container.addView(title)
-                                            container.addView(slider)
-                                            slider
-                                        }
-                                        AlertDialog.Builder(this@NightWaveStudioActivity)
-                                            .setTitle("Manual EQ · Experimental")
-                                            .setMessage("Five device bands; neutral by default. Android may reject unsupported gains.")
-                                            .setView(container)
-                                            .setNegativeButton("Cancel", null)
-                                            .setPositiveButton("Apply") { _, _ ->
-                                                sliders.forEachIndexed { band, slider ->
-                                                    runCatching {
-                                                        startService(Intent(this@NightWaveStudioActivity, PlaybackService::class.java).apply {
-                                                            action = PlaybackService.ACTION_EQ_BAND_SET
-                                                            putExtra(PlaybackService.EXTRA_EQ_BAND, band)
-                                                            putExtra(PlaybackService.EXTRA_EQ_LEVEL_MB, (slider.progress - 15) * 100)
-                                                        })
-                                                    }.onFailure { showMessage("Audio effect request failed.") }
+                                            val sliders = caps.centersHz.map { frequency ->
+                                                val label = android.widget.TextView(context).apply {
+                                                    text = "${frequency} Hz"
                                                 }
-                                            }.show()
-                                    } else runCatching {
-                                        startService(Intent(this@NightWaveStudioActivity, PlaybackService::class.java).apply {
-                                            action = PlaybackService.ACTION_EQ_PRESET_SET
-                                            putExtra(PlaybackService.EXTRA_EQ_PRESET, which)
-                                        })
-                                    }.onFailure { showMessage("Equalizer is unavailable on this device.") }
-                                    lifecycleScope.launch {
-                                        delay(400L)
-                                        val status = eqStatusStore.read()
-                                        showMessage(if (status.active) "Equalizer enabled. ${status.message}" else "Equalizer: ${status.message}")
-                                    }
-                                    dialog.dismiss()
-                                }.setNegativeButton("Cancel", null).show()
-                        }
-                    )
+                                                val slider = android.widget.SeekBar(context).apply {
+                                                    max = (caps.maximumMb - caps.minimumMb).coerceAtLeast(1)
+                                                    progress = (0 - caps.minimumMb).coerceIn(0, max)
+                                                }
+                                                layout.addView(label)
+                                                layout.addView(slider)
+                                                slider
+                                            }
+                                            val scroller = android.widget.ScrollView(context).apply { addView(layout) }
+                                            AlertDialog.Builder(context).setTitle("Manual equalizer")
+                                                .setView(scroller)
+                                                .setNegativeButton("Cancel", null)
+                                                .setPositiveButton("Apply") { _, _ ->
+                                                    val values = sliders.map { it.progress + caps.minimumMb }.toIntArray()
+                                                    runCatching {
+                                                        startService(Intent(context, PlaybackService::class.java).apply {
+                                                            action = PlaybackService.ACTION_EQ_BANDS_APPLY
+                                                            putExtra(PlaybackService.EXTRA_EQ_LEVELS_MB, values)
+                                                        })
+                                                    }.onFailure { showMessage("Equalizer request failed.") }
+                                                }.show()
+                                        } else {
+                                            runCatching {
+                                                startService(Intent(context, PlaybackService::class.java).apply {
+                                                    action = PlaybackService.ACTION_EQ_PRESET_SET
+                                                    putExtra(PlaybackService.EXTRA_EQ_PRESET, which)
+                                                })
+                                            }.onFailure { showMessage("Equalizer request failed.") }
+                                        }
+                                    }.setNegativeButton("Cancel", null).show()
+                            }
+                        }                    )
                 }
             }
         }
