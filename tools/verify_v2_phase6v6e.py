@@ -109,6 +109,10 @@ TESTS = {
         10, ("reorderKeepsMovedCueSelected",)),
     ANDROID + "LyricsEditorRetainedStateInstrumentedTest.kt": (
         2, ("rotationStyleRecreationPreservesUnsavedDraftOnlyInMemory",)),
+    ANDROID + "NightWaveLyricsSearchUiInstrumentedTest.kt": (
+        3, ("searchingShowsMatchesWithoutTouchingStoredLyrics",
+             "noMatchesDisablePreviousAndNext",
+             "clearingSearchHidesMatchResults")),
 }
 
 
