@@ -35,7 +35,8 @@ assert "check(!Thread.currentThread().isInterrupted)" in policy
 assert "fun downloadToStaging(" in client
 assert "LockerAudioPolicy.requireDownloadable(selected)" in client
 assert "folder(createIfMissing = false)" in client
-assert "listInFolder(parent).firstOrNull { it.id == selected.id }" in client
+assert "require(current == selected &&" in client
+assert "metadata.optJSONArray(\"parents\")" in client
 assert "require(latest == selected)" in client
 assert "capabilities(canDownload)" in client
 assert 'optBoolean("canDownload") == true' in client
