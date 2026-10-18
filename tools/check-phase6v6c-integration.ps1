@@ -20,7 +20,7 @@ function TestMethods([string]$path, [int]$minimum) {
     $source = Source $path
     $count = ([regex]::Matches($source, '@Test\s+fun\s+')).Count
     if ($count -lt $minimum) {
-        $script:errors.Add("$path: only $count tests, expected $minimum")
+        $script:errors.Add(("{0}: only {1} tests, expected {2}" -f $path, $count, $minimum))
     }
 }
 $p = 'app/src/main/java/com/nightwave/player/v2/'
