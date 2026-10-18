@@ -5,10 +5,10 @@ import org.junit.Test
 
 class LyricsEditorSearchPolicyTest {
     private val original = LyricsEditorPolicy.begin(TimedLyricsCodec.parse(
-        "[00:01.000]Hello World\n" +
+        ("[00:01.000]Hello World\n" +
             "[00:02.500]বৃষ্টি নামে\n" +
             "[00:03.000]HELLO again\n" +
-            "[00:04.750]Last line".toByteArray(Charsets.UTF_8)
+            "[00:04.750]Last line").toByteArray(Charsets.UTF_8)
     ))
 
     @Test fun emptyAndWhitespaceQueriesShowNoMatches() {
