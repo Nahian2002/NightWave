@@ -45,6 +45,7 @@ on:
       - feature/nightwave-v2-phase6v4c-playback-recovery
       - feature/nightwave-v2-phase6v4d-integrated-release-gates
       - feature/nightwave-v2-phase6v5-music-vault-browser
+      - feature/nightwave-v2-phase6v5b-transfer-journal-recovery
   # Earlier phase Android/device tests were intentionally deferred.
   # Workflow dispatch stays available for controlled rechecks.
   workflow_dispatch:
