@@ -2853,7 +2853,7 @@ private fun StudioProfile(
                     if (cloud.account.isNotBlank()) {
                         StudioProfileRow("Back up now", "Verified, versioned Google Drive snapshot",
                             Icons.Outlined.LibraryMusic, onCloudBackup)
-                        StudioProfileRow("Preview cloud restore", "Choose before replacing local collections",
+                        StudioProfileRow("Preview cloud restore", "Browse recovery points and review what changes",
                             Icons.Outlined.LibraryMusic, onCloudPreviewRestore)
                         StudioProfileRow("Compare & merge devices",
                             "Add saved music without replacing local playlists",
