@@ -54,6 +54,9 @@ class LockerVaultBrowsePolicyTest {
         assertEquals(2, report.verifiedCount)
         assertEquals(1, report.needsAttentionCount)
         assertEquals(8192L, report.listedBytes)
+        assertEquals(5120L, report.verifiedBytes)
+        assertEquals(3072L, report.needsAttentionBytes)
+        assertEquals(listOf("MP3" to 3), report.formatCounts)
         assertTrue(report.partialListing)
     }
 
