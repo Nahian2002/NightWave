@@ -78,10 +78,14 @@ fun NightWaveLyricsEditorDialog(
     var discardConfirm by remember { mutableStateOf(false) }
     val current = LyricsSyncPolicy.activeIndex(TimedLyrics(draft.cues), playbackMs, offsetMs)
 
-    fun applySafe(action: () -> LyricsEditorDraft) {
-        runCatching(action).onSuccess {
+    fun applySafe(
+        action: () -> LyricsEditorDraft,
+        selection: (LyricsEditorDraft) -> Int = { selected }
+    ) {
+        runCatching(action).onSuccess { revised ->
             error = null
-            onApply(it)
+            selected = selection(revised).coerceIn(0, revised.cues.lastIndex)
+            onApply(revised)
         }.onFailure { error = it.message?.take(130) ?: "Invalid lyric edit" }
     }
     fun exitEditor() {
@@ -142,6 +146,9 @@ fun NightWaveLyricsEditorDialog(
                         selected = (selected + 1).coerceAtMost(draft.cues.lastIndex)
                     }, enabled = !saving && selected < draft.cues.lastIndex,
                         modifier = Modifier.weight(1f)) { Text("Next") }
+                }
+                LaunchedEffect(draft.cues.size) {
+                    selected = selected.coerceIn(0, draft.cues.lastIndex)
                 }
                 LaunchedEffect(selected, reduceMotion) {
                     if (selected in draft.cues.indices) {
