@@ -28,6 +28,7 @@ import com.nightwave.player.library.MusicLibrary
 import com.nightwave.player.net.YouTubeGateway
 import com.nightwave.player.offline.OfflineAudioLibrary
 import com.nightwave.player.offline.OfflinePlaybackQueue
+import com.nightwave.player.offline.OfflineGaplessPolicy
 import com.nightwave.player.offline.OfflineSessionStore
 import com.nightwave.player.v2.ui.NightWaveStudioActivity
 import java.util.concurrent.Executors
@@ -204,6 +205,8 @@ class PlaybackService : MediaSessionService() {
     /** Main-thread marker for a public track awaiting extractor resolution. */
     private var resolvingPublicUrl: String? = null
     private var offlinePlaying = false
+    // True only for a fully validated local Media3 playlist. Public streams are never preloaded.
+    private var offlineGaplessActive = false
     // The service owns the only pending Undo. No playlist/audio-file writes.
     private var pendingQueueRemoval: Pair<String, PlaybackQueue.RemovedUpcoming>? = null
     private val offlineQueue = OfflinePlaybackQueue()
@@ -339,6 +342,25 @@ class PlaybackService : MediaSessionService() {
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            if (offlinePlaying && offlineGaplessActive &&
+                (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO ||
+                    reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK)) {
+                // Media3 advanced directly within the validated private-file timeline.
+                // Keep the existing ID-based offline queue and checkpoint in sync
+                // without recreating the player or opening another file.
+                val ids = offlineQueue.snapshot()
+                val index = OfflineGaplessPolicy.transitionIndex(
+                    ids, offlineQueue.index, mediaItem?.mediaId,
+                    automatic = reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO)
+                if (index != null && exoPlayer?.currentMediaItemIndex == index) {
+                    val selectedId = ids[index]
+                    if (offlineQueue.current != selectedId && offlineQueue.jump(index) != null) {
+                        if (!offlineSession.saveSelection(ids, selectedId, 0L)) {
+                            Log.w("NightWavePlayback", "Gapless transition checkpoint unavailable")
+                        }
+                    }
+                }
+            }
             // Repeated playback of the same track is a new session, not a
             // permanent single lifetime play. Other transitions are detected
             // by the track identity in ListeningSessionMeter.observe().
@@ -580,8 +602,22 @@ class PlaybackService : MediaSessionService() {
             ACTION_RESUME_OFFLINE -> resumeOfflineSession()
             ACTION_JUMP_OFFLINE -> if (offlinePlaying) {
                 val index = intent.getIntExtra(EXTRA_INDEX, -1)
-                val next = offlineQueue.jump(index)
-                if (next != null) playOfflineId(next)
+                val player = exoPlayer
+                val id = offlineQueue.snapshot().getOrNull(index)
+                if (offlineGaplessActive && id != null && player != null &&
+                    index in 0 until player.mediaItemCount &&
+                    player.getMediaItemAt(index).mediaId == "offline:$id") {
+                    // Seek within the prepared playlist; listener persists the
+                    // new ID on transition. Same-slot jumps still reset bookmark.
+                    if (offlineQueue.index == index) {
+                        offlineSession.saveSelection(offlineQueue.snapshot(), id, 0L)
+                    }
+                    player.seekTo(index, 0L)
+                    player.play()
+                } else if (!offlineGaplessActive) {
+                    val next = offlineQueue.jump(index)
+                    if (next != null) playOfflineId(next)
+                }
             }
             ACTION_RESUME_SAVED -> resumeSavedQueue()
             ACTION_RETRY_CURRENT -> retryCurrent()
@@ -764,6 +800,33 @@ class PlaybackService : MediaSessionService() {
         }
     }
 
+    /**
+     * Construct one Media3 timeline only if every ID belongs to a valid private
+     * audio index entry and every physical file is readable. Never place
+     * signed public URLs or unverified content URIs in this playlist.
+     */
+    private fun preparedOfflineTimeline(
+        library: OfflineAudioLibrary, selectedId: String
+    ): Pair<List<MediaItem>, Int>? {
+        val ids = offlineQueue.snapshot()
+        val selected = OfflineGaplessPolicy.selectedIndex(ids, selectedId) ?: return null
+        val indexed = runCatching { library.songs().associateBy { it.id } }.getOrNull()
+            ?: return null
+        val items = ArrayList<MediaItem>(ids.size)
+        for (id in ids) {
+            val song = indexed[id] ?: return null
+            val file = library.fileFor(song) ?: return null
+            items.add(MediaItem.Builder()
+                .setMediaId("offline:" + song.id)
+                .setUri(Uri.fromFile(file))
+                .setMimeType(song.mimeType)
+                .setMediaMetadata(MediaMetadata.Builder()
+                    .setTitle(song.title).setArtist("Offline · NightWave").build())
+                .build())
+        }
+        return items to selected
+    }
+
     /** Offline IDs are bounded; never write them into public-video bookmarks. */
     private fun playOfflineId(
         id: String, localLibrary: OfflineAudioLibrary = OfflineAudioLibrary(this),
@@ -773,6 +836,9 @@ class PlaybackService : MediaSessionService() {
         val file = localLibrary.fileFor(song) ?: return false
         val player = exoPlayer ?: return false
         if (offlinePlaying) persistProgress(flush = true)
+        // If the queue is missing a file or exceeds the bounded playlist cap,
+        // preserve the existing per-track fallback rather than dropping songs.
+        val timeline = preparedOfflineTimeline(localLibrary, id)
         val item = MediaItem.Builder().setMediaId("offline:" + song.id)
             .setUri(Uri.fromFile(file)).setMimeType(song.mimeType)
             .setMediaMetadata(MediaMetadata.Builder()
@@ -783,23 +849,43 @@ class PlaybackService : MediaSessionService() {
             Log.w("NightWavePlayback", "Could not save offline listening checkpoint")
         }
         offlinePlaying = true
+        offlineGaplessActive = timeline != null
         generation++ // Cancel unresolved online audio from a previous song.
         cancelPendingResolution()
         autoRetriedVideo = null
         player.apply {
             pause()
-            setMediaItem(item)
-            // Offline audio only; restart and next-track load obey same choice.
+            if (timeline != null) {
+                // One prepared ExoPlayer timeline allows Media3 to advance
+                // locally without STATE_ENDED -> pause -> setMediaItem -> prepare.
+                setMediaItems(timeline.first, timeline.second, resumePositionMs.coerceAtLeast(0L))
+            } else {
+                setMediaItem(item)
+            }
+            // Offline speed applies to every item, not to public streams.
             setPlaybackSpeed(OfflinePlaybackSpeedPolicy.speed(offlineSpeedStore.read()))
             playWhenReady = true
             prepare()
-            if (resumePositionMs > 0L) seekTo(resumePositionMs)
+            if (timeline == null && resumePositionMs > 0L) seekTo(resumePositionMs)
             play()
         }
         return true
     }
 
     private fun advanceOffline(forward: Boolean): Boolean {
+        val player = exoPlayer
+        if (offlineGaplessActive && player != null) {
+            // The timeline already owns validated local media items. Avoid
+            // per-track teardown/re-prepare on manual Next and Previous.
+            val next = if (forward) player.currentMediaItemIndex + 1
+                else player.currentMediaItemIndex - 1
+            if (next !in 0 until player.mediaItemCount) return false
+            val id = offlineQueue.snapshot().getOrNull(next) ?: return false
+            if (player.getMediaItemAt(next).mediaId != "offline:$id") return false
+            player.seekTo(next, 0L)
+            player.play()
+            return true
+        }
         // One private-library facade per transition. Revalidate every ID/file;
         // missing/deleted files are skipped in a bounded pass, never downloaded.
         val localLibrary = OfflineAudioLibrary(this)
@@ -876,6 +962,7 @@ class PlaybackService : MediaSessionService() {
         // its MediaItem. Otherwise the last 2.5-second progress tick could be lost.
         if (offlinePlaying) persistProgress(flush = true)
         offlinePlaying = false
+        offlineGaplessActive = false
         offlineQueue.reset()
         if (!recoveryAttempt) autoRetriedVideo = null
         savedQueue.clearFailure()
