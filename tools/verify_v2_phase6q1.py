@@ -38,6 +38,7 @@ assert "https://www.googleapis.com/auth/drive.appdata" in auth
 assert "data class Backup(val created: Boolean)" in activity
 assert "data class Snapshots(val items: List<DriveSnapshot>)" in activity
 assert "drive.backUpIfChangedVerified(bytes)" in activity
+assert "latestSettings.includeHistory == settings.includeHistory" in activity
 assert "showCloudSnapshotPicker(outcome.items, token," in activity
 assert "cloudStore.success(expectedAccount, System.currentTimeMillis())" in activity
 assert 'Cloud backup already current; nothing uploaded.' in activity
