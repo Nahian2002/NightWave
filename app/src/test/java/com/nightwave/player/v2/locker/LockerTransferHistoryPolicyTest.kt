@@ -62,8 +62,13 @@ class LockerTransferHistoryPolicyTest {
             "a".repeat(90) + "/outside.mp3")
         assertTrue(title.length <= LockerTransferHistoryPolicy.MAX_TITLE)
         assertFalse(title.contains("/"))
+        val redacted = LockerTransferHistoryPolicy.displayTitle(
+            "https://secret.example/signed?access_token=private")
+        assertFalse(redacted.contains("https://"))
+        assertFalse(redacted.contains("secret.example"))
+        assertFalse(redacted.contains("access_token"))
         assertFalse(LockerTransferHistoryPolicy.displayTitle(
-            "https://secret.example/signed").contains("https://"))
+            "Bearer private-token").contains("private-token"))
     }
 
     @Test fun malformedOrOversizedRecordsRejected() {
