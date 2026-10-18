@@ -48,6 +48,7 @@ on:
       - feature/nightwave-v2-phase6v5b-transfer-journal-recovery
       - feature/nightwave-v2-phase6v5c-cursor-vault-scale
       - feature/nightwave-v2-phase6v6a-synced-lyrics-studio
+      - feature/nightwave-v2-phase6v6b-safe-lrc-import-review
   # Earlier phase Android/device tests were intentionally deferred.
   # Workflow dispatch stays available for controlled rechecks.
   workflow_dispatch:
