@@ -42,7 +42,7 @@ assert 'LockerAudioPolicy.validateLocal(song, file)' in client
 assert 'val (sha256, md5) = LockerAudioPolicy.hashes(file)' in client
 assert 'LockerAudioPolicy.FOLDER_NAME' in client
 assert 'application/vnd.google-apps.folder' in client
-assert 'repeat(LockerVaultBrowsePolicy.MAX_PAGES)' in client
+assert 'repeat(minOf(LockerVaultBrowsePolicy.MAX_PAGES, remaining))' in client
 assert 'addQueryParameter("pageSize", LockerVaultBrowsePolicy.PAGE_SIZE.toString())' in client
 assert 'nightwave_sha256' in client and 'nightwave_local_id' in client
 assert 'addQueryParameter("uploadType", "resumable")' in client
