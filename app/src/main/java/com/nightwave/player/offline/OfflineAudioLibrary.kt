@@ -85,8 +85,7 @@ class OfflineAudioLibrary(private val context: Context) {
 
     fun find(id: String): OfflineSong? = songs().firstOrNull { it.id == id }
 
-    @Synchronized
-    fun import(uri: Uri): OfflineSong {
+    fun import(uri: Uri): OfflineSong = synchronized(OfflineLibraryIndexLock.monitor) {
         val previous = songs()
         require(previous.size < MAX_SONGS) { "Offline library reached its 400-song limit" }
         val displayName = runCatching {
@@ -148,10 +147,9 @@ class OfflineAudioLibrary(private val context: Context) {
      * original private NightWave song ID is preserved so already backed-up
      * LRC lyrics can be attached after explicit cloud-library restore.
      */
-    @Synchronized
     fun importVerifiedCloud(
         staged: File, remote: LockerRemoteTrack
-    ): CloudOfflineImportResult {
+    ): CloudOfflineImportResult = synchronized(OfflineLibraryIndexLock.monitor) {
         LockerAudioPolicy.requireDownloadable(remote)
         val stagedRoot = File(context.applicationContext.filesDir, "locker_staging").canonicalFile
         val file = staged.canonicalFile
@@ -205,8 +203,7 @@ class OfflineAudioLibrary(private val context: Context) {
             originalIdPreserved = saved.id == remote.sourceLocalId)
     }
 
-    @Synchronized
-    fun delete(song: OfflineSong): Boolean {
+    fun delete(song: OfflineSong): Boolean = synchronized(OfflineLibraryIndexLock.monitor) {
         val previous = songs()
         if (song !in previous) return false
         val updated = previous.filterNot { it.id == song.id }
