@@ -56,19 +56,23 @@ assert 'row.sha256 == sha256' in client
 assert 'result.optJSONArray("parents")?.optString(0) == parent' in client
 assert 'LockerUploadOutcome(existing, created = false)' in client
 assert 'return LockerUploadOutcome(row, created = true)' in client
-assert not any(x in client for x in ('delete(', 'PATCH', 'auth/drive"'))
+# Staging cleanup uses File.delete(); forbid remote Drive DELETE/PATCH instead.
+assert 'request(' + 'url).delete(' not in client
+assert '.method("DELETE"' not in client
+assert '"PATCH"' not in client
+assert 'auth/drive"' not in client
 assert '.addQueryParameter("spaces", "appDataFolder")' not in client
 assert 'JSONArray().put("appDataFolder")' not in client
 assert 'Identity.getAuthorizationClient(this)' in ui
 assert 'ActivityResultContracts.StartIntentSenderForResult()' in ui
 assert 'NightWaveLockerAuthorization.request(' in ui
 assert 'state.connect(name)' in ui
-assert 'fun begin(action: String)' in ui
+assert 'fun begin(action: String, download: LockerRemoteTrack? = null)' in ui
 assert 'client.upload(song, file)' in ui
 assert 'client.list()' in ui
 assert 'selected = runCatching { offline.find(id) }.getOrNull()' in ui
 assert 'offline.fileFor(song)' in ui
-assert 'Cloud-to-phone downloads are not yet enabled.' in ui
+assert 'Downloaded files are checked before entering Offline Library.' in ui
 assert 'putExtra(NightWaveLockerActivity.EXTRA_OFFLINE_ID, song.id)' in offline
 assert 'Intent(this@OfflineLibraryActivity, NightWaveLockerActivity::class.java)' in offline
 assert 'ACTION_PLAY_OFFLINE' in offline
