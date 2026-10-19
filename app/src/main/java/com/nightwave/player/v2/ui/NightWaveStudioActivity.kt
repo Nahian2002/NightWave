@@ -99,6 +99,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.Cloud
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Home
@@ -985,15 +986,28 @@ class NightWaveStudioActivity : ComponentActivity() {
         cloudPendingAction = action
         cloudBusy = true
         val name = if (action == "connect") null else cloudStore.read().account
-        Identity.getAuthorizationClient(this)
-            .authorize(NightWaveCloudAuthorization.request(name))
-            .addOnSuccessListener { response ->
+        // Google Play services can fail synchronously before returning a Task.
+        // Always restore the UI and explain the failure without exposing tokens.
+        val authorization = try {
+            Identity.getAuthorizationClient(this)
+                .authorize(NightWaveCloudAuthorization.request(name))
+        } catch (_: Exception) {
+            cloudBusy = false
+            cloudPendingAction = ""
+            cloudStore.status("Google authorization could not start on this device")
+            refreshCloud()
+            showMessage("Google Drive sign-in could not start. Check Google Play services.")
+            return
+        }
+        authorization.addOnSuccessListener { response ->
                 if (response.hasResolution()) {
                     val pending = response.pendingIntent
                     if (pending == null) {
                         cloudBusy = false
                         cloudPendingAction = ""
-                        showMessage("Google could not open account authorization.")
+                        cloudStore.status("Google returned no account permission screen")
+                        refreshCloud()
+                        showMessage("Google Drive authorization could not open. Check Google Play services.")
                     } else {
                         runCatching {
                             cloudResolution.launch(IntentSenderRequest.Builder(pending.intentSender).build())
@@ -1002,6 +1016,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                             cloudPendingAction = ""
                             cloudStore.status("Google permission dialog unavailable")
                             refreshCloud()
+                            showMessage("Google permission screen could not open on this device.")
                         }
                     }
                 } else finishCloudAuthorization(response)
@@ -1024,6 +1039,7 @@ class NightWaveStudioActivity : ComponentActivity() {
             cloudBusy = false
             cloudStore.status("Google account or Drive permission could not be verified")
             refreshCloud()
+            showMessage("Google did not return a verified Drive account and access token.")
             return
         }
         if (action == "connect") {
@@ -3491,6 +3507,45 @@ private fun StudioProfile(
                             Text("Save profile")
                         }
                     }
+                }
+            }
+        }
+
+        item {
+            // Drive authorization is optional and does not convert a guest
+            // profile into a cloud identity. Keep it visible without requiring
+            // the user to discover the collapsed Manage backups section.
+            StudioProfileGroup("Google Drive · optional") {
+                StudioProfileRow(
+                    if (cloud.account.isBlank()) "Connect Google Drive"
+                    else "Drive backup connected",
+                    when {
+                        cloudBusy -> "Waiting for Google authorization…"
+                        cloud.account.isBlank() ->
+                            "Choose an account to back up your NightWave library"
+                        else -> "Library backup linked · guest profile remains local"
+                    },
+                    Icons.Outlined.Cloud,
+                    { if (!cloudBusy) onCloudConnect() },
+                    trailing = {
+                        Text(
+                            if (cloudBusy) "Wait"
+                            else if (cloud.account.isBlank()) "Connect" else "Manage",
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                    }
+                )
+                if (cloud.account.isNotBlank()) {
+                    Text("Manage backups below to back up, preview or restore. " +
+                        "Google Drive is not automatic live account sync.",
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+                        color = muted, style = MaterialTheme.typography.bodySmall)
+                } else if (cloud.lastResult.isNotBlank() &&
+                    cloud.lastResult != "Not connected") {
+                    Text(cloud.lastResult, modifier = Modifier.padding(
+                        horizontal = 14.dp, vertical = 6.dp),
+                        color = muted, style = MaterialTheme.typography.bodySmall)
                 }
             }
         }
