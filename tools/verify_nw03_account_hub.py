@@ -27,7 +27,10 @@ assert "if (confirmDisconnect)" in hub and "if (confirmChangeAccount)" in hub
 assert "onDismiss()" in hub and "fun openExternalFlow" in hub
 assert "existing backups remain in the previous account." in hub
 assert "It is not a Spotify account, Google account sign-in" in hub
-assert "enabled = connected && !busy" not in hub or "AccountBackupToggle" in hub
+assert "connected && !busy, onHistory" in hub
+assert "connected && !busy, onLyrics" in hub
+assert "connected && !busy, onPreferences" in hub
+assert "connected && !busy, onWifiOnly" in hub
 assert "NightWaveAccountHubDialog(" in activity
 assert "var showAccountHub by rememberSaveable" in activity
 assert "onOpenAccount = { showAccountHub = true }" in activity
