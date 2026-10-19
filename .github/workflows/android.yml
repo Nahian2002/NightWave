@@ -17,6 +17,8 @@ on:
       - feature/nightwave-v2-phase6x8c-media3-compile-hardening
       - fix/nightwave-v2-phase6x8c1-duplicate-import-preflight
       - fix/nightwave-v2-phase6x8c2-crossfade-preflight
+      # Latest local-build recovery: verify the queue regression and all JVM tests.
+      - fix/nightwave-v2-phase6x8c4-daily-mix-unit-test-compile
   pull_request:
     branches:
       - feature/nightwave-v2-phase5r-accessibility-build-gates
@@ -212,7 +214,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: NightWave-6V7B-dev-debug-UNVERIFIED-FOR-DEVICE
+          name: NightWave-6X8C4-dev-debug-UNVERIFIED-FOR-DEVICE
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 5
