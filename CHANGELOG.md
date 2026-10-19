@@ -1,5 +1,18 @@
 # NightWave Changelog
 
+## 2026-10-19 — NW-04 premium player layout, seek and artwork (unverified)
+
+- Replaced Now Playing's visually disconnected default Material 3 seek thumb with a slim, accessible Canvas timeline with tap/drag/cancel handling, Media3 seeks only on commit and safe duration/fraction mapping.
+- Reduced oversized album-art/transport spacing and preserved direct 48dp shuffle/repeat/previous/next hit targets; older playback and lyrics behavior stays wired.
+- Collapsed less-used crossfade, listening-level, sleep and offline speed controls behind **Sound & playback**, while Queue/Lyrics remain quickly accessible.
+- Improved known small YouTube artwork URL quality requests without rewriting offline files or unrelated sources; falls back to the original image if upgraded content is unavailable.
+- Tightened mini-player dimensions while preserving its separate dismiss/restore functionality; compact navigation remains 56dp touch-friendly.
+- Corrected singular/plural Queue counts and avoided implying that the currently playing track is upcoming.
+- Added eight pure JVM tests for thumbnail URL protection and seek coordinate clamping, plus an NW-04 source gate and full CI branch trigger. Historic source validators were reconciled with intended UI sizes.
+- **No fresh full Android build or device/render testing of NW-04 has been confirmed.** Do not uninstall the existing installed app or treat a CI artifact as signer-compatible.
+- See [NW-04 QA and deferred acceptance](docs/NIGHTWAVE_NW04_PREMIUM_PLAYER_QA.md).
+
+
 ## 2026-10-19 — NW-03 account and Google Drive backup hub (development)
 
 - Added a dedicated branded Compose **Account & backup** hub on the You tab, preserving local guest identity and personal libraries.
