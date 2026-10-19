@@ -156,30 +156,58 @@ class PlaybackService : MediaLibraryService() {
     }
 
     private fun applyEqualizer(sessionId: Int) {
-        if (requestedEqPreset == 0 || sessionId <= 0) { releaseEqualizer(); return }
+        if (requestedEqPreset == 0) { releaseEqualizer(); return }
+        if (sessionId <= 0) {
+            releaseEqualizer()
+            eqStatus.write(requestedEqPreset, false,
+                "Waiting for an active audio session. Start a song first.")
+            return
+        }
         if (activeEqualizer != null && equalizerSessionId == sessionId) return
         releaseEqualizer()
         var candidate: Equalizer? = null
         try {
             candidate = Equalizer(0, sessionId)
             eqCapabilities.publish(candidate, sessionId)
+            // Android effects are shared per audio session and another effect
+            // may own this engine. Never report success without control.
+            if (!candidate.hasControl()) {
+                eqStatus.write(requestedEqPreset, false,
+                    "Equalizer unavailable: another effect controls this audio session.")
+                return
+            }
             if (requestedEqPreset == 21) {
                 // Manual mode: range and band count come from this exact device/session.
                 val range = candidate.bandLevelRange
                 for ((index, level) in manualLevels) {
-                    if (index >= candidate.numberOfBands.toInt() || level < range[0] || level > range[1]) return
+                    if (index >= candidate.numberOfBands.toInt() || level < range[0] || level > range[1]) {
+                        eqStatus.write(requestedEqPreset, false,
+                            "Manual equalizer settings are unsupported by this audio session.")
+                        return
+                    }
                     candidate.setBandLevel(index.toShort(), level)
                 }
             } else {
                 val presetIndex = requestedEqPreset - 1
-                if (presetIndex !in 0 until candidate.numberOfPresets.toInt()) return
+                if (presetIndex !in 0 until candidate.numberOfPresets.toInt()) {
+                    eqStatus.write(requestedEqPreset, false,
+                        "This equalizer preset is unavailable on the active device.")
+                    return
+                }
                 candidate.usePreset(presetIndex.toShort())
             }
             candidate.enabled = true
-            if (!candidate.enabled) return
+            if (!candidate.enabled) {
+                eqStatus.write(requestedEqPreset, false,
+                    "Android audio effects could not be enabled on this session.")
+                return
+            }
             activeEqualizer = candidate
             equalizerSessionId = sessionId
-            eqStatus.write(requestedEqPreset, true, "Enabled by Android effect API")
+            // Enabled is a platform API acknowledgement, NOT a claim that
+            // every Bluetooth/output route audibly applies the effect.
+            eqStatus.write(requestedEqPreset, true,
+                "Enabled on playback session. Audibility depends on audio route.")
             candidate = null // ownership transferred
         } catch (_: Exception) {
             eqStatus.write(requestedEqPreset, false, "Unavailable on this audio session")
