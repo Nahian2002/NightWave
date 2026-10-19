@@ -76,8 +76,31 @@ Require-Token $a.windows ':app:testDebugUnitTest :app:assembleDebug :app:compile
 Require-Token $a.windows 'verify-apk-signature.ps1' 'signer gate'
 Require-Token $a.ci 'python3 tools/verify_v2_phase6p.py' '6P CI preflight'
 Require-Token $a.ci 'feature/nightwave-v2-phase6o4-library-quick-actions' 'new phase CI target'
-if ([regex]::Matches($a.svc, 'ExoPlayer\.Builder\(').Count -ne 1) {
-    $script:issues.Add('PlaybackService must retain exactly one ExoPlayer builder')
+# 6X2 added a second, temporary ExoPlayer for real local crossfade.
+# Keep exactly one primary and one bounded secondary decoder builder,
+# and require the session handoff, release and failure cleanup paths.
+# This deliberately rejects both removed crossfade support and rogue
+# third-player allocations: it is not a disabled safety check.
+$builderCount = [regex]::Matches($a.svc, 'ExoPlayer\.Builder\(').Count
+if ($builderCount -ne 2) {
+    $script:issues.Add(('PlaybackService must have exactly two bounded ExoPlayer builder sites (main plus offline crossfade); found {0}' -f $builderCount))
+}
+foreach ($required in @(
+    'val player = ExoPlayer.Builder(this)',
+    'candidate = ExoPlayer.Builder(this)',
+    'crossfadeIncoming = candidate',
+    'runCatching { candidate?.release() }',
+    'runCatching { deck?.pause(); deck?.release() }',
+    'session.setPlayer(new)',
+    'old.removeListener(trackListener)',
+    'runCatching { old.pause(); old.release() }',
+    'private fun cancelCrossfade()',
+    'private fun finishCrossfade()',
+    'MediaLibrarySession.Builder(this, player,'
+)) {
+    if (-not $a.svc.Contains($required)) {
+        $script:issues.Add("Missing dual-deck ownership/cleanup contract: $required")
+    }
 }
 if ($a.quick.Contains('SharedPreferences') -or $a.browsing.Contains('SharedPreferences')) {
     $script:issues.Add('View-only library policies cannot write preferences')
