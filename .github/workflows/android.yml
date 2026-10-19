@@ -1,9 +1,12 @@
 name: NightWave Android verification
 
-# Only stacked development PR review branches are checked. Do not publish to main.
+# Development-branch builds and existing stacked PR gates only; never publish to main.
 # CI debug APKs use GitHub's temporary debug signing identity and MUST NOT be
 # installed over the user's existing music library without certificate checks.
 on:
+  push:
+    branches:
+      - feature/nightwave-v2-phase6x2-adjustable-crossfade
   pull_request:
     branches:
       - feature/nightwave-v2-phase5r-accessibility-build-gates
