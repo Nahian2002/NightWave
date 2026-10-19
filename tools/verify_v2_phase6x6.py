@@ -46,6 +46,14 @@ assert "nightwave-v2-phase6x6-private-daily-mixes" in ci
 assert "python3 tools/verify_v2_phase6x6.py" in ci
 assert "python3 tools/verify_v2_phase6x5.py" in ci
 assert tests.count("@Test") >= 11
+# Gradle compileDebugUnitTestKotlin on 6X8C3 found accidental nested lists
+# passed as a third argument, where make requires List<VideoPreview>.
+assert "playlistTracks: List<VideoPreview>" in daily
+assert "listOf(invalid), valid + valid, 333L" in tests
+assert "LocalDailyMixEngine.make(favorites, recent, favorites, 500L)" in tests
+assert "listOf(invalid), listOf(valid, valid), 333L" not in tests
+assert "LocalDailyMixEngine.make(favorites, recent, listOf(favorites), 500L)" not in tests
+
 assert legacy_tests.count("@Test") >= 7
 for name, text in (("daily", daily), ("tests", tests)):
     assert text.count("{") == text.count("}"), name + " unmatched braces"
