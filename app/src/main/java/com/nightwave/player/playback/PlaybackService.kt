@@ -8,6 +8,7 @@ import android.view.KeyEvent
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.os.Bundle
 import com.nightwave.player.v2.insights.ListeningMemoryStore
 import com.nightwave.player.v2.insights.ListeningSessionMeter
 import androidx.media3.common.AudioAttributes
@@ -24,6 +25,14 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
+import androidx.media3.session.SessionCommand
+import androidx.media3.session.SessionResult
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
+import com.nightwave.player.widget.NowPlayingWidgetPolicy
+import com.nightwave.player.widget.NightWaveWidgetProvider
+import com.nightwave.player.widget.NightWaveWidgetController
+import com.nightwave.player.widget.WidgetPlaybackSnapshot
 import com.nightwave.player.library.MusicLibrary
 import com.nightwave.player.net.YouTubeGateway
 import com.nightwave.player.offline.OfflineAudioLibrary
@@ -95,6 +104,18 @@ class PlaybackService : MediaSessionService() {
 
     private var mediaSession: MediaSession? = null
     private var exoPlayer: ExoPlayer? = null
+
+    /** Widgets mirror playback events only, never a high-frequency position timer. */
+    private fun publishWidgetState() {
+        val player = exoPlayer
+        val item = player?.currentMediaItem
+        NightWaveWidgetProvider.publish(this, WidgetPlaybackSnapshot(
+            hasTrack = item != null,
+            isPlaying = player?.isPlaying == true,
+            title = item?.mediaMetadata?.title?.toString().orEmpty(),
+            artist = item?.mediaMetadata?.artist?.toString().orEmpty()
+        ))
+    }
     private val queue = PlaybackQueue()
     private lateinit var savedQueue: QueueStateStore
     private val main = Handler(Looper.getMainLooper())
@@ -408,7 +429,9 @@ class PlaybackService : MediaSessionService() {
         scheduleNormalization(id)
         var candidate: ExoPlayer? = null
         try {
-            candidate = ExoPlayer.Builder(this).build().apply {
+            candidate = ExoPlayer.Builder(this)
+                .setHandleAudioBecomingNoisy(true)
+                .build().apply {
                 setWakeMode(C.WAKE_MODE_LOCAL)
                 volume = 0f
                 setAudioAttributes(AudioAttributes.Builder()
@@ -482,6 +505,7 @@ class PlaybackService : MediaSessionService() {
         main.removeCallbacks(crossfadeTick)
         releaseEqualizer()
         new.addListener(trackListener)
+        publishWidgetState()
         applyEqualizer(new.audioSessionId)
         new.volume = normalizedMaster(new.currentMediaItem?.mediaId)
         if (offlineQueue.jump(index) != null) {
@@ -579,6 +603,9 @@ class PlaybackService : MediaSessionService() {
             eqCapabilities.clear()
             applyEqualizer(audioSessionId)
         }
+        override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
+            publishWidgetState()
+        }
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             if (!isPlaying && crossfadeOutgoing === exoPlayer &&
                 !crossfadeHandoffInProgress) cancelCrossfade()
@@ -592,10 +619,12 @@ class PlaybackService : MediaSessionService() {
             main.removeCallbacks(progressWriter)
             if (isPlaying) main.postDelayed(progressWriter, 2500L)
             else persistProgress(flush = true)
+            publishWidgetState()
         }
 
         override fun onPlaybackStateChanged(state: Int) {
             sampleListening()
+            publishWidgetState()
             if (state == Player.STATE_ENDED) {
                 // Media3 callbacks must not change their own player timeline.
                 // Capture the exact ended item and selection generation BEFORE
@@ -635,6 +664,7 @@ class PlaybackService : MediaSessionService() {
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             if (crossfadeHandoffInProgress) return
+            publishWidgetState()
             if (crossfadeOutgoing === exoPlayer && crossfadeIncoming != null &&
                 reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK) {
                 cancelCrossfade() // external MediaController navigation
@@ -769,6 +799,7 @@ class PlaybackService : MediaSessionService() {
             .setReadTimeoutMs(20_000)
         val player = ExoPlayer.Builder(this)
             .setMediaSourceFactory(DefaultMediaSourceFactory(DefaultDataSource.Factory(this, networkSource)))
+            .setHandleAudioBecomingNoisy(true)
             .build().apply {
                 // One service-owned output trim. Unity (100%) is the default.
                 volume = ListeningLevelPolicy.gain(listeningLevelStore.read())
@@ -789,6 +820,49 @@ class PlaybackService : MediaSessionService() {
         )
         mediaSession = MediaSession.Builder(this, player).setSessionActivity(openApp)
             .setCallback(object : MediaSession.Callback {
+                override fun onConnect(
+                    session: MediaSession,
+                    controller: MediaSession.ControllerInfo
+                ): MediaSession.ConnectionResult {
+                    // Existing car, headset and notification controllers retain
+                    // the default permitted commands. Custom queue commands are
+                    // available only to NightWave's own widget controller.
+                    if (controller.packageName != packageName)
+                        return super.onConnect(session, controller)
+                    val commands = MediaSession.ConnectionResult.DEFAULT_SESSION_COMMANDS
+                        .buildUpon()
+                        .add(SessionCommand(NightWaveWidgetController.COMMAND_NEXT, Bundle.EMPTY))
+                        .add(SessionCommand(NightWaveWidgetController.COMMAND_PREVIOUS, Bundle.EMPTY))
+                        .build()
+                    return MediaSession.ConnectionResult.AcceptedResultBuilder(session, controller)
+                        .setAvailableSessionCommands(commands)
+                        .build()
+                }
+
+                override fun onCustomCommand(
+                    session: MediaSession,
+                    controller: MediaSession.ControllerInfo,
+                    customCommand: SessionCommand,
+                    args: Bundle
+                ): ListenableFuture<SessionResult> {
+                    if (controller.packageName != packageName) {
+                        return Futures.immediateFuture(
+                            SessionResult(SessionResult.RESULT_ERROR_PERMISSION_DENIED))
+                    }
+                    val result = when (customCommand.customAction) {
+                        NightWaveWidgetController.COMMAND_NEXT -> {
+                            playNext(false)
+                            SessionResult.RESULT_SUCCESS
+                        }
+                        NightWaveWidgetController.COMMAND_PREVIOUS -> {
+                            playPrevious()
+                            SessionResult.RESULT_SUCCESS
+                        }
+                        else -> SessionResult.RESULT_ERROR_NOT_SUPPORTED
+                    }
+                    return Futures.immediateFuture(SessionResult(result))
+                }
+
                 override fun onMediaButtonEvent(
                     session: MediaSession,
                     controllerInfo: MediaSession.ControllerInfo,
@@ -815,6 +889,7 @@ class PlaybackService : MediaSessionService() {
         // QueueStateStore. Do NOT issue a network request on service creation.
         // A MediaController may bind repeatedly while Android recovers an app.
         // Only explicit Play / RESUME_SAVED is allowed to resolve streaming URLs.
+        publishWidgetState()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -1463,6 +1538,7 @@ class PlaybackService : MediaSessionService() {
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = mediaSession
 
     override fun onDestroy() {
+        NightWaveWidgetProvider.publish(this, WidgetPlaybackSnapshot())
         cancelCrossfade()
         clearSleepTimer()
         sampleListening(endSession = true)
