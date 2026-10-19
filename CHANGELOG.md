@@ -2,6 +2,15 @@
 
 NightWave uses stacked, independently reviewable development branches. This changelog describes **source changes**. A feature marked implemented below is **not necessarily validated by a successful Android build or physical-device test**. Check [verification status](docs/VERIFICATION_MATRIX.md) before installation.
 
+## 2026-10-19 — Final 6X8C4 branch audit and queue recovery (development)
+
+- **Observed last build:** The supplied Windows 13:34 build passed main Android Kotlin compilation, Android-test Kotlin compilation and APK assembly but failed 1/771 JVM tests at `OfflinePlaybackQueueTest.jumpHandlesBoundsWithoutDamagingSelection`. This was an actual failed full build, **not** a release.
+- **Offline queue:** Corrected non-shuffled Previous and direct jump order; retained shuffle visit history and guarded invalid jumps; fixed single-item Shuffle + Repeat All. Added regression tests for history, jump bounds, shuffle transitions and repeat.
+- **Online/reference queue:** Preserve the user's selected URL when input URLs are deduplicated, avoiding an unintended change of selected song. Added regression tests.
+- **Warning cleanup:** Explicitly handle nullable journal parents within app-private roots, migrate deprecated NewPipe video-only field to the officially documented `isVideoOnly()` accessor, use auto-mirrored Compose icons, remove ineffective Media3 Kotlin opt-in and update its corresponding preflight.
+- **CI and docs:** Enabled CI push verification for the current build-recovery branch, refreshed the README/About/build/release guides, added a feature-level acceptance checklist and moved the full former README to historical notes without deleting it.
+- **Evidence status:** All fixes above are **committed to GitHub source**. No completed fresh full Gradle verification, signing compatibility check, Android instrumentation execution, Android Auto validation or physical-phone QA is yet confirmed. Never install an APK from the failed build.
+
 ## 2026-10-19 — Phase 6X8C4: Daily Mix unit-test compilation hotfix
 
 - **Observed:** The complete 6X8C3 Windows Gradle run **passed** `:app:compileDebugKotlin` and `:app:compileDebugAndroidTestKotlin`, but **failed** at `:app:compileDebugUnitTestKotlin` on two Daily Mix test argument types.
