@@ -1066,11 +1066,12 @@ class PlaybackService : MediaLibraryService() {
                 val explicitDisplayOrder = intent.action == ACTION_PLAY_QUEUE &&
                     intent.getBooleanExtra(EXTRA_QUEUE_DISPLAY_ORDER, false)
                 val proposedQueue = entries.distinctBy { it.url }.take(100)
-                val selectedEntry = proposedQueue.getOrNull(selected.coerceIn(
-                    0, (proposedQueue.size - 1).coerceAtLeast(0)))
+                val resolvedSelectionIndex =
+                    PublicQueueSelectionPolicy.selectedIndex(entries, proposedQueue, selected)
+                val selectedEntry = proposedQueue.getOrNull(resolvedSelectionIndex)
                 val sameQueue = intent.action == ACTION_PLAY_QUEUE && !offlinePlaying &&
                     proposedQueue.isNotEmpty() && queue.snapshot() == proposedQueue &&
-                    queue.index == selected.coerceIn(0, proposedQueue.lastIndex)
+                    queue.index == resolvedSelectionIndex
                 val loaded = PlaybackResolutionPolicy.reusesLoadedTrack(
                     selectedEntry?.url, exoPlayer?.currentMediaItem?.mediaId,
                     exoPlayer?.playerError != null
