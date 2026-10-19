@@ -73,7 +73,7 @@ See the [Verification Matrix](docs/VERIFICATION_MATRIX.md) for tested, source-re
 | `tools/` | Windows builder and source/CI verification utilities |
 | `docs/` | Release instructions, test evidence and phase-specific QA notes |
 
-**Project documents:** [About](ABOUT.md) · [Changelog](CHANGELOG.md) · [Build & Release](docs/BUILD_AND_RELEASE.md) · [Verification Matrix](docs/VERIFICATION_MATRIX.md) · [Historical development notes](docs/README_LEGACY_PHASE_NOTES.md).
+**Project documents:** [About](ABOUT.md) · [Changelog](CHANGELOG.md) · [Build & Release](docs/BUILD_AND_RELEASE.md) · [Verification Matrix](docs/VERIFICATION_MATRIX.md) · [Final Source Audit](docs/FINAL_SOURCE_AUDIT_20261019.md) · [Android Acceptance Checklist](docs/NIGHTWAVE_FINAL_ACCEPTANCE_20261019.md) · [Historical development notes](docs/README_LEGACY_PHASE_NOTES.md).
 
 ## Licensing and upstream projects
 
