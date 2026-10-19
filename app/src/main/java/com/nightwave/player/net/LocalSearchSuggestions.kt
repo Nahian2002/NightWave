@@ -1,7 +1,5 @@
 package com.nightwave.player.net
 
-import java.util.Locale
-
 /** Bounded suggestions extracted exclusively from the user's saved public-video references.
  * No history is written and no provider is contacted while the user types.
  */
