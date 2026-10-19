@@ -1,5 +1,8 @@
 # NightWave
 
+> **NW-01 field-recovery candidate — 19 October 2026:** Following real-device reports of delayed public-video Shuffle, non-working/unavailable EQ, and no visible Google authorization, a separate [NW-01 repair branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw01-shuffle-eq-google-recovery) adds immediate acknowledged Shuffle requests, detailed EQ diagnostics, and a visible optional Google Drive connection entry. **This is not a verified APK**: the Android build and on-device recheck remain pending. Review [exact test instructions](docs/NIGHTWAVE_NW01_FIELD_FAILURES_QA.md). The earlier `6960dc5` archive remains unchanged.
+
+
 **A personal Android music player focused on private libraries, expressive playback controls and a clean, Spotify-inspired interface.**
 
 NightWave brings together user-imported offline audio, saved references to public videos, playlists, local listening tools, synchronized lyrics and optional Google Drive integration—without requiring a dedicated NightWave-hosted server.
