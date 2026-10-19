@@ -20,14 +20,21 @@ object OfflineGaplessPolicy {
     /** Auto transitions must be the next item; explicit seeks may select any slot. */
     fun transitionIndex(
         ids: List<String>, currentIndex: Int, mediaId: String?,
-        automatic: Boolean
+        automatic: Boolean, shuffled: Boolean = false,
+        repeatAll: Boolean = false
     ): Int? {
         if (ids.size !in 2..MAX_PREPARED_ITEMS || mediaId == null ||
             !mediaId.startsWith("offline:")) return null
         val id = mediaId.removePrefix("offline:")
         val target = ids.indexOf(id)
         if (target < 0) return null
-        if (automatic && target != currentIndex + 1) return null
+        if (automatic) {
+            // Media3 owns the shuffled playlist order. Check that the selected
+            // target is a real member, and don't assume index+1 when shuffled.
+            if (shuffled && target == currentIndex) return null
+            if (!shuffled && target != currentIndex + 1 &&
+                !(repeatAll && currentIndex == ids.lastIndex && target == 0)) return null
+        }
         return target
     }
 }
