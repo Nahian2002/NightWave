@@ -72,7 +72,7 @@ fun NightWavePremiumNavigation(
         color = colors.surface,
         tonalElevation = 2.dp,
         shadowElevation = 5.dp,
-        shape = RoundedCornerShape(23.dp)
+        shape = RoundedCornerShape(19.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth()
