@@ -1,38 +1,64 @@
-# NightWave Verification Matrix
+# NightWave — Verification and Release Readiness
 
-**Status date:** 2026-10-19. **Scope:** integrated development branch `fix/nightwave-v2-phase6x8c4-daily-mix-unit-test-compile`.
+**Evidence date:** 19 October 2026  
+**Audited branch:** `fix/nightwave-v2-phase6x8c4-daily-mix-unit-test-compile`  
+**Application identity:** `com.nightwave.player` · `2.0.0-alpha5s` (`35`)
 
-This matrix distinguishes **observed completed tests** from **checks included in source but not executed**. No count of source assertions can prove an entire Android project is bug-free.
+A code implementation, committed regression test, source preflight, actual Gradle compilation, on-device test and signed release are **different levels of verification**. No source audit or test count can honestly guarantee that every device and feature is bug-free.
 
-| Gate | Evidence / state | Status |
+## Latest observed build — user-supplied Windows logs
+
+| Step | Evidence | Result |
 | --- | --- | --- |
-| 6X8C2 Windows Kotlin import/source preflight | User screenshot: 251 files passed | PASS on **earlier branch** |
-| 6X8C2 Phase 6P and later Windows source preflight | Advanced to full Gradle compilation | PASS on **earlier branch** |
-| 6X8C2 Android Kotlin compilation | Actual build log: Media3 builder arity and nonexistent `VideoPreview.duration` | FAILED |
-| 6X8C3 Media3 builder source correction | Exact constructor replaced with supported one-argument form | COMMITTED, not compiled |
-| 6X8C3 Smart Library source correction | Uses model's declared `durationSeconds` | COMMITTED, not compiled |
-| Isolated SmartLibrary Kotlin policy compile and behavior checks | 13/13 executable checks passed using a locally reproduced policy source plus minimal collaborators (not Gradle) | PASS, isolated only |
-| Regression tests for 239/240/241 seconds and unknown durations | Added to Android JVM unit-test source | NOT YET EXECUTED by Gradle |
-| Windows preflight for both prior Kotlin compiler errors | Added to `tools/check-kotlin-compat.ps1` | SOURCE-REVIEWED, not run on Windows |
-| GitHub source-gate contracts | New 6X8C3 gate and historic 6X5/6X8 guards | ADDED; not equivalent to build |
-| `:app:testDebugUnitTest` on 6X8C3 | Requires Gradle | PENDING |
-| `:app:assembleDebug` on 6X8C3 | Requires Gradle | PENDING |
-| `:app:compileDebugAndroidTestKotlin` on 6X8C3 | Requires Gradle | PENDING |
-| APK signer continuity with installed NightWave | Requires locally built APK and installed signer check | PENDING |
-| Device playback, imports, playlists, LRC, Sleep Timer, Bluetooth, widget, backups | Requires Android phone/emulator | PENDING |
-| Android Auto browsing/search/select transport | Requires DHU/AAOS emulator and device checks | PENDING |
+| `:app:compileDebugKotlin` | Completed in 2026-10-19 13:34 local build | **PASS, previous commit only** |
+| `:app:compileDebugAndroidTestKotlin` | Completed in same build | **PASS, previous commit only** |
+| `:app:assembleDebug` | Completed in same build | **PASS, but overall verification FAILED** |
+| `:app:testDebugUnitTest` | `771 tests completed, 1 failed` | **FAIL** |
+| Failing JUnit | `OfflinePlaybackQueueTest.jumpHandlesBoundsWithoutDamagingSelection` at line 43 | **FAIL on old source** |
+| Kotlin warnings | Transfer-history nullable File, deprecated NewPipe field/Compose icons, ineffective Media3 opt-in | Non-fatal warnings on old source |
+| `BUILD SUCCESSFUL` for audited branch | No full passing build result supplied | **NOT CONFIRMED** |
 
-| 6X8C3 actual app Kotlin compilation | User full Windows log: `:app:compileDebugKotlin` completed | **PASS on 6X8C3** |
-| 6X8C3 Android instrumentation source compilation | User full Windows log: `:app:compileDebugAndroidTestKotlin` completed | **PASS on 6X8C3** |
-| 6X8C3 JVM test compilation | Two nested-list arguments in Daily Mix tests | **FAILED on 6X8C3** |
-| 6X8C4 corrected Daily Mix input types | Flat `List<VideoPreview>`, all 11 tests preserved | COMMITTED, needs fresh Gradle |
-| 6X8C4 Windows + 6X6 CI regression guards | Reject both old nested-list call sites | COMMITTED, source-checked |
-| 6X8C4 full Gradle build/unit tests | No `BUILD SUCCESSFUL` confirmed yet | **PENDING** |
+Do not install `dist/NightWave-debug.apk` from that failed build or confuse it with `dist/NightWave-debug-previous.apk`.
 
-## Release blockers
+## Source corrections committed after that failure
 
-A fresh **successful** Windows Android build and signature check are mandatory. Android Auto integration is development code until the on-device media-browser playback/queue handoff is tested. Existing public-video stream availability depends on external sources and cannot be guaranteed.
+| Area | Source-reviewed change | Evidence still needed |
+| --- | --- | --- |
+| Offline playback queue | Non-shuffled Previous follows visible order; visited-stack semantics reserved for shuffled playback; repeat one-item shuffle under Repeat All fixed; invalid jumps preserve selection | Rerun full JUnit suite and device navigation |
+| Public streaming queue | Explicit selection tracks the original URL after de-duplicating input entries | JUnit tests and screen-to-service integration |
+| Local Daily Mix compiler calls | Previous fixes preserved flat `List<VideoPreview>` arguments | Fresh full JUnit result |
+| Transfer journal | Canonical parent is checked for null and limited to app-private files/cache roots | Fresh compiler plus isolated Android storage tests |
+| Public extractor and UI | Use NewPipe's supported `isVideoOnly()` method; Compose auto-mirrored icons | Fresh compiler and UI checks |
+| Media3 annotation | Removed ineffective Kotlin `@OptIn` for Media3 `UnstableApi`, retained API annotation; source preflight reconciled | Full compile and device runtime |
+| Repository/CI | Current branch included in source-build workflow; README/About/changelog/build docs aligned | CI runner success or Windows evidence |
 
-Never uninstall NightWave or clear the user's app data to resolve a mismatch. Avoid publishing a release APK until both the build and device gates are satisfied.
+**Tests added in source:** nine JVM methods across offline/public queue behavior after the 771-test report (total should be approximately 780 if all prior test sources are unchanged). This is **not** a claim that 780 tests have passed.
 
-For test steps and logs, use [BUILD_AND_RELEASE.md](BUILD_AND_RELEASE.md).
+## Feature-level acceptance
+
+| Feature domain | Code present | Full Android/device validation of audited branch |
+| --- | --- | --- |
+| Import music and offline library persistence | Yes | Pending |
+| Saved public-video searches and playback | Yes, depends on external sources | Pending |
+| Public/offline queue, Next/Previous, Repeat/Shuffle | Yes, recent corrections | Pending |
+| Background/lock-screen/Bluetooth audio focus | Yes | Pending |
+| Gapless, crossfade, volume normalization, EQ and timer | Yes | Pending |
+| Favorites, history, playlists, folders, smart collections | Yes | Pending |
+| On-device Daily Mix and optional listening memory | Yes | Pending |
+| LRC import, editing, synchronization and export | Yes | Pending |
+| Guest profile and local data recovery | Yes | Pending |
+| Google sign-in, Drive backups/recovery and private music locker | Yes, user authorization required | Pending |
+| Home-screen widget/Media3 controls | Yes | Pending |
+| Android Auto browse/search/playback | Development implementation | Pending emulator/car-device acceptance |
+| Safe upgrade/signing identity | Build identity retained, signing not proven | Pending signer match |
+
+## Required release gates
+
+1. On a clean source checkout, run the official Windows builder and capture **`BUILD SUCCESSFUL`** for all three Gradle tasks: `:app:testDebugUnitTest`, `:app:assembleDebug`, `:app:compileDebugAndroidTestKotlin`.
+2. Inspect `dist/NightWave-build-status.txt`, APK identity and cryptographic hash, then verify signing compatibility with the installed app.
+3. Test the critical playback, storage, restoration, UI, Google and media-device scenarios from [Final Acceptance Checklist](NIGHTWAVE_FINAL_ACCEPTANCE_20261019.md) on a phone/emulator.
+4. Check crash/ANR behavior, data preservation and failure recovery before tagging or distributing a production build.
+
+**Blocker:** No successful full build/device validation for the final audited branch is yet confirmed. Do not uninstall NightWave or erase app storage to resolve an APK signature mismatch. GitHub Actions can produce a differently signed debug APK.
+
+See [Build & Release](BUILD_AND_RELEASE.md) and [Changelog](../CHANGELOG.md).
