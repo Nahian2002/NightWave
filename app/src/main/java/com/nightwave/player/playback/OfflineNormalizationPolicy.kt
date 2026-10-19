@@ -11,7 +11,7 @@ object OfflineNormalizationPolicy {
     const val TARGET_RMS = 0.13f
     const val MAX_SAMPLED_MS = 12_000L
     const val MAX_ANALYSIS_WALL_MS = 3_000L
-    const val MAX_SAMPLES = 350_000L
+    const val MAX_SAMPLES = 1_500_000L
 
     fun attenuation(rms: Float, peak: Float): Float? {
         if (!rms.isFinite() || !peak.isFinite() || rms <= 0f ||
