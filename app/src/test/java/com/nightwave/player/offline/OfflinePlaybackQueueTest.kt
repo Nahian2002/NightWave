@@ -115,6 +115,20 @@ class OfflinePlaybackQueueTest {
         assertEquals("a", queue.previous())
     }
 
+    @Test fun singleShuffledSongRepeatsWhenRepeatAllEnabled() {
+        val queue = OfflinePlaybackQueue { 0 }
+        queue.select(listOf("solo"), "solo")
+        queue.setShuffle(true)
+        queue.setRepeat(com.nightwave.player.playback.PlaybackQueue.Repeat.ALL)
+        repeat(3) {
+            assertEquals("solo", queue.next())
+            assertEquals(0, queue.index)
+        }
+        queue.setRepeat(com.nightwave.player.playback.PlaybackQueue.Repeat.OFF)
+        assertNull(queue.next())
+        assertEquals("solo", queue.current)
+    }
+
     @Test fun boundAndReset() {
         val queue = OfflinePlaybackQueue()
         queue.select((1..500).map(Int::toString), "400")
