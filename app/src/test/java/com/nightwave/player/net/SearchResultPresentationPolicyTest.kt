@@ -26,7 +26,7 @@ class SearchResultPresentationPolicyTest {
     }
 
     @Test fun emptyProviderResultsAreNotMisrepresentedAsMissingSavedMusic() {
-        assertTrue(SearchResultPresentationPolicy.emptyHint(emptyList()).contains("No quick results"))
+        assertTrue(SearchResultPresentationPolicy.emptyHint(emptyList()).contains("No public results"))
         val song = VideoPreview("Music", "Artist", "https://example.com", "", 200L)
         assertEquals("", SearchResultPresentationPolicy.emptyHint(listOf(song)))
     }
