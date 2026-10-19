@@ -7,6 +7,7 @@ NightWave uses stacked, independently reviewable development branches. This chan
 - **Fix:** `MediaSession.ConnectionResult.AcceptedResultBuilder(session)` matches the Media3 session library constructor. Removed unsupported second `controller` argument.
 - **Fix:** Smart Library Long Listens uses `VideoPreview.durationSeconds`, the field defined by `YouTubeGateway.kt`, with a four-minute threshold.
 - **Regression coverage:** Added two 239/240/241-second and unknown-duration tests. Updated the Windows compatibility preflight, cumulative Python CI source gates and a focused two-error regression gate.
+- **Isolated policy verification:** Compiled the corrected smart-library policy with matching `VideoPreview.durationSeconds` metadata and minimal collaborators; 13/13 behavior assertions passed. This is not a full Android/JUnit build.
 - **Repository documentation:** Promoted current status to top of README; added About, changelog, build and release instructions and verification matrix.
 - **Evidence:** The user-supplied previous 6X8C2 Windows run reached `:app:compileDebugKotlin` and failed at these two expressions. A fresh 6X8C3 Android build/JUnit/AndroidTest/device session is **not yet confirmed**. Do not call this a release.
 
