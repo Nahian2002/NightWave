@@ -25,6 +25,7 @@ import com.nightwave.player.v2.insights.ListeningInsights
 import com.nightwave.player.v2.insights.ListeningInsightsEngine
 import com.nightwave.player.v2.insights.ListeningMemoryStore
 import com.nightwave.player.v2.insights.ListeningMemorySummary
+import com.nightwave.player.v2.cloud.CloudAccountPresentation
 import com.nightwave.player.v2.cloud.CloudBackupStatus
 import com.nightwave.player.v2.cloud.CloudBackupState
 import com.nightwave.player.v2.cloud.CloudBackupCodec
@@ -2153,6 +2154,7 @@ private fun StudioRoot(
     var expanded by rememberSaveable { mutableStateOf(false) }
     var showQueue by rememberSaveable { mutableStateOf(false) }
     var showSoundStudio by rememberSaveable { mutableStateOf(false) }
+    var showAccountHub by rememberSaveable { mutableStateOf(false) }
     var compactHidden by rememberSaveable { mutableStateOf(false) }
     fun navigateToTab(destination: StudioTab) {
         if (destination == tab) return
@@ -2360,7 +2362,8 @@ private fun StudioRoot(
                         onRecoverPlayback = { playerActions.retry() },
                         onShareDiagnostics = onShareDiagnostics,
                         onOpenClassic = onOpenClassic,
-                        onEqualizer = { showSoundStudio = true }
+                        onEqualizer = { showSoundStudio = true },
+                        onOpenAccount = { showAccountHub = true }
                     )
                 }
             }
@@ -2400,6 +2403,20 @@ private fun StudioRoot(
     )
     if (showSoundStudio) NightWaveSoundStudioDialog(
         onDismiss = { showSoundStudio = false }
+    )
+    if (showAccountHub) NightWaveAccountHubDialog(
+        profile = profile, cloud = cloud, busy = cloudBusy,
+        onDismiss = { showAccountHub = false },
+        onConnect = onCloudConnect,
+        onBackUp = onCloudBackup,
+        onPreviewRestore = onCloudPreviewRestore,
+        onCompare = onCloudCompare,
+        onDisconnect = onCloudDisconnect,
+        onExportLocal = onExportGuest,
+        onHistory = onCloudHistory,
+        onLyrics = onCloudLyrics,
+        onPreferences = onCloudPreferences,
+        onWifiOnly = onCloudWifi
     )
     if (showQueue) StudioQueueSheet(
         state = playerState, onDismiss = { showQueue = false },
@@ -3321,7 +3338,8 @@ private fun StudioProfile(
     roomReadStatus: String, roomPreviewActive: Boolean,
     onEnableRoomPreview: () -> Unit, onUseLegacyReads: () -> Unit,
     onShareDiagnostics: () -> Unit, onOpenClassic: () -> Unit,
-    onEqualizer: () -> Unit
+    onEqualizer: () -> Unit,
+    onOpenAccount: () -> Unit
 ) {
     var name by rememberSaveable(profile.localId) { mutableStateOf(profile.displayName) }
     var editing by rememberSaveable { mutableStateOf(false) }
@@ -3434,20 +3452,16 @@ private fun StudioProfile(
             // the user to discover the collapsed Manage backups section.
             StudioProfileGroup("Google Drive · optional") {
                 StudioProfileRow(
-                    if (cloud.account.isBlank()) "Connect Google Drive"
-                    else "Drive backup connected",
+                    "Account & backup",
                     when {
-                        cloudBusy -> "Waiting for Google authorization…"
-                        cloud.account.isBlank() ->
-                            "Choose an account to back up your NightWave library"
-                        else -> "Library backup linked · guest profile remains local"
+                        cloudBusy -> "Google Drive authorization or backup in progress"
+                        else -> CloudAccountPresentation.title(CloudAccountPresentation.stage(cloud))
                     },
                     Icons.Outlined.Cloud,
-                    { if (!cloudBusy) onCloudConnect() },
+                    onOpenAccount,
                     trailing = {
                         Text(
-                            if (cloudBusy) "Wait"
-                            else if (cloud.account.isBlank()) "Connect" else "Manage",
+                            if (cloudBusy) "Wait" else "Open",
                             color = MaterialTheme.colorScheme.primary,
                             style = MaterialTheme.typography.labelMedium
                         )
@@ -3600,8 +3614,8 @@ private fun StudioProfile(
                             .format(java.util.Date(cloud.lastSuccessMs)) else "",
                         modifier = Modifier.padding(horizontal = 14.dp),
                         style = MaterialTheme.typography.bodySmall, color = muted)
-                    StudioProfileRow("Connect Google Drive", "Authorize private app-only backup access",
-                        Icons.Outlined.Settings, onCloudConnect)
+                    StudioProfileRow("Open account & backup", "Connection, backup status and privacy",
+                        Icons.Outlined.Settings, onOpenAccount)
                     if (cloud.account.isNotBlank()) {
                         StudioProfileRow("Back up now", "Verified, versioned Google Drive snapshot",
                             Icons.Outlined.LibraryMusic, onCloudBackup)
@@ -3639,8 +3653,8 @@ private fun StudioProfile(
                                 Switch(checked = cloud.wifiOnly,
                                     onCheckedChange = onCloudWifi)
                             })
-                        StudioProfileRow("Disconnect Drive", "Stops backup; snapshots stay in Drive",
-                            Icons.AutoMirrored.Outlined.ArrowBack, onCloudDisconnect)
+                        StudioProfileRow("Disconnect or change Drive", "Review the effect on your local library",
+                            Icons.AutoMirrored.Outlined.ArrowBack, onOpenAccount)
                     }
                     if (cloudBusy) Text("Connecting or transferring backup…",
                         modifier = Modifier.padding(horizontal = 14.dp),
