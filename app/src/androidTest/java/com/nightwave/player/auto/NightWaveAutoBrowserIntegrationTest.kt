@@ -3,13 +3,12 @@ package com.nightwave.player.auto
 import android.content.ComponentName
 import android.content.Context
 import androidx.media3.session.MediaBrowser
-import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.SessionToken
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.nightwave.player.playback.PlaybackService
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Assert.assertNotNull
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -24,7 +23,9 @@ class NightWaveAutoBrowserIntegrationTest {
         val info = context.packageManager.getServiceInfo(
             ComponentName(context, PlaybackService::class.java), 0)
         assertNotNull(info)
-        assertEquals("mediaPlayback", "mediaPlayback") // no service instance created
+        assertTrue(info.exported)
+        assertTrue(info.foregroundServiceType and
+            android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK != 0)
     }
 
     @Test fun browserCanReadRootAndNoPlayIsTriggered() {
@@ -33,15 +34,18 @@ class NightWaveAutoBrowserIntegrationTest {
         val pending = MediaBrowser.Builder(context, token).buildAsync()
         try {
             val browser = pending.get(10, TimeUnit.SECONDS)
+            val wasPlaying = browser.isPlaying
+            val wasSelected = browser.currentMediaItem?.mediaId
             val root = browser.getLibraryRoot(null).get(10, TimeUnit.SECONDS)
             assertEquals(AutoBrowsePolicy.ROOT, root.value?.mediaId)
             val sections = browser.getChildren(
                 AutoBrowsePolicy.ROOT, 0, 50, null).get(10, TimeUnit.SECONDS)
             assertNotNull(sections.value)
             assertFalse(sections.value.orEmpty().isEmpty())
-            // Library browsing may create an idle service but must not start
-            // an audio stream or resurrect a saved playback checkpoint.
-            assertFalse(browser.isPlaying)
+            // Browsing must preserve existing playback too: avoid a test
+            // assumption that the app was initially stopped.
+            assertEquals(wasPlaying, browser.isPlaying)
+            assertEquals(wasSelected, browser.currentMediaItem?.mediaId)
         } finally {
             MediaBrowser.releaseFuture(pending)
         }
