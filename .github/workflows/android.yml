@@ -15,6 +15,7 @@ on:
       - feature/nightwave-v2-phase6x8-android-widget-device-controls
       - feature/nightwave-v2-phase6x8b-auto-library-build-hardening
       - feature/nightwave-v2-phase6x8c-media3-compile-hardening
+      - fix/nightwave-v2-phase6x8c1-duplicate-import-preflight
   pull_request:
     branches:
       - feature/nightwave-v2-phase5r-accessibility-build-gates
