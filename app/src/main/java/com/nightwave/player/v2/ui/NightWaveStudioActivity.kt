@@ -182,6 +182,7 @@ import com.nightwave.player.v2.playback.StudioPlayerState
 import com.nightwave.player.v2.playback.SpotlightResumePolicy
 import com.nightwave.player.v2.playback.SpotlightAction
 import com.nightwave.player.v2.recommendation.PersonalMixEngine
+import com.nightwave.player.v2.recommendation.LocalDailyMixEngine
 import com.nightwave.player.v2.recommendation.PersonalMix
 import com.nightwave.player.v2.social.PlaylistShareFormatter
 import com.nightwave.player.v2.social.PlaylistShareParser
@@ -2488,10 +2489,16 @@ private fun StudioHome(
     onSongOptions: (VideoPreview) -> Unit, openLibrary: () -> Unit
 ) {
     val dayNumber = java.time.LocalDate.now().toEpochDay()
+    // Extend the existing personal mixes, rather than replacing them.
+    // All inputs are already device-local saved/recent public video metadata.
     val mixes = remember(favorites, recent, playlistTracks, dayNumber, memory) {
-        PersonalMixEngine.make(favorites, recent, playlistTracks, dayNumber,
-            memoryTracks = memory.recommendationTracks,
+        val daily = LocalDailyMixEngine.make(favorites, recent, playlistTracks,
+            dayNumber, memoryTracks = memory.recommendationTracks,
             memoryEnabled = memory.enabled)
+        val existing = PersonalMixEngine.make(favorites, recent, playlistTracks,
+            dayNumber, memoryTracks = memory.recommendationTracks,
+            memoryEnabled = memory.enabled)
+        daily + existing
     }
     var chosenMixKey by rememberSaveable { mutableStateOf<String?>(null) }
     var showAllMixTracks by rememberSaveable { mutableStateOf(false) }
@@ -2530,7 +2537,8 @@ private fun StudioHome(
         }
         if (mixes.isNotEmpty()) {
             item {
-                SectionHeading("Made for you", "Mixes built privately from your saved music")
+                SectionHeading("Made for you",
+                    "Daily Mix 1–3 and personal picks · generated privately from saved music")
             }
             mixes.chunked(2).forEachIndexed { row, pair ->
                 item(key = "personal-mix-$row") {
