@@ -615,10 +615,16 @@ fun StudioNowPlayingOverlay(
                 Spacer(Modifier.height(15.dp))
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween) {
-                    IconButton(onClick = actions::toggleShuffle, enabled = !state.offline,
-                        modifier = Modifier.size(48.dp)) {
-                        Icon(Icons.Outlined.Shuffle, contentDescription = "Toggle shuffle",
-                            tint = if (state.shuffle) colors.primary else colors.onSurfaceVariant)
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        IconButton(onClick = actions::toggleShuffle,
+                            modifier = Modifier.size(44.dp)) {
+                            Icon(Icons.Outlined.Shuffle,
+                                contentDescription = if (state.shuffle) "Shuffle on" else "Shuffle off",
+                                tint = if (state.shuffle) colors.primary else colors.onSurfaceVariant)
+                        }
+                        Text(if (state.shuffle) "On" else "Off",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (state.shuffle) colors.primary else colors.onSurfaceVariant)
                     }
                     IconButton(onClick = actions::previous, modifier = Modifier.size(48.dp)) {
                         Icon(Icons.Outlined.SkipPrevious, contentDescription = "Previous track",
@@ -639,7 +645,7 @@ fun StudioNowPlayingOverlay(
                             modifier = Modifier.size(34.dp), tint = colors.onBackground)
                     }
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        IconButton(onClick = actions::cycleRepeat, enabled = !state.offline,
+                        IconButton(onClick = actions::cycleRepeat,
                             modifier = Modifier.size(44.dp)) {
                             Icon(if (state.repeat == PlaybackQueue.Repeat.ONE) Icons.Outlined.RepeatOne
                                 else Icons.Outlined.Repeat,
