@@ -45,9 +45,10 @@ object LocalDailyMixEngine {
         val favoriteIds = likes.mapTo(hashSetOf()) { it.url }
         val recentIds = history.mapTo(hashSetOf()) { it.url }
         val savedIds = saved.mapTo(hashSetOf()) { it.url }
+        val poolIds = pool.mapTo(hashSetOf()) { it.url }
         // Only opt-in, stored, actually eligible catalog IDs are useful.
         val optInMemory = if (memoryEnabled) memoryTracks.take(100)
-            .filter { it.id in pool.map(VideoPreview::url).toHashSet() }
+            .filter { it.id in poolIds }
             .associateBy { it.id }
             else emptyMap()
         val creatorCounts = likes.groupingBy {
