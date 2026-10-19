@@ -383,7 +383,7 @@ fun StudioNowPlayingOverlay(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween) {
                         Text(if (lyricsAutoFollow)
-                                "Synchronized · Tap a line to seek"
+                                "Your imported LRC · Tap a line to seek"
                             else "Browsing lyrics · Tap Follow to resume",
                             modifier = Modifier.weight(1f).padding(vertical = 8.dp),
                             color = colors.onSurfaceVariant,
