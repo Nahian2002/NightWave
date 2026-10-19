@@ -14,6 +14,13 @@ class SoundStudioPolicyTest {
         assertEquals(listOf(100, 100), SoundStudioPolicy.flatLevels(2, 100, 900))
     }
 
+    @Test fun manualRangeNeverOffersValuesRejectedByPlaybackService() {
+        assertEquals(-1500..1500, SoundStudioPolicy.safeManualRange(-2400, 2400))
+        assertEquals(-900..800, SoundStudioPolicy.safeManualRange(-900, 800))
+        assertEquals(null, SoundStudioPolicy.safeManualRange(1600, 2500))
+        assertEquals(null, SoundStudioPolicy.safeManualRange(-2500, -1600))
+    }
+
     @Test fun corruptAudioRangeNeverCrashesDraftInitialization() {
         assertTrue(SoundStudioPolicy.flatLevels(5, 1000, -1000).isEmpty())
     }
