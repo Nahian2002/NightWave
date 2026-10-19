@@ -76,4 +76,29 @@ class LyricsSyncPolicyTest {
             LyricsSyncPolicy.seekPosition(lrc.cues[0], -11_000, 10_000)
         }
     }
+
+    @Test fun fineOffsetsSupportFiftyMillisecondsWithoutChangingQuarterSecondControls() {
+        assertEquals(50, LyricsSyncPolicy.fineAdjust(0, 1))
+        assertEquals(-50, LyricsSyncPolicy.fineAdjust(0, -1))
+        assertEquals(300, LyricsSyncPolicy.adjust(50, 1))
+        assertTrue(LyricsSyncPolicy.validOffset(50))
+        assertTrue(LyricsSyncPolicy.validOffset(-150))
+        assertFalse(LyricsSyncPolicy.validOffset(51))
+        assertEquals("+0.05s", LyricsSyncPolicy.label(50))
+    }
+
+    @Test fun fineOffsetsAffectHighlightAndTapSeekConsistently() {
+        assertEquals(0, LyricsSyncPolicy.activeIndex(lrc, 1049L, 50))
+        assertEquals(1, LyricsSyncPolicy.activeIndex(lrc, 1050L, 50))
+        assertEquals(1050L, LyricsSyncPolicy.seekPosition(lrc.cues[1], 50, 6000L))
+    }
+
+    @Test fun fineOffsetsSaturateAtBoundsAndFailOnInvalidBase() {
+        assertEquals(10000, LyricsSyncPolicy.fineAdjust(9950, Int.MAX_VALUE))
+        assertEquals(-10000, LyricsSyncPolicy.fineAdjust(-9950, Int.MIN_VALUE))
+        assertThrows(IllegalArgumentException::class.java) {
+            LyricsSyncPolicy.fineAdjust(55, 1)
+        }
+    }
+
 }
