@@ -23,7 +23,11 @@ tests = read("app/src/test/java/com/nightwave/player/playback/PlaybackQueueDispl
 assert 'EXTRA_QUEUE_DISPLAY_ORDER = "queue_display_order"' in service
 assert "val explicitDisplayOrder = intent.action == ACTION_PLAY_QUEUE" in service
 assert "intent.getBooleanExtra(EXTRA_QUEUE_DISPLAY_ORDER, false)" in service
-assert service.count("queue.useExplicitDisplayOrder()") == 2
+# Phase 6X8B adds one verified car-playback queue-order dispatch in addition
+# to the original two app UI paths. Preserve all three call sites.
+assert service.count("queue.useExplicitDisplayOrder()") == 3
+assert "is AutoPlaySelection.Streaming -> {" in service
+assert "queue.replace(selection.queue, selection.index)" in service
 assert "if (sameQueue && (loaded || resolving))" in service
 assert "if (explicitDisplayOrder) {" in service
 assert "if (explicitDisplayOrder) queue.useExplicitDisplayOrder()" in service
@@ -44,7 +48,20 @@ assert "VideoLink.normalize(it.url) == it.url" in quick
 assert "Normalizer.Form.NFKD" in search
 assert "VideoLink.normalize(video.url) != video.url" in creators
 assert "nightwave_library_v1" in library
-assert service.count("ExoPlayer.Builder(") == 1
+# Phase 6X2 adds a temporary offline decoder for crossfade. Keep
+# one main player plus one explicitly owned/released temporary deck.
+assert service.count("ExoPlayer.Builder(") == 2
+assert "val player = ExoPlayer.Builder(this)" in service
+assert "candidate = ExoPlayer.Builder(this)" in service
+assert "crossfadeIncoming = candidate" in service
+assert "runCatching { candidate?.release() }" in service
+assert "runCatching { deck?.pause(); deck?.release() }" in service
+assert "session.setPlayer(new)" in service
+assert "old.removeListener(trackListener)" in service
+assert "runCatching { old.pause(); old.release() }" in service
+assert service.count("MediaLibrarySession.Builder(") == 1
+assert "private fun cancelCrossfade()" in service
+assert "private fun finishCrossfade()" in service
 assert "playWhenReady = false" in service
 assert "PlaybackTransitionPolicy" in service
 assert 'applicationId = "com.nightwave.player"' in gradle
