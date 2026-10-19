@@ -2,6 +2,14 @@
 
 NightWave uses stacked, independently reviewable development branches. This changelog describes **source changes**. A feature marked implemented below is **not necessarily validated by a successful Android build or physical-device test**. Check [verification status](docs/VERIFICATION_MATRIX.md) before installation.
 
+## 2026-10-19 — Phase 6X8C4: Daily Mix unit-test compilation hotfix
+
+- **Observed:** The complete 6X8C3 Windows Gradle run **passed** `:app:compileDebugKotlin` and `:app:compileDebugAndroidTestKotlin`, but **failed** at `:app:compileDebugUnitTestKotlin` on two Daily Mix test argument types.
+- **Fix:** Pass `valid + valid` rather than `listOf(valid, valid)` in the duplicate-source test; pass the flat `favorites` list rather than `listOf(favorites)` in the immutability test. All eleven Daily Mix tests remain.
+- **Prevention:** Added guards to the Windows Kotlin compatibility script and original 6X6 CI source gate.
+- **Not changed:** Playback services, imported songs, playlists, lyrics, user data, backup, signing, UI, Java File warning and Media3.
+- **Release status:** Fresh Android Gradle build/unit tests/device QA for 6X8C4 remain **pending**. [QA details](docs/NIGHTWAVE_PHASE6X8C4_UNIT_TEST_COMPILE_QA.md).
+
 ## 2026-10-19 — Phase 6X8C3: Kotlin compiler recovery (development)
 
 - **Fix:** `MediaSession.ConnectionResult.AcceptedResultBuilder(session)` matches the Media3 session library constructor. Removed unsupported second `controller` argument.
