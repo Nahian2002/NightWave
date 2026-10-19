@@ -37,12 +37,14 @@ internal fun NightWaveSeekTimeline(
     enabled: Boolean,
     onPreview: (Float) -> Unit,
     onCommit: (Float) -> Unit,
+    onCancel: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val colors = MaterialTheme.colorScheme
     val shown = if (fraction.isFinite()) fraction.coerceIn(0f, 1f) else 0f
     val previewCallback by rememberUpdatedState(onPreview)
     val commitCallback by rememberUpdatedState(onCommit)
+    val cancelCallback by rememberUpdatedState(onCancel)
     var dragged by remember { mutableFloatStateOf(shown) }
     val tapDragModifier = if (!enabled) Modifier else Modifier
         .pointerInput(enabled) {
@@ -62,7 +64,7 @@ internal fun NightWaveSeekTimeline(
                     previewCallback(dragged)
                 },
                 onDragEnd = { commitCallback(dragged) },
-                onDragCancel = { previewCallback(shown) }
+                onDragCancel = { cancelCallback() }
             ) { change, _ ->
                 change.consume()
                 dragged = ((change.position.x - edge) / width).coerceIn(0f, 1f)
