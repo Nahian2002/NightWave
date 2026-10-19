@@ -22,7 +22,7 @@ class OfflineNormalizationStore(context: Context) {
         if (!validId(id) || bytes <= 0L) return null
         return runCatching {
             if (prefs.getLong("bytes_$id", -1L) != bytes) return null
-            prefs.getFloat("gain_$id", 1f).takeIf { it.isFinite() && it in .25f..1f }
+            prefs.getFloat("gain_$id", Float.NaN).takeIf { it.isFinite() && it in .25f..1f }
         }.getOrNull()
     }
 
