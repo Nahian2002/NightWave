@@ -100,6 +100,7 @@ jobs:
           python3 tools/verify_nw02_sound_studio.py
           python3 tools/verify_nw03_account_hub.py
           python3 tools/verify_nw04_premium_player.py
+          python3 tools/verify_nw04_premium_player.py
           python3 tools/verify_v2_phase5r.py
           python3 tools/verify_v2_phase5s.py
           python3 tools/verify_v2_phase5t.py
