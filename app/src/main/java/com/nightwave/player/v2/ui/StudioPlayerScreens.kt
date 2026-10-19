@@ -71,6 +71,7 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -141,9 +142,9 @@ fun StudioMiniPlayer(
     val identity = MusicIdentity.display(state.title, state.artist)
     var travel by remember(state.videoUrl) { mutableStateOf(0f) }
     Column(
-        modifier = modifier.fillMaxWidth().padding(horizontal = 11.dp, vertical = 3.dp)
+        modifier = modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 2.dp)
             .testTag("nightwave-mini-player")
-            .clip(RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(16.dp))
             .background(
                 Brush.horizontalGradient(listOf(
                     NightWaveVisualLanguage.accent(state.videoUrl).copy(alpha = .20f),
@@ -151,7 +152,7 @@ fun StudioMiniPlayer(
                     colors.surface
                 ))
             )
-            .border(1.dp, colors.outline.copy(alpha = .13f), RoundedCornerShape(20.dp))
+            .border(1.dp, colors.outline.copy(alpha = .13f), RoundedCornerShape(16.dp))
             .pointerInput(state.videoUrl) {
                 detectVerticalDragGestures(
                     onDragStart = { travel = 0f },
@@ -175,9 +176,9 @@ fun StudioMiniPlayer(
     ) {
         // Visible gesture affordance. The parent still owns swipe-down hide and
         // swipe-up expansion; this indicator does not add a competing gesture.
-        Box(Modifier.fillMaxWidth().height(9.dp),
+        Box(Modifier.fillMaxWidth().height(5.dp),
             contentAlignment = Alignment.Center) {
-            Box(Modifier.size(width = 32.dp, height = 3.dp)
+            Box(Modifier.size(width = 24.dp, height = 2.dp)
                 .clip(CircleShape)
                 .background(colors.onSurfaceVariant.copy(alpha = .48f)))
         }
@@ -187,8 +188,8 @@ fun StudioMiniPlayer(
             val showNext = NightWaveChromePolicy.showMiniNext(
                 queueCount = state.queue.size, availableWidthDp = maxWidth.value)
             Row(
-                modifier = Modifier.fillMaxWidth().height(56.dp)
-                    .padding(start = 8.dp, end = 4.dp),
+                modifier = Modifier.fillMaxWidth().height(52.dp)
+                    .padding(start = 8.dp, end = 3.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
@@ -199,12 +200,13 @@ fun StudioMiniPlayer(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(9.dp)
                 ) {
-                    CoverArt(state.thumbnail, Modifier.size(40.dp), 9)
+                    CoverArt(state.thumbnail, Modifier.size(38.dp), 9)
                     Column(Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(if (state.title.isBlank()) "Restoring your last track…"
                             else identity.title,
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.titleSmall.copy(
+                                fontWeight = FontWeight.SemiBold),
                             color = colors.onSurface, maxLines = 1,
                             overflow = TextOverflow.Ellipsis)
                         Text(
@@ -213,7 +215,7 @@ fun StudioMiniPlayer(
                                 health.phase == PlaybackPhase.DISCONNECTED ||
                                 health.phase == PlaybackPhase.ERROR) health.title
                             else identity.artistOrCreator,
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = MaterialTheme.typography.bodySmall,
                             color = colors.onSurfaceVariant, maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -245,7 +247,7 @@ fun StudioMiniPlayer(
             progress = {
                 PlayerProgressRules.fraction(state.positionMs, state.durationMs)
             },
-            modifier = Modifier.fillMaxWidth().height(3.dp),
+            modifier = Modifier.fillMaxWidth().height(2.dp),
             color = colors.primary,
             trackColor = colors.outline.copy(alpha = .28f)
         )
