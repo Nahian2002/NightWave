@@ -1,5 +1,42 @@
 # NightWave
 
+> **Current development status — 19 October 2026:** NightWave is an Android music-player project with imported offline audio, saved public-video streaming references, private playlists and optional Google Drive backup. This repository is **not yet a certified release**. The Windows build of Phase 6X8C2 reached Gradle and failed at two confirmed Kotlin errors; Phase **6X8C3 patches both**. A fresh successful Android build, device signing check and phone QA are **still pending**.
+
+## About NightWave
+
+NightWave is a personal Android music experience inspired by Spotify-style navigation and controls, built without a NightWave-owned backend. It brings together user-imported offline audio, locally saved public-video references (resolved for playback when available), playlists, private lyric files, on-device mixes, and optional third-party Google Drive backup. It **does not provide Spotify's licensed music catalog**, guaranteed stream availability, or an app-owned discovery/streaming server.
+
+**Latest source branch:** [6X8C3 compiler recovery](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-phase6x8c3-compiler-and-repo-audit) · [Build and safe-upgrade guide](docs/BUILD_AND_RELEASE.md) · [Release verification matrix](docs/VERIFICATION_MATRIX.md) · [Changelog](CHANGELOG.md) · [Repository About details](ABOUT.md)
+
+### Features present in the development source
+
+- Offline user-imported audio, local library/playlist management, playback queue, repeat/shuffle, adjustable offline crossfade, gapless-capable local timelines, optional non-boosting volume balance, Equalizer and Sleep Timer.
+- A Compose music interface, search and saved public-video references, favorite/recent tracks, read-only smart collections, playlist folders, local daily mixes and optional private listening memory.
+- Imported synchronized LRC playback, offset adjustment, protected local lyric editor and export/import workflows.
+- Home-screen media widget, Android Media3 session controls, and a **development-stage** Android Auto browse/search integration. Car-device compatibility and stream handoff remain unverified.
+- Optional third-party Google Drive workflows. The music experience uses local state and outside public/Google services when those optional features are used; no dedicated NightWave backend is required.
+
+### Build before installing
+
+On a Windows PC, extract the **complete latest development source ZIP** into a new folder, then run `build-windows.cmd`. The build must finish with **BUILD SUCCESSFUL**, passing `:app:testDebugUnitTest`, `:app:assembleDebug` and `:app:compileDebugAndroidTestKotlin`; a passing source preflight alone is **not** an Android build. On failure, retain the `dist/NightWave-build-errors.txt`, `dist/NightWave-build-diagnostic.txt`, `dist/NightWave-build-status.txt` and `dist/NightWave-build-full.log` files.
+
+**Never uninstall NightWave, clear its app storage, or replace an installed APK signed with a different certificate.** The project deliberately retains application ID `com.nightwave.player`, version code `35` and version name `2.0.0-alpha5s` during this recovery. CI/debug APKs may be signed differently from the user's installed build.
+
+### Verification truth
+
+| Area | Evidence as of this branch |
+| --- | --- |
+| Previous Windows source preflights | Passed in the 6X8C2 Windows build |
+| Main Android Kotlin compile on 6X8C2 | **Failed**: `AcceptedResultBuilder(session, controller)` and nonexistent `VideoPreview.duration` |
+| 6X8C3 patches | Both offending expressions corrected in GitHub source |
+| 6X8C3 source regression guards | Added to Windows preflight and CI source gates |
+| Fresh full Android build, unit tests and test APK compilation | **Not yet executed/confirmed for 6X8C3** |
+| Phone playback, widget and Android Auto validation | **Pending**, not release-certified |
+
+The sections below are **historical phase development notes**. Their old branch links and status descriptions are not the current release recommendation.
+
+---
+
 ## Phase 6K — Service-owned sleep timer (draft)
 
 **Development branch:** `feature/nightwave-v2-phase6k-service-sleep-timer`, stacked on user-tested Phase 6J. [Complete source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase6k-service-sleep-timer.zip) · [Phase 6K safety and acceptance checklist](docs/NIGHTWAVE_V2_PHASE6K_QA.md)
