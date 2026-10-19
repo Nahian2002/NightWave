@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">NightWave</string>
+    <string name="widget_description">NightWave compact playback controls</string>
 </resources>
