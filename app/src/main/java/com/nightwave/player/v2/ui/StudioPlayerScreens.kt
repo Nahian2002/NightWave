@@ -433,18 +433,23 @@ fun StudioNowPlayingOverlay(
                                             cue, lyricsOffsetMs, state.durationMs)),
                                             style = MaterialTheme.typography.labelSmall,
                                             color = colors.onPrimaryContainer)
-                                        LinearProgressIndicator(
-                                            progress = {
-                                                LyricsPresentationPolicy.lineProgress(
-                                                    lyrics, activeCue, state.positionMs,
-                                                    lyricsOffsetMs)
-                                            },
-                                            modifier = Modifier.fillMaxWidth().height(3.dp)
-                                                .padding(top = 1.dp)
-                                                .testTag("lyrics-line-progress"),
-                                            color = colors.primary,
-                                            trackColor = colors.onPrimaryContainer.copy(alpha = .12f)
-                                        )
+                                        // No inferred line-duration bar for the final LRC cue.
+                                        if (lyrics.cues.drop(activeCue + 1).any {
+                                                it.timeMs > cue.timeMs
+                                            }) {
+                                            LinearProgressIndicator(
+                                                progress = {
+                                                    LyricsPresentationPolicy.lineProgress(
+                                                        lyrics, activeCue, state.positionMs,
+                                                        lyricsOffsetMs)
+                                                },
+                                                modifier = Modifier.fillMaxWidth().height(3.dp)
+                                                    .padding(top = 1.dp)
+                                                    .testTag("lyrics-line-progress"),
+                                                color = colors.primary,
+                                                trackColor = colors.onPrimaryContainer.copy(alpha = .12f)
+                                            )
+                                        }
                                     }
                                 }
                             }
