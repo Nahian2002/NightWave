@@ -11,6 +11,7 @@ This matrix distinguishes **observed completed tests** from **checks included in
 | 6X8C2 Android Kotlin compilation | Actual build log: Media3 builder arity and nonexistent `VideoPreview.duration` | FAILED |
 | 6X8C3 Media3 builder source correction | Exact constructor replaced with supported one-argument form | COMMITTED, not compiled |
 | 6X8C3 Smart Library source correction | Uses model's declared `durationSeconds` | COMMITTED, not compiled |
+| Isolated SmartLibrary Kotlin policy compile and behavior checks | 13/13 executable checks passed using a locally reproduced policy source plus minimal collaborators (not Gradle) | PASS, isolated only |
 | Regression tests for 239/240/241 seconds and unknown durations | Added to Android JVM unit-test source | NOT YET EXECUTED by Gradle |
 | Windows preflight for both prior Kotlin compiler errors | Added to `tools/check-kotlin-compat.ps1` | SOURCE-REVIEWED, not run on Windows |
 | GitHub source-gate contracts | New 6X8C3 gate and historic 6X5/6X8 guards | ADDED; not equivalent to build |
