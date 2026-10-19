@@ -5,7 +5,8 @@ import java.util.Locale
 /** Pure UI-to-engine policy. Engine limits still come from the current Android audio session. */
 object SoundStudioPolicy {
     fun flatLevels(count: Int, minimumMb: Int, maximumMb: Int): List<Int> =
-        List(count.coerceIn(0, 32)) { 0.coerceIn(minimumMb, maximumMb) }
+        if (minimumMb > maximumMb) emptyList()
+        else List(count.coerceIn(0, 32)) { 0.coerceIn(minimumMb, maximumMb) }
 
     fun updateLevel(
         original: List<Int>, index: Int, requestedMb: Int,
