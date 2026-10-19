@@ -24,7 +24,8 @@ player = mini.split("fun StudioMiniPlayer(", 1)[1].split("private fun CoverArt("
 # and explicit hide-without-pausing semantics unchanged.
 assert 'Box(Modifier.fillMaxWidth().height(9.dp)' in player
 assert 'modifier = Modifier.fillMaxWidth().height(54.dp)' in player
-assert 'CoverArt(state.thumbnail, Modifier.size(40.dp), 9)' in player
+# NW-04 refines the visual size; the player must still retain real cover art.
+assert 'CoverArt(state.thumbnail, Modifier.size(38.dp), 9)' in player
 assert 'IconButton(onClick = onHide, modifier = Modifier.size(48.dp))' in player
 assert 'IconButton(onClick = actions::playPause, modifier = Modifier.size(48.dp))' in player
 assert 'PlayerVerticalSwipe.MINIMIZE -> onHide()' in player
