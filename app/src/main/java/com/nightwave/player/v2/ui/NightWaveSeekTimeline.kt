@@ -33,10 +33,11 @@ import androidx.compose.material3.MaterialTheme
  */
 @Composable
 internal fun NightWaveSeekTimeline(
+    trackIdentity: String,
     fraction: Float,
     enabled: Boolean,
     onPreview: (Float) -> Unit,
-    onCommit: (Float) -> Unit,
+    onCommit: (String, Float) -> Unit,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -47,14 +48,14 @@ internal fun NightWaveSeekTimeline(
     val cancelCallback by rememberUpdatedState(onCancel)
     var dragged by remember { mutableFloatStateOf(shown) }
     val tapDragModifier = if (!enabled) Modifier else Modifier
-        .pointerInput(enabled) {
+        .pointerInput(enabled, trackIdentity) {
             val edge = 8.dp.toPx()
             detectTapGestures { pos ->
-                commitCallback(NightWaveSeekGesturePolicy.touchFraction(
+                commitCallback(trackIdentity, NightWaveSeekGesturePolicy.touchFraction(
                     pos.x, size.width.toFloat(), edge))
             }
         }
-        .pointerInput(enabled) {
+        .pointerInput(enabled, trackIdentity) {
             val edge = 8.dp.toPx()
             detectDragGestures(
                 onDragStart = { pos ->
@@ -62,7 +63,7 @@ internal fun NightWaveSeekTimeline(
                         pos.x, size.width.toFloat(), edge)
                     previewCallback(dragged)
                 },
-                onDragEnd = { commitCallback(dragged) },
+                onDragEnd = { commitCallback(trackIdentity, dragged) },
                 onDragCancel = { cancelCallback() }
             ) { change, _ ->
                 change.consume()
@@ -79,7 +80,7 @@ internal fun NightWaveSeekTimeline(
                 contentDescription = "Seek playback"
                 progressBarRangeInfo = ProgressBarRangeInfo(shown, 0f..1f)
                 if (enabled) setProgress { requested ->
-                    commitCallback(requested.coerceIn(0f, 1f))
+                    commitCallback(trackIdentity, requested.coerceIn(0f, 1f))
                     true
                 }
             }
