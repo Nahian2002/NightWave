@@ -29,11 +29,17 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
     fun snapshot(): List<QueueEntry> = entries.toList()
 
     fun replace(items: List<QueueEntry>, selected: Int): QueueEntry? {
+        // Resolve the requested identity before deduplicating URLs. Otherwise,
+        // duplicate rows earlier in the list shift the selected track index.
+        val requestedUrl = items.getOrNull(selected)?.url
         entries.clear()
         entries.addAll(items.distinctBy { it.url }.take(100))
         visited.clear()
         shuffledSeen.clear()
-        index = if (entries.isEmpty()) -1 else selected.coerceIn(0, entries.lastIndex)
+        index = if (entries.isEmpty()) -1 else {
+            val exactIndex = entries.indexOfFirst { it.url == requestedUrl }
+            if (exactIndex >= 0) exactIndex else selected.coerceIn(0, entries.lastIndex)
+        }
         return current
     }
 
