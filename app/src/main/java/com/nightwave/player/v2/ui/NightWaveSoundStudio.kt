@@ -76,9 +76,12 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
         val latest = capabilityStore.read()
         if (resetDraft || latest.audioSessionId != capabilities.audioSessionId ||
             latest.centersHz.size != capabilities.centersHz.size) {
-            draftLevels = SoundStudioPolicy.flatLevels(
-                latest.centersHz.size, latest.minimumMb, latest.maximumMb
-            )
+            draftLevels = if (SoundStudioPolicy.validLevels(
+                    latest.levelsMb, latest.centersHz.size,
+                    latest.minimumMb, latest.maximumMb
+                )) latest.levelsMb else SoundStudioPolicy.flatLevels(
+                    latest.centersHz.size, latest.minimumMb, latest.maximumMb
+                )
         }
         capabilities = latest
         status = statusStore.read()
@@ -133,7 +136,9 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                         }
                         delay(300L)
                     }
-                    applySnapshot(resetDraft = false)
+                    // Preset changes should show device-reported gains,
+                    // whereas manual edits keep the just-applied draft.
+                    applySnapshot(resetDraft = action == PlaybackService.ACTION_EQ_PRESET_SET)
                     pendingCommand = null
                     notice = latest.message
                     return@launch
@@ -161,6 +166,7 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
     val primary = MaterialTheme.colorScheme.primary
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
     val validManual = capabilities.sessionReady &&
+        capabilities.minimumMb < capabilities.maximumMb &&
         SoundStudioPolicy.validLevels(
             draftLevels, capabilities.centersHz.size,
             capabilities.minimumMb, capabilities.maximumMb)
