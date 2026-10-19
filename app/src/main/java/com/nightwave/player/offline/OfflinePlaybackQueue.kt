@@ -66,7 +66,9 @@ class OfflinePlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it)
                 else -> return null
             }
         }
-        if (target != index) pushHistory(index)
+        // History is meaningful only in Shuffle. With Shuffle off, Previous
+        // must follow the visible sequence even after direct jumps.
+        if (shuffle && target != index) pushHistory(index)
         index = target
         return current
     }
@@ -74,7 +76,7 @@ class OfflinePlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it)
     fun previous(): String? {
         if (index < 0) return null
         val target = when {
-            visited.isNotEmpty() -> visited.removeLast()
+            shuffle && visited.isNotEmpty() -> visited.removeLast()
             shuffle -> return null
             index > 0 -> index - 1
             repeat == PlaybackQueue.Repeat.ALL -> ids.lastIndex
@@ -93,8 +95,10 @@ class OfflinePlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it)
     fun jump(to: Int): String? {
         if (to !in ids.indices) return null
         if (to != index) {
-            if (index >= 0) pushHistory(index)
-            if (shuffle) unplayed.remove(to)
+            if (shuffle) {
+                if (index >= 0) pushHistory(index)
+                unplayed.remove(to)
+            }
             index = to
         }
         return current
