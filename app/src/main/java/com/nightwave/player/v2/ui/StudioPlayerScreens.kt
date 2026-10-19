@@ -618,20 +618,13 @@ fun StudioNowPlayingOverlay(
                         }
                     }
                 }
-                Row(Modifier.padding(top = 11.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Surface(shape = RoundedCornerShape(9.dp),
-                        color = colors.surfaceVariant) {
-                        Text(if (state.offline) "LOCAL AUDIO" else "PUBLIC VIDEO",
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = colors.onSurfaceVariant)
-                    }
-                    if (canSwipeArtwork) {
-                        Text("Swipe artwork to skip", style = MaterialTheme.typography.labelSmall,
-                            color = colors.onSurfaceVariant)
-                    }
+                // Don't advertise the source type as a prominent pill on
+                // every Now Playing screen. Keep only a useful gesture hint.
+                if (canSwipeArtwork) {
+                    Text("Swipe cover to skip",
+                        modifier = Modifier.padding(top = 8.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = colors.onSurfaceVariant)
                 }
                 Spacer(Modifier.height(11.dp))
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
