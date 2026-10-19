@@ -1,5 +1,16 @@
 # NightWave Changelog
 
+## 2026-10-19 — NW-05 integrated playback/queue/seek/EQ stabilization
+
+- Corrected a public-video playback service inconsistency: its same-queue fast path now resolves the originally tapped song URL **before** queue URL deduplication instead of using a shifted index.
+- Tied seek bar tap/drag/accessibility commits to the originating song identity. The playback controller now rejects a stale scrub request if the displayed or actual Media3 item has changed.
+- Limited Sound Studio's manual band controls to the intersection of Android-supported range and the playback service's accepted ±15 dB envelope. Unsupported ranges are disabled rather than yielding guaranteed-rejected commands.
+- Added nine more pure JVM test methods across service queue selection, safe Media3 seek identity and equalizer boundary cases.
+- Reconciled GitHub CI for the integration branch and removed a duplicate NW-04 verifier command. Earlier NW-01–NW-04 verification gates remain.
+- No app data, library storage format, signing configuration, OAuth scope or package ID change was introduced.
+- **Evidence:** Source committed and audited; full Gradle tests, Kotlin compilation, Android UI/audio and Google authorization still need executed verification. See [NW-05 QA](docs/NIGHTWAVE_NW05_INTEGRATION_QA.md).
+
+
 ## 2026-10-19 — NW-04 premium player layout, seek and artwork (unverified)
 
 - Replaced Now Playing's visually disconnected default Material 3 seek thumb with a slim, accessible Canvas timeline with tap/drag/cancel handling, Media3 seeks only on commit and safe duration/fraction mapping.
