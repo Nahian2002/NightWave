@@ -4,6 +4,14 @@ import java.util.Locale
 
 /** Pure UI-to-engine policy. Engine limits still come from the current Android audio session. */
 object SoundStudioPolicy {
+    /** Service input validation currently bounds manual gains to ±15 dB.
+     * Never render a selectable range the service is guaranteed to reject. */
+    fun safeManualRange(deviceMinimumMb: Int, deviceMaximumMb: Int): IntRange? {
+        val lower = maxOf(deviceMinimumMb, -1500)
+        val upper = minOf(deviceMaximumMb, 1500)
+        return if (lower <= upper) lower..upper else null
+    }
+
     fun flatLevels(count: Int, minimumMb: Int, maximumMb: Int): List<Int> =
         if (minimumMb > maximumMb) emptyList()
         else List(count.coerceIn(0, 32)) { 0.coerceIn(minimumMb, maximumMb) }
