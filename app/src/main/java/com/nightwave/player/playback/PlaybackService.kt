@@ -56,7 +56,6 @@ import java.util.concurrent.Future
 
 /** The service owns automatic next-track resolution, even while the Activity is stopped. */
 @UnstableApi
-@OptIn(UnstableApi::class)
 class PlaybackService : MediaLibraryService() {
     companion object {
         const val ACTION_REPLACE = "com.nightwave.player.REPLACE_QUEUE"
