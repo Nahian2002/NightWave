@@ -204,6 +204,9 @@ class PlaybackService : MediaLibraryService() {
             }
             activeEqualizer = candidate
             equalizerSessionId = sessionId
+            // Re-read the actual preset/manual band gains after applying the
+            // effect, so Sound Studio's response curve is not invented.
+            runCatching { eqCapabilities.publish(candidate, sessionId) }
             // Enabled is a platform API acknowledgement, NOT a claim that
             // every Bluetooth/output route audibly applies the effect.
             eqStatus.write(requestedEqPreset, true,
