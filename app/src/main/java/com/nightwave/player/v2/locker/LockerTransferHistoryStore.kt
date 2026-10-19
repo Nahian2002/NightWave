@@ -26,9 +26,13 @@ class LockerTransferHistoryStore(
 
     init {
         val app = context.applicationContext
-        require(file.canonicalFile.parentFile in setOf(
-            app.filesDir.canonicalFile, app.cacheDir.canonicalFile
-        )) { "Transfer history must be app-private" }
+        // File.parentFile is nullable even for a canonical path. Reject
+        // parentless destinations explicitly before checking the private roots.
+        val parent = file.canonicalFile.parentFile
+            ?: throw IllegalArgumentException("Transfer history path must have a parent")
+        require(parent == app.filesDir.canonicalFile ||
+            parent == app.cacheDir.canonicalFile
+        ) { "Transfer history must be app-private" }
     }
 
     private fun exists(): Boolean = atomic.baseFile.exists() ||
