@@ -1,6 +1,6 @@
 # NightWave
 
-> **Current development status — 19 October 2026:** NightWave is an Android music-player project with imported offline audio, saved public-video streaming references, private playlists and optional Google Drive backup. This repository is **not yet a certified release**. The Windows build of Phase 6X8C2 reached Gradle and failed at two confirmed Kotlin errors; Phase **6X8C3 patches both**. A fresh successful Android build, device signing check and phone QA are **still pending**.
+> **Current development status — 19 October 2026:** NightWave is an Android music-player project with imported offline audio, saved public-video streaming references, private playlists and optional Google Drive backup. This repository is **not yet a certified release**. Phase **6X8C3 passed main app Kotlin and Android-test source compilation**, but failed at two Daily Mix unit-test input type errors. Phase **6X8C4 corrects these test calls**. A complete successful Android build, signer check and phone QA are **still pending**.
 
 > **Build update — 19 October 2026:** The user-built 6X8C3 candidate **passed main Android Kotlin compilation and Android instrumentation-source compilation**, but **failed unit-test Kotlin compilation** because two Daily Mix JUnit test calls passed nested lists. Phase **6X8C4 fixes both test inputs** and adds early regression guards. A fresh **BUILD SUCCESSFUL** on 6X8C4 is **not yet confirmed**. [Exact compiler report and QA](docs/NIGHTWAVE_PHASE6X8C4_UNIT_TEST_COMPILE_QA.md).
 
