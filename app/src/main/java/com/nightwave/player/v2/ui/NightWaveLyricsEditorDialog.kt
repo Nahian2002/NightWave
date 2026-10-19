@@ -75,6 +75,9 @@ fun NightWaveLyricsEditorDialog(
     var selected by rememberSaveable(songId) { mutableStateOf(0) }
     var searchQuery by rememberSaveable(songId) { mutableStateOf("") }
     var searchOpen by rememberSaveable(songId) { mutableStateOf(false) }
+    var fineNudge by rememberSaveable(songId) { mutableStateOf(false) }
+    val nudgeStep = if (fineNudge) LyricsEditorPolicy.FINE_NUDGE_MS
+        else LyricsEditorPolicy.NUDGE_MS
     var editingCue by remember { mutableStateOf<LyricCue?>(null) }
     var deletingCue by remember { mutableStateOf<LyricCue?>(null) }
     var editingText by remember { mutableStateOf("") }
@@ -252,9 +255,20 @@ fun NightWaveLyricsEditorDialog(
                     Text(it, color = colors.error,
                         style = MaterialTheme.typography.labelSmall)
                 }
-                Text("${draft.cues.size} timed lines · Select a row to edit or nudge",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = colors.onSurfaceVariant)
+                Row(Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically) {
+                    Text("${draft.cues.size} timed lines · Tap a row to edit",
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = colors.onSurfaceVariant)
+                    TextButton(onClick = { fineNudge = !fineNudge },
+                        enabled = !saving,
+                        modifier = Modifier.heightIn(min = 48.dp)
+                            .testTag("lyrics-editor-fine-nudge")) {
+                        Text(if (fineNudge) "Fine 50 ms" else "Step 250 ms")
+                    }
+                }
                 LazyColumn(state = listState,
                     modifier = Modifier.weight(1f).fillMaxWidth(),
                     contentPadding = PaddingValues(bottom = 12.dp),
@@ -310,17 +324,17 @@ fun NightWaveLyricsEditorDialog(
                                     TextButton(onClick = {
                                         selected = index
                                         applySafe(
-                                            { LyricsEditorPolicy.nudge(draft, index, -1) },
+                                            { LyricsEditorPolicy.nudge(draft, index, -1, nudgeStep) },
                                             { after ->
                                                 val expected = cue.copy(
-                                                    timeMs = (cue.timeMs - 250L).coerceAtLeast(0L))
+                                                    timeMs = (cue.timeMs - nudgeStep).coerceAtLeast(0L))
                                                 LyricsEditorNavigationPolicy.afterEdit(
                                                     after, expected, selected)
                                             }
                                         )
                                     }, enabled = !saving,
                                         modifier = Modifier.heightIn(min = 48.dp)) {
-                                        Text("−.25s")
+                                        Text(if (fineNudge) "−.05s" else "−.25s")
                                     }
                                     TextButton(onClick = {
                                         selected = index
@@ -336,10 +350,10 @@ fun NightWaveLyricsEditorDialog(
                                     TextButton(onClick = {
                                         selected = index
                                         applySafe(
-                                            { LyricsEditorPolicy.nudge(draft, index, 1) },
+                                            { LyricsEditorPolicy.nudge(draft, index, 1, nudgeStep) },
                                             { after ->
                                                 val expected = cue.copy(
-                                                    timeMs = (cue.timeMs + 250L)
+                                                    timeMs = (cue.timeMs + nudgeStep)
                                                         .coerceAtMost(LyricsEditorPolicy.MAX_TIME_MS))
                                                 LyricsEditorNavigationPolicy.afterEdit(
                                                     after, expected, selected)
@@ -347,7 +361,7 @@ fun NightWaveLyricsEditorDialog(
                                         )
                                     }, enabled = !saving,
                                         modifier = Modifier.heightIn(min = 48.dp)) {
-                                        Text("+.25s")
+                                        Text(if (fineNudge) "+.05s" else "+.25s")
                                     }
                                     TextButton(onClick = {
                                         selected = index
