@@ -10,6 +10,7 @@ object LyricsEditorPolicy {
     const val MAX_TEXT_LENGTH = 220
     const val MAX_UNDO = 15
     const val NUDGE_MS = 250L
+    const val FINE_NUDGE_MS = 50L
     private val timeCode = Regex("""^(\d{1,2}):([0-5]\d)\.(\d{1,3})$""")
     private val order = compareBy<LyricCue> { it.timeMs }.thenBy { it.text }
 
@@ -48,11 +49,16 @@ object LyricsEditorPolicy {
     fun updateTime(draft: LyricsEditorDraft, index: Int, input: String): LyricsEditorDraft =
         modify(draft, index) { it.copy(timeMs = parseTime(input)) }
 
-    fun nudge(draft: LyricsEditorDraft, index: Int, steps: Int): LyricsEditorDraft =
-        modify(draft, index) { cue ->
-            cue.copy(timeMs = (cue.timeMs + steps.toLong() * NUDGE_MS)
+    fun nudge(draft: LyricsEditorDraft, index: Int, steps: Int,
+        stepMs: Long = NUDGE_MS): LyricsEditorDraft {
+        require(stepMs == NUDGE_MS || stepMs == FINE_NUDGE_MS) {
+            "Unsupported lyric timing step"
+        }
+        return modify(draft, index) { cue ->
+            cue.copy(timeMs = (cue.timeMs + steps.toLong() * stepMs)
                 .coerceIn(0L, MAX_TIME_MS))
         }
+    }
 
     fun add(draft: LyricsEditorDraft, playbackMs: Long): LyricsEditorDraft {
         require(draft.cues.size < TimedLyricsCodec.MAX_LINES) {
