@@ -4,7 +4,7 @@
 
 ## 1. Get the latest source
 
-Use the complete [6X8C3 development branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-phase6x8c3-compiler-and-repo-audit) rather than stacking individual patch ZIPs. Extract to a *new*, short Windows directory. Do not overwrite the currently installed NightWave app or delete its Android data.
+Use the complete [6X8C4 development branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-phase6x8c4-daily-mix-unit-test-compile) rather than stacking individual patch ZIPs. Extract to a *new*, short Windows directory. Do not overwrite the currently installed NightWave app or delete its Android data.
 
 ## 2. Build on Windows
 
@@ -18,7 +18,7 @@ Double-click `build-windows.cmd` in the extracted project root. The builder chec
 
 Wait for `BUILD SUCCESSFUL` and a successful local APK identity/signing report. Passing 251 Kotlin *preflight* files is not Kotlin compilation. The app should be verified against the existing installed APK signature; Android may refuse an update if signing identities differ.
 
-**The last user-provided complete build evidence is a failed 6X8C2 run**, with two errors at `PlaybackService.kt:960` and `SmartLibraryPolicy.kt:39`. Phase 6X8C3 fixes those source expressions; a new complete build is mandatory.
+**The latest user-provided complete build evidence is the 6X8C3 run:** main Android Kotlin and Android-test Kotlin compiled; the build failed at `:app:compileDebugUnitTestKotlin` from two nested-list arguments in `LocalDailyMixEngineTest.kt`. Phase 6X8C4 fixes those test calls; a complete successful build is still mandatory.
 
 ## 3. If it fails
 
