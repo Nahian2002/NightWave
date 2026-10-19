@@ -99,6 +99,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.GraphicEq
 import androidx.compose.material.icons.outlined.Cloud
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.FavoriteBorder
@@ -3469,8 +3470,8 @@ private fun StudioProfile(
         item {
             StudioProfileGroup("Appearance & playback") {
                 StudioProfileRow(
-                    "Audio equalizer", "Optional device presets · Off by default",
-                    Icons.Outlined.Settings, onEqualizer
+                    "Sound Studio", "Equalizer · presets and manual frequency bands",
+                    Icons.Outlined.GraphicEq, onEqualizer
                 )
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 StudioProfileRow(
