@@ -24,7 +24,8 @@ manifest = (main / "AndroidManifest.xml").read_text(encoding="utf-8")
 for perm in ("INTERNET", "FOREGROUND_SERVICE", "FOREGROUND_SERVICE_MEDIA_PLAYBACK", "WAKE_LOCK"):
     assert 'android.permission.' + perm in manifest, perm
 assert 'android:foregroundServiceType="mediaPlayback"' in manifest
-assert 'androidx.media3.session.MediaSessionService' in manifest
+assert 'androidx.media3.session.MediaLibraryService' in manifest
+assert 'android.media.browse.MediaBrowserService' in manifest
 assert 'android:usesCleartextTraffic="false"' in manifest
 
 gradle = (root / "app/build.gradle.kts").read_text(encoding="utf-8")
