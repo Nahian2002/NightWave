@@ -1,5 +1,17 @@
 # NightWave Changelog
 
+## 2026-10-19 — NW-06 Music Discovery & Search Refinement (development)
+
+- Made **Search NightWave** visible as the in-app/keyboard search path; kept an adjacent **YouTube** browser choice for provider fallback.
+- Added private, bounded suggestions from saved public-video titles and creator names. Suggestions use only local library metadata and never automatically submit to an external provider.
+- Matched public results against both query text and Songs/Videos mode to avoid showing stale results when filters change.
+- Distinguished genuinely empty public-provider results from the separate local-library state; retained previous successful results when a same-query retry fails.
+- Added ten pure JVM tests for metadata-driven suggestions, strict mode matching, locale normalization and honest provider-empty messaging.
+- Enabled an NW-06 source regression gate in Android CI; earlier NW-01–NW-05 branches and functionality remain in the combined source.
+- **Testing:** Code is committed, but no fresh full Android Gradle build or live device/provider acceptance is certified. Official YouTube content rights, Spotify-scale catalog licensing and real-time account sync remain out of scope.
+- See [NW-06 detailed QA](docs/NIGHTWAVE_NW06_DISCOVERY_SEARCH_QA.md).
+
+
 ## 2026-10-19 — NW-05 integrated playback/queue/seek/EQ stabilization
 
 - Corrected a public-video playback service inconsistency: its same-queue fast path now resolves the originally tapped song URL **before** queue URL deduplication instead of using a shifted index.
