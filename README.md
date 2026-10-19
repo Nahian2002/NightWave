@@ -1,5 +1,8 @@
 # NightWave
 
+> **NW-06 Music Discovery & Search — 19 October 2026, development branch:** The [latest source](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-v2-nw06-discovery-search) builds on NW-01–NW-05 with private suggestions from your saved songs and creators, a prominent in-app public-video search action, clear official YouTube fallback, and query/mode-safe result states. Public search still depends on independent providers; **a complete Android build and real-network device acceptance are not yet verified**. See [NW-06 QA and limits](docs/NIGHTWAVE_NW06_DISCOVERY_SEARCH_QA.md).
+
+
 > **NW-05 Integration Stabilization — development source (19 October 2026):** The latest [NW-05 branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw05-integration-stability) keeps NW-01 Shuffle, NW-02 Sound Studio, NW-03 Account & Backup, and NW-04 Premium Player, while fixing cross-feature queue-selection drift, stale song seeking and manual-EQ bounds. [Read NW-05 verification and acceptance](docs/NIGHTWAVE_NW05_INTEGRATION_QA.md). **No successful complete Android Gradle build or real-device verification of NW-05 is confirmed yet.** Do not replace an installed APK without a passing build and compatible signing certificate.
 
 
