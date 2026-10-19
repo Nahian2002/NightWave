@@ -1278,9 +1278,10 @@ class PlaybackService : MediaLibraryService() {
                 // New UI sends absolute state; preserve legacy toggle only when
                 // no explicit value was supplied. Rapid taps cannot be inverted
                 // by delayed reads of the previously persisted queue.
-                val enabled = if (intent.hasExtra(EXTRA_SHUFFLE_ENABLED))
-                    intent.getBooleanExtra(EXTRA_SHUFFLE_ENABLED, false)
-                else !queue.shuffle
+                val explicit = intent.hasExtra(EXTRA_SHUFFLE_ENABLED)
+                val enabled = ShuffleModePolicy.resolve(
+                    queue.shuffle, explicit,
+                    intent.getBooleanExtra(EXTRA_SHUFFLE_ENABLED, false))
                 queue.shuffle = enabled
                 savedQueue.save(queue)
                 val requestId = intent.getStringExtra(EXTRA_SHUFFLE_REQUEST_ID).orEmpty()
