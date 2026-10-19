@@ -68,6 +68,53 @@ class OfflinePlaybackQueueTest {
         assertEquals("a", queue.previous())
     }
 
+    @Test fun sequentialPreviousIgnoresOldForwardHistory() {
+        val queue = OfflinePlaybackQueue()
+        queue.select(listOf("a", "b", "c", "d"), "a")
+        assertEquals("b", queue.next())
+        assertEquals("c", queue.next())
+        assertEquals("b", queue.previous())
+        assertEquals("a", queue.previous())
+        assertNull(queue.previous())
+        assertEquals("b", queue.next())
+        assertEquals("c", queue.next())
+        assertEquals("b", queue.previous())
+    }
+
+    @Test fun invalidShuffleJumpKeepsHistoryAndUnplayedOrder() {
+        val queue = OfflinePlaybackQueue { 0 }
+        queue.setShuffle(true)
+        queue.select(listOf("a", "b", "c"), "a")
+        assertEquals("b", queue.jump(1))
+        assertNull(queue.jump(-1))
+        assertNull(queue.jump(99))
+        assertEquals("a", queue.previous())
+        assertEquals("c", queue.next())
+        assertEquals(listOf("a", "b", "c"), queue.snapshot())
+    }
+
+    @Test fun linearPreviousRepeatAllWrapsAtTheStart() {
+        val queue = OfflinePlaybackQueue()
+        queue.select(listOf("a", "b", "c"), "a")
+        queue.setRepeat(com.nightwave.player.playback.PlaybackQueue.Repeat.ALL)
+        assertEquals("c", queue.previous())
+        assertEquals("b", queue.previous())
+        assertEquals("a", queue.previous())
+        assertEquals("c", queue.previous())
+    }
+
+    @Test fun turningShuffleOffRestoresVisibleBackNavigation() {
+        val queue = OfflinePlaybackQueue { 0 }
+        queue.select(listOf("a", "b", "c"), "a")
+        queue.setShuffle(true)
+        assertEquals("b", queue.next())
+        queue.setShuffle(false)
+        assertEquals("a", queue.previous())
+        assertNull(queue.previous())
+        assertEquals("b", queue.next())
+        assertEquals("a", queue.previous())
+    }
+
     @Test fun boundAndReset() {
         val queue = OfflinePlaybackQueue()
         queue.select((1..500).map(Int::toString), "400")
