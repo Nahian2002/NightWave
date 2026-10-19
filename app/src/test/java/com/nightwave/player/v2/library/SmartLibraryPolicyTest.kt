@@ -49,4 +49,24 @@ class SmartLibraryPolicyTest {
         assertTrue(smart.size <= SmartLibraryPolicy.MAX_COLLECTIONS)
         assertTrue(smart.all { SmartLibraryPolicy.belongs(it.id) })
     }
+
+    @Test fun longListenUsesActualDurationSecondsFieldAndFourMinuteBoundary() {
+        val before = track("Before threshold", "Artist", 239L, 80)
+        val exact = track("At threshold", "Artist", 240L, 81)
+        val longer = track("After threshold", "Artist", 241L, 82)
+        val collections = SmartLibraryPolicy.generate(
+            listOf(before, exact, longer), emptyList(), emptyList())
+        val longListens = collections.single { it.id.endsWith("/long") }
+        assertEquals(listOf(exact.url, longer.url), longListens.songs.map { it.url })
+    }
+
+    @Test fun unknownOrNegativeDurationCannotBeCalledLongMusic() {
+        val unknown = track("Unknown", "A", 0L, 90)
+        val invalid = track("Invalid", "A", -1L, 91)
+        val valid = track("Real", "A", 240L, 92)
+        val collections = SmartLibraryPolicy.generate(
+            listOf(unknown, invalid, valid), emptyList(), emptyList())
+        assertFalse(collections.any { it.id.endsWith("/long") })
+    }
+
 }
