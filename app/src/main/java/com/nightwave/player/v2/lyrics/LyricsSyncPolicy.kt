@@ -7,14 +7,22 @@ package com.nightwave.player.v2.lyrics
 object LyricsSyncPolicy {
     const val MAX_OFFSET_MS = 10_000
     const val STEP_MS = 250
+    const val FINE_STEP_MS = 50
 
     fun validOffset(ms: Int): Boolean =
-        ms in -MAX_OFFSET_MS..MAX_OFFSET_MS && ms % STEP_MS == 0
+        ms in -MAX_OFFSET_MS..MAX_OFFSET_MS && ms % FINE_STEP_MS == 0
 
     fun adjust(ms: Int, steps: Int): Int =
         (ms.toLong() + steps.toLong() * STEP_MS)
             .coerceIn(-MAX_OFFSET_MS.toLong(), MAX_OFFSET_MS.toLong())
             .toInt()
+
+    /** Fine calibration leaves the regular 250 ms controls unchanged. */
+    fun fineAdjust(ms: Int, steps: Int): Int {
+        require(validOffset(ms)) { "Unsupported lyric offset" }
+        return (ms.toLong() + steps.toLong() * FINE_STEP_MS)
+            .coerceIn(-MAX_OFFSET_MS.toLong(), MAX_OFFSET_MS.toLong()).toInt()
+    }
 
     fun activeIndex(lyrics: TimedLyrics, positionMs: Long, offsetMs: Int): Int {
         require(validOffset(offsetMs)) { "Unsupported lyric offset" }
