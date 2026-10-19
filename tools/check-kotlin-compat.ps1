@@ -44,6 +44,36 @@ foreach ($file in $files) {
             $file.FullName.Substring($root.Length + 1), $duplicate.Name))
     }
 }
+# Known Kotlin compiler errors from the 2026-10-19 Windows build.
+# Keep the preflight narrow: this does not replace API/type checking by Gradle.
+$playbackPath = Join-Path $sourceRoot 'main\java\com\nightwave\player\playback\PlaybackService.kt'
+$previewPath = Join-Path $sourceRoot 'main\java\com\nightwave\player\net\YouTubeGateway.kt'
+$smartPath = Join-Path $sourceRoot 'main\java\com\nightwave\player\v2\library\SmartLibraryPolicy.kt'
+if (Test-Path -LiteralPath $playbackPath -PathType Leaf) {
+    $playbackSource = [System.IO.File]::ReadAllText($playbackPath)
+    if ($playbackSource -match 'AcceptedResultBuilder\s*\(\s*session\s*,\s*controller\s*\)') {
+        $issues.Add('Media3 1.6.1 AcceptedResultBuilder requires one MediaSession argument, not session + controller.')
+    }
+    if ($playbackSource.Contains('MediaSession.ConnectionResult.AcceptedResultBuilder') -and
+        -not $playbackSource.Contains('MediaSession.ConnectionResult.AcceptedResultBuilder(session)')) {
+        $issues.Add('Missing verified Media3 1.6.1 AcceptedResultBuilder(session) invocation.')
+    }
+}
+if ((Test-Path -LiteralPath $smartPath -PathType Leaf) -and
+    (Test-Path -LiteralPath $previewPath -PathType Leaf)) {
+    $smartSource = [System.IO.File]::ReadAllText($smartPath)
+    $previewSource = [System.IO.File]::ReadAllText($previewPath)
+    if (-not $previewSource.Contains('val durationSeconds: Long')) {
+        $issues.Add('VideoPreview durationSeconds model contract changed; review Smart Library duration handling.')
+    }
+    if ($smartSource -match '\b(?:it|song)\.duration\s*(?:>=|>|<=|<|==)') {
+        $issues.Add('SmartLibraryPolicy uses VideoPreview.duration, which does not exist; use durationSeconds.')
+    }
+    if (-not $smartSource.Contains('it.durationSeconds >= 240L')) {
+        $issues.Add('Smart Library long-listen durationSeconds boundary check is missing.')
+    }
+}
+
 $gradlePath = Join-Path $root 'app\build.gradle.kts'
 if (-not (Test-Path -LiteralPath $gradlePath)) {
     $issues.Add('Missing app/build.gradle.kts.')
