@@ -166,6 +166,10 @@ import com.nightwave.player.net.SavedCreatorBrowser
 import com.nightwave.player.v2.library.LibraryBrowsePolicy
 import com.nightwave.player.v2.library.LibraryQuickPlayPolicy
 import com.nightwave.player.v2.library.LibraryPlaylistPreview
+import com.nightwave.player.v2.library.PlaylistFolderStore
+import com.nightwave.player.v2.library.PlaylistFolderSnapshot
+import com.nightwave.player.v2.library.SmartLibraryPolicy
+import com.nightwave.player.v2.library.SmartLibraryCollection
 import com.nightwave.player.ui.MainActivity
 import com.nightwave.player.ui.YouTubeSearchBrowser
 import com.nightwave.player.v2.data.GuestProfileStore
@@ -243,6 +247,8 @@ internal class LyricsEditorRetainedState : ViewModel() {
 class NightWaveStudioActivity : ComponentActivity() {
     private lateinit var profiles: GuestProfileStore
     private lateinit var library: MusicLibrary
+    private lateinit var folderStore: PlaylistFolderStore
+    private var folderSnapshot by mutableStateOf(PlaylistFolderSnapshot())
     private lateinit var playback: StudioPlaybackBridge
     private lateinit var sleepTimerStatus: SleepTimerStatusStore
     private var sleepRemainingMs by mutableStateOf(0L)
@@ -551,6 +557,8 @@ class NightWaveStudioActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         profiles = GuestProfileStore(this)
         library = MusicLibrary(this)
+        folderStore = PlaylistFolderStore(this)
+        folderSnapshot = folderStore.snapshot()
         playback = StudioPlaybackBridge(this)
         sleepTimerStatus = SleepTimerStatusStore(this)
         offlineSpeedStore = OfflinePlaybackSpeedStore(this)
@@ -633,7 +641,9 @@ class NightWaveStudioActivity : ComponentActivity() {
                 StudioRoot(
                     profile = profile, favorites = favorites, recent = recentlyPlayed,
                     libraryRevision = libraryRevision,
-                    playlistNames = names, getPlaylist = { name ->
+                    playlistNames = names,
+                    folderSnapshot = folderSnapshot,
+                    getPlaylist = { name ->
                         if (roomPreviewActive) roomPreviewPlaylists[name] ?: emptyList()
                         else library.playlist(name)
                     },
@@ -851,6 +861,8 @@ class NightWaveStudioActivity : ComponentActivity() {
                     onPlay = { video, collection -> playback.play(video, collection) },
                     onLibraryQuickPlay = { collection -> playback.playLibraryCollection(collection) },
                     onLegacyPlayer = { manageLibrary() },
+                    onManageFolders = { managePlaylistFolders() },
+                    onMovePlaylist = { name -> choosePlaylistFolder(name) },
                     onCreatePlaylist = {
                         promptPlaylistName { name ->
                             if (library.createPlaylist(name)) refresh()
@@ -1435,6 +1447,7 @@ class NightWaveStudioActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         if (::library.isInitialized) refresh()
+        if (::folderStore.isInitialized) folderSnapshot = folderStore.snapshot()
         if (::offlineSpeedStore.isInitialized) offlineSpeedPercent = offlineSpeedStore.read()
         if (::listeningLevelStore.isInitialized) listeningLevelPercent = listeningLevelStore.read()
         if (::crossfadeSettings.isInitialized) crossfadeSeconds = crossfadeSettings.read()
@@ -1763,6 +1776,88 @@ class NightWaveStudioActivity : ComponentActivity() {
         android.widget.Toast.makeText(this, message, android.widget.Toast.LENGTH_SHORT).show()
     }
 
+    /** Folder changes are metadata-only; no playlist or song contents are rewritten. */
+    private fun promptFolderName(initial: String = "", save: (String) -> Unit) {
+        val input = EditText(this).apply {
+            setSingleLine(true)
+            hint = "Folder name"
+            setText(initial)
+            setSelection(text.length)
+        }
+        AlertDialog.Builder(this)
+            .setTitle(if (initial.isBlank()) "Create folder" else "Rename folder")
+            .setView(input)
+            .setNegativeButton("Cancel", null)
+            .setPositiveButton("Save") { _, _ -> save(input.text.toString().trim()) }
+            .show()
+    }
+
+    private fun refreshFolders() {
+        folderSnapshot = folderStore.snapshot()
+        libraryRevision++
+    }
+
+    private fun choosePlaylistFolder(name: String) {
+        val current = library.playlistNames()
+        if (name !in current) {
+            showMessage("That playlist is no longer available.")
+            return
+        }
+        val snapshot = folderStore.snapshot()
+        val choices = listOf("No folder") + snapshot.folders
+        AlertDialog.Builder(this).setTitle("Move “$name” to folder")
+            .setSingleChoiceItems(choices.toTypedArray(),
+                snapshot.folderOf(name)?.let { choices.indexOf(it) } ?: 0) { dialog, chosen ->
+                val folder = if (chosen == 0) null else choices[chosen]
+                if (folderStore.assign(name, folder, current)) {
+                    refreshFolders()
+                    showMessage(if (folder == null) "Moved out of folder." else "Added to $folder.")
+                } else showMessage("Folder change wasn't saved.")
+                dialog.dismiss()
+            }.setNegativeButton("Cancel", null).show()
+    }
+
+    private fun managePlaylistFolders() {
+        val snapshot = folderStore.snapshot()
+        val choices = listOf("＋ New folder", "Move a playlist") + snapshot.folders
+        AlertDialog.Builder(this).setTitle("Playlist folders")
+            .setItems(choices.toTypedArray()) { _, index ->
+                when (index) {
+                    0 -> promptFolderName { newName ->
+                        if (folderStore.create(newName)) {
+                            refreshFolders()
+                            showMessage("Folder created.")
+                        } else showMessage("Invalid or duplicate folder name.")
+                    }
+                    1 -> {
+                        val playlists = library.playlistNames()
+                        if (playlists.isEmpty()) showMessage("Create a playlist first.")
+                        else AlertDialog.Builder(this).setTitle("Choose playlist")
+                            .setItems(playlists.toTypedArray()) { _, selected ->
+                                choosePlaylistFolder(playlists[selected])
+                            }.setNegativeButton("Cancel", null).show()
+                    }
+                    else -> {
+                        val name = choices[index]
+                        AlertDialog.Builder(this).setTitle(name)
+                            .setItems(arrayOf("Rename folder", "Delete folder")) { _, action ->
+                                if (action == 0) promptFolderName(name) { updated ->
+                                    if (folderStore.rename(name, updated)) refreshFolders()
+                                    else showMessage("That folder name is unavailable.")
+                                } else AlertDialog.Builder(this)
+                                    .setTitle("Delete folder “$name”?")
+                                    .setMessage("Playlists and songs remain unchanged. Only folder grouping is removed.")
+                                    .setNegativeButton("Cancel", null)
+                                    .setPositiveButton("Delete folder") { _, _ ->
+                                        if (folderStore.delete(name)) refreshFolders()
+                                        else showMessage("Folder couldn't be deleted.")
+                                    }.show()
+                            }.setNegativeButton("Cancel", null).show()
+                    }
+                }
+            }.setNegativeButton("Close", null).show()
+    }
+
     private fun manageLibrary() {
         val names = library.playlistNames()
         val choices = arrayOf("＋ Create playlist", *names.toTypedArray())
@@ -1778,15 +1873,19 @@ class NightWaveStudioActivity : ComponentActivity() {
                     AlertDialog.Builder(this).setTitle(name)
                         .setItems(arrayOf("Rename", "Delete")) { _, action ->
                             if (action == 0) promptPlaylistName(name) { updated ->
-                                if (library.renamePlaylist(name, updated)) refresh()
-                                else showMessage("That playlist name is unavailable.")
+                                if (library.renamePlaylist(name, updated)) {
+                                    folderStore.playlistRenamed(name, updated)
+                                    refresh()
+                                } else showMessage("That playlist name is unavailable.")
                             } else AlertDialog.Builder(this)
                                 .setTitle("Delete " + name + "?")
                                 .setMessage("Songs remain in your favorites and listening history.")
                                 .setNegativeButton("Cancel", null)
                                 .setPositiveButton("Delete") { _, _ ->
-                                    library.deletePlaylist(name)
-                                    refresh()
+                                    if (library.deletePlaylist(name)) {
+                                        folderStore.playlistDeleted(name)
+                                        refresh()
+                                    } else showMessage("Playlist could not be deleted.")
                                 }.show()
                         }.show()
                 }
@@ -1822,6 +1921,7 @@ class NightWaveStudioActivity : ComponentActivity() {
         favorites = library.favorites()
         recentlyPlayed = library.recent()
         names = library.playlistNames()
+        folderSnapshot = folderStore.snapshot()
         libraryRevision++
         val checkpoint = OfflineSessionStore(this).read()
         val song = checkpoint?.selectedId?.let { id ->
@@ -1930,6 +2030,7 @@ private fun StudioRoot(
     recent: List<VideoPreview>,
     libraryRevision: Int,
     playlistNames: List<String>,
+    folderSnapshot: PlaylistFolderSnapshot,
     getPlaylist: (String) -> List<VideoPreview>,
     onSaveProfile: (ProfileSettings) -> Unit,
     onExportGuest: () -> Unit,
@@ -1992,6 +2093,8 @@ private fun StudioRoot(
     onLibraryQuickPlay: (List<VideoPreview>) -> Unit,
     onLegacyPlayer: () -> Unit,
     onCreatePlaylist: () -> Unit,
+    onManageFolders: () -> Unit,
+    onMovePlaylist: (String) -> Unit,
     onOfflineLibrary: () -> Unit,
     onShareDiagnostics: () -> Unit,
     onOpenClassic: () -> Unit,
@@ -2015,6 +2118,10 @@ private fun StudioRoot(
         // covering another page after a user swipe or bottom-tab selection.
         focus.clearFocus()
         keyboard?.hide()
+    }
+    val smartCollections = remember(libraryRevision, playlistNames, favorites, recent, roomPreviewActive) {
+        SmartLibraryPolicy.generate(favorites, recent,
+            playlistNames.take(60).map(getPlaylist))
     }
     var selectedPlaylist by rememberSaveable { mutableStateOf<String?>(null) }
     var expanded by rememberSaveable { mutableStateOf(false) }
@@ -2177,6 +2284,7 @@ private fun StudioRoot(
                     StudioTab.LIBRARY -> StudioLibrary(
                         modifier = Modifier, favorites = favorites, names = playlistNames,
                         libraryRevision = libraryRevision, roomPreviewActive = roomPreviewActive,
+                        smartCollections = smartCollections, folderSnapshot = folderSnapshot,
                         playingUrl = playerState.videoUrl.takeIf { playerState.playing }.orEmpty(),
                         selectedPlaylist = selectedPlaylist,
                         onSelectPlaylist = { selectedPlaylist = it },
@@ -2187,6 +2295,8 @@ private fun StudioRoot(
                         onImportSharedPlaylist = onImportSharedPlaylist,
                         onManage = onLegacyPlayer,
                         onCreatePlaylist = onCreatePlaylist,
+                        onManageFolders = onManageFolders,
+                        onMovePlaylist = onMovePlaylist,
                         onOffline = onOfflineLibrary,
                         offlineResumeTitle = offlineResumeTitle,
                         offlineResumePositionMs = offlineResumePositionMs,
