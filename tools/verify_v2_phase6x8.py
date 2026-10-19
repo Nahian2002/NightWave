@@ -59,7 +59,8 @@ assert required <= ids, required - ids
 
 assert "NowPlayingWidgetPolicy.normalized" in provider
 assert "NowPlayingWidgetStore(app).write(safe)" in provider
-assert "if (ids.isEmpty()) return" in provider
+assert "if (store.read() == safe) return" in provider
+assert "if (!store.write(safe)) return" in provider
 assert "NightWaveWidgetActionReceiver::class.java" in provider
 assert "PendingIntent.FLAG_IMMUTABLE" in provider
 assert "Intent.FLAG_ACTIVITY_NEW_TASK" in provider
