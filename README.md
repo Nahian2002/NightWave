@@ -1,5 +1,8 @@
 # NightWave
 
+> **NW-03 Account & Backup Hub — development source:** The latest [account experience branch](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-v2-nw03-account-backup-hub) adds a dedicated You-page account/backup screen, explicit local-vs-Drive backup status, masked account display, safe disconnect/switch confirmations and backup/restore controls. The NW-01 Shuffle and NW-02 Sound Studio changes remain included. **Google Drive consent is not a full Google sign-in identity; fresh Android compilation and device verification remain pending.** See [NW-03 QA](docs/NIGHTWAVE_NW03_ACCOUNT_HUB_QA.md).
+
+
 > **NW-02 Sound Studio development — 19 October 2026:** The next [Spotify-style refinement branch](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-v2-nw02-sound-studio) replaces the old equalizer dialogs with an in-app Compose Sound Studio. It adds device-reported frequency response, manual bands, audio-session diagnostics and fixes ignored preset changes on existing sessions. [NW-02 scope and acceptance](docs/NIGHTWAVE_NW02_SOUND_STUDIO_QA.md). The previous NW-01 Shuffle and Google Drive changes remain included. **Full Android compilation and device testing of NW-02 remain pending; this is development source, not a validated APK.**
 
 
