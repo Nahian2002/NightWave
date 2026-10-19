@@ -11,6 +11,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -109,6 +110,7 @@ import com.nightwave.player.net.VideoPreview
 import com.nightwave.player.net.MusicIdentity
 import com.nightwave.player.v2.lyrics.TimedLyrics
 import com.nightwave.player.v2.lyrics.LyricsSyncPolicy
+import com.nightwave.player.v2.lyrics.LyricsPresentationPolicy
 import com.nightwave.player.playback.PlaybackQueue
 import com.nightwave.player.playback.SleepTimerPolicy
 import com.nightwave.player.playback.CrossfadePolicy
@@ -316,6 +318,8 @@ fun StudioNowPlayingOverlay(
             var lyricsOpen by remember(state.videoUrl) { mutableStateOf(false) }
             var lyricsGuideOpen by remember(state.videoUrl) { mutableStateOf(false) }
             var lyricsImmersive by remember(state.videoUrl) { mutableStateOf(false) }
+            var lyricsAutoFollow by remember(state.videoUrl) { mutableStateOf(true) }
+            var lyricsFineTiming by remember(state.videoUrl) { mutableStateOf(false) }
             var crossfadeOptionsOpen by remember { mutableStateOf(false) }
             var crossfadeDraft by remember { mutableStateOf(crossfadeSeconds) }
             var sleepOptionsOpen by remember { mutableStateOf(false) }
@@ -325,9 +329,14 @@ fun StudioNowPlayingOverlay(
                 val activeCue = LyricsSyncPolicy.activeIndex(
                     lyrics, state.positionMs, lyricsOffsetMs)
                 val lyricListState = rememberLazyListState()
-                LaunchedEffect(activeCue, state.videoUrl, reduceMotion) {
-                    if (activeCue >= 0) {
-                        val target = (activeCue - 2).coerceAtLeast(0)
+                // Only a genuine touch drag suspends follow, not our own animated scroll.
+                val lyricsDragged by lyricListState.interactionSource.collectIsDraggedAsState()
+                LaunchedEffect(lyricsDragged) {
+                    if (lyricsDragged) lyricsAutoFollow = false
+                }
+                LaunchedEffect(activeCue, lyricsAutoFollow, state.videoUrl, reduceMotion) {
+                    if (lyricsAutoFollow && activeCue >= 0) {
+                        val target = LyricsPresentationPolicy.scrollTarget(activeCue)
                         if (reduceMotion) lyricListState.scrollToItem(target)
                         else lyricListState.animateScrollToItem(target)
                     }
@@ -373,12 +382,20 @@ fun StudioNowPlayingOverlay(
                     Row(Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("Your imported LRC · Tap any line to seek",
+                        Text(if (lyricsAutoFollow)
+                                "Synchronized · Tap a line to seek"
+                            else "Browsing lyrics · Tap Follow to resume",
                             modifier = Modifier.weight(1f).padding(vertical = 8.dp),
                             color = colors.onSurfaceVariant,
                             style = MaterialTheme.typography.labelSmall)
+                        OutlinedButton(onClick = { lyricsAutoFollow = true },
+                            enabled = !lyricsAutoFollow,
+                            modifier = Modifier.testTag("lyrics-follow-toggle")) {
+                            Text("Follow")
+                        }
+                        Spacer(Modifier.width(7.dp))
                         OutlinedButton(onClick = onEditLyrics) {
-                            Text("Edit LRC")
+                            Text("Edit")
                         }
                     }
                     LazyColumn(
@@ -416,6 +433,18 @@ fun StudioNowPlayingOverlay(
                                             cue, lyricsOffsetMs, state.durationMs)),
                                             style = MaterialTheme.typography.labelSmall,
                                             color = colors.onPrimaryContainer)
+                                        LinearProgressIndicator(
+                                            progress = {
+                                                LyricsPresentationPolicy.lineProgress(
+                                                    lyrics, activeCue, state.positionMs,
+                                                    lyricsOffsetMs)
+                                            },
+                                            modifier = Modifier.fillMaxWidth().height(3.dp)
+                                                .padding(top = 1.dp)
+                                                .testTag("lyrics-line-progress"),
+                                            color = colors.primary,
+                                            trackColor = colors.onPrimaryContainer.copy(alpha = .12f)
+                                        )
                                     }
                                 }
                             }
@@ -431,20 +460,30 @@ fun StudioNowPlayingOverlay(
                             horizontalAlignment = Alignment.CenterHorizontally) {
                             Text("Lyric timing · " + LyricsSyncPolicy.label(lyricsOffsetMs),
                                 style = MaterialTheme.typography.labelLarge)
-                            Text("Positive timing delays words; negative timing moves them earlier.",
+                            Text("Positive timing delays lines; negative timing moves them earlier.",
                                 color = colors.onSurfaceVariant,
                                 style = MaterialTheme.typography.labelSmall)
+                            OutlinedButton(
+                                onClick = { lyricsFineTiming = !lyricsFineTiming },
+                                modifier = Modifier.fillMaxWidth().padding(top = 9.dp)
+                                    .testTag("lyrics-fine-timing-toggle")
+                            ) {
+                                Text(if (lyricsFineTiming) "Fine timing · 50 ms"
+                                    else "Timing step · 250 ms")
+                            }
                             Row(Modifier.fillMaxWidth().padding(top = 10.dp),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 verticalAlignment = Alignment.CenterVertically) {
                                 OutlinedButton(
                                     onClick = {
                                         onLyricsOffsetChange(
-                                            LyricsSyncPolicy.adjust(lyricsOffsetMs, -1))
+                                            if (lyricsFineTiming)
+                                                LyricsSyncPolicy.fineAdjust(lyricsOffsetMs, -1)
+                                            else LyricsSyncPolicy.adjust(lyricsOffsetMs, -1))
                                     },
                                     enabled = lyricsOffsetMs > -LyricsSyncPolicy.MAX_OFFSET_MS,
                                     modifier = Modifier.weight(1f)
-                                ) { Text("−0.25s") }
+                                ) { Text(if (lyricsFineTiming) "−0.05s" else "−0.25s") }
                                 OutlinedButton(
                                     onClick = { onLyricsOffsetChange(0) },
                                     enabled = lyricsOffsetMs != 0,
@@ -453,11 +492,13 @@ fun StudioNowPlayingOverlay(
                                 OutlinedButton(
                                     onClick = {
                                         onLyricsOffsetChange(
-                                            LyricsSyncPolicy.adjust(lyricsOffsetMs, 1))
+                                            if (lyricsFineTiming)
+                                                LyricsSyncPolicy.fineAdjust(lyricsOffsetMs, 1)
+                                            else LyricsSyncPolicy.adjust(lyricsOffsetMs, 1))
                                     },
                                     enabled = lyricsOffsetMs < LyricsSyncPolicy.MAX_OFFSET_MS,
                                     modifier = Modifier.weight(1f)
-                                ) { Text("+0.25s") }
+                                ) { Text(if (lyricsFineTiming) "+0.05s" else "+0.25s") }
                             }
                         }
                     }
