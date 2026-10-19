@@ -11,6 +11,7 @@ on:
       - feature/nightwave-v2-phase6x4-offline-repeat-shuffle
       - feature/nightwave-v2-phase6x5-smart-library-folders
       - feature/nightwave-v2-phase6x6-private-daily-mixes
+      - feature/nightwave-v2-phase6x7-lyrics-follow-fine-sync
   pull_request:
     branches:
       - feature/nightwave-v2-phase5r-accessibility-build-gates
@@ -111,6 +112,7 @@ jobs:
           python3 tools/verify_v2_phase6x4.py
           python3 tools/verify_v2_phase6x5.py
           python3 tools/verify_v2_phase6x6.py
+          python3 tools/verify_v2_phase6x7.py
           python3 tools/verify_v2_phase6l.py
           python3 tools/verify_v2_phase6m1.py
           python3 tools/verify_v2_phase6m2.py
