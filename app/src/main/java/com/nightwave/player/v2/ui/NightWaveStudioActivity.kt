@@ -61,6 +61,7 @@ import com.nightwave.player.playback.ListeningLevelStore
 import com.nightwave.player.playback.ListeningLevelPolicy
 import com.nightwave.player.playback.CrossfadePolicy
 import com.nightwave.player.playback.CrossfadeSettingsStore
+import com.nightwave.player.playback.OfflineNormalizationStore
 import androidx.activity.compose.setContent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
@@ -252,6 +253,8 @@ class NightWaveStudioActivity : ComponentActivity() {
     private var listeningLevelPercent by mutableStateOf(ListeningLevelPolicy.DEFAULT_PERCENT)
     private lateinit var crossfadeSettings: CrossfadeSettingsStore
     private var crossfadeSeconds by mutableStateOf(CrossfadePolicy.DEFAULT_SECONDS)
+    private lateinit var normalizationStore: OfflineNormalizationStore
+    private var normalizationEnabled by mutableStateOf(false)
     private lateinit var archiveManager: LibraryArchiveManager
     private lateinit var lyricsStore: PrivateLyricsStore
     private lateinit var lyricsOffsetStore: PrivateLyricsOffsetStore
@@ -556,6 +559,8 @@ class NightWaveStudioActivity : ComponentActivity() {
         listeningLevelPercent = listeningLevelStore.read()
         crossfadeSettings = CrossfadeSettingsStore(this)
         crossfadeSeconds = crossfadeSettings.read()
+        normalizationStore = OfflineNormalizationStore(this)
+        normalizationEnabled = normalizationStore.enabled()
         archiveManager = LibraryArchiveManager(this)
         lyricsStore = PrivateLyricsStore(this)
         lyricsOffsetStore = PrivateLyricsOffsetStore(this)
@@ -654,6 +659,22 @@ class NightWaveStudioActivity : ComponentActivity() {
                     },
                     listeningLevelPercent = listeningLevelPercent,
                     crossfadeSeconds = crossfadeSeconds,
+                    normalizationEnabled = normalizationEnabled,
+                    onNormalizationChange = { enabled ->
+                        runCatching {
+                            startService(Intent(this, PlaybackService::class.java).apply {
+                                action = PlaybackService.ACTION_NORMALIZATION_SET
+                                putExtra(PlaybackService.EXTRA_NORMALIZATION_ENABLED, enabled)
+                            })
+                        }.onSuccess {
+                            lifecycleScope.launch {
+                                delay(300L)
+                                normalizationEnabled = normalizationStore.enabled()
+                            }
+                        }.onFailure {
+                            showMessage("Offline volume balancing could not be changed.")
+                        }
+                    },
                     onCrossfade = { seconds ->
                         if (CrossfadePolicy.accepts(seconds)) {
                             runCatching {
@@ -1417,6 +1438,7 @@ class NightWaveStudioActivity : ComponentActivity() {
         if (::offlineSpeedStore.isInitialized) offlineSpeedPercent = offlineSpeedStore.read()
         if (::listeningLevelStore.isInitialized) listeningLevelPercent = listeningLevelStore.read()
         if (::crossfadeSettings.isInitialized) crossfadeSeconds = crossfadeSettings.read()
+        if (::normalizationStore.isInitialized) normalizationEnabled = normalizationStore.enabled()
         refreshListeningMemory()
         if (::roomShadow.isInitialized && ::profileShadow.isInitialized &&
             ::verifiedReader.isInitialized) refreshShadows()
@@ -1940,6 +1962,8 @@ private fun StudioRoot(
     onListeningLevel: (Int) -> Unit,
     crossfadeSeconds: Int,
     onCrossfade: (Int) -> Unit,
+    normalizationEnabled: Boolean,
+    onNormalizationChange: (Boolean) -> Unit,
     memory: ListeningMemorySummary,
     onMemoryEnabledChange: (Boolean) -> Unit,
     onMemoryErase: () -> Unit,
@@ -2323,6 +2347,8 @@ private fun StudioRoot(
         onListeningLevel = onListeningLevel,
         crossfadeSeconds = crossfadeSeconds,
         onCrossfade = onCrossfade,
+        normalizationEnabled = normalizationEnabled,
+        onNormalizationChange = onNormalizationChange,
         lyrics = currentLyrics,
         lyricsOffsetMs = lyricsOffsetMs,
         onLyricsOffsetChange = onLyricsOffsetChange,
