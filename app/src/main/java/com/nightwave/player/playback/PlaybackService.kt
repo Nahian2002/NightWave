@@ -228,6 +228,7 @@ class PlaybackService : MediaSessionService() {
         ThreadPoolExecutor.AbortPolicy()
     )
     private var normalizationEpoch = 0
+    private var normalizationRampEpoch = 0
 
     /** One volume owner for both ordinary playback and the two crossfade decks. */
     private fun normalizedMaster(mediaId: String?): Float {
@@ -243,8 +244,32 @@ class PlaybackService : MediaSessionService() {
     }
 
     private fun applyCurrentMaster() {
+        normalizationRampEpoch++ // cancel any pending measurement ramp
         if (crossfadeStartedAtMs > 0L) return // fade tick controls both decks
         exoPlayer?.volume = normalizedMaster(exoPlayer?.currentMediaItem?.mediaId)
+    }
+
+    /** First-time analysis gently reduces loudness instead of stepping abruptly. */
+    private fun smoothlyApplyMeasuredMaster() {
+        val player = exoPlayer ?: return
+        if (crossfadeStartedAtMs > 0L) return
+        val id = player.currentMediaItem?.mediaId ?: return
+        val from = player.volume
+        val target = normalizedMaster(id)
+        val token = ++normalizationRampEpoch
+        if (kotlin.math.abs(from - target) < .01f) {
+            player.volume = target
+            return
+        }
+        for (step in 1..6) {
+            main.postDelayed({
+                if (token == normalizationRampEpoch && exoPlayer === player &&
+                    player.currentMediaItem?.mediaId == id &&
+                    crossfadeStartedAtMs == 0L) {
+                    player.volume = (from + (target - from) * (step / 6f)).coerceIn(0f, 1f)
+                }
+            }, step * 40L)
+        }
     }
 
     /**
@@ -276,7 +301,7 @@ class PlaybackService : MediaSessionService() {
                     if (result != null) {
                         normalizationGains[id] = result
                         if (exoPlayer?.currentMediaItem?.mediaId == "offline:$id")
-                            applyCurrentMaster()
+                            smoothlyApplyMeasuredMaster()
                     }
                 }
             }
@@ -1386,6 +1411,7 @@ class PlaybackService : MediaSessionService() {
         cancelPendingResolution()
         resolver.shutdownNow()
         normalizationEpoch++
+        normalizationRampEpoch++
         normalizationWorker.shutdownNow()
         listeningWriter.shutdown() // drain pending bounded, consent-fenced writes
         exoPlayer?.removeListener(trackListener)
