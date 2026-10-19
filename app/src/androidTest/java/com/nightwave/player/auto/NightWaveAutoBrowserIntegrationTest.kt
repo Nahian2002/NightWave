@@ -6,8 +6,15 @@ import androidx.media3.session.MediaBrowser
 import androidx.media3.session.SessionToken
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import androidx.media3.common.MediaItem
+import androidx.media3.session.LibraryResult
+import com.google.common.collect.ImmutableList
+import com.google.common.util.concurrent.ListenableFuture
+import java.util.concurrent.atomic.AtomicReference
 import com.nightwave.player.playback.PlaybackService
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Assert.assertNotNull
 import org.junit.Test
@@ -34,20 +41,32 @@ class NightWaveAutoBrowserIntegrationTest {
         val pending = MediaBrowser.Builder(context, token).buildAsync()
         try {
             val browser = pending.get(10, TimeUnit.SECONDS)
-            val wasPlaying = browser.isPlaying
-            val wasSelected = browser.currentMediaItem?.mediaId
-            val root = browser.getLibraryRoot(null).get(10, TimeUnit.SECONDS)
+            val rootPending = AtomicReference<ListenableFuture<LibraryResult<MediaItem>>>()
+            val childrenPending = AtomicReference<
+                ListenableFuture<LibraryResult<ImmutableList<MediaItem>>>>()
+            var wasPlaying = false
+            var wasSelected: String? = null
+            // MediaBrowser/MediaController commands require their application Looper.
+            InstrumentationRegistry.getInstrumentation().runOnMainSync {
+                wasPlaying = browser.isPlaying
+                wasSelected = browser.currentMediaItem?.mediaId
+                rootPending.set(browser.getLibraryRoot(null))
+                childrenPending.set(browser.getChildren(
+                    AutoBrowsePolicy.ROOT, 0, 50, null))
+            }
+            val root = rootPending.get().get(10, TimeUnit.SECONDS)
+            val sections = childrenPending.get().get(10, TimeUnit.SECONDS)
             assertEquals(AutoBrowsePolicy.ROOT, root.value?.mediaId)
-            val sections = browser.getChildren(
-                AutoBrowsePolicy.ROOT, 0, 50, null).get(10, TimeUnit.SECONDS)
             assertNotNull(sections.value)
             assertFalse(sections.value.orEmpty().isEmpty())
-            // Browsing must preserve existing playback too: avoid a test
-            // assumption that the app was initially stopped.
-            assertEquals(wasPlaying, browser.isPlaying)
-            assertEquals(wasSelected, browser.currentMediaItem?.mediaId)
+            InstrumentationRegistry.getInstrumentation().runOnMainSync {
+                assertEquals(wasPlaying, browser.isPlaying)
+                assertEquals(wasSelected, browser.currentMediaItem?.mediaId)
+            }
         } finally {
-            MediaBrowser.releaseFuture(pending)
+            InstrumentationRegistry.getInstrumentation().runOnMainSync {
+                MediaBrowser.releaseFuture(pending)
+            }
         }
     }
 }
