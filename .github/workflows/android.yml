@@ -17,6 +17,7 @@ on:
       - feature/nightwave-v2-phase6x8c-media3-compile-hardening
       - fix/nightwave-v2-phase6x8c1-duplicate-import-preflight
       - fix/nightwave-v2-phase6x8c2-crossfade-preflight
+      - fix/nightwave-v2-phase6x8c5-offline-previous-queue-order
   pull_request:
     branches:
       - feature/nightwave-v2-phase5r-accessibility-build-gates
@@ -115,6 +116,7 @@ jobs:
           python3 tools/verify_v2_phase6x2.py
           python3 tools/verify_v2_phase6x3.py
           python3 tools/verify_v2_phase6x4.py
+          python3 tools/verify_v2_phase6x8c5.py
           python3 tools/verify_v2_phase6x5.py
           python3 tools/verify_v2_phase6x6.py
           python3 tools/verify_v2_phase6x7.py
