@@ -59,6 +59,8 @@ import com.nightwave.player.playback.OfflinePlaybackSpeedPolicy
 import com.nightwave.player.playback.EqualizerStatusStore
 import com.nightwave.player.playback.ListeningLevelStore
 import com.nightwave.player.playback.ListeningLevelPolicy
+import com.nightwave.player.playback.CrossfadePolicy
+import com.nightwave.player.playback.CrossfadeSettingsStore
 import androidx.activity.compose.setContent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
@@ -248,6 +250,8 @@ class NightWaveStudioActivity : ComponentActivity() {
     private val eqStatusStore by lazy { EqualizerStatusStore(this) }
     private lateinit var listeningLevelStore: ListeningLevelStore
     private var listeningLevelPercent by mutableStateOf(ListeningLevelPolicy.DEFAULT_PERCENT)
+    private lateinit var crossfadeSettings: CrossfadeSettingsStore
+    private var crossfadeSeconds by mutableStateOf(CrossfadePolicy.DEFAULT_SECONDS)
     private lateinit var archiveManager: LibraryArchiveManager
     private lateinit var lyricsStore: PrivateLyricsStore
     private lateinit var lyricsOffsetStore: PrivateLyricsOffsetStore
@@ -550,6 +554,8 @@ class NightWaveStudioActivity : ComponentActivity() {
         offlineSpeedPercent = offlineSpeedStore.read()
         listeningLevelStore = ListeningLevelStore(this)
         listeningLevelPercent = listeningLevelStore.read()
+        crossfadeSettings = CrossfadeSettingsStore(this)
+        crossfadeSeconds = crossfadeSettings.read()
         archiveManager = LibraryArchiveManager(this)
         lyricsStore = PrivateLyricsStore(this)
         lyricsOffsetStore = PrivateLyricsOffsetStore(this)
@@ -647,6 +653,24 @@ class NightWaveStudioActivity : ComponentActivity() {
                         }
                     },
                     listeningLevelPercent = listeningLevelPercent,
+                    crossfadeSeconds = crossfadeSeconds,
+                    onCrossfade = { seconds ->
+                        if (CrossfadePolicy.accepts(seconds)) {
+                            runCatching {
+                                startService(Intent(this, PlaybackService::class.java).apply {
+                                    action = PlaybackService.ACTION_CROSSFADE_SET
+                                    putExtra(PlaybackService.EXTRA_CROSSFADE_SECONDS, seconds)
+                                })
+                            }.onSuccess {
+                                lifecycleScope.launch {
+                                    delay(300L)
+                                    crossfadeSeconds = crossfadeSettings.read()
+                                }
+                            }.onFailure {
+                                showMessage("Crossfade could not be updated.")
+                            }
+                        }
+                    },
                     onListeningLevel = { percent ->
                         if (ListeningLevelPolicy.accepts(percent)) {
                             runCatching {
@@ -1392,6 +1416,7 @@ class NightWaveStudioActivity : ComponentActivity() {
         if (::library.isInitialized) refresh()
         if (::offlineSpeedStore.isInitialized) offlineSpeedPercent = offlineSpeedStore.read()
         if (::listeningLevelStore.isInitialized) listeningLevelPercent = listeningLevelStore.read()
+        if (::crossfadeSettings.isInitialized) crossfadeSeconds = crossfadeSettings.read()
         refreshListeningMemory()
         if (::roomShadow.isInitialized && ::profileShadow.isInitialized &&
             ::verifiedReader.isInitialized) refreshShadows()
@@ -1913,6 +1938,8 @@ private fun StudioRoot(
     onOfflineSpeed: (Int) -> Unit,
     listeningLevelPercent: Int,
     onListeningLevel: (Int) -> Unit,
+    crossfadeSeconds: Int,
+    onCrossfade: (Int) -> Unit,
     memory: ListeningMemorySummary,
     onMemoryEnabledChange: (Boolean) -> Unit,
     onMemoryErase: () -> Unit,
@@ -2294,6 +2321,8 @@ private fun StudioRoot(
         onOfflineSpeed = onOfflineSpeed,
         listeningLevelPercent = listeningLevelPercent,
         onListeningLevel = onListeningLevel,
+        crossfadeSeconds = crossfadeSeconds,
+        onCrossfade = onCrossfade,
         lyrics = currentLyrics,
         lyricsOffsetMs = lyricsOffsetMs,
         onLyricsOffsetChange = onLyricsOffsetChange,
