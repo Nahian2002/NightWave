@@ -51,10 +51,14 @@ object LocalDailyMixEngine {
             .filter { it.id in poolIds }
             .associateBy { it.id }
             else emptyMap()
-        val creatorCounts = likes.groupingBy {
+        val genericCreators = setOf(
+            "unknown", "unknown artist", "unknown creator",
+            "youtube creator", "various artists")
+        val creatorCounts = likes.mapNotNull {
             MusicIdentity.display(it.title, it.author)
                 .artistOrCreator.trim().lowercase(Locale.ROOT)
-        }.eachCount()
+                .takeIf { name -> name.isNotBlank() && name !in genericCreators }
+        }.groupingBy { it }.eachCount()
         fun memoryAffinity(track: VideoPreview): Int {
             val record = optInMemory[track.url] ?: return 0
             val plays = record.qualifiedPlays.coerceIn(0, 4) * 2
