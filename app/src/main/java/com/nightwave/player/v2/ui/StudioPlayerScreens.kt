@@ -327,7 +327,7 @@ fun StudioNowPlayingOverlay(
             // Deterministic, artwork-keyed ambient light; never crop or blur
             // remote thumbnails, preserving battery life and privacy.
             NightWaveBackdrop(state.videoUrl.ifBlank { "nightwave-player" }, Modifier.fillMaxSize())
-            val art = minOf(maxWidth - 64.dp, maxHeight * .36f, 356.dp)
+            val art = minOf(maxWidth - 58.dp, maxHeight * .32f, 340.dp)
             val canSwipeArtwork = state.connected && !state.buffering && state.queue.size > 1
             var horizontalTravel by remember(state.videoUrl) { mutableStateOf(0f) }
             var lyricsOpen by remember(state.videoUrl) { mutableStateOf(false) }
@@ -340,6 +340,7 @@ fun StudioNowPlayingOverlay(
             var sleepOptionsOpen by remember { mutableStateOf(false) }
             var speedOptionsOpen by remember { mutableStateOf(false) }
             var listeningOptionsOpen by remember { mutableStateOf(false) }
+            var advancedAudioOpen by remember { mutableStateOf(false) }
             if (lyricsImmersive && state.offline && lyrics != null) {
                 val activeCue = LyricsSyncPolicy.activeIndex(
                     lyrics, state.positionMs, lyricsOffsetMs)
@@ -565,13 +566,13 @@ fun StudioNowPlayingOverlay(
                             tint = colors.onBackground)
                     }
                 }
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(3.dp))
                 Box(
-                    Modifier.size(art).clip(RoundedCornerShape(27.dp))
+                    Modifier.size(art).clip(RoundedCornerShape(22.dp))
                         .background(colors.surfaceVariant)
                         .border(1.dp,
                             NightWaveVisualLanguage.accent(state.videoUrl).copy(alpha = .46f),
-                            RoundedCornerShape(27.dp)).then(
+                            RoundedCornerShape(22.dp)).then(
                         if (canSwipeArtwork) Modifier.pointerInput(
                             state.videoUrl, state.queue.size, state.connected, state.buffering
                         ) {
@@ -603,7 +604,7 @@ fun StudioNowPlayingOverlay(
                         animationSpec = tween(durationMillis = if (reduceMotion) 0 else 180),
                         label = "Player artwork"
                     ) { thumbnail ->
-                        CoverArt(thumbnail, Modifier.fillMaxSize(), 26)
+                        CoverArt(thumbnail, Modifier.fillMaxSize(), 21)
                     }
                     if (state.buffering) {
                         Box(
@@ -633,7 +634,7 @@ fun StudioNowPlayingOverlay(
                             color = colors.onSurfaceVariant)
                     }
                 }
-                Spacer(Modifier.height(17.dp))
+                Spacer(Modifier.height(11.dp))
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text(if (state.title.isBlank()) "Choose a track"
@@ -657,15 +658,16 @@ fun StudioNowPlayingOverlay(
                 var dragFraction by remember(state.videoUrl) { mutableStateOf<Float?>(null) }
                 val fraction = dragFraction ?: PlayerProgressRules.fraction(
                     state.positionMs, state.durationMs)
-                Slider(value = fraction, onValueChange = { dragFraction = it },
-                    onValueChangeFinished = {
-                        dragFraction?.let {
-                            PlayerProgressRules.requestedPosition(state.durationMs, it)
-                                ?.let(actions::seekTo)
-                        }
+                NightWaveSeekTimeline(
+                    fraction = fraction,
+                    enabled = state.connected && state.durationMs > 0L,
+                    onPreview = { dragFraction = it },
+                    onCommit = { requested ->
+                        PlayerProgressRules.requestedPosition(state.durationMs, requested)
+                            ?.let(actions::seekTo)
                         dragFraction = null
-                    },
-                    enabled = state.connected && state.durationMs > 0L)
+                    }
+                )
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(timeLabel(PlayerProgressRules.requestedPosition(
                         state.durationMs, fraction) ?: 0L), style = MaterialTheme.typography.labelSmall,
@@ -673,19 +675,15 @@ fun StudioNowPlayingOverlay(
                     Text(timeLabel(state.durationMs), style = MaterialTheme.typography.labelSmall,
                         color = colors.onSurfaceVariant)
                 }
-                Spacer(Modifier.height(15.dp))
+                Spacer(Modifier.height(9.dp))
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        IconButton(onClick = actions::toggleShuffle,
-                            modifier = Modifier.size(44.dp)) {
-                            Icon(Icons.Outlined.Shuffle,
-                                contentDescription = if (state.shuffle) "Shuffle on" else "Shuffle off",
-                                tint = if (state.shuffle) colors.primary else colors.onSurfaceVariant)
-                        }
-                        Text(if (state.shuffle) "On" else "Off",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = if (state.shuffle) colors.primary else colors.onSurfaceVariant)
+                    IconButton(onClick = actions::toggleShuffle,
+                        modifier = Modifier.size(48.dp)) {
+                        Icon(Icons.Outlined.Shuffle,
+                            contentDescription = if (state.shuffle) "Shuffle on" else "Shuffle off",
+                            modifier = Modifier.size(25.dp),
+                            tint = if (state.shuffle) colors.primary else colors.onSurfaceVariant)
                     }
                     IconButton(onClick = actions::previous, modifier = Modifier.size(48.dp)) {
                         Icon(Icons.Outlined.SkipPrevious, contentDescription = "Previous track",
@@ -694,7 +692,7 @@ fun StudioNowPlayingOverlay(
                     Surface(onClick = actions::playPause,
                         color = colors.primary,
                         shadowElevation = if (reduceMotion) 0.dp else 5.dp,
-                        shape = CircleShape, modifier = Modifier.size(68.dp)) {
+                        shape = CircleShape, modifier = Modifier.size(64.dp)) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(if (state.playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
                                 contentDescription = if (state.playing) "Pause" else "Play",
@@ -705,32 +703,24 @@ fun StudioNowPlayingOverlay(
                         Icon(Icons.Outlined.SkipNext, contentDescription = "Next track",
                             modifier = Modifier.size(34.dp), tint = colors.onBackground)
                     }
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        IconButton(onClick = actions::cycleRepeat,
-                            modifier = Modifier.size(44.dp)) {
-                            Icon(if (state.repeat == PlaybackQueue.Repeat.ONE) Icons.Outlined.RepeatOne
-                                else Icons.Outlined.Repeat,
-                                contentDescription = "Repeat mode: " + when (state.repeat) {
-                                    PlaybackQueue.Repeat.OFF -> "Off"
-                                    PlaybackQueue.Repeat.ALL -> "All songs"
-                                    PlaybackQueue.Repeat.ONE -> "Current song"
-                                },
-                                tint = if (state.repeat == PlaybackQueue.Repeat.OFF)
-                                    colors.onSurfaceVariant else colors.primary)
-                        }
-                        Text(when (state.repeat) {
-                            PlaybackQueue.Repeat.OFF -> "Off"
-                            PlaybackQueue.Repeat.ALL -> "All"
-                            PlaybackQueue.Repeat.ONE -> "One"
-                        }, style = MaterialTheme.typography.labelSmall,
-                            color = if (state.repeat == PlaybackQueue.Repeat.OFF)
+                    IconButton(onClick = actions::cycleRepeat,
+                        modifier = Modifier.size(48.dp)) {
+                        Icon(if (state.repeat == PlaybackQueue.Repeat.ONE) Icons.Outlined.RepeatOne
+                            else Icons.Outlined.Repeat,
+                            modifier = Modifier.size(25.dp),
+                            contentDescription = "Repeat mode: " + when (state.repeat) {
+                                PlaybackQueue.Repeat.OFF -> "Off"
+                                PlaybackQueue.Repeat.ALL -> "All songs"
+                                PlaybackQueue.Repeat.ONE -> "Current song"
+                            },
+                            tint = if (state.repeat == PlaybackQueue.Repeat.OFF)
                                 colors.onSurfaceVariant else colors.primary)
                     }
                 }
-                Spacer(Modifier.height(18.dp))
+                Spacer(Modifier.height(13.dp))
                 Surface(
-                    onClick = onOpenQueue, modifier = Modifier.fillMaxWidth().height(58.dp),
-                    shape = RoundedCornerShape(18.dp), color = colors.surface,
+                    onClick = onOpenQueue, modifier = Modifier.fillMaxWidth().height(51.dp),
+                    shape = RoundedCornerShape(15.dp), color = colors.surface,
                     tonalElevation = 2.dp
                 ) {
                     Row(Modifier.fillMaxSize().padding(horizontal = 17.dp),
