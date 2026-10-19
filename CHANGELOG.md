@@ -1,5 +1,16 @@
 # NightWave Changelog
 
+## 2026-10-19 — NW-02 Sound Studio (source committed, not release-verified)
+
+- Replaced the nested Android audio equalizer dialogs with a dedicated, theme-aware Jetpack Compose Sound Studio from the You page.
+- Added Android device-discovered preset chips, band-level sliders, manual Apply, flat reset, accurate session status and a response-curve preview based on actual reported band gains.
+- Fixed a playback-service defect where changing EQ presets on an already active audio session could retain the old preset.
+- Kept explicit, acknowledged playback-service commands and reported unsupported/missing audio sessions rather than claiming an effect was audible.
+- Added new JVM policy tests for manual-band range/shape safety and preset bounds, plus a source integrity gate and CI branch trigger.
+- Kept all prior NW-01 Shuffle/Google fixes; no change to guest library or app signing. Full Gradle build and Samsung real-audio verification remain pending.
+- See [NW-02 acceptance and limitations](docs/NIGHTWAVE_NW02_SOUND_STUDIO_QA.md).
+
+
 ## 2026-10-19 — NW-01 phone-reported control and authorization recovery (unverified)
 
 - New branch based on the previously audited `6960dc5` commit; that tested source snapshot remains intact.
