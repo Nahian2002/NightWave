@@ -1176,10 +1176,20 @@ class PlaybackService : MediaLibraryService() {
             ACTION_SLEEP_TIMER_CANCEL -> clearSleepTimer()
             ACTION_EQ_PRESET_SET -> {
                 val preset = intent.getIntExtra(EXTRA_EQ_PRESET, -1)
-                if (preset in 0..21) {
+                val sessionId = exoPlayer?.audioSessionId ?: C.AUDIO_SESSION_ID_UNSET
+                val availablePresets = eqCapabilities.read().takeIf {
+                    it.sessionReady && it.audioSessionId == sessionId
+                }?.presetNames?.size ?: 0
+                // Off is always permitted. All other values must correspond
+                // to a preset advertised by this exact active audio session.
+                if (preset == 0 || (preset in 1..availablePresets && sessionId > 0)) {
                     requestedEqPreset = preset
-                    applyEqualizer(exoPlayer?.audioSessionId ?: C.AUDIO_SESSION_ID_UNSET)
-                } else eqStatus.write(requestedEqPreset, activeEqualizer?.enabled == true, "Rejected: invalid preset")
+                    // Applying a different preset to an unchanged audio session
+                    // previously returned early and silently kept the old effect.
+                    releaseEqualizer()
+                    applyEqualizer(sessionId)
+                } else eqStatus.write(requestedEqPreset, activeEqualizer?.enabled == true,
+                    "Rejected: start playback and refresh supported presets.")
             }
             ACTION_EQ_DISCOVER -> {
                 val session = exoPlayer?.audioSessionId ?: C.AUDIO_SESSION_ID_UNSET
