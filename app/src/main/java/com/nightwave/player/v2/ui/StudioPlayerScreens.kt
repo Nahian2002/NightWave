@@ -434,9 +434,9 @@ fun StudioNowPlayingOverlay(
                                             style = MaterialTheme.typography.labelSmall,
                                             color = colors.onPrimaryContainer)
                                         // No inferred line-duration bar for the final LRC cue.
-                                        if (lyrics.cues.drop(activeCue + 1).any {
-                                                it.timeMs > cue.timeMs
-                                            }) {
+                                        if (lyrics.cues.lastOrNull()?.timeMs?.let {
+                                                it > cue.timeMs
+                                            } == true) {
                                             LinearProgressIndicator(
                                                 progress = {
                                                     LyricsPresentationPolicy.lineProgress(
