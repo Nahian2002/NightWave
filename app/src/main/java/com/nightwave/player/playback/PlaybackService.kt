@@ -29,7 +29,6 @@ import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
-import com.nightwave.player.widget.NowPlayingWidgetPolicy
 import com.nightwave.player.widget.NightWaveWidgetProvider
 import com.nightwave.player.widget.NightWaveWidgetController
 import com.nightwave.player.widget.WidgetPlaybackSnapshot
