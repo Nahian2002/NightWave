@@ -16,7 +16,7 @@ The app does **not** include Spotify's licensed music catalog. A saved YouTube p
 
 ## Development / release notice
 
-Latest compiler recovery: [Phase 6X8C4](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-phase6x8c4-daily-mix-unit-test-compile). The subsequent 6X8C3 Windows build **passed main app Kotlin and Android test-source compilation**, then failed unit-test Kotlin compilation on two nested-list Daily Mix arguments; 6X8C4 fixes those test calls. **No complete successful Android build exists for this branch yet.**
+Latest development recovery: [Phase 6X8C5](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-phase6x8c5-offline-previous-queue-order). The 6X8C4 Windows build passed app Kotlin compilation, test-source compilation and debug assembly, but **one of 771 JVM unit tests failed** on offline Previous navigation. 6X8C5 corrects that queue behavior; 18 isolated queue test methods passed. **A complete successful Android build and on-device acceptance are still pending.**
 
 Do not uninstall the existing NightWave or clear app data to solve APK signing errors. Check [build instructions](docs/BUILD_AND_RELEASE.md), [verification status](docs/VERIFICATION_MATRIX.md), [changelog](CHANGELOG.md), and the [project README](README.md).
 
