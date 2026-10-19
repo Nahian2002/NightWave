@@ -16,7 +16,7 @@ object SearchResultPresentationPolicy {
 
     fun emptyHint(videos: List<VideoPreview>): String =
         if (videos.isEmpty()) {
-            "No quick results returned for this search. Try a different title, " +
+            "No public results returned for this search. Try a different title, " +
                 "switch Songs/Videos, or use the official YouTube search."
         } else ""
 }
