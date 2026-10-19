@@ -6,7 +6,7 @@ package com.nightwave.player.v2.ui
  */
 object NightWaveChromePolicy {
     const val NAV_ITEM_COUNT = 4
-    const val NAV_HEIGHT_DP = 66
+    const val NAV_HEIGHT_DP = 60
     const val NAV_MIN_TOUCH_DP = 56
     const val MINI_NEXT_MIN_WIDTH_DP = 365f
 
