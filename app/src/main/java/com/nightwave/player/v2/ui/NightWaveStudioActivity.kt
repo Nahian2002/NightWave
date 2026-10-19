@@ -2132,7 +2132,6 @@ private fun StudioRoot(
         StudioTab.entries.size
     }
     val scope = rememberCoroutineScope()
-    val eqUiContext = androidx.compose.ui.platform.LocalContext.current
     val keyboard = LocalSoftwareKeyboardController.current
     val focus = LocalFocusManager.current
     val tab = StudioTab.entries[pagerState.currentPage]
@@ -2152,6 +2151,7 @@ private fun StudioRoot(
     var selectedPlaylist by rememberSaveable { mutableStateOf<String?>(null) }
     var expanded by rememberSaveable { mutableStateOf(false) }
     var showQueue by rememberSaveable { mutableStateOf(false) }
+    var showSoundStudio by rememberSaveable { mutableStateOf(false) }
     var compactHidden by rememberSaveable { mutableStateOf(false) }
     fun navigateToTab(destination: StudioTab) {
         if (destination == tab) return
@@ -2359,103 +2359,7 @@ private fun StudioRoot(
                         onRecoverPlayback = { playerActions.retry() },
                         onShareDiagnostics = onShareDiagnostics,
                         onOpenClassic = onOpenClassic,
-                        onEqualizer = {
-                            val context = eqUiContext
-                            fun sendEqCommand(actionName: String, fill: (Intent) -> Unit) {
-                                val commandId = java.util.UUID.randomUUID().toString()
-                                val request = Intent(context, PlaybackService::class.java).apply {
-                                    action = actionName
-                                    putExtra(PlaybackService.EXTRA_EQ_COMMAND_ID, commandId)
-                                    fill(this)
-                                }
-                                runCatching { context.startService(request) }
-                                    .onFailure { android.widget.Toast.makeText(context, "Equalizer service request failed.", android.widget.Toast.LENGTH_SHORT).show() }
-                                    .onSuccess {
-                                        scope.launch {
-                                            var confirmed = false
-                                            repeat(10) {
-                                                delay(100L)
-                                                val receipt = com.nightwave.player.playback.EqualizerStatusStore(context).read()
-                                                if (receipt.commandId == commandId) {
-                                                    android.widget.Toast.makeText(context, "Equalizer: ${receipt.message}", android.widget.Toast.LENGTH_SHORT).show()
-                                                    confirmed = true
-                                                    return@launch
-                                                }
-                                            }
-                                            if (!confirmed) android.widget.Toast.makeText(context, "Equalizer response unavailable.", android.widget.Toast.LENGTH_SHORT).show()
-                                        }
-                                    }
-                            }
-                            runCatching {
-                                context.startService(Intent(context, PlaybackService::class.java).apply {
-                                    action = PlaybackService.ACTION_EQ_DISCOVER
-                                })
-                            }.onFailure { android.widget.Toast.makeText(context, "Cannot inspect equalizer on this device.", android.widget.Toast.LENGTH_SHORT).show() }
-                            scope.launch {
-                                delay(350L)
-                                val caps = com.nightwave.player.playback.EqualizerCapabilities(context).read()
-                                val status = com.nightwave.player.playback.EqualizerStatusStore(context).read()
-                                val choices = mutableListOf("Off (recommended)")
-                                choices.addAll(caps.presetNames)
-                                if (caps.sessionReady && caps.centersHz.isNotEmpty()) choices.add("Manual · ${caps.centersHz.size} bands")
-                                // Android AlertDialog displays a message OR the setItems list,
-                                // not both. Put status in the custom title so options stay visible.
-                                val header = android.widget.LinearLayout(context).apply {
-                                    orientation = android.widget.LinearLayout.VERTICAL
-                                    setPadding(48, 32, 48, 16)
-                                    addView(android.widget.TextView(context).apply {
-                                        text = "Audio equalizer"
-                                        textSize = 22f
-                                        setTypeface(typeface, android.graphics.Typeface.BOLD)
-                                    })
-                                    addView(android.widget.TextView(context).apply {
-                                        text = if (caps.sessionReady) {
-                                            "Last report: ${status.message}  •  Range: ${caps.minimumMb / 100f} to ${caps.maximumMb / 100f} dB"
-                                        } else {
-                                            "Start playing a song to detect supported presets and bands."
-                                        }
-                                        textSize = 13f
-                                        setPadding(0, 10, 0, 0)
-                                    })
-                                }
-                                AlertDialog.Builder(context)
-                                    .setCustomTitle(header)
-                                    .setItems(choices.toTypedArray()) { _, which ->
-                                        if (which == choices.lastIndex && caps.sessionReady && caps.centersHz.isNotEmpty()) {
-                                            val layout = android.widget.LinearLayout(context).apply {
-                                                orientation = android.widget.LinearLayout.VERTICAL
-                                                setPadding(32, 14, 32, 14)
-                                            }
-                                            val sliders = caps.centersHz.map { frequency ->
-                                                val label = android.widget.TextView(context).apply {
-                                                    text = "${frequency} Hz"
-                                                }
-                                                val slider = android.widget.SeekBar(context).apply {
-                                                    max = (caps.maximumMb - caps.minimumMb).coerceAtLeast(1)
-                                                    progress = (0 - caps.minimumMb).coerceIn(0, max)
-                                                }
-                                                layout.addView(label)
-                                                layout.addView(slider)
-                                                slider
-                                            }
-                                            val scroller = android.widget.ScrollView(context).apply { addView(layout) }
-                                            AlertDialog.Builder(context).setTitle("Manual equalizer")
-                                                .setView(scroller)
-                                                .setNegativeButton("Cancel", null)
-                                                .setPositiveButton("Apply") { _, _ ->
-                                                    val values = sliders.map { it.progress + caps.minimumMb }.toIntArray()
-                                                    sendEqCommand(PlaybackService.ACTION_EQ_BANDS_APPLY) {
-                                                        it.putExtra(PlaybackService.EXTRA_EQ_LEVELS_MB, values)
-                                                    }
-                                                }.show()
-                                        } else {
-                                            sendEqCommand(PlaybackService.ACTION_EQ_PRESET_SET) {
-                                                it.putExtra(PlaybackService.EXTRA_EQ_PRESET, which)
-                                            }
-                                        }
-                                    }.setNegativeButton("Cancel", null).show()
-                            }
-                        }
+                        onEqualizer = { showSoundStudio = true }
                     )
                 }
             }
@@ -2492,6 +2396,9 @@ private fun StudioRoot(
         onEditLyrics = onEditLyrics,
         onRemoveLyrics = onRemoveLyrics,
         onDismiss = { expanded = false }
+    )
+    if (showSoundStudio) NightWaveSoundStudioDialog(
+        onDismiss = { showSoundStudio = false }
     )
     if (showQueue) StudioQueueSheet(
         state = playerState, onDismiss = { showQueue = false },
