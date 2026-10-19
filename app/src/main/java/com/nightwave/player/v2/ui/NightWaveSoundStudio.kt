@@ -254,8 +254,12 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                             Surface(shape = RoundedCornerShape(15.dp),
                                 color = MaterialTheme.colorScheme.background) {
                                 Canvas(Modifier.fillMaxWidth().height(105.dp).padding(12.dp)) {
-                                    val minLevel = capabilities.minimumMb
-                                    val maxLevel = capabilities.maximumMb
+                                    // Persisted capability data is untrusted after
+                                    // process recreation; never draw an invalid range.
+                                    val minLevel = minOf(capabilities.minimumMb,
+                                        capabilities.maximumMb)
+                                    val maxLevel = maxOf(capabilities.minimumMb,
+                                        capabilities.maximumMb)
                                     val range = (maxLevel - minLevel).coerceAtLeast(1).toFloat()
                                     val baseline = (1f - ((0.coerceIn(minLevel,
                                         maxLevel) - minLevel) / range)) * size.height
