@@ -22,7 +22,13 @@ assert "ACTION_LISTENING_LEVEL_SET" in service
 assert "listeningLevelStore = ListeningLevelStore(this)" in service
 assert "volume = ListeningLevelPolicy.gain(listeningLevelStore.read())" in service
 assert "listeningLevelStore.save(percent)" in service
-assert "exoPlayer?.volume = ListeningLevelPolicy.gain(percent)" in service
+# Volume is now centrally composed with safe offline normalization and crossfade.
+# The 6N3 percentage remains service-owned, non-boosting and durable.
+assert "if (ListeningLevelPolicy.accepts(percent) &&" in service
+assert "listeningLevelStore.save(percent)" in service
+assert "if (crossfadeStartedAtMs == 0L)" in service
+assert "applyCurrentMaster()" in service
+assert "ListeningLevelPolicy.gain(percent)" not in screen
 assert "setAudioAttributes(" in service
 assert "setWakeMode(" in service
 assert "setPlaybackSpeed(1f)" in service
