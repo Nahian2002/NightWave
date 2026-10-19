@@ -1,6 +1,6 @@
 # NightWave Verification Matrix
 
-**Status date:** 2026-10-19. **Scope:** integrated development branch `fix/nightwave-v2-phase6x8c3-compiler-and-repo-audit`.
+**Status date:** 2026-10-19. **Scope:** integrated development branch `fix/nightwave-v2-phase6x8c4-daily-mix-unit-test-compile`.
 
 This matrix distinguishes **observed completed tests** from **checks included in source but not executed**. No count of source assertions can prove an entire Android project is bug-free.
 
@@ -21,6 +21,13 @@ This matrix distinguishes **observed completed tests** from **checks included in
 | APK signer continuity with installed NightWave | Requires locally built APK and installed signer check | PENDING |
 | Device playback, imports, playlists, LRC, Sleep Timer, Bluetooth, widget, backups | Requires Android phone/emulator | PENDING |
 | Android Auto browsing/search/select transport | Requires DHU/AAOS emulator and device checks | PENDING |
+
+| 6X8C3 actual app Kotlin compilation | User full Windows log: `:app:compileDebugKotlin` completed | **PASS on 6X8C3** |
+| 6X8C3 Android instrumentation source compilation | User full Windows log: `:app:compileDebugAndroidTestKotlin` completed | **PASS on 6X8C3** |
+| 6X8C3 JVM test compilation | Two nested-list arguments in Daily Mix tests | **FAILED on 6X8C3** |
+| 6X8C4 corrected Daily Mix input types | Flat `List<VideoPreview>`, all 11 tests preserved | COMMITTED, needs fresh Gradle |
+| 6X8C4 Windows + 6X6 CI regression guards | Reject both old nested-list call sites | COMMITTED, source-checked |
+| 6X8C4 full Gradle build/unit tests | No `BUILD SUCCESSFUL` confirmed yet | **PENDING** |
 
 ## Release blockers
 
