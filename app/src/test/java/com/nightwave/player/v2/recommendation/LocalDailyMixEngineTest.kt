@@ -99,7 +99,7 @@ class LocalDailyMixEngineTest {
         val valid = (1..12).map(::video)
         val invalid = VideoPreview("Fake", "Unknown", "https://invalid.invalid/nope", "", 0L)
         val mixes = LocalDailyMixEngine.make(valid + invalid + valid,
-            listOf(invalid), listOf(valid, valid), 333L)
+            listOf(invalid), valid + valid, 333L)
         val output = mixes.flatMap { it.tracks }
         assertTrue(output.isNotEmpty())
         assertFalse(output.any { it.url == invalid.url })
@@ -111,7 +111,7 @@ class LocalDailyMixEngineTest {
         val recent = favorites.take(5).toMutableList()
         val beforeFavorites = favorites.toList()
         val beforeRecent = recent.toList()
-        LocalDailyMixEngine.make(favorites, recent, listOf(favorites), 500L)
+        LocalDailyMixEngine.make(favorites, recent, favorites, 500L)
         assertEquals(beforeFavorites, favorites)
         assertEquals(beforeRecent, recent)
     }
