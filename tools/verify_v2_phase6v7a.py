@@ -15,7 +15,7 @@ ANDROID = "app/src/androidTest/java/com/nightwave/player/v2/ui/"
 CHECKS = {
     MAIN + "NightWaveChromePolicy.kt": (
         "object NightWaveChromePolicy",
-        "NAV_ITEM_COUNT = 4", "NAV_HEIGHT_DP = 66",
+        "NAV_ITEM_COUNT = 4", "NAV_HEIGHT_DP = 60",
         "NAV_MIN_TOUCH_DP = 56",
         "MINI_NEXT_MIN_WIDTH_DP = 365f",
         "fun showMiniNext(", "fun selectedTab(",
