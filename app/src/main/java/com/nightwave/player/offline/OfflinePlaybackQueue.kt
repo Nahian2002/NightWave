@@ -101,7 +101,7 @@ class OfflinePlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it)
     }
 
     private fun pushHistory(from: Int) {
-        visited.addLast(from)
+        visited.add(from)
         if (visited.size > MAX_ITEMS) visited.removeFirst()
     }
 
