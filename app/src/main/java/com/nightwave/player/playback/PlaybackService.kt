@@ -240,12 +240,23 @@ class PlaybackService : MediaSessionService() {
                 cancelCrossfade()
                 return
             }
+            // External seeks can move the song away from the overlap zone.
+            // Never keep a silent second deck playing after a seek backwards.
+            if (crossfadeStartedAtMs > 0L && remaining > overlap + 500L) {
+                cancelCrossfade()
+                scheduleCrossfadeCheck()
+                return
+            }
             if (crossfadeIncoming == null && remaining <= overlap + 1_500L &&
                 remaining > 350L) {
                 prepareCrossfadeDeck(player, index + 1)
             }
             val incoming = crossfadeIncoming
             if (incoming != null && crossfadeTargetIndex == index + 1) {
+                if (incoming.playerError != null) {
+                    cancelCrossfade() // decoding failed; original gapless player remains.
+                    return
+                }
                 if (crossfadeStartedAtMs == 0L && remaining <= overlap &&
                     remaining >= 350L && incoming.playbackState == Player.STATE_READY) {
                     crossfadeStartedAtMs = SystemClock.elapsedRealtime()
@@ -286,6 +297,7 @@ class PlaybackService : MediaSessionService() {
         var candidate: ExoPlayer? = null
         try {
             candidate = ExoPlayer.Builder(this).build().apply {
+                setWakeMode(C.WAKE_MODE_LOCAL)
                 volume = 0f
                 setAudioAttributes(AudioAttributes.Builder()
                     .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
@@ -503,6 +515,10 @@ class PlaybackService : MediaSessionService() {
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            if (crossfadeOutgoing === exoPlayer && crossfadeIncoming != null &&
+                reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK) {
+                cancelCrossfade() // external MediaController navigation
+            }
             if (crossfadeOutgoing === exoPlayer && crossfadeIncoming != null &&
                 reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
                 if (crossfadeStartedAtMs > 0L) finishCrossfade()
