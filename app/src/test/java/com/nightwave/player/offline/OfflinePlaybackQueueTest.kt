@@ -89,8 +89,10 @@ class OfflinePlaybackQueueTest {
         assertNull(queue.jump(-1))
         assertNull(queue.jump(42))
         assertEquals("a", queue.previous())
-        assertEquals("b", queue.next())
-        assertEquals("b", queue.current)
+        // The previously jumped-to b stays unplayed after stepping Back;
+        // this deterministic picker chooses the other unplayed c first.
+        assertEquals("c", queue.next())
+        assertEquals("c", queue.current)
         assertEquals(listOf("a", "b", "c"), queue.snapshot())
     }
 
