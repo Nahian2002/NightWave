@@ -26,14 +26,18 @@ On a Windows PC, extract the **complete latest development source ZIP** into a n
 
 ### Verification truth
 
-| Area | Evidence as of this branch |
+| Checkpoint | Evidence / current status |
 | --- | --- |
-| Previous Windows source preflights | Passed in the 6X8C2 Windows build |
-| Main Android Kotlin compile on 6X8C2 | **Failed**: `AcceptedResultBuilder(session, controller)` and nonexistent `VideoPreview.duration` |
-| 6X8C3 patches | Both offending expressions corrected in GitHub source |
-| 6X8C3 source regression guards | Added to Windows preflight and CI source gates |
-| Fresh full Android build, unit tests and test APK compilation | **Not yet executed/confirmed for 6X8C3** |
-| Phone playback, widget and Android Auto validation | **Pending**, not release-certified |
+| 6X8C4 Windows main Android Kotlin compilation | **PASS** (real Gradle) |
+| 6X8C4 Windows Android instrumentation-source compilation | **PASS** (real Gradle) |
+| 6X8C4 Windows JVM unit-test compilation and debug APK assembly | **PASS** (real Gradle) |
+| 6X8C4 JVM unit tests | **FAILED:** 770/771 passed; one normal offline Previous-after-jump test failed |
+| 6X8C5 offline queue code fix | **Committed**; sequential Previous now follows visible order, Shuffle uses history |
+| 6X8C5 isolated Kotlin tests | **18/18 copied test methods and 62/62 navigation assertions passed** with minimal fixtures |
+| 6X8C5 full Android Gradle build / 771+ JUnit suite | **Not yet run/confirmed on this branch** |
+| Installed signer match and phone/Android Auto validation | **Pending**; do not install an unverified APK |
+
+For the exact evidence, see the [6X8C5 QA report](docs/NIGHTWAVE_PHASE6X8C5_OFFLINE_PREVIOUS_QA.md) and [verification matrix](docs/VERIFICATION_MATRIX.md).
 
 The sections below are **historical phase development notes**. Their old branch links and status descriptions are not the current release recommendation.
 
