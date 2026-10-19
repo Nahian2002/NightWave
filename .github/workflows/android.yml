@@ -99,6 +99,7 @@ jobs:
           python3 tools/verify_v2_phase6i.py
           python3 tools/verify_v2_phase6j.py
           python3 tools/verify_v2_phase6k.py
+          python3 tools/verify_v2_phase6x2.py
           python3 tools/verify_v2_phase6l.py
           python3 tools/verify_v2_phase6m1.py
           python3 tools/verify_v2_phase6m2.py
