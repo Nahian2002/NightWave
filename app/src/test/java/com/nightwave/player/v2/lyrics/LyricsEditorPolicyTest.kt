@@ -138,4 +138,24 @@ class LyricsEditorPolicyTest {
             LyricsEditorPolicy.timeLabel(LyricsEditorPolicy.MAX_TIME_MS))
         assertEquals(5999999L, LyricsEditorPolicy.parseTime("99:59.999"))
     }
+
+    @Test fun fineEditorNudgesKeepOriginalDraftAndSerializePrecisely() {
+        val source = draft()
+        val adjusted = LyricsEditorPolicy.nudge(source, 1, 1,
+            LyricsEditorPolicy.FINE_NUDGE_MS)
+        assertEquals(2550L, adjusted.cues[1].timeMs)
+        assertEquals(2500L, source.cues[1].timeMs)
+        assertEquals(adjusted.cues, TimedLyricsCodec.parse(
+            LyricsEditorPolicy.serialize(adjusted)).cues)
+    }
+
+    @Test fun editorFineNudgeRejectsUnsupportedStepOrExtremeOverflow() {
+        assertThrows(IllegalArgumentException::class.java) {
+            LyricsEditorPolicy.nudge(draft(), 0, 1, 25L)
+        }
+        val last = LyricsEditorPolicy.nudge(draft(), 2, Int.MAX_VALUE,
+            LyricsEditorPolicy.FINE_NUDGE_MS)
+        assertEquals(LyricsEditorPolicy.MAX_TIME_MS, last.cues.last().timeMs)
+    }
+
 }
