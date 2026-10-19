@@ -47,6 +47,27 @@ class OfflinePlaybackQueueTest {
         assertEquals(listOf("a", "b", "c"), queue.snapshot())
     }
 
+    @Test fun jumpForgetsOldLinearVisitHistory() {
+        val queue = OfflinePlaybackQueue()
+        queue.select(listOf("a", "b", "c", "d"), "a")
+        assertEquals("b", queue.next())
+        assertEquals("d", queue.jump(3))
+        assertEquals("c", queue.previous())
+        assertEquals("b", queue.previous())
+        assertEquals("a", queue.previous())
+        assertNull(queue.previous())
+    }
+
+    @Test fun shuffledJumpStillReturnsToPreviousListeningPosition() {
+        val queue = OfflinePlaybackQueue { 0 }
+        queue.setShuffle(true)
+        queue.select(listOf("a", "b", "c"), "a")
+        assertEquals("c", queue.jump(2))
+        assertNull(queue.jump(4))
+        assertEquals("c", queue.current)
+        assertEquals("a", queue.previous())
+    }
+
     @Test fun boundAndReset() {
         val queue = OfflinePlaybackQueue()
         queue.select((1..500).map(Int::toString), "400")
