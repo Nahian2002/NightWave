@@ -99,7 +99,9 @@ assert "onMediaMetadataChanged(" in service
 assert "override fun onIsPlayingChanged(" in service
 assert "override fun onMediaItemTransition(" in service
 assert "NowPlayingWidgetProvider.publish(this, WidgetPlaybackSnapshot())" in service
-assert "MediaLibrarySession.Builder(this, player," in service  # one existing player
+assert "MediaLibrarySession.Builder(this, player," in service
+assert "MediaSession.ConnectionResult.AcceptedResultBuilder(session)" in service
+assert "AcceptedResultBuilder(session, controller)" not in service  # one existing player
 assert "class PlaybackService : MediaLibraryService()" in service
 assert "override fun onMediaButtonEvent(" in service  # inherited controls preserved
 
