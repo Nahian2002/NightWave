@@ -1,5 +1,8 @@
 # NightWave
 
+> **NW-04 Premium Player — development source:** The [latest integrated branch](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-v2-nw04-premium-player) improves the Now Playing timeline, reduces oversized player and navigation chrome, cautiously requests higher-quality public YouTube thumbnails, and makes advanced audio settings collapsible. NW-01 Shuffle, NW-02 Sound Studio and NW-03 Account & Backup Hub remain included. **Android compilation and phone acceptance are still pending.** Read the [NW-04 test scope](docs/NIGHTWAVE_NW04_PREMIUM_PLAYER_QA.md) before considering a device update.
+
+
 > **NW-03 Account & Backup Hub — development source:** The latest [account experience branch](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-v2-nw03-account-backup-hub) adds a dedicated You-page account/backup screen, explicit local-vs-Drive backup status, masked account display, safe disconnect/switch confirmations and backup/restore controls. The NW-01 Shuffle and NW-02 Sound Studio changes remain included. **Google Drive consent is not a full Google sign-in identity; fresh Android compilation and device verification remain pending.** See [NW-03 QA](docs/NIGHTWAVE_NW03_ACCOUNT_HUB_QA.md).
 
 
