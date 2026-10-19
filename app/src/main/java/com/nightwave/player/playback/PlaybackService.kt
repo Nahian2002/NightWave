@@ -68,6 +68,8 @@ class PlaybackService : MediaSessionService() {
         const val ACTION_SLEEP_TIMER_CANCEL = "com.nightwave.player.SLEEP_TIMER_CANCEL"
         const val ACTION_OFFLINE_SPEED_SET = "com.nightwave.player.OFFLINE_SPEED_SET"
         const val ACTION_CROSSFADE_SET = "com.nightwave.player.CROSSFADE_SET"
+        const val ACTION_NORMALIZATION_SET = "com.nightwave.player.NORMALIZATION_SET"
+        const val EXTRA_NORMALIZATION_ENABLED = "normalization_enabled"
         const val EXTRA_CROSSFADE_SECONDS = "crossfade_seconds"
         const val ACTION_LISTENING_LEVEL_SET = "com.nightwave.player.LISTENING_LEVEL_SET"
         const val ACTION_EQ_PRESET_SET = "com.nightwave.player.EQ_PRESET_SET"
@@ -217,6 +219,78 @@ class PlaybackService : MediaSessionService() {
     private var crossfadeTargetIndex = -1
     private var crossfadeStartedAtMs = 0L
     private var crossfadeHandoffInProgress = false
+    private lateinit var normalizationStore: OfflineNormalizationStore
+    private var normalizationEnabled = false
+    private val normalizationGains = mutableMapOf<String, Float>()
+    private val normalizationPending = mutableSetOf<String>()
+    private val normalizationWorker = ThreadPoolExecutor(
+        1, 1, 30L, TimeUnit.SECONDS, ArrayBlockingQueue<Runnable>(1),
+        ThreadPoolExecutor.AbortPolicy()
+    )
+    private var normalizationEpoch = 0
+
+    /** One volume owner for both ordinary playback and the two crossfade decks. */
+    private fun normalizedMaster(mediaId: String?): Float {
+        val percent = if (::listeningLevelStore.isInitialized)
+            listeningLevelStore.read() else ListeningLevelPolicy.DEFAULT_PERCENT
+        val listening = ListeningLevelPolicy.gain(percent)
+        val id = mediaId?.takeIf { it.startsWith("offline:") }?.removePrefix("offline:")
+        val reduction = OfflineNormalizationPolicy.gain(
+            normalizationEnabled && offlinePlaying && id != null,
+            if (id != null) normalizationGains[id] else null
+        )
+        return OfflineNormalizationPolicy.combined(listening, reduction)
+    }
+
+    private fun applyCurrentMaster() {
+        if (crossfadeStartedAtMs > 0L) return // fade tick controls both decks
+        exoPlayer?.volume = normalizedMaster(exoPlayer?.currentMediaItem?.mediaId)
+    }
+
+    /**
+     * A bounded decoder/reader worker. No filesystem scan or PCM processing
+     * runs on MediaSession callbacks or the UI thread.
+     */
+    private fun scheduleNormalization(id: String?) {
+        if (!normalizationEnabled || !offlinePlaying || id.isNullOrBlank() ||
+            normalizationGains.containsKey(id) || !normalizationPending.add(id)) return
+        val token = normalizationEpoch
+        try {
+            normalizationWorker.execute {
+                val result = runCatching {
+                    val library = OfflineAudioLibrary(this)
+                    val song = library.find(id)
+                    val file = song?.let { library.fileFor(it) }
+                    if (song == null || file == null) null else {
+                        normalizationStore.savedGain(id, song.bytes) ?: run {
+                            val measured = OfflineLoudnessAnalyzer().measure(file)
+                            if (measured != null)
+                                normalizationStore.saveGain(id, song.bytes, measured)
+                            measured
+                        }
+                    }
+                }.getOrNull()
+                main.post {
+                    normalizationPending.remove(id)
+                    if (token != normalizationEpoch || !normalizationEnabled) return@post
+                    if (result != null) {
+                        normalizationGains[id] = result
+                        if (exoPlayer?.currentMediaItem?.mediaId == "offline:$id")
+                            applyCurrentMaster()
+                    }
+                }
+            }
+        } catch (_: java.util.concurrent.RejectedExecutionException) {
+            normalizationPending.remove(id) // never queue unbounded analysis
+        }
+    }
+
+    private fun normalizeSelectedAndNext() {
+        val ids = offlineQueue.snapshot()
+        val index = offlineQueue.index
+        scheduleNormalization(ids.getOrNull(index))
+        scheduleNormalization(ids.getOrNull(index + 1))
+    }
 
     private val crossfadeTick = object : Runnable {
         override fun run() {
@@ -266,10 +340,11 @@ class PlaybackService : MediaSessionService() {
                 if (crossfadeStartedAtMs > 0L) {
                     val progress = CrossfadePolicy.progress(
                         SystemClock.elapsedRealtime() - crossfadeStartedAtMs, crossfadeSeconds)
-                    val (oldGain, newGain) = CrossfadePolicy.gains(
-                        progress, ListeningLevelPolicy.gain(listeningLevelStore.read()))
-                    player.volume = oldGain
-                    incoming.volume = newGain
+                    val (oldGain, newGain) = CrossfadePolicy.gains(progress, 1f)
+                    player.volume = oldGain *
+                        normalizedMaster(player.currentMediaItem?.mediaId)
+                    incoming.volume = newGain *
+                        normalizedMaster(incoming.currentMediaItem?.mediaId)
                     if (progress >= .97f || remaining <= 150L) {
                         finishCrossfade()
                         return
@@ -295,6 +370,7 @@ class PlaybackService : MediaSessionService() {
         val library = OfflineAudioLibrary(this)
         val indexed = runCatching { library.find(id) }.getOrNull() ?: return
         if (library.fileFor(indexed) == null) return // no unchecked path preload
+        scheduleNormalization(id)
         var candidate: ExoPlayer? = null
         try {
             candidate = ExoPlayer.Builder(this).build().apply {
@@ -325,8 +401,7 @@ class PlaybackService : MediaSessionService() {
         crossfadeTargetIndex = -1
         crossfadeStartedAtMs = 0L
         runCatching { deck?.pause(); deck?.release() }
-        exoPlayer?.volume = if (::listeningLevelStore.isInitialized)
-            ListeningLevelPolicy.gain(listeningLevelStore.read()) else 1f
+        applyCurrentMaster()
     }
 
     /**
@@ -371,10 +446,11 @@ class PlaybackService : MediaSessionService() {
         releaseEqualizer()
         new.addListener(trackListener)
         applyEqualizer(new.audioSessionId)
-        new.volume = ListeningLevelPolicy.gain(listeningLevelStore.read())
+        new.volume = normalizedMaster(new.currentMediaItem?.mediaId)
         if (offlineQueue.jump(index) != null) {
             offlineSession.saveSelection(ids, id, new.currentPosition.coerceAtLeast(0L))
         }
+        normalizeSelectedAndNext()
         generation++ // invalidate delayed outgoing track-end callbacks
         handledEndMediaId = null
         runCatching { old.pause(); old.release() }
@@ -556,6 +632,10 @@ class PlaybackService : MediaSessionService() {
                 sampleListening(endSession = true)
             }
             sampleListening()
+            if (offlinePlaying && !crossfadeHandoffInProgress) {
+                applyCurrentMaster()
+                normalizeSelectedAndNext()
+            }
             scheduleCrossfadeCheck()
         }
 
@@ -618,6 +698,8 @@ class PlaybackService : MediaSessionService() {
         sleepStatus = SleepTimerStatusStore(this)
         offlineSpeedStore = OfflinePlaybackSpeedStore(this)
         listeningLevelStore = ListeningLevelStore(this)
+        normalizationStore = OfflineNormalizationStore(this)
+        normalizationEnabled = normalizationStore.enabled()
         crossfadeSettings = CrossfadeSettingsStore(this)
         crossfadeSeconds = crossfadeSettings.read()
         // A process/service restart never silently resurrects an old timer.
@@ -863,6 +945,17 @@ class PlaybackService : MediaSessionService() {
                     applyEqualizer(exoPlayer?.audioSessionId ?: C.AUDIO_SESSION_ID_UNSET)
                 }
             }
+            ACTION_NORMALIZATION_SET -> {
+                val enabled = intent.getBooleanExtra(EXTRA_NORMALIZATION_ENABLED, false)
+                if (normalizationStore.setEnabled(enabled)) {
+                    normalizationEnabled = enabled
+                    normalizationEpoch++
+                    normalizationGains.clear()
+                    normalizationPending.clear()
+                    if (enabled) normalizeSelectedAndNext()
+                    applyCurrentMaster()
+                }
+            }
             ACTION_CROSSFADE_SET -> {
                 val seconds = intent.getIntExtra(EXTRA_CROSSFADE_SECONDS, -1)
                 if (CrossfadePolicy.accepts(seconds) && crossfadeSettings.save(seconds)) {
@@ -878,7 +971,7 @@ class PlaybackService : MediaSessionService() {
                 ) {
                     // No amplification above unity and no Android system-volume change.
                     if (crossfadeStartedAtMs == 0L)
-                        exoPlayer?.volume = ListeningLevelPolicy.gain(percent)
+                        applyCurrentMaster()
                     // An active overlap recomputes both gains in its next tick.
                 }
             }
@@ -1076,6 +1169,8 @@ class PlaybackService : MediaSessionService() {
             if (timeline == null && resumePositionMs > 0L) seekTo(resumePositionMs)
             play()
         }
+        normalizeSelectedAndNext()
+        applyCurrentMaster()
         scheduleCrossfadeCheck()
         return true
     }
@@ -1174,6 +1269,7 @@ class PlaybackService : MediaSessionService() {
         if (offlinePlaying) persistProgress(flush = true)
         offlinePlaying = false
         offlineGaplessActive = false
+        normalizationEpoch++
         offlineQueue.reset()
         if (!recoveryAttempt) autoRetriedVideo = null
         savedQueue.clearFailure()
@@ -1285,6 +1381,8 @@ class PlaybackService : MediaSessionService() {
         generation++
         cancelPendingResolution()
         resolver.shutdownNow()
+        normalizationEpoch++
+        normalizationWorker.shutdownNow()
         listeningWriter.shutdown() // drain pending bounded, consent-fenced writes
         exoPlayer?.removeListener(trackListener)
         releaseEqualizer()
