@@ -2,11 +2,13 @@
 
 > **Current development status — 19 October 2026:** NightWave is an Android music-player project with imported offline audio, saved public-video streaming references, private playlists and optional Google Drive backup. This repository is **not yet a certified release**. The Windows build of Phase 6X8C2 reached Gradle and failed at two confirmed Kotlin errors; Phase **6X8C3 patches both**. A fresh successful Android build, device signing check and phone QA are **still pending**.
 
+> **Build update — 19 October 2026:** The user-built 6X8C3 candidate **passed main Android Kotlin compilation and Android instrumentation-source compilation**, but **failed unit-test Kotlin compilation** because two Daily Mix JUnit test calls passed nested lists. Phase **6X8C4 fixes both test inputs** and adds early regression guards. A fresh **BUILD SUCCESSFUL** on 6X8C4 is **not yet confirmed**. [Exact compiler report and QA](docs/NIGHTWAVE_PHASE6X8C4_UNIT_TEST_COMPILE_QA.md).
+
 ## About NightWave
 
 NightWave is a personal Android music experience inspired by Spotify-style navigation and controls, built without a NightWave-owned backend. It brings together user-imported offline audio, locally saved public-video references (resolved for playback when available), playlists, private lyric files, on-device mixes, and optional third-party Google Drive backup. It **does not provide Spotify's licensed music catalog**, guaranteed stream availability, or an app-owned discovery/streaming server.
 
-**Latest source branch:** [6X8C3 compiler recovery](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-phase6x8c3-compiler-and-repo-audit) · [Build and safe-upgrade guide](docs/BUILD_AND_RELEASE.md) · [Release verification matrix](docs/VERIFICATION_MATRIX.md) · [Changelog](CHANGELOG.md) · [Repository About details](ABOUT.md)
+**Latest source branch:** [6X8C4 Daily Mix test compiler recovery](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-phase6x8c4-daily-mix-unit-test-compile) · [Build and safe-upgrade guide](docs/BUILD_AND_RELEASE.md) · [Release verification matrix](docs/VERIFICATION_MATRIX.md) · [Changelog](CHANGELOG.md) · [Repository About details](ABOUT.md)
 
 ### Features present in the development source
 
