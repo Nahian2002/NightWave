@@ -216,6 +216,7 @@ class PlaybackService : MediaSessionService() {
     private var crossfadeOutgoing: ExoPlayer? = null
     private var crossfadeTargetIndex = -1
     private var crossfadeStartedAtMs = 0L
+    private var crossfadeHandoffInProgress = false
 
     private val crossfadeTick = object : Runnable {
         override fun run() {
@@ -344,6 +345,7 @@ class PlaybackService : MediaSessionService() {
             cancelCrossfade()
             return
         }
+        crossfadeHandoffInProgress = true
         try {
             // Only the session-owned deck takes Android audio focus after the swap.
             new.setAudioAttributes(AudioAttributes.Builder()
@@ -351,6 +353,7 @@ class PlaybackService : MediaSessionService() {
                 .setUsage(C.USAGE_MEDIA).build(), true)
             session.setPlayer(new) // Media3 requires the same application Looper.
         } catch (error: Exception) {
+            crossfadeHandoffInProgress = false
             Log.w("NightWavePlayback", "Crossfade session handoff unavailable", error)
             cancelCrossfade() // primary remains connected, ordinary gapless continues
             return
@@ -359,6 +362,7 @@ class PlaybackService : MediaSessionService() {
         persistProgress(flush = true)
         old.removeListener(trackListener)
         exoPlayer = new
+        crossfadeHandoffInProgress = false
         crossfadeIncoming = null
         crossfadeOutgoing = null
         crossfadeTargetIndex = -1
@@ -462,7 +466,8 @@ class PlaybackService : MediaSessionService() {
             applyEqualizer(audioSessionId)
         }
         override fun onIsPlayingChanged(isPlaying: Boolean) {
-            if (!isPlaying && crossfadeOutgoing === exoPlayer) cancelCrossfade()
+            if (!isPlaying && crossfadeOutgoing === exoPlayer &&
+                !crossfadeHandoffInProgress) cancelCrossfade()
             if (isPlaying) {
                 scheduleCrossfadeCheck()
                 sleepTimerPaused = false
@@ -515,6 +520,7 @@ class PlaybackService : MediaSessionService() {
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            if (crossfadeHandoffInProgress) return
             if (crossfadeOutgoing === exoPlayer && crossfadeIncoming != null &&
                 reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK) {
                 cancelCrossfade() // external MediaController navigation
@@ -554,7 +560,7 @@ class PlaybackService : MediaSessionService() {
         }
 
         override fun onPlayerError(error: PlaybackException) {
-            cancelCrossfade()
+            if (!crossfadeHandoffInProgress) cancelCrossfade()
             sampleListening()
             val player = exoPlayer ?: return
             val video = player.currentMediaItem?.mediaId ?: return
