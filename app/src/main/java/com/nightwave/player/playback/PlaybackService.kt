@@ -24,7 +24,14 @@ import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.session.MediaSession
-import androidx.media3.session.MediaSessionService
+import androidx.media3.session.MediaLibraryService
+import androidx.media3.session.MediaLibraryService.MediaLibrarySession
+import androidx.media3.session.LibraryResult
+import androidx.media3.session.SessionError
+import com.google.common.collect.ImmutableList
+import com.nightwave.player.auto.AutoBrowseCatalog
+import com.nightwave.player.auto.AutoBrowsePolicy
+import com.nightwave.player.auto.AutoPlaySelection
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
 import com.google.common.util.concurrent.Futures
@@ -48,7 +55,7 @@ import java.util.concurrent.Future
 
 /** The service owns automatic next-track resolution, even while the Activity is stopped. */
 @UnstableApi
-class PlaybackService : MediaSessionService() {
+class PlaybackService : MediaLibraryService() {
     companion object {
         const val ACTION_REPLACE = "com.nightwave.player.REPLACE_QUEUE"
         const val ACTION_RESUME_SAVED = "com.nightwave.player.RESUME_SAVED"
@@ -101,7 +108,8 @@ class PlaybackService : MediaSessionService() {
         const val EXTRA_INDEX = "index"
     }
 
-    private var mediaSession: MediaSession? = null
+    private var mediaSession: MediaLibrarySession? = null
+    private val carCatalog by lazy { AutoBrowseCatalog(this) }
     private var exoPlayer: ExoPlayer? = null
 
     /** Widgets mirror playback events only, never a high-frequency position timer. */
@@ -817,8 +825,102 @@ class PlaybackService : MediaSessionService() {
             this, 0, Intent(this, NightWaveStudioActivity::class.java),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
-        mediaSession = MediaSession.Builder(this, player).setSessionActivity(openApp)
-            .setCallback(object : MediaSession.Callback {
+        mediaSession = MediaLibrarySession.Builder(this, player,
+            object : MediaLibrarySession.Callback {
+                // Car and MediaBrowser catalog callbacks never fetch network
+                // media, start playback, read PCM or edit saved library content.
+                override fun onGetLibraryRoot(
+                    session: MediaLibrarySession,
+                    browser: MediaSession.ControllerInfo,
+                    params: LibraryParams?
+                ): ListenableFuture<LibraryResult<MediaItem>> =
+                    Futures.immediateFuture(LibraryResult.ofItem(
+                        carCatalog.item(AutoBrowsePolicy.ROOT)!!, params))
+
+                override fun onGetChildren(
+                    session: MediaLibrarySession,
+                    browser: MediaSession.ControllerInfo,
+                    parentId: String, page: Int, pageSize: Int,
+                    params: LibraryParams?
+                ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> {
+                    val items = carCatalog.children(parentId)
+                        ?: return Futures.immediateFuture(
+                            LibraryResult.ofError(SessionError.ERROR_BAD_VALUE))
+                    val selected = AutoBrowsePolicy.page(items, page, pageSize)
+                    return Futures.immediateFuture(
+                        LibraryResult.ofItemList(ImmutableList.copyOf(selected), params))
+                }
+
+                override fun onGetItem(
+                    session: MediaLibrarySession,
+                    browser: MediaSession.ControllerInfo,
+                    mediaId: String
+                ): ListenableFuture<LibraryResult<MediaItem>> {
+                    val item = carCatalog.item(mediaId)
+                        ?: return Futures.immediateFuture(
+                            LibraryResult.ofError(SessionError.ERROR_BAD_VALUE))
+                    return Futures.immediateFuture(LibraryResult.ofItem(item, null))
+                }
+
+                override fun onSearch(
+                    session: MediaLibrarySession,
+                    browser: MediaSession.ControllerInfo,
+                    query: String, params: LibraryParams?
+                ): ListenableFuture<LibraryResult<Void>> {
+                    val count = runCatching { carCatalog.search(query).size }.getOrDefault(0)
+                    session.notifySearchResultChanged(browser, query, count, params)
+                    return Futures.immediateFuture(LibraryResult.ofVoid())
+                }
+
+                override fun onGetSearchResult(
+                    session: MediaLibrarySession,
+                    browser: MediaSession.ControllerInfo,
+                    query: String, page: Int, pageSize: Int,
+                    params: LibraryParams?
+                ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> {
+                    val items = runCatching { carCatalog.search(query) }.getOrDefault(emptyList())
+                    return Futures.immediateFuture(LibraryResult.ofItemList(
+                        ImmutableList.copyOf(AutoBrowsePolicy.page(items, page, pageSize)),
+                        params))
+                }
+
+                /**
+                 * Car selection must flow through NightWave's existing queue
+                 * rather than letting Media3 directly play a YouTube page URL.
+                 * Post after the controller's empty setMediaItems response to
+                 * prevent that response clearing the newly prepared timeline.
+                 */
+                override fun onAddMediaItems(
+                    mediaSession: MediaSession,
+                    controller: MediaSession.ControllerInfo,
+                    mediaItems: List<MediaItem>
+                ): ListenableFuture<List<MediaItem>> {
+                    val requestedId = mediaItems.singleOrNull()?.mediaId
+                    val selection = requestedId?.let {
+                        runCatching { carCatalog.selection(it) }.getOrNull()
+                    }
+                    if (selection != null) main.post {
+                        pendingQueueRemoval = null
+                        when (selection) {
+                            is AutoPlaySelection.Offline -> {
+                                val local = OfflineAudioLibrary(this@PlaybackService)
+                                if (offlineQueue.select(selection.queueIds, selection.songId) != null)
+                                    playOfflineId(selection.songId, local)
+                            }
+                            is AutoPlaySelection.Streaming -> {
+                                queue.replace(selection.queue, selection.index)
+                                queue.useExplicitDisplayOrder()
+                                savedQueue.save(queue)
+                                queue.current?.let { resolveAndPlay(it) }
+                            }
+                        }
+                    }
+                    // Reject unowned/URI-only IDs. Our explicit service-owned
+                    // player transition replaces this empty controller timeline.
+                    return Futures.immediateFuture(emptyList())
+                }
+
+
                 override fun onConnect(
                     session: MediaSession,
                     controller: MediaSession.ControllerInfo
@@ -883,7 +985,7 @@ class PlaybackService : MediaSessionService() {
                         else -> false
                     }
                 }
-            }).build()
+            }).setSessionActivity(openApp).build()
         // The saved queue, artwork and bookmark are available immediately from
         // QueueStateStore. Do NOT issue a network request on service creation.
         // A MediaController may bind repeatedly while Android recovers an app.
@@ -1534,7 +1636,7 @@ class PlaybackService : MediaSessionService() {
         }
     }
 
-    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = mediaSession
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? = mediaSession
 
     override fun onDestroy() {
         NightWaveWidgetProvider.publish(this, WidgetPlaybackSnapshot())
