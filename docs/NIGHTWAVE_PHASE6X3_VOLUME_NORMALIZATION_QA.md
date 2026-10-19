@@ -12,13 +12,13 @@ No app ID, package signing, library file, database migration, permission, server
 - The measured attenuation is cached with the audio ID and byte length in an app-private preference store. **Audio bytes and paths are never written to this cache.** Corrupt/missing cache entries fall back to analysis or normal listening level.
 - The existing Listening Level (100 / 85 / 70%) remains the user's master setting. Normalized output uses `ListeningLevel × track attenuation`. Each crossfade deck independently uses its song's attenuation in the overlap; the total remains bounded by the master setting.
 - Offline gapless automatic track transitions update volume and pre-analyze the following track. Returning to public streaming immediately restores normal Listening Level, with no offline attenuation.
-- Disabling the switch immediately restores the normal master level. The setting is local and is loaded after normal activity/service restarts; no automatic playback on startup.
+- Disabling the switch immediately restores the normal master level and cancels pending measurement ramps. The setting is local and is loaded after normal activity/service restarts; no automatic playback on startup.
 - No claims of Spotify-equivalent EBU R128 / LUFS mastering, true-peak safety, or volume boosting. This is an **RMS/peak-informed, non-boosting local loud-track reducer**; quiet tracks cannot be amplified with the existing 0–1 Media3 volume API.
 
 ## Verification performed
 - 13 standalone Kotlin behavior checks passed for the mirror of `OfflineNormalizationPolicy`, including loud/quiet tracks, peak limitation, disabled behavior, clamping, nonfinite values, and master-gain multiplication.
 - 8 JUnit cases added to `OfflineNormalizationPolicyTest.kt` (Gradle execution pending).
-- 25/25 GitHub source-consistency checks passed after the integration edits; one cache-default validation fix followed these checks.
+- 25/25 GitHub source-consistency checks passed during integration. Cache default handling and first-time gain ramp were refined afterward; final source checks follow.
 - `tools/verify_v2_phase6x3.py` added and wired into Android CI; 6N3 legacy source gate updated to recognize the shared gain owner rather than expect an old direct volume assignment.
 - Full Android Gradle build, instrumentation, native decode on device, and real audio volume matching **not yet verified**.
 
@@ -35,7 +35,7 @@ No app ID, package signing, library file, database migration, permission, server
 10. Verify EQ, Sleep Timer, offline speed, repeat modes, playlists, lyrics and Drive backups still behave as before.
 
 ## Limits
-- First playback may initially be at normal volume until the bounded analysis finishes; a detectable downward change is possible. Cached subsequent playback avoids repeated decoding.
+- First playback may initially be at normal volume until bounded analysis finishes, then attenuate over a 240 ms ramp. Some loudness change may still be audible; cached subsequent playback avoids repeated decoding.
 - RMS of a short sample is not integrated perceived loudness (LUFS), and cannot guarantee equal perceived loudness for every track.
 - Only app-private offline files are analyzed. Online tracks and protected streams are not scanned or downloaded.
 - This branch is **development source**, not a confirmed Android APK.
