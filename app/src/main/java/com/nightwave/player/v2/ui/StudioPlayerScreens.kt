@@ -651,12 +651,13 @@ fun StudioNowPlayingOverlay(
                 val fraction = dragFraction ?: PlayerProgressRules.fraction(
                     state.positionMs, state.durationMs)
                 NightWaveSeekTimeline(
+                    trackIdentity = state.videoUrl,
                     fraction = fraction,
                     enabled = state.connected && state.durationMs > 0L,
                     onPreview = { dragFraction = it },
-                    onCommit = { requested ->
+                    onCommit = { originatingTrack, requested ->
                         PlayerProgressRules.requestedPosition(state.durationMs, requested)
-                            ?.let(actions::seekTo)
+                            ?.let { actions.seekToForTrack(originatingTrack, it) }
                         dragFraction = null
                     },
                     onCancel = { dragFraction = null }
