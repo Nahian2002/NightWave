@@ -374,8 +374,10 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                                                     capabilities.minimumMb,
                                                     capabilities.maximumMb)
                                             },
-                                            valueRange = capabilities.minimumMb.toFloat()..
-                                                capabilities.maximumMb.toFloat()
+                                            valueRange = (
+                                                capabilities.minimumMb.toFloat()..
+                                                    capabilities.maximumMb.toFloat()
+                                            )
                                         )
                                     } else {
                                         Text("This device exposes a fixed band level.",
