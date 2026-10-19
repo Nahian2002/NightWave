@@ -25,7 +25,7 @@ object PlaylistFolderPolicy {
     const val MAX_PLACEMENTS = 300
     fun validName(name: String): Boolean =
         name == name.trim() && name.length in 1..60 &&
-            name.none { it.isISOControl() || it == '/' || it == '\\' }
+            name.none { Character.isISOControl(it) || it == '/' || it == '\\' }
 
     fun add(before: PlaylistFolderSnapshot, name: String): PlaylistFolderSnapshot? =
         if (!validName(name) || before.folders.size >= MAX_FOLDERS ||
@@ -78,7 +78,7 @@ class PlaylistFolderStore(context: Context) {
     companion object { private val lock = Any() }
 
     private fun decode(raw: String?): PlaylistFolderSnapshot? {
-        if (raw == null) return PlaylistFolderSnapshot()
+        if (raw == null) return if (prefs.contains("snapshot")) null else PlaylistFolderSnapshot()
         return runCatching {
             val obj = JSONObject(raw)
             val rawFolders = obj.getJSONArray("folders")
