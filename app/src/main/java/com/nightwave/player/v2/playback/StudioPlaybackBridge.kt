@@ -58,6 +58,10 @@ interface StudioPlayerActions {
     fun previous()
     fun next()
     fun seekTo(positionMs: Long)
+    /** Scrub only if the same exact Media3 item still owns playback. */
+    fun seekToForTrack(expectedMediaId: String, positionMs: Long) {
+        // Existing test doubles and classic adapters need no unsafe default.
+    }
     fun toggleShuffle()
     fun cycleRepeat()
     fun jumpTo(index: Int)
@@ -711,6 +715,14 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
             pendingRepeat = null
             main.removeCallbacks(repeatReconcile)
             state = state.copy(repeat = original, error = "Could not change repeat mode.")
+        }
+    }
+
+    override fun seekToForTrack(expectedMediaId: String, positionMs: Long) {
+        val loadedId = runCatching { controller?.currentMediaItem?.mediaId }.getOrNull()
+        if (PlaybackSeekIdentityPolicy.accepts(
+                expectedMediaId, state.videoUrl, loadedId)) {
+            seekTo(positionMs)
         }
     }
 
