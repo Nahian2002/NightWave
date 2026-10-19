@@ -36,7 +36,7 @@ object SmartLibraryPolicy {
         if (rediscover.isNotEmpty()) result.add(SmartLibraryCollection(
             PREFIX + "liked", "Rediscover your likes",
             "Saved favorites, presented in a different order", rediscover))
-        val longTracks = pool.filter { it.duration >= 240L }.take(80)
+        val longTracks = pool.filter { it.durationSeconds >= 240L }.take(80)
         if (longTracks.size >= 2) result.add(SmartLibraryCollection(
             PREFIX + "long", "Long listens",
             "Tracks at least four minutes long", longTracks))
