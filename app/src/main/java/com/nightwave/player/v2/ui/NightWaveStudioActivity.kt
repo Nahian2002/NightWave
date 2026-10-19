@@ -2498,6 +2498,8 @@ private fun StudioHome(
         val existing = PersonalMixEngine.make(favorites, recent, playlistTracks,
             dayNumber, memoryTracks = memory.recommendationTracks,
             memoryEnabled = memory.enabled)
+            // Daily Mix 1–3 supersede the earlier generic daily rotation card.
+            .filterNot { it.key == "daily" }
         daily + existing
     }
     var chosenMixKey by rememberSaveable { mutableStateOf<String?>(null) }
