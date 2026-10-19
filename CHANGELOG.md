@@ -1,5 +1,17 @@
 # NightWave Changelog
 
+## 2026-10-19 — NW-03 account and Google Drive backup hub (development)
+
+- Added a dedicated branded Compose **Account & backup** hub on the You tab, preserving local guest identity and personal libraries.
+- Distinguished **LOCAL**, **DRIVE READY**, and **BACKED UP** states; Google Drive authorization alone is not falsely shown as a successful verified backup.
+- Provided visible Connect, Back up now, Preview restore, Compare & merge, and configurable optional backup controls.
+- Masked connected email in the account UI and existing backup detail, and added explicit confirm dialogs before Drive account switching or disconnect.
+- Avoided overlapping Compose/native dialogs when starting local library exports, restore previews or library comparisons.
+- Added five JVM policy tests and NW-03 source preflight, while preserving earlier NW-01 control and NW-02 Sound Studio changes.
+- **Not** a general Google login system, licensed catalog, or live account synchronization. Android builds and Google Play-services device QA remain unverified.
+- See [NW-03 QA and acceptance](docs/NIGHTWAVE_NW03_ACCOUNT_HUB_QA.md).
+
+
 ## 2026-10-19 — NW-02 Sound Studio (source committed, not release-verified)
 
 - Replaced the nested Android audio equalizer dialogs with a dedicated, theme-aware Jetpack Compose Sound Studio from the You page.
