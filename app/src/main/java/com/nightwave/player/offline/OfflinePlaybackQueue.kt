@@ -55,6 +55,10 @@ class OfflinePlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it)
     fun next(automatic: Boolean = true): String? {
         if (index < 0) return null
         if (automatic && repeat == PlaybackQueue.Repeat.ONE) return current
+        // Shuffle has no other candidate for a one-song queue. Repeat All
+        // must replay that song instead of incorrectly signalling end of queue.
+        if (shuffle && ids.size == 1 && repeat == PlaybackQueue.Repeat.ALL)
+            return current
         val target = if (shuffle) {
             if (unplayed.isEmpty() && repeat == PlaybackQueue.Repeat.ALL) refillUnplayed()
             if (unplayed.isEmpty()) return null
