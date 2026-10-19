@@ -66,7 +66,9 @@ class OfflinePlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it)
                 else -> return null
             }
         }
-        if (target != index) pushHistory(index)
+        // Only shuffled playback requires a visit stack. In linear mode,
+        // Previous always follows the visible queue, including after a jump.
+        if (shuffle && target != index) pushHistory(index)
         index = target
         return current
     }
@@ -74,7 +76,7 @@ class OfflinePlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it)
     fun previous(): String? {
         if (index < 0) return null
         val target = when {
-            visited.isNotEmpty() -> visited.removeLast()
+            shuffle && visited.isNotEmpty() -> visited.removeLast()
             shuffle -> return null
             index > 0 -> index - 1
             repeat == PlaybackQueue.Repeat.ALL -> ids.lastIndex
@@ -98,8 +100,8 @@ class OfflinePlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it)
                 if (index >= 0) pushHistory(index)
                 unplayed.remove(to)
             } else {
-                // An explicit linear jump starts a new position: Previous should
-                // select the preceding visible track, not a stale visit.
+                // No linear history is recorded; clear any previous shuffle
+                // state defensively before following the visible queue.
                 visited.clear()
             }
             index = to
