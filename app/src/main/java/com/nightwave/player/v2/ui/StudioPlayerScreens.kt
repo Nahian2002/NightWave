@@ -71,7 +71,6 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -666,7 +665,8 @@ fun StudioNowPlayingOverlay(
                         PlayerProgressRules.requestedPosition(state.durationMs, requested)
                             ?.let(actions::seekTo)
                         dragFraction = null
-                    }
+                    },
+                    onCancel = { dragFraction = null }
                 )
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(timeLabel(PlayerProgressRules.requestedPosition(
