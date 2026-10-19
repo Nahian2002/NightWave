@@ -13,7 +13,8 @@ class EqualizerCapabilities(context: Context) {
         val centersHz: List<Int>,
         val minimumMb: Int,
         val maximumMb: Int,
-        val presetNames: List<String>
+        val presetNames: List<String>,
+        val levelsMb: List<Int> = emptyList()
     )
 
     fun read(): Snapshot {
@@ -25,7 +26,8 @@ class EqualizerCapabilities(context: Context) {
             (0 until count).map { preferences.getInt("frequency_$it", 0) },
             preferences.getInt("min", 0),
             preferences.getInt("max", 0),
-            (0 until presets).map { preferences.getString("preset_$it", "Preset ${it + 1}") ?: "Preset ${it + 1}" }
+            (0 until presets).map { preferences.getString("preset_$it", "Preset ${it + 1}") ?: "Preset ${it + 1}" },
+            (0 until count).map { preferences.getInt("level_$it", 0) }
         )
     }
 
@@ -44,6 +46,7 @@ class EqualizerCapabilities(context: Context) {
             .putInt("min", range[0].toInt()).putInt("max", range[1].toInt())
         for (i in 0 until bands) {
             editor.putInt("frequency_$i", effect.getCenterFreq(i.toShort()) / 1000)
+            editor.putInt("level_$i", effect.getBandLevel(i.toShort()).toInt())
         }
         for (i in 0 until presets) {
             editor.putString("preset_$i", effect.getPresetName(i.toShort()).take(60))
