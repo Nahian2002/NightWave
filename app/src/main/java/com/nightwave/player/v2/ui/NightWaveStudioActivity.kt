@@ -2962,12 +2962,16 @@ private fun StudioSearch(
 private fun StudioLibrary(
     modifier: Modifier, favorites: List<VideoPreview>, names: List<String>,
     libraryRevision: Int, roomPreviewActive: Boolean,
+    smartCollections: List<SmartLibraryCollection>,
+    folderSnapshot: PlaylistFolderSnapshot,
     playingUrl: String,
     selectedPlaylist: String?, onSelectPlaylist: (String?) -> Unit,
     getPlaylist: (String) -> List<VideoPreview>, onPlay: (VideoPreview, List<VideoPreview>) -> Unit,
     onQuickPlay: (List<VideoPreview>) -> Unit,
     onManage: () -> Unit, onSearch: () -> Unit,
-    onCreatePlaylist: () -> Unit, onOffline: () -> Unit,
+    onCreatePlaylist: () -> Unit,
+    onManageFolders: () -> Unit, onMovePlaylist: (String) -> Unit,
+    onOffline: () -> Unit,
     offlineResumeTitle: String?, offlineResumePositionMs: Long,
     onResumeOffline: () -> Unit,
     onSongOptions: (VideoPreview) -> Unit,
@@ -2983,13 +2987,27 @@ private fun StudioLibrary(
     var playlistSort by rememberSaveable { mutableStateOf(LibraryBrowsePolicy.SORT_SAVED) }
     var showFilledOnly by rememberSaveable { mutableStateOf(false) }
     var playlistToolsOpen by rememberSaveable { mutableStateOf(false) }
-    val visiblePlaylists = remember(playlistPreviews, playlistFilter,
-        playlistSort, showFilledOnly) {
-        LibraryBrowsePolicy.playlists(playlistPreviews, playlistFilter,
-            playlistSort, showFilledOnly)
+    var selectedFolder by rememberSaveable { mutableStateOf<String?>(null) }
+    val validFolder = selectedFolder?.takeIf { folder ->
+        folder == "nightwave://folder/unfiled" || folder in folderSnapshot.folders
     }
-    val tracks = if (selectedPlaylist == null || selectedPlaylist == LIKED_COLLECTION)
-        favorites else playlistPreviews.firstOrNull { it.name == selectedPlaylist }?.songs.orEmpty()
+    val visiblePlaylists = remember(playlistPreviews, playlistFilter,
+        playlistSort, showFilledOnly, validFolder, folderSnapshot) {
+        LibraryBrowsePolicy.playlists(playlistPreviews, playlistFilter,
+            playlistSort, showFilledOnly).filter { preview ->
+            when (validFolder) {
+                null -> true
+                "nightwave://folder/unfiled" -> folderSnapshot.folderOf(preview.name) == null
+                else -> folderSnapshot.folderOf(preview.name) == validFolder
+            }
+        }
+    }
+    val selectedSmart = smartCollections.firstOrNull { it.id == selectedPlaylist }
+    val tracks = when {
+        selectedPlaylist == null || selectedPlaylist == LIKED_COLLECTION -> favorites
+        selectedSmart != null -> selectedSmart.songs
+        else -> playlistPreviews.firstOrNull { it.name == selectedPlaylist }?.songs.orEmpty()
+    }
     var localFilter by rememberSaveable(selectedPlaylist) { mutableStateOf("") }
     var sortMode by rememberSaveable(selectedPlaylist) {
         mutableStateOf(LibraryBrowsePolicy.SORT_SAVED)
@@ -3013,12 +3031,17 @@ private fun StudioLibrary(
                 }
                 Column(Modifier.weight(1f)) {
                     NightWaveCollectionHeader(
-                        name = if (selectedPlaylist == LIKED_COLLECTION) "Liked Songs"
-                            else selectedPlaylist ?: "Your library",
-                        description = if (selectedPlaylist == null)
-                            "Saved music across your collections"
-                        else NightWaveCollectionChrome.sectionSubtitle(
-                            tracks.size, "saved track", "saved tracks")
+                        name = when {
+                            selectedPlaylist == LIKED_COLLECTION -> "Liked Songs"
+                            selectedSmart != null -> selectedSmart.title
+                            else -> selectedPlaylist ?: "Your library"
+                        },
+                        description = when {
+                            selectedPlaylist == null -> "Saved music across your collections"
+                            selectedSmart != null -> selectedSmart.description
+                            else -> NightWaveCollectionChrome.sectionSubtitle(
+                                tracks.size, "saved track", "saved tracks")
+                        }
                     )
                 }
             }
@@ -3061,13 +3084,27 @@ private fun StudioLibrary(
                 }
             }
         }
-        if (selectedPlaylist != null &&
-            selectedPlaylist != LIKED_COLLECTION && tracks.isNotEmpty()
+        if (selectedPlaylist != null && selectedPlaylist != LIKED_COLLECTION &&
+            selectedSmart == null && selectedPlaylist in names && tracks.isNotEmpty()
         ) {
             item(key = "share-current-playlist") {
                 OutlinedButton(onClick = { onSharePlaylist(selectedPlaylist, tracks) },
                     modifier = Modifier.fillMaxWidth()) {
                     Text("Share playlist")
+                }
+            }
+        }
+        if (selectedPlaylist != null && selectedPlaylist in names &&
+            selectedPlaylist != LIKED_COLLECTION && selectedSmart == null
+        ) {
+            item(key = "move-current-to-folder") {
+                OutlinedButton(
+                    onClick = { onMovePlaylist(selectedPlaylist) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Folder · " +
+                        (folderSnapshot.folderOf(selectedPlaylist) ?: "Unfiled") +
+                        "  ·  Change")
                 }
             }
         }
@@ -3128,10 +3165,24 @@ private fun StudioLibrary(
                     }
                 }
             }
-            item(key = "import-shared-playlist") {
-                OutlinedButton(onClick = onImportSharedPlaylist,
-                    modifier = Modifier.fillMaxWidth()) {
-                    Text("Import shared playlist")
+            item(key = "playlist-folders-manager") {
+                OutlinedButton(onClick = onManageFolders,
+                    modifier = Modifier.fillMaxWidth().height(44.dp),
+                    shape = RoundedCornerShape(14.dp)) {
+                    Text("Organize playlist folders")
+                }
+            }
+            if (smartCollections.isNotEmpty()) {
+                item(key = "smart-collections-section") {
+                    SectionHeading("Made from your library",
+                        "Live collections · changes as your saved music changes")
+                }
+                items(smartCollections, key = { it.id }) { collection ->
+                    MusicCollectionTile(collection.title,
+                        collection.songs.size.toString() + " tracks · " + collection.description,
+                        cover = collection.songs.firstOrNull()) {
+                        onSelectPlaylist(collection.id)
+                    }
                 }
             }
             if (names.isNotEmpty()) {
@@ -3139,6 +3190,23 @@ private fun StudioLibrary(
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         SectionHeading("Your playlists",
                             visiblePlaylists.size.toString() + " of " + names.size + " collections")
+                        if (folderSnapshot.folders.isNotEmpty()) {
+                            Row(Modifier.horizontalScroll(rememberScrollState()),
+                                horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                                FilterChip(selected = validFolder == null,
+                                    onClick = { selectedFolder = null },
+                                    label = { Text("All folders") })
+                                FilterChip(
+                                    selected = validFolder == "nightwave://folder/unfiled",
+                                    onClick = { selectedFolder = "nightwave://folder/unfiled" },
+                                    label = { Text("Unfiled") })
+                                folderSnapshot.folders.forEach { folder ->
+                                    FilterChip(selected = validFolder == folder,
+                                        onClick = { selectedFolder = folder },
+                                        label = { Text(folder, maxLines = 1) })
+                                }
+                            }
+                        }
                         OutlinedButton(onClick = { playlistToolsOpen = !playlistToolsOpen },
                             modifier = Modifier.fillMaxWidth().height(44.dp),
                             shape = RoundedCornerShape(14.dp)) {
@@ -3210,7 +3278,9 @@ private fun StudioLibrary(
                     }
                 } else {
                     items(visiblePlaylists, key = { "playlist:" + it.name }) { collection ->
-                        MusicCollectionTile(collection.name, collection.size.toString() + " tracks",
+                        MusicCollectionTile(collection.name,
+                            collection.size.toString() + " tracks · " +
+                                (folderSnapshot.folderOf(collection.name) ?: "Unfiled"),
                             cover = collection.cover) {
                             onSelectPlaylist(collection.name)
                         }
