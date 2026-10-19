@@ -146,7 +146,7 @@ class YouTubeGateway {
             .filter { it.isUrl && it.deliveryMethod == DeliveryMethod.PROGRESSIVE_HTTP }
             .maxByOrNull { it.averageBitrate.takeIf { br -> br >= 0 } ?: 0 }
         val combined = if (audio == null) info.videoStreams
-            .filter { it.isUrl && !it.isVideoOnly && it.deliveryMethod == DeliveryMethod.PROGRESSIVE_HTTP }
+            .filter { it.isUrl && !it.isVideoOnly() && it.deliveryMethod == DeliveryMethod.PROGRESSIVE_HTTP }
             .minByOrNull { if (it.height > 0) it.height else Int.MAX_VALUE } else null
         val playableUrl: String
         val mimeType: String?
