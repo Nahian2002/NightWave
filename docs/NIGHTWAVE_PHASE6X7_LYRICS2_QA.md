@@ -16,7 +16,7 @@ All changes are local display, timing policy, and draft-only editor refinements.
 - This phase operates on **user-imported synchronized offline .lrc**. No live extraction from online music, copyrighted lyric scraping, Google API or app-owned server is introduced.
 - Existing export/import/review, draft-only undo/discard, and cloud lyric backup/restore schemas remain unchanged.
 - The progress bar is interpolated from authored line timestamps and the current Media3 position. Accuracy is limited by timestamps, playback polling cadence and device audio latency.
-- A final cue has no defined end timestamp; its bar is marked complete once playback has moved beyond the cue start. Empty/before-first cue has no active bar.
+- A final cue has no defined end timestamp, so the progress bar is hidden unless a later distinct authored timestamp exists. Empty/before-first cue has no active bar.
 
 ## Verification performed
 - Pure policy `LyricsPresentationPolicy.kt` added, with **8** JUnit source cases for context anchoring, cue progress, timestamps, offsets, duplicate timestamp handling and extreme clock values.
