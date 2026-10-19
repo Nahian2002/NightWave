@@ -164,6 +164,8 @@ import com.nightwave.player.net.YouTubeGateway
 import com.nightwave.player.net.VideoSearchResults
 import com.nightwave.player.net.SearchMode
 import com.nightwave.player.net.SavedTrackSearch
+import com.nightwave.player.net.LocalSearchSuggestions
+import com.nightwave.player.net.SearchResultPresentationPolicy
 import com.nightwave.player.net.MusicIdentity
 import com.nightwave.player.net.SavedCreatorBrowser
 import com.nightwave.player.v2.library.LibraryBrowsePolicy
@@ -1436,7 +1438,8 @@ class NightWaveStudioActivity : ComponentActivity() {
             result.fold(
                 onSuccess = { response ->
                     nativeSearchState = StudioSearchSnapshot(query = clean, mode = mode,
-                        videos = response.videos, provider = response.note)
+                        videos = response.videos, provider = response.note,
+                        hint = SearchResultPresentationPolicy.emptyHint(response.videos))
                 },
                 onFailure = {
                     nativeSearchState = StudioSearchSnapshot(query = clean, mode = mode,
@@ -2607,9 +2610,14 @@ private fun StudioSearch(
             selectedCreator = null
         }
     }
-    val submit = { if (query.isNotBlank()) onPrimarySearch(query.trim(), mode) }
+    // Search on the keyboard stays inside NightWave. YouTube stays an
+    // explicit alternative when public provider results are unavailable.
+    val submit = { if (query.isNotBlank()) onNativeSearch(query.trim(), mode) }
     val savedMatches = remember(query, savedTracks) {
         SavedTrackSearch.match(query, savedTracks)
+    }
+    val localSuggestions = remember(query, savedTracks) {
+        LocalSearchSuggestions.suggest(query, savedTracks, limit = 6)
     }
     val knownCreators = remember(savedTracks) {
         MusicIdentity.creatorsFrom(savedTracks, limit = 8)
@@ -2621,8 +2629,8 @@ private fun StudioSearch(
         creatorGroups.firstOrNull { it.name == selectedCreator }
     }
     // Never present results from an older query as results for new typed text.
-    val responseMatchesQuery = state.query.isNotBlank() &&
-        query.trim().equals(state.query.trim(), ignoreCase = true)
+    val responseMatchesQuery = SearchResultPresentationPolicy.matches(
+        query, mode, state.query, state.mode)
     val searching = responseMatchesQuery && state.loading
     LazyColumn(
         modifier.fillMaxWidth().widthIn(max = 740.dp).fillMaxHeight(),
@@ -2650,6 +2658,33 @@ private fun StudioSearch(
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(onSearch = { submit() })
             )
+        }
+        if (query.isNotBlank() && localSuggestions.isNotEmpty()) {
+            item(key = "local-search-suggestions") {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text("Suggestions from your library",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                        localSuggestions.forEach { suggestion ->
+                            FilterChip(
+                                selected = false,
+                                onClick = {
+                                    // Only prefill local text; never send a
+                                    // saved library suggestion to a provider.
+                                    query = suggestion.query
+                                    selectedCreator = null
+                                },
+                                label = {
+                                    Text(suggestion.label, maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis)
+                                }
+                            )
+                        }
+                    }
+                }
+            }
         }
         if (selectedCreatorGroup != null && query.isBlank()) {
             item(key = "selected-saved-creator") {
@@ -2689,11 +2724,25 @@ private fun StudioSearch(
         } else {
         if (query.isNotBlank()) {
             item {
-                Button(onClick = submit, modifier = Modifier.fillMaxWidth().height(49.dp),
-                    shape = RoundedCornerShape(15.dp)) {
-                    Text("Find music on YouTube")
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically) {
+                    Button(
+                        onClick = submit,
+                        enabled = !searching,
+                        modifier = Modifier.weight(1f).height(49.dp),
+                        shape = RoundedCornerShape(15.dp)
+                    ) {
+                        Text(if (searching) "Searching…" else "Search NightWave",
+                            maxLines = 1)
+                    }
+                    OutlinedButton(
+                        onClick = { onPrimarySearch(query.trim(), mode) },
+                        modifier = Modifier.weight(1f).height(49.dp),
+                        shape = RoundedCornerShape(15.dp)
+                    ) { Text("YouTube") }
                 }
-                Text("Saved entries stay in your library. Public video audio still needs internet.",
+                Text("NightWave checks available public results. YouTube opens the " +
+                    "official search when providers cannot respond.",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
@@ -2813,7 +2862,7 @@ private fun StudioSearch(
                     (state.loading || state.error.isNotBlank() || state.videos.isNotEmpty()))) {
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    NightWaveMicroLabel("Optional quick results")
+                    NightWaveMicroLabel("Search filters")
                     Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
                         FilterChip(selected = mode == SearchMode.SONGS,
                             onClick = { mode = SearchMode.SONGS }, label = { Text("Songs") })
@@ -2823,17 +2872,10 @@ private fun StudioSearch(
                 }
             }
             item {
-                OutlinedButton(
-                    onClick = { onNativeSearch(query.trim(), mode) },
-                    enabled = !searching,
-                    modifier = Modifier.fillMaxWidth().height(44.dp)
-                ) {
-                    if (searching) {
-                        CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
-                        Spacer(Modifier.width(8.dp))
-                    }
-                    Text(if (searching) "Checking quick results…" else "Try quick in-app results")
-                }
+                Text("Choose Songs or Videos, then tap Search NightWave above " +
+                    "to refresh results for that mode.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             }
         }
@@ -2878,15 +2920,16 @@ private fun StudioSearch(
                     .background(MaterialTheme.colorScheme.surface)
                     .padding(horizontal = 14.dp, vertical = 13.dp),
                     verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                    Text("Quick results temporarily unavailable",
+                    Text("Public search temporarily unavailable",
                         style = MaterialTheme.typography.titleSmall)
-                    Text("Your library still works. Use Find music on YouTube above, or retry quick results.",
+                    Text("Your saved music is still searchable. Retry NightWave " +
+                        "or use official YouTube search.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedButton(onClick = { onNativeSearch(query.trim(), mode) },
                             enabled = query.isNotBlank()) {
-                            Text("Retry quick results")
+                            Text("Retry search")
                         }
                         OutlinedButton(onClick = { onWebSearch(query.trim()) },
                             enabled = query.isNotBlank()) {
