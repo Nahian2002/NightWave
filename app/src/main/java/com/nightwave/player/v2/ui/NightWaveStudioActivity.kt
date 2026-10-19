@@ -2677,7 +2677,11 @@ private fun StudioSearch(
                                     selectedCreator = null
                                 },
                                 label = {
-                                    Text(suggestion.label, maxLines = 1,
+                                    Text(suggestion.label + if (
+                                        suggestion.kind ==
+                                            com.nightwave.player.net.LocalSearchSuggestion.Kind.CREATOR
+                                    ) " · Creator" else " · Song",
+                                        maxLines = 1,
                                         overflow = TextOverflow.Ellipsis)
                                 }
                             )
