@@ -24,7 +24,12 @@ assert "ACTION_CROSSFADE_SET ->" in service
 assert "crossfadeSettings.save(seconds)" in service
 assert "CrossfadePolicy.canPrepare(" in service
 assert "library.fileFor(indexed) == null" in service
-assert "candidate = ExoPlayer.Builder(this).build()" in service
+# Phase 6X8 added headset-disconnect pause to both ExoPlayer builders.
+# Don't require .build() immediately after the builder constructor.
+assert "candidate = ExoPlayer.Builder(this)" in service
+assert "candidate = ExoPlayer.Builder(this)\n                .setHandleAudioBecomingNoisy(true)\n                .build().apply {" in service
+assert "runCatching { candidate?.release() }" in service
+assert "runCatching { deck?.pause(); deck?.release() }" in service
 assert "setAudioAttributes(AudioAttributes.Builder()" in service
 assert "setMediaItems((0 until outgoing.mediaItemCount).map(outgoing::getMediaItemAt)" in service
 assert "session.setPlayer(new)" in service
