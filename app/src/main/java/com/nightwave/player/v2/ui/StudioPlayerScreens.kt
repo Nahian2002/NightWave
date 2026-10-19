@@ -110,6 +110,8 @@ import com.nightwave.player.v2.lyrics.TimedLyrics
 import com.nightwave.player.v2.lyrics.LyricsSyncPolicy
 import com.nightwave.player.playback.PlaybackQueue
 import com.nightwave.player.playback.SleepTimerPolicy
+import com.nightwave.player.playback.CrossfadePolicy
+import kotlin.math.roundToInt
 import com.nightwave.player.playback.OfflinePlaybackSpeedPolicy
 import com.nightwave.player.playback.ListeningLevelPolicy
 
@@ -285,6 +287,8 @@ fun StudioNowPlayingOverlay(
     onOfflineSpeed: (Int) -> Unit,
     listeningLevelPercent: Int,
     onListeningLevel: (Int) -> Unit,
+    crossfadeSeconds: Int,
+    onCrossfade: (Int) -> Unit,
     onDismiss: () -> Unit,
     lyrics: TimedLyrics? = null,
     lyricsOffsetMs: Int = 0,
@@ -309,6 +313,8 @@ fun StudioNowPlayingOverlay(
             var lyricsOpen by remember(state.videoUrl) { mutableStateOf(false) }
             var lyricsGuideOpen by remember(state.videoUrl) { mutableStateOf(false) }
             var lyricsImmersive by remember(state.videoUrl) { mutableStateOf(false) }
+            var crossfadeOptionsOpen by remember { mutableStateOf(false) }
+            var crossfadeDraft by remember { mutableStateOf(crossfadeSeconds) }
             var sleepOptionsOpen by remember { mutableStateOf(false) }
             var speedOptionsOpen by remember { mutableStateOf(false) }
             var listeningOptionsOpen by remember { mutableStateOf(false) }
@@ -688,6 +694,56 @@ fun StudioNowPlayingOverlay(
                             )
                         }
                     }
+                }
+                Spacer(Modifier.height(11.dp))
+                OutlinedButton(
+                    onClick = {
+                        crossfadeDraft = crossfadeSeconds
+                        crossfadeOptionsOpen = true
+                    },
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text(if (crossfadeSeconds == 0) "Crossfade · Off"
+                        else "Crossfade · " + crossfadeSeconds + " sec")
+                }
+                if (crossfadeOptionsOpen) {
+                    androidx.compose.material3.AlertDialog(
+                        onDismissRequest = { crossfadeOptionsOpen = false },
+                        title = { Text("Crossfade") },
+                        text = {
+                            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                Text("Overlap two locally imported songs. Streaming tracks use normal playback.",
+                                    style = MaterialTheme.typography.bodyMedium)
+                                Text(if (crossfadeDraft == 0) "Off · normal gapless playback"
+                                    else "$" + "{crossfadeDraft} seconds overlap",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.primary)
+                                Slider(
+                                    value = crossfadeDraft.toFloat(),
+                                    onValueChange = { crossfadeDraft =
+                                        it.roundToInt().coerceIn(0, CrossfadePolicy.MAX_SECONDS) },
+                                    valueRange = 0f..CrossfadePolicy.MAX_SECONDS.toFloat(),
+                                    steps = CrossfadePolicy.MAX_SECONDS - 1,
+                                    modifier = Modifier.testTag("crossfade-seconds-slider")
+                                )
+                                Text("Off by default. Applies only to eligible offline queues at 1× speed.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        },
+                        confirmButton = {
+                            androidx.compose.material3.TextButton(onClick = {
+                                crossfadeOptionsOpen = false
+                                onCrossfade(crossfadeDraft)
+                            }) { Text("Apply") }
+                        },
+                        dismissButton = {
+                            androidx.compose.material3.TextButton(
+                                onClick = { crossfadeOptionsOpen = false }
+                            ) { Text("Cancel") }
+                        }
+                    )
                 }
                 Spacer(Modifier.height(11.dp))
                 Box(Modifier.fillMaxWidth()) {
