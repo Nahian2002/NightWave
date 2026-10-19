@@ -50,24 +50,24 @@ internal fun NightWaveSeekTimeline(
         .pointerInput(enabled) {
             val edge = 8.dp.toPx()
             detectTapGestures { pos ->
-                val width = (size.width.toFloat() - edge * 2f).coerceAtLeast(1f)
-                val chosen = ((pos.x - edge) / width).coerceIn(0f, 1f)
-                commitCallback(chosen)
+                commitCallback(NightWaveSeekGesturePolicy.touchFraction(
+                    pos.x, size.width.toFloat(), edge))
             }
         }
         .pointerInput(enabled) {
             val edge = 8.dp.toPx()
-            val width = (size.width.toFloat() - edge * 2f).coerceAtLeast(1f)
             detectDragGestures(
                 onDragStart = { pos ->
-                    dragged = ((pos.x - edge) / width).coerceIn(0f, 1f)
+                    dragged = NightWaveSeekGesturePolicy.touchFraction(
+                        pos.x, size.width.toFloat(), edge)
                     previewCallback(dragged)
                 },
                 onDragEnd = { commitCallback(dragged) },
                 onDragCancel = { cancelCallback() }
             ) { change, _ ->
                 change.consume()
-                dragged = ((change.position.x - edge) / width).coerceIn(0f, 1f)
+                dragged = NightWaveSeekGesturePolicy.touchFraction(
+                    change.position.x, size.width.toFloat(), edge)
                 previewCallback(dragged)
             }
         }
@@ -86,17 +86,18 @@ internal fun NightWaveSeekTimeline(
             .then(tapDragModifier)
     ) {
         val edge = 8.dp.toPx()
-        val usable = (size.width - 2f * edge).coerceAtLeast(1f)
+        val startX = NightWaveSeekGesturePolicy.thumbX(0f, size.width, edge)
+        val fullX = NightWaveSeekGesturePolicy.thumbX(1f, size.width, edge)
         val cy = size.height / 2f
-        val endX = edge + usable * shown
+        val endX = NightWaveSeekGesturePolicy.thumbX(shown, size.width, edge)
         val baseline = colors.onSurfaceVariant.copy(alpha = .25f)
         drawLine(
-            baseline, Offset(edge, cy), Offset(edge + usable, cy),
+            baseline, Offset(startX, cy), Offset(fullX, cy),
             strokeWidth = 4.dp.toPx(), cap = StrokeCap.Round
         )
         drawLine(
             if (enabled) colors.primary else colors.onSurfaceVariant,
-            Offset(edge, cy), Offset(endX, cy),
+            Offset(startX, cy), Offset(endX, cy),
             strokeWidth = 4.dp.toPx(), cap = StrokeCap.Round
         )
         drawCircle(
