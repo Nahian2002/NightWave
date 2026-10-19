@@ -14,6 +14,10 @@ class SoundStudioPolicyTest {
         assertEquals(listOf(100, 100), SoundStudioPolicy.flatLevels(2, 100, 900))
     }
 
+    @Test fun corruptAudioRangeNeverCrashesDraftInitialization() {
+        assertTrue(SoundStudioPolicy.flatLevels(5, 1000, -1000).isEmpty())
+    }
+
     @Test fun manualEditsClampWithoutMutatingOriginal() {
         val original = listOf(0, 100, -100)
         val adjusted = SoundStudioPolicy.updateLevel(original, 1, 2500, -1500, 1500)
