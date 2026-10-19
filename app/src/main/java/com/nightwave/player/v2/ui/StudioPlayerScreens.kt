@@ -70,6 +70,7 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.Button
@@ -289,6 +290,8 @@ fun StudioNowPlayingOverlay(
     onListeningLevel: (Int) -> Unit,
     crossfadeSeconds: Int,
     onCrossfade: (Int) -> Unit,
+    normalizationEnabled: Boolean,
+    onNormalizationChange: (Boolean) -> Unit,
     onDismiss: () -> Unit,
     lyrics: TimedLyrics? = null,
     lyricsOffsetMs: Int = 0,
@@ -771,6 +774,31 @@ fun StudioNowPlayingOverlay(
                 }
 
                 if (state.offline) {
+                    Spacer(Modifier.height(11.dp))
+                    Surface(
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .5f),
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Column(Modifier.weight(1f)) {
+                                Text("Volume balance · " + if (normalizationEnabled) "On" else "Off",
+                                    style = MaterialTheme.typography.titleSmall)
+                                Text("Analyzes imported music locally and reduces loud tracks. No boosts.",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            Switch(
+                                checked = normalizationEnabled,
+                                onCheckedChange = onNormalizationChange,
+                                modifier = Modifier.testTag("offline-volume-normalization-switch")
+                            )
+                        }
+                    }
                     Spacer(Modifier.height(11.dp))
                     Box(Modifier.fillMaxWidth()) {
                         OutlinedButton(
