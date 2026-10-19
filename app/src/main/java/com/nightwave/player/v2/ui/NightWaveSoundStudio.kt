@@ -76,11 +76,14 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
         val latest = capabilityStore.read()
         if (resetDraft || latest.audioSessionId != capabilities.audioSessionId ||
             latest.centersHz.size != capabilities.centersHz.size) {
-            draftLevels = if (SoundStudioPolicy.validLevels(
+            val allowed = SoundStudioPolicy.safeManualRange(
+                latest.minimumMb, latest.maximumMb)
+            draftLevels = if (allowed == null) emptyList()
+                else if (SoundStudioPolicy.validLevels(
                     latest.levelsMb, latest.centersHz.size,
-                    latest.minimumMb, latest.maximumMb
+                    allowed.first, allowed.last
                 )) latest.levelsMb else SoundStudioPolicy.flatLevels(
-                    latest.centersHz.size, latest.minimumMb, latest.maximumMb
+                    latest.centersHz.size, allowed.first, allowed.last
                 )
         }
         capabilities = latest
@@ -165,11 +168,13 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
 
     val primary = MaterialTheme.colorScheme.primary
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
-    val validManual = capabilities.sessionReady &&
-        capabilities.minimumMb < capabilities.maximumMb &&
+    val manualRange = SoundStudioPolicy.safeManualRange(
+        capabilities.minimumMb, capabilities.maximumMb)
+    val validManual = capabilities.sessionReady && manualRange != null &&
+        manualRange.first < manualRange.last &&
         SoundStudioPolicy.validLevels(
             draftLevels, capabilities.centersHz.size,
-            capabilities.minimumMb, capabilities.maximumMb)
+            manualRange.first, manualRange.last)
     val busy = loading || pendingCommand != null
 
     Dialog(onDismissRequest = onDismiss,
@@ -334,11 +339,13 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                             Text("Manual bands", style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold)
                             Spacer(Modifier.weight(1f))
-                            TextButton(enabled = !busy && capabilities.sessionReady,
-                                onClick = {
-                                    draftLevels = SoundStudioPolicy.flatLevels(
-                                        capabilities.centersHz.size,
-                                        capabilities.minimumMb, capabilities.maximumMb)
+                            TextButton(enabled = !busy && capabilities.sessionReady &&
+                                manualRange != null, onClick = {
+                                    manualRange?.let { range ->
+                                        draftLevels = SoundStudioPolicy.flatLevels(
+                                            capabilities.centersHz.size,
+                                            range.first, range.last)
+                                    }
                                 }) { Text("Reset flat") }
                         }
                     }
@@ -364,19 +371,20 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                                             color = primary,
                                             style = MaterialTheme.typography.bodyMedium)
                                     }
-                                    if (capabilities.minimumMb < capabilities.maximumMb) {
+                                    if (manualRange != null &&
+                                        manualRange.first < manualRange.last) {
                                         Slider(
                                             value = draftLevels[index].toFloat(),
                                             enabled = !busy,
                                             onValueChange = { value ->
                                                 draftLevels = SoundStudioPolicy.updateLevel(
                                                     draftLevels, index, value.toInt(),
-                                                    capabilities.minimumMb,
-                                                    capabilities.maximumMb)
+                                                    manualRange.first,
+                                                    manualRange.last)
                                             },
                                             valueRange = (
-                                                capabilities.minimumMb.toFloat()..
-                                                    capabilities.maximumMb.toFloat()
+                                                manualRange.first.toFloat()..
+                                                    manualRange.last.toFloat()
                                             )
                                         )
                                     } else {
