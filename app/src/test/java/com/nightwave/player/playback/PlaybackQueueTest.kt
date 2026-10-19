@@ -93,6 +93,21 @@ class PlaybackQueueTest {
         assertEquals(e(1), q.previous())
     }
 
+    @Test fun deduplicatedReplacementKeepsRequestedSongSelected() {
+        val q = PlaybackQueue()
+        assertEquals(e(2), q.replace(listOf(e(1), e(1), e(2), e(3)), 2))
+        assertEquals(1, q.index)
+        assertEquals(listOf(e(1), e(2), e(3)), q.snapshot())
+        assertEquals(e(3), q.next())
+    }
+
+    @Test fun duplicateSelectedUrlResolvesToTheRetainedSong() {
+        val q = PlaybackQueue()
+        assertEquals(e(1), q.replace(listOf(e(1), e(2), e(1)), 2))
+        assertEquals(0, q.index)
+        assertEquals(2, q.size)
+    }
+
     @Test fun queueCapsAt100AndDoesNotDuplicate() {
         val q = PlaybackQueue()
         q.replace((0..150).map(::e), 10)
