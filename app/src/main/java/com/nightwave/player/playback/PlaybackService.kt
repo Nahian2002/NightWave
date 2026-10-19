@@ -67,6 +67,8 @@ class PlaybackService : MediaSessionService() {
         const val ACTION_SLEEP_TIMER_SET = "com.nightwave.player.SLEEP_TIMER_SET"
         const val ACTION_SLEEP_TIMER_CANCEL = "com.nightwave.player.SLEEP_TIMER_CANCEL"
         const val ACTION_OFFLINE_SPEED_SET = "com.nightwave.player.OFFLINE_SPEED_SET"
+        const val ACTION_CROSSFADE_SET = "com.nightwave.player.CROSSFADE_SET"
+        const val EXTRA_CROSSFADE_SECONDS = "crossfade_seconds"
         const val ACTION_LISTENING_LEVEL_SET = "com.nightwave.player.LISTENING_LEVEL_SET"
         const val ACTION_EQ_PRESET_SET = "com.nightwave.player.EQ_PRESET_SET"
         const val EXTRA_EQ_PRESET = "eq_preset"
@@ -180,6 +182,7 @@ class PlaybackService : MediaSessionService() {
                 return@Runnable
             }
             sleepTimerPaused = true
+            cancelCrossfade()
             clearSleepTimer()
             // Pause both public and app-owned offline audio. If a public URL is
             // resolving, invalidate it to prevent the result from autoplaying.
@@ -207,6 +210,162 @@ class PlaybackService : MediaSessionService() {
     private var offlinePlaying = false
     // True only for a fully validated local Media3 playlist. Public streams are never preloaded.
     private var offlineGaplessActive = false
+    private lateinit var crossfadeSettings: CrossfadeSettingsStore
+    private var crossfadeSeconds = CrossfadePolicy.DEFAULT_SECONDS
+    private var crossfadeIncoming: ExoPlayer? = null
+    private var crossfadeOutgoing: ExoPlayer? = null
+    private var crossfadeTargetIndex = -1
+    private var crossfadeStartedAtMs = 0L
+
+    private val crossfadeTick = object : Runnable {
+        override fun run() {
+            val player = exoPlayer ?: return
+            if (!offlinePlaying || !offlineGaplessActive ||
+                crossfadeSeconds == 0 || !player.isPlaying) {
+                cancelCrossfade()
+                return
+            }
+            val index = player.currentMediaItemIndex
+            val duration = player.duration
+            val position = player.currentPosition
+            if (!CrossfadePolicy.canPrepare(crossfadeSeconds, offlinePlaying,
+                    offlineGaplessActive, player.playbackParameters.speed == 1f,
+                    index, player.mediaItemCount, duration, position)) {
+                cancelCrossfade()
+                return
+            }
+            val remaining = (duration - position).coerceAtLeast(0L)
+            val overlap = CrossfadePolicy.startThresholdMs(crossfadeSeconds)
+            if (crossfadeOutgoing != null && crossfadeOutgoing !== player) {
+                cancelCrossfade()
+                return
+            }
+            if (crossfadeIncoming == null && remaining <= overlap + 1_500L &&
+                remaining > 350L) {
+                prepareCrossfadeDeck(player, index + 1)
+            }
+            val incoming = crossfadeIncoming
+            if (incoming != null && crossfadeTargetIndex == index + 1) {
+                if (crossfadeStartedAtMs == 0L && remaining <= overlap &&
+                    remaining >= 350L && incoming.playbackState == Player.STATE_READY) {
+                    crossfadeStartedAtMs = SystemClock.elapsedRealtime()
+                    incoming.play()
+                }
+                if (crossfadeStartedAtMs > 0L) {
+                    val progress = CrossfadePolicy.progress(
+                        SystemClock.elapsedRealtime() - crossfadeStartedAtMs, crossfadeSeconds)
+                    val (oldGain, newGain) = CrossfadePolicy.gains(
+                        progress, ListeningLevelPolicy.gain(listeningLevelStore.read()))
+                    player.volume = oldGain
+                    incoming.volume = newGain
+                    if (progress >= .97f || remaining <= 150L) {
+                        finishCrossfade()
+                        return
+                    }
+                } else if (remaining < 350L) {
+                    cancelCrossfade() // decoder wasn't ready; preserve ordinary gapless.
+                }
+            }
+            main.postDelayed(this, if (remaining <= overlap + 2_000L) 55L else 700L)
+        }
+    }
+
+    private fun scheduleCrossfadeCheck() {
+        main.removeCallbacks(crossfadeTick)
+        if (crossfadeSeconds > 0 && offlineGaplessActive && offlinePlaying &&
+            exoPlayer?.isPlaying == true) main.post(crossfadeTick)
+    }
+
+    private fun prepareCrossfadeDeck(outgoing: ExoPlayer, nextIndex: Int) {
+        val id = offlineQueue.snapshot().getOrNull(nextIndex) ?: return
+        if (nextIndex !in 0 until outgoing.mediaItemCount ||
+            outgoing.getMediaItemAt(nextIndex).mediaId != "offline:$id") return
+        val library = OfflineAudioLibrary(this)
+        val indexed = runCatching { library.find(id) }.getOrNull() ?: return
+        if (library.fileFor(indexed) == null) return // no unchecked path preload
+        var candidate: ExoPlayer? = null
+        try {
+            candidate = ExoPlayer.Builder(this).build().apply {
+                volume = 0f
+                setAudioAttributes(AudioAttributes.Builder()
+                    .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+                    .setUsage(C.USAGE_MEDIA).build(), false)
+                setMediaItems((0 until outgoing.mediaItemCount).map(outgoing::getMediaItemAt),
+                    nextIndex, 0L)
+                playWhenReady = false
+                prepare()
+            }
+            crossfadeOutgoing = outgoing
+            crossfadeIncoming = candidate
+            crossfadeTargetIndex = nextIndex
+        } catch (error: Exception) {
+            Log.w("NightWavePlayback", "Crossfade prebuffer unavailable", error)
+            runCatching { candidate?.release() }
+        }
+    }
+
+    private fun cancelCrossfade() {
+        main.removeCallbacks(crossfadeTick)
+        val deck = crossfadeIncoming
+        crossfadeIncoming = null
+        crossfadeOutgoing = null
+        crossfadeTargetIndex = -1
+        crossfadeStartedAtMs = 0L
+        runCatching { deck?.pause(); deck?.release() }
+        exoPlayer?.volume = if (::listeningLevelStore.isInitialized)
+            ListeningLevelPolicy.gain(listeningLevelStore.read()) else 1f
+    }
+
+    /**
+     * Both decks are already playing during the overlap. Transfer the media
+     * session on its application looper; never create a second MediaSession.
+     */
+    private fun finishCrossfade() {
+        val old = exoPlayer ?: return cancelCrossfade()
+        val new = crossfadeIncoming ?: return cancelCrossfade()
+        val index = crossfadeTargetIndex
+        val ids = offlineQueue.snapshot()
+        val id = ids.getOrNull(index) ?: return cancelCrossfade()
+        val session = mediaSession ?: return cancelCrossfade()
+        if (crossfadeOutgoing !== old || new.currentMediaItem?.mediaId != "offline:$id" ||
+            !offlinePlaying || !offlineGaplessActive || sleepTimerPaused) {
+            cancelCrossfade()
+            return
+        }
+        try {
+            // Only the session-owned deck takes Android audio focus after the swap.
+            new.setAudioAttributes(AudioAttributes.Builder()
+                .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+                .setUsage(C.USAGE_MEDIA).build(), true)
+            session.setPlayer(new) // Media3 requires the same application Looper.
+        } catch (error: Exception) {
+            Log.w("NightWavePlayback", "Crossfade session handoff unavailable", error)
+            cancelCrossfade() // primary remains connected, ordinary gapless continues
+            return
+        }
+        sampleListening(endSession = true)
+        persistProgress(flush = true)
+        old.removeListener(trackListener)
+        exoPlayer = new
+        crossfadeIncoming = null
+        crossfadeOutgoing = null
+        crossfadeTargetIndex = -1
+        crossfadeStartedAtMs = 0L
+        main.removeCallbacks(crossfadeTick)
+        releaseEqualizer()
+        new.addListener(trackListener)
+        applyEqualizer(new.audioSessionId)
+        new.volume = ListeningLevelPolicy.gain(listeningLevelStore.read())
+        if (offlineQueue.jump(index) != null) {
+            offlineSession.saveSelection(ids, id, new.currentPosition.coerceAtLeast(0L))
+        }
+        generation++ // invalidate delayed outgoing track-end callbacks
+        handledEndMediaId = null
+        runCatching { old.pause(); old.release() }
+        main.removeCallbacks(progressWriter)
+        if (new.isPlaying) main.postDelayed(progressWriter, 2_500L)
+        scheduleCrossfadeCheck()
+    }
     // The service owns the only pending Undo. No playlist/audio-file writes.
     private var pendingQueueRemoval: Pair<String, PlaybackQueue.RemovedUpcoming>? = null
     private val offlineQueue = OfflinePlaybackQueue()
@@ -291,7 +450,9 @@ class PlaybackService : MediaSessionService() {
             applyEqualizer(audioSessionId)
         }
         override fun onIsPlayingChanged(isPlaying: Boolean) {
+            if (!isPlaying && crossfadeOutgoing === exoPlayer) cancelCrossfade()
             if (isPlaying) {
+                scheduleCrossfadeCheck()
                 sleepTimerPaused = false
                 // Genuine playback after Repeat One/manual Replay permits a new natural end.
                 handledEndMediaId = null
@@ -342,6 +503,11 @@ class PlaybackService : MediaSessionService() {
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            if (crossfadeOutgoing === exoPlayer && crossfadeIncoming != null &&
+                reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
+                if (crossfadeStartedAtMs > 0L) finishCrossfade()
+                else cancelCrossfade()
+            }
             if (offlinePlaying && offlineGaplessActive &&
                 (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO ||
                     reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK)) {
@@ -368,9 +534,11 @@ class PlaybackService : MediaSessionService() {
                 sampleListening(endSession = true)
             }
             sampleListening()
+            scheduleCrossfadeCheck()
         }
 
         override fun onPlayerError(error: PlaybackException) {
+            cancelCrossfade()
             sampleListening()
             val player = exoPlayer ?: return
             val video = player.currentMediaItem?.mediaId ?: return
@@ -428,6 +596,8 @@ class PlaybackService : MediaSessionService() {
         sleepStatus = SleepTimerStatusStore(this)
         offlineSpeedStore = OfflinePlaybackSpeedStore(this)
         listeningLevelStore = ListeningLevelStore(this)
+        crossfadeSettings = CrossfadeSettingsStore(this)
+        crossfadeSeconds = crossfadeSettings.read()
         // A process/service restart never silently resurrects an old timer.
         // Playback itself also requires an explicit user resume after restart.
         clearSleepTimer()
@@ -586,6 +756,7 @@ class PlaybackService : MediaSessionService() {
                 }
             }
             ACTION_PLAY_OFFLINE -> {
+                cancelCrossfade()
                 val id = intent.getStringExtra(EXTRA_OFFLINE_ID).orEmpty()
                 val localLibrary = OfflineAudioLibrary(this)
                 // Accept only registered private IDs, never externally supplied paths.
@@ -601,6 +772,7 @@ class PlaybackService : MediaSessionService() {
             }
             ACTION_RESUME_OFFLINE -> resumeOfflineSession()
             ACTION_JUMP_OFFLINE -> if (offlinePlaying) {
+                cancelCrossfade()
                 val index = intent.getIntExtra(EXTRA_INDEX, -1)
                 val player = exoPlayer
                 val id = offlineQueue.snapshot().getOrNull(index)
@@ -669,13 +841,23 @@ class PlaybackService : MediaSessionService() {
                     applyEqualizer(exoPlayer?.audioSessionId ?: C.AUDIO_SESSION_ID_UNSET)
                 }
             }
+            ACTION_CROSSFADE_SET -> {
+                val seconds = intent.getIntExtra(EXTRA_CROSSFADE_SECONDS, -1)
+                if (CrossfadePolicy.accepts(seconds) && crossfadeSettings.save(seconds)) {
+                    cancelCrossfade()
+                    crossfadeSeconds = seconds
+                    scheduleCrossfadeCheck()
+                }
+            }
             ACTION_LISTENING_LEVEL_SET -> {
                 val percent = intent.getIntExtra(EXTRA_LISTENING_LEVEL_PERCENT, -1)
                 if (ListeningLevelPolicy.accepts(percent) &&
                     listeningLevelStore.save(percent)
                 ) {
                     // No amplification above unity and no Android system-volume change.
-                    exoPlayer?.volume = ListeningLevelPolicy.gain(percent)
+                    if (crossfadeStartedAtMs == 0L)
+                        exoPlayer?.volume = ListeningLevelPolicy.gain(percent)
+                    // An active overlap recomputes both gains in its next tick.
                 }
             }
             ACTION_OFFLINE_SPEED_SET -> {
@@ -683,7 +865,9 @@ class PlaybackService : MediaSessionService() {
                 if (OfflinePlaybackSpeedPolicy.accepts(percent) &&
                     offlineSpeedStore.save(percent) && offlinePlaying
                 ) {
+                    if (percent != OfflinePlaybackSpeedPolicy.NORMAL_PERCENT) cancelCrossfade()
                     exoPlayer?.setPlaybackSpeed(OfflinePlaybackSpeedPolicy.speed(percent))
+                    scheduleCrossfadeCheck()
                 }
             }
             ACTION_NEXT -> playNext(false)
@@ -832,6 +1016,7 @@ class PlaybackService : MediaSessionService() {
         id: String, localLibrary: OfflineAudioLibrary = OfflineAudioLibrary(this),
         resumePositionMs: Long = 0L
     ): Boolean {
+        cancelCrossfade()
         val song = runCatching { localLibrary.find(id) }.getOrNull() ?: return false
         val file = localLibrary.fileFor(song) ?: return false
         val player = exoPlayer ?: return false
@@ -869,10 +1054,12 @@ class PlaybackService : MediaSessionService() {
             if (timeline == null && resumePositionMs > 0L) seekTo(resumePositionMs)
             play()
         }
+        scheduleCrossfadeCheck()
         return true
     }
 
     private fun advanceOffline(forward: Boolean): Boolean {
+        cancelCrossfade()
         val player = exoPlayer
         if (offlineGaplessActive && player != null) {
             // The timeline already owns validated local media items. Avoid
@@ -926,6 +1113,7 @@ class PlaybackService : MediaSessionService() {
     }
 
     private fun playPrevious() {
+        cancelCrossfade()
         val player = exoPlayer
         // Music-player convention: Previous first restarts a song if >3 seconds in.
         if (player != null && player.currentPosition > 3_000L &&
@@ -958,6 +1146,7 @@ class PlaybackService : MediaSessionService() {
         entry: QueueEntry, autoPlay: Boolean = true,
         resumePositionMs: Long = 0L, recoveryAttempt: Boolean = false
     ) {
+        cancelCrossfade()
         // Flush a local checkpoint before changing playback mode or clearing
         // its MediaItem. Otherwise the last 2.5-second progress tick could be lost.
         if (offlinePlaying) persistProgress(flush = true)
@@ -1066,6 +1255,7 @@ class PlaybackService : MediaSessionService() {
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = mediaSession
 
     override fun onDestroy() {
+        cancelCrossfade()
         clearSleepTimer()
         sampleListening(endSession = true)
         persistProgress(flush = true)
