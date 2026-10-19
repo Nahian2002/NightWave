@@ -23,12 +23,19 @@ object LyricsPresentationPolicy {
         require(LyricsSyncPolicy.validOffset(offsetMs)) { "Unsupported lyric offset" }
         if (activeIndex !in lyrics.cues.indices) return 0f
         val start = lyrics.cues[activeIndex].timeMs
-        val next = lyrics.cues.drop(activeIndex + 1)
-            .firstOrNull { it.timeMs > start }?.timeMs ?: return 1f
         val clock = positionMs.coerceIn(0L, Long.MAX_VALUE - LyricsSyncPolicy.MAX_OFFSET_MS) -
             offsetMs.toLong()
         if (clock <= start) return 0f
-        val span = (next - start).coerceAtLeast(1L)
+        var next: Long? = null
+        for (index in activeIndex + 1 until lyrics.cues.size) {
+            val timestamp = lyrics.cues[index].timeMs
+            if (timestamp > start) {
+                next = timestamp
+                break
+            }
+        }
+        val nextTime = next ?: return 1f
+        val span = (nextTime - start).coerceAtLeast(1L)
         return ((clock - start).toDouble() / span.toDouble()).coerceIn(0.0, 1.0).toFloat()
     }
 }
