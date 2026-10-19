@@ -223,6 +223,7 @@ class PlaybackService : MediaSessionService() {
     private var normalizationEnabled = false
     private val normalizationGains = mutableMapOf<String, Float>()
     private val normalizationPending = mutableSetOf<String>()
+    private val normalizationUnsupported = mutableSetOf<String>()
     private val normalizationWorker = ThreadPoolExecutor(
         1, 1, 30L, TimeUnit.SECONDS, ArrayBlockingQueue<Runnable>(1),
         ThreadPoolExecutor.AbortPolicy()
@@ -278,7 +279,8 @@ class PlaybackService : MediaSessionService() {
      */
     private fun scheduleNormalization(id: String?) {
         if (!normalizationEnabled || !offlinePlaying || id.isNullOrBlank() ||
-            normalizationGains.containsKey(id) || !normalizationPending.add(id)) return
+            normalizationGains.containsKey(id) || normalizationUnsupported.contains(id) ||
+            !normalizationPending.add(id)) return
         val token = normalizationEpoch
         try {
             normalizationWorker.execute {
@@ -302,6 +304,10 @@ class PlaybackService : MediaSessionService() {
                         normalizationGains[id] = result
                         if (exoPlayer?.currentMediaItem?.mediaId == "offline:$id")
                             smoothlyApplyMeasuredMaster()
+                    } else {
+                        // Unsupported/undecodable files remain playable at unity;
+                        // don't burn CPU repeating the same failed analysis.
+                        normalizationUnsupported.add(id)
                     }
                 }
             }
@@ -979,6 +985,7 @@ class PlaybackService : MediaSessionService() {
                     normalizationEpoch++
                     normalizationGains.clear()
                     normalizationPending.clear()
+                    normalizationUnsupported.clear()
                     if (enabled) normalizeSelectedAndNext()
                     applyCurrentMaster()
                 }
