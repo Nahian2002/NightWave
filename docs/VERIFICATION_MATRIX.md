@@ -1,6 +1,6 @@
 # NightWave Verification Matrix
 
-**Status date:** 2026-10-19. **Scope:** integrated development branch `fix/nightwave-v2-phase6x8c4-daily-mix-unit-test-compile`.
+**Status date:** 2026-10-19. **Scope:** integrated development branch `fix/nightwave-v2-phase6x8c5-offline-previous-queue-order`.
 
 This matrix distinguishes **observed completed tests** from **checks included in source but not executed**. No count of source assertions can prove an entire Android project is bug-free.
 
@@ -27,7 +27,13 @@ This matrix distinguishes **observed completed tests** from **checks included in
 | 6X8C3 JVM test compilation | Two nested-list arguments in Daily Mix tests | **FAILED on 6X8C3** |
 | 6X8C4 corrected Daily Mix input types | Flat `List<VideoPreview>`, all 11 tests preserved | COMMITTED, needs fresh Gradle |
 | 6X8C4 Windows + 6X6 CI regression guards | Reject both old nested-list call sites | COMMITTED, source-checked |
-| 6X8C4 full Gradle build/unit tests | No `BUILD SUCCESSFUL` confirmed yet | **PENDING** |
+| 6X8C4 app Kotlin, Android test-source and JVM test-source compilation | All completed in actual user Windows build | **PASS on 6X8C4** |
+| 6X8C4 debug assembly | `:app:assembleDebug` completed; full build blocked by JUnit failure | **PASS assembly, NOT release** |
+| 6X8C4 JVM tests | **771 executed, 770 passed, 1 failed**: OfflinePlaybackQueueTest.jumpHandlesBoundsWithoutDamagingSelection | **FAIL on 6X8C4** |
+| 6X8C5 offline Previous correction | History limited to Shuffle; sequential Previous follows queue order | **COMMITTED, not Android-built** |
+| 6X8C5 isolated queue test methods | Kotlin/JVM with minimal JUnit-compatible assertions, **18/18 passed** | **PASS, isolated only** |
+| 6X8C5 extra navigation assertions | Kotlin/JVM pure queue, **62/62 passed** | **PASS, isolated only** |
+| 6X8C5 Android Gradle, signing, phone tests | A fresh 6X8C5 Windows run is required | **PENDING** |
 
 ## Release blockers
 
