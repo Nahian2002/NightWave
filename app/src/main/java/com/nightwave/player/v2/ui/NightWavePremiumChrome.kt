@@ -77,7 +77,7 @@ fun NightWavePremiumNavigation(
         Row(
             modifier = Modifier.fillMaxWidth()
                 .height(NightWaveChromePolicy.NAV_HEIGHT_DP.dp)
-                .padding(horizontal = 5.dp, vertical = 5.dp),
+                .padding(horizontal = 5.dp, vertical = 2.dp),
             horizontalArrangement = Arrangement.spacedBy(3.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
