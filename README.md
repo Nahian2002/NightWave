@@ -1,5 +1,8 @@
 # NightWave
 
+> **NW-02 Sound Studio development — 19 October 2026:** The next [Spotify-style refinement branch](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-v2-nw02-sound-studio) replaces the old equalizer dialogs with an in-app Compose Sound Studio. It adds device-reported frequency response, manual bands, audio-session diagnostics and fixes ignored preset changes on existing sessions. [NW-02 scope and acceptance](docs/NIGHTWAVE_NW02_SOUND_STUDIO_QA.md). The previous NW-01 Shuffle and Google Drive changes remain included. **Full Android compilation and device testing of NW-02 remain pending; this is development source, not a validated APK.**
+
+
 > **NW-01 field-recovery candidate — 19 October 2026:** Following real-device reports of delayed public-video Shuffle, non-working/unavailable EQ, and no visible Google authorization, a separate [NW-01 repair branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw01-shuffle-eq-google-recovery) adds immediate acknowledged Shuffle requests, detailed EQ diagnostics, and a visible optional Google Drive connection entry. **This is not a verified APK**: the Android build and on-device recheck remain pending. Review [exact test instructions](docs/NIGHTWAVE_NW01_FIELD_FAILURES_QA.md). The earlier `6960dc5` archive remains unchanged.
 
 
