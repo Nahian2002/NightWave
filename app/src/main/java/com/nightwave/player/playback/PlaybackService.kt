@@ -844,7 +844,17 @@ class PlaybackService : MediaLibraryService() {
                     parentId: String, page: Int, pageSize: Int,
                     params: LibraryParams?
                 ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> {
-                    val items = carCatalog.children(parentId)
+                    val items = runCatching {
+                        when {
+                            // A car requesting offline-only content should never
+                            // be shown public tracks as available without data.
+                            params?.isOffline == true && parentId == AutoBrowsePolicy.ROOT ->
+                                listOfNotNull(carCatalog.item(AutoBrowsePolicy.IMPORTED))
+                            params?.isOffline == true && parentId != AutoBrowsePolicy.IMPORTED ->
+                                emptyList()
+                            else -> carCatalog.children(parentId)
+                        }
+                    }.getOrNull()
                         ?: return Futures.immediateFuture(
                             LibraryResult.ofError(SessionError.ERROR_BAD_VALUE))
                     val selected = AutoBrowsePolicy.page(items, page, pageSize)
@@ -857,7 +867,7 @@ class PlaybackService : MediaLibraryService() {
                     browser: MediaSession.ControllerInfo,
                     mediaId: String
                 ): ListenableFuture<LibraryResult<MediaItem>> {
-                    val item = carCatalog.item(mediaId)
+                    val item = runCatching { carCatalog.item(mediaId) }.getOrNull()
                         ?: return Futures.immediateFuture(
                             LibraryResult.ofError(SessionError.ERROR_BAD_VALUE))
                     return Futures.immediateFuture(LibraryResult.ofItem(item, null))
@@ -868,7 +878,12 @@ class PlaybackService : MediaLibraryService() {
                     browser: MediaSession.ControllerInfo,
                     query: String, params: LibraryParams?
                 ): ListenableFuture<LibraryResult<Void>> {
-                    val count = runCatching { carCatalog.search(query).size }.getOrDefault(0)
+                    val count = runCatching {
+                        val results = carCatalog.search(query)
+                        if (params?.isOffline == true)
+                            results.count { it.mediaId.startsWith(AutoBrowsePolicy.OFFLINE_PREFIX) }
+                        else results.size
+                    }.getOrDefault(0)
                     session.notifySearchResultChanged(browser, query, count, params)
                     return Futures.immediateFuture(LibraryResult.ofVoid())
                 }
@@ -880,6 +895,11 @@ class PlaybackService : MediaLibraryService() {
                     params: LibraryParams?
                 ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> {
                     val items = runCatching { carCatalog.search(query) }.getOrDefault(emptyList())
+                        .let { results ->
+                            if (params?.isOffline == true) results.filter {
+                                it.mediaId.startsWith(AutoBrowsePolicy.OFFLINE_PREFIX)
+                            } else results
+                        }
                     return Futures.immediateFuture(LibraryResult.ofItemList(
                         ImmutableList.copyOf(AutoBrowsePolicy.page(items, page, pageSize)),
                         params))
