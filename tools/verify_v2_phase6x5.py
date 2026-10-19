@@ -33,6 +33,9 @@ assert "MAX_COLLECTIONS = 8" in smart
 assert "Recent rotation" in smart
 assert "Rediscover your likes" in smart
 assert "Long listens" in smart
+assert "val durationSeconds: Long" in source(base + "net/YouTubeGateway.kt")
+assert "it.durationSeconds >= 240L" in smart
+assert "it.duration >= 240L" not in smart
 assert "Creator mix" in smart
 assert "MusicIdentity.display(" in smart
 assert ".distinctBy { it.url }" in smart
