@@ -68,6 +68,8 @@ dependencies {
     implementation("androidx.media3:media3-exoplayer-hls:1.6.1")
     implementation("androidx.media3:media3-exoplayer-dash:1.6.1")
     implementation("androidx.media3:media3-session:1.6.1")
+    // Explicit Guava API used by non-blocking Media3 widget/session commands.
+    implementation("com.google.guava:guava:33.3.1-android")
     implementation("androidx.media3:media3-datasource:1.6.1")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.github.TeamNewPipe:NewPipeExtractor:v0.26.5")
