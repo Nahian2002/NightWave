@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="14dp"
+    android:background="@drawable/nightwave_widget_surface">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+        <ImageView
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:src="@drawable/ic_nightwave"
+            android:contentDescription="@string/app_name" />
+        <TextView
+            android:id="@+id/widget_open"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:paddingStart="10dp"
+            android:text="NightWave"
+            android:textColor="#C8BDFF"
+            android:textStyle="bold"
+            android:textSize="15sp" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/widget_track"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:text="Ready when you are"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        android:textSize="16sp" />
+    <TextView
+        android:id="@+id/widget_artist"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:text="Open NightWave to start listening"
+        android:textColor="#C7C5D6"
+        android:textSize="12sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:layout_marginTop="6dp">
+        <ImageView
+            android:id="@+id/widget_previous"
+            android:layout_width="52dp"
+            android:layout_height="48dp"
+            android:padding="13dp"
+            android:src="@android:drawable/ic_media_previous"
+            android:contentDescription="Previous song" />
+        <ImageView
+            android:id="@+id/widget_play_pause"
+            android:layout_width="56dp"
+            android:layout_height="48dp"
+            android:padding="10dp"
+            android:src="@android:drawable/ic_media_play"
+            android:contentDescription="Play or pause" />
+        <ImageView
+            android:id="@+id/widget_next"
+            android:layout_width="52dp"
+            android:layout_height="48dp"
+            android:padding="13dp"
+            android:src="@android:drawable/ic_media_next"
+            android:contentDescription="Next song" />
+    </LinearLayout>
+</LinearLayout>
