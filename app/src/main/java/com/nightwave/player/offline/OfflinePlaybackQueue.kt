@@ -93,8 +93,15 @@ class OfflinePlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it)
     fun jump(to: Int): String? {
         if (to !in ids.indices) return null
         if (to != index) {
-            if (index >= 0) pushHistory(index)
-            if (shuffle) unplayed.remove(to)
+            if (shuffle) {
+                // In shuffle mode, Previous retraces the actual listening order.
+                if (index >= 0) pushHistory(index)
+                unplayed.remove(to)
+            } else {
+                // An explicit linear jump starts a new position: Previous should
+                // select the preceding visible track, not a stale visit.
+                visited.clear()
+            }
             index = to
         }
         return current
