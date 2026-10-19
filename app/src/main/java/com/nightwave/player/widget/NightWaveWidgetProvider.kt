@@ -68,8 +68,8 @@ class NightWaveWidgetProvider : AppWidgetProvider() {
                 setTextViewText(R.id.widget_track, NowPlayingWidgetPolicy.title(safe))
                 setTextViewText(R.id.widget_artist, NowPlayingWidgetPolicy.subtitle(safe))
                 setImageViewResource(R.id.widget_play_pause,
-                    if (safe.isPlaying) android.R.drawable.ic_media_pause
-                    else android.R.drawable.ic_media_play)
+                    if (safe.isPlaying) R.drawable.ic_nw_widget_pause
+                    else R.drawable.ic_nw_widget_play)
                 setContentDescription(R.id.widget_play_pause,
                     NowPlayingWidgetPolicy.playbackDescription(safe))
                 setOnClickPendingIntent(R.id.widget_open, PendingIntent.getActivity(
