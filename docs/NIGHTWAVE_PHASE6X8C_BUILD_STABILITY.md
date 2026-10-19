@@ -1,5 +1,7 @@
 # NightWave Phase 6X8C — Media3 compilation safety and build evidence
 
+> **Historical note (19 October 2026):** This document describes the initial 6X8C source approach, including the then-present `@OptIn(UnstableApi::class)`. A later Android compiler run identified that opt-in as ineffective for Media3's Java-style `UnstableApi` annotation. The current build-recovery branch correctly retains `@UnstableApi` on `PlaybackService` and **removes** the ineffective Kotlin opt-in; the [current verification matrix](VERIFICATION_MATRIX.md) supersedes the older status notes below. The corrected source has **not** yet passed a fresh complete Gradle build.
+
 ## Motivation
 The 6X8B Android Auto development branch introduced `MediaLibraryService` and callback error results using `SessionError.ERROR_BAD_VALUE`. Android Media3 marks that error constant as `@UnstableApi`; official AndroidX sample callbacks explicitly opt in. Kotlin consumers therefore must opt in to avoid an opt-in compiler error when compiler checks enforce Media3's API annotations.
 
