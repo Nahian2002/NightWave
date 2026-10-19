@@ -15,18 +15,6 @@ import com.nightwave.player.v2.ui.NightWaveStudioActivity
  * Receivers never parse or accept media URLs or file IDs from external Intent data.
  */
 class NightWaveWidgetProvider : AppWidgetProvider() {
-    override fun onReceive(context: Context, intent: Intent) {
-        val action = intent.action
-        if (NightWaveWidgetController.accepted(action)) {
-            val pending = goAsync()
-            NightWaveWidgetController.perform(context, action!!) {
-                pending.finish()
-            }
-            return
-        }
-        super.onReceive(context, intent)
-    }
-
     override fun onUpdate(
         context: Context, manager: AppWidgetManager, appWidgetIds: IntArray
     ) {
@@ -55,7 +43,7 @@ class NightWaveWidgetProvider : AppWidgetProvider() {
         private fun actionIntent(context: Context, action: String, requestCode: Int) =
             PendingIntent.getBroadcast(
                 context, requestCode,
-                Intent(context, NightWaveWidgetProvider::class.java).apply {
+                Intent(context, NightWaveWidgetActionReceiver::class.java).apply {
                     this.action = action
                     addFlags(Intent.FLAG_RECEIVER_FOREGROUND)
                 },
