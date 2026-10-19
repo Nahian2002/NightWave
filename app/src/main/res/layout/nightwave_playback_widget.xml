@@ -62,21 +62,21 @@
             android:layout_width="52dp"
             android:layout_height="48dp"
             android:padding="13dp"
-            android:src="@android:drawable/ic_media_previous"
+            android:src="@drawable/ic_nw_widget_previous"
             android:contentDescription="Previous song" />
         <ImageView
             android:id="@+id/widget_play_pause"
             android:layout_width="56dp"
             android:layout_height="48dp"
             android:padding="10dp"
-            android:src="@android:drawable/ic_media_play"
+            android:src="@drawable/ic_nw_widget_play"
             android:contentDescription="Play or pause" />
         <ImageView
             android:id="@+id/widget_next"
             android:layout_width="52dp"
             android:layout_height="48dp"
             android:padding="13dp"
-            android:src="@android:drawable/ic_media_next"
+            android:src="@drawable/ic_nw_widget_next"
             android:contentDescription="Next song" />
     </LinearLayout>
 </LinearLayout>
