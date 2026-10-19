@@ -51,8 +51,10 @@ class OfflineLoudnessAnalyzer {
                     val slot = decoder.dequeueInputBuffer(10_000L)
                     if (slot >= 0) {
                         val input = decoder.getInputBuffer(slot)
-                        val size = if (input == null) -1
-                            else extractor.readSampleData(input.clear(), 0)
+                        val size = if (input == null) -1 else {
+                            input.clear()
+                            extractor.readSampleData(input, 0)
+                        }
                         val stamp = extractor.sampleTime
                         if (size < 0 || stamp > OfflineNormalizationPolicy.MAX_SAMPLED_MS * 1000L) {
                             decoder.queueInputBuffer(slot, 0, 0, 0L,
