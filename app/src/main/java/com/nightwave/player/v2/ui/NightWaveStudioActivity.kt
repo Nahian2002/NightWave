@@ -3374,8 +3374,11 @@ private fun StudioProfile(
                 }
                 Surface(shape = RoundedCornerShape(12.dp),
                     color = MaterialTheme.colorScheme.primary.copy(alpha = .13f)) {
-                    Text(if (cloud.lastSuccessMs > 0L && cloud.enabled) "BACKUP ON"
-                        else "LOCAL",
+                    Text(when (CloudAccountPresentation.stage(cloud)) {
+                        CloudAccountPresentation.BackupStage.LOCAL_ONLY -> "LOCAL"
+                        CloudAccountPresentation.BackupStage.CONNECTED_NOT_BACKED_UP -> "DRIVE READY"
+                        CloudAccountPresentation.BackupStage.VERIFIED_BACKUP -> "BACKED UP"
+                    },
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary)
@@ -3606,7 +3609,8 @@ private fun StudioProfile(
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(start = 14.dp, top = 6.dp))
                     Text(if (cloud.account.isBlank()) "Not connected"
-                        else "Connected: " + cloud.account,
+                        else "Connected: " +
+                            CloudAccountPresentation.maskedAccount(cloud.account),
                         modifier = Modifier.padding(horizontal = 14.dp),
                         style = MaterialTheme.typography.bodySmall)
                     Text(cloud.lastResult + if (cloud.lastSuccessMs > 0L)
