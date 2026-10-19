@@ -115,7 +115,7 @@ class AutoBrowseCatalog(private val context: Context) {
         for (name in playlistNames().take(20)) {
             sources.addAll(children(AutoBrowsePolicy.playlistId(name)).orEmpty().take(20))
         }
-        return sources.distinctBy(MediaItem::mediaId)
+        return sources.distinctBy { it.mediaId }
             .filter { it.mediaMetadata.title?.contains(needle, ignoreCase = true) == true ||
                 it.mediaMetadata.artist?.contains(needle, ignoreCase = true) == true }
             .take(AutoBrowsePolicy.MAX_RESULTS)
