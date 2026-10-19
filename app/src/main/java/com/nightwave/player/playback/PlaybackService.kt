@@ -79,6 +79,7 @@ class PlaybackService : MediaLibraryService() {
         const val ACTION_JUMP = "com.nightwave.player.JUMP"
         const val ACTION_SHUFFLE = "com.nightwave.player.SHUFFLE"
         const val EXTRA_SHUFFLE_ENABLED = "shuffle_enabled"
+        const val EXTRA_SHUFFLE_REQUEST_ID = "shuffle_request_id"
         const val ACTION_REPEAT = "com.nightwave.player.REPEAT"
         const val EXTRA_REPEAT_MODE = "repeat_mode"
         const val EXTRA_REPEAT_REQUEST_ID = "repeat_request_id"
@@ -1246,7 +1247,18 @@ class PlaybackService : MediaLibraryService() {
                     scheduleCrossfadeCheck()
                 }
             } else {
-                queue.shuffle = !queue.shuffle; savedQueue.save(queue)
+                // New UI sends absolute state; preserve legacy toggle only when
+                // no explicit value was supplied. Rapid taps cannot be inverted
+                // by delayed reads of the previously persisted queue.
+                val enabled = if (intent.hasExtra(EXTRA_SHUFFLE_ENABLED))
+                    intent.getBooleanExtra(EXTRA_SHUFFLE_ENABLED, false)
+                else !queue.shuffle
+                queue.shuffle = enabled
+                savedQueue.save(queue)
+                val requestId = intent.getStringExtra(EXTRA_SHUFFLE_REQUEST_ID).orEmpty()
+                if (requestId.isNotBlank() && savedQueue.read().shuffle == enabled) {
+                    ShuffleModeReceiptStore(this).acknowledge(requestId, enabled)
+                }
             }
             ACTION_REPEAT -> if (offlinePlaying) {
                 val mode = RepeatModePolicy.resolve(offlineQueue.repeat,
