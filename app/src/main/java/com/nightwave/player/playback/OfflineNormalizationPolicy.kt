@@ -23,7 +23,11 @@ object OfflineNormalizationPolicy {
         if (enabled && measured != null && measured.isFinite() &&
             measured in .25f..1f) measured else 1f
 
-    fun combined(listeningGain: Float, normalizedGain: Float): Float =
-        (listeningGain.coerceIn(0f, 1f) * normalizedGain.coerceIn(0f, 1f))
-            .coerceIn(0f, 1f)
+    fun combined(listeningGain: Float, normalizedGain: Float): Float {
+        val master = if (listeningGain.isFinite())
+            listeningGain.coerceIn(0f, 1f) else 0f
+        val attenuation = if (normalizedGain.isFinite())
+            normalizedGain.coerceIn(0f, 1f) else 1f
+        return (master * attenuation).coerceIn(0f, 1f)
+    }
 }
