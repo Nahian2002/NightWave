@@ -24,6 +24,7 @@ import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.session.MediaSession
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaLibraryService.MediaLibrarySession
 import androidx.media3.session.MediaLibraryService.LibraryParams
@@ -56,6 +57,7 @@ import java.util.concurrent.Future
 
 /** The service owns automatic next-track resolution, even while the Activity is stopped. */
 @UnstableApi
+@OptIn(UnstableApi::class)
 class PlaybackService : MediaLibraryService() {
     companion object {
         const val ACTION_REPLACE = "com.nightwave.player.REPLACE_QUEUE"
