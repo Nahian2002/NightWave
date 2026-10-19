@@ -99,8 +99,9 @@ assert "onMediaMetadataChanged(" in service
 assert "override fun onIsPlayingChanged(" in service
 assert "override fun onMediaItemTransition(" in service
 assert "NowPlayingWidgetProvider.publish(this, WidgetPlaybackSnapshot())" in service
-assert "MediaSession.Builder(this, player)" in service  # existing session preserved
-assert "class PlaybackService : MediaSessionService()" in service
+assert "MediaLibrarySession.Builder(this, player," in service  # one existing player
+assert "class PlaybackService : MediaLibraryService()" in service
+assert "override fun onMediaButtonEvent(" in service  # inherited controls preserved
 
 assert "com.google.guava:guava:" in build
 assert "androidx.media3:media3-session:1.6.1" in build
