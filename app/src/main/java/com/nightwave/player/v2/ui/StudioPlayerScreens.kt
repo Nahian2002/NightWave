@@ -716,7 +716,7 @@ fun StudioNowPlayingOverlay(
                                 Text("Overlap two locally imported songs. Streaming tracks use normal playback.",
                                     style = MaterialTheme.typography.bodyMedium)
                                 Text(if (crossfadeDraft == 0) "Off · normal gapless playback"
-                                    else "$" + "{crossfadeDraft} seconds overlap",
+                                    else "${crossfadeDraft} seconds overlap",
                                     style = MaterialTheme.typography.titleMedium,
                                     color = MaterialTheme.colorScheme.primary)
                                 Slider(
