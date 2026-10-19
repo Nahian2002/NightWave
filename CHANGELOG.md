@@ -2,6 +2,14 @@
 
 NightWave uses stacked, independently reviewable development branches. This changelog describes **source changes**. A feature marked implemented below is **not necessarily validated by a successful Android build or physical-device test**. Check [verification status](docs/VERIFICATION_MATRIX.md) before installation.
 
+## 2026-10-19 — Phase 6X8C5: Offline Previous navigation regression
+
+- **Observed:** Real 6X8C4 Windows build completed `:app:compileDebugKotlin`, `:app:compileDebugUnitTestKotlin`, `:app:compileDebugAndroidTestKotlin`, and `:app:assembleDebug`. Of **771 Gradle unit tests**, **770 passed and 1 failed**: `OfflinePlaybackQueueTest.jumpHandlesBoundsWithoutDamagingSelection`.
+- **Cause:** Previous consulted visit history even in normal non-shuffled mode. A → jump to C → Previous incorrectly returned A rather than the preceding visible item B.
+- **Fix:** History push/pop is now strictly Shuffle-only; sequential Previous uses index order (and Repeat All wrap). No user audio, app data, backup, signing or unrelated playback service changes.
+- **New coverage:** Original six queue tests retained; four new navigation/bounds/Repeat tests added. Eight shuffled-mode tests retained. **18/18** copied Kotlin unit methods and **62/62** isolated navigation assertions passed (minimal fixtures, not Gradle).
+- **Release status:** 6X8C5 needs fresh full Gradle **BUILD SUCCESSFUL** and device QA. [QA report](docs/NIGHTWAVE_PHASE6X8C5_OFFLINE_PREVIOUS_QA.md).
+
 ## 2026-10-19 — Phase 6X8C4: Daily Mix unit-test compilation hotfix
 
 - **Observed:** The complete 6X8C3 Windows Gradle run **passed** `:app:compileDebugKotlin` and `:app:compileDebugAndroidTestKotlin`, but **failed** at `:app:compileDebugUnitTestKotlin` on two Daily Mix test argument types.
