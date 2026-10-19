@@ -22,8 +22,10 @@ car = ET.parse(MAIN / "res/xml/automotive_app_desc.xml").getroot()
 workflow = read(".github/workflows/android.yml")
 
 assert "import androidx.media3.common.util.UnstableApi" in svc
-assert "@OptIn(UnstableApi::class)\nclass PlaybackService : MediaLibraryService()" in svc, \
-    "Media3's unstable library/error APIs require an explicit Kotlin opt-in"
+assert "@UnstableApi\nclass PlaybackService : MediaLibraryService()" in svc, \
+    "Media3 unstable APIs must be marked on the service directly"
+assert "@OptIn(UnstableApi::class)" not in svc, \
+    "Media3 UnstableApi is not a Kotlin RequiresOptIn marker"
 assert "MediaLibrarySession.Builder(this, player," in svc
 assert "override fun onGetLibraryRoot(" in svc
 assert "override fun onGetChildren(" in svc
@@ -74,5 +76,5 @@ for name, source in (("service", svc), ("catalog", catalog), ("policy", policy))
     imports = [line for line in source.splitlines() if line.startswith("import ")]
     assert len(imports) == len(set(imports)), name + " duplicate imports"
 
-print("PASS: 6X8C source/XML Media3 Kotlin opt-in and one-player safety contract")
+print("PASS: 6X8C source/XML Media3 unstable-API annotation and one-player safety contract")
 print("NOT VERIFIED: Android Gradle compile, Android Auto host, Play/Pause/Next, Bluetooth and signing")
