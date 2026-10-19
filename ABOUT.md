@@ -1,33 +1,46 @@
 # About NightWave
 
-**NightWave** is a personal Android music-player project with a Spotify-inspired experience and no dedicated NightWave streaming server. It combines user-imported offline music, user-saved public streaming references, media-session playback, playlists, local recommendations and optional Google Drive backup.
+**NightWave** is an independent Android music-player project built around the user's own offline audio library, saved public music/video links, playlists, on-device recommendations, synced LRC lyrics and polished media controls. The interface is Spotify-inspired, but NightWave does **not** claim Spotify's catalog, subscription service, licenses or affiliation.
 
 **Repository:** `Nahian2002/NightWave`  
-**Android application ID:** `com.nightwave.player`  
-**Development identity:** `2.0.0-alpha5s` / version code `35`  
-**Target:** Android 15 (API 35); minimum Android 8.0 (API 26)  
-**Code:** Kotlin, Jetpack Compose, Media3, Room/DataStore and Android Gradle.
+**Active audited branch:** [Build-recovery source](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-phase6x8c4-daily-mix-unit-test-compile)  
+**Application ID:** `com.nightwave.player`  
+**Development version:** `2.0.0-alpha5s` (version code `35`)  
+**Minimum Android:** API 26 · **target:** API 35  
+**Language and technology:** Kotlin, Jetpack Compose, AndroidX Media3/ExoPlayer, Room/DataStore, Gradle.
 
-## Current implementation scope
+## Capabilities in the development source
 
-The latest integrated development source includes offline-imported music, saved public video references, playlists and private library organization, repeat/shuffle, gapless-capable offline queues, local crossfade, optional non-boosting volume balancing, Sleep Timer, EQ, user-imported LRC lyrics and editor, private daily mixes, optional listening memory, launcher playback widget and a development-stage Android Auto browsable library.
+- Personal offline audio import, app-private library, playlists, favorites, recent tracks, folders and smart collections.
+- Media3 background playback, notification controls, queues, repeat, shuffle, resume, widget and a development-stage Android Auto media browser.
+- Gapless-capable local queue, adjustable crossfade, opt-in volume balancing, EQ and Sleep Timer.
+- Saved references to supported public video streams, public-source music search and local creator discovery.
+- On-device Daily Mixes from existing saved/recent tracks; optional consented local listening memory.
+- User-provided synchronized LRC import, playback, editor, timing adjustments and export.
+- Guest profile and optional Google services for library backup and a personal audio locker.
 
-The app does **not** include Spotify's licensed music catalog. A saved YouTube page reference is **not** the same as an offline MP3; playable public sources depend on outside service availability and the existing extractor. Android Auto browse/play and some new audio controls require real-device acceptance before release. Google Drive features rely on Google services but do not require a NightWave-hosted backend.
+## Non-goals and dependencies
 
-## Development / release notice
+There is **no dedicated NightWave streaming server**. Public video playback depends on extractor and third-party endpoint availability; saving a link is **not** importing an MP3. There is no licensed subscription catalog and no guaranteed online lyrics extraction. Google Drive needs a user-approved account and Google's infrastructure. No DRM or access-restriction bypass is promised.
 
-Latest compiler recovery: [Phase 6X8C4](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-phase6x8c4-daily-mix-unit-test-compile). The subsequent 6X8C3 Windows build **passed main app Kotlin and Android test-source compilation**, then failed unit-test Kotlin compilation on two nested-list Daily Mix arguments; 6X8C4 fixes those test calls. **No complete successful Android build exists for this branch yet.**
+## Engineering status — 19 October 2026
 
-Do not uninstall the existing NightWave or clear app data to solve APK signing errors. Check [build instructions](docs/BUILD_AND_RELEASE.md), [verification status](docs/VERIFICATION_MATRIX.md), [changelog](CHANGELOG.md), and the [project README](README.md).
+The latest complete user-provided Windows build **assembled the debug APK** and compiled main Android and Android-test Kotlin, but **failed 1 of 771 JVM tests** (an offline queue jump/Previous boundary bug). The source has been patched; additional repeat, shuffle and URL-deduplication regressions have been written. Kotlin warning cleanup and source verification wiring have also been committed.
 
-## Copy-ready GitHub sidebar About
+**The final audited branch has not yet produced a confirmed passing full Gradle build, compatible APK signer report or complete on-phone feature acceptance.** It is a development candidate, not a verified release.
 
-Suggested description (under 160 characters):
+Read [README](README.md), [Changelog](CHANGELOG.md), [Verification Matrix](docs/VERIFICATION_MATRIX.md), [Build Guide](docs/BUILD_AND_RELEASE.md), and [Final Acceptance Checklist](docs/NIGHTWAVE_FINAL_ACCEPTANCE_20261019.md).
 
-> NightWave — a Kotlin Android music player for offline audio, saved streaming tracks, playlists, lyrics, local mixes and Media3 playback.
+## GitHub repository sidebar metadata
 
-Suggested topics:
+These values are prepared for the repository's **About** settings; editing this tracked Markdown file does not automatically change GitHub's sidebar.
 
-`android`, `kotlin`, `jetpack-compose`, `media3`, `music-player`, `offline-music`, `lyrics`, `android-auto`
+**Suggested short description:**
 
-GitHub's repository sidebar **About description and topics** are repository settings, separate from these tracked files. A maintainer with repository settings access must apply them in GitHub → repository → About → edit. This document does not claim they were changed remotely.
+> NightWave is a Kotlin Android music player for offline audio, saved tracks, LRC lyrics, local mixes, playlists and Media3 playback.
+
+**Suggested topics:** `android`, `kotlin`, `jetpack-compose`, `media3`, `music-player`, `offline-music`, `lyrics`, `android-auto`.
+
+**Suggested website:** Leave blank until there is an official product page. Do not invent a product domain, paid service or release claim.
+
+The maintainer can update the GitHub sidebar from **Repository → About → Edit**. Repository `main` is historically behind the current integrated development branch; do not infer that the sidebar or default branch was changed by this documentation update.
