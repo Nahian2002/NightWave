@@ -97,7 +97,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.FavoriteBorder
@@ -3037,7 +3037,7 @@ private fun StudioLibrary(
         item {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (selectedPlaylist != null) IconButton(onClick = { onSelectPlaylist(null) }) {
-                    Icon(Icons.Outlined.ArrowBack, contentDescription = "Back to Library")
+                    Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back to Library")
                 }
                 Column(Modifier.weight(1f)) {
                     NightWaveCollectionHeader(
@@ -3614,7 +3614,7 @@ private fun StudioProfile(
                     StudioProfileRow("Restore from backup", "Replaces collections after confirmation",
                         Icons.Outlined.LibraryMusic, onImport)
                     StudioProfileRow("Undo most recent library edit", "Restore last protected change",
-                        Icons.Outlined.ArrowBack, onRecoverLastChange)
+                        Icons.AutoMirrored.Outlined.ArrowBack, onRecoverLastChange)
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     Text("GOOGLE DRIVE BACKUP", style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary,
@@ -3668,7 +3668,7 @@ private fun StudioProfile(
                                     onCheckedChange = onCloudWifi)
                             })
                         StudioProfileRow("Disconnect Drive", "Stops backup; snapshots stay in Drive",
-                            Icons.Outlined.ArrowBack, onCloudDisconnect)
+                            Icons.AutoMirrored.Outlined.ArrowBack, onCloudDisconnect)
                     }
                     if (cloudBusy) Text("Connecting or transferring backup…",
                         modifier = Modifier.padding(horizontal = 14.dp),
@@ -3739,7 +3739,7 @@ private fun StudioProfile(
         item {
             StudioProfileGroup("Interface") {
                 StudioProfileRow("Open classic interface", "Temporary fallback · Shared library",
-                    Icons.Outlined.ArrowBack, onOpenClassic)
+                    Icons.AutoMirrored.Outlined.ArrowBack, onOpenClassic)
             }
         }
         item {
