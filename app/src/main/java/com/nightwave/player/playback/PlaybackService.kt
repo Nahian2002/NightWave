@@ -29,6 +29,7 @@ import com.nightwave.player.net.YouTubeGateway
 import com.nightwave.player.offline.OfflineAudioLibrary
 import com.nightwave.player.offline.OfflinePlaybackQueue
 import com.nightwave.player.offline.OfflineGaplessPolicy
+import com.nightwave.player.offline.OfflinePlaybackPreferencesStore
 import com.nightwave.player.offline.OfflineSessionStore
 import com.nightwave.player.v2.ui.NightWaveStudioActivity
 import java.util.concurrent.Executors
@@ -61,6 +62,7 @@ class PlaybackService : MediaSessionService() {
         const val ACTION_PREVIOUS = "com.nightwave.player.PREVIOUS"
         const val ACTION_JUMP = "com.nightwave.player.JUMP"
         const val ACTION_SHUFFLE = "com.nightwave.player.SHUFFLE"
+        const val EXTRA_SHUFFLE_ENABLED = "shuffle_enabled"
         const val ACTION_REPEAT = "com.nightwave.player.REPEAT"
         const val EXTRA_REPEAT_MODE = "repeat_mode"
         const val EXTRA_REPEAT_REQUEST_ID = "repeat_request_id"
@@ -327,6 +329,7 @@ class PlaybackService : MediaSessionService() {
         override fun run() {
             val player = exoPlayer ?: return
             if (!offlinePlaying || !offlineGaplessActive ||
+                offlineQueue.shuffle || offlineQueue.repeat == PlaybackQueue.Repeat.ONE ||
                 crossfadeSeconds == 0 || !player.isPlaying) {
                 cancelCrossfade()
                 return
@@ -391,6 +394,7 @@ class PlaybackService : MediaSessionService() {
     private fun scheduleCrossfadeCheck() {
         main.removeCallbacks(crossfadeTick)
         if (crossfadeSeconds > 0 && offlineGaplessActive && offlinePlaying &&
+            !offlineQueue.shuffle && offlineQueue.repeat != PlaybackQueue.Repeat.ONE &&
             exoPlayer?.isPlaying == true) main.post(crossfadeTick)
     }
 
@@ -412,6 +416,8 @@ class PlaybackService : MediaSessionService() {
                     .setUsage(C.USAGE_MEDIA).build(), false)
                 setMediaItems((0 until outgoing.mediaItemCount).map(outgoing::getMediaItemAt),
                     nextIndex, 0L)
+                repeatMode = outgoing.repeatMode
+                shuffleModeEnabled = false // overlap currently excludes shuffle
                 playWhenReady = false
                 prepare()
             }
@@ -492,6 +498,7 @@ class PlaybackService : MediaSessionService() {
     // The service owns the only pending Undo. No playlist/audio-file writes.
     private var pendingQueueRemoval: Pair<String, PlaybackQueue.RemovedUpcoming>? = null
     private val offlineQueue = OfflinePlaybackQueue()
+    private lateinit var offlineControls: OfflinePlaybackPreferencesStore
     private lateinit var offlineSession: OfflineSessionStore
     private lateinit var listeningMemory: ListeningMemoryStore
     private val listeningMeter = ListeningSessionMeter()
@@ -612,7 +619,7 @@ class PlaybackService : MediaSessionService() {
                             handledEndGeneration = ended.generation
                             handledEndMediaId = ended.mediaId
                             if (offlinePlaying) {
-                                if (!advanceOffline(forward = true)) {
+                                if (!advanceOffline(forward = true, automatic = true)) {
                                     // Last track is finished: keep queue/favorites/files,
                                     // but restart from 0 only on the user's next Play.
                                     offlineQueue.current?.let {
@@ -646,7 +653,9 @@ class PlaybackService : MediaSessionService() {
                 val ids = offlineQueue.snapshot()
                 val index = OfflineGaplessPolicy.transitionIndex(
                     ids, offlineQueue.index, mediaItem?.mediaId,
-                    automatic = reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO)
+                    automatic = reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO,
+                    shuffled = offlineQueue.shuffle,
+                    repeatAll = offlineQueue.repeat == PlaybackQueue.Repeat.ALL)
                 if (index != null && exoPlayer?.currentMediaItemIndex == index) {
                     val selectedId = ids[index]
                     if (offlineQueue.current != selectedId && offlineQueue.jump(index) != null) {
@@ -661,6 +670,10 @@ class PlaybackService : MediaSessionService() {
             // by the track identity in ListeningSessionMeter.observe().
             if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT) {
                 sampleListening(endSession = true)
+                if (offlinePlaying && mediaItem?.mediaId ==
+                    "offline:" + offlineQueue.current) {
+                    offlineSession.savePosition(offlineQueue.current!!, 0L)
+                }
             }
             sampleListening()
             if (!crossfadeHandoffInProgress) {
@@ -742,6 +755,9 @@ class PlaybackService : MediaSessionService() {
         eqStatus.write(0, false, "Off")
         savedQueue.clearLookup() // process restart must not leave a ghost spinner
         offlineSession = OfflineSessionStore(this)
+        offlineControls = OfflinePlaybackPreferencesStore(this)
+        offlineQueue.setShuffle(offlineControls.shuffle())
+        offlineQueue.setRepeat(offlineControls.repeat())
         listeningMemory = ListeningMemoryStore(this)
         savedQueue.restore(queue)
         // Do NOT play, seek, or access any offline file on service creation.
@@ -1022,10 +1038,30 @@ class PlaybackService : MediaSessionService() {
             ACTION_NEXT -> playNext(false)
             ACTION_PREVIOUS -> playPrevious()
             ACTION_JUMP -> if (!offlinePlaying) queue.jump(intent.getIntExtra(EXTRA_INDEX, -1))?.let { savedQueue.save(queue); resolveAndPlay(it) }
-            ACTION_SHUFFLE -> if (!offlinePlaying) {
+            ACTION_SHUFFLE -> if (offlinePlaying) {
+                val explicit = intent.hasExtra(EXTRA_SHUFFLE_ENABLED)
+                val enabled = if (explicit)
+                    intent.getBooleanExtra(EXTRA_SHUFFLE_ENABLED, false) else !offlineQueue.shuffle
+                if (offlineControls.setShuffle(enabled)) {
+                    cancelCrossfade()
+                    offlineQueue.setShuffle(enabled)
+                    if (offlineGaplessActive) exoPlayer?.shuffleModeEnabled = enabled
+                    scheduleCrossfadeCheck()
+                }
+            } else {
                 queue.shuffle = !queue.shuffle; savedQueue.save(queue)
             }
-            ACTION_REPEAT -> if (!offlinePlaying) {
+            ACTION_REPEAT -> if (offlinePlaying) {
+                val mode = RepeatModePolicy.resolve(offlineQueue.repeat,
+                    intent.hasExtra(EXTRA_REPEAT_MODE),
+                    intent.getStringExtra(EXTRA_REPEAT_MODE))
+                if (mode != null && offlineControls.setRepeat(mode)) {
+                    cancelCrossfade()
+                    offlineQueue.setRepeat(mode)
+                    applyOfflinePlaybackModes()
+                    scheduleCrossfadeCheck()
+                }
+            } else {
                 // Explicit selection is safe under rapid taps: the service must never
                 // reinterpret an old command against a newer queue state.
                 val explicit = intent?.hasExtra(EXTRA_REPEAT_MODE) == true
@@ -1160,6 +1196,19 @@ class PlaybackService : MediaSessionService() {
         return items to selected
     }
 
+    /** A single local item cannot represent a larger fallback queue's Repeat All. */
+    private fun applyOfflinePlaybackModes() {
+        if (!offlinePlaying) return
+        val player = exoPlayer ?: return
+        player.shuffleModeEnabled = offlineGaplessActive && offlineQueue.shuffle
+        player.repeatMode = when (offlineQueue.repeat) {
+            PlaybackQueue.Repeat.ONE -> Player.REPEAT_MODE_ONE
+            PlaybackQueue.Repeat.ALL -> if (offlineGaplessActive || offlineQueue.size == 1)
+                Player.REPEAT_MODE_ALL else Player.REPEAT_MODE_OFF
+            PlaybackQueue.Repeat.OFF -> Player.REPEAT_MODE_OFF
+        }
+    }
+
     /** Offline IDs are bounded; never write them into public-video bookmarks. */
     private fun playOfflineId(
         id: String, localLibrary: OfflineAudioLibrary = OfflineAudioLibrary(this),
@@ -1196,6 +1245,7 @@ class PlaybackService : MediaSessionService() {
             } else {
                 setMediaItem(item)
             }
+            applyOfflinePlaybackModes()
             // Offline speed applies to every item, not to public streams.
             setPlaybackSpeed(OfflinePlaybackSpeedPolicy.speed(offlineSpeedStore.read()))
             playWhenReady = true
@@ -1209,14 +1259,14 @@ class PlaybackService : MediaSessionService() {
         return true
     }
 
-    private fun advanceOffline(forward: Boolean): Boolean {
+    private fun advanceOffline(forward: Boolean, automatic: Boolean = false): Boolean {
         cancelCrossfade()
         val player = exoPlayer
         if (offlineGaplessActive && player != null) {
             // The timeline already owns validated local media items. Avoid
             // per-track teardown/re-prepare on manual Next and Previous.
-            val next = if (forward) player.currentMediaItemIndex + 1
-                else player.currentMediaItemIndex - 1
+            val next = if (forward) player.nextMediaItemIndex
+                else player.previousMediaItemIndex
             if (next !in 0 until player.mediaItemCount) return false
             val id = offlineQueue.snapshot().getOrNull(next) ?: return false
             if (player.getMediaItemAt(next).mediaId != "offline:$id") return false
@@ -1228,7 +1278,7 @@ class PlaybackService : MediaSessionService() {
         // missing/deleted files are skipped in a bounded pass, never downloaded.
         val localLibrary = OfflineAudioLibrary(this)
         repeat(offlineQueue.size) {
-            val id = (if (forward) offlineQueue.next() else offlineQueue.previous())
+            val id = (if (forward) offlineQueue.next(automatic) else offlineQueue.previous())
                 ?: return false
             if (playOfflineId(id, localLibrary)) return true
         }
@@ -1240,7 +1290,7 @@ class PlaybackService : MediaSessionService() {
         // any undo tied to the old playback position.
         pendingQueueRemoval = null
         if (offlinePlaying) {
-            advanceOffline(forward = true)
+            advanceOffline(forward = true, automatic = automatic)
             return
         }
         val player = exoPlayer
@@ -1303,6 +1353,10 @@ class PlaybackService : MediaSessionService() {
         if (offlinePlaying) persistProgress(flush = true)
         offlinePlaying = false
         offlineGaplessActive = false
+        exoPlayer?.apply {
+            shuffleModeEnabled = false
+            repeatMode = Player.REPEAT_MODE_OFF
+        }
         normalizationEpoch++
         normalizationPending.clear()
         offlineQueue.reset()
