@@ -13,12 +13,20 @@ screen = source("app/src/main/java/com/nightwave/player/v2/ui/NightWaveSoundStud
 activity = source("app/src/main/java/com/nightwave/player/v2/ui/NightWaveStudioActivity.kt")
 service = source("app/src/main/java/com/nightwave/player/playback/PlaybackService.kt")
 policy = source("app/src/main/java/com/nightwave/player/playback/SoundStudioPolicy.kt")
+capabilities = source("app/src/main/java/com/nightwave/player/playback/EqualizerCapabilities.kt")
 tests = source("app/src/test/java/com/nightwave/player/playback/SoundStudioPolicyTest.kt")
 workflow = source(".github/workflows/android.yml")
 
 assert "fun NightWaveSoundStudioDialog(onDismiss: () -> Unit)" in screen
 assert "DialogProperties(usePlatformDefaultWidth = false)" in screen
 assert "Audio engine could not be reached" in screen
+assert "latest.levelsMb" in screen
+assert "resetDraft = action == PlaybackService.ACTION_EQ_PRESET_SET" in screen
+assert "Sound Studio" in activity
+assert "Icons.Outlined.GraphicEq" in activity
+assert "val levelsMb: List<Int>" in capabilities
+assert 'effect.getBandLevel(i.toShort()).toInt()' in capabilities
+assert "eqCapabilities.publish(candidate, sessionId)" in service
 assert "Sound Studio" in screen and "Frequency response" in screen
 assert "Visual guide for the manual bands; not a live audio spectrum." in screen
 assert "Device presets" in screen and "Apply manual EQ" in screen
