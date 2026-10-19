@@ -1,5 +1,8 @@
 # NightWave
 
+> **NW-05 Integration Stabilization — development source (19 October 2026):** The latest [NW-05 branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw05-integration-stability) keeps NW-01 Shuffle, NW-02 Sound Studio, NW-03 Account & Backup, and NW-04 Premium Player, while fixing cross-feature queue-selection drift, stale song seeking and manual-EQ bounds. [Read NW-05 verification and acceptance](docs/NIGHTWAVE_NW05_INTEGRATION_QA.md). **No successful complete Android Gradle build or real-device verification of NW-05 is confirmed yet.** Do not replace an installed APK without a passing build and compatible signing certificate.
+
+
 > **NW-04 Premium Player — development source:** The [latest integrated branch](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-v2-nw04-premium-player) improves the Now Playing timeline, reduces oversized player and navigation chrome, cautiously requests higher-quality public YouTube thumbnails, and makes advanced audio settings collapsible. NW-01 Shuffle, NW-02 Sound Studio and NW-03 Account & Backup Hub remain included. **Android compilation and phone acceptance are still pending.** Read the [NW-04 test scope](docs/NIGHTWAVE_NW04_PREMIUM_PLAYER_QA.md) before considering a device update.
 
 
