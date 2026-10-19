@@ -730,6 +730,29 @@ fun StudioNowPlayingOverlay(
                         Icon(Icons.AutoMirrored.Outlined.QueueMusic, contentDescription = "Open queue", tint = colors.primary)
                     }
                 }
+                Spacer(Modifier.height(10.dp))
+                Surface(
+                    onClick = { advancedAudioOpen = !advancedAudioOpen },
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    shape = RoundedCornerShape(15.dp),
+                    color = colors.surfaceVariant.copy(alpha = .58f)
+                ) {
+                    Row(Modifier.fillMaxSize().padding(horizontal = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween) {
+                        Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                            Text("Sound & playback", style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold)
+                            Text("Crossfade · Sleep timer · Listening level",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = colors.onSurfaceVariant)
+                        }
+                        Text(if (advancedAudioOpen) "Less" else "More",
+                            color = colors.primary,
+                            style = MaterialTheme.typography.labelMedium)
+                    }
+                }
+                if (advancedAudioOpen) {
                 Spacer(Modifier.height(11.dp))
                 Box(Modifier.fillMaxWidth()) {
                     OutlinedButton(
@@ -881,6 +904,7 @@ fun StudioNowPlayingOverlay(
                             }
                         }
                     }
+                }
                 }
                 Spacer(Modifier.height(12.dp))
                 Surface(
