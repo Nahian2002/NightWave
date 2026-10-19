@@ -74,6 +74,30 @@ if ((Test-Path -LiteralPath $smartPath -PathType Leaf) -and
     }
 }
 
+# 2026-10-19 Gradle unit-test Kotlin type regressions.
+# LocalDailyMixEngine.make's third input is List<VideoPreview>, NOT
+# List<List<VideoPreview>>. Guard the two formerly broken call sites.
+$dailyMixTestPath = Join-Path $sourceRoot 'test\java\com\nightwave\player\v2\recommendation\LocalDailyMixEngineTest.kt'
+$dailyMixPolicyPath = Join-Path $sourceRoot 'main\java\com\nightwave\player\v2\recommendation\LocalDailyMixEngine.kt'
+if ((Test-Path -LiteralPath $dailyMixTestPath -PathType Leaf) -and
+    (Test-Path -LiteralPath $dailyMixPolicyPath -PathType Leaf)) {
+    $dailyMixTest = [System.IO.File]::ReadAllText($dailyMixTestPath)
+    $dailyMixPolicy = [System.IO.File]::ReadAllText($dailyMixPolicyPath)
+    if (-not $dailyMixPolicy.Contains('playlistTracks: List<VideoPreview>')) {
+        $issues.Add('Daily Mix playlistTracks parameter type changed; review its tests.')
+    }
+    if ($dailyMixTest.Contains('listOf(invalid), listOf(valid, valid), 333L')) {
+        $issues.Add('Daily Mix unit test passes List<List<VideoPreview>>: flatten repeated valid songs.')
+    }
+    if ($dailyMixTest.Contains('LocalDailyMixEngine.make(favorites, recent, listOf(favorites), 500L)')) {
+        $issues.Add('Daily Mix unit test passes List<MutableList<VideoPreview>> instead of the flat favorites list.')
+    }
+    if (-not $dailyMixTest.Contains('listOf(invalid), valid + valid, 333L') -or
+        -not $dailyMixTest.Contains('LocalDailyMixEngine.make(favorites, recent, favorites, 500L)')) {
+        $issues.Add('Daily Mix duplicate-source and immutability test call contracts are missing.')
+    }
+}
+
 $gradlePath = Join-Path $root 'app\build.gradle.kts'
 if (-not (Test-Path -LiteralPath $gradlePath)) {
     $issues.Add('Missing app/build.gradle.kts.')
