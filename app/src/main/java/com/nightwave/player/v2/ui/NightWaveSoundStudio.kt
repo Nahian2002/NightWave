@@ -122,6 +122,17 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                 if (pendingCommand != requestId) return@launch
                 val latest = statusStore.read()
                 if (latest.commandId == requestId) {
+                    // Turning EQ Off releases the effect and invalidates the
+                    // cached capabilities. Re-probe the still-playing session,
+                    // so the presets remain available without reopening.
+                    if (action == PlaybackService.ACTION_EQ_PRESET_SET &&
+                        latest.selected == 0) {
+                        runCatching {
+                            context.startService(Intent(context, PlaybackService::class.java)
+                                .setAction(PlaybackService.ACTION_EQ_DISCOVER))
+                        }
+                        delay(300L)
+                    }
                     applySnapshot(resetDraft = false)
                     pendingCommand = null
                     notice = latest.message
@@ -343,18 +354,24 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                                             color = primary,
                                             style = MaterialTheme.typography.bodyMedium)
                                     }
-                                    Slider(
-                                        value = draftLevels[index].toFloat(),
-                                        enabled = !busy,
-                                        onValueChange = { value ->
-                                            draftLevels = SoundStudioPolicy.updateLevel(
-                                                draftLevels, index, value.toInt(),
-                                                capabilities.minimumMb,
-                                                capabilities.maximumMb)
-                                        },
-                                        valueRange = capabilities.minimumMb.toFloat()..
-                                            capabilities.maximumMb.toFloat()
-                                    )
+                                    if (capabilities.minimumMb < capabilities.maximumMb) {
+                                        Slider(
+                                            value = draftLevels[index].toFloat(),
+                                            enabled = !busy,
+                                            onValueChange = { value ->
+                                                draftLevels = SoundStudioPolicy.updateLevel(
+                                                    draftLevels, index, value.toInt(),
+                                                    capabilities.minimumMb,
+                                                    capabilities.maximumMb)
+                                            },
+                                            valueRange = capabilities.minimumMb.toFloat()..
+                                                capabilities.maximumMb.toFloat()
+                                        )
+                                    } else {
+                                        Text("This device exposes a fixed band level.",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = muted)
+                                    }
                                 }
                             }
                         }
