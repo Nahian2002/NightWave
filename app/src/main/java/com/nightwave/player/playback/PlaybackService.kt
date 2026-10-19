@@ -957,7 +957,7 @@ class PlaybackService : MediaLibraryService() {
                         .add(SessionCommand(NightWaveWidgetController.COMMAND_NEXT, Bundle.EMPTY))
                         .add(SessionCommand(NightWaveWidgetController.COMMAND_PREVIOUS, Bundle.EMPTY))
                         .build()
-                    return MediaSession.ConnectionResult.AcceptedResultBuilder(session, controller)
+                    return MediaSession.ConnectionResult.AcceptedResultBuilder(session)
                         .setAvailableSessionCommands(commands)
                         .build()
                 }
