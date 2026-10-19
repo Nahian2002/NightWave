@@ -256,6 +256,9 @@ fun StudioMiniPlayer(
 
 @Composable
 private fun CoverArt(url: String, modifier: Modifier = Modifier, radius: Int = 24) {
+    val preferredArtwork = remember(url) { NightWaveArtworkPolicy.preferredArtwork(url) }
+    var useOriginal by remember(url) { mutableStateOf(false) }
+    val displayUrl = if (useOriginal) url else preferredArtwork
     val shape = RoundedCornerShape(radius.dp)
     Box(modifier.clip(shape).background(
         Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary.copy(alpha = .5f),
@@ -269,9 +272,19 @@ private fun CoverArt(url: String, modifier: Modifier = Modifier, radius: Int = 2
                 style = Stroke(width = 2.dp.toPx()))
             drawCircle(Color.White.copy(alpha = .7f), radius = size.minDimension * .09f)
         }
-        if (url.isNotBlank()) {
-            AsyncImage(model = url, contentDescription = "Album artwork",
-                modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+        if (displayUrl.isNotBlank()) {
+            AsyncImage(
+                model = displayUrl,
+                contentDescription = "Album artwork",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop,
+                onError = {
+                    // Some uploads do not provide a high-quality thumbnail.
+                    // Fall back to the original address instead of blank art.
+                    if (!useOriginal && NightWaveArtworkPolicy.allowOriginalFallback(
+                            url, preferredArtwork)) useOriginal = true
+                }
+            )
         }
     }
 }
