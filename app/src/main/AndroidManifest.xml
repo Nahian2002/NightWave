@@ -35,6 +35,18 @@
             android:windowSoftInputMode="adjustResize" />
         <activity android:name=".offline.OfflineLibraryActivity" android:exported="false" />
         <activity android:name=".v2.locker.NightWaveLockerActivity" android:exported="false" />
+        <!-- Only launcher/system widgets may create the initial widget surfaces.
+             User controls use immutable explicit PendingIntents into the provider. -->
+        <receiver
+            android:name=".widget.NightWaveWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/nightwave_widget_info" />
+        </receiver>
         <service
             android:name=".playback.PlaybackService"
             android:exported="true"
