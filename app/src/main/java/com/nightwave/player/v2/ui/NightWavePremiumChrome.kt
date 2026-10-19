@@ -68,7 +68,7 @@ fun NightWavePremiumNavigation(
     val tags = listOf("home", "search", "library", "profile")
     Surface(
         modifier = Modifier.fillMaxWidth()
-            .padding(horizontal = 11.dp, vertical = 4.dp),
+            .padding(horizontal = 10.dp, vertical = 2.dp),
         color = colors.surface,
         tonalElevation = 2.dp,
         shadowElevation = 5.dp,
