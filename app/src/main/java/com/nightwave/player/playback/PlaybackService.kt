@@ -632,9 +632,11 @@ class PlaybackService : MediaSessionService() {
                 sampleListening(endSession = true)
             }
             sampleListening()
-            if (offlinePlaying && !crossfadeHandoffInProgress) {
+            if (!crossfadeHandoffInProgress) {
+                // Public tracks must also restore unity/Listening Level after
+                // leaving a normalized private file.
                 applyCurrentMaster()
-                normalizeSelectedAndNext()
+                if (offlinePlaying) normalizeSelectedAndNext()
             }
             scheduleCrossfadeCheck()
         }
@@ -1270,7 +1272,9 @@ class PlaybackService : MediaSessionService() {
         offlinePlaying = false
         offlineGaplessActive = false
         normalizationEpoch++
+        normalizationPending.clear()
         offlineQueue.reset()
+        applyCurrentMaster() // clear offline attenuation before public source resolution
         if (!recoveryAttempt) autoRetriedVideo = null
         savedQueue.clearFailure()
         cancelPendingResolution()
