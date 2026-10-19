@@ -65,6 +65,12 @@ internal fun NightWaveAccountHubDialog(
 ) {
     var confirmDisconnect by remember { mutableStateOf(false) }
     var confirmChangeAccount by remember { mutableStateOf(false) }
+    // File pickers and native restore previews must not stack beneath a
+    // second persistent dialog window; close this hub before opening them.
+    fun openExternalFlow(callback: () -> Unit) {
+        onDismiss()
+        callback()
+    }
     val stage = CloudAccountPresentation.stage(cloud)
     val connected = cloud.account.isNotBlank()
     val canBackUp = CloudAccountPresentation.canBackUp(cloud, busy)
@@ -128,7 +134,8 @@ internal fun NightWaveAccountHubDialog(
                                     "Connecting Drive never signs you out or replaces your library.",
                                     color = muted,
                                     style = MaterialTheme.typography.bodySmall)
-                                OutlinedButton(enabled = !busy, onClick = onExportLocal) {
+                                OutlinedButton(enabled = !busy,
+                                    onClick = { openExternalFlow(onExportLocal) }) {
                                     Icon(Icons.Outlined.LibraryMusic, contentDescription = null,
                                         modifier = Modifier.size(17.dp))
                                     Spacer(Modifier.size(7.dp))
@@ -189,16 +196,17 @@ internal fun NightWaveAccountHubDialog(
                                 if (connected) {
                                     Button(
                                         modifier = Modifier.fillMaxWidth(),
-                                        onClick = onBackUp, enabled = canBackUp
+                                        onClick = { openExternalFlow(onBackUp) },
+                                        enabled = canBackUp
                                     ) { Text("Back up library now") }
                                     OutlinedButton(
                                         modifier = Modifier.fillMaxWidth(),
-                                        onClick = onPreviewRestore,
+                                        onClick = { openExternalFlow(onPreviewRestore) },
                                         enabled = canBackUp
                                     ) { Text("Preview a restore") }
                                     OutlinedButton(
                                         modifier = Modifier.fillMaxWidth(),
-                                        onClick = onCompare,
+                                        onClick = { openExternalFlow(onCompare) },
                                         enabled = canBackUp
                                     ) { Text("Compare & merge libraries") }
                                     TextButton(
