@@ -1,5 +1,7 @@
 # NightWave 6X8C4 — Daily Mix unit-test compilation recovery
 
+> **Historical scope notice (19 October 2026):** This page records the **earlier Daily Mix compiler hotfix**, not the final state of the 6X8C4 branch. A subsequent user-supplied Windows build **passed both Kotlin compile tasks and assembled an APK, but failed 1 of 771 JVM tests** at `OfflinePlaybackQueueTest.jumpHandlesBoundsWithoutDamagingSelection`. That regression and additional queue boundary bugs were corrected afterward; the transfer-history and API warnings were also addressed. See [current verification](VERIFICATION_MATRIX.md) and [final acceptance](NIGHTWAVE_FINAL_ACCEPTANCE_20261019.md). A fresh full passing build is still unconfirmed.
+
 ## Proven failure (2026-10-19 Windows build of 6X8C3)
 
 The user's complete Windows Gradle build log shows:
