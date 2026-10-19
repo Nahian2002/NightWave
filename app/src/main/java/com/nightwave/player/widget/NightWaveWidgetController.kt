@@ -44,7 +44,12 @@ object NightWaveWidgetController {
         fun finish() {
             if (!completed.compareAndSet(false, true)) return
             main.removeCallbacks(timeout)
-            runCatching { controller?.release() }
+            // Also handles cancellation before the async controller connects.
+            // Media3 owns the future's lifecycle, including delayed binder setup.
+            val pendingFuture = future
+            if (pendingFuture != null)
+                runCatching { MediaController.releaseFuture(pendingFuture) }
+            else runCatching { controller?.release() }
             runCatching { finished() }
         }
         timeout = Runnable {
@@ -69,7 +74,9 @@ object NightWaveWidgetController {
                                 else if (connected.isCommandAvailable(Player.COMMAND_PLAY_PAUSE))
                                     connected.play()
                             }
-                            finish()
+                            // Let the just-sent transport command reach the session
+                            // before disconnecting the short-lived widget controller.
+                            main.postDelayed({ finish() }, 180L)
                         }
                         ACTION_NEXT, ACTION_PREVIOUS -> {
                             val command = if (action == ACTION_NEXT)
