@@ -316,8 +316,9 @@ class NightWaveStudioActivity : ComponentActivity() {
         if (result.resultCode != RESULT_OK || result.data == null) {
             cloudBusy = false
             cloudPendingAction = ""
-            cloudStore.status("Google authorization cancelled")
+            cloudStore.status("Google authorization cancelled or no account was selected")
             refreshCloud()
+            showMessage("Google Drive authorization was cancelled or not completed.")
         } else {
             runCatching {
                 Identity.getAuthorizationClient(this).getAuthorizationResultFromIntent(result.data!!)
@@ -325,8 +326,9 @@ class NightWaveStudioActivity : ComponentActivity() {
                 .onFailure {
                     cloudBusy = false
                     cloudPendingAction = ""
-                    cloudStore.status("Google authorization was not completed")
+                    cloudStore.status("Google returned an invalid authorization result")
                     refreshCloud()
+                    showMessage("Google Drive did not return a valid authorization result.")
                 }
         }
     }
@@ -1021,12 +1023,19 @@ class NightWaveStudioActivity : ComponentActivity() {
                     }
                 } else finishCloudAuthorization(response)
             }
-            .addOnFailureListener {
+            .addOnFailureListener { error ->
                 cloudBusy = false
                 cloudPendingAction = ""
-                cloudStore.status("Could not authorize Google Drive")
+                // Numeric Play-services status is safe diagnostic evidence.
+                // Do not log OAuth tokens, email addresses or exception text.
+                val statusCode =
+                    (error as? com.google.android.gms.common.api.ApiException)?.statusCode
+                val message = if (statusCode != null)
+                    "Google Drive authorization failed (status $statusCode)"
+                else "Google Drive authorization could not start"
+                cloudStore.status(message)
                 refreshCloud()
-                showMessage("Google authorization unavailable. Check Google Play services.")
+                showMessage("$message. Check Google Play services and app authorization setup.")
             }
     }
 
