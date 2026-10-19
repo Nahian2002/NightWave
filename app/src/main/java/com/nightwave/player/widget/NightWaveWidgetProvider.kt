@@ -24,18 +24,20 @@ class NightWaveWidgetProvider : AppWidgetProvider() {
 
     companion object {
         /**
-         * Called on playback-state/track transitions, never once per progress tick.
-         * Do not write widget cache if the user has not installed any widgets.
+         * Cache only compact display metadata at track/play state changes, not
+         * each progress tick. Caching before checking installed widget IDs lets a
+         * newly added widget show an already-playing song immediately.
          */
         fun publish(context: Context, state: WidgetPlaybackSnapshot) {
             runCatching {
                 val app = context.applicationContext
+                val safe = NowPlayingWidgetPolicy.normalized(state)
+                val store = NowPlayingWidgetStore(app)
+                if (store.read() == safe) return // no disk write or remote update
+                if (!store.write(safe)) return
                 val manager = AppWidgetManager.getInstance(app)
                 val ids = manager.getAppWidgetIds(
                     ComponentName(app, NightWaveWidgetProvider::class.java))
-                if (ids.isEmpty()) return
-                val safe = NowPlayingWidgetPolicy.normalized(state)
-                NowPlayingWidgetStore(app).write(safe)
                 ids.forEach { id -> manager.updateAppWidget(id, layout(app, safe)) }
             }
         }
