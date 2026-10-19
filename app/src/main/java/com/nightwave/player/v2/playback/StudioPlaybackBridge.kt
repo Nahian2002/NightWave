@@ -22,6 +22,7 @@ import com.nightwave.player.playback.QueueStateStore
 import com.nightwave.player.playback.PlaybackQueue
 import com.nightwave.player.offline.OfflineAudioLibrary
 import com.nightwave.player.offline.OfflineSessionStore
+import com.nightwave.player.offline.OfflinePlaybackPreferencesStore
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -81,13 +82,37 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
     private var ticksSinceReconcile = 0
     private data class PendingRepeat(val mode: PlaybackQueue.Repeat, val id: String, val expiresAt: Long)
     private var pendingRepeat: PendingRepeat? = null
+    private data class PendingOfflineRepeat(val mode: PlaybackQueue.Repeat, val expiresAt: Long)
+    private data class PendingOfflineShuffle(val enabled: Boolean, val expiresAt: Long)
+    private var pendingOfflineRepeat: PendingOfflineRepeat? = null
+    private var pendingOfflineShuffle: PendingOfflineShuffle? = null
+
+    private fun visibleOfflineRepeat(persisted: PlaybackQueue.Repeat): PlaybackQueue.Repeat {
+        val pending = pendingOfflineRepeat ?: return persisted
+        if (pending.mode == persisted || SystemClock.uptimeMillis() >= pending.expiresAt) {
+            pendingOfflineRepeat = null
+            return persisted
+        }
+        return pending.mode
+    }
+
+    private fun visibleOfflineShuffle(persisted: Boolean): Boolean {
+        val pending = pendingOfflineShuffle ?: return persisted
+        if (pending.enabled == persisted || SystemClock.uptimeMillis() >= pending.expiresAt) {
+            pendingOfflineShuffle = null
+            return persisted
+        }
+        return pending.enabled
+    }
+
     private val repeatReconcile = object : Runnable {
         override fun run() {
             if (released) return
             refreshQueue()
             // Coalesce bursts into one bounded receipt poll, never one poll
             // chain per tap. Stop as soon as the last requested mode is saved.
-            if (pendingRepeat != null) main.postDelayed(this, 220L)
+            if (pendingRepeat != null || pendingOfflineRepeat != null ||
+                pendingOfflineShuffle != null) main.postDelayed(this, 220L)
         }
     }
 
@@ -263,6 +288,8 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
         pauseUiUpdates()
         ticksSinceReconcile = 0
         pendingRepeat = null
+        pendingOfflineRepeat = null
+        pendingOfflineShuffle = null
         main.removeCallbacks(repeatReconcile)
         controller?.removeListener(listener)
         controller = null
@@ -354,8 +381,12 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
                 else savedBookmark?.positionMs ?: 0L,
             durationMs = if (duration > 0L) duration
                 else if (offlineId != null) 0L else savedBookmark?.durationMs ?: 0L,
-            shuffle = current.shuffle,
-            repeat = visibleRepeat(current.repeat),
+            shuffle = if (offlineId != null)
+                visibleOfflineShuffle(OfflinePlaybackPreferencesStore(context).shuffle())
+                else current.shuffle,
+            repeat = if (offlineId != null)
+                visibleOfflineRepeat(OfflinePlaybackPreferencesStore(context).repeat())
+                else visibleRepeat(current.repeat),
             queue = if (offlineId != null) offlineList.first
                 else current.tracks.map { VideoPreview(it.title, it.creator, it.url, it.artwork, 0) },
             queueIndex = if (offlineId != null) offlineList.second else current.index,
@@ -579,10 +610,48 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
     }
 
     override fun toggleShuffle() {
-        if (!state.offline) action(PlaybackService.ACTION_SHUFFLE)
+        if (released) return
+        if (!state.offline) {
+            action(PlaybackService.ACTION_SHUFFLE)
+            return
+        }
+        val original = state.shuffle
+        val enabled = !(pendingOfflineShuffle?.enabled ?: original)
+        pendingOfflineShuffle = PendingOfflineShuffle(
+            enabled, SystemClock.uptimeMillis() + 2_500L)
+        state = state.copy(shuffle = enabled)
+        try {
+            context.startService(Intent(context, PlaybackService::class.java)
+                .setAction(PlaybackService.ACTION_SHUFFLE)
+                .putExtra(PlaybackService.EXTRA_SHUFFLE_ENABLED, enabled))
+            main.removeCallbacks(repeatReconcile)
+            main.postDelayed(repeatReconcile, 120L)
+        } catch (_: Exception) {
+            pendingOfflineShuffle = null
+            state = state.copy(shuffle = original, error = "Could not change offline shuffle.")
+        }
     }
     override fun cycleRepeat() {
-        if (released || state.offline) return
+        if (released) return
+        if (state.offline) {
+            val original = state.repeat
+            val mode = RepeatModePolicy.next(pendingOfflineRepeat?.mode ?: original)
+            pendingOfflineRepeat = PendingOfflineRepeat(
+                mode, SystemClock.uptimeMillis() + 2_500L)
+            state = state.copy(repeat = mode)
+            try {
+                context.startService(Intent(context, PlaybackService::class.java)
+                    .setAction(PlaybackService.ACTION_REPEAT)
+                    .putExtra(PlaybackService.EXTRA_REPEAT_MODE, mode.name))
+                main.removeCallbacks(repeatReconcile)
+                main.postDelayed(repeatReconcile, 120L)
+            } catch (_: Exception) {
+                pendingOfflineRepeat = null
+                state = state.copy(repeat = original,
+                    error = "Could not change offline repeat mode.")
+            }
+            return
+        }
         val original = state.repeat
         val mode = RepeatModePolicy.next(pendingRepeat?.mode ?: original)
         val id = java.util.UUID.randomUUID().toString()
@@ -627,8 +696,12 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
             queue = if (state.offline) state.queue
                 else snapshot.tracks.map { VideoPreview(it.title, it.creator, it.url, it.artwork, 0L) },
             queueIndex = if (state.offline) state.queueIndex else snapshot.index,
-            shuffle = snapshot.shuffle,
-            repeat = visibleRepeat(snapshot.repeat),
+            shuffle = if (state.offline)
+                visibleOfflineShuffle(OfflinePlaybackPreferencesStore(context).shuffle())
+                else snapshot.shuffle,
+            repeat = if (state.offline)
+                visibleOfflineRepeat(OfflinePlaybackPreferencesStore(context).repeat())
+                else visibleRepeat(snapshot.repeat),
             title = if (state.offline) state.title else entry?.title ?: state.title,
             artist = if (state.offline) state.artist else entry?.creator ?: state.artist,
             thumbnail = if (state.offline) state.thumbnail else entry?.artwork ?: state.thumbnail,
