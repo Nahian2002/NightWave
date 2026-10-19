@@ -726,7 +726,9 @@ fun StudioNowPlayingOverlay(
                     Row(Modifier.fillMaxSize().padding(horizontal = 17.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("Up next · " + state.queue.size + " tracks", style = MaterialTheme.typography.titleMedium)
+                        Text("Queue · " + state.queue.size + " " +
+                            if (state.queue.size == 1) "track" else "tracks",
+                            style = MaterialTheme.typography.titleMedium)
                         Icon(Icons.AutoMirrored.Outlined.QueueMusic, contentDescription = "Open queue", tint = colors.primary)
                     }
                 }
