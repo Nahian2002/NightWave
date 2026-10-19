@@ -21,6 +21,7 @@ on:
       - fix/nightwave-v2-phase6x8c4-daily-mix-unit-test-compile
       - fix/nightwave-v2-nw01-shuffle-eq-google-recovery
       - feature/nightwave-v2-nw02-sound-studio
+      - feature/nightwave-v2-nw03-account-backup-hub
   pull_request:
     branches:
       - feature/nightwave-v2-phase5r-accessibility-build-gates
@@ -96,6 +97,7 @@ jobs:
           python3 tools/verify_source.py
           python3 tools/verify_nw01_recovery.py
           python3 tools/verify_nw02_sound_studio.py
+          python3 tools/verify_nw03_account_hub.py
           python3 tools/verify_v2_phase5r.py
           python3 tools/verify_v2_phase5s.py
           python3 tools/verify_v2_phase5t.py
