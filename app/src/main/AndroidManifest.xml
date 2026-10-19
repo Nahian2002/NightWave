@@ -6,6 +6,8 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Android Auto / Automotive OS may browse the same service; not a second player. -->
+    <uses-feature android:name="android.hardware.type.automotive" android:required="false" />
     <application
         android:name=".NightWaveApp"
         android:allowBackup="false"
@@ -14,6 +16,9 @@
         android:usesCleartextTraffic="false"
         android:icon="@drawable/ic_nightwave"
         android:roundIcon="@drawable/ic_nightwave">
+        <meta-data
+            android:name="com.google.android.gms.car.application"
+            android:resource="@xml/automotive_app_desc" />
         <!-- NightWave 2.0 is the canonical launcher and external text-share target.
              The classic UI remains a private, explicit in-app fallback. -->
         <activity android:name=".v2.ui.NightWaveStudioActivity"
@@ -55,7 +60,8 @@
             android:exported="true"
             android:foregroundServiceType="mediaPlayback">
             <intent-filter>
-                <action android:name="androidx.media3.session.MediaSessionService" />
+                <action android:name="androidx.media3.session.MediaLibraryService" />
+                <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
         </service>
     </application>
