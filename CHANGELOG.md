@@ -1,5 +1,15 @@
 # NightWave Changelog
 
+## 2026-10-19 — NW-01 phone-reported control and authorization recovery (unverified)
+
+- New branch based on the previously audited `6960dc5` commit; that tested source snapshot remains intact.
+- Public video Shuffle sends an absolute On/Off state with immediate UI feedback and a service receipt to reduce stale-snapshot/rapid-tap races. Four JVM policy tests added.
+- Equalizer status now distinguishes waiting for an audio session, competing effect ownership, unsupported presets/bands and a device-route-dependent Android effect activation. Audible success has **not** been established.
+- Optional Google Drive backup access has a visible You-page shortcut and more useful authorization error/status reporting. This does **not** provide full Google sign-in/account sync.
+- The latest NW-01 GitHub Actions jobs failed before any job steps ran, so they are **not** compilation or test evidence. Full local Windows build, signer and device QA remain pending.
+- See [NW-01 QA and acceptance](docs/NIGHTWAVE_NW01_FIELD_FAILURES_QA.md).
+
+
 NightWave uses stacked, independently reviewable development branches. This changelog describes **source changes**. A feature marked implemented below is **not necessarily validated by a successful Android build or physical-device test**. Check [verification status](docs/VERIFICATION_MATRIX.md) before installation.
 
 ## 2026-10-19 — Final 6X8C4 branch audit and queue recovery (development)
