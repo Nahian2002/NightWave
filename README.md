@@ -1,5 +1,8 @@
 # NightWave
 
+> **NW-15 Service Queue Selection Safety — 22 October 2026:** The latest [NightWave integrated development branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw15-queue-intent-identity) corrects a service-side bug where filtering malformed links could shift the selected-song index and silently choose another track. Public queue and enqueue Intents now require canonical watch URLs, preserve the originally tapped song by identity and reject invalid selections. Six new JUnit regression cases are included; NW-01 through NW-14 remain integrated. **A complete Android Gradle build, APK signing continuity and device testing are still unverified, so release is NO-GO.** See the [NW-15 verification report](docs/NIGHTWAVE_NW15_SERVICE_QUEUE_IDENTITY.md).
+
+
 > **NW-14 Long-Queue Continuity — 22 October 2026:** The [latest integrated NightWave development branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw14-large-queue-window) fixes a public playlist continuity issue: selecting a song beyond the 100-track service limit previously moved it to the beginning and separated it from adjacent tracks. NW-14 keeps a **contiguous, bounded playlist window** so Next and Previous follow the real surrounding songs. Six new JUnit tests were added (11 total in the selection suite), while NW-01–NW-13 changes remain. **Full Android compilation and signer-safe phone acceptance are not yet verified; release NO-GO.** See the [NW-14 report](docs/NIGHTWAVE_NW14_LARGE_QUEUE_CONTINUITY.md).
 
 
