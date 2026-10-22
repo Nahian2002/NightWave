@@ -75,12 +75,15 @@ $statusFile = Join-Path $outDir 'NightWave-build-status.txt'
 $output = Join-Path $outDir 'NightWave-debug.apk'
 $previousApk = Join-Path $outDir 'NightWave-debug-previous.apk'
 $sourceManifest = Join-Path $outDir 'NightWave-source-fingerprint.txt'
+$junitSummary = Join-Path $outDir 'NightWave-jvm-failure-summary.txt'
+$testXmlDirectory = Join-Path $project 'app\build\test-results\testDebugUnitTest'
 $sourceManifestHash = ''
 $stage = 'Preflight'
 New-Item -ItemType Directory -Path $outDir -Force | Out-Null
 if (Test-Path -LiteralPath $errorReport) { Remove-Item -LiteralPath $errorReport -Force }
 # Never reuse a fingerprint from a previous, different ZIP.
 if (Test-Path -LiteralPath $sourceManifest) { Remove-Item -LiteralPath $sourceManifest -Force }
+if (Test-Path -LiteralPath $junitSummary) { Remove-Item -LiteralPath $junitSummary -Force }
 # Archive the prior log; a preflight failure must not reuse yesterday's compiler errors.
 if (Test-Path -LiteralPath $buildLog) {
     Copy-Item -LiteralPath $buildLog -Destination $previousLog -Force
@@ -396,6 +399,11 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Android SDK package installation failed.' }
 
     $stage = 'Gradle compile / unit tests'
+    # Discard only disposable Gradle test-report output from previous attempts.
+    # Otherwise a compilation failure can make old JUnit results look current.
+    if (Test-Path -LiteralPath $testXmlDirectory -PathType Container) {
+        Remove-Item -LiteralPath $testXmlDirectory -Recurse -Force
+    }
     Say 'Running unit tests, building APK and compiling Android instrumentation test sources'
     # The complete Gradle output is retained; preflight failures also get a report.
     Say "Saving build output to $buildLog"
@@ -553,6 +561,25 @@ try {
     ) | Set-Content -LiteralPath $statusFile -Encoding UTF8
     Write-Host "[NightWave] BUILD FAILED ($stage): $reason" -ForegroundColor Red
     Write-Host "Diagnostics: $errorReport" -ForegroundColor Yellow
+    # Extract only bounded, redacted current-attempt JUnit failure names/messages.
+    # Never interpret missing XML as a passed test suite.
+    if ($stage -eq 'Gradle compile / unit tests') {
+        $junitReporter = Join-Path $PSScriptRoot 'nw11-junit-report.ps1'
+        if (Test-Path -LiteralPath $junitReporter -PathType Leaf) {
+            try {
+                & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $junitReporter -SelfTest
+                if ($LASTEXITCODE -eq 0) {
+                    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $junitReporter `
+                        -ResultsDirectory $testXmlDirectory -OutputFile $junitSummary
+                    if ($LASTEXITCODE -eq 0) {
+                        Write-Host "Sanitized JVM failure summary: $junitSummary" -ForegroundColor Yellow
+                    }
+                } else { Write-Host 'JUnit reporter self-test failed; diagnostic skipped.' -ForegroundColor Yellow }
+            } catch {
+                Write-Host 'JUnit reporter unavailable; build remains FAILED.' -ForegroundColor Yellow
+            }
+        }
+    }
     # Best-effort failure-only diagnosis; never changes the failed exit code.
     $diagnosticScript = Join-Path $PSScriptRoot 'diagnose-build.ps1'
     if (Test-Path -LiteralPath $diagnosticScript -PathType Leaf) {
