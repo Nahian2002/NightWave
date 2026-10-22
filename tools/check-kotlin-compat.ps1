@@ -24,10 +24,12 @@ if ($SelfTest) {
         'androidx.compose.ui.semantics.ProgressBarRangeInfo',
         'androidx.compose.ui.semantics.progressBarRangeInfo'
     )
-    if (@(Get-ExactDuplicateImports $validCompose).Count -ne 0) {
+    $validDuplicates = @(Get-ExactDuplicateImports $validCompose)
+    if ($validDuplicates.Count -ne 0) {
         throw 'Kotlin case-sensitive import regression: valid Compose symbols were conflated.'
     }
-    $actuallyRepeated = @(Get-ExactDuplicateImports @('a.B', 'a.b', 'a.B'))
+    $repeatedNames = @('a.B', 'a.b', 'a.B')
+    $actuallyRepeated = @(Get-ExactDuplicateImports $repeatedNames)
     if ($actuallyRepeated.Count -ne 1 -or $actuallyRepeated[0] -cne 'a.B') {
         throw 'Kotlin exact duplicate import was not detected.'
     }
