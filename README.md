@@ -1,5 +1,8 @@
 # NightWave
 
+> **NW-11 JVM Failure Evidence — 22 October 2026:** The newest [integrated development branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw11-offline-compiler-proof) adds a bounded, privacy-reduced report of the **actual current Windows Gradle run's failing JVM tests**. Older generated test reports are cleared before compilation, so a compiler failure cannot be mistaken for a previous run's failed test. All NW-01–NW-10 features remain. **GitHub hosted runners still have not executed build steps; full Android compilation and a signer-safe APK remain unverified. Release NO-GO.** See [NW-11 evidence and deferred tests](docs/NIGHTWAVE_NW11_JVM_TEST_EVIDENCE.md).
+
+
 > **NW-10 Build Recovery — 22 October 2026:** The newest [integrated development branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw10-compiler-recovery) adds a genuine standalone Kotlin compiler smoke test and an isolated hosted-runner canary. Both the trivial canary and Android job **failed before executing any steps** in GitHub Actions, showing an unresolved runner/account-level blocker rather than a Kotlin error log. Four hash-matched production Kotlin policies were independently compiled and passed 10 assertions locally, but a **full Android build and signer-safe release remain NO-GO**. See [NW-10 compiler and runner evidence](docs/NIGHTWAVE_NW10_COMPILER_RECOVERY.md).
 
 
