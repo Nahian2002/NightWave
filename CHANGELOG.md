@@ -1,5 +1,16 @@
 # NightWave Changelog
 
+## 2026-10-22 — NW-12 actual Kotlin compiler proof & adjacent JUnit failure fix
+
+- **Repaired a real NW-11 diagnostic parser bug:** `ReadOuterXml` followed by `Read()` could skip consecutive JUnit test cases. A DTD-prohibited, 8 MiB-capped XML document reader now retains neighboring `failure` and `error` entries, including those lacking a message attribute.
+- Upgraded the synthetic failure-report self-test to require four detected failures with adjacent, passing and missing-message cases.
+- Independently retrieved **six exact production Kotlin files**, validated each Git blob SHA-1 against GitHub, compiled them locally with `kotlinc 1.9.0` and executed **28/28 Kotlin assertions successfully**.
+- Added a reproducible six-source `tools/kotlin/NW12VerifiedSmoke.kt` and `tools/nw12_verified_kotlin.py`. Missing Kotlin/Java tools do not produce a false pass.
+- Fixed the NW-08 build source inventory to fingerprint nested Kotlin build tools under `tools/kotlin/`, and added a negative file-addition fixture for this previously missed directory.
+- CI retains its complete Gradle/JVM/instrumentation-source gates, plus the new NW-12 source tests and optional standalone Kotlin compiler exercise.
+- **Android release remains NO-GO**: six-policy Kotlin compilation is not proof of the full Compose/Media3 build, signer compatibility or phone functionality. See [NW-12 QA](docs/NIGHTWAVE_NW12_COMPILER_AND_JUNIT_QA.md).
+
+
 ## 2026-10-22 — NW-11 current-attempt JVM failure diagnostics (development)
 
 - Added a read-only Windows PowerShell reporter that summarizes failing JUnit cases from the current Gradle run, with bounded test/error text and XML external-entity protection.
