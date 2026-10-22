@@ -487,7 +487,8 @@ try {
     $verifyOutput = (& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $verifier `
         -ApkPath $apk -BuildToolsDir $buildTools `
         -VersionName '2.0.0-alpha5s' -VersionCode '35' `
-        -PreviousApkPath $previousApk 2>&1 | Out-String)
+        -PreviousApkPath $previousApk `
+        -TrustedSignerSHA256 $env:NIGHTWAVE_TRUSTED_SIGNER_SHA256 2>&1 | Out-String)
     if ($LASTEXITCODE -ne 0) {
         throw ('APK signature/identity gate failed: ' + $verifyOutput.Trim())
     }

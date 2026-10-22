@@ -6,7 +6,8 @@ param(
     [Parameter(Mandatory=$true)][string]$BuildToolsDir,
     [Parameter(Mandatory=$true)][string]$VersionName,
     [Parameter(Mandatory=$true)][string]$VersionCode,
-    [string]$PreviousApkPath = ''
+    [string]$PreviousApkPath = '',
+    [string]$TrustedSignerSHA256 = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -57,6 +58,15 @@ try {
     }
 
     $newSigner = Read-Signer $ApkPath $apksigner
+    if (-not [string]::IsNullOrWhiteSpace($TrustedSignerSHA256)) {
+        $trusted = $TrustedSignerSHA256.Trim()
+        if ($trusted -notmatch '^[0-9A-Fa-f]{64}$') {
+            throw 'Trusted signer must contain exactly 64 hexadecimal characters.'
+        }
+        if ($newSigner -ne $trusted.ToUpperInvariant()) {
+            throw 'Signing certificate differs from trusted installed NightWave. Do not uninstall the existing app.'
+        }
+    }
     $continuity = 'NOT CHECKED - no previous APK supplied. Installed-device signer must be checked separately.'
     if (-not [string]::IsNullOrWhiteSpace($PreviousApkPath) -and
         (Test-Path -LiteralPath $PreviousApkPath -PathType Leaf)) {
@@ -70,6 +80,10 @@ try {
             throw 'APK signing certificate changed. Keep the existing app; do NOT uninstall or clear data.'
         }
         $continuity = 'MATCH - same signer as previous APK.'
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($TrustedSignerSHA256)) {
+        $continuity = 'MATCH - trusted installed-app signer.'
     }
 
     Write-Output 'NightWave APK verification PASSED'

@@ -39,7 +39,10 @@ if not "%BUILD_EXIT%"=="0" (
     echo Send: dist\NightWave-build-diagnostic.txt
   )
 ) else (
-  echo BUILD SUCCESS. Verified build 35: dist\NightWave-debug.apk
+  echo LOCAL BUILD SUCCESS. APK package and signature verified: dist\NightWave-debug.apk
+  echo IMPORTANT: This does not prove the APK matches the signer of the app installed on your phone.
+  echo Check "Signing continuity" in dist\NightWave-build-status.txt before installing an update.
+  echo A trusted signer may be required using NIGHTWAVE_TRUSTED_SIGNER_SHA256.
   echo See dist\NightWave-build-status.txt for version and SHA256.
 )
 echo.
