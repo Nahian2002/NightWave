@@ -1,5 +1,8 @@
 # NightWave
 
+> **NW-14 Long-Queue Continuity — 22 October 2026:** The [latest integrated NightWave development branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw14-large-queue-window) fixes a public playlist continuity issue: selecting a song beyond the 100-track service limit previously moved it to the beginning and separated it from adjacent tracks. NW-14 keeps a **contiguous, bounded playlist window** so Next and Previous follow the real surrounding songs. Six new JUnit tests were added (11 total in the selection suite), while NW-01–NW-13 changes remain. **Full Android compilation and signer-safe phone acceptance are not yet verified; release NO-GO.** See the [NW-14 report](docs/NIGHTWAVE_NW14_LARGE_QUEUE_CONTINUITY.md).
+
+
 > **NW-13 Public Queue Navigation — 22 October 2026:** The latest [integrated development branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw13-public-queue-previous) corrects an actual public playback bug: with Shuffle off, **Previous follows the displayed song order even after tapping/jumping between tracks**. Shuffle-on Previous retraces real playback history; changing Shuffle mode clears stale history. Nine regression tests were added and older tests updated. All NW-01–NW-12 work is retained. **No full passing Android build, signer-safe APK or phone acceptance is verified; release remains NO-GO.** See [NW-13 report](docs/NIGHTWAVE_NW13_PUBLIC_QUEUE_RECOVERY.md).
 
 
