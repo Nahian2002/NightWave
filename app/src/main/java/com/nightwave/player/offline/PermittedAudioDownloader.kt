@@ -1,6 +1,8 @@
 package com.nightwave.player.offline
 
 import android.content.Context
+import android.media.MediaExtractor
+import android.media.MediaFormat
 import okhttp3.Call
 import okhttp3.Dns
 import okhttp3.OkHttpClient
@@ -8,6 +10,8 @@ import okhttp3.Request
 import java.io.File
 import java.io.FileOutputStream
 import java.net.InetAddress
+import java.net.URI
+import java.io.IOException
 import java.nio.file.Files
 import java.util.UUID
 import java.util.concurrent.TimeUnit
@@ -41,6 +45,10 @@ class PermittedAudioDownloader(private val context: Context) {
         currentCall?.cancel()
     }
 
+    /**
+     * Clean-start bounded retry rather than appending unknown partial ranges.
+     * On any failure/cancellation, only this private staging file is deleted.
+     */
     fun download(
         source: PermittedAudioSource,
         progress: (downloaded: Long, total: Long?) -> Unit
@@ -53,20 +61,64 @@ class PermittedAudioDownloader(private val context: Context) {
         require(staging.canonicalFile.parentFile == home) { "Unsafe download path" }
         val pending = File(staging, UUID.randomUUID().toString() + ".pending")
         try {
-            val request = Request.Builder().url(source.url)
+            repeat(3) { attempt ->
+                check(!cancelled.get()) { "Download cancelled" }
+                require(!pending.exists() || pending.delete()) {
+                    "Could not reset partial audio transfer"
+                }
+                val fileName = try {
+                    transferOnce(source, pending, progress)
+                } catch (network: IOException) {
+                    if (cancelled.get() || attempt == 2) throw network
+                    progress(0, null)
+                    return@repeat
+                }
+                check(!cancelled.get()) { "Download cancelled" }
+                inspectAudioOnly(pending)
+                check(!cancelled.get()) { "Download cancelled" }
+                return OfflineAudioLibrary(context).importPermittedStagedAudio(pending, fileName)
+            }
+            error("Download did not finish")
+        } finally {
+            currentCall?.cancel()
+            currentCall = null
+            pending.delete()
+        }
+    }
+
+    /**
+     * Follow a small number of fully validated HTTPS redirects. OkHttp never
+     * follows any redirects automatically. Every hop is checked for URL
+     * restrictions and DNS never connects to private/reserved IP addresses.
+     */
+    private fun transferOnce(
+        source: PermittedAudioSource, pending: File,
+        progress: (downloaded: Long, total: Long?) -> Unit
+    ): String {
+        var url = source.url
+        repeat(5) { redirects ->
+            check(!cancelled.get()) { "Download cancelled" }
+            url = PermittedAudioDownloadPolicy.prepare(url, "").url
+            val request = Request.Builder().url(url)
                 .header("Accept", "audio/*,application/octet-stream")
                 .header("Cache-Control", "no-store")
                 .get().build()
             val call = client.newCall(request)
             currentCall = call
-            call.execute().use { response ->
-                require(response.code == 200) {
-                    if (response.isRedirect) "Redirected audio URLs are not supported."
-                    else "Audio server returned HTTP ${response.code}."
+            val response = call.execute()
+            if (response.code in 300..399) {
+                val target = response.header("Location")
+                response.close()
+                require(redirects < 4 && !target.isNullOrBlank()) {
+                    "Too many redirects or missing destination"
                 }
-                require(PermittedAudioDownloadPolicy.supportedContentType(
-                    response.header("Content-Type"), source.extension)) {
-                    "The link did not return the expected audio format."
+                url = PermittedAudioDownloadPolicy.prepare(
+                    URI(url).resolve(target).toString(), "").url
+                return@repeat
+            }
+            response.use {
+                require(response.code == 200) {
+                    "Audio server returned HTTP " + response.code + "."
                 }
                 val body = requireNotNull(response.body) { "Empty download response" }
                 val length = body.contentLength()
@@ -74,23 +126,24 @@ class PermittedAudioDownloader(private val context: Context) {
                     "File is larger than the 250 MB song limit."
                 }
                 var received = 0L
-                val prefix = ByteArray(16)
+                val prefix = ByteArray(64)
                 var prefixCount = 0
-                body.byteStream().use { stream ->
+                body.byteStream().use { input ->
                     FileOutputStream(pending).use { output ->
                         val buffer = ByteArray(32_768)
                         while (true) {
                             check(!cancelled.get()) { "Download cancelled" }
-                            val n = stream.read(buffer)
+                            val n = input.read(buffer)
                             if (n < 0) break
+                            if (n == 0) continue
                             received += n
                             require(received <= PermittedAudioDownloadPolicy.MAX_BYTES) {
                                 "File exceeds the 250 MB song limit."
                             }
                             if (prefixCount < prefix.size) {
-                                val bytes = minOf(n, prefix.size - prefixCount)
-                                buffer.copyInto(prefix, prefixCount, 0, bytes)
-                                prefixCount += bytes
+                                val copy = minOf(n, prefix.size - prefixCount)
+                                buffer.copyInto(prefix, prefixCount, 0, copy)
+                                prefixCount += copy
                             }
                             output.write(buffer, 0, n)
                             progress(received, length.takeIf { it > 0 })
@@ -102,18 +155,46 @@ class PermittedAudioDownloader(private val context: Context) {
                 require(received > 0 && (length < 0 || received == length)) {
                     "Audio download was incomplete."
                 }
-                require(PermittedAudioDownloadPolicy.audioSignatureMatches(
-                    prefix.copyOf(prefixCount), source.extension)) {
-                    "The downloaded file did not match the declared audio format."
+                val firstBytes = prefix.copyOf(prefixCount)
+                val format = PermittedAudioDownloadPolicy.detectAudioExtension(
+                    response.header("Content-Type"), firstBytes, source.extension)
+                require(format != null &&
+                    PermittedAudioDownloadPolicy.supportedContentType(
+                        response.header("Content-Type"), format) &&
+                    PermittedAudioDownloadPolicy.audioSignatureMatches(firstBytes, format)) {
+                    "The link returned invalid audio or a different format."
                 }
+                val stem = if (source.extension.isBlank()) source.fileName
+                    else source.fileName.removeSuffix("." + source.extension)
+                return stem + "." + format
             }
-            check(!cancelled.get()) { "Download cancelled" }
-            return OfflineAudioLibrary(context).importPermittedStagedAudio(pending, source.fileName)
+        }
+        error("Audio redirect limit exceeded")
+    }
+
+    /** Reject spoofed audio: Android must parse an audio track and no video. */
+    private fun inspectAudioOnly(file: File) {
+        val extractor = MediaExtractor()
+        try {
+            extractor.setDataSource(file.absolutePath)
+            var audioTracks = 0
+            for (index in 0 until extractor.trackCount) {
+                val track = extractor.getTrackFormat(index)
+                val mime = track.getString(MediaFormat.KEY_MIME).orEmpty()
+                require(!mime.startsWith("video/")) {
+                    "This file contains video rather than audio only."
+                }
+                if (mime.startsWith("audio/")) audioTracks++
+            }
+            require(audioTracks > 0) {
+                "Android could not identify any playable audio track."
+            }
+        } catch (error: RuntimeException) {
+            throw IllegalArgumentException(
+                "Android could not validate the audio file; nothing was saved.", error
+            )
         } finally {
-            currentCall = null
-            // Only this download's private staging file is removed. Existing
-            // imported songs, other downloads and personal files are untouched.
-            pending.delete()
+            extractor.release()
         }
     }
 

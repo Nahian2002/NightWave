@@ -13,6 +13,7 @@ object PermittedAudioDownloadPolicy {
         "youtube.com", "youtu.be", "youtube-nocookie.com", "googlevideo.com",
         "ytimg.com", "spotify.com", "soundcloud.com"
     )
+    private val manifestExtensions = setOf("m3u8", "mpd", "m3u", "pls")
     private val fileNameAllowed = Regex("[^a-zA-Z0-9 ._()\\-]")
     private val ipv4Literal = Regex("[0-9.]+")
     private val hostLabels = Regex("[a-zA-Z0-9-]+(\\.[a-zA-Z0-9-]+)+")
@@ -35,8 +36,12 @@ object PermittedAudioDownloadPolicy {
             "That site is not a direct downloadable audio source."
         }
         val pathName = uri.path.orEmpty().substringAfterLast('/')
+        val pathExtension = pathName.substringAfterLast('.', "").lowercase(Locale.ROOT)
+        require(pathExtension !in manifestExtensions) {
+            "A streaming playlist cannot be downloaded as a single song."
+        }
         val suppliedName = rawName.trim()
-        val candidate = suppliedName.ifBlank { pathName }
+        val candidate = suppliedName.ifBlank { pathName }.ifBlank { "Downloaded audio" }
         val fromName = candidate.substringAfterLast('.', "").lowercase(Locale.ROOT)
         val fromPath = pathName.substringAfterLast('.', "").lowercase(Locale.ROOT)
         val extension = when {
@@ -44,28 +49,60 @@ object PermittedAudioDownloadPolicy {
             suppliedName.isNotBlank() && '.' in suppliedName ->
                 throw IllegalArgumentException("Choose MP3, M4A, AAC, FLAC, WAV, OGG, OPUS or WebM.")
             fromPath in formats -> fromPath
-            else -> throw IllegalArgumentException(
-                "A direct audio file URL or filename with a supported extension is required.")
+            else -> ""  // For extensionless CDN links, validate actual bytes after download.
         }
-        val rawStem = if (fromName == extension) candidate.substringBeforeLast('.') else candidate
+        val rawStem = if (extension.isNotBlank() && fromName == extension)
+            candidate.substringBeforeLast('.') else candidate
         val stem = rawStem.replace(fileNameAllowed, "_").trim(' ', '.', '_')
             .take(90).ifBlank { "Downloaded audio" }
-        return PermittedAudioSource(uri.toASCIIString(), "$stem.$extension", extension)
+        return PermittedAudioSource(uri.toASCIIString(),
+            if (extension.isBlank()) stem else "$stem.$extension", extension)
     }
 
     fun supportedContentType(header: String?, extension: String): Boolean {
         val mime = header.orEmpty().substringBefore(';').trim().lowercase(Locale.ROOT)
         return when (mime) {
-            "audio/mpeg" -> extension == "mp3"
+            "audio/mpeg", "audio/mp3", "audio/x-mpeg" -> extension == "mp3"
             "audio/mp4", "audio/x-m4a" -> extension == "m4a"
-            "audio/aac", "audio/aacp" -> extension == "aac"
+            "audio/aac", "audio/aacp", "audio/x-aac" -> extension == "aac"
             "audio/flac", "audio/x-flac" -> extension == "flac"
             "audio/wav", "audio/wave", "audio/x-wav" -> extension == "wav"
-            "audio/ogg", "application/ogg" -> extension in setOf("ogg", "opus")
+            "audio/ogg", "application/ogg", "audio/opus", "audio/x-opus+ogg" ->
+                extension in setOf("ogg", "opus")
             "audio/webm" -> extension == "webm"
             "application/octet-stream", "binary/octet-stream" -> extension in formats
             else -> false
         }
+    }
+
+    /**
+     * Resolve audio format only when content MIME and actual file signature
+     * agree. If the URL had no extension, infer from bytes; never relabel an
+     * M4A, OGG or WebM file as MP3.
+     */
+    fun detectAudioExtension(mime: String?, prefix: ByteArray, hinted: String): String? {
+        val signature = when {
+            audioSignatureMatches(prefix, "flac") -> "flac"
+            audioSignatureMatches(prefix, "wav") -> "wav"
+            audioSignatureMatches(prefix, "m4a") -> "m4a"
+            audioSignatureMatches(prefix, "webm") -> "webm"
+            audioSignatureMatches(prefix, "ogg") -> {
+                // The Ogg container may carry Opus or Vorbis.
+                val opus = prefix.size >= 36 && (28..(prefix.size - 8)).any { start ->
+                    "OpusHead".indices.all { offset ->
+                        prefix[start + offset] == "OpusHead"[offset].code.toByte()
+                    }
+                }
+                if (opus) "opus" else "ogg"
+            }
+            audioSignatureMatches(prefix, "aac") -> "aac"
+            audioSignatureMatches(prefix, "mp3") -> "mp3"
+            else -> return null
+        }
+        val chosen = hinted.lowercase(Locale.ROOT).ifBlank { signature }
+        if (chosen != signature &&
+            !(chosen in setOf("opus", "ogg") && signature in setOf("opus", "ogg"))) return null
+        return chosen.takeIf { supportedContentType(mime, it) }
     }
 
     /** Reject an HTML/error page disguised as an audio download. */
@@ -79,7 +116,7 @@ object PermittedAudioDownloadPolicy {
                 ((firstBytes[0].toInt() and 0xFF) == 0xFF &&
                     (firstBytes[1].toInt() and 0xE0) == 0xE0)
             "flac" -> ascii(0, "fLaC")
-            "wav" -> ascii(0, "RIFF") && ascii(8, "WAVE")
+            "wav" -> (ascii(0, "RIFF") || ascii(0, "RF64")) && ascii(8, "WAVE")
             "ogg", "opus" -> ascii(0, "OggS")
             "webm" -> firstBytes.take(4).map { it.toInt() and 0xFF } ==
                 listOf(0x1A, 0x45, 0xDF, 0xA3)

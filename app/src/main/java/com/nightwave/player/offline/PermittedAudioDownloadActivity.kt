@@ -43,14 +43,14 @@ class PermittedAudioDownloadActivity : ComponentActivity() {
             setPadding(0, dp(8), 0, dp(8))
         })
         panel.addView(label(
-            "Save a directly downloadable MP3, M4A, FLAC or other supported audio file " +
-                "for offline listening. No NightWave server or Google connection needed.",
+            "Save a permitted direct MP3, M4A, AAC, FLAC, WAV, OGG, OPUS or WebM " +
+                "audio file for offline listening. A direct HTTPS link is required.",
             14f, 0xFFA7BBC7.toInt()
         ).apply { setPadding(0, 0, 0, dp(20)) })
 
         panel.addView(label("DIRECT HTTPS AUDIO FILE URL", 12f, 0xFF9ADBD4.toInt(), true))
         urlInput = EditText(this).apply {
-            hint = "https://artist.example/music/track.mp3"
+            hint = "https://artist.example/music/track.mp3 or /download?id=123"
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
             setSingleLine(false)
             minLines = 1
@@ -65,7 +65,7 @@ class PermittedAudioDownloadActivity : ComponentActivity() {
 
         panel.addView(label("TRACK NAME (OPTIONAL)", 12f, 0xFF9ADBD4.toInt(), true))
         nameInput = EditText(this).apply {
-            hint = "Name.mp3 (optional)"
+            hint = "Track name (extension optional)"
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
             isSingleLine = true
             textSize = 14f
@@ -115,6 +115,8 @@ class PermittedAudioDownloadActivity : ComponentActivity() {
             "YouTube watch links, streaming manifests and protected media are not direct " +
                 "audio downloads. NightWave does not convert YouTube videos to MP3. " +
                 "Downloads stop when you leave this screen. " +
+                "Original format is preserved; this is not a YouTube-to-MP3 converter. " +
+                "Temporary network errors are retried, but unsupported audio is never saved. " +
                 "Audio is deleted if NightWave is uninstalled.",
             12f, 0xFF91A5B5.toInt()
         ))
