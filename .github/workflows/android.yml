@@ -28,6 +28,7 @@ on:
       - fix/nightwave-v2-nw07-build-release-gate
       - fix/nightwave-v2-nw08-full-source-build-attestation
       - fix/nightwave-v2-nw09-device-reliability-diagnostics
+      - fix/nightwave-v2-nw10-compiler-recovery
   pull_request:
     branches:
       - feature/nightwave-v2-phase5r-accessibility-build-gates
@@ -110,6 +111,7 @@ jobs:
           python3 tools/verify_nw07_release_gate.py
           python3 tools/verify_nw08_attestation.py
           python3 tools/verify_nw09_device_reliability.py
+          python3 tools/nw10_kotlin_smoke.py --list
           pwsh -NoProfile -File tools/get-nw08-source-inputs.ps1 -SelfTest
           pwsh -NoProfile -File tools/check-nw07-source-gate.ps1 -SelfTest
           pwsh -NoProfile -File tools/check-nw07-source-gate.ps1
@@ -201,6 +203,16 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+      # Compiles and executes production Kotlin without an Android runtime.
+      # Ubuntu toolchains differ: absence of standalone kotlinc is labeled
+      # SKIP, not PASS; full Gradle Kotlin compile is still mandatory below.
+      - name: Standalone Kotlin compiler smoke (when compiler present)
+        run: |
+          if command -v kotlinc >/dev/null 2>&1; then
+            python3 tools/nw10_kotlin_smoke.py
+          else
+            echo "SKIP: standalone kotlinc not provisioned; Gradle Kotlin gate is required"
+          fi
       - uses: android-actions/setup-android@v3
       - uses: gradle/actions/setup-gradle@v4
         with:
@@ -235,7 +247,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: NightWave-NW04-dev-debug-UNVERIFIED-FOR-DEVICE
+          name: NightWave-NW10-dev-debug-UNVERIFIED-FOR-DEVICE
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 5
