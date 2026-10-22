@@ -56,6 +56,27 @@ class NightWaveDriveClient(private val accessToken: String) {
         .header("Accept", "application/json")
 
     /**
+     * Resolve the Google account from the already authorized Drive token.
+     * AuthorizationResult.toGoogleSignInAccount() can legally be null after
+     * an interactive scope grant; don't use a missing legacy profile as proof
+     * that the Drive grant failed. No extra OAuth scope is requested.
+     */
+    fun authorizedEmailAddress(): String {
+        val url = "https://www.googleapis.com/drive/v3/about".toHttpUrl()
+            .newBuilder().addQueryParameter("fields", "user(emailAddress)")
+            .build().toString()
+        val payload = perform(request(url).get().build(), 16_384)
+        val email = JSONObject(payload.toString(Charsets.UTF_8))
+            .optJSONObject("user")?.optString("emailAddress").orEmpty().trim()
+        check(email.length in 3..254 && '@' in email &&
+            email.substringAfter('@').contains('.') &&
+            email.none { it.isWhitespace() }) {
+            "Google Drive did not provide account identity"
+        }
+        return email
+    }
+
+    /**
      * List bounded app-only backup history. Metadata from Drive is a display
      * hint, never a validation or a basis for recovery; selected snapshots are
      * downloaded and checksum-verified before any restore preview.

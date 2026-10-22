@@ -22,6 +22,9 @@ import java.util.concurrent.Executors
 
 /** Native offline UI: safe to open even if the new Compose preview crashes. */
 class OfflineLibraryActivity : ComponentActivity() {
+    companion object {
+        const val EXTRA_SEARCH_QUERY = "com.nightwave.player.offline.SEARCH_QUERY"
+    }
     private lateinit var library: OfflineAudioLibrary
     private lateinit var tracks: LinearLayout
     private lateinit var state: TextView
@@ -64,6 +67,7 @@ class OfflineLibraryActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         library = OfflineAudioLibrary(this)
+        searchText = intent.getStringExtra(EXTRA_SEARCH_QUERY).orEmpty().trim().take(160)
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(18), dp(17), dp(18), dp(10))
@@ -126,6 +130,7 @@ class OfflineLibraryActivity : ComponentActivity() {
                 override fun afterTextChanged(s: Editable?) {}
             })
         }
+        if (searchText.isNotBlank()) search.setText(searchText)
         root.addView(search, LinearLayout.LayoutParams(-1, dp(49)).apply {
             topMargin = dp(14)
         })
@@ -225,12 +230,12 @@ class OfflineLibraryActivity : ComponentActivity() {
         playableIds = report.entries.asSequence()
             .filter { it.health == OfflineFileHealth.AVAILABLE }
             .map { it.song.id }.toSet()
-        val filtered = all.filter { it.title.contains(searchText, ignoreCase = true) }
+        val filtered = OfflineTrackSearch.match(searchText, all)
         visibleSongs = when (sortMode) {
             1 -> filtered.sortedWith(compareBy<OfflineSong> { it.title.lowercase() }.thenBy { it.id })
             2 -> filtered.sortedWith(compareBy<OfflineSong> { it.bytes }.thenBy { it.title.lowercase() })
             3 -> filtered.sortedWith(compareByDescending<OfflineSong> { it.bytes }.thenBy { it.title.lowercase() })
-            else -> filtered.asReversed()
+            else -> if (searchText.isBlank()) filtered.asReversed() else filtered
         }
         val checkpoint = OfflineSessionStore(this).read()
         val resumeSong = all.firstOrNull { it.id == checkpoint?.selectedId }
