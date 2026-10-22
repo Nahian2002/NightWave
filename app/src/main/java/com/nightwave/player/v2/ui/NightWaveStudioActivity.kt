@@ -2770,7 +2770,7 @@ private fun StudioSearch(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
-            NightWaveDiscoveryHeader()
+            NightWaveDiscoveryHeader(searchQuery = query)
         }
         item {
             OutlinedTextField(
