@@ -1,5 +1,8 @@
 # NightWave
 
+> **NW-16 Offline Audio Downloader — 22 October 2026:** The newest [integrated development branch](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-v2-nw16-authorized-offline-downloads) adds a user-initiated **direct HTTPS audio-file downloader** from Offline Library for content the user has permission to save. Files stream with progress/cancel, are validated, and are imported into the existing offline library for local playback; no server or Google sign-in is required. It **does not** download arbitrary YouTube tracks or transcode YouTube video to MP3. Sixteen prior phases of source improvements remain integrated. The direct-audio policy's exact GitHub source passed **10/10 local JVM assertions**, while the full Android build and Samsung downloader remain **UNVERIFIED / NO-GO**. See [NW-16 full downloader report](docs/NIGHTWAVE_NW16_AUTHORIZED_DOWNLOADS.md).
+
+
 > **NW-15D Windows NW07 Import Gate Hotfix — 22 October 2026:** The newest [integrated NightWave development branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw15d-nw07-exact-imports) fixes the second **user-confirmed case-insensitive Kotlin import check**. After NW-15C repaired the first Kotlin preflight, NW-07's `Sort-Object -Unique` still treated `ProgressBarRangeInfo` (class) and `progressBarRangeInfo` (property) as duplicates. The NW-07 gate now compares imports with ordinal, case-sensitive equality and includes positive/negative self-tests. **Download the full NW-15D ZIP into a new folder and run `build-windows.cmd`**. No complete Gradle build or new APK is verified yet. See [NW-15D root cause and rebuild](docs/NIGHTWAVE_NW15D_NW07_CASE_SENSITIVE_IMPORTS.md).
 
 
