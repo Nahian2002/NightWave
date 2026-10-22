@@ -1,5 +1,15 @@
 # NightWave Changelog
 
+## 2026-10-22 — NW-14 selected-song continuity in playlists longer than 100 tracks
+
+- Fixed a source-confirmed playlist behavior: tapping Song 150 of 201 previously placed it at the beginning of an unrelated first-100 queue. **Next** could play Song 0 rather than Song 151.
+- `QueueSelectionRules.plan()` now keeps a continuous selection-centered window for oversized lists, retaining nearby songs and their order within the service's 100-track limit.
+- Preserved strict YouTube URL normalization, deduplication, invalid-selection rejection, small-queue ordering, capacity-one safety and out-of-collection selected-video handling.
+- Added six JUnit regression methods, bringing the queue selection test suite to 11 cases, and an NW-14 source gate while preserving all earlier checks and mandatory Gradle tasks.
+- Matched the updated queue-window implementation and `VideoLink` parser to exact GitHub source blob hashes. A local Kotlin compiler run stalled and was terminated, so **new JUnit/Android compilation success is not claimed**.
+- **Release NO-GO:** Full Android Gradle tests, APK signer continuity and Samsung device acceptance remain pending. See [NW-14 evidence and acceptance](docs/NIGHTWAVE_NW14_LARGE_QUEUE_CONTINUITY.md).
+
+
 ## 2026-10-22 — NW-13 Public Previous navigation correction
 
 - Corrected a source-confirmed bug where **public-video Previous with Shuffle off** could return to an old jumped selection instead of the immediately preceding song in the visible list.
