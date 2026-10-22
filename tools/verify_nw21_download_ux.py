@@ -37,7 +37,7 @@ assert "FreeAudioCatalogActivity::class.java" in offline
 assert "FreeAudioCatalogActivity::class.java" in chrome
 assert 'nightwave-save-offline-search' in chrome
 assert re.search(
-    r'<activity\\s+android:name="\\.offline\\.FreeAudioCatalogActivity"'
+    r'<activity\s+android:name="\.offline\.FreeAudioCatalogActivity"'
     r'(?=[^>]*android:exported="false")[^>]*/>', manifest, flags=re.S
 )
 assert tests.count("@Test") >= 3 and catalog_tests.count("@Test") >= 4
