@@ -9,6 +9,8 @@ import android.provider.OpenableColumns
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.IntentSenderRequest
 import com.google.android.gms.auth.api.identity.Identity
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.auth.api.identity.AuthorizationResult
 import com.nightwave.player.v2.lyrics.PrivateLyricsStore
 import com.nightwave.player.v2.lyrics.PrivateLyricsOffsetStore
@@ -1013,6 +1015,15 @@ class NightWaveStudioActivity : ComponentActivity() {
             showMessage("Unknown Google Drive action.")
             return
         }
+        val playServicesCode = GoogleApiAvailability.getInstance()
+            .isGooglePlayServicesAvailable(this)
+        if (playServicesCode != ConnectionResult.SUCCESS) {
+            val message = "Google Play services unavailable (status $playServicesCode)"
+            cloudStore.status(message)
+            refreshCloud()
+            showMessage("$message. Update or enable Google Play services and retry.")
+            return
+        }
         if (action != "connect" && cloudStore.read().account.isBlank()) {
             showMessage("Connect Google Drive first.")
             return
@@ -1098,6 +1109,13 @@ class NightWaveStudioActivity : ComponentActivity() {
         cloudAwaitingResolution = false
         val action = cloudPendingAction
         cloudPendingAction = ""
+        if (CloudAuthorizationRecoveryPolicy.safeAction(action) == null) {
+            cloudBusy = false
+            cloudStore.status("Google permission returned without a valid pending operation")
+            refreshCloud()
+            showMessage("Google permission expired. Please start the action again.")
+            return
+        }
         val account = NightWaveCloudAuthorization.authorizedAccount(result)
         val token = runCatching { NightWaveCloudAuthorization.requireToken(result) }.getOrNull()
         if (account.isNullOrBlank() || token == null) {
