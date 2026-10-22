@@ -8,6 +8,7 @@ import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.file.Files
+import java.security.MessageDigest
 import java.util.Locale
 import com.nightwave.player.v2.locker.LockerAudioPolicy
 import com.nightwave.player.v2.locker.LockerRemoteTrack
@@ -192,6 +193,20 @@ class OfflineAudioLibrary(private val context: Context) {
         }
     }
 
+    /** Stream SHA-256; never allocate the whole 250 MiB song in memory. */
+    private fun audioSha256(file: File): ByteArray {
+        val digest = MessageDigest.getInstance("SHA-256")
+        file.inputStream().use { input ->
+            val chunk = ByteArray(32_768)
+            while (true) {
+                val count = input.read(chunk)
+                if (count < 0) break
+                if (count > 0) digest.update(chunk, 0, count)
+            }
+        }
+        return digest.digest()
+    }
+
     /**
      * Import a fully downloaded, signature-validated direct audio file from
      * NightWave's private HTTPS staging folder. Never trust arbitrary file
@@ -215,6 +230,17 @@ class OfflineAudioLibrary(private val context: Context) {
             val title = filename.substringBeforeLast('.').replace('\\n', ' ')
                 .replace('\\r', ' ').trim().take(110).ifBlank { "Downloaded audio" }
             val current = songs()
+            val expectedSha256 = audioSha256(staged)
+            // A repeated URL should not consume another slot or silently
+            // create a duplicate. Reuse only the same verified bytes + format.
+            val existing = current.asSequence()
+                .filter { it.bytes == size && it.mimeType == mimeByExtension.getValue(ext) }
+                .firstOrNull { song ->
+                    fileFor(song)?.let { file ->
+                        MessageDigest.isEqual(expectedSha256, audioSha256(file))
+                    } == true
+                }
+            if (existing != null) return@synchronized existing
             require(current.size < MAX_SONGS) { "Offline library reached its 400-song limit" }
             require(current.sumOf(OfflineSong::bytes) + size <= MAX_LIBRARY_BYTES) {
                 "Offline library storage limit reached"
@@ -231,6 +257,11 @@ class OfflineAudioLibrary(private val context: Context) {
                     }
                 }
                 require(pending.length() == size) { "Downloaded audio copy is incomplete" }
+                // Verify copied bytes, not just length: do not commit a damaged
+                // file under the correct metadata.
+                require(MessageDigest.isEqual(expectedSha256, audioSha256(pending))) {
+                    "Downloaded audio changed during local import"
+                }
                 require(pending.renameTo(finalFile)) { "Couldn't finalize downloaded audio" }
                 val song = OfflineSong(id, title, mimeByExtension.getValue(ext), size)
                 check(prefs.edit().putString("items", encode(current + song)).commit()) {

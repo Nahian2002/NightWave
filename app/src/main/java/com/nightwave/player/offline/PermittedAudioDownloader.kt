@@ -178,16 +178,28 @@ class PermittedAudioDownloader(private val context: Context) {
         try {
             extractor.setDataSource(file.absolutePath)
             var audioTracks = 0
+            var selectedAudioTrack = -1
             for (index in 0 until extractor.trackCount) {
                 val track = extractor.getTrackFormat(index)
                 val mime = track.getString(MediaFormat.KEY_MIME).orEmpty()
                 require(!mime.startsWith("video/")) {
                     "This file contains video rather than audio only."
                 }
-                if (mime.startsWith("audio/")) audioTracks++
+                if (mime.startsWith("audio/")) {
+                    audioTracks++
+                    if (selectedAudioTrack < 0) selectedAudioTrack = index
+                }
             }
             require(audioTracks > 0) {
                 "Android could not identify any playable audio track."
+            }
+            // A valid container/header with no actual audio frames must never
+            // become a "successful download" in the private library.
+            extractor.selectTrack(selectedAudioTrack)
+            val sampleBytes = extractor.readSampleData(
+                java.nio.ByteBuffer.allocate(1_048_576), 0)
+            require(sampleBytes > 0) {
+                "The audio file has no readable audio samples."
             }
         } catch (error: RuntimeException) {
             throw IllegalArgumentException(
