@@ -1,5 +1,14 @@
 # NightWave Changelog
 
+## 2026-10-22 — NW-10 Kotlin smoke compilation and GitHub runner diagnosis
+
+- Added an Android-independent Kotlin executable test harness (`tools/kotlin/NW10PureSmoke.kt`) and fail-closed Python compiler/Java runner (`tools/nw10_kotlin_smoke.py`) to test actual repository playback, queue, seek, EQ, artwork and Google permission policies when a Kotlin compiler is available.
+- Confirmed four hash-identical Kotlin policies compiled locally and passed 10 focused behavioral assertions. The larger 20-check repository harness and the full Android Gradle build are not yet executed.
+- Added a minimal, independent GitHub runner canary containing only a harmless shell `echo` command. Both the canary (`39771087799`) and NW-10 Android run (`39771087753`) failed with **zero executed steps**. This supports a GitHub runner/account provisioning blocker, not a code-level compiler diagnosis.
+- Re-enabled the NW-10 branch in Android CI, preserving existing functional preflights and required full Gradle tasks. Updated the development APK artifact label to NW-10.
+- **Release NO-GO.** No signer-safe APK, real Google consent/EQ or Android UI tests are certified. Do not uninstall or clear the existing app. See [NW-10 evidence and next actions](docs/NIGHTWAVE_NW10_COMPILER_RECOVERY.md).
+
+
 ## 2026-10-22 — NW-09 Google consent & equalizer device reliability (development)
 
 - Preserved only the pending Google Drive authorization action across Android Activity recreation while the account/consent screen is open; does not persist tokens or account identifiers.
