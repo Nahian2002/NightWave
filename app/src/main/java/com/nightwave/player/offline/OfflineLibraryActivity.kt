@@ -209,6 +209,7 @@ class OfflineLibraryActivity : ComponentActivity() {
             "Private on-device storage · Deleted if NightWave is uninstalled",
             11f, 0xFF8294A8.toInt()
         ).apply { gravity = Gravity.CENTER }, LinearLayout.LayoutParams(-1, dp(45)))
+        NightWaveSafeInsets.bind(root)
         setContentView(root)
         refresh()
     }
