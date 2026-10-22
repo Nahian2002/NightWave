@@ -42,12 +42,14 @@ on:
       - feature/nightwave-v2-nw18-reliable-audio-downloads
       - feature/nightwave-v2-nw19-audio-integrity
       - feature/nightwave-v2-nw21-download-ux-polish
+      - fix/nightwave-v2-nw22-build-stability
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
       - feature/nightwave-v2-nw18-reliable-audio-downloads
       - feature/nightwave-v2-nw19-audio-integrity
       - feature/nightwave-v2-nw21-download-ux-polish
+      - fix/nightwave-v2-nw22-build-stability
       - feature/nightwave-v2-phase5r-accessibility-build-gates
       - feature/nightwave-v2-phase5s-build-recovery
       - feature/nightwave-v2-phase5t-reliable-discovery
@@ -141,6 +143,7 @@ jobs:
           python3 tools/verify_nw18_audio_downloads.py
           python3 tools/verify_nw19_audio_integrity.py
           python3 tools/verify_nw21_download_ux.py
+          python3 tools/nw22_audio_core_smoke.py --self-test
           pwsh -NoProfile -File tools/check-kotlin-compat.ps1 -SelfTest
           pwsh -NoProfile -File tools/check-kotlin-compat.ps1
           pwsh -NoProfile -File tools/check-builder-syntax.ps1
@@ -244,6 +247,7 @@ jobs:
           if command -v kotlinc >/dev/null 2>&1; then
             python3 tools/nw10_kotlin_smoke.py
             python3 tools/nw12_verified_kotlin.py
+            python3 tools/nw22_audio_core_smoke.py
           else
             echo "SKIP: standalone kotlinc not provisioned; Gradle Kotlin gate is required"
           fi
