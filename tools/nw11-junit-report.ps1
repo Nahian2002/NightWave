@@ -25,7 +25,7 @@ function Clean-Field([string]$value, [int]$limit = 220) {
     $v = $v -replace '(?i)([?&](?:token|access_token|refresh_token|api_key|key|client_secret|sig|signature|code)=)[^\s&#]+', '$1<redacted>'
     $v = $v -replace '(?i)((?:client_secret|refresh_token|access_token|id_token)\s*[:=]\s*)[^\s&#]+', '${1}<redacted>'
     $v = $v.Trim()
-    if ($v.Length -gt $limit) { return ($v.Substring(0, $limit) + '…') }
+    if ($v.Length -gt $limit) { return ($v.Substring(0, $limit) + '...') }
     return $v
 }
 
@@ -52,7 +52,7 @@ function Collect-TestFailures([System.Xml.XmlReader]$reader) {
             # No full stack trace; only a short diagnostic first line.
             $message = Clean-Field ([string]($failure.InnerText -split '\r?\n' | Select-Object -First 1)) 220
         }
-        $found.Add("$className.$name — $message")
+        $found.Add(('{0}.{1} - {2}' -f $className, $name, $message))
     }
     return @($found.ToArray())
 }
