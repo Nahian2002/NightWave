@@ -1,5 +1,16 @@
 # NightWave Changelog
 
+## 2026-10-22 — NW-08 complete source fingerprint & safer APK publication
+
+- Identified NW-07's ten-file SHA-256 source fingerprint as insufficient to detect simultaneous changes in other Kotlin classes, XML resources, unit tests or build scripts during a Windows Gradle build.
+- Introduced a source-tree enumerator for app source/resources/tests, mandatory build configuration, and tooling, excluding generated artifacts and user libraries.
+- Re-enumerates after Gradle before APK promotion, blocking new/deleted source files and changed hashes; source count and manifest hash are written into the build status.
+- Registered NW-08 source enumeration in the Windows syntax preflight and GitHub Actions.
+- Added independent Python negative fixtures for changed, added, deleted and missing configuration source scenarios; an independently reproduced fixture exercise passed locally outside Android.
+- Kept earlier NW-01–NW-07 source/runtime functionality unchanged and preserved APK signer, SHA-256, old APK copy and diagnostic safeguards.
+- **Release is still NO-GO:** Hosted GitHub Actions runners have reported no executed steps, and no fresh Windows Gradle/Kotlin test run or safe phone install has been verified. See [NW-08 QA and evidence](docs/NIGHTWAVE_NW08_RELEASE_HARDENING.md).
+
+
 ## 2026-10-22 — NW-07 Build Evidence & Release Gate (development, NO-GO)
 
 - Introduced a dependency-free, **read-only Windows NW-01–NW-06 integration source gate**, including positive/negative self-tests for duplicate imports and missing source markers.
