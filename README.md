@@ -1,5 +1,8 @@
 # NightWave
 
+> **NW-12 Compiler Proof & JUnit Parser Repair — 22 October 2026:** The latest [integrated development branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw12-test-failure-parser) fixes a JUnit parser that could miss consecutive failing cases, expands source fingerprinting to nested Kotlin build checks, and preserves an **executed local compiler test of six exact GitHub source blobs with 28/28 passing assertions**. All NW-01–NW-11 work remains. **Full Android Gradle compilation, APK signing compatibility and phone acceptance are still unverified; release NO-GO.** Read the [NW-12 evidence report](docs/NIGHTWAVE_NW12_COMPILER_AND_JUNIT_QA.md).
+
+
 > **NW-11 JVM Failure Evidence — 22 October 2026:** The newest [integrated development branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw11-offline-compiler-proof) adds a bounded, privacy-reduced report of the **actual current Windows Gradle run's failing JVM tests**. Older generated test reports are cleared before compilation, so a compiler failure cannot be mistaken for a previous run's failed test. All NW-01–NW-10 features remain. **GitHub hosted runners still have not executed build steps; full Android compilation and a signer-safe APK remain unverified. Release NO-GO.** See [NW-11 evidence and deferred tests](docs/NIGHTWAVE_NW11_JVM_TEST_EVIDENCE.md).
 
 
