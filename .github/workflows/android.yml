@@ -41,11 +41,13 @@ on:
       - feature/nightwave-v2-nw17-drive-identity-local-search
       - feature/nightwave-v2-nw18-reliable-audio-downloads
       - feature/nightwave-v2-nw19-audio-integrity
+      - feature/nightwave-v2-nw21-download-ux-polish
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
       - feature/nightwave-v2-nw18-reliable-audio-downloads
       - feature/nightwave-v2-nw19-audio-integrity
+      - feature/nightwave-v2-nw21-download-ux-polish
       - feature/nightwave-v2-phase5r-accessibility-build-gates
       - feature/nightwave-v2-phase5s-build-recovery
       - feature/nightwave-v2-phase5t-reliable-discovery
@@ -138,6 +140,7 @@ jobs:
           python3 tools/verify_nw16_permitted_downloads.py
           python3 tools/verify_nw18_audio_downloads.py
           python3 tools/verify_nw19_audio_integrity.py
+          python3 tools/verify_nw21_download_ux.py
           pwsh -NoProfile -File tools/check-kotlin-compat.ps1 -SelfTest
           pwsh -NoProfile -File tools/check-kotlin-compat.ps1
           pwsh -NoProfile -File tools/check-builder-syntax.ps1
