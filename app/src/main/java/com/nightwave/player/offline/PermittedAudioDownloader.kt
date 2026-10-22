@@ -51,6 +51,8 @@ class PermittedAudioDownloader(private val context: Context) {
      */
     fun download(
         source: PermittedAudioSource,
+        expectedSourceSha1: String? = null,
+        expectedSourceBytes: Long? = null,
         progress: (downloaded: Long, total: Long?) -> Unit
     ): OfflineSong {
         check(!cancelled.get()) { "Download was cancelled" }
@@ -74,6 +76,17 @@ class PermittedAudioDownloader(private val context: Context) {
                     return@repeat
                 }
                 check(!cancelled.get()) { "Download cancelled" }
+                if (expectedSourceBytes != null) {
+                    require(expectedSourceBytes in 1..PermittedAudioDownloadPolicy.MAX_BYTES &&
+                        pending.length() == expectedSourceBytes) {
+                        "The downloaded file size does not match the catalog. Search again."
+                    }
+                }
+                if (expectedSourceSha1 != null) {
+                    require(FreeAudioIntegrity.sourceMatches(pending, expectedSourceSha1)) {
+                        "Audio bytes do not match the original catalog file. Nothing was saved."
+                    }
+                }
                 inspectAudioOnly(pending)
                 check(!cancelled.get()) { "Download cancelled" }
                 return OfflineAudioLibrary(context).importPermittedStagedAudio(pending, fileName)
