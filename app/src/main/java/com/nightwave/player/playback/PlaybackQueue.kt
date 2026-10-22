@@ -153,7 +153,10 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
         if (index < 0) return null
         // Unshuffled Previous follows the visible queue, not past jumps.
         // Shuffled Previous retraces the actual listening sequence.
-        if (shuffle && visited.isNotEmpty()) {
+        if (shuffle) {
+            // Without a real prior shuffled selection there is no meaningful
+            // "previous" track; never guess using linear index ordering.
+            if (visited.isEmpty()) return null
             index = visited.removeLast()
             return current
         }
