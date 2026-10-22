@@ -1059,10 +1059,17 @@ class PlaybackService : MediaLibraryService() {
                 val creators = intent.getStringArrayListExtra(EXTRA_CREATORS).orEmpty()
                 val artworks = intent.getStringArrayListExtra(EXTRA_ARTWORKS).orEmpty()
                 val entries = urls.take(100).mapIndexedNotNull { index, url ->
-                    if (!url.startsWith("https://www.youtube.com/watch?v=")) return@mapIndexedNotNull null
+                    if (!QueueRestorePolicy.isCanonicalPublicWatchUrl(url))
+                        return@mapIndexedNotNull null
                     QueueEntry(url, titles.getOrNull(index).orEmpty(), creators.getOrNull(index).orEmpty(), artworks.getOrNull(index).orEmpty())
                 }
-                val selected = intent.getIntExtra(EXTRA_INDEX, 0)
+                val originalSelection = intent.getIntExtra(EXTRA_INDEX, 0)
+                // Positions belong to the unfiltered original Intent array.
+                // An invalid selected row must never autoplay some other song.
+                val selected = if (urls.isEmpty()) 0 else
+                    PublicQueueIntentPolicy.retainedSelectionIndex(
+                        urls.take(100), originalSelection, entries)
+                        ?: return result
                 val explicitDisplayOrder = intent.action == ACTION_PLAY_QUEUE &&
                     intent.getBooleanExtra(EXTRA_QUEUE_DISPLAY_ORDER, false)
                 val proposedQueue = entries.distinctBy { it.url }.take(100)
@@ -1131,11 +1138,13 @@ class PlaybackService : MediaLibraryService() {
             }
             ACTION_ENQUEUE -> {
                 val url = intent.getStringExtra(EXTRA_URLS)
-                if (url?.startsWith("https://www.youtube.com/watch?v=") == true) {
-                    queue.add(QueueEntry(url, intent.getStringExtra(EXTRA_TITLES).orEmpty(),
-                        intent.getStringExtra(EXTRA_CREATORS).orEmpty(),
-                        intent.getStringExtra(EXTRA_ARTWORKS).orEmpty()))
-                    savedQueue.save(queue)
+                if (url != null && QueueRestorePolicy.isCanonicalPublicWatchUrl(url)) {
+                    if (queue.add(QueueEntry(url,
+                            intent.getStringExtra(EXTRA_TITLES).orEmpty(),
+                            intent.getStringExtra(EXTRA_CREATORS).orEmpty(),
+                            intent.getStringExtra(EXTRA_ARTWORKS).orEmpty()))) {
+                        savedQueue.save(queue)
+                    }
                 }
             }
             ACTION_PLAY_OFFLINE -> {
