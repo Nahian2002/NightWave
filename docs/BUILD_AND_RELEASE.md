@@ -1,8 +1,22 @@
 # NightWave — Local Build, Safe Update and Release Procedure
 
 **Updated:** 22 October 2026  
-**Current integrated source:** [NightWave NW-08 complete-source build gate](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw08-full-source-build-attestation)  
-**Current status:** NW-08 complete application/test/build-tool fingerprinting committed; **no passing full Gradle build, installed-device signer compatibility, or phone acceptance is verified**. Release NO-GO.
+**Current integrated source:** [NightWave NW-12 compiled-policy recovery](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw12-test-failure-parser)  
+**Current status:** NW-12 compiled six hash-matched Kotlin policy files and passed 28 local assertions, corrected the JUnit failure parser and expanded nested source fingerprinting. **No passing full Android Gradle build, installed-device signer compatibility or phone acceptance is verified**. Release NO-GO.
+
+## NW-12 verified local Kotlin source and JUnit report fix
+
+Six original production Kotlin policies were retrieved from connected GitHub,
+compared against exact Git blob SHA-1s and compiled using a standalone
+`kotlinc 1.9.0` compiler (JDK 21). **28/28 runtime assertions passed.**
+See [NW-12 QA and source hashes](NIGHTWAVE_NW12_COMPILER_AND_JUNIT_QA.md).
+
+This is **not** equivalent to compiling Jetpack Compose/Media3 or creating a
+signer-compatible APK. The NW-11 JUnit reporter has also been corrected to
+avoid skipping adjacent failing tests. `tools/get-nw08-source-inputs.ps1`
+now includes nested `tools/kotlin/` checks in its SHA fingerprint. The Windows
+builder still needs a complete successful Gradle test run, and no changes
+should be installed over an existing app until signer compatibility passes.
 
 ## NW-08 source fingerprint expansion
 
