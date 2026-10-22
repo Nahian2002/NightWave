@@ -75,6 +75,42 @@ class PermittedAudioDownloadPolicyTest {
         reject("https://artist.example.net/playlist.pls")
     }
 
+    @Test fun rawMp3FrameIsNeverMisclassifiedAsAac() {
+        // FFmpeg/LAME-style MPEG-1 Layer III frame without an ID3 preamble.
+        val rawMp3 = byteArrayOf(0xFF.toByte(), 0xFB.toByte(),
+            0x90.toByte(), 0xC4.toByte(), 0, 0, 0x14)
+        assertTrue(AudioFrameSignature.isMp3Frame(rawMp3))
+        assertFalse(AudioFrameSignature.isAacAdts(rawMp3))
+        assertEquals("mp3", PermittedAudioDownloadPolicy.detectAudioExtension(
+            "audio/mpeg", rawMp3, ""))
+        assertNull(PermittedAudioDownloadPolicy.detectAudioExtension(
+            "audio/aac", rawMp3, ""))
+    }
+
+    @Test fun aacAdtsIsNeverMisclassifiedAsMp3() {
+        // Real AAC ADTS header: sync, Layer=00, valid sample index/length.
+        val aac = byteArrayOf(0xFF.toByte(), 0xF1.toByte(), 0x50, 0x40,
+            0x28, 0x3F, 0xFC.toByte())
+        assertTrue(AudioFrameSignature.isAacAdts(aac))
+        assertFalse(AudioFrameSignature.isMp3Frame(aac))
+        assertEquals("aac", PermittedAudioDownloadPolicy.detectAudioExtension(
+            "audio/aac", aac, ""))
+        assertNull(PermittedAudioDownloadPolicy.detectAudioExtension(
+            "audio/mpeg", aac, ""))
+    }
+
+    @Test fun malformedAndTruncatedMpegHeadersAreRejected() {
+        val fake = byteArrayOf(0xFF.toByte(), 0xFF.toByte(),
+            0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte(),
+            0xFF.toByte(), 0xFF.toByte())
+        val short = byteArrayOf(0xFF.toByte(), 0xFB.toByte(), 0x90.toByte())
+        assertFalse(AudioFrameSignature.isAacAdts(fake))
+        assertFalse(AudioFrameSignature.isMp3Frame(fake))
+        assertFalse(AudioFrameSignature.isMp3Frame(short))
+        assertNull(PermittedAudioDownloadPolicy.detectAudioExtension(
+            "application/octet-stream", fake, ""))
+    }
+
     @Test fun refusesToRelabelAnM4aAsMp3() {
         val ftyp = byteArrayOf(0, 0, 0, 20, 102, 116, 121, 112, 77, 52, 65, 32)
         assertEquals("m4a", PermittedAudioDownloadPolicy.detectAudioExtension(
