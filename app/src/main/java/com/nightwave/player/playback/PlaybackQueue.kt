@@ -13,6 +13,15 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
     var index: Int = -1
         private set
     var shuffle: Boolean = false
+        set(value) {
+            if (field != value) {
+                field = value
+                // A previous shuffled listening session must not leak into
+                // linear Previous or a new Shuffle session.
+                visited.clear()
+                shuffledSeen.clear()
+            }
+        }
     var repeat: Repeat = Repeat.OFF
 
     /**
@@ -22,6 +31,7 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
      */
     fun useExplicitDisplayOrder() {
         shuffle = false
+        visited.clear()
         shuffledSeen.clear()
     }
     val size: Int get() = entries.size
@@ -121,21 +131,29 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
             repeat == Repeat.ALL -> 0
             else -> return null
         }
-        if (index >= 0) visited.add(index)
-        if (visited.size > 100) visited.removeFirst()
+        if (shuffle && index >= 0 && index != target) {
+            visited.add(index)
+            if (visited.size > 100) visited.removeFirst()
+        }
         index = target
         return current
     }
 
     fun jump(to: Int): QueueEntry? {
         if (to !in entries.indices) return null
-        if (index >= 0 && index != to) visited.add(index)
+        if (shuffle && index >= 0 && index != to) {
+            visited.add(index)
+            if (visited.size > 100) visited.removeFirst()
+        }
         index = to
         return current
     }
 
     fun previous(): QueueEntry? {
-        if (visited.isNotEmpty()) {
+        if (index < 0) return null
+        // Unshuffled Previous follows the visible queue, not past jumps.
+        // Shuffled Previous retraces the actual listening sequence.
+        if (shuffle && visited.isNotEmpty()) {
             index = visited.removeLast()
             return current
         }
