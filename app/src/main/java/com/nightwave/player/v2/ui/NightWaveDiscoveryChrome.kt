@@ -1,5 +1,8 @@
 package com.nightwave.player.v2.ui
 
+import android.content.Intent
+import com.nightwave.player.offline.FreeAudioCatalogActivity
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,12 +21,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -31,6 +36,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun NightWaveDiscoveryHeader() {
     val palette = MaterialTheme.colorScheme
+    val context = LocalContext.current
     Surface(
         modifier = Modifier.fillMaxWidth().testTag("nightwave-discovery-header"),
         shape = RoundedCornerShape(22.dp),
@@ -68,6 +74,15 @@ fun NightWaveDiscoveryHeader() {
                     Text("Your library first · Explore more when you choose",
                         style = MaterialTheme.typography.bodySmall,
                         color = palette.onSurfaceVariant, maxLines = 2)
+                    TextButton(
+                        onClick = {
+                            context.startActivity(Intent(
+                                context, FreeAudioCatalogActivity::class.java))
+                        },
+                        modifier = Modifier.testTag("nightwave-save-offline-search")
+                    ) {
+                        Text("Find music to save offline", maxLines = 2)
+                    }
                 }
             }
         }
