@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """NW21 source-preflight only. Complete Gradle + Android device QA still required."""
 from pathlib import Path
+import re
 
 root = Path(__file__).resolve().parents[1]
 def text(path):
@@ -35,7 +36,10 @@ assert "dp(52)" in screen and "card.animate()" in screen
 assert "FreeAudioCatalogActivity::class.java" in offline
 assert "FreeAudioCatalogActivity::class.java" in chrome
 assert 'nightwave-save-offline-search' in chrome
-assert 'android:name=".offline.FreeAudioCatalogActivity" android:exported="false"' in manifest
+assert re.search(
+    r'<activity\\s+android:name="\\.offline\\.FreeAudioCatalogActivity"'
+    r'(?=[^>]*android:exported="false")[^>]*/>', manifest, flags=re.S
+)
 assert tests.count("@Test") >= 3 and catalog_tests.count("@Test") >= 4
 for name, content in {
     "catalog": catalog, "policy": policy, "integrity": integrity,
