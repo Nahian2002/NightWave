@@ -34,6 +34,7 @@ on:
       - fix/nightwave-v2-nw13-public-queue-previous
       - fix/nightwave-v2-nw14-large-queue-window
       - fix/nightwave-v2-nw15-queue-intent-identity
+      - fix/nightwave-v2-nw15b-windows-powershell-hotfix
   pull_request:
     branches:
       - feature/nightwave-v2-phase5r-accessibility-build-gates
@@ -122,6 +123,9 @@ jobs:
           python3 tools/verify_nw13_queue_navigation.py
           python3 tools/verify_nw14_queue_window.py
           python3 tools/verify_nw15_queue_intent.py
+          python3 tools/verify_nw15b_windows_encoding.py
+          pwsh -NoProfile -File tools/check-builder-syntax.ps1
+          pwsh -NoProfile -File tools/nw11-junit-report.ps1 -SelfTest
           pwsh -NoProfile -File tools/get-nw08-source-inputs.ps1 -SelfTest
           pwsh -NoProfile -File tools/check-nw07-source-gate.ps1 -SelfTest
           pwsh -NoProfile -File tools/check-nw07-source-gate.ps1
@@ -258,7 +262,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: NightWave-NW15-dev-debug-UNVERIFIED-FOR-DEVICE
+          name: NightWave-NW15B-dev-debug-UNVERIFIED-FOR-DEVICE
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 5
