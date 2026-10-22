@@ -3,6 +3,7 @@ package com.nightwave.player.offline
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 class PermittedAudioDownloadPolicyTest {
@@ -57,10 +58,43 @@ class PermittedAudioDownloadPolicyTest {
         reject("https://192.168.1.7/song.mp3")
     }
 
-    @Test fun rejectsHtmlAndManifestLinks() {
-        reject("https://artist.example.net/album")
+    @Test fun extensionlessCdnLinkIsValidatedAfterTransfer() {
+        val source = PermittedAudioDownloadPolicy.prepare(
+            "https://cdn.artist.example.net/get?id=421", "Summer Nights")
+        assertEquals("", source.extension)
+        assertEquals("Summer Nights", source.fileName)
+        assertEquals("mp3", PermittedAudioDownloadPolicy.detectAudioExtension(
+            "audio/mpeg", "ID3\u0004\u0000\u0000".toByteArray(), source.extension))
+        assertNull(PermittedAudioDownloadPolicy.detectAudioExtension(
+            "text/html", "<html>not audio</html>".toByteArray(), source.extension))
+    }
+
+    @Test fun blocksManifestsInsteadOfDownloadingPlaylists() {
         reject("https://artist.example.net/song.m3u8")
-        reject("https://artist.example.net/song.html")
+        reject("https://artist.example.net/manifest.mpd")
+        reject("https://artist.example.net/playlist.pls")
+    }
+
+    @Test fun refusesToRelabelAnM4aAsMp3() {
+        val ftyp = byteArrayOf(0, 0, 0, 20, 102, 116, 121, 112, 77, 52, 65, 32)
+        assertEquals("m4a", PermittedAudioDownloadPolicy.detectAudioExtension(
+            "audio/mp4", ftyp, ""))
+        assertNull(PermittedAudioDownloadPolicy.detectAudioExtension(
+            "audio/mp4", ftyp, "mp3"))
+    }
+
+    @Test fun octetStreamRequiresRecognizedAudioBytes() {
+        assertEquals("flac", PermittedAudioDownloadPolicy.detectAudioExtension(
+            "application/octet-stream", "fLaC".toByteArray(), ""))
+        assertNull(PermittedAudioDownloadPolicy.detectAudioExtension(
+            "application/octet-stream", "<html>not audio</html>".toByteArray(), ""))
+    }
+
+    @Test fun refusesToAcceptMismatchedAudioMime() {
+        assertNull(PermittedAudioDownloadPolicy.detectAudioExtension(
+            "audio/mpeg", "fLaC".toByteArray(), "flac"))
+        assertNull(PermittedAudioDownloadPolicy.detectAudioExtension(
+            "video/webm", byteArrayOf(26, 69, -33, -93), "webm"))
     }
 
     @Test fun verifiesHttpAudioContentType() {
