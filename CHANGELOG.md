@@ -1,5 +1,16 @@
 # NightWave Changelog
 
+## 2026-10-22 — NW-07 Build Evidence & Release Gate (development, NO-GO)
+
+- Introduced a dependency-free, **read-only Windows NW-01–NW-06 integration source gate**, including positive/negative self-tests for duplicate imports and missing source markers.
+- Registered the new source gate in the Windows PowerShell syntax checker and local build entrypoint; incomplete old/merged source ZIPs are rejected before Gradle setup.
+- Added `dist/NightWave-source-fingerprint.txt` with SHA-256 hashes of key source files, and recorded its SHA-256 in the build status alongside APK identity and signer.
+- Prevented APK promotion if tracked source or the fingerprint manifest changes during Gradle compilation. Previous APK preservation and failure-first reports remain.
+- Included NW-07 source contracts and the PowerShell self-test in the GitHub Actions workflow, preserving every earlier phase verifier and the full JVM/APK/instrumentation-source Gradle gate.
+- Observed NW-06 GitHub Actions run `39285086913` complete `failure`, but its one job reported no executed steps and logs were unavailable. This is not evidence that Kotlin compiled or failed.
+- **Release blocked** until a complete local/CI build, tested signer compatibility, Android audio/search/Google consent and data-preserving device acceptance. Read [NW-07 QA and release readiness](docs/NIGHTWAVE_NW07_RELEASE_READINESS.md).
+
+
 ## 2026-10-19 — NW-06 Music Discovery & Search Refinement (development)
 
 - Made **Search NightWave** visible as the in-app/keyboard search path; kept an adjacent **YouTube** browser choice for provider fallback.
