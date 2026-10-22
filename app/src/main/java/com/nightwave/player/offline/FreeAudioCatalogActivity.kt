@@ -269,7 +269,7 @@ class FreeAudioCatalogActivity : ComponentActivity() {
         downloading = job
         worker.execute {
             val finished = runCatching {
-                job.download(source) { received, total ->
+                job.download(source, entry.sha1Base36, entry.bytes) { received, total ->
                     runOnUiThread {
                         if (isFinishing || isDestroyed || downloading !== job) return@runOnUiThread
                         if (total != null && total > 0) {
