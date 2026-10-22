@@ -139,8 +139,8 @@ class PermittedAudioDownloadActivity : ComponentActivity() {
             isFillViewport = true
             addView(panel)
         }
-        NightWaveSafeInsets.bind(scroll)
         setContentView(scroll)
+        NightWaveSafeInsets.bind(scroll)
     }
 
     private fun beginDownload() {
