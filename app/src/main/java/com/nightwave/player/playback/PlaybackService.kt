@@ -1066,10 +1066,13 @@ class PlaybackService : MediaLibraryService() {
                 val originalSelection = intent.getIntExtra(EXTRA_INDEX, 0)
                 // Positions belong to the unfiltered original Intent array.
                 // An invalid selected row must never autoplay some other song.
-                val selected = if (urls.isEmpty()) 0 else
+                val selected = if (urls.isEmpty()) {
+                    0 // A deliberately empty replacement still clears the queue.
+                } else {
                     PublicQueueIntentPolicy.retainedSelectionIndex(
                         urls.take(100), originalSelection, entries)
                         ?: return result
+                }
                 val explicitDisplayOrder = intent.action == ACTION_PLAY_QUEUE &&
                     intent.getBooleanExtra(EXTRA_QUEUE_DISPLAY_ORDER, false)
                 val proposedQueue = entries.distinctBy { it.url }.take(100)
