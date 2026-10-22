@@ -72,7 +72,7 @@ try {
     Check-Marker $gateway 'CommunityVideoSearch()' 'NW06 independent search fallback'
 
     Check-Marker $gradle 'minSdk = 26' 'Android minimum SDK'
-    Check-Marker $manifest 'com.nightwave.player' 'Android package identity'
+    Check-Marker $gradle 'applicationId = "com.nightwave.player"' 'Android package identity'
     foreach ($name in @(
         'NW01', 'NW02', 'NW03', 'NW04', 'NW05', 'NW06'
     )) {
@@ -89,14 +89,13 @@ try {
         $body = Gate-File $ProjectRoot $test
         Check-Marker $body '@Test' ($name + ' regression test source')
     }
-    foreach ($entry in @(
-        @($ui, 'StudioActivity'), @($bridge, 'PlaybackBridge'),
-        @($service, 'PlaybackService'), @($player, 'PlayerUI'),
-        @($studio, 'SoundStudio'), @($hub, 'AccountHub'),
-        @($timeline, 'SeekTimeline')
-    )) {
-        Check-Imports $entry[0] $entry[1]
-    }
+    Check-Imports $ui 'StudioActivity'
+    Check-Imports $bridge 'PlaybackBridge'
+    Check-Imports $service 'PlaybackService'
+    Check-Imports $player 'PlayerUI'
+    Check-Imports $studio 'SoundStudio'
+    Check-Imports $hub 'AccountHub'
+    Check-Imports $timeline 'SeekTimeline'
     Write-Host 'PASS: NW07 complete source tree and NW01–NW06 integration preflight'
     Write-Host 'NOT VERIFIED: Kotlin compilation, JVM tests, APK signer and phone runtime'
     exit 0
