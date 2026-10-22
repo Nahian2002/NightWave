@@ -43,12 +43,17 @@ function Collect-Sources([string]$root) {
     }
     # The actual build and preflight scripts can affect the published outcome.
     $tools = Join-Path $root 'tools'
-    foreach ($file in @(Get-ChildItem -LiteralPath $tools -File -Force -ErrorAction Stop |
-        Where-Object { $_.Extension -in @('.ps1', '.py', '.cmd') })) {
+    # NW-12: recursive to include the real, versioned Kotlin smoke sources
+    # under tools/kotlin, not just scripts directly inside tools/.
+    foreach ($file in @(Get-ChildItem -LiteralPath $tools -File -Recurse -Force -ErrorAction Stop |
+        Where-Object { $_.Extension -in @('.ps1', '.py', '.cmd', '.kt') })) {
         if (($file.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
             throw 'Symlinked source tooling is unsupported.'
         }
-        $files.Add('tools/' + $file.Name)
+        if (-not $file.FullName.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase)) {
+            throw 'Source tool outside project tree.'
+        }
+        $files.Add($file.FullName.Substring($prefix.Length).Replace('\', '/'))
     }
     $sorted = @($files.ToArray() | Sort-Object -Unique)
     if ($sorted.Count -lt 50) {
