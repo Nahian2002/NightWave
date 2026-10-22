@@ -490,6 +490,20 @@ try {
     if (-not $signerLine -or -not $continuityLine) {
         throw 'APK verifier returned success without signer details.'
     }
+    # Block a time-of-check/time-of-use mismatch: the source fingerprint is
+    # only meaningful if source files did not change while Gradle built the APK.
+    $finalSourceLines = foreach ($relative in $inputs) {
+        $full = Join-Path $project $relative.Replace('/', [IO.Path]::DirectorySeparatorChar)
+        $fileHash = (Get-FileHash -LiteralPath $full -Algorithm SHA256).Hash
+        "$fileHash  $relative"
+    }
+    if ((@($finalSourceLines) -join "`n") -cne (@($manifestLines) -join "`n")) {
+        throw 'Source files changed during Gradle build. Candidate was not published.'
+    }
+    $currentManifestHash = (Get-FileHash -LiteralPath $sourceManifest -Algorithm SHA256).Hash
+    if ($currentManifestHash -ne $sourceManifestHash) {
+        throw 'Source fingerprint manifest changed during build.'
+    }
     # The verified candidate alone is promoted to the downloadable result.
     Copy-Item -LiteralPath $apk -Destination $output -Force
     $hash = (Get-FileHash -LiteralPath $output -Algorithm SHA256).Hash
