@@ -23,6 +23,7 @@ assert "AudioFrameSignature.isAacAdts(firstBytes)" in policy
 assert "detectAudioExtension(" in policy
 assert "uri.scheme.equals(\"https\", true)" in policy
 assert "inspectAudioOnly(pending)" in downloader
+assert "extractor.readSampleData(" in downloader
 assert "importPermittedStagedAudio(pending, fileName)" in downloader
 assert "private fun audioSha256(file: File)" in library
 assert "MessageDigest.isEqual(expectedSha256, audioSha256(pending))" in library
