@@ -1,5 +1,15 @@
 # NightWave Changelog
 
+## 2026-10-22 — NW-11 current-attempt JVM failure diagnostics (development)
+
+- Added a read-only Windows PowerShell reporter that summarizes failing JUnit cases from the current Gradle run, with bounded test/error text and XML external-entity protection.
+- Cleared only disposable old Gradle test XML before compilation to prevent stale failures from contaminating a new failure report.
+- Wrote a separate `dist/NightWave-jvm-failure-summary.txt` after Gradle failures, if reporter checks succeed. Missing JVM XML is explicitly labeled **NO TEST XML**, never PASS.
+- Added negative/positive synthetic PowerShell fixture coverage, registered the reporter with Windows script-syntax checks, and added a Python source/fixture verifier to Android CI.
+- Kept previous NW-01–NW-10 features, old verified APK backup, SHA source fingerprinting and signer-safe update restrictions untouched.
+- Hosted GitHub Actions canary and Android jobs have failed before any steps; **no new passing Gradle compilation/JVM run or installable APK is verified**. Details: [NW-11 test evidence](docs/NIGHTWAVE_NW11_JVM_TEST_EVIDENCE.md).
+
+
 ## 2026-10-22 — NW-10 Kotlin smoke compilation and GitHub runner diagnosis
 
 - Added an Android-independent Kotlin executable test harness (`tools/kotlin/NW10PureSmoke.kt`) and fail-closed Python compiler/Java runner (`tools/nw10_kotlin_smoke.py`) to test actual repository playback, queue, seek, EQ, artwork and Google permission policies when a Kotlin compiler is available.
