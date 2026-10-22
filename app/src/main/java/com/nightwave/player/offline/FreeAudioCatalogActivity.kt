@@ -9,13 +9,17 @@ import android.net.Uri
 import android.os.Bundle
 import android.text.InputType
 import android.view.Gravity
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.view.View
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.ScrollView
 import android.widget.TextView
 import androidx.activity.ComponentActivity
+import com.nightwave.player.playback.PlaybackService
 import java.util.concurrent.Executors
 
 /**
@@ -40,14 +44,19 @@ class FreeAudioCatalogActivity : ComponentActivity() {
     private lateinit var progress: ProgressBar
     private lateinit var cancelAction: TextView
     private lateinit var openSaved: TextView
+    private lateinit var playSaved: TextView
     private var savedTitle: String = ""
+    private var savedId: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        window.statusBarColor = 0xFF0C131B.toInt()
+        window.navigationBarColor = 0xFF0C131B.toInt()
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setBackgroundColor(0xFF0C131B.toInt())
-            setPadding(dp(20), dp(20), dp(20), dp(25))
+            background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
+                intArrayOf(0xFF0D151E.toInt(), 0xFF12252C.toInt(), 0xFF0C131B.toInt()))
+            setPadding(dp(18), dp(14), dp(18), dp(16))
         }
         root.addView(text("‹  NightWave", 18f, 0xFF98E5DB.toInt(), true).apply {
             setOnClickListener { finish() }
@@ -65,6 +74,13 @@ class FreeAudioCatalogActivity : ComponentActivity() {
             textSize = 15f
             isSingleLine = true
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+            imeOptions = EditorInfo.IME_ACTION_SEARCH
+            setOnEditorActionListener { _, actionId, _ ->
+                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                    search()
+                    true
+                } else false
+            }
             setTextColor(Color.WHITE)
             setHintTextColor(0xFF7F9CAB.toInt())
             background = rounded(0xFF192932.toInt())
@@ -110,6 +126,27 @@ class FreeAudioCatalogActivity : ComponentActivity() {
             }
         }
         root.addView(openSaved)
+        playSaved = text("▶  Play saved song", 15f, 0xFF091B20.toInt(), true).apply {
+            visibility = View.GONE
+            gravity = Gravity.CENTER
+            background = rounded(0xFF94E2D8.toInt())
+            contentDescription = "Play downloaded audio without internet"
+            setOnClickListener {
+                if (savedId.isNotBlank()) {
+                    runCatching {
+                        startService(Intent(this@FreeAudioCatalogActivity,
+                            PlaybackService::class.java)
+                            .setAction(PlaybackService.ACTION_PLAY_OFFLINE)
+                            .putExtra(PlaybackService.EXTRA_OFFLINE_ID, savedId))
+                    }.onFailure {
+                        message.text = "Could not start playback. Try Offline Library."
+                    }
+                }
+            }
+        }
+        root.addView(playSaved, LinearLayout.LayoutParams(-1, dp(52)).apply {
+            bottomMargin = dp(10)
+        })
         results = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         root.addView(ScrollView(this).apply {
             isFillViewport = false
@@ -120,7 +157,15 @@ class FreeAudioCatalogActivity : ComponentActivity() {
                 "NightWave private storage and is removed if the app is uninstalled.",
             11f, 0xFF91A5B5.toInt()
         ).apply { setPadding(0, dp(9), 0, 0) })
-        setContentView(root)
+        val frame = FrameLayout(this).apply {
+            setBackgroundColor(0xFF0C131B.toInt())
+        }
+        val contentWidth = if (resources.configuration.screenWidthDp > 780)
+            dp(760) else -1
+        frame.addView(root, FrameLayout.LayoutParams(
+            contentWidth, -1, Gravity.TOP or Gravity.CENTER_HORIZONTAL))
+        setContentView(frame)
+        NightWaveSafeInsets.bind(frame)
         val initial = intent.getStringExtra(EXTRA_QUERY).orEmpty().take(100)
         if (initial.isNotBlank()) {
             input.setText(initial)
@@ -137,6 +182,8 @@ class FreeAudioCatalogActivity : ComponentActivity() {
             return
         }
         busySearch = true
+        (getSystemService(INPUT_METHOD_SERVICE) as? InputMethodManager)
+            ?.hideSoftInputFromWindow(input.windowToken, 0)
         searchAction.alpha = 0.5f
         results.removeAllViews()
         message.text = "Searching CC0 and public-domain audio on Wikimedia Commons…"
@@ -162,15 +209,20 @@ class FreeAudioCatalogActivity : ComponentActivity() {
     private fun showEntry(entry: FreeAudioCandidate) {
         val card = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            background = rounded(0xFF182630.toInt())
-            setPadding(dp(13), dp(13), dp(13), dp(13))
+            background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
+                intArrayOf(0xFF213743.toInt(), 0xFF142630.toInt())).apply {
+                cornerRadius = dp(19).toFloat()
+                setStroke(dp(1), 0xFF385561.toInt())
+            }
+            elevation = dp(2).toFloat()
+            setPadding(dp(15), dp(15), dp(15), dp(15))
         }
         card.addView(text(entry.title, 15f, Color.WHITE, true).apply {
             maxLines = 2
         })
         card.addView(text(
             "Wikimedia Commons · ${entry.licenseName} · " +
-                "${(entry.bytes / (1024 * 1024)).coerceAtLeast(1)} MB",
+                displaySize(entry.bytes),
             12f, 0xFFA8BFCC.toInt()
         ).apply { setPadding(0, dp(7), 0, dp(8)) })
         val buttons = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
@@ -178,18 +230,21 @@ class FreeAudioCatalogActivity : ComponentActivity() {
             gravity = Gravity.CENTER
             background = rounded(0xFF94E2D8.toInt())
             setOnClickListener { confirmDownload(entry) }
-        }, LinearLayout.LayoutParams(0, dp(43), 1f))
+        }, LinearLayout.LayoutParams(0, dp(52), 1f))
         buttons.addView(text("License / source ↗", 12f, 0xFF9FE3DF.toInt(), true).apply {
             gravity = Gravity.CENTER
             setOnClickListener {
                 if (FreeAudioCatalogPolicy.safeDescriptionUrl(entry.descriptionUrl))
                     startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(entry.descriptionUrl)))
             }
-        }, LinearLayout.LayoutParams(0, dp(43), 1f))
+        }, LinearLayout.LayoutParams(0, dp(52), 1f))
         card.addView(buttons)
         results.addView(card, LinearLayout.LayoutParams(-1, -2).apply {
-            bottomMargin = dp(10)
+            bottomMargin = dp(12)
         })
+        card.alpha = 0f
+        card.translationY = dp(7).toFloat()
+        card.animate().alpha(1f).translationY(0f).setDuration(220).start()
     }
 
     private fun confirmDownload(entry: FreeAudioCandidate) {
@@ -225,12 +280,14 @@ class FreeAudioCatalogActivity : ComponentActivity() {
         progress.isIndeterminate = true
         cancelAction.visibility = View.VISIBLE
         openSaved.visibility = View.GONE
+        playSaved.visibility = View.GONE
+        savedId = ""
         message.text = "Connecting to Wikimedia audio storage…"
         val job = PermittedAudioDownloader(this)
         downloading = job
         worker.execute {
             val finished = runCatching {
-                job.download(source) { received, total ->
+                job.download(source, entry.sha1Base36, entry.bytes) { received, total ->
                     runOnUiThread {
                         if (isFinishing || isDestroyed || downloading !== job) return@runOnUiThread
                         if (total != null && total > 0) {
@@ -251,7 +308,9 @@ class FreeAudioCatalogActivity : ComponentActivity() {
                 cancelAction.visibility = View.GONE
                 finished.onSuccess {
                     savedTitle = it.title
+                    savedId = it.id
                     openSaved.visibility = View.VISIBLE
+                    playSaved.visibility = View.VISIBLE
                     message.text = "Saved offline: ${it.title}. Play it without internet in Offline Library."
                 }.onFailure {
                     message.text = "Download unsuccessful: " +
@@ -267,6 +326,10 @@ class FreeAudioCatalogActivity : ComponentActivity() {
         worker.shutdownNow()
         super.onDestroy()
     }
+
+    private fun displaySize(bytes: Long): String =
+        if (bytes < 1_048_576L) "${(bytes + 1023L) / 1024L} KB"
+        else String.format(java.util.Locale.ROOT, "%.1f MB", bytes / 1_048_576.0)
 
     private fun dp(value: Int) = (resources.displayMetrics.density * value + 0.5f).toInt()
     private fun rounded(color: Int) = GradientDrawable().apply {

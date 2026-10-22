@@ -4,6 +4,7 @@
 Preflight only, NOT actual Android compile, network simulation or device QA.
 """
 from pathlib import Path
+import re
 
 ROOT = Path(__file__).resolve().parents[1]
 def text(path: str) -> str:
@@ -54,7 +55,10 @@ assert "finalFile.delete()" in library
 
 # Ensure a discoverable UI and no public exported downloader activity.
 assert "PermittedAudioDownloadActivity::class.java" in offline_ui
-assert 'android:name=".offline.PermittedAudioDownloadActivity" android:exported="false"' in manifest
+assert re.search(
+    r'<activity\s+android:name="\.offline\.PermittedAudioDownloadActivity"'
+    r'(?=[^>]*android:exported="false")[^>]*/>', manifest, flags=re.S
+)
 assert "Download to Offline Library" in screen
 assert "Confirm that you have permission" in screen
 assert "onDestroy()" in screen and "transfer?.cancel()" in screen

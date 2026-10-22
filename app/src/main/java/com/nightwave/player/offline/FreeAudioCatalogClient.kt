@@ -33,7 +33,7 @@ class FreeAudioCatalogClient {
             .addQueryParameter("gsrnamespace", "6")
             .addQueryParameter("gsrlimit", "40")
             .addQueryParameter("prop", "imageinfo")
-            .addQueryParameter("iiprop", "url|size|mime|extmetadata")
+            .addQueryParameter("iiprop", "url|size|mime|extmetadata|sha1")
             .addQueryParameter("iiextmetadatafilter", "LicenseShortName")
             .addQueryParameter("maxlag", "5")
             .build()
@@ -87,12 +87,14 @@ class FreeAudioCatalogClient {
                     !FreeAudioCatalogPolicy.safeDescriptionUrl(description)) continue
                 val bytes = info.optLong("size", -1L)
                 if (!FreeAudioCatalogPolicy.validSize(bytes)) continue
+                val sha1 = info.optString("sha1")
+                if (!FreeAudioIntegrity.isValidSourceHash(sha1)) continue
                 val saveName = FreeAudioCatalogPolicy.saveName(title, info.optString("mime"))
                     ?: continue
                 if (!seen.add(url)) continue
                 result.add(FreeAudioCandidate(
                     saveName.substringBeforeLast('.'), url, description,
-                    license.take(70), bytes, saveName
+                    license.take(70), bytes, saveName, sha1
                 ))
                 if (result.size >= 20) break
             }

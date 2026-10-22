@@ -97,6 +97,15 @@ class OfflineLibraryActivity : ComponentActivity() {
                 startActivity(Intent(this@OfflineLibraryActivity, NightWaveLockerActivity::class.java))
             }
         }, LinearLayout.LayoutParams(-1, dp(48)))
+        root.addView(label("Find music to save offline", 15f, 0xFF08141B.toInt(), true).apply {
+            gravity = Gravity.CENTER
+            background = cardBackground(0xFF91E2D7.toInt())
+            contentDescription = "Search licensed music and save it inside NightWave"
+            setOnClickListener {
+                startActivity(Intent(this@OfflineLibraryActivity,
+                    FreeAudioCatalogActivity::class.java))
+            }
+        }, LinearLayout.LayoutParams(-1, dp(52)).apply { bottomMargin = dp(10) })
         root.addView(label("+  Import audio files", 15f, 0xFF101A21.toInt(), true).apply {
             gravity = Gravity.CENTER
             background = cardBackground(0xFF91E2D7.toInt())
@@ -201,6 +210,7 @@ class OfflineLibraryActivity : ComponentActivity() {
             11f, 0xFF8294A8.toInt()
         ).apply { gravity = Gravity.CENTER }, LinearLayout.LayoutParams(-1, dp(45)))
         setContentView(root)
+        NightWaveSafeInsets.bind(root)
         refresh()
     }
 

@@ -10,7 +10,8 @@ data class FreeAudioCandidate(
     val descriptionUrl: String,
     val licenseName: String,
     val bytes: Long,
-    val saveName: String
+    val saveName: String,
+    val sha1Base36: String
 )
 
 object FreeAudioCatalogPolicy {

@@ -156,6 +156,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.nightwave.player.library.MusicLibrary
+import com.nightwave.player.offline.FreeAudioCatalogActivity
 import com.nightwave.player.offline.OfflineLibraryActivity
 import com.nightwave.player.offline.OfflineAudioLibrary
 import com.nightwave.player.offline.OfflineSessionStore
@@ -1669,12 +1670,15 @@ class NightWaveStudioActivity : ComponentActivity() {
     private fun showSongOptions(video: VideoPreview) {
         val likeText = if (library.isFavorite(video.url)) "Unlike song" else "Like song"
         AlertDialog.Builder(this).setTitle(video.title)
-            .setItems(arrayOf(likeText, "Save to playlist", "Add to queue", "Play now")) { _, selected ->
+            .setItems(arrayOf(likeText, "Save to playlist", "Add to queue",
+                "Play now", "Find free downloadable recording")) { _, selected ->
                 when (selected) {
                     0 -> { library.toggleFavorite(video); refresh() }
                     1 -> saveSongToPlaylist(video)
                     2 -> playback.enqueue(video)
                     3 -> playback.play(video)
+                    4 -> startActivity(Intent(this, FreeAudioCatalogActivity::class.java)
+                        .putExtra(FreeAudioCatalogActivity.EXTRA_QUERY, video.title.take(100)))
                 }
             }.setNegativeButton("Close", null).show()
     }
@@ -2766,7 +2770,7 @@ private fun StudioSearch(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
-            NightWaveDiscoveryHeader()
+            NightWaveDiscoveryHeader(searchQuery = query)
         }
         item {
             OutlinedTextField(

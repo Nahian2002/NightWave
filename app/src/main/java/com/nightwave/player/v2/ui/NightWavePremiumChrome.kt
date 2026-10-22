@@ -39,12 +39,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 /**
  * Equal-width, persistent destinations: text is always visible on compact
@@ -124,8 +126,9 @@ fun NightWavePremiumNavigation(
                         Text(
                             label,
                             maxLines = 1,
-                            overflow = TextOverflow.Clip,
-                            style = MaterialTheme.typography.labelSmall,
+                            overflow = TextOverflow.Ellipsis,
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontSize = 12.sp, lineHeight = 16.sp),
                             fontWeight = if (active) FontWeight.Bold
                                 else FontWeight.Medium,
                             color = if (active) colors.onSurface
@@ -151,9 +154,11 @@ fun NightWaveHomeHero(
     val colors = MaterialTheme.colorScheme
     val accent = colors.primary
     val firstName = NightWaveChromePolicy.displayFirstName(displayName)
+    val largeText = LocalDensity.current.fontScale >= 1.3f
+    val heroHeight = if (largeText) 162.dp else 132.dp
     Box(
         modifier = modifier.fillMaxWidth()
-            .height(132.dp)
+            .height(heroHeight)
             .clip(RoundedCornerShape(23.dp))
             .background(
                 Brush.horizontalGradient(
@@ -168,7 +173,7 @@ fun NightWaveHomeHero(
     ) {
         Canvas(
             modifier = Modifier.align(Alignment.CenterEnd)
-                .size(width = 138.dp, height = 132.dp)
+                .size(width = 138.dp, height = heroHeight)
         ) {
             val center = Offset(size.width * .78f, size.height * .52f)
             val scale = size.minDimension
@@ -195,11 +200,11 @@ fun NightWaveHomeHero(
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     color = colors.onSurface,
-                    maxLines = 1,
+                    maxLines = if (largeText) 2 else 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    "Welcome, " + firstName + " · Your music, your pace",
+                    "Welcome,  + firstName + " · Your music, your pace",
                     style = MaterialTheme.typography.bodyMedium,
                     color = colors.onSurfaceVariant,
                     maxLines = 2,

@@ -1,5 +1,8 @@
 package com.nightwave.player.v2.ui
 
+import android.content.Intent
+import com.nightwave.player.offline.FreeAudioCatalogActivity
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -7,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -14,23 +18,27 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.LibraryMusic
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun NightWaveDiscoveryHeader() {
+fun NightWaveDiscoveryHeader(searchQuery: String = "") {
     val palette = MaterialTheme.colorScheme
+    val context = LocalContext.current
     Surface(
         modifier = Modifier.fillMaxWidth().testTag("nightwave-discovery-header"),
         shape = RoundedCornerShape(22.dp),
@@ -63,11 +71,26 @@ fun NightWaveDiscoveryHeader() {
                     NightWaveMicroLabel("Discover")
                     Text("Find your sound",
                         style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold, maxLines = 1,
+                        fontWeight = FontWeight.Bold, maxLines = 2,
                         overflow = TextOverflow.Ellipsis)
                     Text("Your library first · Explore more when you choose",
                         style = MaterialTheme.typography.bodySmall,
                         color = palette.onSurfaceVariant, maxLines = 2)
+                    TextButton(
+                        onClick = {
+                            context.startActivity(Intent(
+                                context, FreeAudioCatalogActivity::class.java)
+                                .putExtra(FreeAudioCatalogActivity.EXTRA_QUERY,
+                                    searchQuery.trim().take(100)))
+                        },
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                            .testTag("nightwave-save-offline-search")
+                    ) {
+                        Icon(Icons.Outlined.Download, contentDescription = null,
+                            modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text("Find music to save offline", maxLines = 2)
+                    }
                 }
             }
         }
