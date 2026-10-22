@@ -38,12 +38,16 @@ class NightWaveCloudWorker(
                 store.status("Google needs permission again. Open NightWave backup settings.")
                 return@withContext Result.success()
             }
-            val account = NightWaveCloudAuthorization.authorizedAccount(authorization)
-            if (!settings.account.equals(account, ignoreCase = true)) {
+            val token = NightWaveCloudAuthorization.requireToken(authorization)
+            // Drive's about endpoint binds identity to the actual authorized
+            // token even when Google's deprecated profile field is omitted.
+            val account = NightWaveDriveClient(token).authorizedEmailAddress()
+            val legacyAccount = NightWaveCloudAuthorization.authorizedAccount(authorization)
+            if (!settings.account.equals(account, ignoreCase = true) ||
+                (legacyAccount != null && !account.equals(legacyAccount, ignoreCase = true))) {
                 store.status("Google account changed; reconnect backup in NightWave.")
                 return@withContext Result.success()
             }
-            val token = NightWaveCloudAuthorization.requireToken(authorization)
             // Recheck before network upload; disconnect means no new snapshot.
             if (!store.read().enabled || store.read().account != settings.account) {
                 return@withContext Result.success()

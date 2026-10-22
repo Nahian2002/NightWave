@@ -38,6 +38,8 @@ import com.nightwave.player.v2.cloud.CloudRecoveryPolicy
 import com.nightwave.player.v2.cloud.CloudRecoveryReport
 import com.nightwave.player.v2.data.CloudRestoreApplyResult
 import com.nightwave.player.v2.cloud.NightWaveDriveClient
+import com.nightwave.player.offline.OfflineSong
+import com.nightwave.player.offline.OfflineTrackSearch
 import com.nightwave.player.v2.cloud.DriveSnapshot
 import com.nightwave.player.v2.cloud.CloudLibraryMerger
 import com.nightwave.player.v2.cloud.CloudMergePlan
@@ -904,6 +906,10 @@ class NightWaveStudioActivity : ComponentActivity() {
                         }
                     },
                     onOfflineLibrary = { startActivity(Intent(this, OfflineLibraryActivity::class.java)) },
+                    onOfflineSearch = { search ->
+                        startActivity(Intent(this, OfflineLibraryActivity::class.java)
+                            .putExtra(OfflineLibraryActivity.EXTRA_SEARCH_QUERY, search))
+                    },
                     onShareDiagnostics = { showCrashSummaryDialog() },
                     onOpenClassic = {
                         startActivity(Intent(this, MainActivity::class.java))
@@ -1116,15 +1122,40 @@ class NightWaveStudioActivity : ComponentActivity() {
             showMessage("Google permission expired. Please start the action again.")
             return
         }
-        val account = NightWaveCloudAuthorization.authorizedAccount(result)
         val token = runCatching { NightWaveCloudAuthorization.requireToken(result) }.getOrNull()
-        if (account.isNullOrBlank() || token == null) {
+        if (token == null) {
             cloudBusy = false
-            cloudStore.status("Google account or Drive permission could not be verified")
+            cloudStore.status("Google Drive access token or permission was missing")
             refreshCloud()
-            showMessage("Google did not return a verified Drive account and access token.")
+            showMessage("Drive permission was not granted. Check Google authorization settings.")
             return
         }
+        val legacyAccount = NightWaveCloudAuthorization.authorizedAccount(result)
+        // The deprecated GoogleSignInAccount field is not guaranteed after a
+        // Google permission chooser. Resolve the email from Drive itself.
+        // Invalidate only the pre-picker timeout; verification has HTTP limits.
+        val verificationGeneration = ++cloudRequestGeneration
+        lifecycleScope.launch {
+            val verified = withContext(Dispatchers.IO) {
+                runCatching { NightWaveDriveClient(token).authorizedEmailAddress() }
+            }
+            if (isFinishing || isDestroyed || !cloudBusy ||
+                cloudRequestGeneration != verificationGeneration) return@launch
+            val account = verified.getOrNull()
+            if (account == null ||
+                (legacyAccount != null && !account.equals(legacyAccount, ignoreCase = true))) {
+                cloudBusy = false
+                cloudStore.status("Could not verify the account for this Drive permission")
+                refreshCloud()
+                showMessage("Drive access returned, but Google account verification failed. " +
+                    "Check network and OAuth app setup before retrying.")
+                return@launch
+            }
+            finishVerifiedCloudAuthorization(action, token, account)
+        }
+    }
+
+    private fun finishVerifiedCloudAuthorization(action: String, token: String, account: String) {
         if (action == "connect") {
             cloudBusy = false
             if (cloudStore.connect(account)) {
@@ -2208,12 +2239,14 @@ private fun StudioRoot(
     onManageFolders: () -> Unit,
     onMovePlaylist: (String) -> Unit,
     onOfflineLibrary: () -> Unit,
+    onOfflineSearch: (String) -> Unit,
     onShareDiagnostics: () -> Unit,
     onOpenClassic: () -> Unit,
     searchNavigationToken: Int
 ) {
     // The pager is the single source of truth for swipes, tabs and Back.
     // Pager state survives rotation and process recreation through Compose Saver.
+    val studioContext = androidx.compose.ui.platform.LocalContext.current
     val pagerState = rememberPagerState(initialPage = StudioTab.HOME.ordinal) {
         StudioTab.entries.size
     }
@@ -2392,7 +2425,15 @@ private fun StudioRoot(
                             (favorites + recent + playlistNames.take(25).flatMap(getPlaylist))
                                 .distinctBy { it.url }
                                 .take(350)
-                        }
+                        },
+                        offlineSongs = remember(libraryRevision) {
+                            // Read indexed titles, not entire file bodies, on tab entry.
+                            // Unreadable private indexes remain untouched.
+                            runCatching {
+                                OfflineAudioLibrary(studioContext).songs().take(400)
+                            }.getOrDefault(emptyList())
+                        },
+                        onOfflineSearch = onOfflineSearch
                     )
                     StudioTab.LIBRARY -> StudioLibrary(
                         modifier = Modifier, favorites = favorites, names = playlistNames,
@@ -2678,7 +2719,9 @@ private fun StudioSearch(
     onPlay: (VideoPreview, List<VideoPreview>) -> Unit,
     onSongOptions: (VideoPreview) -> Unit,
     playingUrl: String,
-    savedTracks: List<VideoPreview>
+    savedTracks: List<VideoPreview>,
+    offlineSongs: List<OfflineSong>,
+    onOfflineSearch: (String) -> Unit
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var mode by rememberSaveable { mutableStateOf(SearchMode.SONGS) }
@@ -2696,6 +2739,9 @@ private fun StudioSearch(
     val submit = { if (query.isNotBlank()) onNativeSearch(query.trim(), mode) }
     val savedMatches = remember(query, savedTracks) {
         SavedTrackSearch.match(query, savedTracks)
+    }
+    val offlineMatches = remember(query, offlineSongs) {
+        if (query.isBlank()) emptyList() else OfflineTrackSearch.match(query, offlineSongs).take(16)
     }
     val localSuggestions = remember(query, savedTracks) {
         LocalSearchSuggestions.suggest(query, savedTracks, limit = 6)
@@ -2974,6 +3020,23 @@ private fun StudioSearch(
                     surface = NightWaveTrackSurface.SEARCH,
                     onOptions = { onSongOptions(song) },
                     onClick = { onPlay(song, savedMatches) })
+            }
+        }
+        if (offlineMatches.isNotEmpty()) {
+            item(key = "offline-search-header") {
+                SectionHeading("Downloaded & imported",
+                    "${offlineMatches.size} matching local tracks · plays without internet")
+            }
+            items(offlineMatches, key = { "offline-search:" + it.id }) { song ->
+                OutlinedButton(
+                    onClick = { onOfflineSearch(song.title) },
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    shape = RoundedCornerShape(15.dp)
+                ) {
+                    Text("♫  " + song.title, modifier = Modifier.weight(1f),
+                        maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text("Offline", style = MaterialTheme.typography.labelSmall)
+                }
             }
         }
         if (searching) {
