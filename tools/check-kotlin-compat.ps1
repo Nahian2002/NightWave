@@ -2,8 +2,38 @@
 # Standard Windows PowerShell 5.1; no Python, Gradle, SDK or network needed.
 # This is a guard against known bad imports, NOT a Kotlin compiler.
 [CmdletBinding()]
-param()
+param([switch]$SelfTest)
 $ErrorActionPreference = 'Stop'
+
+function Get-ExactDuplicateImports([string[]]$Names) {
+    # Group-Object and -contains use case-insensitive comparison by default.
+    # Kotlin identifiers ARE case-sensitive: ProgressBarRangeInfo (class)
+    # and progressBarRangeInfo (semantics property) are both needed.
+    $seen = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+    $duplicates = [System.Collections.Generic.List[string]]::new()
+    foreach ($name in $Names) {
+        if (-not $seen.Add($name)) {
+            $duplicates.Add($name)
+        }
+    }
+    return @($duplicates.ToArray())
+}
+
+if ($SelfTest) {
+    $validCompose = @(
+        'androidx.compose.ui.semantics.ProgressBarRangeInfo',
+        'androidx.compose.ui.semantics.progressBarRangeInfo'
+    )
+    if (@(Get-ExactDuplicateImports $validCompose).Count -ne 0) {
+        throw 'Kotlin case-sensitive import regression: valid Compose symbols were conflated.'
+    }
+    $actuallyRepeated = @(Get-ExactDuplicateImports @('a.B', 'a.b', 'a.B'))
+    if ($actuallyRepeated.Count -ne 1 -or $actuallyRepeated[0] -cne 'a.B') {
+        throw 'Kotlin exact duplicate import was not detected.'
+    }
+    Write-Host 'PASS: Kotlin import checker distinguishes case and detects genuine duplicates.'
+    exit 0
+}
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $sourceRoot = Join-Path $root 'app\src'
 if (-not (Test-Path -LiteralPath $sourceRoot -PathType Container)) {
@@ -23,7 +53,7 @@ foreach ($file in $files) {
         if (-not $line.StartsWith('import ')) { continue }
         $name = $line.Substring(7).Trim().Split(' ')[0]
         $imports += $name
-        if ($invalid -contains $name) {
+        if ($invalid -ccontains $name) {
             $issues.Add(('Invalid Compose import in {0}: {1}' -f
                 $file.FullName.Substring($root.Length + 1), $name))
         }
@@ -33,15 +63,15 @@ foreach ($file in $files) {
     # Check every Kotlin file, not just the three positions from the 6H1 log.
     $source = [System.IO.File]::ReadAllText($file.FullName)
     if ($source -match '\.\s*fillMaxSize\s*\(' -and
-        -not ($imports -contains 'androidx.compose.foundation.layout.fillMaxSize') -and
-        -not ($imports -contains 'androidx.compose.foundation.layout.*')) {
+        -not ($imports -ccontains 'androidx.compose.foundation.layout.fillMaxSize') -and
+        -not ($imports -ccontains 'androidx.compose.foundation.layout.*')) {
         $issues.Add(('Missing androidx.compose.foundation.layout.fillMaxSize import in {0}' -f
             $file.FullName.Substring($root.Length + 1)))
     }
-    $duplicates = @($imports | Group-Object | Where-Object { $_.Count -gt 1 })
+    $duplicates = @(Get-ExactDuplicateImports $imports)
     foreach ($duplicate in $duplicates) {
         $issues.Add(('Duplicate Kotlin import in {0}: {1}' -f
-            $file.FullName.Substring($root.Length + 1), $duplicate.Name))
+            $file.FullName.Substring($root.Length + 1), $duplicate))
     }
 }
 # Known Kotlin compiler errors from the 2026-10-19 Windows build.
