@@ -1,5 +1,15 @@
 # NightWave Changelog
 
+## 2026-10-22 — NW-15D: fix second Kotlin import false-positive in NW07 source preflight
+
+- The NW-15C Windows build passed the PowerShell syntax and first Kotlin source gates, but **NW07's independent import check** again reported `Duplicate Kotlin import: SeekTimeline` and prevented Gradle from starting.
+- Fixed `tools/check-nw07-source-gate.ps1`, which still used case-insensitive `Sort-Object -Unique`, by switching to ordinal, case-sensitive `HashSet[string]` equality.
+- Preserved both valid Compose imports, `ProgressBarRangeInfo` and `progressBarRangeInfo`; they are distinct Kotlin identifiers and must not be removed from the player timeline.
+- Extended the NW07 PowerShell self-test to accept capitalization-distinct symbols while continuing to reject exact repeated imports.
+- Added `tools/verify_nw15d_nw07_imports.py` and CI source regression coverage while retaining the previous Windows ASCII and Kotlin preflight fixes, Android runtime and signing.
+- **No Gradle/JUnit/APK result exists yet** for NW-15D. The patch corrects the user's reported pre-Gradle blocker. See [NW-15D report](docs/NIGHTWAVE_NW15D_NW07_CASE_SENSITIVE_IMPORTS.md).
+
+
 ## 2026-10-22 — NW-15C: correct Windows PowerShell's case-insensitive Kotlin import check
 
 - Fixed a **confirmed false-positive preflight failure** reported from a fresh NW-15B Windows build: `NightWaveSeekTimeline.kt` imports both the `ProgressBarRangeInfo` class and `progressBarRangeInfo` semantics property, which are **different and valid** Kotlin identifiers.
