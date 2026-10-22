@@ -30,17 +30,16 @@ function Clean-Field([string]$value, [int]$limit = 220) {
 }
 
 function Collect-TestFailures([System.Xml.XmlReader]$reader) {
+    # ReadOuterXml followed by Read() skips the next sibling test case.
+    # Parse the bounded, DTD-prohibited XML document once instead, then
+    # iterate exactly the failing nodes. The reader caps input at 8 MB.
+    $doc = New-Object System.Xml.XmlDocument
+    $doc.XmlResolver = $null
+    $doc.Load($reader)
     $found = [Collections.Generic.List[string]]::new()
-    while ($reader.Read() -and $found.Count -lt 25) {
-        if ($reader.NodeType -ne [System.Xml.XmlNodeType]::Element -or
-            $reader.LocalName -ne 'testcase') { continue }
-        $raw = $reader.ReadOuterXml()
-        if ([string]::IsNullOrWhiteSpace($raw)) { continue }
-        $doc = New-Object System.Xml.XmlDocument
-        $doc.XmlResolver = $null
-        $doc.LoadXml($raw)
-        $node = $doc.DocumentElement
-        if ($null -eq $node) { continue }
+    $failures = $doc.SelectNodes('//testcase[failure or error]')
+    foreach ($node in $failures) {
+        if ($found.Count -ge 25) { break }
         $failure = $node.SelectSingleNode('./failure|./error')
         if ($null -eq $failure) { continue }
         $className = Clean-Field ([string]$node.GetAttribute('classname')) 100
@@ -70,14 +69,17 @@ function Read-JUnit([string]$path) {
 
 try {
     if ($SelfTest) {
-        $fake = '<testsuite><testcase classname="OfflinePlaybackQueueTest" name="jumpHandlesBoundsWithoutDamagingSelection"><failure message="expected b but was c"/></testcase><testcase classname="Other" name="passing"/><testcase classname="Second" name="withoutMessage"><failure>assertion failed</failure></testcase></testsuite>'
+        $fake = '<testsuite><testcase classname="First" name="firstFailure"><failure message="first"/></testcase><testcase classname="Second" name="adjacentFailure"><error message="second"/></testcase><testcase classname="OfflinePlaybackQueueTest" name="jumpHandlesBoundsWithoutDamagingSelection"><failure message="expected b but was c"/></testcase><testcase classname="Other" name="passing"/><testcase classname="Final" name="withoutMessage"><failure>assertion failed</failure></testcase></testsuite>'
         $settings = New-Object System.Xml.XmlReaderSettings
         $settings.DtdProcessing = [System.Xml.DtdProcessing]::Prohibit
         $reader = [System.Xml.XmlReader]::Create((New-Object System.IO.StringReader($fake)), $settings)
         try { $found = @(Collect-TestFailures $reader) } finally { $reader.Dispose() }
-        if ($found.Count -ne 2 -or $found[0] -notmatch 'jumpHandlesBoundsWithoutDamagingSelection' -or
-            $found[0] -notmatch 'expected b but was c' -or
-            $found[1] -notmatch 'withoutMessage') {
+        if ($found.Count -ne 4 -or
+            $found[0] -notmatch 'firstFailure' -or
+            $found[1] -notmatch 'adjacentFailure' -or
+            $found[2] -notmatch 'jumpHandlesBoundsWithoutDamagingSelection' -or
+            $found[2] -notmatch 'expected b but was c' -or
+            $found[3] -notmatch 'withoutMessage') {
             throw 'JUnit failure extraction self-test failed.'
         }
         if ((Clean-Field 'Authorization: Bearer secret123') -match 'secret123' -or
