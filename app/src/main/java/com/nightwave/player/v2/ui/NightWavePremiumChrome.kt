@@ -204,7 +204,7 @@ fun NightWaveHomeHero(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    "Welcome,  + firstName + " · Your music, your pace",
+                    "Welcome, " + firstName + " · Your music, your pace",
                     style = MaterialTheme.typography.bodyMedium,
                     color = colors.onSurfaceVariant,
                     maxLines = 2,
