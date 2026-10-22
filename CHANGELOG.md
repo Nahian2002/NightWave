@@ -1,5 +1,15 @@
 # NightWave Changelog
 
+## 2026-10-22 — NW-15B: fix Windows PowerShell 5.1 syntax failure before Gradle
+
+- Fixed the **user-confirmed** `nw11-junit-report.ps1` parser error at line 55. An em dash in a UTF-8 script can be misdecoded into a smart quote by Windows PowerShell 5.1, prematurely terminating a double-quoted string and creating cascading parser errors.
+- Replaced the em dash with an ASCII `-f`-formatted string and the non-ASCII ellipsis with `...`; removed a non-ASCII dash in the older NW-07 PowerShell source gate.
+- Added byte-level ASCII checks to `tools/check-builder-syntax.ps1` for every registered build script (26 scripts, including itself), before PowerShell parsing.
+- Added `tools/verify_nw15b_windows_encoding.py` and a CI PowerShell syntax + JUnit reporter self-test while preserving all earlier source, Gradle and signature checks.
+- **No Kotlin app, package, signer, music-library, backup or account data changes.** This fixes the pre-Gradle startup blocker, not any as-yet-unknown Android compiler errors. The Windows build has not yet been rerun successfully.
+- See [NW-15B exact error and clean rebuild](docs/NIGHTWAVE_NW15B_WINDOWS_POWERSHELL_HOTFIX.md).
+
+
 ## 2026-10-22 — NW-15 canonical service queue selection safety
 
 - Fixed a source-confirmed song-selection bug: `PlaybackService` dropped invalid public URLs before interpreting the original selected row number, potentially shifting the selection onto another song.
