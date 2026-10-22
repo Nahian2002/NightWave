@@ -181,7 +181,7 @@ class PermittedAudioDownloadActivity : ComponentActivity() {
                 cancelAction.visibility = android.view.View.GONE
                 progress.visibility = android.view.View.GONE
                 message.text = result.fold(
-                    onSuccess = { "Saved '${it.title}' to Offline Library. You can play it without internet." },
+                    onSuccess = { "Offline audio ready: '${it.title}'. Existing matching files are reused." },
                     onFailure = { "Download failed: ${it.message?.take(135) ?: "Please retry."}" }
                 )
             }
