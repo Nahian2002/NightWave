@@ -1,0 +1,23 @@
+name: NightWave Runner Canary
+
+# This job deliberately does not checkout sources, install dependencies,
+# invoke Android or upload artifacts. If it fails before the single step,
+# that is a GitHub runner/account provisioning issue, not a Kotlin failure.
+on:
+  push:
+    branches:
+      - fix/nightwave-v2-nw10-compiler-recovery
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  heartbeat:
+    name: Hosted runner allocation check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Print harmless runner heartbeat
+        run: |
+          echo "NIGHTWAVE_RUNNER_STARTED=true"
+          echo "This canary intentionally does not inspect the repository."
