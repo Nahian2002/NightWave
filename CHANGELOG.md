@@ -1,5 +1,16 @@
 # NightWave Changelog
 
+## 2026-10-22 — NW-16: permissioned HTTPS audio downloader to Offline Library
+
+- Added **Offline Library -> Download permitted audio** and a private on-device download screen for directly linked HTTPS MP3/M4A/AAC/FLAC/WAV/OGG/OPUS/WebM audio, with explicit rights confirmation.
+- Added a streaming HTTPS downloader with progress/cancellation, bounded file sizes, strict MIME/audio-header checks, rejected redirects, blocked unsafe/private DNS targets and temporary staging cleanup on failure.
+- Added an atomic Offline Library import of validated downloaded files without changing existing index entries, private media or Android package/signing settings.
+- Added 12 JVM regression test methods for link/format safety and an NW-16 CI source verifier. All older full Gradle test tasks and build preflights remain.
+- **Real compiler evidence:** the exact GitHub `PermittedAudioDownloadPolicy.kt` blob SHA-1 `c2c4c7e952d793f3b0bee99e193da3326e338ac6` compiled with Kotlin 1.9.0 and passed 10/10 local behavioral assertions. **Android/Gradle/device testing remains pending**, so the new downloader is not release-certified.
+- User's other current observations: offline import, background audio and YouTube search function; Google chooser returns without connection, and local search quality needs work. Google needs an explicit account identity flow; authorized Drive scope alone does not identify the account.
+- **Not included:** unrestricted YouTube-to-MP3 extraction, protected stream caching, transcoding, download queue resume/background scheduling, real-time lyric extraction. See [NW-16 downloader technical report](docs/NIGHTWAVE_NW16_AUTHORIZED_DOWNLOADS.md).
+
+
 ## 2026-10-22 — NW-15D: fix second Kotlin import false-positive in NW07 source preflight
 
 - The NW-15C Windows build passed the PowerShell syntax and first Kotlin source gates, but **NW07's independent import check** again reported `Duplicate Kotlin import: SeekTimeline` and prevented Gradle from starting.
