@@ -74,9 +74,13 @@ $errorReport = Join-Path $outDir 'NightWave-build-errors.txt'
 $statusFile = Join-Path $outDir 'NightWave-build-status.txt'
 $output = Join-Path $outDir 'NightWave-debug.apk'
 $previousApk = Join-Path $outDir 'NightWave-debug-previous.apk'
+$sourceManifest = Join-Path $outDir 'NightWave-source-fingerprint.txt'
+$sourceManifestHash = ''
 $stage = 'Preflight'
 New-Item -ItemType Directory -Path $outDir -Force | Out-Null
 if (Test-Path -LiteralPath $errorReport) { Remove-Item -LiteralPath $errorReport -Force }
+# Never reuse a fingerprint from a previous, different ZIP.
+if (Test-Path -LiteralPath $sourceManifest) { Remove-Item -LiteralPath $sourceManifest -Force }
 # Archive the prior log; a preflight failure must not reuse yesterday's compiler errors.
 if (Test-Path -LiteralPath $buildLog) {
     Copy-Item -LiteralPath $buildLog -Destination $previousLog -Force
@@ -303,6 +307,45 @@ try {
     }
     Say '6V7B source check PASS; full Android compile still required.'
 
+    $stage = 'NW07 integrated source preflight'
+    $nw07Gate = Join-Path $PSScriptRoot 'check-nw07-source-gate.ps1'
+    if (-not (Test-Path -LiteralPath $nw07Gate -PathType Leaf)) {
+        throw 'NW07 source gate is missing. Use the complete integrated ZIP.'
+    }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $nw07Gate -SelfTest
+    if ($LASTEXITCODE -ne 0) {
+        throw 'NW07 self-test failed; no Gradle build attempted.'
+    }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $nw07Gate -ProjectRoot $project
+    if ($LASTEXITCODE -ne 0) {
+        throw 'NW07 integrated source gate failed; no Gradle build attempted.'
+    }
+    # Fingerprint source evidence in a stable, sorted, relative-path manifest.
+    # This does not replace Gradle tests and is not a Git commit attestation.
+    $inputs = @(
+        'app/build.gradle.kts',
+        'app/src/main/AndroidManifest.xml',
+        'app/src/main/java/com/nightwave/player/playback/PlaybackService.kt',
+        'app/src/main/java/com/nightwave/player/v2/playback/StudioPlaybackBridge.kt',
+        'app/src/main/java/com/nightwave/player/v2/ui/NightWaveStudioActivity.kt',
+        'app/src/main/java/com/nightwave/player/v2/ui/StudioPlayerScreens.kt',
+        'app/src/main/java/com/nightwave/player/v2/ui/NightWaveSoundStudio.kt',
+        'app/src/main/java/com/nightwave/player/v2/ui/NightWaveAccountHub.kt',
+        'app/src/main/java/com/nightwave/player/net/LocalSearchSuggestions.kt',
+        'app/src/main/java/com/nightwave/player/net/SearchResultPresentationPolicy.kt'
+    ) | Sort-Object
+    $manifestLines = foreach ($relative in $inputs) {
+        $full = Join-Path $project $relative.Replace('/', [IO.Path]::DirectorySeparatorChar)
+        if (-not (Test-Path -LiteralPath $full -PathType Leaf)) {
+            throw ("NW07 source manifest input missing: " + $relative)
+        }
+        $fileHash = (Get-FileHash -LiteralPath $full -Algorithm SHA256).Hash
+        "$fileHash  $relative"
+    }
+    $manifestLines | Set-Content -LiteralPath $sourceManifest -Encoding UTF8
+    $sourceManifestHash = (Get-FileHash -LiteralPath $sourceManifest -Algorithm SHA256).Hash
+    Say "NW07 integrated source preflight PASS; fingerprint: $sourceManifestHash"
+
     $stage = 'Java preparation'
     Resolve-Java
 
@@ -458,6 +501,8 @@ try {
         $signerLine,
         $continuityLine,
         "SHA256: $hash",
+        "Source fingerprint SHA256: $sourceManifestHash",
+        "Source fingerprint file: dist\\NightWave-source-fingerprint.txt",
         "APK: $output",
         'Installed-device signer compatibility is not assured unless compared separately.'
     ) | Set-Content -LiteralPath $statusFile -Encoding UTF8
@@ -482,6 +527,7 @@ try {
         'FAILED - do not install dist\NightWave-debug.apk from this attempt.',
         "Stage: $stage",
         "Reason: $reason",
+        "Source fingerprint SHA256: $sourceManifestHash",
         "Diagnostic: $errorReport",
         "Previous verified copy, if present: $previousApk"
     ) | Set-Content -LiteralPath $statusFile -Encoding UTF8
