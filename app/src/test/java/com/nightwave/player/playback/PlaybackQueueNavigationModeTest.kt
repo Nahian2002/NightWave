@@ -80,6 +80,14 @@ class PlaybackQueueNavigationModeTest {
         assertEquals(song(0), queue.previous())
     }
 
+    @Test fun shuffledPreviousWithNoHistoryDoesNotGuessLinearTrack() {
+        val queue = PlaybackQueue(pick = { 0 })
+        queue.replace(songs, 3)
+        queue.shuffle = true
+        assertNull(queue.previous())
+        assertEquals(song(3), queue.current)
+    }
+
     @Test fun emptyQueuePreviousStaysEmpty() {
         val queue = PlaybackQueue(pick = { 0 })
         assertNull(queue.previous())
