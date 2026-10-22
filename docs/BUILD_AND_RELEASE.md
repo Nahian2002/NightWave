@@ -1,7 +1,7 @@
 # NightWave — Local Build, Safe Update and Release Procedure
 
 **Updated:** 22 October 2026  
-**Current integrated source:** [NightWave NW-15C case-sensitive Kotlin preflight fix](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw15c-case-sensitive-import-preflight)  
+**Current integrated source:** [NightWave NW-15D NW07 import gate hotfix](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw15d-nw07-exact-imports)  
 **Current status:** NW-12 compiled six hash-matched Kotlin policy files and passed 28 local assertions, corrected the JUnit failure parser and expanded nested source fingerprinting. **No passing full Android Gradle build, installed-device signer compatibility or phone acceptance is verified**. Release NO-GO.
 
 ## NW-12 verified local Kotlin source and JUnit report fix
