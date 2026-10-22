@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -17,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.LibraryMusic
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -69,7 +71,7 @@ fun NightWaveDiscoveryHeader() {
                     NightWaveMicroLabel("Discover")
                     Text("Find your sound",
                         style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold, maxLines = 1,
+                        fontWeight = FontWeight.Bold, maxLines = 2,
                         overflow = TextOverflow.Ellipsis)
                     Text("Your library first · Explore more when you choose",
                         style = MaterialTheme.typography.bodySmall,
@@ -79,8 +81,12 @@ fun NightWaveDiscoveryHeader() {
                             context.startActivity(Intent(
                                 context, FreeAudioCatalogActivity::class.java))
                         },
-                        modifier = Modifier.testTag("nightwave-save-offline-search")
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                            .testTag("nightwave-save-offline-search")
                     ) {
+                        Icon(Icons.Outlined.Download, contentDescription = null,
+                            modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
                         Text("Find music to save offline", maxLines = 2)
                     }
                 }
