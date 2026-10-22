@@ -16,6 +16,21 @@ foreach ($name in $scripts) {
         $issues += ("Missing Windows script: " + $name)
         continue
     }
+    # Windows PowerShell 5.1 may decode UTF-8 without a BOM as the system
+    # ANSI code page. UTF-8 punctuation can turn into smart quote tokens.
+    # This project intentionally ships ASCII-only .ps1 files, including
+    # diagnostics, so the file means the same thing on all Windows PCs.
+    $unsafeEncoding = $false
+    foreach ($byte in [System.IO.File]::ReadAllBytes($path)) {
+        if ($byte -gt 127) {
+            $unsafeEncoding = $true
+            break
+        }
+    }
+    if ($unsafeEncoding) {
+        $issues += ('Windows PowerShell 5.1 unsafe non-ASCII script: ' + $name)
+        continue
+    }
     $tokens = $null
     $parseErrors = $null
     [System.Management.Automation.Language.Parser]::ParseFile(
