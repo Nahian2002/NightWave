@@ -17,6 +17,7 @@ chrome = text("app/src/main/java/com/nightwave/player/v2/ui/NightWaveDiscoveryCh
 manifest = text("app/src/main/AndroidManifest.xml")
 tests = text("app/src/test/java/com/nightwave/player/offline/FreeAudioIntegrityTest.kt")
 catalog_tests = text("app/src/test/java/com/nightwave/player/offline/FreeAudioCatalogClientTest.kt")
+ui_test = text("app/src/androidTest/java/com/nightwave/player/v2/ui/NightWaveOfflineDiscoveryInstrumentedTest.kt")
 
 assert 'iiprop", "url|size|mime|extmetadata|sha1"' in catalog
 assert 'isValidSourceHash(sha1)' in catalog
@@ -41,6 +42,7 @@ assert re.search(
     r'(?=[^>]*android:exported="false")[^>]*/>', manifest, flags=re.S
 )
 assert tests.count("@Test") >= 3 and catalog_tests.count("@Test") >= 4
+assert 'nightwave-save-offline-search' in ui_test
 for name, content in {
     "catalog": catalog, "policy": policy, "integrity": integrity,
     "engine": engine, "screen": screen, "offline": offline,
