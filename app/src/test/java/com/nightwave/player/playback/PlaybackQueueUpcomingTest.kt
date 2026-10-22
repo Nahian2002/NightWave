@@ -71,14 +71,14 @@ class PlaybackQueueUpcomingTest {
         assertEquals(3, queue.size)
     }
 
-    @Test fun removalDoesNotCorruptVisitedIndexHistory() {
+    @Test fun removalMaintainsLinearOrderAfterEarlierJumps() {
         val queue = PlaybackQueue()
         queue.replace((0..4).map(::song), 0)
         queue.jump(4)
         queue.jump(0)
         val removed = queue.removeUpcoming(2, song(2).url)!!
-        assertEquals(song(4), queue.previous()) // visited index was adjusted
-        queue.jump(0)
+        assertEquals(song(1), queue.next()) // never resume stale song 4
+        assertEquals(song(0), queue.previous())
         assertTrue(queue.restoreUpcoming(removed))
         assertEquals(5, queue.size)
         assertEquals(song(0), queue.current)
