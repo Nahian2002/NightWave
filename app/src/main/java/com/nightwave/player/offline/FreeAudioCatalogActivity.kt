@@ -150,7 +150,7 @@ class FreeAudioCatalogActivity : ComponentActivity() {
                 found.onSuccess { list ->
                     message.text = if (list.isEmpty())
                         "No matching free-to-download audio found. This catalog does not cover all popular songs."
-                    else "\${list.size} downloadable audio files. Check title and source before saving."
+                    else "${list.size} downloadable audio files. Check title and source before saving."
                     list.forEach { showEntry(it) }
                 }.onFailure {
                     message.text = "Free-audio search unavailable. Check internet and retry."
@@ -169,8 +169,8 @@ class FreeAudioCatalogActivity : ComponentActivity() {
             maxLines = 2
         })
         card.addView(text(
-            "Wikimedia Commons · \${entry.licenseName} · " +
-                "\${(entry.bytes / (1024 * 1024)).coerceAtLeast(1)} MB",
+            "Wikimedia Commons · ${entry.licenseName} · " +
+                "${(entry.bytes / (1024 * 1024)).coerceAtLeast(1)} MB",
             12f, 0xFFA8BFCC.toInt()
         ).apply { setPadding(0, dp(7), 0, dp(8)) })
         val buttons = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
@@ -197,7 +197,7 @@ class FreeAudioCatalogActivity : ComponentActivity() {
         AlertDialog.Builder(this)
             .setTitle("Save this free audio?")
             .setMessage(
-                "\${entry.title}\n\nMarked \${entry.licenseName} on Wikimedia Commons. " +
+                "${entry.title}\n\nMarked ${entry.licenseName} on Wikimedia Commons. " +
                     "This may be a different recording from a YouTube search result. " +
                     "NightWave saves the original audio format, not a converted MP3."
             )
@@ -237,8 +237,8 @@ class FreeAudioCatalogActivity : ComponentActivity() {
                             progress.isIndeterminate = false
                             progress.progress = (received * 100L / total).toInt().coerceIn(0, 100)
                         } else progress.isIndeterminate = true
-                        message.text = "Downloaded \${received / 1024} KB" +
-                            (total?.let { " / \${it / 1024} KB" } ?: "")
+                        message.text = "Downloaded ${received / 1024} KB" +
+                            (total?.let { " / ${it / 1024} KB" } ?: "")
                     }
                 }
             }
@@ -252,7 +252,7 @@ class FreeAudioCatalogActivity : ComponentActivity() {
                 finished.onSuccess {
                     savedTitle = it.title
                     openSaved.visibility = View.VISIBLE
-                    message.text = "Saved offline: \${it.title}. Play it without internet in Offline Library."
+                    message.text = "Saved offline: ${it.title}. Play it without internet in Offline Library."
                 }.onFailure {
                     message.text = "Download unsuccessful: " +
                         (it.message?.take(100) ?: "Try another free audio file.")
