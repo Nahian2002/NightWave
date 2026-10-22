@@ -18,6 +18,59 @@ class QueueSelectionRulesTest {
         assertEquals(songs.last().url, result.songs[result.selectedIndex].url)
     }
 
+    @Test fun largeCollectionKeepsRealNextAndPreviousAroundSelection() {
+        val songs = (0..200).map(::track)
+        val result = QueueSelectionRules.plan(songs[150], songs)
+        assertEquals(100, result.songs.size)
+        assertEquals(50, result.selectedIndex)
+        assertEquals(songs[149], result.songs[result.selectedIndex - 1])
+        assertEquals(songs[150], result.songs[result.selectedIndex])
+        assertEquals(songs[151], result.songs[result.selectedIndex + 1])
+    }
+
+    @Test fun selectingLastSongKeepsItsPreviousNeighbour() {
+        val songs = (0..170).map(::track)
+        val result = QueueSelectionRules.plan(songs.last(), songs)
+        assertEquals(99, result.selectedIndex)
+        assertEquals(songs[169], result.songs[98])
+        assertEquals(songs.last(), result.songs[99])
+    }
+
+    @Test fun earlySelectionKeepsOriginalQueueHeadAndOrder() {
+        val songs = (0..200).map(::track)
+        val result = QueueSelectionRules.plan(songs[30], songs)
+        assertEquals(songs.take(100), result.songs)
+        assertEquals(30, result.selectedIndex)
+    }
+
+    @Test fun selectedSongOutsideCollectionStaysFirstAndPlayable() {
+        val songs = (0..170).map(::track)
+        val outsider = track(999)
+        val result = QueueSelectionRules.plan(outsider, songs)
+        assertEquals(100, result.songs.size)
+        assertEquals(0, result.selectedIndex)
+        assertEquals(outsider, result.songs.first())
+        assertEquals(songs.take(99), result.songs.drop(1))
+    }
+
+    @Test fun invalidAndDuplicateEntriesDoNotShiftSelectionToWrongSong() {
+        val songs = (0..160).map(::track)
+        val invalid = track(999).copy(url = "https://youtube.com/playlist?list=abc")
+        val collection = listOf(invalid, songs.first(), songs.first()) + songs
+        val result = QueueSelectionRules.plan(songs[125], collection)
+        assertEquals(songs[125], result.songs[result.selectedIndex])
+        assertEquals(songs[124], result.songs[result.selectedIndex - 1])
+        assertEquals(songs[126], result.songs[result.selectedIndex + 1])
+        assertEquals(100, result.songs.size)
+    }
+
+    @Test fun capacityOneStillSelectsRequestedTrackNotSomeOtherSong() {
+        val songs = (0..150).map(::track)
+        val result = QueueSelectionRules.plan(songs[120], songs, capacity = 1)
+        assertEquals(listOf(songs[120]), result.songs)
+        assertEquals(0, result.selectedIndex)
+    }
+
     @Test fun normalCollectionMaintainsOriginalOrder() {
         val songs = (1..4).map(::track)
         val result = QueueSelectionRules.plan(songs[2], songs)
