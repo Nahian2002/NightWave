@@ -1,5 +1,6 @@
 package com.nightwave.player.offline
 
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
@@ -48,6 +49,14 @@ class PermittedAudioDownloadActivity : ComponentActivity() {
             14f, 0xFFA7BBC7.toInt()
         ).apply { setPadding(0, 0, 0, dp(20)) })
 
+        panel.addView(label("Search free music in NightWave →", 15f, 0xFF10171C.toInt(), true).apply {
+            gravity = Gravity.CENTER
+            background = buttonBackground(0xFF98E5DB.toInt())
+            setOnClickListener {
+                startActivity(Intent(this@PermittedAudioDownloadActivity,
+                    FreeAudioCatalogActivity::class.java))
+            }
+        }, LinearLayout.LayoutParams(-1, dp(49)).apply { bottomMargin = dp(20) })
         panel.addView(label("DIRECT HTTPS AUDIO FILE URL", 12f, 0xFF9ADBD4.toInt(), true))
         urlInput = EditText(this).apply {
             hint = "https://artist.example/music/track.mp3 or /download?id=123"
