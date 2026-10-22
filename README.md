@@ -1,5 +1,8 @@
 # NightWave
 
+> **NW-07 Build & Release Gate — 22 October 2026:** The newest [integrated development branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw07-build-release-gate) includes NW-01–NW-06 plus a Windows no-false-success source preflight, per-build source fingerprinting, refusal to publish an APK when tracked source changes during Gradle, and an updated GitHub CI gate. **No full passing Android build or Samsung device acceptance has been demonstrated yet; release is NO-GO.** See [NW-07 release evidence and safe test plan](docs/NIGHTWAVE_NW07_RELEASE_READINESS.md). Use `build-windows.cmd` only with the complete current source ZIP and keep the installed app until a signer-compatible candidate passes.
+
+
 > **NW-06 Music Discovery & Search — 19 October 2026, development branch:** The [latest source](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-v2-nw06-discovery-search) builds on NW-01–NW-05 with private suggestions from your saved songs and creators, a prominent in-app public-video search action, clear official YouTube fallback, and query/mode-safe result states. Public search still depends on independent providers; **a complete Android build and real-network device acceptance are not yet verified**. See [NW-06 QA and limits](docs/NIGHTWAVE_NW06_DISCOVERY_SEARCH_QA.md).
 
 
