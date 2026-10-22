@@ -26,6 +26,7 @@ on:
       - fix/nightwave-v2-nw05-integration-stability
       - feature/nightwave-v2-nw06-discovery-search
       - fix/nightwave-v2-nw07-build-release-gate
+      - fix/nightwave-v2-nw08-full-source-build-attestation
   pull_request:
     branches:
       - feature/nightwave-v2-phase5r-accessibility-build-gates
@@ -106,6 +107,8 @@ jobs:
           python3 tools/verify_nw05_integrated_stability.py
           python3 tools/verify_nw06_discovery_search.py
           python3 tools/verify_nw07_release_gate.py
+          python3 tools/verify_nw08_attestation.py
+          pwsh -NoProfile -File tools/get-nw08-source-inputs.ps1 -SelfTest
           pwsh -NoProfile -File tools/check-nw07-source-gate.ps1 -SelfTest
           pwsh -NoProfile -File tools/check-nw07-source-gate.ps1
           python3 tools/verify_v2_phase5r.py
