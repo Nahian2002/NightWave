@@ -25,6 +25,7 @@ on:
       - feature/nightwave-v2-nw04-premium-player
       - fix/nightwave-v2-nw05-integration-stability
       - feature/nightwave-v2-nw06-discovery-search
+      - fix/nightwave-v2-nw07-build-release-gate
   pull_request:
     branches:
       - feature/nightwave-v2-phase5r-accessibility-build-gates
@@ -104,6 +105,9 @@ jobs:
           python3 tools/verify_nw04_premium_player.py
           python3 tools/verify_nw05_integrated_stability.py
           python3 tools/verify_nw06_discovery_search.py
+          python3 tools/verify_nw07_release_gate.py
+          pwsh -NoProfile -File tools/check-nw07-source-gate.ps1 -SelfTest
+          pwsh -NoProfile -File tools/check-nw07-source-gate.ps1
           python3 tools/verify_v2_phase5r.py
           python3 tools/verify_v2_phase5s.py
           python3 tools/verify_v2_phase5t.py
