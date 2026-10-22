@@ -1,5 +1,15 @@
 # NightWave Changelog
 
+## 2026-10-22 — NW-15C: correct Windows PowerShell's case-insensitive Kotlin import check
+
+- Fixed a **confirmed false-positive preflight failure** reported from a fresh NW-15B Windows build: `NightWaveSeekTimeline.kt` imports both the `ProgressBarRangeInfo` class and `progressBarRangeInfo` semantics property, which are **different and valid** Kotlin identifiers.
+- Replaced `Group-Object` (case-insensitive by default in PowerShell) with an ordinal case-sensitive `HashSet[string]` in `tools/check-kotlin-compat.ps1`.
+- Converted associated source import membership checks to `-ccontains` so capitalization is respected.
+- Added a PowerShell `-SelfTest` that accepts the distinct Compose symbols but rejects a real repeated import, plus a Python full-source exact-duplicate scan.
+- Registered the PowerShell/Python verification in GitHub Actions while keeping existing NW-01–NW-15 code, the NW-15B encoding hotfix, release gates and data/signing safeguards intact.
+- **Evidence:** User's Windows PowerShell syntax check passed. Kotlin preflight failed before Gradle ran. Corrected comparison code committed; a successful Windows Gradle compile and APK have **not** been demonstrated. See [NW-15C report](docs/NIGHTWAVE_NW15C_KOTLIN_IMPORT_PREFLIGHT.md).
+
+
 ## 2026-10-22 — NW-15B: fix Windows PowerShell 5.1 syntax failure before Gradle
 
 - Fixed the **user-confirmed** `nw11-junit-report.ps1` parser error at line 55. An em dash in a UTF-8 script can be misdecoded into a smart quote by Windows PowerShell 5.1, prematurely terminating a double-quoted string and creating cascading parser errors.
