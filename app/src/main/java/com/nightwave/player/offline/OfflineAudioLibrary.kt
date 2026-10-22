@@ -202,7 +202,7 @@ class OfflineAudioLibrary(private val context: Context) {
             val appHome = context.applicationContext.filesDir.canonicalFile
             val base = File(appHome, "permitted_download_staging").canonicalFile
             require(base.parentFile == appHome) { "Unexpected download folder" }
-            require(Regex("[0-9a-f-]{36}\\\\.pending").matches(staged.name) &&
+            require(Regex("[0-9a-f-]{36}\\.pending").matches(staged.name) &&
                 !Files.isSymbolicLink(staged.toPath()) &&
                 staged.canonicalFile.parentFile == base) {
                 "Invalid temporary download file"
