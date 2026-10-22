@@ -1,5 +1,8 @@
 # NightWave
 
+> **NW-13 Public Queue Navigation — 22 October 2026:** The latest [integrated development branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw13-public-queue-previous) corrects an actual public playback bug: with Shuffle off, **Previous follows the displayed song order even after tapping/jumping between tracks**. Shuffle-on Previous retraces real playback history; changing Shuffle mode clears stale history. Nine regression tests were added and older tests updated. All NW-01–NW-12 work is retained. **No full passing Android build, signer-safe APK or phone acceptance is verified; release remains NO-GO.** See [NW-13 report](docs/NIGHTWAVE_NW13_PUBLIC_QUEUE_RECOVERY.md).
+
+
 > **NW-12 Compiler Proof & JUnit Parser Repair — 22 October 2026:** The latest [integrated development branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw12-test-failure-parser) fixes a JUnit parser that could miss consecutive failing cases, expands source fingerprinting to nested Kotlin build checks, and preserves an **executed local compiler test of six exact GitHub source blobs with 28/28 passing assertions**. All NW-01–NW-11 work remains. **Full Android Gradle compilation, APK signing compatibility and phone acceptance are still unverified; release NO-GO.** Read the [NW-12 evidence report](docs/NIGHTWAVE_NW12_COMPILER_AND_JUNIT_QA.md).
 
 
