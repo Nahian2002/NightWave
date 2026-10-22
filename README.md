@@ -1,5 +1,8 @@
 # NightWave
 
+> **NW-15C Windows Kotlin Import Preflight Hotfix — 22 October 2026:** The newest [integrated NightWave development branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw15c-case-sensitive-import-preflight) fixes the user-confirmed false-positive Kotlin preflight failure for `ProgressBarRangeInfo` versus `progressBarRangeInfo`. PowerShell's default case-insensitive `Group-Object` mistakenly treated these two valid Compose imports as duplicates. The checker now compares import strings using Kotlin-compatible ordinal case-sensitive equality, with a self-test and a full Kotlin-source duplicate-import check. **Extract a fresh ZIP and rerun `build-windows.cmd`; Android Gradle/APK success is not yet verified.** See the [NW-15C analysis and rebuild steps](docs/NIGHTWAVE_NW15C_KOTLIN_IMPORT_PREFLIGHT.md).
+
+
 > **NW-15B Windows PowerShell Build Hotfix — 22 October 2026:** The latest [integrated NightWave source](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw15b-windows-powershell-hotfix) fixes the confirmed Windows `nw11-junit-report.ps1` syntax error shown before Gradle started. Unsafe Unicode punctuation was replaced with ASCII, and `check-builder-syntax.ps1` now prevents future Windows PowerShell 5.1 encoding failures by checking all 26 source scripts. NW-01–NW-15 app features remain intact. **Download a fresh complete ZIP and extract into an empty directory**, then run `build-windows.cmd`. The APK is **not yet verified**. See [NW-15B hotfix instructions](docs/NIGHTWAVE_NW15B_WINDOWS_POWERSHELL_HOTFIX.md).
 
 
