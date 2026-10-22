@@ -36,7 +36,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun NightWaveDiscoveryHeader() {
+fun NightWaveDiscoveryHeader(searchQuery: String = "") {
     val palette = MaterialTheme.colorScheme
     val context = LocalContext.current
     Surface(
@@ -79,7 +79,9 @@ fun NightWaveDiscoveryHeader() {
                     TextButton(
                         onClick = {
                             context.startActivity(Intent(
-                                context, FreeAudioCatalogActivity::class.java))
+                                context, FreeAudioCatalogActivity::class.java)
+                                .putExtra(FreeAudioCatalogActivity.EXTRA_QUERY,
+                                    searchQuery.trim().take(100)))
                         },
                         modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
                             .testTag("nightwave-save-offline-search")
