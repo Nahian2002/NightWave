@@ -9,6 +9,8 @@ import android.net.Uri
 import android.os.Bundle
 import android.text.InputType
 import android.view.Gravity
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.view.View
 import android.widget.EditText
 import android.widget.FrameLayout
@@ -52,7 +54,8 @@ class FreeAudioCatalogActivity : ComponentActivity() {
         window.navigationBarColor = 0xFF0C131B.toInt()
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setBackgroundColor(0xFF0C131B.toInt())
+            background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
+                intArrayOf(0xFF0D151E.toInt(), 0xFF12252C.toInt(), 0xFF0C131B.toInt()))
             setPadding(dp(18), dp(14), dp(18), dp(16))
         }
         root.addView(text("‹  NightWave", 18f, 0xFF98E5DB.toInt(), true).apply {
@@ -71,6 +74,13 @@ class FreeAudioCatalogActivity : ComponentActivity() {
             textSize = 15f
             isSingleLine = true
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+            imeOptions = EditorInfo.IME_ACTION_SEARCH
+            setOnEditorActionListener { _, actionId, _ ->
+                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                    search()
+                    true
+                } else false
+            }
             setTextColor(Color.WHITE)
             setHintTextColor(0xFF7F9CAB.toInt())
             background = rounded(0xFF192932.toInt())
@@ -172,6 +182,8 @@ class FreeAudioCatalogActivity : ComponentActivity() {
             return
         }
         busySearch = true
+        (getSystemService(INPUT_METHOD_SERVICE) as? InputMethodManager)
+            ?.hideSoftInputFromWindow(input.windowToken, 0)
         searchAction.alpha = 0.5f
         results.removeAllViews()
         message.text = "Searching CC0 and public-domain audio on Wikimedia Commons…"
@@ -197,8 +209,13 @@ class FreeAudioCatalogActivity : ComponentActivity() {
     private fun showEntry(entry: FreeAudioCandidate) {
         val card = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            background = rounded(0xFF182630.toInt())
-            setPadding(dp(13), dp(13), dp(13), dp(13))
+            background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
+                intArrayOf(0xFF213743.toInt(), 0xFF142630.toInt())).apply {
+                cornerRadius = dp(19).toFloat()
+                setStroke(dp(1), 0xFF385561.toInt())
+            }
+            elevation = dp(2).toFloat()
+            setPadding(dp(15), dp(15), dp(15), dp(15))
         }
         card.addView(text(entry.title, 15f, Color.WHITE, true).apply {
             maxLines = 2
