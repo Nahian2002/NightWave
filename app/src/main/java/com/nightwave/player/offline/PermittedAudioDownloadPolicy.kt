@@ -112,17 +112,14 @@ object PermittedAudioDownloadPolicy {
             firstBytes.size >= offset + text.length &&
                 text.indices.all { i -> firstBytes[offset + i] == text[i].code.toByte() }
         return when (extension) {
-            "mp3" -> ascii(0, "ID3") ||
-                ((firstBytes[0].toInt() and 0xFF) == 0xFF &&
-                    (firstBytes[1].toInt() and 0xE0) == 0xE0)
+            "mp3" -> ascii(0, "ID3") || AudioFrameSignature.isMp3Frame(firstBytes)
             "flac" -> ascii(0, "fLaC")
             "wav" -> (ascii(0, "RIFF") || ascii(0, "RF64")) && ascii(8, "WAVE")
             "ogg", "opus" -> ascii(0, "OggS")
             "webm" -> firstBytes.take(4).map { it.toInt() and 0xFF } ==
                 listOf(0x1A, 0x45, 0xDF, 0xA3)
             "m4a" -> ascii(4, "ftyp")
-            "aac" -> (firstBytes[0].toInt() and 0xFF) == 0xFF &&
-                (firstBytes[1].toInt() and 0xF0) == 0xF0
+            "aac" -> AudioFrameSignature.isAacAdts(firstBytes)
             else -> false
         }
     }
