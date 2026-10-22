@@ -45,3 +45,7 @@ Even with header checks and SHA-256 local-copy matching, a source server might p
 - Check original imported songs, Google Drive authorization, YouTube search, background playback, queues and old library entries.
 
 **No installed Android APK has been built or verified in this development turn. Keep the user's currently working installation and data unchanged.**
+
+## Current CI runner observation
+
+GitHub Actions NW19 run [39840269319](https://github.com/Nahian2002/NightWave/actions/runs/39840269319) completed with **failure and zero job steps**. This is not evidence of passing or failing Kotlin compilation. No trustworthy Android build verdict is available from this run; the required Windows/SDK build and signer checks remain pending.
