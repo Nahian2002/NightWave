@@ -1,5 +1,16 @@
 # NightWave Changelog
 
+## 2026-10-22 — NW-09 Google consent & equalizer device reliability (development)
+
+- Preserved only the pending Google Drive authorization action across Android Activity recreation while the account/consent screen is open; does not persist tokens or account identifiers.
+- Added a bounded Google services authorization-request timeout (not an account picker timeout) and ignored stale callbacks after request cancellation/recreation.
+- Added Google Play services availability/status diagnostics before starting Drive authorization, plus clearer messages for orphaned permission results.
+- Updated audio session discovery to avoid showing stale `EFFECT ACTIVE` states after playback stops or the service process changes.
+- Added short asynchronous Android equalizer-capability retries and more tolerant command receipt polling in Sound Studio.
+- Added three JVM recovery-policy tests and the NW-09 source gate to CI while preserving previous NW-01–NW-08 checks and source attestation.
+- **Not verified:** full Gradle build, actual Google permission screen, audible DSP on a Samsung device, live UI and crash/ANR behavior. A verified release APK has not been produced. See [NW-09 detailed evidence](docs/NIGHTWAVE_NW09_DEVICE_RELIABILITY.md).
+
+
 ## 2026-10-22 — NW-08 complete source fingerprint & safer APK publication
 
 - Identified NW-07's ten-file SHA-256 source fingerprint as insufficient to detect simultaneous changes in other Kotlin classes, XML resources, unit tests or build scripts during a Windows Gradle build.
