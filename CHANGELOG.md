@@ -1,5 +1,15 @@
 # NightWave Changelog
 
+## 2026-10-22 — NW-13 Public Previous navigation correction
+
+- Corrected a source-confirmed bug where **public-video Previous with Shuffle off** could return to an old jumped selection instead of the immediately preceding song in the visible list.
+- Public `PlaybackQueue` now records a listening-history stack only for shuffled selections. Linear Previous follows displayed order after taps, jumps and next/previous controls.
+- Changing Shuffle mode invalidates the previous shuffled listening history; a shuffled Previous action with no real history no longer invents a linear predecessor. Repeat All behavior remains.
+- Added nine JUnit mode/navigation regression methods and updated older queue tests that asserted obsolete, inconsistent history behavior.
+- Added NW-13 source regression verification to Android CI while preserving previous gates and mandatory Kotlin/JVM/APK/instrumentation-source Gradle tasks.
+- Verified the retrieved queue source against GitHub blob hashes. **Current-container `kotlinc` attempts stalled, and no full Android Gradle build/phone acceptance was completed**; source checks and authored tests must not be mistaken for green execution. See [NW-13 QA](docs/NIGHTWAVE_NW13_PUBLIC_QUEUE_RECOVERY.md).
+
+
 ## 2026-10-22 — NW-12 actual Kotlin compiler proof & adjacent JUnit failure fix
 
 - **Repaired a real NW-11 diagnostic parser bug:** `ReadOuterXml` followed by `Read()` could skip consecutive JUnit test cases. A DTD-prohibited, 8 MiB-capped XML document reader now retains neighboring `failure` and `error` entries, including those lacking a message attribute.
