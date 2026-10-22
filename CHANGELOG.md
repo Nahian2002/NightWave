@@ -1,5 +1,16 @@
 # NightWave Changelog
 
+## 2026-10-22 — NW-15 canonical service queue selection safety
+
+- Fixed a source-confirmed song-selection bug: `PlaybackService` dropped invalid public URLs before interpreting the original selected row number, potentially shifting the selection onto another song.
+- Added `PublicQueueIntentPolicy` to resolve the selected **canonical public video URL** against retained valid entries before queue deduplication or playback reuse.
+- Rejects malformed, beyond-cap and out-of-range selected URL requests rather than silently starting an unrelated song. Deliberate empty queue replacement remains supported.
+- Validates `ACTION_ENQUEUE` URLs with the existing canonical watch parser and saves only when an item was actually added.
+- Added six JVM regression test cases and an NW-15 source contract to Android CI; previous NW-01–NW-14 source and full Gradle gates remain.
+- **Not yet Android verified:** local Kotlin compiler startup/build was unresponsive, and GitHub Actions runners previously failed before recording job steps. No signer-safe APK or Samsung acceptance is certified.
+- Details: [NW-15 source fix and acceptance report](docs/NIGHTWAVE_NW15_SERVICE_QUEUE_IDENTITY.md).
+
+
 ## 2026-10-22 — NW-14 selected-song continuity in playlists longer than 100 tracks
 
 - Fixed a source-confirmed playlist behavior: tapping Song 150 of 201 previously placed it at the beginning of an unrelated first-100 queue. **Next** could play Song 0 rather than Song 151.
