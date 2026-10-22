@@ -1,5 +1,8 @@
 # NightWave
 
+> **NW-09 Device Reliability Recovery — 22 October 2026:** The latest [integrated development branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw09-device-reliability-diagnostics) includes NW-01–NW-08 and repairs Google Drive consent lifecycle handling (rotation/recreation, missing Play services and hung authorization requests) plus stale Equalizer status after audio session loss. Previous Shuffle/Now Playing/Search changes remain included. **No full successful Android compile or real Samsung Google/EQ acceptance has been established; release remains NO-GO.** See [NW-09 QA report](docs/NIGHTWAVE_NW09_DEVICE_RELIABILITY.md).
+
+
 > **NW-08 Full-Source Build Attestation — 22 October 2026:** The [newest integrated NightWave branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw08-full-source-build-attestation) expands NW-07's ten-file fingerprint to cover all app source/resources, unit and instrumentation test files, key Gradle configuration and build-tool scripts. A build is rejected if any enumerated file changes, appears or disappears during compilation. Earlier NW-01–NW-07 work remains included. **Full Android compilation and real-phone acceptance have NOT passed; release remains NO-GO.** See [NW-08 report](docs/NIGHTWAVE_NW08_RELEASE_HARDENING.md).
 
 
