@@ -51,7 +51,7 @@ function Collect-TestFailures([System.Xml.XmlReader]$reader) {
         } else { '' }
         if (-not $message) {
             # No full stack trace; only a short diagnostic first line.
-            $message = Clean-Field ([string]$failure.InnerText.Split([char]10)[0]) 220
+            $message = Clean-Field ([string]($failure.InnerText -split '\r?\n' | Select-Object -First 1)) 220
         }
         $found.Add("$className.$name — $message")
     }
@@ -70,13 +70,14 @@ function Read-JUnit([string]$path) {
 
 try {
     if ($SelfTest) {
-        $fake = '<testsuite><testcase classname="OfflinePlaybackQueueTest" name="jumpHandlesBoundsWithoutDamagingSelection"><failure message="expected b but was c"/></testcase><testcase classname="Other" name="passing"/></testsuite>'
+        $fake = '<testsuite><testcase classname="OfflinePlaybackQueueTest" name="jumpHandlesBoundsWithoutDamagingSelection"><failure message="expected b but was c"/></testcase><testcase classname="Other" name="passing"/><testcase classname="Second" name="withoutMessage"><failure>assertion failed</failure></testcase></testsuite>'
         $settings = New-Object System.Xml.XmlReaderSettings
         $settings.DtdProcessing = [System.Xml.DtdProcessing]::Prohibit
         $reader = [System.Xml.XmlReader]::Create((New-Object System.IO.StringReader($fake)), $settings)
         try { $found = @(Collect-TestFailures $reader) } finally { $reader.Dispose() }
-        if ($found.Count -ne 1 -or $found[0] -notmatch 'jumpHandlesBoundsWithoutDamagingSelection' -or
-            $found[0] -notmatch 'expected b but was c') {
+        if ($found.Count -ne 2 -or $found[0] -notmatch 'jumpHandlesBoundsWithoutDamagingSelection' -or
+            $found[0] -notmatch 'expected b but was c' -or
+            $found[1] -notmatch 'withoutMessage') {
             throw 'JUnit failure extraction self-test failed.'
         }
         if ((Clean-Field 'Authorization: Bearer secret123') -match 'secret123' -or
