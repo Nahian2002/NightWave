@@ -1,5 +1,8 @@
 # NightWave
 
+> **NW-10 Build Recovery — 22 October 2026:** The newest [integrated development branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw10-compiler-recovery) adds a genuine standalone Kotlin compiler smoke test and an isolated hosted-runner canary. Both the trivial canary and Android job **failed before executing any steps** in GitHub Actions, showing an unresolved runner/account-level blocker rather than a Kotlin error log. Four hash-matched production Kotlin policies were independently compiled and passed 10 assertions locally, but a **full Android build and signer-safe release remain NO-GO**. See [NW-10 compiler and runner evidence](docs/NIGHTWAVE_NW10_COMPILER_RECOVERY.md).
+
+
 > **NW-09 Device Reliability Recovery — 22 October 2026:** The latest [integrated development branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw09-device-reliability-diagnostics) includes NW-01–NW-08 and repairs Google Drive consent lifecycle handling (rotation/recreation, missing Play services and hung authorization requests) plus stale Equalizer status after audio session loss. Previous Shuffle/Now Playing/Search changes remain included. **No full successful Android compile or real Samsung Google/EQ acceptance has been established; release remains NO-GO.** See [NW-09 QA report](docs/NIGHTWAVE_NW09_DEVICE_RELIABILITY.md).
 
 
