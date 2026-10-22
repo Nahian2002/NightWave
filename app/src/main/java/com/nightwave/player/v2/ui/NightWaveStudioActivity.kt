@@ -26,6 +26,7 @@ import com.nightwave.player.v2.insights.ListeningInsightsEngine
 import com.nightwave.player.v2.insights.ListeningMemoryStore
 import com.nightwave.player.v2.insights.ListeningMemorySummary
 import com.nightwave.player.v2.cloud.CloudAccountPresentation
+import com.nightwave.player.v2.cloud.CloudAuthorizationRecoveryPolicy
 import com.nightwave.player.v2.cloud.CloudBackupStatus
 import com.nightwave.player.v2.cloud.CloudBackupState
 import com.nightwave.player.v2.cloud.CloudBackupCodec
@@ -298,6 +299,10 @@ class NightWaveStudioActivity : ComponentActivity() {
     private var cloudInfo by mutableStateOf(CloudBackupStatus())
     private var cloudBusy by mutableStateOf(false)
     private var cloudPendingAction = ""
+    private var cloudAwaitingResolution = false
+    private var cloudRequestGeneration = 0
+    private val cloudActionSavedKey = "nw09_cloud_pending_action"
+    private val cloudResolutionSavedKey = "nw09_cloud_awaiting_resolution"
     private lateinit var roomShadow: RoomShadowMigrator
     private lateinit var verifiedReader: VerifiedRoomReader
     private var roomPreviewRequested = false
@@ -317,6 +322,17 @@ class NightWaveStudioActivity : ComponentActivity() {
     private val cloudResolution = registerForActivityResult(
         ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
+        // This callback can arrive on a recreated Activity after Google's
+        // external permission sheet closes.
+        if (!cloudAwaitingResolution ||
+            CloudAuthorizationRecoveryPolicy.safeAction(cloudPendingAction) == null) {
+            if (::cloudStore.isInitialized) {
+                cloudStore.status("Google authorization returned without a pending request")
+                refreshCloud()
+            }
+            return@registerForActivityResult
+        }
+        cloudAwaitingResolution = false
         if (result.resultCode != RESULT_OK || result.data == null) {
             cloudBusy = false
             cloudPendingAction = ""
@@ -584,6 +600,14 @@ class NightWaveStudioActivity : ComponentActivity() {
         refreshListeningMemory()
         cloudStore = CloudBackupState(this)
         refreshCloud()
+        val restoredCloudAction = savedInstanceState?.getString(cloudActionSavedKey)
+        val restoredAwaiting = savedInstanceState?.getBoolean(cloudResolutionSavedKey) == true
+        if (CloudAuthorizationRecoveryPolicy.shouldRestore(
+                restoredCloudAction, restoredAwaiting)) {
+            cloudPendingAction = restoredCloudAction.orEmpty()
+            cloudAwaitingResolution = true
+            cloudBusy = true
+        }
         // Room/DataStore are read-only previews at this phase. A failure
         // opening the optional shadow must not take down the classic library
         // or the premium player on app launch.
@@ -985,12 +1009,31 @@ class NightWaveStudioActivity : ComponentActivity() {
 
     private fun requestCloudAction(action: String) {
         if (cloudBusy) return
+        if (CloudAuthorizationRecoveryPolicy.safeAction(action) == null) {
+            showMessage("Unknown Google Drive action.")
+            return
+        }
         if (action != "connect" && cloudStore.read().account.isBlank()) {
             showMessage("Connect Google Drive first.")
             return
         }
         cloudPendingAction = action
         cloudBusy = true
+        cloudAwaitingResolution = false
+        val attempt = ++cloudRequestGeneration
+        // A Play-services Task may never complete. Only the Task itself has
+        // a timeout; never time out an account picker while the user decides.
+        lifecycleScope.launch {
+            delay(CloudAuthorizationRecoveryPolicy.timeoutMs())
+            if (CloudAuthorizationRecoveryPolicy.requestIsCurrent(
+                    attempt, cloudRequestGeneration, cloudBusy, cloudAwaitingResolution)) {
+                cloudBusy = false
+                cloudPendingAction = ""
+                cloudStore.status("Google Drive authorization timed out before opening")
+                refreshCloud()
+                showMessage("Google services did not respond. Retry Drive connection.")
+            }
+        }
         val name = if (action == "connect") null else cloudStore.read().account
         // Google Play services can fail synchronously before returning a Task.
         // Always restore the UI and explain the failure without exposing tokens.
@@ -1006,6 +1049,9 @@ class NightWaveStudioActivity : ComponentActivity() {
             return
         }
         authorization.addOnSuccessListener { response ->
+                if (!CloudAuthorizationRecoveryPolicy.requestIsCurrent(
+                        attempt, cloudRequestGeneration, cloudBusy, cloudAwaitingResolution)
+                    || isFinishing || isDestroyed) return@addOnSuccessListener
                 if (response.hasResolution()) {
                     val pending = response.pendingIntent
                     if (pending == null) {
@@ -1015,9 +1061,11 @@ class NightWaveStudioActivity : ComponentActivity() {
                         refreshCloud()
                         showMessage("Google Drive authorization could not open. Check Google Play services.")
                     } else {
+                        cloudAwaitingResolution = true
                         runCatching {
                             cloudResolution.launch(IntentSenderRequest.Builder(pending.intentSender).build())
                         }.onFailure {
+                            cloudAwaitingResolution = false
                             cloudBusy = false
                             cloudPendingAction = ""
                             cloudStore.status("Google permission dialog unavailable")
@@ -1028,6 +1076,9 @@ class NightWaveStudioActivity : ComponentActivity() {
                 } else finishCloudAuthorization(response)
             }
             .addOnFailureListener { error ->
+                if (!CloudAuthorizationRecoveryPolicy.requestIsCurrent(
+                        attempt, cloudRequestGeneration, cloudBusy, cloudAwaitingResolution)
+                    || isFinishing || isDestroyed) return@addOnFailureListener
                 cloudBusy = false
                 cloudPendingAction = ""
                 // Numeric Play-services status is safe diagnostic evidence.
@@ -1044,6 +1095,7 @@ class NightWaveStudioActivity : ComponentActivity() {
     }
 
     private fun finishCloudAuthorization(result: AuthorizationResult) {
+        cloudAwaitingResolution = false
         val action = cloudPendingAction
         cloudPendingAction = ""
         val account = NightWaveCloudAuthorization.authorizedAccount(result)
@@ -1466,7 +1518,18 @@ class NightWaveStudioActivity : ComponentActivity() {
         super.onStop()
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        if (cloudBusy && CloudAuthorizationRecoveryPolicy.shouldRestore(
+                cloudPendingAction, cloudAwaitingResolution)) {
+            // Restore only the action, never the Google token or account.
+            outState.putString(cloudActionSavedKey, cloudPendingAction)
+            outState.putBoolean(cloudResolutionSavedKey, true)
+        }
+        super.onSaveInstanceState(outState)
+    }
+
     override fun onDestroy() {
+        cloudRequestGeneration++
         nativeSearchJob?.cancel()
         nativeSearchGeneration++
         youtubeDialog?.dismiss()
