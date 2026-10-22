@@ -90,6 +90,7 @@ class PlaybackQueueTest {
         q.replace(listOf(e(1), e(2), e(3)), 0)
         assertNull(q.jump(9))
         assertEquals(e(3), q.jump(2))
+        assertEquals(e(2), q.previous())
         assertEquals(e(1), q.previous())
     }
 
