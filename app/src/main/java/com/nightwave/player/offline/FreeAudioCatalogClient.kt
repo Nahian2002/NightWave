@@ -44,7 +44,7 @@ class FreeAudioCatalogClient {
             .get().build()
         client.newCall(request).execute().use { response ->
             require(response.isSuccessful) {
-                "Open audio catalog unavailable (HTTP \${response.code}). Retry later."
+                "Open audio catalog unavailable (HTTP ${response.code}). Retry later."
             }
             val inputStream = requireNotNull(response.body) { "Empty catalog response" }.byteStream()
             val bytes = ByteArrayOutputStream()
