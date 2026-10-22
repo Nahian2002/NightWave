@@ -17,7 +17,8 @@ NW19 delegates raw-frame validation to `AudioFrameSignature.kt`:
 - After the staged file is copied, NightWave compares the private pending copy's SHA-256 with the original before the atomic rename and index commit. Mere file-size equality is not considered byte integrity.
 - If the same complete bytes and MIME format are already present, an existing healthy Offline Library entry is reused; it does not consume another song/index/storage slot.
 - Same size but different audio bytes remain distinct songs.
-- Failure/cancellation still must leave the old library and original user-imported files intact. Existing NW18 HTTPS host checks, bounded redirection/retries and Android MediaExtractor validation remain unchanged.
+- Android MediaExtractor now requires at least one **readable audio sample**, in addition to an audio track and the absence of video tracks, to reject files containing only plausible container headers. This still does **not** prove every second of a long song is error-free.
+- Failure/cancellation still must leave the old library and original user-imported files intact. Existing NW18 HTTPS host checks, bounded redirection/retries and Android MediaExtractor validation are retained.
 - Download UI now reports the audio as **ready**, not incorrectly claiming a new file was always saved.
 
 ## Evidence
