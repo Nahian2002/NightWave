@@ -100,6 +100,15 @@ class OfflineLibraryActivity : ComponentActivity() {
                 pick.launch(arrayOf("audio/*", "application/ogg", "application/octet-stream"))
             }
         }, LinearLayout.LayoutParams(-1, dp(51)))
+        root.addView(label("Download permitted audio", 15f, 0xFF91E2D7.toInt(), true).apply {
+            gravity = Gravity.CENTER
+            background = cardBackground(0xFF213840.toInt())
+            contentDescription = "Download a directly linked audio file to Offline Library"
+            setOnClickListener {
+                startActivity(Intent(this@OfflineLibraryActivity,
+                    PermittedAudioDownloadActivity::class.java))
+            }
+        }, LinearLayout.LayoutParams(-1, dp(49)).apply { topMargin = dp(11) })
         val search = EditText(this).apply {
             hint = "Search saved songs"
             setSingleLine(true)
