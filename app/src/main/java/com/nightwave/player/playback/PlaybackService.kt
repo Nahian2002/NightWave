@@ -1202,12 +1202,27 @@ class PlaybackService : MediaLibraryService() {
                     try {
                         probe = activeEqualizer ?: Equalizer(0, session)
                         eqCapabilities.publish(probe, session)
+                        // On a cold app launch the old SharedPreferences receipt
+                        // can still say "active"; the new service has no effect.
+                        val activeOnSession = activeEqualizer === probe &&
+                            equalizerSessionId == session && probe.enabled &&
+                            probe.hasControl()
+                        eqStatus.write(requestedEqPreset, activeOnSession,
+                            if (activeOnSession)
+                                "Enabled on playback session. Audibility depends on audio route."
+                            else "Equalizer off. Select an available device preset.")
                     } catch (_: Exception) {
                         eqCapabilities.clear()
+                        eqStatus.write(requestedEqPreset, false,
+                            "No supported equalizer available on this audio session.")
                     } finally {
                         if (probe !== activeEqualizer) runCatching { probe?.release() }
                     }
-                } else eqCapabilities.clear()
+                } else {
+                    eqCapabilities.clear()
+                    eqStatus.write(requestedEqPreset, false,
+                        "No active audio session. Play a song to enable the equalizer.")
+                }
             }
             ACTION_EQ_BANDS_APPLY -> {
                 val values = intent.getIntArrayExtra(EXTRA_EQ_LEVELS_MB)
