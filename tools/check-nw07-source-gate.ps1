@@ -21,8 +21,16 @@ function Gate-File([string]$root, [string]$rel) {
 }
 function Check-Imports([string]$body, [string]$label) {
     $imports = @($body -split "\r?\n" | Where-Object { $_ -match '^import\s+' })
-    $unique = @($imports | Sort-Object -Unique)
-    Require ($imports.Count -eq $unique.Count) ("Duplicate Kotlin import: " + $label)
+    # Sort-Object -Unique uses case-insensitive comparisons by default.
+    # Kotlin identifiers are case-sensitive, so class and property imports
+    # differing only by capitalization are both valid.
+    $seen = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+    foreach ($import in $imports) {
+        $exact = $import.Trim()
+        if (-not $seen.Add($exact)) {
+            throw ("Duplicate Kotlin import: " + $label + ": " + $exact)
+        }
+    }
 }
 
 try {
@@ -30,6 +38,11 @@ try {
         Check-Marker 'hello world' 'hello' 'selftest-positive'
         Check-Imports ("import kotlin.String" + [Environment]::NewLine +
             "import kotlin.Int") 'selftest-unique'
+        # This exact pair exists in NightWaveSeekTimeline.kt. One is a
+        # semantics class and the other is a distinct semantics property.
+        Check-Imports ("import androidx.compose.ui.semantics.ProgressBarRangeInfo" +
+            [Environment]::NewLine +
+            "import androidx.compose.ui.semantics.progressBarRangeInfo") 'selftest-case-distinct'
         $negative = $false
         try { Check-Marker 'not here' 'missing' 'selftest-negative' }
         catch { $negative = $true }
@@ -38,7 +51,16 @@ try {
         try { Check-Imports "import kotlin.String`nimport kotlin.String" 'selftest-duplicate' }
         catch { $duplicateRejected = $true }
         Require $duplicateRejected 'Duplicate import self-test unexpectedly passed.'
-        Write-Host 'PASS: NW07 source gate positive/negative self-tests'
+        $caseTrueDuplicateRejected = $false
+        try {
+            Check-Imports ("import androidx.compose.ui.semantics.ProgressBarRangeInfo" +
+                [Environment]::NewLine +
+                "import androidx.compose.ui.semantics.progressBarRangeInfo" +
+                [Environment]::NewLine +
+                "import androidx.compose.ui.semantics.ProgressBarRangeInfo") 'selftest-case-repeat'
+        } catch { $caseTrueDuplicateRejected = $true }
+        Require $caseTrueDuplicateRejected 'Exact duplicate after case-distinct imports was not rejected.'
+        Write-Host 'PASS: NW07 source gate case-sensitive import positive/negative self-tests'
         exit 0
     }
     if ([string]::IsNullOrWhiteSpace($ProjectRoot)) {
