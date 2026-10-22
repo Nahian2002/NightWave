@@ -154,6 +154,7 @@ class FreeAudioCatalogActivity : ComponentActivity() {
             dp(760) else -1
         frame.addView(root, FrameLayout.LayoutParams(
             contentWidth, -1, Gravity.TOP or Gravity.CENTER_HORIZONTAL))
+        NightWaveSafeInsets.bind(frame)
         setContentView(frame)
         val initial = intent.getStringExtra(EXTRA_QUERY).orEmpty().take(100)
         if (initial.isNotBlank()) {
