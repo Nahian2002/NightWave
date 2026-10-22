@@ -36,7 +36,8 @@ def repo_contract() -> None:
     builder = source("tools/build-windows.ps1")
     syntax = source("tools/check-builder-syntax.ps1")
     workflow = source(".github/workflows/android.yml")
-    assert "ReadOuterXml()" in ps
+    assert "$doc.Load($reader)" in ps
+    assert "$doc.SelectNodes('//testcase[failure or error]')" in ps
     assert "DtdProcessing]::Prohibit" in ps
     assert "$settings.XmlResolver = $null" in ps
     assert "Get-ChildItem -LiteralPath $ResultsDirectory -Filter 'TEST-*.xml'" in ps
@@ -46,6 +47,7 @@ def repo_contract() -> None:
     assert "NO TEST XML: JVM tests did not run" in ps
     assert "NO FAILURES FOUND in sampled XML. This is not proof all tests ran." in ps
     assert "withoutMessage" in ps and "SelfTest" in ps
+    assert "adjacentFailure" in ps and "$found.Count -ne 4" in ps
     assert "nw11-junit-report.ps1" in syntax
     assert "nw11-junit-report.ps1" in builder
     assert "NightWave-jvm-failure-summary.txt" in builder
