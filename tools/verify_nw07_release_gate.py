@@ -40,7 +40,7 @@ assert "Select-String -LiteralPath $buildLog -Pattern '^BUILD SUCCESSFUL'" in bu
 assert "verify-apk-signature.ps1" in builder
 assert "Get-FileHash -LiteralPath $output -Algorithm SHA256" in builder
 assert "dist\\NightWave-debug-previous.apk" in launcher
-assert "apksigner verify" in signer
+assert "$Apksigner verify" in signer
 assert "Signer #1 certificate SHA-256 digest" in signer
 assert "APK signing certificate changed" in signer
 assert "No freshly verified NightWave-debug.apk exists" in status_check
