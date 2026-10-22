@@ -1,5 +1,8 @@
 # NightWave
 
+> **NW-15B Windows PowerShell Build Hotfix — 22 October 2026:** The latest [integrated NightWave source](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw15b-windows-powershell-hotfix) fixes the confirmed Windows `nw11-junit-report.ps1` syntax error shown before Gradle started. Unsafe Unicode punctuation was replaced with ASCII, and `check-builder-syntax.ps1` now prevents future Windows PowerShell 5.1 encoding failures by checking all 26 source scripts. NW-01–NW-15 app features remain intact. **Download a fresh complete ZIP and extract into an empty directory**, then run `build-windows.cmd`. The APK is **not yet verified**. See [NW-15B hotfix instructions](docs/NIGHTWAVE_NW15B_WINDOWS_POWERSHELL_HOTFIX.md).
+
+
 > **NW-15 Service Queue Selection Safety — 22 October 2026:** The latest [NightWave integrated development branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw15-queue-intent-identity) corrects a service-side bug where filtering malformed links could shift the selected-song index and silently choose another track. Public queue and enqueue Intents now require canonical watch URLs, preserve the originally tapped song by identity and reject invalid selections. Six new JUnit regression cases are included; NW-01 through NW-14 remain integrated. **A complete Android Gradle build, APK signing continuity and device testing are still unverified, so release is NO-GO.** See the [NW-15 verification report](docs/NIGHTWAVE_NW15_SERVICE_QUEUE_IDENTITY.md).
 
 
