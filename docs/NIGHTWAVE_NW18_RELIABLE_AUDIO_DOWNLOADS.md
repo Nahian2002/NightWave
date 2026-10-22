@@ -29,3 +29,6 @@
 ## Verification limitations
 
 The source was updated on GitHub with 16 JUnit policy regression methods and manual integration checks. No complete Android Gradle build, real HTTPS transfer, Android MediaExtractor validation, signed APK compatibility or Samsung test has been run in this session. Do not treat source-only checks as release certification.
+## GitHub CI observation
+
+Two NW18 GitHub Actions runs (push `39829926119`, pull request `39829933135`) completed with failure and **zero job steps reported**; GitHub returned no usable job log (BlobNotFound). They never established a Kotlin compiler error or a passing Android build. Source readback showed 13/13 structural checks satisfied, but these checks are not Android/JUnit execution. Keep NO-GO and use the existing local Windows builder to obtain real compile diagnostics.
