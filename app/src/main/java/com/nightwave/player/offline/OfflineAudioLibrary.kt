@@ -193,6 +193,58 @@ class OfflineAudioLibrary(private val context: Context) {
     }
 
     /**
+     * Import a fully downloaded, signature-validated direct audio file from
+     * NightWave's private HTTPS staging folder. Never trust arbitrary file
+     * paths or overwrite an existing song. Index commit is the final step.
+     */
+    fun importPermittedStagedAudio(staged: File, filename: String): OfflineSong =
+        synchronized(OfflineLibraryIndexLock.monitor) {
+            val appHome = context.applicationContext.filesDir.canonicalFile
+            val base = File(appHome, "permitted_download_staging").canonicalFile
+            require(base.parentFile == appHome) { "Unexpected download folder" }
+            require(Regex("[0-9a-f-]{36}\\\\.pending").matches(staged.name) &&
+                !Files.isSymbolicLink(staged.toPath()) &&
+                staged.canonicalFile.parentFile == base) {
+                "Invalid temporary download file"
+            }
+            require(staged.isFile && staged.canRead()) { "Download is incomplete" }
+            val size = staged.length()
+            require(size in 1..MAX_SONG_BYTES) { "Audio download exceeds the file limit" }
+            val ext = filename.substringAfterLast('.', "").lowercase(Locale.ROOT)
+            require(ext in extensions) { "Unsupported audio file type" }
+            val title = filename.substringBeforeLast('.').replace('\\n', ' ')
+                .replace('\\r', ' ').trim().take(110).ifBlank { "Downloaded audio" }
+            val current = songs()
+            require(current.size < MAX_SONGS) { "Offline library reached its 400-song limit" }
+            require(current.sumOf(OfflineSong::bytes) + size <= MAX_LIBRARY_BYTES) {
+                "Offline library storage limit reached"
+            }
+            require(root.isDirectory || root.mkdirs()) { "Can't create offline library" }
+            val id = UUID.randomUUID().toString() + "." + ext
+            val pending = File(root, "$id.pending")
+            val finalFile = File(root, id)
+            try {
+                staged.inputStream().use { input ->
+                    FileOutputStream(pending).use { output ->
+                        input.copyTo(output, 32_768)
+                        output.fd.sync()
+                    }
+                }
+                require(pending.length() == size) { "Downloaded audio copy is incomplete" }
+                require(pending.renameTo(finalFile)) { "Couldn't finalize downloaded audio" }
+                val song = OfflineSong(id, title, mimeByExtension.getValue(ext), size)
+                check(prefs.edit().putString("items", encode(current + song)).commit()) {
+                    "Couldn't update offline library index"
+                }
+                song
+            } catch (error: Exception) {
+                pending.delete()
+                finalFile.delete()
+                throw error
+            }
+        }
+
+    /**
      * Accept a complete, SHA+MD5 verified app-private staging file only.
      * No SAF URI, cloud permission, stream link or unverified remote metadata
      * can be used as a shortcut to register playback.
