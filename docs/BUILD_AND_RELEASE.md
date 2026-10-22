@@ -1,8 +1,23 @@
 # NightWave — Local Build, Safe Update and Release Procedure
 
-**Updated:** 19 October 2026  
-**Audited source:** [NightWave build-recovery branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-phase6x8c4-daily-mix-unit-test-compile)  
-**Current status:** Source fixes committed; **full Gradle and phone acceptance remain unverified**.
+**Updated:** 22 October 2026  
+**Current integrated source:** [NightWave NW-07 build-release gate](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw07-build-release-gate)  
+**Current status:** NW-07 source preflight and build fingerprint code committed; **no fresh successful Gradle build, compatible installed-device signer or phone acceptance is verified**. Release NO-GO.
+
+## NW-07 evidence added
+
+The Windows builder now runs `tools/check-nw07-source-gate.ps1` and its
+self-test before Gradle, and saves `dist/NightWave-source-fingerprint.txt`
+with SHA-256 hashes for key source files. The manifest hash appears in
+`NightWave-build-status.txt` after the build. The builder rechecks those
+source hashes before publishing the verified APK; a changed source fails the
+attempt. This **does not** replace Android compilation or test execution.
+
+GitHub Actions may show a completed failed run without any job steps. For
+example, NW-06 run `39285086913` had no recorded steps and no retrievable
+logs; that cannot diagnose Kotlin source failures. When hosted runners do not
+execute, use a fresh Windows ZIP and `build-windows.cmd` to obtain real
+compiler and test evidence. See [NW-07 QA](NIGHTWAVE_NW07_RELEASE_READINESS.md).
 
 ## 1. Get the correct source
 
