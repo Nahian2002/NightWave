@@ -8,7 +8,7 @@ import java.util.Locale
  * quick results do not contain these tracks. No network requests or index edits.
  */
 object OfflineTrackSearch {
-    private val separators = Regex("[^\\p{L}\\p{N}]+")
+    private val separators = Regex("[^\\p{L}\\p{M}\\p{N}]+")
     private fun normalized(text: String): String =
         Normalizer.normalize(text, Normalizer.Form.NFKC).lowercase(Locale.ROOT)
             .replace(separators, " ").trim()
