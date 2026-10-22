@@ -99,8 +99,13 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                     .setAction(PlaybackService.ACTION_EQ_DISCOVER))
             }.isSuccess
             if (!sent) notice = "Audio engine could not be reached. Try playing a track first."
-            delay(400L)
-            applySnapshot(resetDraft = false)
+            // The Media3 service may initialize after startService returns.
+            // Recheck briefly instead of treating one early snapshot as final.
+            repeat(10) { attempt ->
+                delay(200L)
+                applySnapshot(resetDraft = attempt == 0)
+                if (capabilities.sessionReady) return@repeat
+            }
             loading = false
         }
     }
@@ -123,8 +128,8 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
             return
         }
         scope.launch {
-            repeat(14) {
-                delay(120L)
+            repeat(25) {
+                delay(160L)
                 if (pendingCommand != requestId) return@launch
                 val latest = statusStore.read()
                 if (latest.commandId == requestId) {
@@ -161,8 +166,11 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                 .setAction(PlaybackService.ACTION_EQ_DISCOVER))
         }.isSuccess
         if (!sent) notice = "Audio engine couldn't be reached."
-        delay(400L)
-        applySnapshot(resetDraft = true)
+        repeat(10) { attempt ->
+            delay(200L)
+            applySnapshot(resetDraft = attempt == 0)
+            if (capabilities.sessionReady) return@repeat
+        }
         loading = false
     }
 
@@ -221,9 +229,9 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                                    Text(if (status.active) "EFFECT ACTIVE"
-                                        else if (capabilities.sessionReady) "EFFECT OFF"
-                                        else "WAITING FOR AUDIO",
+                                    Text(if (!capabilities.sessionReady) "WAITING FOR AUDIO"
+                                        else if (status.active) "EFFECT ACTIVE"
+                                        else "EFFECT OFF",
                                         color = if (status.active) primary else muted,
                                         style = MaterialTheme.typography.labelMedium,
                                         fontWeight = FontWeight.SemiBold)
