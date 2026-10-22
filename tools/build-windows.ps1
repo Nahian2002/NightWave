@@ -320,20 +320,21 @@ try {
     if ($LASTEXITCODE -ne 0) {
         throw 'NW07 integrated source gate failed; no Gradle build attempted.'
     }
-    # Fingerprint source evidence in a stable, sorted, relative-path manifest.
-    # This does not replace Gradle tests and is not a Git commit attestation.
-    $inputs = @(
-        'app/build.gradle.kts',
-        'app/src/main/AndroidManifest.xml',
-        'app/src/main/java/com/nightwave/player/playback/PlaybackService.kt',
-        'app/src/main/java/com/nightwave/player/v2/playback/StudioPlaybackBridge.kt',
-        'app/src/main/java/com/nightwave/player/v2/ui/NightWaveStudioActivity.kt',
-        'app/src/main/java/com/nightwave/player/v2/ui/StudioPlayerScreens.kt',
-        'app/src/main/java/com/nightwave/player/v2/ui/NightWaveSoundStudio.kt',
-        'app/src/main/java/com/nightwave/player/v2/ui/NightWaveAccountHub.kt',
-        'app/src/main/java/com/nightwave/player/net/LocalSearchSuggestions.kt',
-        'app/src/main/java/com/nightwave/player/net/SearchResultPresentationPolicy.kt'
-    ) | Sort-Object
+    # NW-08: fingerprint all app source/resources/tests and source-build tooling,
+    # not only ten representative files. The helper is run again after Gradle,
+    # detecting file additions/removals as well as changes.
+    $sourceCollector = Join-Path $PSScriptRoot 'get-nw08-source-inputs.ps1'
+    if (-not (Test-Path -LiteralPath $sourceCollector -PathType Leaf)) {
+        throw 'NW08 source enumerator is missing. Use the complete source ZIP.'
+    }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $sourceCollector -SelfTest
+    if ($LASTEXITCODE -ne 0) {
+        throw 'NW08 source enumeration self-test failed before Gradle.'
+    }
+    $inputs = @(& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $sourceCollector -ProjectRoot $project)
+    if ($LASTEXITCODE -ne 0 -or $inputs.Count -lt 50) {
+        throw 'NW08 full source enumeration failed; no APK was built.'
+    }
     $manifestLines = foreach ($relative in $inputs) {
         $full = Join-Path $project $relative.Replace('/', [IO.Path]::DirectorySeparatorChar)
         if (-not (Test-Path -LiteralPath $full -PathType Leaf)) {
@@ -344,7 +345,7 @@ try {
     }
     $manifestLines | Set-Content -LiteralPath $sourceManifest -Encoding UTF8
     $sourceManifestHash = (Get-FileHash -LiteralPath $sourceManifest -Algorithm SHA256).Hash
-    Say "NW07 integrated source preflight PASS; fingerprint: $sourceManifestHash"
+    Say "NW08 full source snapshot PASS ($($inputs.Count) files); SHA256: $sourceManifestHash"
 
     $stage = 'Java preparation'
     Resolve-Java
@@ -492,7 +493,11 @@ try {
     }
     # Block a time-of-check/time-of-use mismatch: the source fingerprint is
     # only meaningful if source files did not change while Gradle built the APK.
-    $finalSourceLines = foreach ($relative in $inputs) {
+    $finalInputs = @(& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $sourceCollector -ProjectRoot $project)
+    if ($LASTEXITCODE -ne 0 -or (@($finalInputs) -join "`n") -cne (@($inputs) -join "`n")) {
+        throw 'Source file list changed during Gradle build. Candidate was not published.'
+    }
+    $finalSourceLines = foreach ($relative in $finalInputs) {
         $full = Join-Path $project $relative.Replace('/', [IO.Path]::DirectorySeparatorChar)
         $fileHash = (Get-FileHash -LiteralPath $full -Algorithm SHA256).Hash
         "$fileHash  $relative"
@@ -516,6 +521,7 @@ try {
         $continuityLine,
         "SHA256: $hash",
         "Source fingerprint SHA256: $sourceManifestHash",
+        "Source file count: $($inputs.Count)",
         "Source fingerprint file: dist\\NightWave-source-fingerprint.txt",
         "APK: $output",
         'Installed-device signer compatibility is not assured unless compared separately.'
