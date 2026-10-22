@@ -45,7 +45,10 @@ function Collect-TestFailures([System.Xml.XmlReader]$reader) {
         if ($null -eq $failure) { continue }
         $className = Clean-Field ([string]$node.GetAttribute('classname')) 100
         $name = Clean-Field ([string]$node.GetAttribute('name')) 100
-        $message = Clean-Field ([string]$failure.Attributes['message'].Value) 220
+        $messageAttribute = $failure.Attributes['message']
+        $message = if ($null -ne $messageAttribute) {
+            Clean-Field ([string]$messageAttribute.Value) 220
+        } else { '' }
         if (-not $message) {
             # No full stack trace; only a short diagnostic first line.
             $message = Clean-Field ([string]$failure.InnerText.Split([char]10)[0]) 220
