@@ -36,11 +36,12 @@ class AuthorizedAudioImportIntegrityInstrumentedTest {
         val second = stage(bytes)
         var added: OfflineSong? = null
         try {
-            added = library.importPermittedStagedAudio(first, "Song.mp3")
-            assertArrayEquals(bytes, requireNotNull(library.fileFor(added)).readBytes())
+            val registered = library.importPermittedStagedAudio(first, "Song.mp3")
+            added = registered
+            assertArrayEquals(bytes, requireNotNull(library.fileFor(registered)).readBytes())
             val duplicate = library.importPermittedStagedAudio(second, "Renamed.mp3")
-            assertEquals(added.id, duplicate.id)
-            assertEquals(1, library.songs().count { it.id == added.id })
+            assertEquals(registered.id, duplicate.id)
+            assertEquals(1, library.songs().count { it.id == registered.id })
             assertArrayEquals(bytes, requireNotNull(library.fileFor(duplicate)).readBytes())
         } finally {
             if (added != null) library.delete(added)
@@ -56,13 +57,15 @@ class AuthorizedAudioImportIntegrityInstrumentedTest {
         var first: OfflineSong? = null
         var second: OfflineSong? = null
         try {
-            first = library.importPermittedStagedAudio(a, "Different1.mp3")
-            second = library.importPermittedStagedAudio(b, "Different2.mp3")
-            assertNotEquals(first.id, second.id)
+            val registeredA = library.importPermittedStagedAudio(a, "Different1.mp3")
+            first = registeredA
+            val registeredB = library.importPermittedStagedAudio(b, "Different2.mp3")
+            second = registeredB
+            assertNotEquals(registeredA.id, registeredB.id)
             assertArrayEquals(prefix + byteArrayOf(1),
-                requireNotNull(library.fileFor(first)).readBytes())
+                requireNotNull(library.fileFor(registeredA)).readBytes())
             assertArrayEquals(prefix + byteArrayOf(2),
-                requireNotNull(library.fileFor(second)).readBytes())
+                requireNotNull(library.fileFor(registeredB)).readBytes())
         } finally {
             if (first != null) library.delete(first)
             if (second != null) library.delete(second)
