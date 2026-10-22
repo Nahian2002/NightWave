@@ -36,6 +36,7 @@ on:
       - fix/nightwave-v2-nw15-queue-intent-identity
       - fix/nightwave-v2-nw15b-windows-powershell-hotfix
       - fix/nightwave-v2-nw15c-case-sensitive-import-preflight
+      - fix/nightwave-v2-nw15d-nw07-exact-imports
   pull_request:
     branches:
       - feature/nightwave-v2-phase5r-accessibility-build-gates
@@ -126,6 +127,7 @@ jobs:
           python3 tools/verify_nw15_queue_intent.py
           python3 tools/verify_nw15b_windows_encoding.py
           python3 tools/verify_nw15c_kotlin_imports.py
+          python3 tools/verify_nw15d_nw07_imports.py
           pwsh -NoProfile -File tools/check-kotlin-compat.ps1 -SelfTest
           pwsh -NoProfile -File tools/check-kotlin-compat.ps1
           pwsh -NoProfile -File tools/check-builder-syntax.ps1
@@ -266,7 +268,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: NightWave-NW15C-dev-debug-UNVERIFIED-FOR-DEVICE
+          name: NightWave-NW15D-dev-debug-UNVERIFIED-FOR-DEVICE
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 5
