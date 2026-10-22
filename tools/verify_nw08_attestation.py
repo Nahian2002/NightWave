@@ -36,10 +36,10 @@ def input_paths(root: Path) -> list[str]:
     tools = root / "tools"
     if not tools.is_dir():
         raise ValueError("tools missing")
-    for child in tools.iterdir():
+    for child in tools.rglob("*"):
         if child.is_symlink():
             raise ValueError("Symlinked tooling not allowed")
-        if child.is_file() and child.suffix in (".py", ".ps1", ".cmd"):
+        if child.is_file() and child.suffix in (".py", ".ps1", ".cmd", ".kt"):
             files.add(child.relative_to(root).as_posix())
     return sorted(files)
 
@@ -72,6 +72,13 @@ def fixtures() -> None:
         assert first != input_paths(root)
         additional.unlink()
         assert first == input_paths(root)
+        nested = root / "tools/kotlin/NewSmoke.kt"
+        nested.parent.mkdir(parents=True, exist_ok=True)
+        nested.write_text("fun main() {}", encoding="utf-8")
+        assert "tools/kotlin/NewSmoke.kt" in input_paths(root)
+        assert first != input_paths(root)
+        nested.unlink()
+        assert first == input_paths(root)
         (root / REQUIRED[0]).unlink()
         try:
             input_paths(root)
@@ -94,7 +101,9 @@ def repo_checks() -> None:
     syntax = (ROOT / "tools/check-builder-syntax.ps1").read_text(encoding="utf-8")
     workflow = (ROOT / ".github/workflows/android.yml").read_text(encoding="utf-8")
     assert "Get-ChildItem -LiteralPath $source -File -Recurse -Force" in enumerator
-    assert "Get-ChildItem -LiteralPath $tools -File -Force" in enumerator
+    assert "Get-ChildItem -LiteralPath $tools -File -Recurse -Force" in enumerator
+    assert "'.cmd', '.kt'" in enumerator
+    assert "tools/kotlin/NW12VerifiedSmoke.kt" in sources
     assert "Sort-Object -Unique" in enumerator
     assert "get-nw08-source-inputs.ps1" in syntax
     assert "$inputs = @(& powershell.exe" in builder
