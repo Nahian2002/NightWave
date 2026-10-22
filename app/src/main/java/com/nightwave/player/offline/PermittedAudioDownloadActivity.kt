@@ -134,11 +134,13 @@ class PermittedAudioDownloadActivity : ComponentActivity() {
             setPadding(0, dp(22), 0, dp(8))
             setOnClickListener { finish() }
         })
-        setContentView(ScrollView(this).apply {
+        val scroll = ScrollView(this).apply {
             setBackgroundColor(0xFF101A20.toInt())
             isFillViewport = true
             addView(panel)
-        })
+        }
+        NightWaveSafeInsets.bind(scroll)
+        setContentView(scroll)
     }
 
     private fun beginDownload() {
