@@ -56,7 +56,7 @@ assert "finalFile.delete()" in library
 # Ensure a discoverable UI and no public exported downloader activity.
 assert "PermittedAudioDownloadActivity::class.java" in offline_ui
 assert re.search(
-    r'<activity\\s+android:name="\\.offline\\.PermittedAudioDownloadActivity"'
+    r'<activity\s+android:name="\.offline\.PermittedAudioDownloadActivity"'
     r'(?=[^>]*android:exported="false")[^>]*/>', manifest, flags=re.S
 )
 assert "Download to Offline Library" in screen
