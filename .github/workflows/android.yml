@@ -30,6 +30,7 @@ on:
       - fix/nightwave-v2-nw09-device-reliability-diagnostics
       - fix/nightwave-v2-nw10-compiler-recovery
       - fix/nightwave-v2-nw11-offline-compiler-proof
+      - fix/nightwave-v2-nw12-test-failure-parser
   pull_request:
     branches:
       - feature/nightwave-v2-phase5r-accessibility-build-gates
@@ -114,6 +115,7 @@ jobs:
           python3 tools/verify_nw09_device_reliability.py
           python3 tools/nw10_kotlin_smoke.py --list
           python3 tools/verify_nw11_junit_source.py
+          python3 tools/verify_nw12_integration.py
           pwsh -NoProfile -File tools/get-nw08-source-inputs.ps1 -SelfTest
           pwsh -NoProfile -File tools/check-nw07-source-gate.ps1 -SelfTest
           pwsh -NoProfile -File tools/check-nw07-source-gate.ps1
@@ -212,6 +214,7 @@ jobs:
         run: |
           if command -v kotlinc >/dev/null 2>&1; then
             python3 tools/nw10_kotlin_smoke.py
+            python3 tools/nw12_verified_kotlin.py
           else
             echo "SKIP: standalone kotlinc not provisioned; Gradle Kotlin gate is required"
           fi
@@ -249,7 +252,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: NightWave-NW11-dev-debug-UNVERIFIED-FOR-DEVICE
+          name: NightWave-NW12-dev-debug-UNVERIFIED-FOR-DEVICE
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 5
