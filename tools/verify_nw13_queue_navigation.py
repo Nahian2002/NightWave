@@ -22,12 +22,12 @@ assert "if (field != value)" in q
 assert "visited.clear()" in q and "shuffledSeen.clear()" in q
 assert "if (shuffle && index >= 0 && index != target)" in q
 assert "if (shuffle && index >= 0 && index != to)" in q
-assert "if (shuffle && visited.isNotEmpty())" in q
+assert "if (shuffle) {" in q and "if (visited.isEmpty()) return null" in q
 assert "if (index > 0) index--" in q
 assert "if (index < 0) return null" in q
 assert "else if (repeat == Repeat.ALL && entries.isNotEmpty()) index = entries.lastIndex" in q
 assert "Only shuffled playback requires a visit stack" in offline
-assert test.count("@Test") == 8
+assert test.count("@Test") == 9
 for case in ("unshuffledPreviousFollowsVisibleRowAfterJump",
              "invalidJumpCannotContaminatePrevious",
              "repeatedLinearNextPreviousUsesDisplayedSequence",
@@ -35,7 +35,8 @@ for case in ("unshuffledPreviousFollowsVisibleRowAfterJump",
              "shuffleModeChangesDiscardOldHistory",
              "repeatAllWrapsPreviousWhenShuffleOff",
              "selectedDuplicateKeepsCorrectLinearPrevious",
-             "emptyQueuePreviousStaysEmpty"):
+             "emptyQueuePreviousStaysEmpty",
+             "shuffledPreviousWithNoHistoryDoesNotGuessLinearTrack"):
     assert case in test
 assert "assertEquals(e(2), q.previous())" in old
 assert "removalMaintainsLinearOrderAfterEarlierJumps" in upcoming
