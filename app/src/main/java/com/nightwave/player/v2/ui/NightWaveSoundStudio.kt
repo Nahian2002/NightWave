@@ -101,10 +101,10 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
             if (!sent) notice = "Audio engine could not be reached. Try playing a track first."
             // The Media3 service may initialize after startService returns.
             // Recheck briefly instead of treating one early snapshot as final.
-            repeat(10) { attempt ->
+            for (attempt in 0 until 10) {
                 delay(200L)
                 applySnapshot(resetDraft = attempt == 0)
-                if (capabilities.sessionReady) return@repeat
+                if (capabilities.sessionReady) break
             }
             loading = false
         }
@@ -166,10 +166,10 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                 .setAction(PlaybackService.ACTION_EQ_DISCOVER))
         }.isSuccess
         if (!sent) notice = "Audio engine couldn't be reached."
-        repeat(10) { attempt ->
+        for (attempt in 0 until 10) {
             delay(200L)
             applySnapshot(resetDraft = attempt == 0)
-            if (capabilities.sessionReady) return@repeat
+            if (capabilities.sessionReady) break
         }
         loading = false
     }
