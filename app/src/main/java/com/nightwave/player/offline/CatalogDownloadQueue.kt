@@ -8,8 +8,6 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
-import java.nio.charset.StandardCharsets
-import java.security.MessageDigest
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
@@ -34,11 +32,8 @@ object CatalogDownloadQueue {
     const val KEY_RECEIVED = "downloaded_bytes"
     const val KEY_TOTAL = "total_bytes"
 
-    fun identifier(url: String, sha1: String): String {
-        val input = (url + "\n" + sha1).toByteArray(StandardCharsets.UTF_8)
-        val digest = MessageDigest.getInstance("SHA-256").digest(input)
-        return "nw23-" + digest.take(18).joinToString("") { "%02x".format(it) }
-    }
+    fun identifier(url: String, sha1: String): String =
+        CatalogWorkIdentity.uniqueName(url, sha1)
 
     fun valid(entry: FreeAudioCandidate): Boolean =
         FreeAudioCatalogPolicy.permittedLicense(entry.licenseName) &&
