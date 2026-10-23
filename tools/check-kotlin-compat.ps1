@@ -22,8 +22,7 @@ function Get-ExactDuplicateImports([string[]]$Names) {
 function Test-NightWaveGreeting([string]$Body) {
     # ASCII-only PowerShell 5.1 safeguard for the actual NW21 Home Kotlin
     # string syntax error. Gradle remains the authoritative Kotlin checker.
-    return $Body.Contains('"Welcome, " + firstName + "') -and
-        -not $Body.Contains('"Welcome,  + firstName + "')
+    return ($Body.Contains('"Welcome, " + firstName + "') -and -not $Body.Contains('"Welcome,  + firstName + "'))
 }
 
 if ($SelfTest) {
