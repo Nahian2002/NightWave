@@ -17,6 +17,7 @@ import androidx.work.WorkManager
 class CatalogDownloadsActivity : ComponentActivity() {
     private lateinit var entries: LinearLayout
     private lateinit var overview: TextView
+    private lateinit var scroll: ScrollView
     private val manager by lazy { WorkManager.getInstance(applicationContext) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,8 +56,8 @@ class CatalogDownloadsActivity : ComponentActivity() {
             bottomMargin = dp(11)
         })
         entries = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        root.addView(ScrollView(this).apply { addView(entries) },
-            LinearLayout.LayoutParams(-1, 0, 1f))
+        scroll = ScrollView(this).apply { addView(entries) }
+        root.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
         setContentView(root)
         NightWaveSafeInsets.bind(root)
         manager.getWorkInfosByTagLiveData(CatalogDownloadQueue.TAG)
@@ -65,6 +66,7 @@ class CatalogDownloadsActivity : ComponentActivity() {
 
     private fun render(infos: List<WorkInfo>) {
         if (isFinishing || isDestroyed) return
+        val originalPosition = if (::scroll.isInitialized) scroll.scrollY else 0
         entries.removeAllViews()
         val active = infos.count { !it.state.isFinished }
         val completed = infos.count { it.state == WorkInfo.State.SUCCEEDED }
@@ -75,7 +77,8 @@ class CatalogDownloadsActivity : ComponentActivity() {
                 14f, 0xFFB7CAD4.toInt()))
             return
         }
-        infos.asReversed().take(60).forEach { info ->
+        infos.sortedWith(compareBy<WorkInfo> { it.state.isFinished }
+            .thenBy { it.id.toString() }).take(60).forEach { info ->
             val title = info.tags.firstOrNull {
                 it.startsWith(CatalogDownloadQueue.TITLE_TAG)
             }?.removePrefix(CatalogDownloadQueue.TITLE_TAG)
@@ -138,6 +141,9 @@ class CatalogDownloadsActivity : ComponentActivity() {
             entries.addView(card, LinearLayout.LayoutParams(-1, -2).apply {
                 bottomMargin = dp(11)
             })
+        }
+        scroll.post {
+            if (!isFinishing && !isDestroyed) scroll.scrollTo(0, originalPosition)
         }
     }
 
