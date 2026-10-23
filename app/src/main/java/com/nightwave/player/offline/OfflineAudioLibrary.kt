@@ -35,8 +35,8 @@ class OfflineAudioLibrary(private val context: Context) {
 
     companion object {
         const val MAX_SONG_BYTES = 250L * 1024L * 1024L
-        const val MAX_LIBRARY_BYTES = 3L * 1024L * 1024L * 1024L
-        const val MAX_SONGS = 400
+        const val MAX_LIBRARY_BYTES = OfflineLibraryCapacity.MAX_LIBRARY_BYTES
+        const val MAX_SONGS = OfflineLibraryCapacity.MAX_ITEMS
         private val extensions = setOf("mp3", "m4a", "aac", "flac", "wav",
             "ogg", "opus", "mp4", "webm", "3gp")
         // Keep older index IDs valid, while excluding separators and paths.
@@ -53,6 +53,7 @@ class OfflineAudioLibrary(private val context: Context) {
     }
 
     private fun parse(raw: String): List<OfflineSong> {
+        require(OfflineLibraryCapacity.safeIndex(raw)) { "Offline library index is too large" }
         val arr = JSONArray(raw)
         require(arr.length() <= MAX_SONGS) { "Offline library index needs repair" }
         return (0 until arr.length()).map { i ->
@@ -72,7 +73,9 @@ class OfflineAudioLibrary(private val context: Context) {
             put(JSONObject().put("id", song.id).put("title", song.title)
                 .put("mime", song.mimeType).put("size", song.bytes))
         }
-    }.toString()
+    }.toString().also { serialized ->
+        require(OfflineLibraryCapacity.safeIndex(serialized)) { "Offline library index size limit reached" }
+    }
 
     fun songs(): List<OfflineSong> = parse(prefs.getString("items", "[]") ?: "[]")
 
@@ -142,7 +145,6 @@ class OfflineAudioLibrary(private val context: Context) {
 
     fun import(uri: Uri): OfflineSong = synchronized(OfflineLibraryIndexLock.monitor) {
         val previous = songs()
-        require(previous.size < MAX_SONGS) { "Offline library reached its 400-song limit" }
         val displayName = runCatching {
             context.contentResolver.query(
                 uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null
@@ -154,12 +156,15 @@ class OfflineAudioLibrary(private val context: Context) {
         val extension = displayName.substringAfterLast('.', "").lowercase()
         require(extension in extensions) { "Supported formats: MP3, M4A, AAC, FLAC, WAV, OGG, OPUS, MP4 and WebM" }
         val total = previous.sumOf(OfflineSong::bytes)
-        require(total < MAX_LIBRARY_BYTES) { "Offline storage limit reached" }
+        require(total in 0..MAX_LIBRARY_BYTES) { "Offline index reports invalid total size" }
         val id = UUID.randomUUID().toString() + "." + extension
         val title = displayName.substringBeforeLast('.')
             .replace('\n', ' ').replace('\r', ' ').trim().take(110).ifBlank { "Audio track" }
         val mime = mimeByExtension.getValue(extension)
         require(root.isDirectory || root.mkdirs()) { "Can't create private offline library" }
+        require(root.usableSpace > OfflineLibraryCapacity.MIN_FREE_HEADROOM_BYTES) {
+            "Insufficient free space to start an import"
+        }
         val pending = File(root, id + ".pending")
         val finalFile = File(root, id)
         try {
@@ -170,9 +175,13 @@ class OfflineAudioLibrary(private val context: Context) {
                     while (true) {
                         val read = input.read(buffer)
                         if (read < 0) break
+                        if (read == 0) continue
                         count += read
-                        require(count <= MAX_SONG_BYTES && total + count <= MAX_LIBRARY_BYTES) {
-                            "File exceeds the offline storage limit"
+                        require(count <= MAX_SONG_BYTES) { "File exceeds the 250 MB audio limit" }
+                        if (count % (4L * 1024L * 1024L) < read) {
+                            require(root.usableSpace > OfflineLibraryCapacity.MIN_FREE_HEADROOM_BYTES) {
+                                "Device storage is almost full; import safely stopped"
+                            }
                         }
                         output.write(buffer, 0, read)
                     }
@@ -180,6 +189,23 @@ class OfflineAudioLibrary(private val context: Context) {
                 }
             }
             require(count > 0L) { "Empty audio file" }
+            // Identical authorized imports reuse the existing ID, preserving lyrics,
+            // playlists and cloud references. Duplicate discovery precedes the cap.
+            val hash = audioSha256(pending)
+            val existing = previous.asSequence()
+                .filter { it.bytes == count && it.mimeType == mime }
+                .firstOrNull { candidate ->
+                    inspectFile(candidate).second?.let { file ->
+                        MessageDigest.isEqual(hash, audioSha256(file))
+                    } == true
+                }
+            if (existing != null) {
+                check(pending.delete()) { "Could not discard duplicate temporary audio" }
+                return@synchronized existing
+            }
+            require(OfflineLibraryCapacity.acceptsNew(previous.size, total, count)) {
+                "Offline Library capacity reached (5,000 songs / 32 GiB)"
+            }
             require(pending.renameTo(finalFile)) { "Could not finish offline file import" }
             val song = OfflineSong(id, title, mime, count)
             require(prefs.edit().putString("items", encode(previous + song)).commit()) {
@@ -236,14 +262,14 @@ class OfflineAudioLibrary(private val context: Context) {
             val existing = current.asSequence()
                 .filter { it.bytes == size && it.mimeType == mimeByExtension.getValue(ext) }
                 .firstOrNull { song ->
-                    fileFor(song)?.let { file ->
+                    inspectFile(song).second?.let { file ->
                         MessageDigest.isEqual(expectedSha256, audioSha256(file))
                     } == true
                 }
             if (existing != null) return@synchronized existing
-            require(current.size < MAX_SONGS) { "Offline library reached its 400-song limit" }
-            require(current.sumOf(OfflineSong::bytes) + size <= MAX_LIBRARY_BYTES) {
-                "Offline library storage limit reached"
+            require(OfflineLibraryCapacity.acceptsNew(
+                current.size, current.sumOf(OfflineSong::bytes), size)) {
+                "Offline Library capacity reached (5,000 songs / 32 GiB)"
             }
             require(root.isDirectory || root.mkdirs()) { "Can't create offline library" }
             val id = UUID.randomUUID().toString() + "." + ext
@@ -304,15 +330,15 @@ class OfflineAudioLibrary(private val context: Context) {
         val previous = songs()
         for (song in previous) {
             if (song.bytes != remote.bytes || song.mimeType != remote.mimeType) continue
-            val current = fileFor(song) ?: continue
+            val current = inspectFile(song).second ?: continue
             if (LockerAudioPolicy.hashes(current).first == sha) {
                 return CloudOfflineImportResult(song, created = false,
                     originalIdPreserved = song.id == remote.sourceLocalId)
             }
         }
-        require(previous.size < MAX_SONGS) { "Offline library reached 400 songs" }
-        require(previous.sumOf { it.bytes } + remote.bytes <= MAX_LIBRARY_BYTES) {
-            "Not enough NightWave offline library space"
+        require(OfflineLibraryCapacity.acceptsNew(
+            previous.size, previous.sumOf(OfflineSong::bytes), remote.bytes)) {
+            "Offline Library capacity reached (5,000 songs / 32 GiB)"
         }
         val songId = LockerAudioPolicy.chooseRestoredId(remote) { id ->
             previous.any { song -> song.id == id } || File(root, id).exists()

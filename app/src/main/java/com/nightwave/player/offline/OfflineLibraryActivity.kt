@@ -6,6 +6,8 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.View
 import android.text.Editable
 import android.text.TextWatcher
@@ -27,13 +29,21 @@ class OfflineLibraryActivity : ComponentActivity() {
     }
     private lateinit var library: OfflineAudioLibrary
     private lateinit var tracks: LinearLayout
+    private lateinit var trackScroll: ScrollView
     private lateinit var state: TextView
     private lateinit var resumeControl: TextView
     private lateinit var sortControl: TextView
     private lateinit var playAllControl: TextView
+    private lateinit var pageLabel: TextView
+    private lateinit var previousPage: TextView
+    private lateinit var nextPage: TextView
+    private val uiHandler = Handler(Looper.getMainLooper())
+    private var pendingSearch: Runnable? = null
+    private var page = 0
     private var searchText = ""
     private var sortMode = 0
     private var visibleSongs: List<OfflineSong> = emptyList()
+    private var cachedReport: OfflineLibraryHealthReport? = null
     private var playableIds: Set<String> = emptySet()
     private val sortLabels = arrayOf("Recently imported", "Title A–Z", "Smallest first", "Largest first")
     private val worker = Executors.newSingleThreadExecutor()
@@ -55,6 +65,7 @@ class OfflineLibraryActivity : ComponentActivity() {
             }
             runOnUiThread {
                 if (!isFinishing && !isDestroyed) {
+                    cachedReport = null
                     refresh()
                     status(imported.toString() + " imported" +
                         if (failures.isNotEmpty()) " · " + failures.size +
@@ -143,7 +154,18 @@ class OfflineLibraryActivity : ComponentActivity() {
                 override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                     searchText = s?.toString()?.trim().orEmpty()
-                    if (::tracks.isInitialized) refresh()
+                    page = 0
+                    pendingSearch?.let(uiHandler::removeCallbacks)
+                    val update = Runnable {
+                        if (::tracks.isInitialized && !isFinishing) {
+                            refresh()
+                            if (::trackScroll.isInitialized) {
+                                trackScroll.post { trackScroll.scrollTo(0, 0) }
+                            }
+                        }
+                    }
+                    pendingSearch = update
+                    uiHandler.postDelayed(update, 220L)
                 }
                 override fun afterTextChanged(s: Editable?) {}
             })
@@ -163,9 +185,11 @@ class OfflineLibraryActivity : ComponentActivity() {
                     .setTitle("Sort offline music")
                     .setSingleChoiceItems(sortLabels, sortMode) { dialog, which ->
                         sortMode = which
+                        page = 0
                         text = "Sort: " + sortLabels[sortMode] + "  ▾"
                         dialog.dismiss()
                         refresh()
+                        trackScroll.post { trackScroll.scrollTo(0, 0) }
                     }.setNegativeButton("Cancel", null).show()
             }
         }
@@ -183,6 +207,37 @@ class OfflineLibraryActivity : ComponentActivity() {
         }
         controls.addView(playAllControl, LinearLayout.LayoutParams(dp(105), dp(49)))
         root.addView(controls)
+        val paging = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        previousPage = label("‹  Previous", 14f, 0xFF91E2D7.toInt(), true).apply {
+            gravity = Gravity.CENTER
+            setOnClickListener {
+                if (page > 0) {
+                    page--
+                    refresh()
+                    trackScroll.post { trackScroll.scrollTo(0, 0) }
+                }
+            }
+        }
+        paging.addView(previousPage, LinearLayout.LayoutParams(0, dp(49), 1f))
+        pageLabel = label("Page 1 / 1", 12f, 0xFFB5C8D8.toInt()).apply {
+            gravity = Gravity.CENTER
+        }
+        paging.addView(pageLabel, LinearLayout.LayoutParams(0, dp(49), 1f))
+        nextPage = label("Next  ›", 14f, 0xFF91E2D7.toInt(), true).apply {
+            gravity = Gravity.CENTER
+            setOnClickListener {
+                if (page + 1 < OfflineLibraryCapacity.pageCount(visibleSongs.size)) {
+                    page++
+                    refresh()
+                    trackScroll.post { trackScroll.scrollTo(0, 0) }
+                }
+            }
+        }
+        paging.addView(nextPage, LinearLayout.LayoutParams(0, dp(49), 1f))
+        root.addView(paging)
         resumeControl = label("", 13f, 0xFF91E2D7.toInt(), true).apply {
             gravity = Gravity.CENTER_VERTICAL
             setPadding(dp(15), 0, dp(15), 0)
@@ -212,24 +267,25 @@ class OfflineLibraryActivity : ComponentActivity() {
         }
         root.addView(state)
         tracks = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        root.addView(ScrollView(this).apply { addView(tracks) },
-            LinearLayout.LayoutParams(-1, 0, 1f))
+        trackScroll = ScrollView(this).apply { addView(tracks) }
+        root.addView(trackScroll, LinearLayout.LayoutParams(-1, 0, 1f))
         root.addView(label(
             "Private on-device storage · Deleted if NightWave is uninstalled",
             11f, 0xFF8294A8.toInt()
         ).apply { gravity = Gravity.CENTER }, LinearLayout.LayoutParams(-1, dp(45)))
         setContentView(root)
         NightWaveSafeInsets.bind(root)
-        refresh()
+        // onResume performs the initial and every subsequent fresh disk health check.
     }
 
     override fun onResume() {
         super.onResume()
+        cachedReport = null
         if (::tracks.isInitialized) refresh()
     }
 
     private fun refresh() {
-        val report = library.healthReport()
+        val report = cachedReport ?: library.healthReport().also { cachedReport = it }
         if (!report.indexReadable) {
             tracks.removeAllViews()
             visibleSongs = emptyList()
@@ -273,13 +329,22 @@ class OfflineLibraryActivity : ComponentActivity() {
             if (report.attentionCount > 0)
                 " · " + report.attentionCount + " need attention (nothing removed)" else "")
         playAllControl.alpha = if (visibleSongs.any { it.id in playableIds }) 1f else 0.45f
+        page = OfflineLibraryCapacity.safePage(page, visibleSongs.size)
+        val numberOfPages = OfflineLibraryCapacity.pageCount(visibleSongs.size)
+        pageLabel.text = "Page " + (page + 1) + " / " + numberOfPages
+        previousPage.isEnabled = page > 0
+        nextPage.isEnabled = page + 1 < numberOfPages
+        previousPage.alpha = if (previousPage.isEnabled) 1f else 0.35f
+        nextPage.alpha = if (nextPage.isEnabled) 1f else 0.35f
+        val pageSongs = visibleSongs.drop(page * OfflineLibraryCapacity.pageSize())
+            .take(OfflineLibraryCapacity.pageSize())
         tracks.removeAllViews()
         if (visibleSongs.isEmpty()) tracks.addView(label(
             if (all.isEmpty()) "No offline songs yet. Import audio you own or are licensed to use."
             else "No matching songs. Try another search.",
             14f, 0xFFABB8CC.toInt()
         ).apply { setPadding(dp(5), dp(25), 0, 0) })
-        visibleSongs.forEach { song ->
+        pageSongs.forEach { song ->
             val health = healthById[song.id] ?: OfflineFileHealth.UNREADABLE
             val available = health == OfflineFileHealth.AVAILABLE
             val availability = when (health) {
@@ -346,7 +411,10 @@ class OfflineLibraryActivity : ComponentActivity() {
                             .setMessage("Delete " + song.title + " from NightWave offline storage?")
                             .setNegativeButton("Cancel", null)
                             .setPositiveButton("Remove") { _, _ ->
-                                if (library.delete(song)) refresh()
+                                if (library.delete(song)) {
+                                    cachedReport = null
+                                    refresh()
+                                }
                                 else status("Unable to delete offline copy; entry kept if unverified")
                             }.show()
                     }
@@ -365,9 +433,12 @@ class OfflineLibraryActivity : ComponentActivity() {
         }
         // Only app-private UUID IDs are passed; playback validates against its own
         // library index before opening any media file.
-        val ids = ArrayList(visibleSongs
-            .filter { it.id in playableIds }
-            .map { it.id }.take(OfflinePlaybackQueue.MAX_ITEMS))
+        val playable = visibleSongs.filter { it.id in playableIds }.map { it.id }
+        val selectedOffset = playable.indexOf(song.id).coerceAtLeast(0)
+        // Large libraries may exceed Media3's bounded immediate queue; always
+        // include the tapped song, even when selected on the last library page.
+        val ids = ArrayList(playable.drop(selectedOffset)
+            .take(OfflinePlaybackQueue.MAX_ITEMS))
         runCatching {
             startService(Intent(this, PlaybackService::class.java)
                 .setAction(PlaybackService.ACTION_PLAY_OFFLINE)
@@ -395,5 +466,9 @@ class OfflineLibraryActivity : ComponentActivity() {
     }
 
     private fun dp(v: Int) = (resources.displayMetrics.density * v + .5f).toInt()
-    override fun onDestroy() { worker.shutdown(); super.onDestroy() }
+    override fun onDestroy() {
+        pendingSearch?.let(uiHandler::removeCallbacks)
+        worker.shutdown()
+        super.onDestroy()
+    }
 }
