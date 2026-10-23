@@ -175,6 +175,7 @@ class OfflineAudioLibrary(private val context: Context) {
                     while (true) {
                         val read = input.read(buffer)
                         if (read < 0) break
+                        if (read == 0) continue
                         count += read
                         require(count <= MAX_SONG_BYTES) { "File exceeds the 250 MB audio limit" }
                         if (count % (4L * 1024L * 1024L) < read) {
@@ -199,7 +200,7 @@ class OfflineAudioLibrary(private val context: Context) {
                     } == true
                 }
             if (existing != null) {
-                pending.delete()
+                check(pending.delete()) { "Could not discard duplicate temporary audio" }
                 return@synchronized existing
             }
             require(OfflineLibraryCapacity.acceptsNew(previous.size, total, count)) {
@@ -261,7 +262,7 @@ class OfflineAudioLibrary(private val context: Context) {
             val existing = current.asSequence()
                 .filter { it.bytes == size && it.mimeType == mimeByExtension.getValue(ext) }
                 .firstOrNull { song ->
-                    fileFor(song)?.let { file ->
+                    inspectFile(song).second?.let { file ->
                         MessageDigest.isEqual(expectedSha256, audioSha256(file))
                     } == true
                 }
@@ -329,7 +330,7 @@ class OfflineAudioLibrary(private val context: Context) {
         val previous = songs()
         for (song in previous) {
             if (song.bytes != remote.bytes || song.mimeType != remote.mimeType) continue
-            val current = fileFor(song) ?: continue
+            val current = inspectFile(song).second ?: continue
             if (LockerAudioPolicy.hashes(current).first == sha) {
                 return CloudOfflineImportResult(song, created = false,
                     originalIdPreserved = song.id == remote.sourceLocalId)
