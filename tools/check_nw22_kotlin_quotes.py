@@ -69,6 +69,7 @@ def self_test() -> None:
     assert suspicious_quote_lines('val q = "say \\"hi\\""') == []
     assert suspicious_quote_lines('val url = "https://example.com/a" // a " comment') == []
     assert suspicious_quote_lines('val x = \'"\'') == []
+    assert suspicious_quote_lines('assertFalse(name.contains("\\\\"))') == []
     assert suspicious_quote_lines('/* " not code\n */ val x = "valid"') == []
     assert suspicious_quote_lines('val x = """raw\n" within triple\nmultiline"""') == []
     assert suspicious_quote_lines('val x = "unterminated') == [1]
