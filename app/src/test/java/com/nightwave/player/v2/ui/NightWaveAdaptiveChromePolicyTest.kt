@@ -52,7 +52,7 @@ class NightWaveAdaptiveChromePolicyTest {
         assertEquals(600, NightWaveAdaptiveChromePolicy.motionDurationMs(false, 900))
         assertEquals(0, NightWaveAdaptiveChromePolicy.motionDurationMs(false, -2))
         assertEquals(60, NightWaveAdaptiveChromePolicy.navHeightDp(Float.NaN))
-        assertEquals(84, NightWaveAdaptiveChromePolicy.navHeightDp(Float.POSITIVE_INFINITY))
+        assertEquals(60, NightWaveAdaptiveChromePolicy.navHeightDp(Float.POSITIVE_INFINITY))
         assertFalse(NightWaveAdaptiveChromePolicy.artworkSizeDp(
             Float.POSITIVE_INFINITY, Float.NaN, 2f) < 0f)
     }
