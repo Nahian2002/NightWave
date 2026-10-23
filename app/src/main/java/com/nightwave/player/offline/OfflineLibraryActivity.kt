@@ -29,6 +29,7 @@ class OfflineLibraryActivity : ComponentActivity() {
     }
     private lateinit var library: OfflineAudioLibrary
     private lateinit var tracks: LinearLayout
+    private lateinit var trackScroll: ScrollView
     private lateinit var state: TextView
     private lateinit var resumeControl: TextView
     private lateinit var sortControl: TextView
@@ -155,7 +156,14 @@ class OfflineLibraryActivity : ComponentActivity() {
                     searchText = s?.toString()?.trim().orEmpty()
                     page = 0
                     pendingSearch?.let(uiHandler::removeCallbacks)
-                    val update = Runnable { if (::tracks.isInitialized && !isFinishing) refresh() }
+                    val update = Runnable {
+                        if (::tracks.isInitialized && !isFinishing) {
+                            refresh()
+                            if (::trackScroll.isInitialized) {
+                                trackScroll.post { trackScroll.scrollTo(0, 0) }
+                            }
+                        }
+                    }
                     pendingSearch = update
                     uiHandler.postDelayed(update, 220L)
                 }
@@ -181,6 +189,7 @@ class OfflineLibraryActivity : ComponentActivity() {
                         text = "Sort: " + sortLabels[sortMode] + "  ▾"
                         dialog.dismiss()
                         refresh()
+                        trackScroll.post { trackScroll.scrollTo(0, 0) }
                     }.setNegativeButton("Cancel", null).show()
             }
         }
@@ -205,7 +214,11 @@ class OfflineLibraryActivity : ComponentActivity() {
         previousPage = label("‹  Previous", 14f, 0xFF91E2D7.toInt(), true).apply {
             gravity = Gravity.CENTER
             setOnClickListener {
-                if (page > 0) { page--; refresh() }
+                if (page > 0) {
+                    page--
+                    refresh()
+                    trackScroll.post { trackScroll.scrollTo(0, 0) }
+                }
             }
         }
         paging.addView(previousPage, LinearLayout.LayoutParams(0, dp(49), 1f))
@@ -217,7 +230,9 @@ class OfflineLibraryActivity : ComponentActivity() {
             gravity = Gravity.CENTER
             setOnClickListener {
                 if (page + 1 < OfflineLibraryCapacity.pageCount(visibleSongs.size)) {
-                    page++; refresh()
+                    page++
+                    refresh()
+                    trackScroll.post { trackScroll.scrollTo(0, 0) }
                 }
             }
         }
@@ -252,8 +267,8 @@ class OfflineLibraryActivity : ComponentActivity() {
         }
         root.addView(state)
         tracks = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        root.addView(ScrollView(this).apply { addView(tracks) },
-            LinearLayout.LayoutParams(-1, 0, 1f))
+        trackScroll = ScrollView(this).apply { addView(tracks) }
+        root.addView(trackScroll, LinearLayout.LayoutParams(-1, 0, 1f))
         root.addView(label(
             "Private on-device storage · Deleted if NightWave is uninstalled",
             11f, 0xFF8294A8.toInt()
