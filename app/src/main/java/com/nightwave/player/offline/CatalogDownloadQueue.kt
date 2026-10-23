@@ -8,7 +8,6 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
-import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 /**
@@ -46,7 +45,7 @@ object CatalogDownloadQueue {
                 PermittedAudioDownloadPolicy.prepare(entry.sourceUrl, entry.saveName)
             }.isSuccess
 
-    fun enqueue(context: Context, entry: FreeAudioCandidate): UUID {
+    fun enqueue(context: Context, entry: FreeAudioCandidate) {
         require(valid(entry)) { "Catalog entry is not eligible for offline download." }
         val safeTitle = entry.title.trim().take(80).ifBlank { "Audio file" }
         val request = OneTimeWorkRequestBuilder<CatalogDownloadWorker>()
@@ -70,6 +69,5 @@ object CatalogDownloadQueue {
             identifier(entry.sourceUrl, entry.sha1Base36),
             ExistingWorkPolicy.KEEP, request
         )
-        return request.id
     }
 }
