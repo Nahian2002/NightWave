@@ -69,6 +69,10 @@ def audit(source: dict[str, str]) -> list[str]:
             "Search refresh must be debounced and cleaned up")
     require("playable.drop(selectedOffset)" in ui,
             "Playback must include selection from late pages")
+    require("cachedReport ?: library.healthReport().also { cachedReport = it }" in ui,
+            "Search and page changes must reuse the current read-only health scan")
+    require(ui.count("cachedReport = null") >= 3,
+            "Recheck disk health after screen resume, imports and deletion")
     require('private const val VERSION = "NWOS1"' in source["session"],
             "Offline listening session schema unexpectedly changed")
     require("fun chooseRestoredId(" in source["cloud"],
