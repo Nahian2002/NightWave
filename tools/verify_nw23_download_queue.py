@@ -39,6 +39,12 @@ def check(source: dict[str, str]) -> list[str]:
             "Network failures must have a bounded outcome")
     require("runAttemptCount < 2" in w, "Network retries must be bounded")
     require("setForegroundAsync" in w, "Foreground transfer must announce its progress")
+    require("StatFs(applicationContext.filesDir.absolutePath).availableBytes" in w,
+            "Disk headroom must be checked before transferring")
+    require("candidate.bytes * 2L" in w,
+            "Stage and final library copy need separate temporary space")
+    require("KEY_RECEIVED" in w and "KEY_TOTAL" in w,
+            "Persistent job should publish progress bytes")
     require("override fun onStopped()" in w and "currentDownload?.cancel()" in w,
             "Stopping the work must interrupt the active HTTP request")
     require("candidate.sha1Base36, candidate.bytes" in w,
