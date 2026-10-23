@@ -42,6 +42,7 @@ class OfflineLibraryActivity : ComponentActivity() {
     private var searchText = ""
     private var sortMode = 0
     private var visibleSongs: List<OfflineSong> = emptyList()
+    private var cachedReport: OfflineLibraryHealthReport? = null
     private var playableIds: Set<String> = emptySet()
     private val sortLabels = arrayOf("Recently imported", "Title A–Z", "Smallest first", "Largest first")
     private val worker = Executors.newSingleThreadExecutor()
@@ -63,6 +64,7 @@ class OfflineLibraryActivity : ComponentActivity() {
             }
             runOnUiThread {
                 if (!isFinishing && !isDestroyed) {
+                    cachedReport = null
                     refresh()
                     status(imported.toString() + " imported" +
                         if (failures.isNotEmpty()) " · " + failures.size +
@@ -258,16 +260,17 @@ class OfflineLibraryActivity : ComponentActivity() {
         ).apply { gravity = Gravity.CENTER }, LinearLayout.LayoutParams(-1, dp(45)))
         setContentView(root)
         NightWaveSafeInsets.bind(root)
-        refresh()
+        // onResume performs the initial and every subsequent fresh disk health check.
     }
 
     override fun onResume() {
         super.onResume()
+        cachedReport = null
         if (::tracks.isInitialized) refresh()
     }
 
     private fun refresh() {
-        val report = library.healthReport()
+        val report = cachedReport ?: library.healthReport().also { cachedReport = it }
         if (!report.indexReadable) {
             tracks.removeAllViews()
             visibleSongs = emptyList()
@@ -393,7 +396,10 @@ class OfflineLibraryActivity : ComponentActivity() {
                             .setMessage("Delete " + song.title + " from NightWave offline storage?")
                             .setNegativeButton("Cancel", null)
                             .setPositiveButton("Remove") { _, _ ->
-                                if (library.delete(song)) refresh()
+                                if (library.delete(song)) {
+                                    cachedReport = null
+                                    refresh()
+                                }
                                 else status("Unable to delete offline copy; entry kept if unverified")
                             }.show()
                     }
