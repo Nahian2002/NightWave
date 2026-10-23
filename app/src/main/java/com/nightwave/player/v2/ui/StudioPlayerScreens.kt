@@ -88,6 +88,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
@@ -326,7 +327,11 @@ fun StudioNowPlayingOverlay(
             // Deterministic, artwork-keyed ambient light; never crop or blur
             // remote thumbnails, preserving battery life and privacy.
             NightWaveBackdrop(state.videoUrl.ifBlank { "nightwave-player" }, Modifier.fillMaxSize())
-            val art = minOf(maxWidth - 58.dp, maxHeight * .32f, 340.dp)
+            val fontScale = LocalDensity.current.fontScale
+            val contentPaddingDp = NightWaveAdaptiveChromePolicy.horizontalPaddingDp(
+                maxWidth.value)
+            val art = NightWaveAdaptiveChromePolicy.artworkSizeDp(
+                maxWidth.value, maxHeight.value, fontScale).dp
             val canSwipeArtwork = state.connected && !state.buffering && state.queue.size > 1
             var horizontalTravel by remember(state.videoUrl) { mutableStateOf(0f) }
             var lyricsOpen by remember(state.videoUrl) { mutableStateOf(false) }
@@ -526,7 +531,7 @@ fun StudioNowPlayingOverlay(
             } else {
             Column(
                 Modifier.fillMaxSize().verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp),
+                    .padding(horizontal = contentPaddingDp.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
