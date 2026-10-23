@@ -12,6 +12,8 @@ PATHS = {
     "player": "app/src/main/java/com/nightwave/player/v2/ui/StudioPlayerScreens.kt",
     "search": "app/src/main/java/com/nightwave/player/v2/ui/NightWaveDiscoveryChrome.kt",
     "tiles": "app/src/main/java/com/nightwave/player/v2/ui/StudioComponents.kt",
+    "profile": "app/src/main/java/com/nightwave/player/v2/ui/NightWaveStudioActivity.kt",
+    "instrumented": "app/src/androidTest/java/com/nightwave/player/v2/ui/NightWaveAdaptiveChromeInstrumentedTest.kt",
     "library": "app/src/main/java/com/nightwave/player/offline/OfflineLibraryActivity.kt",
     "catalog": "app/src/main/java/com/nightwave/player/offline/FreeAudioCatalogActivity.kt",
     "downloads": "app/src/main/java/com/nightwave/player/offline/CatalogDownloadsActivity.kt",
@@ -57,6 +59,11 @@ def inspect(data: dict[str, str]) -> list[str]:
     require("heightIn(min = NightWaveCollectionChrome.COLLECTION_MIN_HEIGHT_DP.dp)" in tiles and
             "heightIn(min = NightWaveCollectionChrome.TRACK_MIN_HEIGHT_DP.dp)" in tiles,
             "Collection/track cards must expand with large font")
+    require("Modifier.fillMaxWidth().heightIn(min = 60.dp)" in data["profile"],
+            "Profile rows must have 60dp minimum tap targets")
+    require('LocalDensity provides Density(1f, 2f)' in data["instrumented"] and
+            'nightwave-tab-profile' in data["instrumented"],
+            "Large-text Compose navigation regression test missing")
     require("pageSongs.forEach { song ->" in library and
             "NativeChrome" not in library, "NW24 library page rendering must remain")
     require("nativeRowHeightDp(" in library and
@@ -81,7 +88,7 @@ def inspect(data: dict[str, str]) -> list[str]:
             'android:allowBackup="false"' in data["manifest"],
             "Manifest changed in unexpected way (backup/permissions)")
     for name in ("policy", "navigation", "player", "search", "tiles",
-                 "library", "downloads", "direct"):
+                 "profile", "library", "downloads", "direct"):
         imports = re.findall(r"^import\s+(\S+)", data[name], re.M)
         require(len(imports) == len(set(imports)), "Duplicate exact imports in " + name)
     return errors
