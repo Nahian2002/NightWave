@@ -5,6 +5,7 @@ import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
+import androidx.work.Operation
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
@@ -45,7 +46,7 @@ object CatalogDownloadQueue {
                 PermittedAudioDownloadPolicy.prepare(entry.sourceUrl, entry.saveName)
             }.isSuccess
 
-    fun enqueue(context: Context, entry: FreeAudioCandidate) {
+    fun enqueue(context: Context, entry: FreeAudioCandidate): Operation {
         require(valid(entry)) { "Catalog entry is not eligible for offline download." }
         val safeTitle = entry.title.trim().take(80).ifBlank { "Audio file" }
         val request = OneTimeWorkRequestBuilder<CatalogDownloadWorker>()
@@ -65,7 +66,7 @@ object CatalogDownloadQueue {
             .addTag(TAG)
             .addTag(TITLE_TAG + safeTitle)
             .build()
-        WorkManager.getInstance(context.applicationContext).enqueueUniqueWork(
+        return WorkManager.getInstance(context.applicationContext).enqueueUniqueWork(
             identifier(entry.sourceUrl, entry.sha1Base36),
             ExistingWorkPolicy.KEEP, request
         )
