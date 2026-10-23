@@ -9,6 +9,7 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.SystemClock
+import android.os.StatFs
 import androidx.core.app.NotificationCompat
 import androidx.work.Data
 import androidx.work.ForegroundInfo
@@ -42,6 +43,12 @@ class CatalogDownloadWorker(
         )
         if (!CatalogDownloadQueue.valid(candidate)) return failed("Invalid licensed audio source")
         if (isStopped) return failed("Download cancelled")
+        // Transfer staging and private library import briefly hold two copies.
+        // Fail before using bandwidth if there is not enough space for both.
+        val headroom = candidate.bytes * 2L + (16L * 1024L * 1024L)
+        if (runCatching {
+                StatFs(applicationContext.filesDir.absolutePath).availableBytes < headroom
+            }.getOrDefault(true)) return failed("Not enough private storage for offline audio")
 
         return try {
             ensureNotificationChannel()
