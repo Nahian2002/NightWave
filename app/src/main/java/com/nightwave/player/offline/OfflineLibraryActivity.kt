@@ -106,6 +106,15 @@ class OfflineLibraryActivity : ComponentActivity() {
                     FreeAudioCatalogActivity::class.java))
             }
         }, LinearLayout.LayoutParams(-1, dp(52)).apply { bottomMargin = dp(10) })
+        root.addView(label("Downloads and queue  →", 15f, 0xFF94E2D8.toInt(), true).apply {
+            gravity = Gravity.CENTER
+            background = cardBackground(0xFF213840.toInt())
+            contentDescription = "Review download progress, saved audio and cancellation"
+            setOnClickListener {
+                startActivity(Intent(this@OfflineLibraryActivity,
+                    CatalogDownloadsActivity::class.java))
+            }
+        }, LinearLayout.LayoutParams(-1, dp(48)).apply { bottomMargin = dp(10) })
         root.addView(label("+  Import audio files", 15f, 0xFF101A21.toInt(), true).apply {
             gravity = Gravity.CENTER
             background = cardBackground(0xFF91E2D7.toInt())
