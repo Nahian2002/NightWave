@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -36,6 +37,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -254,12 +256,14 @@ fun MusicTrackTile(
 ) {
     val scheme = MaterialTheme.colorScheme
     val identity = MusicIdentity.display(video.title, video.author)
+    val largeText = LocalDensity.current.fontScale >= 1.3f
     val shape = RoundedCornerShape(if (surface == NightWaveTrackSurface.SEARCH) 14.dp else 18.dp)
     val background = if (isPlaying) scheme.primary.copy(alpha = .15f)
         else if (surface == NightWaveTrackSurface.SEARCH) scheme.surfaceVariant.copy(alpha = .56f)
         else scheme.surface
     Row(
-        modifier = modifier.fillMaxWidth().clip(shape)
+        modifier = modifier.fillMaxWidth()
+            .heightIn(min = NightWaveCollectionChrome.TRACK_MIN_HEIGHT_DP.dp).clip(shape)
             .background(background)
             .testTag("nightwave-track-" + surface.name.lowercase())
             .clickable(onClick = onClick)
@@ -271,7 +275,7 @@ fun MusicTrackTile(
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
             Text(identity.title, style = MaterialTheme.typography.titleMedium,
                 color = if (isPlaying) scheme.primary else scheme.onSurface,
-                maxLines = 1, overflow = TextOverflow.Ellipsis)
+                maxLines = if (largeText) 2 else 1, overflow = TextOverflow.Ellipsis)
             Text(if (isPlaying) "●  Playing · " + identity.artistOrCreator
                 else identity.artistOrCreator,
                 style = MaterialTheme.typography.bodyMedium,
@@ -298,7 +302,7 @@ fun MusicCollectionTile(
     val colors = MaterialTheme.colorScheme
     Card(
         onClick = onClick, modifier = Modifier.fillMaxWidth()
-            .height(NightWaveCollectionChrome.COLLECTION_MIN_HEIGHT_DP.dp)
+            .heightIn(min = NightWaveCollectionChrome.COLLECTION_MIN_HEIGHT_DP.dp)
             .testTag("nightwave-library-collection"),
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = colors.surface),
