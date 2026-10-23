@@ -12,6 +12,7 @@ import android.view.View
 import android.text.Editable
 import android.text.TextWatcher
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.view.Gravity
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -19,6 +20,7 @@ import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import com.nightwave.player.playback.PlaybackService
+import com.nightwave.player.v2.ui.NightWaveAdaptiveChromePolicy
 import com.nightwave.player.v2.locker.NightWaveLockerActivity
 import java.util.concurrent.Executors
 
@@ -273,8 +275,14 @@ class OfflineLibraryActivity : ComponentActivity() {
             "Private on-device storage · Deleted if NightWave is uninstalled",
             11f, 0xFF8294A8.toInt()
         ).apply { gravity = Gravity.CENTER }, LinearLayout.LayoutParams(-1, dp(45)))
-        setContentView(root)
-        NightWaveSafeInsets.bind(root)
+        val frame = FrameLayout(this).apply {
+            setBackgroundColor(0xFF090D14.toInt())
+        }
+        val contentWidth = if (resources.configuration.screenWidthDp >= 780) dp(760) else -1
+        frame.addView(root, FrameLayout.LayoutParams(contentWidth, -1,
+            Gravity.TOP or Gravity.CENTER_HORIZONTAL))
+        setContentView(frame)
+        NightWaveSafeInsets.bind(frame)
         // onResume performs the initial and every subsequent fresh disk health check.
     }
 
@@ -362,7 +370,7 @@ class OfflineLibraryActivity : ComponentActivity() {
             }
             val description = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
             description.addView(label(song.title, 14f, Color.WHITE, true).apply {
-                maxLines = 1
+                maxLines = if (resources.configuration.fontScale >= 1.3f) 2 else 1
                 ellipsize = android.text.TextUtils.TruncateAt.END
             })
             description.addView(label((song.bytes / 1024 / 1024).toString() +
@@ -420,7 +428,9 @@ class OfflineLibraryActivity : ComponentActivity() {
                     }
                 }
             }, LinearLayout.LayoutParams(dp(39), dp(47)))
-            tracks.addView(row, LinearLayout.LayoutParams(-1, dp(65)).apply {
+            tracks.addView(row, LinearLayout.LayoutParams(-1,
+                dp(NightWaveAdaptiveChromePolicy.nativeRowHeightDp(
+                    resources.configuration.fontScale))).apply {
                 bottomMargin = dp(8)
             })
         }
