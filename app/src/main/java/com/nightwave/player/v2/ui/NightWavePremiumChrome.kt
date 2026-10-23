@@ -60,6 +60,9 @@ fun NightWavePremiumNavigation(
     onNavigate: (Int) -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
+    val fontScale = LocalDensity.current.fontScale
+    val navHeight = NightWaveAdaptiveChromePolicy.navHeightDp(fontScale).dp
+    val extraLargeText = fontScale >= 1.6f
     val icons = listOf(
         Icons.Outlined.Home,
         Icons.Outlined.Search,
@@ -78,7 +81,7 @@ fun NightWavePremiumNavigation(
     ) {
         Row(
             modifier = Modifier.fillMaxWidth()
-                .height(NightWaveChromePolicy.NAV_HEIGHT_DP.dp)
+                .height(navHeight)
                 .padding(horizontal = 5.dp, vertical = 2.dp),
             horizontalArrangement = Arrangement.spacedBy(3.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -120,15 +123,16 @@ fun NightWavePremiumNavigation(
                             contentDescription = null,
                             tint = if (active) colors.primary
                                 else colors.onSurfaceVariant,
-                            modifier = Modifier.size(21.dp)
+                            modifier = Modifier.size(if (extraLargeText) 22.dp else 21.dp)
                         )
-                        Spacer(Modifier.height(3.dp))
+                        Spacer(Modifier.height(if (extraLargeText) 2.dp else 3.dp))
                         Text(
                             label,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             style = MaterialTheme.typography.labelSmall.copy(
-                                fontSize = 12.sp, lineHeight = 16.sp),
+                                fontSize = if (extraLargeText) 13.sp else 12.sp,
+                                lineHeight = if (extraLargeText) 19.sp else 16.sp),
                             fontWeight = if (active) FontWeight.Bold
                                 else FontWeight.Medium,
                             color = if (active) colors.onSurface
@@ -154,8 +158,9 @@ fun NightWaveHomeHero(
     val colors = MaterialTheme.colorScheme
     val accent = colors.primary
     val firstName = NightWaveChromePolicy.displayFirstName(displayName)
-    val largeText = LocalDensity.current.fontScale >= 1.3f
-    val heroHeight = if (largeText) 162.dp else 132.dp
+    val fontScale = LocalDensity.current.fontScale
+    val largeText = fontScale >= 1.3f
+    val heroHeight = NightWaveAdaptiveChromePolicy.homeHeroHeightDp(fontScale).dp
     Box(
         modifier = modifier.fillMaxWidth()
             .height(heroHeight)
@@ -189,7 +194,8 @@ fun NightWaveHomeHero(
                 center = center)
         }
         Column(
-            modifier = Modifier.fillMaxHeight().fillMaxWidth(.85f)
+            modifier = Modifier.fillMaxHeight().fillMaxWidth(
+                    if (fontScale >= 1.6f) 1f else .87f)
                 .padding(horizontal = 17.dp, vertical = 14.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
@@ -200,14 +206,14 @@ fun NightWaveHomeHero(
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     color = colors.onSurface,
-                    maxLines = if (largeText) 2 else 1,
+                    maxLines = if (fontScale >= 1.6f) 3 else if (largeText) 2 else 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     "Welcome, " + firstName + " · Your music, your pace",
                     style = MaterialTheme.typography.bodyMedium,
                     color = colors.onSurfaceVariant,
-                    maxLines = 2,
+                    maxLines = if (fontScale >= 1.6f) 3 else 2,
                     overflow = TextOverflow.Ellipsis
                 )
             }
