@@ -43,6 +43,7 @@ on:
       - feature/nightwave-v2-nw19-audio-integrity
       - feature/nightwave-v2-nw21-download-ux-polish
       - fix/nightwave-v2-nw22-build-stability
+      - audit/nightwave-v2-nw22-repository-hardening
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
@@ -50,6 +51,7 @@ on:
       - feature/nightwave-v2-nw19-audio-integrity
       - feature/nightwave-v2-nw21-download-ux-polish
       - fix/nightwave-v2-nw22-build-stability
+      - audit/nightwave-v2-nw22-repository-hardening
       - feature/nightwave-v2-phase5r-accessibility-build-gates
       - feature/nightwave-v2-phase5s-build-recovery
       - feature/nightwave-v2-phase5t-reliable-discovery
@@ -144,7 +146,9 @@ jobs:
           python3 tools/verify_nw19_audio_integrity.py
           python3 tools/verify_nw21_download_ux.py
           python3 tools/nw22_audio_core_smoke.py --self-test
-          python3 tools/verify_nw22_build_readiness.py --self-test
+          python3 tools/verify_nw22_build_readiness.py
+          python3 tools/audit_repo_nw22.py --self-test
+          python3 tools/audit_repo_nw22.py --self-test
           python3 tools/verify_nw22_build_readiness.py
           pwsh -NoProfile -File tools/check-kotlin-compat.ps1 -SelfTest
           pwsh -NoProfile -File tools/check-kotlin-compat.ps1

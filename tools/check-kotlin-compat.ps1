@@ -19,7 +19,19 @@ function Get-ExactDuplicateImports([string[]]$Names) {
     return @($duplicates.ToArray())
 }
 
+function Test-NightWaveGreeting([string]$Body) {
+    # ASCII-only PowerShell 5.1 safeguard for the actual NW21 Home Kotlin
+    # string syntax error. Gradle remains the authoritative Kotlin checker.
+    return ($Body.Contains('"Welcome, " + firstName + "') -and -not $Body.Contains('"Welcome,  + firstName + "'))
+}
+
 if ($SelfTest) {
+    if (-not (Test-NightWaveGreeting '"Welcome, " + firstName + "good"')) {
+        throw 'Valid Home greeting concatenation was rejected.'
+    }
+    if (Test-NightWaveGreeting '"Welcome,  + firstName + "bad"') {
+        throw 'Broken NW21 Home greeting Kotlin literal was not rejected.'
+    }
     $validCompose = @(
         'androidx.compose.ui.semantics.ProgressBarRangeInfo',
         'androidx.compose.ui.semantics.progressBarRangeInfo'
@@ -76,6 +88,13 @@ foreach ($file in $files) {
             $file.FullName.Substring($root.Length + 1), $duplicate))
     }
 }
+$homeChromePath = Join-Path $sourceRoot 'main\java\com\nightwave\player\v2\ui\NightWavePremiumChrome.kt'
+if (-not (Test-Path -LiteralPath $homeChromePath -PathType Leaf)) {
+    $issues.Add('Missing NightWave Home chrome; full source ZIP required.')
+} elseif (-not (Test-NightWaveGreeting ([System.IO.File]::ReadAllText($homeChromePath)))) {
+    $issues.Add('NightWave Home greeting has a broken Kotlin literal; restore correct firstName concatenation.')
+}
+
 # Known Kotlin compiler errors from the 2026-10-19 Windows build.
 # Keep the preflight narrow: this does not replace API/type checking by Gradle.
 $playbackPath = Join-Path $sourceRoot 'main\java\com\nightwave\player\playback\PlaybackService.kt'
