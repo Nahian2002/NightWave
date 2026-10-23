@@ -126,6 +126,12 @@ class FreeAudioCatalogActivity : ComponentActivity() {
             }
         }
         root.addView(openSaved)
+        root.addView(text("Downloads and queue  →",
+            15f, 0xFF94E2D8.toInt(), true).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            contentDescription = "View persistent offline download progress"
+            setOnClickListener { openDownloads() }
+        }, LinearLayout.LayoutParams(-1, dp(48)))
         playSaved = text("▶  Play saved song", 15f, 0xFF091B20.toInt(), true).apply {
             visibility = View.GONE
             gravity = Gravity.CENTER
@@ -256,9 +262,37 @@ class FreeAudioCatalogActivity : ComponentActivity() {
                     "This may be a different recording from a YouTube search result. " +
                     "NightWave saves the original audio format, not a converted MP3."
             )
-            .setPositiveButton("Download") { _, _ -> beginDownload(entry) }
+            .setPositiveButton("Queue in background") { _, _ -> queueDownload(entry) }
+            .setNeutralButton("Download here") { _, _ -> beginDownload(entry) }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+
+    private fun openDownloads() {
+        startActivity(Intent(this, CatalogDownloadsActivity::class.java))
+    }
+
+    private fun queueDownload(entry: FreeAudioCandidate) {
+        if (busyDownload || busySearch) return
+        message.text = "Submitting background download…"
+        runCatching { CatalogDownloadQueue.enqueue(this, entry) }
+            .onSuccess { operation ->
+                operation.result.addListener({
+                    if (!isFinishing && !isDestroyed) {
+                        runCatching { operation.result.get() }
+                            .onSuccess {
+                                message.text = "Ready in Downloads: " + entry.title +
+                                    ". Open the queue to follow progress or see existing work."
+                            }
+                            .onFailure {
+                                message.text = "Could not queue this audio. Try Download here."
+                            }
+                    }
+                }, androidx.core.content.ContextCompat.getMainExecutor(this))
+            }
+            .onFailure {
+                message.text = "Could not queue this audio. Try Download here."
+            }
     }
 
     private fun beginDownload(entry: FreeAudioCandidate) {
