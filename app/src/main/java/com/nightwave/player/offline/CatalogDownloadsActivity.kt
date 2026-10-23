@@ -6,6 +6,7 @@ import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.Gravity
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
@@ -58,8 +59,14 @@ class CatalogDownloadsActivity : ComponentActivity() {
         entries = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         scroll = ScrollView(this).apply { addView(entries) }
         root.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
-        setContentView(root)
-        NightWaveSafeInsets.bind(root)
+        val frame = FrameLayout(this).apply {
+            setBackgroundColor(0xFF0C131B.toInt())
+        }
+        val contentWidth = if (resources.configuration.screenWidthDp >= 780) dp(760) else -1
+        frame.addView(root, FrameLayout.LayoutParams(contentWidth, -1,
+            Gravity.TOP or Gravity.CENTER_HORIZONTAL))
+        setContentView(frame)
+        NightWaveSafeInsets.bind(frame)
         manager.getWorkInfosByTagLiveData(CatalogDownloadQueue.TAG)
             .observe(this) { updates -> render(updates.orEmpty()) }
     }
