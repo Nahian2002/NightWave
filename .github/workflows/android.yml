@@ -256,6 +256,7 @@ jobs:
             python3 tools/nw10_kotlin_smoke.py
             python3 tools/nw12_verified_kotlin.py
             python3 tools/nw22_audio_core_smoke.py
+            python3 tools/nw23_queue_smoke.py
           else
             echo "SKIP: standalone kotlinc not provisioned; Gradle Kotlin gate is required"
           fi
