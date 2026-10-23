@@ -44,17 +44,17 @@ fun NightWaveDiscoveryHeader(searchQuery: String = "") {
         shape = RoundedCornerShape(22.dp),
         color = palette.surface
     ) {
-        Box(
-            Modifier.fillMaxWidth().background(
-                Brush.horizontalGradient(
+        Column(
+            modifier = Modifier.fillMaxWidth()
+                .background(Brush.horizontalGradient(
                     listOf(palette.primary.copy(alpha = .17f),
                         palette.surfaceVariant, palette.surface)
-                )
-            )
+                ))
+                .padding(horizontal = 16.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(11.dp)
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 17.dp),
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -73,25 +73,31 @@ fun NightWaveDiscoveryHeader(searchQuery: String = "") {
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold, maxLines = 2,
                         overflow = TextOverflow.Ellipsis)
-                    Text("Your library first · Explore more when you choose",
+                    Text("Search your library and discover more music",
                         style = MaterialTheme.typography.bodySmall,
-                        color = palette.onSurfaceVariant, maxLines = 2)
-                    TextButton(
-                        onClick = {
-                            context.startActivity(Intent(
-                                context, FreeAudioCatalogActivity::class.java)
-                                .putExtra(FreeAudioCatalogActivity.EXTRA_QUERY,
-                                    searchQuery.trim().take(100)))
-                        },
-                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
-                            .testTag("nightwave-save-offline-search")
-                    ) {
-                        Icon(Icons.Outlined.Download, contentDescription = null,
-                            modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text("Find music to save offline", maxLines = 2)
-                    }
+                        color = palette.onSurfaceVariant, maxLines = 2,
+                        overflow = TextOverflow.Ellipsis)
                 }
+            }
+            // Full-width secondary action does not compete with the text column
+            // on 320dp phones or under Android's increased font scale.
+            TextButton(
+                onClick = {
+                    context.startActivity(Intent(
+                        context, FreeAudioCatalogActivity::class.java)
+                        .putExtra(FreeAudioCatalogActivity.EXTRA_QUERY,
+                            searchQuery.trim().take(100)))
+                },
+                modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(palette.primary.copy(alpha = .12f))
+                    .testTag("nightwave-save-offline-search")
+            ) {
+                Icon(Icons.Outlined.Download, contentDescription = null,
+                    modifier = Modifier.size(19.dp))
+                Spacer(Modifier.width(10.dp))
+                Text("Find music to save offline",
+                    maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
         }
     }

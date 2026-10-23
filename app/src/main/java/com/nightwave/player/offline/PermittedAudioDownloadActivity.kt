@@ -9,6 +9,7 @@ import android.text.InputType
 import android.view.Gravity
 import android.widget.CheckBox
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.ScrollView
@@ -123,8 +124,8 @@ class PermittedAudioDownloadActivity : ComponentActivity() {
         panel.addView(label(
             "YouTube watch links, streaming manifests and protected media are not direct " +
                 "audio downloads. NightWave does not convert YouTube videos to MP3. " +
-                "Downloads stop when you leave this screen. " +
-                "Original format is preserved; this is not a YouTube-to-MP3 converter. " +
+                "This direct-link transfer stops when you leave this screen. " +
+                "Original audio format is preserved. " +
                 "Temporary network errors are retried, but unsupported audio is never saved. " +
                 "Audio is deleted if NightWave is uninstalled.",
             12f, 0xFF91A5B5.toInt()
@@ -139,8 +140,15 @@ class PermittedAudioDownloadActivity : ComponentActivity() {
             isFillViewport = true
             addView(panel)
         }
-        setContentView(scroll)
-        NightWaveSafeInsets.bind(scroll)
+        val frame = FrameLayout(this).apply {
+            setBackgroundColor(0xFF101A20.toInt())
+        }
+        val contentWidth = if (resources.configuration.screenWidthDp >= 780)
+            dp(760) else -1
+        frame.addView(scroll, FrameLayout.LayoutParams(contentWidth, -1,
+            Gravity.TOP or Gravity.CENTER_HORIZONTAL))
+        setContentView(frame)
+        NightWaveSafeInsets.bind(frame)
     }
 
     private fun beginDownload() {
@@ -172,7 +180,7 @@ class PermittedAudioDownloadActivity : ComponentActivity() {
                 job.download(spec) { received, total ->
                     runOnUiThread {
                         if (isFinishing || isDestroyed || transfer !== job) return@runOnUiThread
-                        if (total != null) {
+                        if (total != null && total > 0L) {
                             progress.isIndeterminate = false
                             progress.progress = (received * 100L / total).toInt().coerceIn(0, 100)
                         } else progress.isIndeterminate = true

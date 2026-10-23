@@ -88,6 +88,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
@@ -135,6 +136,8 @@ fun StudioMiniPlayer(
     modifier: Modifier = Modifier
 ) {
     if (!state.hasTrack) return
+    val fontScale = LocalDensity.current.fontScale
+    val compactRowHeight = NightWaveAdaptiveChromePolicy.miniPlayerHeightDp(fontScale).dp
     val colors = MaterialTheme.colorScheme
     val health = PlaybackHealthPolicy.classify(state.hasTrack, state.connected,
         state.offline, state.playing, state.buffering, state.resolving, state.error)
@@ -187,7 +190,7 @@ fun StudioMiniPlayer(
             val showNext = NightWaveChromePolicy.showMiniNext(
                 queueCount = state.queue.size, availableWidthDp = maxWidth.value)
             Row(
-                modifier = Modifier.fillMaxWidth().height(52.dp)
+                modifier = Modifier.fillMaxWidth().height(compactRowHeight)
                     .padding(start = 8.dp, end = 3.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -199,7 +202,8 @@ fun StudioMiniPlayer(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(9.dp)
                 ) {
-                    CoverArt(state.thumbnail, Modifier.size(38.dp), 9)
+                    CoverArt(state.thumbnail, Modifier.size(
+                        if (fontScale >= 1.3f) 44.dp else 38.dp), 9)
                     Column(Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(if (state.title.isBlank()) "Restoring your last track…"
@@ -326,7 +330,11 @@ fun StudioNowPlayingOverlay(
             // Deterministic, artwork-keyed ambient light; never crop or blur
             // remote thumbnails, preserving battery life and privacy.
             NightWaveBackdrop(state.videoUrl.ifBlank { "nightwave-player" }, Modifier.fillMaxSize())
-            val art = minOf(maxWidth - 58.dp, maxHeight * .32f, 340.dp)
+            val fontScale = LocalDensity.current.fontScale
+            val contentPaddingDp = NightWaveAdaptiveChromePolicy.horizontalPaddingDp(
+                maxWidth.value)
+            val art = NightWaveAdaptiveChromePolicy.artworkSizeDp(
+                maxWidth.value, maxHeight.value, fontScale).dp
             val canSwipeArtwork = state.connected && !state.buffering && state.queue.size > 1
             var horizontalTravel by remember(state.videoUrl) { mutableStateOf(0f) }
             var lyricsOpen by remember(state.videoUrl) { mutableStateOf(false) }
@@ -526,7 +534,7 @@ fun StudioNowPlayingOverlay(
             } else {
             Column(
                 Modifier.fillMaxSize().verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp),
+                    .padding(horizontal = contentPaddingDp.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
