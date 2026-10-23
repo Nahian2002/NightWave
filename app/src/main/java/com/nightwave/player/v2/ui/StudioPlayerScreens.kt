@@ -136,6 +136,8 @@ fun StudioMiniPlayer(
     modifier: Modifier = Modifier
 ) {
     if (!state.hasTrack) return
+    val fontScale = LocalDensity.current.fontScale
+    val compactRowHeight = NightWaveAdaptiveChromePolicy.miniPlayerHeightDp(fontScale).dp
     val colors = MaterialTheme.colorScheme
     val health = PlaybackHealthPolicy.classify(state.hasTrack, state.connected,
         state.offline, state.playing, state.buffering, state.resolving, state.error)
@@ -188,7 +190,7 @@ fun StudioMiniPlayer(
             val showNext = NightWaveChromePolicy.showMiniNext(
                 queueCount = state.queue.size, availableWidthDp = maxWidth.value)
             Row(
-                modifier = Modifier.fillMaxWidth().height(52.dp)
+                modifier = Modifier.fillMaxWidth().height(compactRowHeight)
                     .padding(start = 8.dp, end = 3.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -200,7 +202,8 @@ fun StudioMiniPlayer(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(9.dp)
                 ) {
-                    CoverArt(state.thumbnail, Modifier.size(38.dp), 9)
+                    CoverArt(state.thumbnail, Modifier.size(
+                        if (fontScale >= 1.3f) 44.dp else 38.dp), 9)
                     Column(Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(if (state.title.isBlank()) "Restoring your last track…"
