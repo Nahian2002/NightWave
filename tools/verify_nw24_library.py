@@ -49,8 +49,9 @@ def audit(source: dict[str, str]) -> list[str]:
     require("val hash = audioSha256(pending)" in lib and
             "return@synchronized existing" in lib,
             "Manual imports must reuse byte-identical tracks")
-    require(lib.index("val hash = audioSha256(pending)") <
-            lib.index("OfflineLibraryCapacity.acceptsNew(previous.size, total, count)"),
+    sha_position = lib.find("val hash = audioSha256(pending)")
+    cap_position = lib.find("OfflineLibraryCapacity.acceptsNew(previous.size, total, count)")
+    require(sha_position >= 0 and cap_position >= 0 and sha_position < cap_position,
             "Duplicate matching must precede capacity gate")
     require("inspectFile(song).second?.let" in lib and
             "inspectFile(song).second ?: continue" in lib,
