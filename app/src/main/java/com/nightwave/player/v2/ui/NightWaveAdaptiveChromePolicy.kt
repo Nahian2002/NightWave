@@ -22,6 +22,12 @@ object NightWaveAdaptiveChromePolicy {
         else -> NightWaveChromePolicy.NAV_HEIGHT_DP
     }
 
+    fun miniPlayerHeightDp(fontScale: Float): Int = when {
+        safeFontScale(fontScale) >= 1.6f -> 78
+        safeFontScale(fontScale) >= 1.3f -> 64
+        else -> 52
+    }
+
     fun homeHeroHeightDp(fontScale: Float): Int = when {
         safeFontScale(fontScale) >= 1.6f -> 198
         safeFontScale(fontScale) >= 1.3f -> 170
