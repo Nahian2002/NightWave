@@ -71,7 +71,7 @@ def inspect(data: dict[str, str]) -> list[str]:
     require("NightWaveSafeInsets.bind(frame)" in data["catalog"],
             "Licensed catalog must retain safe insets")
     require(data["tests"].count("@Test") >= 5 and
-            "28 exact-production Kotlin adaptive chrome assertions" in data["smoke"],
+            'println("PASS: NW25 " + cases.size' in data["smoke"],
             "UI JUnit/smoke tests missing")
     require("tools/nw25_adaptive_chrome_smoke.py" in data["workflow"] and
             "tools/verify_nw25_ui.py" in data["workflow"] and
