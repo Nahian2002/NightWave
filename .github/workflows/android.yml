@@ -148,10 +148,12 @@ jobs:
           python3 tools/verify_nw19_audio_integrity.py
           python3 tools/verify_nw21_download_ux.py
           python3 tools/nw22_audio_core_smoke.py --self-test
+          python3 tools/verify_nw22_build_readiness.py --self-test
           python3 tools/verify_nw22_build_readiness.py
           python3 tools/audit_repo_nw22.py --self-test
-          python3 tools/audit_repo_nw22.py --self-test
-          python3 tools/verify_nw22_build_readiness.py
+          python3 tools/audit_repo_nw22.py
+          python3 tools/verify_nw23_download_queue.py --self-test
+          python3 tools/verify_nw23_download_queue.py
           pwsh -NoProfile -File tools/check-kotlin-compat.ps1 -SelfTest
           pwsh -NoProfile -File tools/check-kotlin-compat.ps1
           pwsh -NoProfile -File tools/check-builder-syntax.ps1
