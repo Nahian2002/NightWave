@@ -11,10 +11,10 @@ import ast
 import collections
 import json
 from pathlib import Path
-import py_compile
 import re
 import tempfile
 import xml.etree.ElementTree as ET
+from check_nw22_kotlin_quotes import suspicious_quote_lines, self_test as check_quotes_self_test
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_EXT = {".kt", ".kts", ".py", ".ps1", ".cmd", ".xml", ".yml",
@@ -74,6 +74,10 @@ def inventory(root: Path) -> tuple[dict[str, int], list[str], list[str]]:
             duplicated = {imp for imp, freq in collections.Counter(imports).items() if freq > 1}
             if duplicated:
                 findings.append(rel + ": duplicate exact Kotlin imports (" + str(len(duplicated)) + ")")
+            suspicious = suspicious_quote_lines(data)
+            if suspicious:
+                findings.append(rel + ": possible unterminated Kotlin string/char at line(s) " +
+                                ",".join(map(str, suspicious[:12])))
             if re.search(r"(?m)^\s*<<<<<<< |^\s*=======\s*$|^\s*>>>>>>> ", data):
                 findings.append(rel + ": unresolved Git conflict marker")
         if ext != ".md" and re.search(r"(?m)^<<<<<<< |^>>>>>>> ", data):
@@ -81,6 +85,7 @@ def inventory(root: Path) -> tuple[dict[str, int], list[str], list[str]]:
     return dict(counts), findings[:MAX_FINDINGS], warnings[:MAX_FINDINGS]
 
 def self_test() -> None:
+    check_quotes_self_test()
     with tempfile.TemporaryDirectory(prefix="nw22-static-audit-") as td:
         root = Path(td)
         (root / "ok.py").write_text("x = 1\n", encoding="utf-8")
@@ -98,6 +103,12 @@ def self_test() -> None:
                                       encoding="utf-8")
         counts, findings, warnings = inventory(root)
         assert counts["source_files"] == 4 and not findings and not warnings
+        (root / "Broken.kt").write_text(
+            'Text("Welcome,  + firstName + " · Your music, your pace",',
+            encoding="utf-8")
+        counts, findings, warnings = inventory(root)
+        assert any("Broken.kt" in finding and "unterminated" in finding
+                   for finding in findings), findings
     print("PASS: NW22 full-tree static audit positive and negative fixtures")
 
 def main() -> int:
@@ -114,8 +125,9 @@ def main() -> int:
         "inventory": counts,
         "findings": findings,
         "warnings": warnings,
-        "limitations": ("Python syntax, XML wellformedness, UTF-8, exact Kotlin imports "
-                        "and conflict/key markers only. Not Kotlin/Gradle compilation, "
+        "limitations": ("Python syntax, XML wellformedness, UTF-8, exact Kotlin imports, "
+                        "limited Kotlin per-line string/char check and conflict/key "
+                        "markers only. Not complete Kotlin/Gradle compilation, "
                         "PowerShell parsing, execution or Android device QA.")
     }
     if args.json:
