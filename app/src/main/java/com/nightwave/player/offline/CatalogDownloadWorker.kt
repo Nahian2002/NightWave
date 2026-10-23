@@ -120,9 +120,9 @@ class CatalogDownloadWorker(
             notificationId, click, PendingIntent.FLAG_UPDATE_CURRENT or
                 PendingIntent.FLAG_IMMUTABLE)
         val hasTotal = total != null && total > 0
-        val percent = if (hasTotal) {
-            ((downloaded * 100L) / total!!).toInt().coerceIn(0, 100)
-        } else 0
+        val percent = total?.takeIf { it > 0L }?.let {
+            ((downloaded * 100L) / it).toInt().coerceIn(0, 100)
+        } ?: 0
         val notification: Notification = NotificationCompat.Builder(
             applicationContext, channelId
         )
