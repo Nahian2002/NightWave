@@ -274,13 +274,24 @@ class FreeAudioCatalogActivity : ComponentActivity() {
 
     private fun queueDownload(entry: FreeAudioCandidate) {
         if (busyDownload || busySearch) return
+        message.text = "Submitting background download…"
         runCatching { CatalogDownloadQueue.enqueue(this, entry) }
-            .onSuccess {
-                message.text = "Queued: " + entry.title +
-                    ". The job continues after leaving this screen. Open Downloads for progress."
+            .onSuccess { operation ->
+                operation.result.addListener({
+                    if (!isFinishing && !isDestroyed) {
+                        runCatching { operation.result.get() }
+                            .onSuccess {
+                                message.text = "Ready in Downloads: " + entry.title +
+                                    ". Open the queue to follow progress or see existing work."
+                            }
+                            .onFailure {
+                                message.text = "Could not queue this audio. Try Download here."
+                            }
+                    }
+                }, androidx.core.content.ContextCompat.getMainExecutor(this))
             }
             .onFailure {
-                message.text = "Could not queue this audio. Try downloading here instead."
+                message.text = "Could not queue this audio. Try Download here."
             }
     }
 
