@@ -92,7 +92,7 @@ fun NightWavePremiumNavigation(
                     targetValue = if (active) colors.primary.copy(alpha = .12f)
                         else Color.Transparent,
                     animationSpec = tween(
-                        durationMillis = if (reducedMotion) 0 else 160
+                        durationMillis = NightWaveAdaptiveChromePolicy.motionDurationMs(reducedMotion, 160)
                     ),
                     label = "NightWave selected destination"
                 )
