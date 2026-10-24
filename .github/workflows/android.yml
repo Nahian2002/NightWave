@@ -279,6 +279,7 @@ jobs:
             python3 tools/nw25_adaptive_chrome_smoke.py
             python3 tools/nw26_reliability_smoke.py
             python3 tools/nw27_hardening_smoke.py
+            python3 tools/nw27_state_smoke.py
           else
             echo "SKIP: standalone kotlinc not provisioned; Gradle Kotlin gate is required"
           fi
