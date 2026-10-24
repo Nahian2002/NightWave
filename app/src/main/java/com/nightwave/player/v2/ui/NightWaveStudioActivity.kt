@@ -2762,10 +2762,13 @@ private fun StudioSearch(
         SavedTrackSearch.match(query, savedTracks)
     }
     val offlineMatches = remember(query, offlineSongs) {
-        if (query.isBlank()) emptyList() else OfflineTrackSearch.match(query, offlineSongs).take(16)
+        if (query.isBlank()) emptyList() else OfflineTrackSearch.match(query, offlineSongs).take(60)
     }
     val localSuggestions = remember(query, savedTracks) {
         LocalSearchSuggestions.suggest(query, savedTracks, limit = 6)
+    }
+    val offlineSuggestions = remember(offlineMatches) {
+        offlineMatches.take(3)
     }
     val knownCreators = remember(savedTracks) {
         MusicIdentity.creatorsFrom(savedTracks, limit = 8)
@@ -2807,7 +2810,8 @@ private fun StudioSearch(
                 keyboardActions = KeyboardActions(onSearch = { submit() })
             )
         }
-        if (query.isNotBlank() && localSuggestions.isNotEmpty()) {
+        if (query.isNotBlank() &&
+            (localSuggestions.isNotEmpty() || offlineSuggestions.isNotEmpty())) {
             item(key = "local-search-suggestions") {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text("Suggestions from your library",
@@ -2815,6 +2819,16 @@ private fun StudioSearch(
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                         horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                        offlineSuggestions.forEach { offline ->
+                            FilterChip(
+                                selected = false,
+                                onClick = { onOfflineSearch(offline.title) },
+                                label = {
+                                    Text(offline.title + " · Offline",
+                                        maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                }
+                            )
+                        }
                         localSuggestions.forEach { suggestion ->
                             FilterChip(
                                 selected = false,
@@ -3112,7 +3126,8 @@ private fun StudioSearch(
                 Text(state.hint, style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-        } else if (query.isNotBlank() && savedMatches.isEmpty() && !searching) {
+        } else if (query.isNotBlank() && savedMatches.isEmpty() &&
+            offlineMatches.isEmpty() && !searching) {
             item {
                 Text("Nothing saved for this search yet. Try YouTube or another artist.",
                     style = MaterialTheme.typography.bodySmall,
