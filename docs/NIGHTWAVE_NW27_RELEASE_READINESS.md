@@ -85,3 +85,14 @@ If GitHub remains blocked, `build-windows.cmd` is the offline-owned **local Wind
 ## 5. Deferred single final device QA round
 
 When a successfully compiled APK with a compatible signer exists, verify: start app with network off; Google chooser and backup; safe library migration from already installed NightWave; imported offline media + NW23 queue; background/lock-screen playback; shuffle/loop/gapless/equalizer; full player and navigation; Bangla/English search; LRC editor/sync; notification permission; crash diagnostics; and restricted storage. Preserve old app state before the test. No phone testing was requested or performed during NW27.
+
+## 6. Local Windows build failure and hotfix (24 October 2026)
+
+The user's NW27 Windows build stopped **before Gradle** at the Kotlin compatibility source preflight. The gate correctly identified two invalid `androidx.compose.ui.test.assertExists` imports in:
+
+- `app/src/androidTest/java/com/nightwave/player/v2/ui/NightWaveAdaptiveChromeInstrumentedTest.kt`
+- `app/src/androidTest/java/com/nightwave/player/v2/ui/NightWaveOfflineDiscoveryInstrumentedTest.kt`
+
+The imported symbol is not a top-level Compose UI testing import; `.assertExists()` is invoked on the returned semantics node interaction. Both incorrect import lines were removed without changing the eight existing assertion calls. Exact GitHub file readback confirms both lines are absent after the fix. The existing `tools/check-kotlin-compat.ps1` guard already rejects this import throughout `app/src` on Windows, so it will detect a regression.
+
+**Verification scope:** source changes were committed and read back; a complete Windows Gradle compile, JVM test run, Android instrumentation-source compilation, APK signature comparison and phone test remain **NOT VERIFIED**. Download a fresh ZIP from this branch before retrying `build-windows.cmd`; older extracted ZIPs do not receive GitHub commits automatically.
