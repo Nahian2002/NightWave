@@ -119,8 +119,8 @@ class CatalogDownloadsActivity : ComponentActivity() {
             .thenBy { it.id.toString() }).take(60).forEach { info ->
             val isDirect = DirectAudioDownloadQueue.TAG in info.tags
             val isSearch = SearchTrackSaveQueue.TAG in info.tags
-            val actuallySaved = info.state == WorkInfo.State.SUCCEEDED &&
-                savedId(info) in availableIds
+            val actuallySaved = OfflineDownloadStatusPolicy.isReady(
+                info.state == WorkInfo.State.SUCCEEDED, savedId(info), availableIds)
             val titlePrefix = when {
                 isSearch -> SearchTrackSaveQueue.TITLE_TAG
                 isDirect -> DirectAudioDownloadQueue.TITLE_TAG
@@ -147,9 +147,8 @@ class CatalogDownloadsActivity : ComponentActivity() {
             val state = when (info.state) {
                 WorkInfo.State.ENQUEUED -> "Queued · Waiting for network"
                 WorkInfo.State.RUNNING -> "Downloading" + progress
-                WorkInfo.State.SUCCEEDED -> if (actuallySaved)
-                    "Ready offline · Verified local file" else
-                    "Saved previously · Local audio is missing or unavailable"
+                WorkInfo.State.SUCCEEDED ->
+                    OfflineDownloadStatusPolicy.statusForCompleted(actuallySaved)
                 WorkInfo.State.FAILED -> "Failed · " +
                     info.outputData.getString(
                         when {
