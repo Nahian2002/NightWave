@@ -216,7 +216,10 @@ class PermittedAudioDownloader(private val context: Context) {
                 var prefixCount = 0
                 body.byteStream().use { input ->
                     FileOutputStream(pending).use { output ->
-                        val buffer = ByteArray(32_768)
+                        // Larger sequential reads reduce JNI and progress-callback
+                        // overhead for fast authorized audio endpoints. Throughput
+                        // remains limited by the source server and network.
+                        val buffer = ByteArray(128 * 1024)
                         while (true) {
                             check(!cancelled.get()) { "Download cancelled" }
                             val n = input.read(buffer)
