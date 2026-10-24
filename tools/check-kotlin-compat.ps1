@@ -149,6 +149,32 @@ if ((Test-Path -LiteralPath $dailyMixTestPath -PathType Leaf) -and
     }
 }
 
+# Compiler regressions confirmed by the 2026-10-24 LOCAL Gradle log.
+# Reject malformed two-backslash Kotlin character literals and invalid OkHttp
+# Dns interface construction before the next full 40+ task Gradle build.
+$offlineAudioSourcePath = Join-Path $sourceRoot 'main\java\com\nightwave\player\offline\OfflineAudioLibrary.kt'
+if (Test-Path -LiteralPath $offlineAudioSourcePath -PathType Leaf) {
+    $offlineAudioSource = [System.IO.File]::ReadAllText($offlineAudioSourcePath)
+    if (-not $offlineAudioSource.Contains("replace('\n', ' ')") -or
+        -not $offlineAudioSource.Contains("replace('\r', ' ')")) {
+        $issues.Add('OfflineAudioLibrary must replace newline and carriage-return using valid Kotlin char literals.')
+    }
+} else {
+    $issues.Add('OfflineAudioLibrary.kt is missing.')
+}
+$permittedDownloaderPath = Join-Path $sourceRoot 'main\java\com\nightwave\player\offline\PermittedAudioDownloader.kt'
+if (Test-Path -LiteralPath $permittedDownloaderPath -PathType Leaf) {
+    $permittedDownloaderSource = [System.IO.File]::ReadAllText($permittedDownloaderPath)
+    if ($permittedDownloaderSource.Contains('.dns(Dns {') -or
+        -not $permittedDownloaderSource.Contains('.dns(object : Dns {') -or
+        -not $permittedDownloaderSource.Contains('override fun lookup(hostname: String): List<InetAddress>') -or
+        -not $permittedDownloaderSource.Contains('resolved.all(::isPublicAddress)')) {
+        $issues.Add('PermittedAudioDownloader must implement OkHttp Dns.lookup and preserve unsafe-address filtering.')
+    }
+} else {
+    $issues.Add('PermittedAudioDownloader.kt is missing.')
+}
+
 $gradlePath = Join-Path $root 'app\build.gradle.kts'
 if (-not (Test-Path -LiteralPath $gradlePath)) {
     $issues.Add('Missing app/build.gradle.kts.')
