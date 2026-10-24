@@ -918,7 +918,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                     onPrimarySearch = { query, mode -> primarySearch(query, mode) },
                     onPrepareSearch = { query, mode -> prepareSearch(query, mode) },
                     onWebSearch = { query -> openOfficialSearch(query) },
-                    onPlay = { video, collection -> playback.play(video, collection) },
+                    onPlay = { video, collection -> playSearchedOfflineFirst(video, collection) },
                     onLibraryQuickPlay = { collection -> playback.playLibraryCollection(collection) },
                     onLegacyPlayer = { manageLibrary() },
                     onManageFolders = { managePlaylistFolders() },
@@ -1700,6 +1700,30 @@ class NightWaveStudioActivity : ComponentActivity() {
                     } else showMessage("Choose a different playlist name.")
                 }
             }.setNegativeButton("Cancel", null).show()
+    }
+
+    /**
+     * A verified private copy takes priority over online search playback.
+     * Pass the full locally available sequence to PlaybackService so Next
+     * advances while offline; unsaved results remain ordinary online tracks.
+     * Never replace or rewrite the user's existing YouTube playlist.
+     */
+    private fun playSearchedOfflineFirst(
+        video: VideoPreview, collection: List<VideoPreview>
+    ) {
+        val selection = SearchTrackOfflineIndex.offlineSelection(
+            this, video.url, collection.map(VideoPreview::url))
+        if (selection != null) {
+            val started = runCatching {
+                startService(Intent(this, PlaybackService::class.java)
+                    .setAction(PlaybackService.ACTION_PLAY_OFFLINE)
+                    .putExtra(PlaybackService.EXTRA_OFFLINE_ID, selection.selectedId)
+                    .putStringArrayListExtra(PlaybackService.EXTRA_OFFLINE_IDS, selection.queueIds))
+            }.isSuccess
+            if (started) return
+            showMessage("Saved track could not start. Trying online playback.")
+        }
+        playback.play(video, collection)
     }
 
     private fun playSavedFromSearch(video: VideoPreview): Boolean {
