@@ -29,6 +29,7 @@ import java.util.concurrent.Executors
 class FreeAudioCatalogActivity : ComponentActivity() {
     companion object {
         const val EXTRA_QUERY = "com.nightwave.player.FREE_AUDIO_QUERY"
+        const val EXTRA_ARTIST = "com.nightwave.player.FREE_AUDIO_ARTIST"
     }
 
     private val worker = Executors.newFixedThreadPool(2)
@@ -45,6 +46,9 @@ class FreeAudioCatalogActivity : ComponentActivity() {
     private lateinit var cancelAction: TextView
     private lateinit var openSaved: TextView
     private lateinit var playSaved: TextView
+    private var initialTitle: String = ""
+    private var initialArtist: String = ""
+    private var fromYouTubeSearch = false
     private var savedTitle: String = ""
     private var savedId: String = ""
 
@@ -173,6 +177,9 @@ class FreeAudioCatalogActivity : ComponentActivity() {
         setContentView(frame)
         NightWaveSafeInsets.bind(frame)
         val initial = intent.getStringExtra(EXTRA_QUERY).orEmpty().take(100)
+        initialTitle = initial
+        initialArtist = intent.getStringExtra(EXTRA_ARTIST).orEmpty().take(100)
+        fromYouTubeSearch = initialArtist.isNotBlank()
         if (initial.isNotBlank()) {
             input.setText(initial)
             input.setSelection(input.length())
@@ -192,21 +199,36 @@ class FreeAudioCatalogActivity : ComponentActivity() {
             ?.hideSoftInputFromWindow(input.windowToken, 0)
         searchAction.alpha = 0.5f
         results.removeAllViews()
-        message.text = "Searching CC0 and public-domain audio on Wikimedia Commons…"
+        message.text = "Checking openly licensed recordings…"
         val generation = ++searchGeneration
+        val artist = if (term == FreeAudioCatalogPolicy.safeSearchTerm(initialTitle))
+            initialArtist else ""
+        val queries = OfflineDiscoveryPolicy.queries(term, artist)
         worker.execute {
-            val found = runCatching { catalog.search(term) }
+            // At most two metadata searches, only the second when the first
+            // returns no eligible recordings. Never silently choose a
+            // possible alternate recording for the user.
+            val found = runCatching {
+                var matches = emptyList<FreeAudioCandidate>()
+                for (candidateQuery in queries) {
+                    matches = catalog.search(candidateQuery)
+                    if (matches.isNotEmpty()) break
+                }
+                matches
+            }
             runOnUiThread {
                 if (isFinishing || isDestroyed || generation != searchGeneration) return@runOnUiThread
                 busySearch = false
                 searchAction.alpha = 1f
                 found.onSuccess { list ->
                     message.text = if (list.isEmpty())
-                        "No matching free-to-download audio found. This catalog does not cover all popular songs."
-                    else "${list.size} downloadable audio files. Check title and source before saving."
+                        "No eligible offline recording found in this catalog. " +
+                            "The YouTube track remains online-only; you can import audio you own."
+                    else "${list.size} eligible audio files. These may be DIFFERENT recordings. " +
+                            "Verify the artist, title and license before saving."
                     list.forEach { showEntry(it) }
                 }.onFailure {
-                    message.text = "Free-audio search unavailable. Check internet and retry."
+                    message.text = "Open-audio search unavailable. Check internet and retry."
                 }
             }
         }
@@ -226,6 +248,12 @@ class FreeAudioCatalogActivity : ComponentActivity() {
         card.addView(text(entry.title, 15f, Color.WHITE, true).apply {
             maxLines = 2
         })
+        if (fromYouTubeSearch) {
+            card.addView(text(
+                "Independent recording; not verified as the same YouTube performance.",
+                11f, 0xFFE2C99A.toInt()
+            ).apply { setPadding(0, dp(5), 0, 0) })
+        }
         card.addView(text(
             "Wikimedia Commons · ${entry.licenseName} · " +
                 displaySize(entry.bytes),
