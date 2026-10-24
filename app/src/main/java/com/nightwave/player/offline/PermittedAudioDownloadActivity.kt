@@ -106,6 +106,13 @@ class PermittedAudioDownloadActivity : ComponentActivity() {
             setOnClickListener { queueBackgroundDownload() }
         }
         panel.addView(queueAction, LinearLayout.LayoutParams(-1, dp(48)))
+        panel.addView(label("View queued downloads", 14f, 0xFF98E5DB.toInt(), true).apply {
+            gravity = Gravity.CENTER
+            setOnClickListener {
+                startActivity(Intent(this@PermittedAudioDownloadActivity,
+                    CatalogDownloadsActivity::class.java))
+            }
+        }, LinearLayout.LayoutParams(-1, dp(44)))
         cancelAction = label("Cancel download", 14f, 0xFFE4F1F0.toInt(), true).apply {
             gravity = Gravity.CENTER
             visibility = android.view.View.GONE
