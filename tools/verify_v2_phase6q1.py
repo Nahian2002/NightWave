@@ -8,6 +8,7 @@ matcher=src(base+"v2/cloud/CloudSnapshotPolicy.kt")
 client=src(base+"v2/cloud/NightWaveDriveClient.kt")
 codec=src(base+"v2/cloud/CloudBackupCodec.kt")
 worker=src(base+"v2/cloud/NightWaveCloudWorker.kt")
+consent_policy=src(base+"v2/cloud/CloudBackupConsentPolicy.kt")
 state=src(base+"v2/cloud/CloudBackupState.kt")
 auth=src(base+"v2/cloud/NightWaveCloudAuthorization.kt")
 activity=src(base+"v2/ui/NightWaveStudioActivity.kt")
@@ -45,9 +46,13 @@ assert 'Cloud backup already current; nothing uploaded.' in activity
 assert 'Cloud backup uploaded and verified.' in activity
 assert "NightWaveCloudSchedule.update(this@NightWaveStudioActivity)" in activity
 assert "NightWaveDriveClient(token).backUpIfChangedVerified(payload)" in worker
-assert "beforeUpload.includeHistory != settings.includeHistory" in worker
-assert "beforeUpload.wifiOnly != settings.wifiOnly" in worker
-assert 'store.status("Already backed up; library unchanged")' in worker
+assert "CloudBackupConsentPolicy.same(consent," in worker
+assert "beforeUpload.consentSnapshot()" in worker
+assert "store.successIfCurrent(consent, System.currentTimeMillis(), outcome.created)" in worker
+assert "store.statusIfCurrent(consent," in worker
+assert "expected.history == current.history" in consent_policy
+assert "expected.wifiOnly == current.wifiOnly" in consent_policy
+assert "expected.revision == current.revision" in consent_policy
 assert "lastSuccessMs <= 0L" in worker
 assert "NetworkType.UNMETERED" in worker
 assert ".putBoolean(\"enabled\", false)" in state
