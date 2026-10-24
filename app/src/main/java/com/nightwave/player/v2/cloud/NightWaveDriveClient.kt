@@ -35,9 +35,7 @@ class NightWaveDriveClient(private val accessToken: String) {
     private fun perform(request: Request, maxBytes: Int): ByteArray {
         http.newCall(request).execute().use { response ->
             // Never log token, account, raw URL, or remote response body.
-            if (!response.isSuccessful) throw IllegalStateException(
-                "Google Drive request failed (HTTP ${response.code})"
-            )
+            if (!response.isSuccessful) throw DriveHttpFailure(response.code)
             val source = response.body?.byteStream() ?: error("Empty Drive response")
             val buffer = ByteArray(8192)
             val result = ByteArrayOutputStream()

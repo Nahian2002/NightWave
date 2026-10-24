@@ -23,6 +23,10 @@ class PrivateLyricsStore(context: Context) {
         return id
     }
 
+    /** Fast UI hint only. Does not parse or export lyrics or infer song identity. */
+    fun hasImportedLrc(id: String): Boolean =
+        offlineId.matches(id) && preferences.contains("lrc:" + id)
+
     fun read(id: String): TimedLyrics? {
         if (!offlineId.matches(id) || offline.find(id) == null) return null
         val saved = preferences.getString("lrc:$id", null) ?: return null

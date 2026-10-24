@@ -14,6 +14,11 @@ data class CloudBackupStatus(
     val lastResult: String = "Cloud backup is off"
 )
 
+/** Bounded snapshot; account identity only, never OAuth tokens. */
+fun CloudBackupStatus.consentSnapshot(): CloudBackupConsent = CloudBackupConsent(
+    account, enabled, includeHistory, includeLyrics, includePreferences, wifiOnly
+)
+
 class CloudBackupState(context: Context) {
     private val prefs = context.applicationContext.getSharedPreferences(
         "nightwave_cloud_backup_v1", Context.MODE_PRIVATE

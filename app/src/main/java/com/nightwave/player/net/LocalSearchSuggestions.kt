@@ -20,9 +20,9 @@ object LocalSearchSuggestions {
         val output = mutableListOf<LocalSearchSuggestion>()
         val seenQueries = mutableSetOf<String>()
 
-        // Same local ranking used by saved-library search. Never invent an
+        // NW26: cover a much larger saved library rather than silently cutting\n        // off search suggestions after the first 400 references.\n        // Same local ranking used by saved-library search. Never invent an
         // "official" artist or album from a YouTube uploader label.
-        SavedTrackSearch.match(query, saved.take(400), limit = 24).forEach { song ->
+        SavedTrackSearch.match(query, saved.take(5_000), limit = 24).forEach { song ->
             val display = MusicIdentity.display(song.title, song.author)
             val title = display.title.trim()
             val key = SearchRelevancePolicy.normalize(title)
@@ -35,7 +35,7 @@ object LocalSearchSuggestions {
 
         // Creator names are sourced only from actually saved distinct videos.
         // Match all terms to avoid irrelevant popular channels.
-        MusicIdentity.creatorsFrom(saved.take(400), limit = 12).forEach { creator ->
+        MusicIdentity.creatorsFrom(saved.take(5_000), limit = 12).forEach { creator ->
             val key = SearchRelevancePolicy.normalize(creator.name)
             if (key.isNotBlank() &&
                 prepared.terms.all { it in key } &&
