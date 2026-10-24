@@ -169,10 +169,12 @@ class CatalogDownloadsActivity : ComponentActivity() {
                         setOnClickListener {
                             val id = if (isSearch) info.outputData.getString(
                                 SearchTrackSaveQueue.KEY_ID) else null
-                            val offline = id?.let { OfflineAudioLibrary(
-                                this@CatalogDownloadsActivity).find(it) }
-                            if (offline != null && OfflineAudioLibrary(
-                                    this@CatalogDownloadsActivity).fileFor(offline) != null) {
+                            val offline = runCatching {
+                                val library = OfflineAudioLibrary(this@CatalogDownloadsActivity)
+                                id?.let { library.find(it) }
+                                    ?.takeIf { library.fileFor(it) != null }
+                            }.getOrNull()
+                            if (offline != null) {
                                 startService(Intent(this@CatalogDownloadsActivity,
                                     com.nightwave.player.playback.PlaybackService::class.java)
                                     .setAction(com.nightwave.player.playback.PlaybackService.ACTION_PLAY_OFFLINE)
