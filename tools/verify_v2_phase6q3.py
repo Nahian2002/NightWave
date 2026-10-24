@@ -9,6 +9,7 @@ options=src(p+"v2/cloud/CloudOptionalData.kt")
 lyrics=src(p+"v2/lyrics/PrivateLyricsStore.kt")
 state=src(p+"v2/cloud/CloudBackupState.kt")
 worker=src(p+"v2/cloud/NightWaveCloudWorker.kt")
+consent_policy=src(p+"v2/cloud/CloudBackupConsentPolicy.kt")
 activity=src(p+"v2/ui/NightWaveStudioActivity.kt")
 auth=src(p+"v2/cloud/NightWaveCloudAuthorization.kt")
 drive=src(p+"v2/cloud/NightWaveDriveClient.kt")
@@ -54,8 +55,12 @@ assert 'putBoolean("lyrics", value)' in state
 assert 'putBoolean("preferences", value)' in state
 assert "PrivateLyricsStore(applicationContext).exportCloud()" in worker
 assert "CloudPlaybackPreferences.from(GuestProfileStore(applicationContext).load())" in worker
-assert "beforeUpload.includeLyrics != settings.includeLyrics" in worker
-assert "beforeUpload.includePreferences != settings.includePreferences" in worker
+assert "CloudBackupConsentPolicy.same(consent," in worker
+assert "beforeUpload.consentSnapshot()" in worker
+assert "store.successIfCurrent(consent," in worker
+assert "expected.lyrics == current.lyrics" in consent_policy
+assert "expected.preferences == current.preferences" in consent_policy
+assert "expected.revision == current.revision" in consent_policy
 assert 'CloudBackupCodec.encode(backup, history, settings.includeHistory,' in worker
 assert "val extraLyrics = if (settings.includeLyrics)" in activity
 assert "val extraPreferences = if (settings.includePreferences)" in activity
