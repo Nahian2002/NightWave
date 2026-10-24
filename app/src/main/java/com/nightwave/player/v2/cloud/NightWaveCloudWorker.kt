@@ -25,6 +25,7 @@ class NightWaveCloudWorker(
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         val store = CloudBackupState(applicationContext)
         val settings = store.read()
+        val consent = settings.consentSnapshot()
         if (!settings.enabled || settings.account.isBlank() || settings.lastSuccessMs <= 0L) {
             return@withContext Result.success()
         }
@@ -49,7 +50,8 @@ class NightWaveCloudWorker(
                 return@withContext Result.success()
             }
             // Recheck before network upload; disconnect means no new snapshot.
-            if (!store.read().enabled || store.read().account != settings.account) {
+            if (!CloudBackupConsentPolicy.same(consent,
+                    store.read().consentSnapshot())) {
                 return@withContext Result.success()
             }
             val backup = LibraryArchiveManager(applicationContext).export()
@@ -63,23 +65,30 @@ class NightWaveCloudWorker(
             val payload = CloudBackupCodec.encode(backup, history, settings.includeHistory,
                 extraPreferences, extraLyrics, settings.includeLyrics)
             val beforeUpload = store.read()
-            if (!beforeUpload.enabled || beforeUpload.account != settings.account ||
-                beforeUpload.includeHistory != settings.includeHistory ||
-                beforeUpload.includeLyrics != settings.includeLyrics ||
-                beforeUpload.includePreferences != settings.includePreferences ||
-                beforeUpload.wifiOnly != settings.wifiOnly) {
+            if (!CloudBackupConsentPolicy.same(consent,
+                    beforeUpload.consentSnapshot())) {
                 // Preferences changed while the worker prepared its payload:
                 // never upload with a stale history/privacy or network choice.
                 return@withContext Result.success()
             }
             val outcome = NightWaveDriveClient(token).backUpIfChangedVerified(payload)
+            // Upload cannot be rolled back, but a changed privacy choice/account
+            // must NEVER be reported as the current verified backup.
+            if (!CloudBackupConsentPolicy.same(consent,
+                    store.read().consentSnapshot())) return@withContext Result.success()
             if (store.success(settings.account, System.currentTimeMillis()) && !outcome.created) {
                 store.status("Already backed up; library unchanged")
             }
             Result.success()
-        } catch (_: Exception) {
-            store.status("Automatic backup could not finish; will retry when available")
-            if (runAttemptCount < 3) Result.retry() else Result.failure()
+        } catch (error: Exception) {
+            val code = (error as? DriveHttpFailure)?.statusCode
+            if (code != null && !DriveHttpFailurePolicy.mayRetry(code)) {
+                store.status(DriveHttpFailurePolicy.message(code))
+                Result.failure()
+            } else {
+                store.status("Automatic backup could not finish; will retry when available")
+                if (runAttemptCount < 3) Result.retry() else Result.failure()
+            }
         }
     }
 }
