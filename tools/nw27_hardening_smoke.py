@@ -10,9 +10,10 @@ ROOT = Path(__file__).resolve().parents[1]
 FILES = (
     "app/src/main/java/com/nightwave/player/diagnostics/NightWaveCrashPrivacyPolicy.kt",
     "app/src/main/java/com/nightwave/player/v2/cloud/DriveResponseReadPolicy.kt",
+    "app/src/main/java/com/nightwave/player/v2/cloud/CloudBackupConsentPolicy.kt",
     "tools/kotlin/NW27HardeningSmoke.kt",
 )
-SUCCESS = "PASS: NW27 28 exact-source Kotlin safety assertions"
+SUCCESS = "PASS: NW27 33 exact-source Kotlin safety assertions"
 
 def main() -> int:
     kotlin = shutil.which("kotlinc")
