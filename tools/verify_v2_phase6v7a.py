@@ -29,9 +29,12 @@ CHECKS = {
         "Role.Tab", "selected = active",
         'listOf("Home", "Search", "Library", "You")',
         "NightWaveChromePolicy.NAV_HEIGHT_DP.dp",
-        "if (reducedMotion) 0 else 160",
+        "NightWaveAdaptiveChromePolicy.motionDurationMs(reducedMotion, 160)",
         "onNavigate(index)",
         "colors.surface", "Brush.horizontalGradient(",
+    ),
+    MAIN + "NightWaveAdaptiveChromePolicy.kt": (
+        "if (reducedMotion) 0 else regularMs.coerceIn(0, 600)",
     ),
     MAIN + "NightWaveStudioActivity.kt": (
         "private enum class StudioTab(",
