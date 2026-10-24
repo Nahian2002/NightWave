@@ -163,6 +163,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.nightwave.player.library.MusicLibrary
 import com.nightwave.player.offline.FreeAudioCatalogActivity
+import com.nightwave.player.offline.CatalogDownloadsActivity
+import com.nightwave.player.offline.SearchTrackSaveQueue
+import com.nightwave.player.offline.SearchTrackOfflineIndex
 import com.nightwave.player.offline.OfflineLibraryActivity
 import com.nightwave.player.offline.OfflineAudioLibrary
 import com.nightwave.player.offline.OfflineSessionStore
@@ -1699,13 +1702,67 @@ class NightWaveStudioActivity : ComponentActivity() {
             }.setNegativeButton("Cancel", null).show()
     }
 
+    private fun playSavedFromSearch(video: VideoPreview): Boolean {
+        val saved = SearchTrackOfflineIndex.readySong(this, video.url) ?: return false
+        return runCatching {
+            startService(Intent(this, PlaybackService::class.java)
+                .setAction(PlaybackService.ACTION_PLAY_OFFLINE)
+                .putExtra(PlaybackService.EXTRA_OFFLINE_ID, saved.id))
+        }.isSuccess
+    }
+
     private fun openOfflineSaving(video: VideoPreview) {
-        // A YouTube URL is never an offline asset. Search independent,
-        // licensed recordings using title and creator while keeping their
-        // identity separate; the user must review the source before saving.
-        startActivity(Intent(this, FreeAudioCatalogActivity::class.java)
-            .putExtra(FreeAudioCatalogActivity.EXTRA_QUERY, video.title.take(100))
-            .putExtra(FreeAudioCatalogActivity.EXTRA_ARTIST, video.author.take(100)))
+        val previous = SearchTrackOfflineIndex.readySong(this, video.url)
+        if (previous != null) {
+            AlertDialog.Builder(this)
+                .setTitle("Ready offline")
+                .setMessage("This recording is already verified in your private Offline Library.")
+                .setPositiveButton("Play offline") { _, _ ->
+                    if (!playSavedFromSearch(video))
+                        showMessage("Could not open saved audio. Try Offline Library.")
+                }
+                .setNeutralButton("Open library") { _, _ ->
+                    startActivity(Intent(this, OfflineLibraryActivity::class.java)
+                        .putExtra(OfflineLibraryActivity.EXTRA_SEARCH_QUERY, previous.title))
+                }
+                .setNegativeButton("Close", null)
+                .show()
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Save this track offline?")
+            .setMessage("NightWave can attempt to save an accessible, audio-only copy " +
+                "into its private library. This works only when you have permission to " +
+                "store this recording and the source permits offline access. " +
+                "Restricted or unavailable tracks cannot be saved; no DRM is bypassed. " +
+                "Only a fully verified audio file is marked Ready Offline.")
+            .setPositiveButton("I have permission - Save") { _, _ ->
+                runCatching { SearchTrackSaveQueue.enqueue(this, video) }
+                    .onSuccess { operation ->
+                        operation.result.addListener({
+                            if (isFinishing || isDestroyed) return@addListener
+                            runCatching { operation.result.get() }
+                                .onSuccess {
+                                    startActivity(Intent(this, CatalogDownloadsActivity::class.java))
+                                }
+                                .onFailure {
+                                    showMessage("Could not queue offline save. Try again.")
+                                }
+                        }, androidx.core.content.ContextCompat.getMainExecutor(this))
+                        showMessage("Submitting audio-only save to background downloads...")
+                    }
+                    .onFailure {
+                        showMessage("Cannot save this searched track: " +
+                            (it.message?.take(85) ?: "Unsupported source"))
+                    }
+            }
+            .setNeutralButton("Other audio sources") { _, _ ->
+                startActivity(Intent(this, FreeAudioCatalogActivity::class.java)
+                    .putExtra(FreeAudioCatalogActivity.EXTRA_QUERY, video.title.take(100))
+                    .putExtra(FreeAudioCatalogActivity.EXTRA_ARTIST, video.author.take(100)))
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun saveCurrentOffline() {
@@ -1724,15 +1781,18 @@ class NightWaveStudioActivity : ComponentActivity() {
 
     private fun showSongOptions(video: VideoPreview) {
         val likeText = if (library.isFavorite(video.url)) "Unlike song" else "Like song"
+        val offlineReady = SearchTrackOfflineIndex.readySong(this, video.url) != null
         AlertDialog.Builder(this).setTitle(video.title)
             .setItems(arrayOf(likeText, "Save to playlist", "Add to queue",
-                "Play now", "Save Offline (eligible audio)")) { _, selected ->
+                "Play now", if (offlineReady) "Play saved offline" else "Save offline")) { _, selected ->
                 when (selected) {
                     0 -> { library.toggleFavorite(video); refresh() }
                     1 -> saveSongToPlaylist(video)
                     2 -> playback.enqueue(video)
                     3 -> playback.play(video)
-                    4 -> openOfflineSaving(video)
+                    4 -> if (offlineReady) {
+                        if (!playSavedFromSearch(video)) openOfflineSaving(video)
+                    } else openOfflineSaving(video)
                 }
             }.setNegativeButton("Close", null).show()
     }
