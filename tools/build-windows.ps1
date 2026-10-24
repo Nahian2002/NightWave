@@ -113,6 +113,21 @@ try {
         throw 'Kotlin source preflight failed. Check the invalid import lines above.'
     }
     Say 'Fast Kotlin source preflight PASS (not an Android compilation).'
+    $stage = 'NW27 privacy and release integrity source preflight'
+    $nw27Gate = Join-Path $PSScriptRoot 'check-nw27-integrity.ps1'
+    if (-not (Test-Path -LiteralPath $nw27Gate -PathType Leaf)) {
+        throw 'NW27 release integrity source gate missing. Use the full ZIP.'
+    }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $nw27Gate -SelfTest
+    if ($LASTEXITCODE -ne 0) {
+        throw 'NW27 preflight synthetic self-test failed.'
+    }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $nw27Gate
+    if ($LASTEXITCODE -ne 0) {
+        throw 'NW27 privacy/release source gate failed. Android build not started.'
+    }
+    Say 'NW27 source safety preflight PASS (Android compile still required).'
+
     $stage = 'Crash redaction self-test'
     $crashScript = Join-Path $PSScriptRoot 'capture-nightwave-crash.ps1'
     if (-not (Test-Path -LiteralPath $crashScript -PathType Leaf)) {

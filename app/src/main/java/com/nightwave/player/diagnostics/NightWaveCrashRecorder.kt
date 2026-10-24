@@ -40,12 +40,16 @@ object NightWaveCrashRecorder {
                         .take(3).flatMap { it.stackTrace.asSequence() }
                         .filter { it.className.startsWith("com.nightwave.player.") }
                         .take(12).map { element ->
-                            element.className.removePrefix("com.nightwave.player.").take(130) +
-                                "." + element.methodName.take(70) +
-                                ":" + element.lineNumber
+                            NightWaveCrashPrivacyPolicy.safeSourceSymbol(
+                                element.className.removePrefix("com.nightwave.player."), 130) +
+                                "." + NightWaveCrashPrivacyPolicy.safeSourceSymbol(
+                                    element.methodName, 70) +
+                                ":" + NightWaveCrashPrivacyPolicy.safeFrameLine(element.lineNumber)
                         }.joinToString("\n")
                     val record = (
-                        stamp + " · " + thread.name.take(32) + "\n" + issue + "\n" + appFrames
+                        stamp + " · " +
+                            NightWaveCrashPrivacyPolicy.threadLabel(thread.name) +
+                            "\n" + issue + "\n" + appFrames
                     ).take(4000)
                     val history = (listOf(record) +
                         previousText.split("\n---\n").filter { it.isNotBlank() })

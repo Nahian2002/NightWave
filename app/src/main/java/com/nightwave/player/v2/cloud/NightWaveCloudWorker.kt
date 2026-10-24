@@ -14,6 +14,7 @@ import com.nightwave.player.library.MusicLibrary
 import com.nightwave.player.v2.lyrics.PrivateLyricsStore
 import com.nightwave.player.v2.data.GuestProfileStore
 import com.nightwave.player.v2.data.LibraryArchiveManager
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
@@ -36,7 +37,8 @@ class NightWaveCloudWorker(
                 20, TimeUnit.SECONDS
             )
             if (authorization.hasResolution()) {
-                store.status("Google needs permission again. Open NightWave backup settings.")
+                store.statusIfCurrent(consent,
+                    "Google needs permission again. Open NightWave backup settings.")
                 return@withContext Result.success()
             }
             val token = NightWaveCloudAuthorization.requireToken(authorization)
@@ -46,7 +48,8 @@ class NightWaveCloudWorker(
             val legacyAccount = NightWaveCloudAuthorization.authorizedAccount(authorization)
             if (!settings.account.equals(account, ignoreCase = true) ||
                 (legacyAccount != null && !account.equals(legacyAccount, ignoreCase = true))) {
-                store.status("Google account changed; reconnect backup in NightWave.")
+                store.statusIfCurrent(consent,
+                    "Google account changed; reconnect backup in NightWave.")
                 return@withContext Result.success()
             }
             // Recheck before network upload; disconnect means no new snapshot.
@@ -76,17 +79,25 @@ class NightWaveCloudWorker(
             // must NEVER be reported as the current verified backup.
             if (!CloudBackupConsentPolicy.same(consent,
                     store.read().consentSnapshot())) return@withContext Result.success()
-            if (store.success(settings.account, System.currentTimeMillis()) && !outcome.created) {
-                store.status("Already backed up; library unchanged")
-            }
+            store.successIfCurrent(consent, System.currentTimeMillis(), outcome.created)
             Result.success()
+        } catch (cancel: CancellationException) {
+            // WorkManager cancellation is not a failed/retryable backup.
+            // In particular, disconnecting the Drive account must not
+            // enqueue extra work or replace the user's current status.
+            throw cancel
         } catch (error: Exception) {
+            // A disconnected or reconfigured account must not be overwritten
+            // by a late failure from its cancelled/stale previous worker.
+            if (!CloudBackupConsentPolicy.same(consent,
+                    store.read().consentSnapshot())) return@withContext Result.success()
             val code = (error as? DriveHttpFailure)?.statusCode
             if (code != null && !DriveHttpFailurePolicy.mayRetry(code)) {
-                store.status(DriveHttpFailurePolicy.message(code))
+                store.statusIfCurrent(consent, DriveHttpFailurePolicy.message(code))
                 Result.failure()
             } else {
-                store.status("Automatic backup could not finish; will retry when available")
+                store.statusIfCurrent(consent,
+                    "Automatic backup could not finish; will retry when available")
                 if (runAttemptCount < 3) Result.retry() else Result.failure()
             }
         }

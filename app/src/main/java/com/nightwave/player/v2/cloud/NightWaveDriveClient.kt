@@ -39,10 +39,23 @@ class NightWaveDriveClient(private val accessToken: String) {
             val source = response.body?.byteStream() ?: error("Empty Drive response")
             val buffer = ByteArray(8192)
             val result = ByteArrayOutputStream()
+            var consecutiveEmptyReads = 0
             while (true) {
                 val count = source.read(buffer)
                 if (count < 0) break
-                require(result.size() + count <= maxBytes) { "Drive response too large" }
+                if (count == 0) {
+                    check(!DriveResponseReadPolicy.stalled(++consecutiveEmptyReads)) {
+                        "Google Drive response did not make progress"
+                    }
+                    continue
+                }
+                consecutiveEmptyReads = 0
+                // Subtraction avoids integer overflow if a future API
+                // unexpectedly advertises a very large response.
+                require(DriveResponseReadPolicy.canAppend(
+                    result.size(), count, maxBytes)) {
+                    "Drive response too large"
+                }
                 result.write(buffer, 0, count)
             }
             return result.toByteArray()
