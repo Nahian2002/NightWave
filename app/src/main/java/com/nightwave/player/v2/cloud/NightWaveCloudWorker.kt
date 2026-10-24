@@ -14,6 +14,7 @@ import com.nightwave.player.library.MusicLibrary
 import com.nightwave.player.v2.lyrics.PrivateLyricsStore
 import com.nightwave.player.v2.data.GuestProfileStore
 import com.nightwave.player.v2.data.LibraryArchiveManager
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
@@ -80,6 +81,11 @@ class NightWaveCloudWorker(
                 store.status("Already backed up; library unchanged")
             }
             Result.success()
+        } catch (cancel: CancellationException) {
+            // WorkManager cancellation is not a failed/retryable backup.
+            // In particular, disconnecting the Drive account must not
+            // enqueue extra work or replace the user's current status.
+            throw cancel
         } catch (error: Exception) {
             val code = (error as? DriveHttpFailure)?.statusCode
             if (code != null && !DriveHttpFailurePolicy.mayRetry(code)) {
