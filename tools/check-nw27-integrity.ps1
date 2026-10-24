@@ -28,6 +28,12 @@ $checks = @(
         'catch (cancel: CancellationException)'),
     @('app\src\main\java\com\nightwave\player\v2\cloud\NightWaveCloudWorker.kt',
         'throw cancel'),
+    @('app\src\main\java\com\nightwave\player\v2\cloud\CloudBackupConsentPolicy.kt',
+        'expected.revision == current.revision'),
+    @('app\src\main\java\com\nightwave\player\v2\cloud\CloudBackupState.kt',
+        'fun successIfCurrent('),
+    @('app\src\main\java\com\nightwave\player\v2\cloud\NightWaveCloudWorker.kt',
+        'store.statusIfCurrent('),
     @('app\src\main\java\com\nightwave\player\v2\cloud\NightWaveDriveClient.kt',
         'DriveResponseReadPolicy.canAppend('),
     @('app\src\main\java\com\nightwave\player\v2\cloud\NightWaveDriveClient.kt',
@@ -63,6 +69,6 @@ if ($failureCount -gt 0) {
     Write-Host ("FAIL: NW27 Windows source preflight (" + $failureCount + " issue(s)).")
     exit 1
 }
-Write-Host 'PASS: NW27 Windows 14-source privacy, startup, backup and release safety checks.'
+Write-Host 'PASS: NW27 Windows 17-source privacy, startup, backup and release safety checks.'
 Write-Host 'LIMIT: This is not an Android compiler or on-device playback test.'
 exit 0
