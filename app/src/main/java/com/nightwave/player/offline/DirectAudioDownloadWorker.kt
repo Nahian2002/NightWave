@@ -113,6 +113,9 @@ class DirectAudioDownloadWorker(
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setProgress(100, percent, !hasTotal)
+            .addAction(android.R.drawable.ic_menu_close_clear_cancel,
+                "Cancel", androidx.work.WorkManager.getInstance(applicationContext)
+                    .createCancelPendingIntent(id))
             .build()
         return if (Build.VERSION.SDK_INT >= 29) {
             ForegroundInfo(notificationId, notification,
