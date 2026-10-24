@@ -22,6 +22,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import com.nightwave.player.playback.PlaybackService
 import com.nightwave.player.v2.ui.NightWaveAdaptiveChromePolicy
 import com.nightwave.player.v2.locker.NightWaveLockerActivity
+import com.nightwave.player.v2.lyrics.PrivateLyricsStore
 import java.util.concurrent.Executors
 
 /** Native offline UI: safe to open even if the new Compose preview crashes. */
@@ -30,6 +31,7 @@ class OfflineLibraryActivity : ComponentActivity() {
         const val EXTRA_SEARCH_QUERY = "com.nightwave.player.offline.SEARCH_QUERY"
     }
     private lateinit var library: OfflineAudioLibrary
+    private val lyrics by lazy { PrivateLyricsStore(applicationContext) }
     private lateinit var tracks: LinearLayout
     private lateinit var trackScroll: ScrollView
     private lateinit var state: TextView
@@ -353,6 +355,7 @@ class OfflineLibraryActivity : ComponentActivity() {
             14f, 0xFFABB8CC.toInt()
         ).apply { setPadding(dp(5), dp(25), 0, 0) })
         pageSongs.forEach { song ->
+            val importedLyrics = lyrics.hasImportedLrc(song.id)
             val health = healthById[song.id] ?: OfflineFileHealth.UNREADABLE
             val available = health == OfflineFileHealth.AVAILABLE
             val availability = when (health) {
@@ -374,7 +377,8 @@ class OfflineLibraryActivity : ComponentActivity() {
                 ellipsize = android.text.TextUtils.TruncateAt.END
             })
             description.addView(label((song.bytes / 1024 / 1024).toString() +
-                " MB · " + availability,
+                " MB · " + availability +
+                (if (importedLyrics) " · LRC lyrics" else ""),
                 12f, if (available) 0xFF94A9BB.toInt() else 0xFFFFC07D.toInt()).apply {
                 maxLines = 2
             })
