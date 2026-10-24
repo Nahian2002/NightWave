@@ -137,6 +137,30 @@ class YouTubeGateway {
     private fun sortMusicMatches(videos: List<VideoPreview>, query: String): List<VideoPreview> =
         SearchRelevancePolicy.rankPublic(query, videos)
 
+    /**
+     * Resolve only a distinct audio-only progressive HTTPS stream.
+     * Never fall back to a video track, HLS/DASH manifest, DRM or account
+     * cookies for an offline candidate. The download worker independently
+     * validates bytes, media tracks and the temporary CDN endpoint.
+     */
+    fun resolveAudioOnlyForOffline(url: String): PlayableAudio {
+        val canonical = VideoLink.normalize(url)
+            ?: throw IllegalArgumentException("Invalid search track")
+        val info = StreamInfo.getInfo(NewPipe.getService("YouTube"), canonical)
+        val audio = info.audioStreams
+            .filter { it.isUrl && it.deliveryMethod == DeliveryMethod.PROGRESSIVE_HTTP }
+            .maxByOrNull { it.averageBitrate.takeIf { rate -> rate > 0 } ?: 0 }
+            ?: throw IllegalStateException("No independent audio-only stream is available")
+        require(com.nightwave.player.offline.SearchTrackSavePolicy.safeAudioEndpoint(audio.content)) {
+            "Audio source is unavailable for safe offline saving"
+        }
+        return PlayableAudio(
+            VideoPreview(info.name, info.uploaderName ?: "Creator",
+                canonical, info.thumbnails.firstOrNull()?.url ?: "", info.duration),
+            audioUrl = audio.content
+        )
+    }
+
     fun resolve(url: String): PlayableAudio {
         val canonical = VideoLink.normalize(url) ?: throw IllegalArgumentException("Not a supported YouTube video link")
         val info = StreamInfo.getInfo(NewPipe.getService("YouTube"), canonical)
