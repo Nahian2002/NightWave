@@ -15,4 +15,13 @@ object OfflineSaveStoragePolicy {
         if (expected !in 1..OfflineDownloadLimits.MAX_AUDIO_BYTES) return false
         return availableBytes >= expected * 2L + RESERVED_BYTES
     }
+
+    /**
+     * Recheck while bytes are being staged. A file of unknown length can
+     * grow up to the normal 250 MiB cap, and library import requires one more
+     * full private copy. Never let the first copy exhaust the disk.
+     */
+    fun canContinue(availableBytes: Long, alreadyStagedBytes: Long): Boolean =
+        alreadyStagedBytes in 1..OfflineDownloadLimits.MAX_AUDIO_BYTES &&
+            availableBytes >= alreadyStagedBytes + MIN_FREE_BYTES
 }
