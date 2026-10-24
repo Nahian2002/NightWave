@@ -77,7 +77,9 @@ class SearchTrackSaveWorker(
         } catch (error: Exception) {
             if (isStopped) fail("Cancelled")
             else if (error is IOException && runAttemptCount < 1) Result.retry()
-            else fail("Could not save this audio-only source. It may be unavailable or restricted.")
+            else if (error.message == "Not enough device storage for this offline audio file.") {
+                fail("Not enough device storage. Free some space and try again.")
+            } else fail("Could not save this audio-only source. It may be unavailable or restricted.")
         } finally {
             transfer = null
         }
