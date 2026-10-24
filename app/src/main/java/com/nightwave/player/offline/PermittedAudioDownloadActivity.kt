@@ -30,6 +30,7 @@ class PermittedAudioDownloadActivity : ComponentActivity() {
     private lateinit var progress: ProgressBar
     private lateinit var message: TextView
     private lateinit var action: TextView
+    private lateinit var queueAction: TextView
     private lateinit var cancelAction: TextView
     private var active = false
 
@@ -100,6 +101,11 @@ class PermittedAudioDownloadActivity : ComponentActivity() {
             setOnClickListener { beginDownload() }
         }
         panel.addView(action, LinearLayout.LayoutParams(-1, dp(55)))
+        queueAction = label("Save in background", 15f, 0xFF98E5DB.toInt(), true).apply {
+            gravity = Gravity.CENTER
+            setOnClickListener { queueBackgroundDownload() }
+        }
+        panel.addView(queueAction, LinearLayout.LayoutParams(-1, dp(48)))
         cancelAction = label("Cancel download", 14f, 0xFFE4F1F0.toInt(), true).apply {
             gravity = Gravity.CENTER
             visibility = android.view.View.GONE
@@ -124,7 +130,8 @@ class PermittedAudioDownloadActivity : ComponentActivity() {
         panel.addView(label(
             "YouTube watch links, streaming manifests and protected media are not direct " +
                 "audio downloads. NightWave does not convert YouTube videos to MP3. " +
-                "This direct-link transfer stops when you leave this screen. " +
+                "Use Save in background to keep downloading after closing this screen. " +
+                "The foreground download stops when you leave. " +
                 "Original audio format is preserved. " +
                 "Temporary network errors are retried, but unsupported audio is never saved. " +
                 "Audio is deleted if NightWave is uninstalled.",
@@ -149,6 +156,40 @@ class PermittedAudioDownloadActivity : ComponentActivity() {
             Gravity.TOP or Gravity.CENTER_HORIZONTAL))
         setContentView(frame)
         NightWaveSafeInsets.bind(frame)
+    }
+
+    private fun queueBackgroundDownload() {
+        if (active) return
+        if (!rights.isChecked) {
+            message.text = "Confirm that you own or may download this audio first."
+            return
+        }
+        val source = try {
+            PermittedAudioDownloadPolicy.prepare(
+                urlInput.text.toString(), nameInput.text.toString())
+        } catch (error: IllegalArgumentException) {
+            message.text = error.message ?: "Enter a permitted direct HTTPS audio file."
+            return
+        }
+        message.text = "Submitting offline download to Android's background queue..."
+        runCatching { DirectAudioDownloadQueue.enqueue(this, source) }
+            .onSuccess { operation ->
+                operation.result.addListener({
+                    if (isFinishing || isDestroyed) return@addListener
+                    runCatching { operation.result.get() }
+                        .onSuccess {
+                            message.text = "Audio download queued. Follow the NightWave notification; " +
+                                "completed files appear in Offline Library."
+                        }
+                        .onFailure {
+                            message.text = "Could not queue the background download. Try again."
+                        }
+                }, androidx.core.content.ContextCompat.getMainExecutor(this))
+            }
+            .onFailure {
+                message.text = "Could not queue the background download. " +
+                    (it.message?.take(85) ?: "Check the link.")
+            }
     }
 
     private fun beginDownload() {
