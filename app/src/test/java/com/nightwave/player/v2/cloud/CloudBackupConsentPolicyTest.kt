@@ -25,4 +25,14 @@ class CloudBackupConsentPolicyTest {
         assertFalse(CloudBackupConsentPolicy.same(initial, initial.copy(preferences = true)))
         assertFalse(CloudBackupConsentPolicy.same(initial, initial.copy(wifiOnly = false)))
     }
+
+    @Test fun oldWorkerCannotMatchDisconnectReconnectOfSameAccount() {
+        val authorizedOnce = initial.copy(revision = 12L)
+        val reconnectedSameAccount = authorizedOnce.copy(revision = 14L)
+        assertFalse(CloudBackupConsentPolicy.same(authorizedOnce, reconnectedSameAccount))
+        assertTrue(CloudBackupConsentPolicy.same(reconnectedSameAccount,
+            reconnectedSameAccount.copy(account = "DEMO@EXAMPLE.COM")))
+        assertFalse(CloudBackupConsentPolicy.same(reconnectedSameAccount,
+            reconnectedSameAccount.copy(revision = 15L)))
+    }
 }
