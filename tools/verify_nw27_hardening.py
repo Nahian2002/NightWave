@@ -14,6 +14,7 @@ SOURCES = {
     "response": "app/src/main/java/com/nightwave/player/v2/cloud/DriveResponseReadPolicy.kt",
     "worker": "app/src/main/java/com/nightwave/player/v2/cloud/NightWaveCloudWorker.kt",
     "state": "app/src/main/java/com/nightwave/player/v2/cloud/CloudBackupState.kt",
+    "consent": "app/src/main/java/com/nightwave/player/v2/cloud/CloudBackupConsentPolicy.kt",
     "auth": "app/src/main/java/com/nightwave/player/v2/cloud/NightWaveCloudAuthorization.kt",
     "offline": "app/src/main/java/com/nightwave/player/offline/OfflineAudioLibrary.kt",
     "lyrics": "app/src/main/java/com/nightwave/player/v2/lyrics/PrivateLyricsStore.kt",
@@ -58,6 +59,15 @@ def check(source: dict[str, str]) -> list[str]:
     need("DriveHttpFailurePolicy.mayRetry(code)" in s("worker") and
          "beforeUpload.consentSnapshot()" in s("worker"),
          "NW26 retry/consent checks must survive NW27")
+    need("expected.revision == current.revision" in s("consent") and
+         "private val guard = Any()" in s("state") and
+         "putLong(REVISION_KEY, nextRevision())" in s("state") and
+         "fun successIfCurrent(" in s("state") and
+         "fun statusIfCurrent(" in s("state") and
+         "store.successIfCurrent(" in s("worker") and
+         "store.statusIfCurrent(" in s("worker") and
+         "store.status(" not in s("worker"),
+         "Consent revision and atomic stale-worker status fence missing")
     need("DriveResponseReadPolicy.canAppend(" in s("client") and
          "DriveResponseReadPolicy.stalled(" in s("client") and
          ".followRedirects(false)" in s("client"),
@@ -86,13 +96,13 @@ def check(source: dict[str, str]) -> list[str]:
          "Windows release compiler and mutation gates missing")
     need("check-nw27-integrity.ps1" in s("windows") and
          "check-nw27-integrity.ps1" in s("windowsSyntax") and
-         "PASS: NW27 Windows 14-source" in s("windowsGate") and
+         "PASS: NW27 Windows 17-source" in s("windowsGate") and
          "param([switch]$SelfTest)" in s("windowsGate"),
          "One-click Windows builder must run/parse NW27 native source gate")
     need("if ($previousSigner -ne $newSigner)" in s("signing") and
          "if ($newSigner -ne $trusted.ToUpperInvariant())" in s("signing"),
          "Installed/upgraded APK signer continuity checks missing")
-    need("PASS: NW27 28 exact-source Kotlin safety assertions" in s("runner") and
+    need("PASS: NW27 33 exact-source Kotlin safety assertions" in s("runner") and
          'println("PASS: NW27 " + cases.size' in s("smoke"),
          "NW27 exact Kotlin runtime fixture or runner missing")
     need(s("unitCrash").count("@Test") >= 2 and
