@@ -184,6 +184,8 @@ class OfflineLibraryActivity : ComponentActivity() {
         }
         sortControl = label("Sort: " + sortLabels[sortMode] + "  ▾", 12f, 0xFFB5C8D8.toInt()).apply {
             gravity = Gravity.CENTER_VERTICAL
+            maxLines = 1
+            ellipsize = android.text.TextUtils.TruncateAt.END
             setOnClickListener {
                 AlertDialog.Builder(this@OfflineLibraryActivity)
                     .setTitle("Sort offline music")
@@ -209,8 +211,48 @@ class OfflineLibraryActivity : ComponentActivity() {
                 else launchPlayback(first)
             }
         }
-        controls.addView(playAllControl, LinearLayout.LayoutParams(dp(105), dp(49)))
+        controls.addView(playAllControl, LinearLayout.LayoutParams(dp(94), dp(49)))
+        val shuffleAllControl = label("⇄  Shuffle", 13f, 0xFF91E2D7.toInt(), true).apply {
+            gravity = Gravity.CENTER
+            contentDescription = "Shuffle and play the current offline song list"
+            setOnClickListener {
+                val first = visibleSongs.firstOrNull {
+                    it.id in playableIds && library.fileFor(it) != null
+                }
+                if (first == null) status("No playable songs in this offline list.")
+                else launchPlayback(first, shuffle = true)
+            }
+        }
+        controls.addView(shuffleAllControl, LinearLayout.LayoutParams(dp(99), dp(49)))
         root.addView(controls)
+        // Local playback shortcuts use the same Media3 service as the widget
+        // and notification. They never invoke a network resolve.
+        val mediaControls = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            background = cardBackground(0xFF142B31.toInt())
+        }
+        fun playbackShortcut(title: String, description: String, action: String) =
+            label(title, 16f, 0xFFE0F7F3.toInt(), true).apply {
+                gravity = Gravity.CENTER
+                contentDescription = description
+                setOnClickListener {
+                    runCatching {
+                        startService(Intent(this@OfflineLibraryActivity,
+                            PlaybackService::class.java).setAction(action))
+                    }.onFailure { status("Playback control failed. Select an offline song first.") }
+                }
+            }
+        mediaControls.addView(playbackShortcut("⏮", "Previous offline song",
+            PlaybackService.ACTION_PREVIOUS), LinearLayout.LayoutParams(0, dp(45), 1f))
+        mediaControls.addView(playbackShortcut("⏯", "Toggle offline pause or play",
+            PlaybackService.ACTION_TOGGLE_OFFLINE_PLAY_PAUSE),
+            LinearLayout.LayoutParams(0, dp(45), 1f))
+        mediaControls.addView(playbackShortcut("⏭", "Next offline song",
+            PlaybackService.ACTION_NEXT), LinearLayout.LayoutParams(0, dp(45), 1f))
+        root.addView(mediaControls, LinearLayout.LayoutParams(-1, dp(45)).apply {
+            bottomMargin = dp(7)
+        })
         val paging = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
@@ -440,7 +482,7 @@ class OfflineLibraryActivity : ComponentActivity() {
         }
     }
 
-    private fun launchPlayback(song: OfflineSong) {
+    private fun launchPlayback(song: OfflineSong, shuffle: Boolean = false) {
         if (library.fileFor(song) == null) {
             status("Audio file unavailable: " + song.title)
             return
@@ -458,8 +500,16 @@ class OfflineLibraryActivity : ComponentActivity() {
                 .setAction(PlaybackService.ACTION_PLAY_OFFLINE)
                 .putExtra(PlaybackService.EXTRA_OFFLINE_ID, song.id)
                 .putStringArrayListExtra(PlaybackService.EXTRA_OFFLINE_IDS, ids))
-        }.onSuccess { status("Playing " + song.title + " · Next follows this list") }
-            .onFailure { status("Offline playback could not start. Please retry.") }
+        }.onSuccess {
+            // Keep the selected song first; shuffle affects upcoming items.
+            runCatching {
+                startService(Intent(this, PlaybackService::class.java)
+                    .setAction(PlaybackService.ACTION_SHUFFLE)
+                    .putExtra(PlaybackService.EXTRA_SHUFFLE_ENABLED, shuffle))
+            }
+            status(if (shuffle) "Shuffling saved songs · " + song.title
+                else "Playing " + song.title + " · Next follows this list")
+        }.onFailure { status("Offline playback could not start. Please retry.") }
     }
 
     private fun status(message: String) {

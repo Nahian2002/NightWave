@@ -6,6 +6,8 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.os.SystemClock
+import java.util.UUID
 import android.view.Gravity
 import android.widget.FrameLayout
 import android.widget.LinearLayout
@@ -25,6 +27,8 @@ class CatalogDownloadsActivity : ComponentActivity() {
     private var catalogJobs: List<WorkInfo> = emptyList()
     private var directJobs: List<WorkInfo> = emptyList()
     private var searchedJobs: List<WorkInfo> = emptyList()
+    private val progressSamples = HashMap<UUID, Pair<Long, Long>>()
+    private val observedSpeed = HashMap<UUID, Long>()
     private fun refreshJobs() = render(catalogJobs + directJobs + searchedJobs)
 
     override fun onResume() {
@@ -167,9 +171,40 @@ class CatalogDownloadsActivity : ComponentActivity() {
             val progress = if (total > 0L) {
                 " · " + (100L * received / total).coerceIn(0, 100) + "%"
             } else if (received > 0L) " · " + (received / 1024L) + " KB" else ""
+            val pausedByUser = isSearch &&
+                SearchOfflinePauseState.isMarked(this, info.id)
+            val now = SystemClock.elapsedRealtime()
+            val previousSample = progressSamples[info.id]
+            if (info.state == WorkInfo.State.RUNNING) {
+                if (previousSample == null || received < previousSample.first) {
+                    progressSamples[info.id] = received to now
+                    observedSpeed.remove(info.id)
+                } else if (received > previousSample.first) {
+                    val rate = OfflineTransferRatePolicy.bytesPerSecond(
+                        received - previousSample.first, now - previousSample.second)
+                    if (rate != null) observedSpeed[info.id] = rate
+                    progressSamples[info.id] = received to now
+                } else if (now - previousSample.second > 8000L) {
+                    observedSpeed.remove(info.id)
+                }
+            } else {
+                progressSamples.remove(info.id)
+                observedSpeed.remove(info.id)
+            }
+            val rate = observedSpeed[info.id]
+            val rateText = if (received > 0L) {
+                " · " + OfflineTransferRatePolicy.display(rate) +
+                    (OfflineTransferRatePolicy.etaSeconds(received, total, rate)
+                        ?.takeIf { it in 1..86400L }
+                        ?.let { " · about " + (it / 60L) + "m " + (it % 60L) + "s left" }
+                        ?: "")
+            } else ""
             val state = when (info.state) {
-                WorkInfo.State.ENQUEUED -> "Queued · Waiting for network"
-                WorkInfo.State.RUNNING -> "Downloading" + progress
+                WorkInfo.State.ENQUEUED -> if (pausedByUser)
+                    "Pausing · Waiting for worker to stop" else "Queued · Waiting for network"
+                WorkInfo.State.RUNNING -> if (pausedByUser)
+                    "Pausing · Cancelling current transfer" else
+                    "Downloading" + progress + rateText
                 WorkInfo.State.SUCCEEDED ->
                     OfflineDownloadStatusPolicy.statusForCompleted(actuallySaved)
                 WorkInfo.State.FAILED -> "Failed · " +
@@ -179,7 +214,9 @@ class CatalogDownloadsActivity : ComponentActivity() {
                             isDirect -> DirectAudioDownloadQueue.KEY_ERROR
                             else -> CatalogDownloadQueue.KEY_ERROR
                         }).orEmpty()
-                WorkInfo.State.CANCELLED -> "Cancelled · No partial track saved"
+                WorkInfo.State.CANCELLED -> if (pausedByUser)
+                    "Paused · Resume restarts from zero (partial bytes not retained)"
+                    else "Cancelled · No partial track saved"
                 WorkInfo.State.BLOCKED -> "Waiting for another queued job"
             }
             val card = LinearLayout(this).apply {
@@ -194,9 +231,23 @@ class CatalogDownloadsActivity : ComponentActivity() {
             })
             when (info.state) {
                 WorkInfo.State.ENQUEUED, WorkInfo.State.RUNNING, WorkInfo.State.BLOCKED -> {
+                    val pauseUrl = if (isSearch)
+                        OfflineSaveRetryPolicy.retryUrl(info.tags) else null
+                    if (pauseUrl != null && !pausedByUser) {
+                        card.addView(label("Pause · Restart needed to resume", 14f,
+                            0xFF91E2D7.toInt(), true).apply {
+                            gravity = Gravity.CENTER
+                            setOnClickListener { confirmSearchPause(info) }
+                        }, LinearLayout.LayoutParams(-1, dp(48)))
+                    }
                     card.addView(label("Cancel download", 14f, 0xFFF0B7B7.toInt(), true).apply {
                         gravity = Gravity.CENTER
-                        setOnClickListener { manager.cancelWorkById(info.id) }
+                        setOnClickListener {
+                            // Cancel is distinct from Pause. A deliberate
+                            // cancel must never leave a resumable UI marker.
+                            if (isSearch) SearchOfflinePauseState.clear(this@CatalogDownloadsActivity, info.id)
+                            manager.cancelWorkById(info.id)
+                        }
                     }, LinearLayout.LayoutParams(-1, dp(48)))
                 }
                 WorkInfo.State.SUCCEEDED -> {
@@ -247,10 +298,15 @@ class CatalogDownloadsActivity : ComponentActivity() {
                     if (retryUrl != null &&
                         OfflineSaveRetryPolicy.canOfferRetry(
                             info.state.isFinished, false, info.tags)) {
-                        card.addView(label("Retry saving this song  →", 14f,
+                        card.addView(label(
+                            if (pausedByUser) "Resume save · Restart transfer  →"
+                            else "Retry saving this song  →", 14f,
                             0xFF9FE3DF.toInt(), true).apply {
                             gravity = Gravity.CENTER
-                            setOnClickListener { confirmSearchRetry(retryUrl, title) }
+                            setOnClickListener {
+                                confirmSearchRetry(retryUrl, title,
+                                    if (pausedByUser) info.id else null)
+                            }
                         }, LinearLayout.LayoutParams(-1, dp(48)))
                     }
                     card.addView(label(
@@ -281,7 +337,27 @@ class CatalogDownloadsActivity : ComponentActivity() {
         }
     }
 
-    private fun confirmSearchRetry(canonicalUrl: String, title: String) {
+    private fun confirmSearchPause(info: WorkInfo) {
+        if (SearchTrackSaveQueue.TAG !in info.tags ||
+            OfflineSaveRetryPolicy.retryUrl(info.tags) == null ||
+            info.state.isFinished) return
+        AlertDialog.Builder(this)
+            .setTitle("Pause this download?")
+            .setMessage("NightWave will stop this transfer safely. Its partial audio " +
+                "is removed; tapping Resume starts again from zero because " +
+                "the source may not support byte-range continuation.")
+            .setPositiveButton("Pause") { _, _ ->
+                if (SearchOfflinePauseState.mark(this, info.id)) {
+                    manager.cancelWorkById(info.id)
+                    overview.text = "Stopping download. Resume is available once cancelled."
+                } else overview.text = "Could not record pause safely. Nothing cancelled."
+            }
+            .setNegativeButton("Keep downloading", null)
+            .show()
+    }
+
+    private fun confirmSearchRetry(canonicalUrl: String, title: String,
+        resumeOf: UUID? = null) {
         // WorkInfo exposes only tags (not original worker input). This URL
         // came from one exact validated 11-character video ID. No signed CDN
         // URL, personal data or auth cookie is persisted or retried here.
@@ -289,8 +365,10 @@ class CatalogDownloadsActivity : ComponentActivity() {
             setOf(OfflineSaveRetryPolicy.sourceTag(canonicalUrl)))
         if (validUrl != canonicalUrl) return
         AlertDialog.Builder(this)
-            .setTitle("Retry offline save?")
-            .setMessage("Retry this same searched recording, rather than a different " +
+            .setTitle(if (resumeOf != null) "Resume saving?" else "Retry offline save?")
+            .setMessage((if (resumeOf != null)
+                "Resume restarts from zero; earlier bytes were not retained. " else "") +
+                "Retry this same searched recording, rather than a different " +
                 "catalog match. Only proceed if you have permission to keep it offline. " +
                 "Unavailable, restricted, or protected audio cannot be saved.")
             .setPositiveButton("Retry save") { _, _ ->
@@ -303,6 +381,8 @@ class CatalogDownloadsActivity : ComponentActivity() {
                         if (isFinishing || isDestroyed) return@addListener
                         runCatching { operation.result.get() }
                             .onSuccess {
+                                if (resumeOf != null) SearchOfflinePauseState.clear(
+                                    this@CatalogDownloadsActivity, resumeOf)
                                 overview.text = "Save queued. Its result appears in Downloads."
                             }
                             .onFailure {

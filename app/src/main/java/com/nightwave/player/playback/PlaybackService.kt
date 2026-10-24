@@ -74,6 +74,7 @@ class PlaybackService : MediaLibraryService() {
         const val ACTION_UNDO_REMOVE_UPCOMING = "com.nightwave.player.UNDO_REMOVE_UPCOMING"
         const val EXTRA_QUEUE_TOKEN = "queue_token"
         const val EXTRA_EXPECTED_URL = "expected_queue_url"
+        const val ACTION_TOGGLE_OFFLINE_PLAY_PAUSE = "com.nightwave.player.TOGGLE_OFFLINE_PLAY_PAUSE"
         const val ACTION_NEXT = "com.nightwave.player.NEXT"
         const val ACTION_PREVIOUS = "com.nightwave.player.PREVIOUS"
         const val ACTION_JUMP = "com.nightwave.player.JUMP"
@@ -1300,6 +1301,15 @@ class PlaybackService : MediaLibraryService() {
                     if (percent != OfflinePlaybackSpeedPolicy.NORMAL_PERCENT) cancelCrossfade()
                     exoPlayer?.setPlaybackSpeed(OfflinePlaybackSpeedPolicy.speed(percent))
                     scheduleCrossfadeCheck()
+                }
+            }
+            ACTION_TOGGLE_OFFLINE_PLAY_PAUSE -> {
+                // Offline Library mini-controls never start an online resolve.
+                // A saved offline item must already be active in Media3.
+                val audio = exoPlayer
+                if (offlinePlaying && audio?.currentMediaItem != null) {
+                    if (audio.isPlaying) audio.pause() else audio.play()
+                    publishWidgetState()
                 }
             }
             ACTION_NEXT -> playNext(false)

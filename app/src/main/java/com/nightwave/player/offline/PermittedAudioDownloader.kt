@@ -29,7 +29,9 @@ class PermittedAudioDownloader(private val context: Context) {
     private val client = OkHttpClient.Builder()
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
-        .callTimeout(8, TimeUnit.MINUTES)
+        // Slow but valid sources should not be cut off by an 8-minute
+        // whole-transfer timer. Read timeout and the 250 MiB cap still apply.
+        .callTimeout(25, TimeUnit.MINUTES)
         .followRedirects(false)
         .followSslRedirects(false)
         .dns(object : Dns {
@@ -216,7 +218,10 @@ class PermittedAudioDownloader(private val context: Context) {
                 var prefixCount = 0
                 body.byteStream().use { input ->
                     FileOutputStream(pending).use { output ->
-                        val buffer = ByteArray(32_768)
+                        // Larger sequential reads reduce JNI and progress-callback
+                        // overhead for fast authorized audio endpoints. Throughput
+                        // remains limited by the source server and network.
+                        val buffer = ByteArray(128 * 1024)
                         while (true) {
                             check(!cancelled.get()) { "Download cancelled" }
                             val n = input.read(buffer)
