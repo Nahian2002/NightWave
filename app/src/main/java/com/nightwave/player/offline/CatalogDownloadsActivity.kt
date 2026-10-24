@@ -123,9 +123,18 @@ class CatalogDownloadsActivity : ComponentActivity() {
         // The former UUID ordering could hide the newest saved tracks once
         // 60 historical transfers existed. Active jobs first, then most
         // recently requested jobs. Older untagged jobs remain visible later.
+        val seenSearchUrls = HashSet<String>()
         val visibleJobs = infos.sortedWith(compareBy<WorkInfo> { it.state.isFinished }
             .thenByDescending { OfflineSaveRetryPolicy.requestedAt(it.tags) }
-            .thenBy { it.id.toString() }).take(60)
+            .thenBy { it.id.toString() })
+            .filter { info ->
+                // Retry creates a fresh WorkRequest. Keep the newest/current
+                // entry for each identified song; do not show stale failures
+                // as duplicate rows next to a newer successful attempt.
+                val url = if (SearchTrackSaveQueue.TAG in info.tags)
+                    OfflineSaveRetryPolicy.retryUrl(info.tags) else null
+                url == null || seenSearchUrls.add(url)
+            }.take(60)
         val completedIds = visibleJobs.asSequence()
             .filter { it.state == WorkInfo.State.SUCCEEDED }
             .mapNotNull(::savedId).toSet()
