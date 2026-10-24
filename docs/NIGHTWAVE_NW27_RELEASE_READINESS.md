@@ -25,6 +25,7 @@
 - Registered that script in `tools/check-builder-syntax.ps1` so the existing PowerShell syntax/ASCII gate also checks NW27.
 - Added `tools/verify_nw27_hardening.py`: fail-closed source/integration scanner checking crash privacy, Google Drive scopes, cancellation, stream limits, unchanged app and local music identity, Gradle tasks and existing APK signer continuity.
 - Added `tools/nw27_hardening_smoke.py` and `tools/kotlin/NW27HardeningSmoke.kt`: executable exact-source Kotlin regression tests for crash summary privacy, bounded code symbols/line numbers, disk-free pure Drive byte-limit calculations, stalled responses, and consent-revision fencing.
+- Added permanent `tools/nw27_state_smoke.py`, `tools/kotlin/NW27StateAndroidStub.kt` and `tools/kotlin/NW27StateRaceSmoke.kt`. CI compiles the exact production state with the in-memory Android API stub and tests same-account reconnect, privacy toggles, stale success/status rejection and current-worker acceptance whenever Kotlin is installed. The stub is outside application sources and is not packaged.
 - Added two JUnit regression suites: `NightWaveCrashPrivacyPolicyTest.kt` and `DriveResponseReadPolicyTest.kt`.
 - Main GitHub Android workflow now triggers on NW27 and executes the new Python source and Kotlin proof; existing source checks, Gradle/JUnit/Android test-source compile, package/version, fingerprint, and artifact safeguards remain unchanged.
 - Enabled the independent `NightWave Runner Canary` workflow for this branch.
@@ -40,6 +41,8 @@ The following **exact, unmodified GitHub** file versions were downloaded through
 | `CloudBackupConsentPolicy.kt` | `c4d71ab2ca51e10c4057346ea29e8eec74ebc30a` |
 | `CloudBackupState.kt` | `ddba84603aeb291bb9f3e93f492c531d22850c73` |
 | `NW27HardeningSmoke.kt` | `eea87c303160994d88b2c57772d5c6a1217597e6` |
+| `NW27StateAndroidStub.kt` (test-only) | `7a32e4309867f401661113d3f944b3f7cd5fca09` |
+| `NW27StateRaceSmoke.kt` | `51d95b5587e5a7fdc078a213d3d5290661fa3ed0` |
 
 `kotlinc` compiled the four exact policy/test file versions into a runnable JVM jar; `java -jar` returned:
 
@@ -50,7 +53,7 @@ LIMIT: Android Gradle compilation and device behavior not tested
 
 The test cases exercise real production policy code and catch malformed custom thread labels, redaction regressions, negative/oversize byte reads, exact byte caps, integer overflow, stalls, consent changes, and reconnects with the same Google account.
 
-A separate Kotlin compilation used the exact GitHub `CloudBackupState.kt` blob with a small in-memory `android.content.Context`/`SharedPreferences` stub. It passed simulated disconnect/reconnect, stale-success rejection, stale-status rejection, changed-privacy rejection, and current-epoch success. **This is not an Android instrumentation test**, nor does it prove behavior under process death. This **does not** mean `NightWaveCrashRecorder` itself, the Android WorkManager service or full Google Drive client has been compiled or executed on Android.
+A separate Kotlin compilation used the exact GitHub `CloudBackupState.kt` blob **and the committed test-only Kotlin stub/test versions** (matching SHA-1 hashes above). It passed simulated disconnect/reconnect, stale-success rejection, stale-status rejection, changed-privacy rejection, and current-epoch success. Its Python launcher is now committed and registered in the Android workflow. **This is not an Android instrumentation test**, nor does it prove behavior under process death. This **does not** mean `NightWaveCrashRecorder` itself, the Android WorkManager service or full Google Drive client has been compiled or executed on Android.
 
 ## 3. Independent GitHub Actions diagnosis
 
