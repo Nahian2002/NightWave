@@ -3,6 +3,7 @@ package com.nightwave.player.offline
 import android.content.Context
 import android.media.MediaExtractor
 import android.media.MediaFormat
+import android.os.StatFs
 import okhttp3.Call
 import okhttp3.Dns
 import okhttp3.OkHttpClient
@@ -198,6 +199,17 @@ class PermittedAudioDownloader(private val context: Context) {
                 val length = body.contentLength()
                 require(length <= PermittedAudioDownloadPolicy.MAX_BYTES) {
                     "File is larger than the 250 MB song limit."
+                }
+                if (searchAudioOnly) {
+                    // Import makes a second private copy. Fail early rather
+                    // than exhausting device storage after a long transfer.
+                    val available = runCatching {
+                        StatFs(context.applicationContext.filesDir.absolutePath).availableBytes
+                    }.getOrDefault(-1L)
+                    require(OfflineSaveStoragePolicy.canStart(
+                        available, length.takeIf { it > 0L })) {
+                        "Not enough device storage for this offline audio file."
+                    }
                 }
                 var received = 0L
                 val prefix = ByteArray(64)
