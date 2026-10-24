@@ -102,18 +102,72 @@ class PermittedAudioDownloader(private val context: Context) {
     }
 
     /**
+     * Separately guarded user-consented audio-only search result. Retains all
+     * protections in the normal transfer path, including private DNS blocking,
+     * MIME and magic-byte validation, MediaExtractor audio-only inspection,
+     * bounded size, cancellation and atomic private-library import.
+     *
+     * We do NOT convert audio, support manifest/video streams, provide cookies,
+     * or bypass access controls. An inaccessible URL fails with no saved file.
+     */
+    fun downloadResolvedSearchAudio(
+        sourceUrl: String, title: String,
+        progress: (downloaded: Long, total: Long?) -> Unit
+    ): OfflineSong {
+        require(SearchTrackSavePolicy.safeAudioEndpoint(sourceUrl)) {
+            "Untrusted or unavailable audio-only stream"
+        }
+        check(!cancelled.get()) { "Download was cancelled" }
+        val home = context.applicationContext.filesDir.canonicalFile
+        val staging = File(home, "permitted_download_staging")
+        require(!Files.isSymbolicLink(staging.toPath())) { "Unsafe temporary folder" }
+        require(staging.isDirectory || staging.mkdirs()) { "Cannot create download folder" }
+        require(staging.canonicalFile.parentFile == home) { "Unsafe download path" }
+        val pending = File(staging, UUID.randomUUID().toString() + ".pending")
+        val spec = PermittedAudioSource(sourceUrl, SearchTrackSavePolicy.safeTitle(title), "")
+        try {
+            repeat(2) { attempt ->
+                check(!cancelled.get()) { "Download cancelled" }
+                require(!pending.exists() || pending.delete()) { "Partial audio could not be reset" }
+                val filename = try {
+                    transferOnce(spec, pending, progress, searchAudioOnly = true)
+                } catch (network: IOException) {
+                    if (cancelled.get() || attempt == 1) throw network
+                    progress(0L, null)
+                    return@repeat
+                }
+                check(!cancelled.get()) { "Download cancelled" }
+                inspectAudioOnly(pending)
+                check(!cancelled.get()) { "Download cancelled" }
+                return OfflineAudioLibrary(context).importPermittedStagedAudio(pending, filename)
+            }
+            error("Audio could not be saved")
+        } finally {
+            currentCall?.cancel()
+            currentCall = null
+            pending.delete()
+        }
+    }
+
+    /**
      * Follow a small number of fully validated HTTPS redirects. OkHttp never
      * follows any redirects automatically. Every hop is checked for URL
      * restrictions and DNS never connects to private/reserved IP addresses.
      */
     private fun transferOnce(
         source: PermittedAudioSource, pending: File,
-        progress: (downloaded: Long, total: Long?) -> Unit
+        progress: (downloaded: Long, total: Long?) -> Unit,
+        searchAudioOnly: Boolean = false
     ): String {
         var url = source.url
         repeat(5) { redirects ->
             check(!cancelled.get()) { "Download cancelled" }
-            url = PermittedAudioDownloadPolicy.prepare(url, "").url
+            url = if (searchAudioOnly) {
+                require(SearchTrackSavePolicy.safeAudioEndpoint(url)) {
+                    "Audio stream redirected to an untrusted endpoint"
+                }
+                url
+            } else PermittedAudioDownloadPolicy.prepare(url, "").url
             val request = Request.Builder().url(url)
                 .header("Accept", "audio/*,application/octet-stream")
                 .header("Cache-Control", "no-store")
@@ -127,8 +181,13 @@ class PermittedAudioDownloader(private val context: Context) {
                 require(redirects < 4 && !target.isNullOrBlank()) {
                     "Too many redirects or missing destination"
                 }
-                url = PermittedAudioDownloadPolicy.prepare(
-                    URI(url).resolve(target).toString(), "").url
+                val destination = URI(url).resolve(target).toString()
+                url = if (searchAudioOnly) {
+                    require(SearchTrackSavePolicy.safeAudioEndpoint(destination)) {
+                        "Audio redirect destination is not permitted"
+                    }
+                    destination
+                } else PermittedAudioDownloadPolicy.prepare(destination, "").url
                 return@repeat
             }
             response.use {
