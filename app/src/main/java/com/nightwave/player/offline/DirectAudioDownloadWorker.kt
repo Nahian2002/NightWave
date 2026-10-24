@@ -96,7 +96,7 @@ class DirectAudioDownloadWorker(
     }
 
     private fun foreground(name: String, received: Long, total: Long?): ForegroundInfo {
-        val target = Intent(applicationContext, OfflineLibraryActivity::class.java)
+        val target = Intent(applicationContext, CatalogDownloadsActivity::class.java)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
         val intent = PendingIntent.getActivity(applicationContext, notificationId, target,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
