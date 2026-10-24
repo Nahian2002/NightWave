@@ -253,8 +253,8 @@ class OfflineAudioLibrary(private val context: Context) {
             require(size in 1..MAX_SONG_BYTES) { "Audio download exceeds the file limit" }
             val ext = filename.substringAfterLast('.', "").lowercase(Locale.ROOT)
             require(ext in extensions) { "Unsupported audio file type" }
-            val title = filename.substringBeforeLast('.').replace('\\n', ' ')
-                .replace('\\r', ' ').trim().take(110).ifBlank { "Downloaded audio" }
+            val title = filename.substringBeforeLast('.').replace('\n', ' ')
+                .replace('\r', ' ').trim().take(110).ifBlank { "Downloaded audio" }
             val current = songs()
             val expectedSha256 = audioSha256(staged)
             // A repeated URL should not consume another slot or silently
