@@ -13,6 +13,14 @@ class CloudAuthorizationDiagnosticPolicyTest {
         assertFalse(message.contains("Bearer"))
     }
 
+    @Test fun internalErrorEightProvidesActionableNonSensitiveRecovery() {
+        val message = CloudAuthorizationDiagnosticPolicy.apiStatus(8)
+        assertTrue(message.contains("check-google-oauth.cmd"))
+        assertTrue(message.contains("APK signer SHA-1"))
+        assertTrue(message.contains("Play services"))
+        assertFalse(message.contains("Bearer"))
+    }
+
     @Test fun cancellationAndMissingResultAreNotReportedAsSuccess() {
         assertTrue(CloudAuthorizationDiagnosticPolicy.resolution(false, false, null)
             .contains("without permission"))
