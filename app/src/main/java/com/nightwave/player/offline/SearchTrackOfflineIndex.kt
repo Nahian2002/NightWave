@@ -39,20 +39,18 @@ object SearchTrackOfflineIndex {
         val selectedKey = key(videoUrl) ?: return null
         val prefs = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val savedLinks = prefs.all
-        val library = OfflineAudioLibrary(context)
-        val indexed = runCatching { library.songs().associateBy(OfflineSong::id) }
-            .getOrNull() ?: return null
-        val inspected = HashMap<String, Boolean>()
-        fun verifiedId(trackKey: String?): String? {
-            if (trackKey == null) return null
-            val id = savedLinks[trackKey] as? String ?: return null
-            val song = indexed[id] ?: return null
-            if (inspected.getOrPut(id) { library.fileFor(song) != null }) return id
-            return null
-        }
-        val selectedId = verifiedId(selectedKey) ?: return null
-        val list = orderedUrls.take(OfflineSearchQueuePolicy.MAX_IDS * 2)
-            .map { verifiedId(key(it)) }
+        val orderedKeys = orderedUrls.take(OfflineSearchQueuePolicy.MAX_IDS * 2)
+            .map { key(it) }
+        fun linkedId(trackKey: String?): String? =
+            trackKey?.let { savedLinks[it] as? String }
+        val selectedLink = linkedId(selectedKey) ?: return null
+        val linked = orderedKeys.map(::linkedId)
+        val requested = (linked.filterNotNull() + selectedLink).toSet()
+        // One guarded index parse + only the relevant file-health inspections.
+        // No repair/deletion occurs during a lookup, even for stale mappings.
+        val available = OfflineAudioLibrary(context).availableIds(requested)
+        val selectedId = selectedLink.takeIf { it in available } ?: return null
+        val list = linked.map { it?.takeIf(available::contains) }
         val ids = OfflineSearchQueuePolicy.plan(selectedId, list)
         return SearchOfflineSelection(selectedId, ArrayList(ids))
     }
