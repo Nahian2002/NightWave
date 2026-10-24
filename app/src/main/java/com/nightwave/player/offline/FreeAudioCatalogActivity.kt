@@ -99,6 +99,27 @@ class FreeAudioCatalogActivity : ComponentActivity() {
         root.addView(searchAction, LinearLayout.LayoutParams(-1, dp(51)).apply {
             topMargin = dp(10)
         })
+        // Keep every supported offline source discoverable in one screen.
+        // Neither import nor direct-file download silently changes a YouTube
+        // song into a different recording.
+        val offlineSources = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+        offlineSources.addView(text("Import my audio", 13f, 0xFF9FE3DF.toInt(), true).apply {
+            gravity = Gravity.CENTER
+            setOnClickListener {
+                startActivity(Intent(this@FreeAudioCatalogActivity,
+                    OfflineLibraryActivity::class.java))
+            }
+        }, LinearLayout.LayoutParams(0, dp(45), 1f))
+        offlineSources.addView(text("Authorized audio link", 13f, 0xFF9FE3DF.toInt(), true).apply {
+            gravity = Gravity.CENTER
+            setOnClickListener {
+                startActivity(Intent(this@FreeAudioCatalogActivity,
+                    PermittedAudioDownloadActivity::class.java))
+            }
+        }, LinearLayout.LayoutParams(0, dp(45), 1f))
+        root.addView(offlineSources)
 
         progress = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
             visibility = View.GONE
