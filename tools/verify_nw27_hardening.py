@@ -26,6 +26,9 @@ SOURCES = {
     "signing": "tools/verify-apk-signature.ps1",
     "runner": "tools/nw27_hardening_smoke.py",
     "smoke": "tools/kotlin/NW27HardeningSmoke.kt",
+    "stateRunner": "tools/nw27_state_smoke.py",
+    "stateStub": "tools/kotlin/NW27StateAndroidStub.kt",
+    "stateSmoke": "tools/kotlin/NW27StateRaceSmoke.kt",
     "unitCrash": "app/src/test/java/com/nightwave/player/diagnostics/NightWaveCrashPrivacyPolicyTest.kt",
     "unitDrive": "app/src/test/java/com/nightwave/player/v2/cloud/DriveResponseReadPolicyTest.kt",
     "ci": ".github/workflows/android.yml",
@@ -105,11 +108,19 @@ def check(source: dict[str, str]) -> list[str]:
     need("PASS: NW27 33 exact-source Kotlin safety assertions" in s("runner") and
          'println("PASS: NW27 " + cases.size' in s("smoke"),
          "NW27 exact Kotlin runtime fixture or runner missing")
+    need("CloudBackupState.kt" in s("stateRunner") and
+         "NW27StateAndroidStub.kt" in s("stateRunner") and
+         "NW27StateRaceSmoke.kt" in s("stateRunner") and
+         "private val stores" in s("stateStub") and
+         "delayedWorker.successIfCurrent" in s("stateSmoke") and
+         "delayedWorker.statusIfCurrent" in s("stateSmoke"),
+         "Exact-source CloudBackupState race smoke missing")
     need(s("unitCrash").count("@Test") >= 2 and
          s("unitDrive").count("@Test") >= 3,
          "NW27 new unit regression suites missing")
     need("python3 tools/verify_nw27_hardening.py" in s("ci") and
          "python3 tools/nw27_hardening_smoke.py" in s("ci") and
+         "python3 tools/nw27_state_smoke.py" in s("ci") and
          "fix/nightwave-v2-nw27-final-hardening" in s("ci"),
          "NW27 release gate not wired to full Android CI")
     need("fix/nightwave-v2-nw27-final-hardening" in s("canary") and
