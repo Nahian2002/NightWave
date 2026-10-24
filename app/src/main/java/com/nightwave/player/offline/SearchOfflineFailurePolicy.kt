@@ -8,7 +8,8 @@ object SearchOfflineFailurePolicy {
     fun message(details: String?, networkInterrupted: Boolean): String {
         val detail = details.orEmpty().lowercase(java.util.Locale.ROOT)
         return when {
-            "not enough device storage" in detail ->
+            "not enough device storage" in detail ||
+                "device storage is too low" in detail ->
                 "Not enough device storage. Free space and try again."
             "http 403" in detail || "http 401" in detail ->
                 "Audio source denied access. This recording was not saved."
