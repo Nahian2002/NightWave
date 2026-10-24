@@ -33,3 +33,12 @@ release-signing.properties
 local-secrets.properties
 play-service-account*.json
 **/play-service-account*.json
+
+# Unreviewed release binaries, symbol files and diagnostic dumps.
+*.apk
+*.aab
+*.apks
+*.idsig
+*.hprof
+*.stackdump
+*.log
