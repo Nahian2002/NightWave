@@ -302,6 +302,7 @@ fun StudioNowPlayingOverlay(
     onLike: () -> Unit,
     onOpenQueue: () -> Unit,
     onSaveToPlaylist: () -> Unit,
+    onSaveOffline: () -> Unit,
     sleepRemainingMs: Long,
     onSleepTimer: (Int?) -> Unit,
     offlineSpeedPercent: Int,
@@ -719,7 +720,19 @@ fun StudioNowPlayingOverlay(
                                 colors.onSurfaceVariant else colors.primary)
                     }
                 }
-                Spacer(Modifier.height(13.dp))
+                Spacer(Modifier.height(10.dp))
+                OutlinedButton(
+                    onClick = onSaveOffline,
+                    modifier = Modifier.fillMaxWidth().height(45.dp),
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    Text(
+                        if (state.offline) "READY OFFLINE  ·  OPEN LIBRARY"
+                        else "SAVE OFFLINE",
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+                Spacer(Modifier.height(9.dp))
                 Surface(
                     onClick = onOpenQueue, modifier = Modifier.fillMaxWidth().height(51.dp),
                     shape = RoundedCornerShape(15.dp), color = colors.surface,
