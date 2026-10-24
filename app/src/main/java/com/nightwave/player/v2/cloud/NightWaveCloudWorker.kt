@@ -37,7 +37,10 @@ class NightWaveCloudWorker(
                 20, TimeUnit.SECONDS
             )
             if (authorization.hasResolution()) {
-                store.status("Google needs permission again. Open NightWave backup settings.")
+                if (CloudBackupConsentPolicy.same(consent,
+                        store.read().consentSnapshot())) {
+                    store.status("Google needs permission again. Open NightWave backup settings.")
+                }
                 return@withContext Result.success()
             }
             val token = NightWaveCloudAuthorization.requireToken(authorization)
@@ -47,7 +50,10 @@ class NightWaveCloudWorker(
             val legacyAccount = NightWaveCloudAuthorization.authorizedAccount(authorization)
             if (!settings.account.equals(account, ignoreCase = true) ||
                 (legacyAccount != null && !account.equals(legacyAccount, ignoreCase = true))) {
-                store.status("Google account changed; reconnect backup in NightWave.")
+                if (CloudBackupConsentPolicy.same(consent,
+                        store.read().consentSnapshot())) {
+                    store.status("Google account changed; reconnect backup in NightWave.")
+                }
                 return@withContext Result.success()
             }
             // Recheck before network upload; disconnect means no new snapshot.
@@ -87,6 +93,10 @@ class NightWaveCloudWorker(
             // enqueue extra work or replace the user's current status.
             throw cancel
         } catch (error: Exception) {
+            // A disconnected or reconfigured account must not be overwritten
+            // by a late failure from its cancelled/stale previous worker.
+            if (!CloudBackupConsentPolicy.same(consent,
+                    store.read().consentSnapshot())) return@withContext Result.success()
             val code = (error as? DriveHttpFailure)?.statusCode
             if (code != null && !DriveHttpFailurePolicy.mayRetry(code)) {
                 store.status(DriveHttpFailurePolicy.message(code))
