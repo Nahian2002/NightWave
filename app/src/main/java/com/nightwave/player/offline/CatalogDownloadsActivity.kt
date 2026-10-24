@@ -22,7 +22,8 @@ class CatalogDownloadsActivity : ComponentActivity() {
     private val manager by lazy { WorkManager.getInstance(applicationContext) }
     private var catalogJobs: List<WorkInfo> = emptyList()
     private var directJobs: List<WorkInfo> = emptyList()
-    private fun refreshJobs() = render(catalogJobs + directJobs)
+    private var searchedJobs: List<WorkInfo> = emptyList()
+    private fun refreshJobs() = render(catalogJobs + directJobs + searchedJobs)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -80,6 +81,11 @@ class CatalogDownloadsActivity : ComponentActivity() {
                 directJobs = updates.orEmpty()
                 refreshJobs()
             }
+        manager.getWorkInfosByTagLiveData(SearchTrackSaveQueue.TAG)
+            .observe(this) { updates ->
+                searchedJobs = updates.orEmpty()
+                refreshJobs()
+            }
     }
 
     private fun render(infos: List<WorkInfo>) {
@@ -98,17 +104,27 @@ class CatalogDownloadsActivity : ComponentActivity() {
         infos.sortedWith(compareBy<WorkInfo> { it.state.isFinished }
             .thenBy { it.id.toString() }).take(60).forEach { info ->
             val isDirect = DirectAudioDownloadQueue.TAG in info.tags
-            val titlePrefix = if (isDirect) DirectAudioDownloadQueue.TITLE_TAG
-                else CatalogDownloadQueue.TITLE_TAG
+            val isSearch = SearchTrackSaveQueue.TAG in info.tags
+            val titlePrefix = when {
+                isSearch -> SearchTrackSaveQueue.TITLE_TAG
+                isDirect -> DirectAudioDownloadQueue.TITLE_TAG
+                else -> CatalogDownloadQueue.TITLE_TAG
+            }
             val title = info.tags.firstOrNull {
                 it.startsWith(titlePrefix)
             }?.removePrefix(titlePrefix).orEmpty().ifBlank { "Audio file" }
             val received = info.progress.getLong(
-                if (isDirect) DirectAudioDownloadQueue.KEY_RECEIVED
-                else CatalogDownloadQueue.KEY_RECEIVED, 0L)
+                when {
+                    isSearch -> SearchTrackSaveQueue.KEY_RECEIVED
+                    isDirect -> DirectAudioDownloadQueue.KEY_RECEIVED
+                    else -> CatalogDownloadQueue.KEY_RECEIVED
+                }, 0L)
             val total = info.progress.getLong(
-                if (isDirect) DirectAudioDownloadQueue.KEY_TOTAL
-                else CatalogDownloadQueue.KEY_TOTAL, -1L)
+                when {
+                    isSearch -> SearchTrackSaveQueue.KEY_TOTAL
+                    isDirect -> DirectAudioDownloadQueue.KEY_TOTAL
+                    else -> CatalogDownloadQueue.KEY_TOTAL
+                }, -1L)
             val progress = if (total > 0L) {
                 " · " + (100L * received / total).coerceIn(0, 100) + "%"
             } else if (received > 0L) " · " + (received / 1024L) + " KB" else ""
@@ -118,8 +134,11 @@ class CatalogDownloadsActivity : ComponentActivity() {
                 WorkInfo.State.SUCCEEDED -> "Saved in Offline Library"
                 WorkInfo.State.FAILED -> "Failed · " +
                     info.outputData.getString(
-                        if (isDirect) DirectAudioDownloadQueue.KEY_ERROR
-                        else CatalogDownloadQueue.KEY_ERROR).orEmpty()
+                        when {
+                            isSearch -> SearchTrackSaveQueue.KEY_ERROR
+                            isDirect -> DirectAudioDownloadQueue.KEY_ERROR
+                            else -> CatalogDownloadQueue.KEY_ERROR
+                        }).orEmpty()
                 WorkInfo.State.CANCELLED -> "Cancelled · No partial track saved"
                 WorkInfo.State.BLOCKED -> "Waiting for another queued job"
             }
@@ -141,20 +160,36 @@ class CatalogDownloadsActivity : ComponentActivity() {
                     }, LinearLayout.LayoutParams(-1, dp(48)))
                 }
                 WorkInfo.State.SUCCEEDED -> {
-                    val savedTitle = if (isDirect) title else info.outputData.getString(
+                    val savedTitle = if (isDirect || isSearch) title else info.outputData.getString(
                         CatalogDownloadQueue.KEY_SAVED_TITLE).orEmpty()
-                    card.addView(label("Open saved song  →", 14f, 0xFF94E2D8.toInt(), true).apply {
+                    card.addView(label(
+                        if (isSearch) "Play saved offline  →" else "Open saved song  →",
+                        14f, 0xFF94E2D8.toInt(), true).apply {
                         gravity = Gravity.CENTER
                         setOnClickListener {
-                            startActivity(Intent(this@CatalogDownloadsActivity,
-                                OfflineLibraryActivity::class.java)
-                                .putExtra(OfflineLibraryActivity.EXTRA_SEARCH_QUERY, savedTitle))
+                            val id = if (isSearch) info.outputData.getString(
+                                SearchTrackSaveQueue.KEY_ID) else null
+                            val offline = id?.let { OfflineAudioLibrary(
+                                this@CatalogDownloadsActivity).find(it) }
+                            if (offline != null && OfflineAudioLibrary(
+                                    this@CatalogDownloadsActivity).fileFor(offline) != null) {
+                                startService(Intent(this@CatalogDownloadsActivity,
+                                    com.nightwave.player.playback.PlaybackService::class.java)
+                                    .setAction(com.nightwave.player.playback.PlaybackService.ACTION_PLAY_OFFLINE)
+                                    .putExtra(com.nightwave.player.playback.PlaybackService.EXTRA_OFFLINE_ID,
+                                        offline.id))
+                            } else {
+                                startActivity(Intent(this@CatalogDownloadsActivity,
+                                    OfflineLibraryActivity::class.java)
+                                    .putExtra(OfflineLibraryActivity.EXTRA_SEARCH_QUERY, savedTitle))
+                            }
                         }
                     }, LinearLayout.LayoutParams(-1, dp(48)))
                 }
                 else -> {
                     card.addView(label(
-                        if (isDirect) "Try another direct audio link  →"
+                        if (isSearch) "View other offline audio sources  →"
+                        else if (isDirect) "Try another direct audio link  →"
                         else "Find another recording  →", 14f,
                         0xFF94E2D8.toInt(), true).apply {
                         gravity = Gravity.CENTER
