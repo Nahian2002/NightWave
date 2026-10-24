@@ -42,6 +42,7 @@ $state = Source ($b + 'v2\cloud\CloudBackupState.kt')
 $auth = Source ($b + 'v2\cloud\NightWaveCloudAuthorization.kt')
 $cloud = Source ($b + 'v2\cloud\NightWaveDriveClient.kt')
 $backupWorker = Source ($b + 'v2\cloud\NightWaveCloudWorker.kt')
+$consentPolicy = Source ($b + 'v2\cloud\CloudBackupConsentPolicy.kt')
 $recovery = Source ($b + 'v2\data\LibraryArchiveManager.kt')
 $lyrics = Source ($b + 'v2\lyrics\PrivateLyricsStore.kt')
 $lockerAuth = Source ($b + 'v2\locker\NightWaveLockerAuthorization.kt')
@@ -80,8 +81,14 @@ Require $backup 'version == 3 && keys == oldKeys +' 'optional v3 backup decoding
 Require $backup 'digest(payload)' 'backed up checksums'
 Require $state 'includeLyrics: Boolean = false' 'lyrics opt-in default'
 Require $state 'includePreferences: Boolean = false' 'preferences opt-in default'
-Require $backupWorker 'beforeUpload.includeLyrics != settings.includeLyrics' 'worker privacy recheck'
-Require $backupWorker 'beforeUpload.includePreferences != settings.includePreferences' 'worker settings recheck'
+Require $backupWorker 'CloudBackupConsentPolicy.same(consent,' 'worker consent recheck'
+Require $backupWorker 'beforeUpload.consentSnapshot()' 'worker current privacy/settings snapshot recheck'
+Require $backupWorker 'store.successIfCurrent(consent,' 'worker consent-fenced success write'
+Require $backupWorker 'store.statusIfCurrent(consent,' 'worker consent-fenced status write'
+Require $consentPolicy 'expected.lyrics == current.lyrics' 'worker lyrics privacy opt-in'
+Require $consentPolicy 'expected.preferences == current.preferences' 'worker preferences privacy opt-in'
+Require $consentPolicy 'expected.revision == current.revision' 'worker same-account reconnect fence'
+Require $state 'putLong(REVISION_KEY, nextRevision())' 'persistent backup consent revision
 Require $cloud 'backUpIfChangedVerified(bytes: ByteArray)' 'verified smart backup'
 Require $cloud 'appDataFolder' 'metadata backup appDataFolder'
 Require $recovery 'restoreCloudIfUnchanged(' 'restore preview-fence'
