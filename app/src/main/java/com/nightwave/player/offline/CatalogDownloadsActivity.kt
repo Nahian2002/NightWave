@@ -20,6 +20,9 @@ class CatalogDownloadsActivity : ComponentActivity() {
     private lateinit var overview: TextView
     private lateinit var scroll: ScrollView
     private val manager by lazy { WorkManager.getInstance(applicationContext) }
+    private var catalogJobs: List<WorkInfo> = emptyList()
+    private var directJobs: List<WorkInfo> = emptyList()
+    private fun refreshJobs() = render(catalogJobs + directJobs)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,7 +36,7 @@ class CatalogDownloadsActivity : ComponentActivity() {
             setOnClickListener { finish() }
         })
         root.addView(label("Downloads", 28f, Color.WHITE, true))
-        root.addView(label("Persistent queue · Licensed audio only",
+        root.addView(label("Persistent queue · Authorized audio files",
             13f, 0xFFABC0CB.toInt()).apply {
             setPadding(0, dp(7), 0, dp(14))
         })
@@ -68,7 +71,15 @@ class CatalogDownloadsActivity : ComponentActivity() {
         setContentView(frame)
         NightWaveSafeInsets.bind(frame)
         manager.getWorkInfosByTagLiveData(CatalogDownloadQueue.TAG)
-            .observe(this) { updates -> render(updates.orEmpty()) }
+            .observe(this) { updates ->
+                catalogJobs = updates.orEmpty()
+                refreshJobs()
+            }
+        manager.getWorkInfosByTagLiveData(DirectAudioDownloadQueue.TAG)
+            .observe(this) { updates ->
+                directJobs = updates.orEmpty()
+                refreshJobs()
+            }
     }
 
     private fun render(infos: List<WorkInfo>) {
@@ -86,12 +97,18 @@ class CatalogDownloadsActivity : ComponentActivity() {
         }
         infos.sortedWith(compareBy<WorkInfo> { it.state.isFinished }
             .thenBy { it.id.toString() }).take(60).forEach { info ->
+            val isDirect = DirectAudioDownloadQueue.TAG in info.tags
+            val titlePrefix = if (isDirect) DirectAudioDownloadQueue.TITLE_TAG
+                else CatalogDownloadQueue.TITLE_TAG
             val title = info.tags.firstOrNull {
-                it.startsWith(CatalogDownloadQueue.TITLE_TAG)
-            }?.removePrefix(CatalogDownloadQueue.TITLE_TAG)
-                .orEmpty().ifBlank { "Audio file" }
-            val received = info.progress.getLong(CatalogDownloadQueue.KEY_RECEIVED, 0L)
-            val total = info.progress.getLong(CatalogDownloadQueue.KEY_TOTAL, -1L)
+                it.startsWith(titlePrefix)
+            }?.removePrefix(titlePrefix).orEmpty().ifBlank { "Audio file" }
+            val received = info.progress.getLong(
+                if (isDirect) DirectAudioDownloadQueue.KEY_RECEIVED
+                else CatalogDownloadQueue.KEY_RECEIVED, 0L)
+            val total = info.progress.getLong(
+                if (isDirect) DirectAudioDownloadQueue.KEY_TOTAL
+                else CatalogDownloadQueue.KEY_TOTAL, -1L)
             val progress = if (total > 0L) {
                 " · " + (100L * received / total).coerceIn(0, 100) + "%"
             } else if (received > 0L) " · " + (received / 1024L) + " KB" else ""
@@ -100,7 +117,9 @@ class CatalogDownloadsActivity : ComponentActivity() {
                 WorkInfo.State.RUNNING -> "Downloading" + progress
                 WorkInfo.State.SUCCEEDED -> "Saved in Offline Library"
                 WorkInfo.State.FAILED -> "Failed · " +
-                    info.outputData.getString(CatalogDownloadQueue.KEY_ERROR).orEmpty()
+                    info.outputData.getString(
+                        if (isDirect) DirectAudioDownloadQueue.KEY_ERROR
+                        else CatalogDownloadQueue.KEY_ERROR).orEmpty()
                 WorkInfo.State.CANCELLED -> "Cancelled · No partial track saved"
                 WorkInfo.State.BLOCKED -> "Waiting for another queued job"
             }
@@ -122,7 +141,7 @@ class CatalogDownloadsActivity : ComponentActivity() {
                     }, LinearLayout.LayoutParams(-1, dp(48)))
                 }
                 WorkInfo.State.SUCCEEDED -> {
-                    val savedTitle = info.outputData.getString(
+                    val savedTitle = if (isDirect) title else info.outputData.getString(
                         CatalogDownloadQueue.KEY_SAVED_TITLE).orEmpty()
                     card.addView(label("Open saved song  →", 14f, 0xFF94E2D8.toInt(), true).apply {
                         gravity = Gravity.CENTER
@@ -134,13 +153,20 @@ class CatalogDownloadsActivity : ComponentActivity() {
                     }, LinearLayout.LayoutParams(-1, dp(48)))
                 }
                 else -> {
-                    card.addView(label("Find another recording  →", 14f,
+                    card.addView(label(
+                        if (isDirect) "Try another direct audio link  →"
+                        else "Find another recording  →", 14f,
                         0xFF94E2D8.toInt(), true).apply {
                         gravity = Gravity.CENTER
                         setOnClickListener {
-                            startActivity(Intent(this@CatalogDownloadsActivity,
-                                FreeAudioCatalogActivity::class.java)
-                                .putExtra(FreeAudioCatalogActivity.EXTRA_QUERY, title))
+                            if (isDirect) {
+                                startActivity(Intent(this@CatalogDownloadsActivity,
+                                    PermittedAudioDownloadActivity::class.java))
+                            } else {
+                                startActivity(Intent(this@CatalogDownloadsActivity,
+                                    FreeAudioCatalogActivity::class.java)
+                                    .putExtra(FreeAudioCatalogActivity.EXTRA_QUERY, title))
+                            }
                         }
                     }, LinearLayout.LayoutParams(-1, dp(48)))
                 }
