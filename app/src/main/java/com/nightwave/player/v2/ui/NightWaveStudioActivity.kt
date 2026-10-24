@@ -29,6 +29,7 @@ import com.nightwave.player.v2.insights.ListeningMemoryStore
 import com.nightwave.player.v2.insights.ListeningMemorySummary
 import com.nightwave.player.v2.cloud.CloudAccountPresentation
 import com.nightwave.player.v2.cloud.CloudAuthorizationRecoveryPolicy
+import com.nightwave.player.v2.cloud.CloudAuthorizationDiagnosticPolicy
 import com.nightwave.player.v2.cloud.CloudBackupStatus
 import com.nightwave.player.v2.cloud.CloudBackupConsentPolicy
 import com.nightwave.player.v2.cloud.consentSnapshot
@@ -344,21 +345,34 @@ class NightWaveStudioActivity : ComponentActivity() {
         }
         cloudAwaitingResolution = false
         if (result.resultCode != RESULT_OK || result.data == null) {
+            // Google may return an ApiException even when the Activity was
+            // cancelled. Inspect only its numeric status, never result extras.
+            val code = result.data?.let { data ->
+                runCatching {
+                    Identity.getAuthorizationClient(this).getAuthorizationResultFromIntent(data)
+                }.exceptionOrNull()?.let {
+                    (it as? com.google.android.gms.common.api.ApiException)?.statusCode
+                }
+            }
             cloudBusy = false
             cloudPendingAction = ""
-            cloudStore.status("Google authorization cancelled or no account was selected")
+            val message = CloudAuthorizationDiagnosticPolicy.resolution(
+                result.resultCode == RESULT_OK, result.data != null, code)
+            cloudStore.status(message)
             refreshCloud()
-            showMessage("Google Drive authorization was cancelled or not completed.")
+            showMessage(message)
         } else {
             runCatching {
                 Identity.getAuthorizationClient(this).getAuthorizationResultFromIntent(result.data!!)
             }.onSuccess { finishCloudAuthorization(it) }
-                .onFailure {
+                .onFailure { error ->
                     cloudBusy = false
                     cloudPendingAction = ""
-                    cloudStore.status("Google returned an invalid authorization result")
+                    val code = (error as? com.google.android.gms.common.api.ApiException)?.statusCode
+                    val message = CloudAuthorizationDiagnosticPolicy.resolution(true, true, code)
+                    cloudStore.status(message)
                     refreshCloud()
-                    showMessage("Google Drive did not return a valid authorization result.")
+                    showMessage(message)
                 }
         }
     }
@@ -1109,8 +1123,8 @@ class NightWaveStudioActivity : ComponentActivity() {
                 val statusCode =
                     (error as? com.google.android.gms.common.api.ApiException)?.statusCode
                 val message = if (statusCode != null)
-                    "Google Drive authorization failed (status $statusCode)"
-                else "Google Drive authorization could not start"
+                    CloudAuthorizationDiagnosticPolicy.apiStatus(statusCode)
+                else "Google Drive authorization could not start. Verify Google Play services and APK OAuth registration."
                 cloudStore.status(message)
                 refreshCloud()
                 showMessage("$message. Check Google Play services and app authorization setup.")
