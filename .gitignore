@@ -7,3 +7,29 @@ build/
 .DS_Store
 dist/
 .local-build/
+
+# Release signing, device identities, OAuth credentials and local secrets.
+# Ignore rules only affect future untracked files; history still needs a scan.
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.pem
+*.key
+id_rsa
+id_ed25519
+*.env
+.env
+.env.*
+*.secret
+google-services.json
+**/google-services.json
+credentials.json
+**/credentials.json
+service-account*.json
+**/service-account*.json
+keystore.properties
+release-signing.properties
+local-secrets.properties
+play-service-account*.json
+**/play-service-account*.json
