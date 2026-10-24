@@ -49,6 +49,7 @@ object DirectAudioDownloadQueue {
             .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
             .addTag(TAG)
             .addTag(TITLE_TAG + verified.fileName.take(72))
+            .addTag(OfflineSaveRetryPolicy.CREATED_TAG_PREFIX + System.currentTimeMillis())
             .build()
         return WorkManager.getInstance(context.applicationContext).enqueueUniqueWork(
             "nightwave-direct-audio-" + id,
