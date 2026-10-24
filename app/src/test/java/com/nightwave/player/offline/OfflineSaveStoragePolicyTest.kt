@@ -19,6 +19,16 @@ class OfflineSaveStoragePolicyTest {
         assertTrue(OfflineSaveStoragePolicy.canStart(216L * mb, 100L * mb))
     }
 
+    @Test fun unknownSizeTransfersMustPreserveSpaceForTheVerifiedCopy() {
+        assertFalse(OfflineSaveStoragePolicy.canContinue(30L * mb, 10L * mb))
+        assertTrue(OfflineSaveStoragePolicy.canContinue(34L * mb, 10L * mb))
+        assertFalse(OfflineSaveStoragePolicy.canContinue(0L, 1L * mb))
+        assertFalse(OfflineSaveStoragePolicy.canContinue(-1L, 1L * mb))
+        assertFalse(OfflineSaveStoragePolicy.canContinue(1000L * mb, 0L))
+        assertFalse(OfflineSaveStoragePolicy.canContinue(1000L * mb, 251L * mb))
+        assertTrue(OfflineSaveStoragePolicy.canContinue(274L * mb, 250L * mb))
+    }
+
     @Test fun rejectsInvalidDeclaredSizesWithoutOverflow() {
         assertFalse(OfflineSaveStoragePolicy.canStart(1000L * mb, 0L))
         assertFalse(OfflineSaveStoragePolicy.canStart(1000L * mb, -1L))
