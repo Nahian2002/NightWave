@@ -30,6 +30,10 @@ import com.nightwave.player.v2.insights.ListeningMemorySummary
 import com.nightwave.player.v2.cloud.CloudAccountPresentation
 import com.nightwave.player.v2.cloud.CloudAuthorizationRecoveryPolicy
 import com.nightwave.player.v2.cloud.CloudBackupStatus
+import com.nightwave.player.v2.cloud.CloudBackupConsentPolicy
+import com.nightwave.player.v2.cloud.consentSnapshot
+import com.nightwave.player.v2.cloud.DriveHttpFailure
+import com.nightwave.player.v2.cloud.DriveHttpFailurePolicy
 import com.nightwave.player.v2.cloud.CloudBackupState
 import com.nightwave.player.v2.cloud.CloudBackupCodec
 import com.nightwave.player.v2.cloud.CloudBackupPreview
@@ -1147,10 +1151,13 @@ class NightWaveStudioActivity : ComponentActivity() {
             if (account == null ||
                 (legacyAccount != null && !account.equals(legacyAccount, ignoreCase = true))) {
                 cloudBusy = false
-                cloudStore.status("Could not verify the account for this Drive permission")
+                val code = (verified.exceptionOrNull() as? DriveHttpFailure)?.statusCode
+                cloudStore.status(if (code != null) DriveHttpFailurePolicy.message(code)
+                    else "Could not verify the account for this Drive permission")
                 refreshCloud()
-                showMessage("Drive access returned, but Google account verification failed. " +
-                    "Check network and OAuth app setup before retrying.")
+                showMessage(if (code != null) DriveHttpFailurePolicy.message(code)
+                    else "Google selected an account but Drive could not verify it. " +
+                    "Check your internet connection and Android OAuth certificate setup.")
                 return@launch
             }
             finishVerifiedCloudAuthorization(action, token, account)
@@ -1174,6 +1181,7 @@ class NightWaveStudioActivity : ComponentActivity() {
             refreshCloud()
             return
         }
+        val operationConsent = cloudStore.read().consentSnapshot()
         lifecycleScope.launch {
             val resultTask = withContext(Dispatchers.IO) {
                 runCatching {
@@ -1190,11 +1198,9 @@ class NightWaveStudioActivity : ComponentActivity() {
                             val bytes = CloudBackupCodec.encode(local, history, settings.includeHistory,
                                 extraPreferences, extraLyrics, settings.includeLyrics)
                             val latestSettings = cloudStore.read()
-                            check(latestSettings.account.equals(expectedAccount, true) &&
-                                latestSettings.includeHistory == settings.includeHistory &&
-                                latestSettings.includeLyrics == settings.includeLyrics &&
-                                latestSettings.includePreferences == settings.includePreferences) {
-                                "Google account or history preference changed during backup"
+                            check(CloudBackupConsentPolicy.same(operationConsent,
+                                latestSettings.consentSnapshot())) {
+                                "Google account or backup privacy settings changed during upload"
                             }
                             val outcome = drive.backUpIfChangedVerified(bytes)
                             CloudActionResult.Backup(outcome.created)
@@ -1212,6 +1218,12 @@ class NightWaveStudioActivity : ComponentActivity() {
             resultTask.onSuccess { outcome ->
                 when (outcome) {
                     is CloudActionResult.Backup -> {
+                        if (!CloudBackupConsentPolicy.same(operationConsent,
+                                cloudStore.read().consentSnapshot())) {
+                            showMessage("Backup transfer finished, but your settings changed. " +
+                                "Run Back up now again to verify the current choices.")
+                            return@onSuccess
+                        }
                         if (cloudStore.success(expectedAccount, System.currentTimeMillis())) {
                             runCatching {
                                 NightWaveCloudSchedule.update(this@NightWaveStudioActivity)
@@ -1236,9 +1248,13 @@ class NightWaveStudioActivity : ComponentActivity() {
                 }
             }.onFailure { error ->
                 // Only bounded, non-sensitive status to UI; never display an access token.
-                cloudStore.status(if (error.message == "No NightWave cloud backup found")
-                    "No cloud backups found in this Google account"
-                else "Drive operation unsuccessful; local library unchanged")
+                cloudStore.status(when {
+                    error is DriveHttpFailure ->
+                        DriveHttpFailurePolicy.message(error.statusCode)
+                    error.message == "No NightWave cloud backup found" ->
+                        "No cloud backups found in this Google account"
+                    else -> "Drive operation unsuccessful; local library unchanged"
+                })
                 refreshCloud()
                 showMessage(cloudStore.read().lastResult)
             }
