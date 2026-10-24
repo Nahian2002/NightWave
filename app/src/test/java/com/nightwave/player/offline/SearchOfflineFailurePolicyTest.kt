@@ -25,6 +25,12 @@ class SearchOfflineFailurePolicyTest {
             .contains("storage"))
     }
 
+    @Test fun diskExhaustionDuringUnknownLengthTransferIsExplained() {
+        assertTrue(SearchOfflineFailurePolicy.message(
+            "Device storage is too low to finish saving audio safely.", false)
+            .contains("Free space"))
+    }
+
     @Test fun networkFailureIsRetryableByUser() {
         assertTrue(SearchOfflineFailurePolicy.message("Connection reset", true)
             .contains("Connection interrupted"))
