@@ -19,6 +19,8 @@ import java.util.concurrent.TimeUnit
  * No global account or server needed. WorkManager owns the lifetime.
  */
 object DirectAudioDownloadQueue {
+    const val TAG = "nightwave-authorized-direct-audio"
+    const val TITLE_TAG = "nightwave-direct-title:"
     const val KEY_URL = "authorized_audio_url"
     const val KEY_NAME = "authorized_audio_name"
     const val KEY_DONE = "authorized_saved_song_id"
@@ -45,7 +47,8 @@ object DirectAudioDownloadQueue {
             .setConstraints(Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED).build())
             .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
-            .addTag("nightwave-authorized-direct-audio")
+            .addTag(TAG)
+            .addTag(TITLE_TAG + verified.fileName.take(72))
             .build()
         return WorkManager.getInstance(context.applicationContext).enqueueUniqueWork(
             "nightwave-direct-audio-" + id,
