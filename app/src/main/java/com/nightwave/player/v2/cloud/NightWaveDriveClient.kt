@@ -44,7 +44,7 @@ class NightWaveDriveClient(private val accessToken: String) {
                 val count = source.read(buffer)
                 if (count < 0) break
                 if (count == 0) {
-                    check(++consecutiveEmptyReads <= 8) {
+                    check(!DriveResponseReadPolicy.stalled(++consecutiveEmptyReads)) {
                         "Google Drive response did not make progress"
                     }
                     continue
@@ -52,7 +52,8 @@ class NightWaveDriveClient(private val accessToken: String) {
                 consecutiveEmptyReads = 0
                 // Subtraction avoids integer overflow if a future API
                 // unexpectedly advertises a very large response.
-                require(count <= maxBytes - result.size()) {
+                require(DriveResponseReadPolicy.canAppend(
+                    result.size(), count, maxBytes)) {
                     "Drive response too large"
                 }
                 result.write(buffer, 0, count)
