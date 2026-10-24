@@ -15,9 +15,10 @@ object SearchOfflinePauseState {
         context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .edit().putBoolean(id.toString(), true).commit()
 
-    fun isMarked(context: Context, id: UUID): Boolean =
+    fun isMarked(context: Context, id: UUID): Boolean = runCatching {
         context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .getBoolean(id.toString(), false)
+    }.getOrDefault(false)
 
     fun clear(context: Context, id: UUID): Boolean =
         context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
