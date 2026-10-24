@@ -7,6 +7,7 @@ on:
   push:
     branches:
       - fix/nightwave-v2-nw10-compiler-recovery
+      - fix/nightwave-v2-nw27-final-hardening
   workflow_dispatch:
 
 permissions: {}
