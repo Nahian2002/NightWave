@@ -219,6 +219,18 @@ class CatalogDownloadsActivity : ComponentActivity() {
                             }
                         }
                     }, LinearLayout.LayoutParams(-1, dp(48)))
+                    // A historical success record is not an offline file.
+                    // Offer recovery of the exact searched recording only
+                    // when the local file was later deleted/unavailable.
+                    val restoreUrl = if (isSearch && !actuallySaved)
+                        OfflineSaveRetryPolicy.retryUrl(info.tags) else null
+                    if (restoreUrl != null) {
+                        card.addView(label("Save this song again  →", 14f,
+                            0xFF9FE3DF.toInt(), true).apply {
+                            gravity = Gravity.CENTER
+                            setOnClickListener { confirmSearchRetry(restoreUrl, title) }
+                        }, LinearLayout.LayoutParams(-1, dp(48)))
+                    }
                 }
                 else -> {
                     val retryUrl = if (isSearch)
