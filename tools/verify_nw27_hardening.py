@@ -20,6 +20,8 @@ SOURCES = {
     "manifest": "app/src/main/AndroidManifest.xml",
     "gradle": "app/build.gradle.kts",
     "windows": "tools/build-windows.ps1",
+    "windowsGate": "tools/check-nw27-integrity.ps1",
+    "windowsSyntax": "tools/check-builder-syntax.ps1",
     "signing": "tools/verify-apk-signature.ps1",
     "runner": "tools/nw27_hardening_smoke.py",
     "smoke": "tools/kotlin/NW27HardeningSmoke.kt",
@@ -82,6 +84,11 @@ def check(source: dict[str, str]) -> list[str]:
          in s("windows") and
          "Source files changed during Gradle build" in s("windows"),
          "Windows release compiler and mutation gates missing")
+    need("check-nw27-integrity.ps1" in s("windows") and
+         "check-nw27-integrity.ps1" in s("windowsSyntax") and
+         "PASS: NW27 Windows 14-source" in s("windowsGate") and
+         "param([switch]$SelfTest)" in s("windowsGate"),
+         "One-click Windows builder must run/parse NW27 native source gate")
     need("if ($previousSigner -ne $newSigner)" in s("signing") and
          "if ($newSigner -ne $trusted.ToUpperInvariant())" in s("signing"),
          "Installed/upgraded APK signer continuity checks missing")
