@@ -242,7 +242,12 @@ class CatalogDownloadsActivity : ComponentActivity() {
                     }
                     card.addView(label("Cancel download", 14f, 0xFFF0B7B7.toInt(), true).apply {
                         gravity = Gravity.CENTER
-                        setOnClickListener { manager.cancelWorkById(info.id) }
+                        setOnClickListener {
+                            // Cancel is distinct from Pause. A deliberate
+                            // cancel must never leave a resumable UI marker.
+                            if (isSearch) SearchOfflinePauseState.clear(this@CatalogDownloadsActivity, info.id)
+                            manager.cancelWorkById(info.id)
+                        }
                     }, LinearLayout.LayoutParams(-1, dp(48)))
                 }
                 WorkInfo.State.SUCCEEDED -> {
