@@ -249,6 +249,18 @@ internal fun NightWaveAccountHubDialog(
                             color = muted,
                             style = MaterialTheme.typography.bodySmall)
                     }
+                    if (!connected) {
+                        item {
+                            Text("If Google account selection closes without connecting, " +
+                                "run check-google-oauth.cmd from the Windows build folder. " +
+                                "Register its Android package and signing SHA-1 in Google " +
+                                "Cloud's OAuth client; enable Drive API and add yourself " +
+                                "as a test user when OAuth is in Testing mode. " +
+                                "Then try Connect Google Drive again.",
+                                color = muted,
+                                style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
                 }
             }
         }
