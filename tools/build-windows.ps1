@@ -499,11 +499,24 @@ try {
         throw 'APK signature verification script missing from source ZIP.'
     }
     $buildTools = Join-Path $sdk 'build-tools\35.0.0'
-    $verifyOutput = (& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $verifier `
-        -ApkPath $apk -BuildToolsDir $buildTools `
-        -VersionName '2.0.0-alpha5s' -VersionCode '35' `
-        -PreviousApkPath $previousApk `
-        -TrustedSignerSHA256 $env:NIGHTWAVE_TRUSTED_SIGNER_SHA256 2>&1 | Out-String)
+    # A missing NIGHTWAVE_TRUSTED_SIGNER_SHA256 is normal on a first
+    # Windows build. Never pass a named -TrustedSignerSHA256 parameter
+    # without its value: powershell.exe -File otherwise aborts before
+    # our verifier runs ("Missing an argument for parameter").
+    # If set, forward it unchanged so the verifier fails closed on
+    # malformed or mismatched trusted signer digests.
+    $verifierArgs = @(
+        '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $verifier,
+        '-ApkPath', $apk,
+        '-BuildToolsDir', $buildTools,
+        '-VersionName', '2.0.0-alpha5s',
+        '-VersionCode', '35',
+        '-PreviousApkPath', $previousApk
+    )
+    if (-not [string]::IsNullOrWhiteSpace($env:NIGHTWAVE_TRUSTED_SIGNER_SHA256)) {
+        $verifierArgs += @('-TrustedSignerSHA256', $env:NIGHTWAVE_TRUSTED_SIGNER_SHA256)
+    }
+    $verifyOutput = (& powershell.exe @verifierArgs 2>&1 | Out-String)
     if ($LASTEXITCODE -ne 0) {
         throw ('APK signature/identity gate failed: ' + $verifyOutput.Trim())
     }
