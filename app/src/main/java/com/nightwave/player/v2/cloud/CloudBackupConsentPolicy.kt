@@ -11,7 +11,10 @@ data class CloudBackupConsent(
     val history: Boolean,
     val lyrics: Boolean,
     val preferences: Boolean,
-    val wifiOnly: Boolean
+    val wifiOnly: Boolean,
+    // Incremented on every connect, disconnect or backup-privacy change.
+    // Prevents old workers from matching a disconnected-then-reconnected account.
+    val revision: Long = 0L
 )
 
 object CloudBackupConsentPolicy {
@@ -22,5 +25,6 @@ object CloudBackupConsentPolicy {
             expected.history == current.history &&
             expected.lyrics == current.lyrics &&
             expected.preferences == current.preferences &&
-            expected.wifiOnly == current.wifiOnly
+            expected.wifiOnly == current.wifiOnly &&
+            expected.revision == current.revision
 }
