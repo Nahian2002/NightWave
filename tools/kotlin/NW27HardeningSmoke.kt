@@ -2,6 +2,8 @@ package com.nightwave.player.nw27
 
 import com.nightwave.player.diagnostics.NightWaveCrashPrivacyPolicy
 import com.nightwave.player.v2.cloud.DriveResponseReadPolicy
+import com.nightwave.player.v2.cloud.CloudBackupConsent
+import com.nightwave.player.v2.cloud.CloudBackupConsentPolicy
 
 /**
  * Runs against unmodified production policy files with no Android runtime,
@@ -12,6 +14,8 @@ object NW27HardeningSmoke {
     fun main(args: Array<String>) {
         val privacy = NightWaveCrashPrivacyPolicy
         val body = DriveResponseReadPolicy
+        val consent = CloudBackupConsent("user@example.com", true,
+            false, true, false, true, revision = 41L)
         val cases = listOf(
             privacy.threadLabel("main") == "main",
             privacy.threadLabel("RenderThread") == "render",
@@ -40,7 +44,13 @@ object NW27HardeningSmoke {
             !body.canAppend(1, 1, -10),
             !body.stalled(0),
             !body.stalled(8),
-            body.stalled(9)
+            body.stalled(9),
+            CloudBackupConsentPolicy.same(consent, consent.copy()),
+            CloudBackupConsentPolicy.same(consent,
+                consent.copy(account = "USER@EXAMPLE.COM")),
+            !CloudBackupConsentPolicy.same(consent, consent.copy(revision = 42L)),
+            !CloudBackupConsentPolicy.same(consent, consent.copy(account = "")),
+            !CloudBackupConsentPolicy.same(consent, consent.copy(history = true))
         )
         cases.forEachIndexed { index, pass ->
             check(pass) { "NW27 hardening assertion " + (index + 1) + " failed" }
