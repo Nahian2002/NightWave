@@ -871,6 +871,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                     onSharePlaylist = { name, tracks -> sharePlaylist(name, tracks) },
                     onImportSharedPlaylist = { promptSharedPlaylistPaste() },
                     onSaveCurrentToPlaylist = { saveCurrentToPlaylist() },
+                    onSaveCurrentOffline = { saveCurrentOffline() },
                     storageStatus = shadowStatus,
                     onCheckStorage = { refreshShadows() },
                     roomReadStatus = roomReadStatus,
@@ -1698,18 +1699,40 @@ class NightWaveStudioActivity : ComponentActivity() {
             }.setNegativeButton("Cancel", null).show()
     }
 
+    private fun openOfflineSaving(video: VideoPreview) {
+        // A YouTube URL is never an offline asset. Search independent,
+        // licensed recordings using title and creator while keeping their
+        // identity separate; the user must review the source before saving.
+        startActivity(Intent(this, FreeAudioCatalogActivity::class.java)
+            .putExtra(FreeAudioCatalogActivity.EXTRA_QUERY, video.title.take(100))
+            .putExtra(FreeAudioCatalogActivity.EXTRA_ARTIST, video.author.take(100)))
+    }
+
+    private fun saveCurrentOffline() {
+        val current = playback.state
+        if (!current.hasTrack) return
+        if (current.offline) {
+            startActivity(Intent(this, OfflineLibraryActivity::class.java)
+                .putExtra(OfflineLibraryActivity.EXTRA_SEARCH_QUERY, current.title.take(100)))
+        } else {
+            openOfflineSaving(VideoPreview(
+                current.title.ifBlank { "Song" }, current.artist,
+                current.videoUrl, current.thumbnail, current.durationMs / 1000L
+            ))
+        }
+    }
+
     private fun showSongOptions(video: VideoPreview) {
         val likeText = if (library.isFavorite(video.url)) "Unlike song" else "Like song"
         AlertDialog.Builder(this).setTitle(video.title)
             .setItems(arrayOf(likeText, "Save to playlist", "Add to queue",
-                "Play now", "Find free downloadable recording")) { _, selected ->
+                "Play now", "Save Offline (eligible audio)")) { _, selected ->
                 when (selected) {
                     0 -> { library.toggleFavorite(video); refresh() }
                     1 -> saveSongToPlaylist(video)
                     2 -> playback.enqueue(video)
                     3 -> playback.play(video)
-                    4 -> startActivity(Intent(this, FreeAudioCatalogActivity::class.java)
-                        .putExtra(FreeAudioCatalogActivity.EXTRA_QUERY, video.title.take(100)))
+                    4 -> openOfflineSaving(video)
                 }
             }.setNegativeButton("Close", null).show()
     }
@@ -2262,6 +2285,7 @@ private fun StudioRoot(
     onSharePlaylist: (String, List<VideoPreview>) -> Unit,
     onImportSharedPlaylist: () -> Unit,
     onSaveCurrentToPlaylist: () -> Unit,
+    onSaveCurrentOffline: () -> Unit,
     onSearch: (String, SearchMode) -> Unit,
     onPrimarySearch: (String, SearchMode) -> Unit,
     onPrepareSearch: (String, SearchMode) -> Unit,
@@ -2543,6 +2567,7 @@ private fun StudioRoot(
         },
         onOpenQueue = { showQueue = true },
         onSaveToPlaylist = onSaveCurrentToPlaylist,
+        onSaveOffline = onSaveCurrentOffline,
         sleepRemainingMs = sleepRemainingMs,
         onSleepTimer = onSleepTimer,
         offlineSpeedPercent = offlineSpeedPercent,
