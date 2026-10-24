@@ -1813,7 +1813,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                     0 -> { library.toggleFavorite(video); refresh() }
                     1 -> saveSongToPlaylist(video)
                     2 -> playback.enqueue(video)
-                    3 -> playback.play(video)
+                    3 -> playSearchedOfflineFirst(video, listOf(video))
                     4 -> if (offlineReady) {
                         if (!playSavedFromSearch(video)) openOfflineSaving(video)
                     } else openOfflineSaving(video)
