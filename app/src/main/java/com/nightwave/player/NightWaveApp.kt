@@ -20,6 +20,12 @@ class NightWaveApp : Application() {
             // Do not terminate the process before the local UI can open.
             Log.w("NightWaveStartup", "Public-video extractor initialization unavailable: " +
                 error.javaClass.simpleName)
+        } catch (error: LinkageError) {
+            // An extractor ABI/dependency mismatch is a LinkageError, not an
+            // Exception. Keep offline Library and imported LRC accessible;
+            // online search/playback can report its own failure if requested.
+            Log.w("NightWaveStartup", "Public-video extractor linkage unavailable: " +
+                error.javaClass.simpleName)
         }
     }
 }
