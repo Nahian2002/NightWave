@@ -338,6 +338,21 @@ try {
     if ($LASTEXITCODE -ne 0) {
         throw 'NW07 integrated source gate failed; no Gradle build attempted.'
     }
+    $stage = 'NW34 offline storage and source safety preflight'
+    $nw34Gate = Join-Path $PSScriptRoot 'check-nw34-offline-integrity.ps1'
+    if (-not (Test-Path -LiteralPath $nw34Gate -PathType Leaf)) {
+        throw 'NW34 offline source preflight is missing. Extract the complete ZIP.'
+    }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $nw34Gate -SelfTest
+    if ($LASTEXITCODE -ne 0) {
+        throw 'NW34 offline source checker self-test failed.'
+    }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $nw34Gate
+    if ($LASTEXITCODE -ne 0) {
+        throw 'NW34 offline source safety preflight failed; no Gradle build started.'
+    }
+    Say 'NW34 offline source preflight PASS (Android compilation still mandatory).'
+
     # NW-08: fingerprint all app source/resources/tests and source-build tooling,
     # not only ten representative files. The helper is run again after Gradle,
     # detecting file additions/removals as well as changes.
