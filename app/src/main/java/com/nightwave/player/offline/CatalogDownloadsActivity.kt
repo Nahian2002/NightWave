@@ -1,5 +1,6 @@
 package com.nightwave.player.offline
 
+import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
@@ -13,6 +14,7 @@ import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import com.nightwave.player.net.VideoPreview
 
 /** WorkManager queue remains accessible even if the Compose player cannot open. */
 class CatalogDownloadsActivity : ComponentActivity() {
@@ -118,7 +120,11 @@ class CatalogDownloadsActivity : ComponentActivity() {
         // WorkManager SUCCEEDED records survive deletion of the saved file.
         // Batch-check their IDs against the actual private audio library
         // before displaying Ready Offline or offering a play button.
+        // The former UUID ordering could hide the newest saved tracks once
+        // 60 historical transfers existed. Active jobs first, then most
+        // recently requested jobs. Older untagged jobs remain visible later.
         val visibleJobs = infos.sortedWith(compareBy<WorkInfo> { it.state.isFinished }
+            .thenByDescending { OfflineSaveRetryPolicy.requestedAt(it.tags) }
             .thenBy { it.id.toString() }).take(60)
         val completedIds = visibleJobs.asSequence()
             .filter { it.state == WorkInfo.State.SUCCEEDED }
@@ -215,6 +221,17 @@ class CatalogDownloadsActivity : ComponentActivity() {
                     }, LinearLayout.LayoutParams(-1, dp(48)))
                 }
                 else -> {
+                    val retryUrl = if (isSearch)
+                        OfflineSaveRetryPolicy.retryUrl(info.tags) else null
+                    if (retryUrl != null &&
+                        OfflineSaveRetryPolicy.canOfferRetry(
+                            info.state.isFinished, false, info.tags)) {
+                        card.addView(label("Retry saving this song  →", 14f,
+                            0xFF9FE3DF.toInt(), true).apply {
+                            gravity = Gravity.CENTER
+                            setOnClickListener { confirmSearchRetry(retryUrl, title) }
+                        }, LinearLayout.LayoutParams(-1, dp(48)))
+                    }
                     card.addView(label(
                         if (isSearch) "View other offline audio sources  →"
                         else if (isDirect) "Try another direct audio link  →"
@@ -241,6 +258,43 @@ class CatalogDownloadsActivity : ComponentActivity() {
         scroll.post {
             if (!isFinishing && !isDestroyed) scroll.scrollTo(0, originalPosition)
         }
+    }
+
+    private fun confirmSearchRetry(canonicalUrl: String, title: String) {
+        // WorkInfo exposes only tags (not original worker input). This URL
+        // came from one exact validated 11-character video ID. No signed CDN
+        // URL, personal data or auth cookie is persisted or retried here.
+        val validUrl = OfflineSaveRetryPolicy.retryUrl(
+            setOf(OfflineSaveRetryPolicy.sourceTag(canonicalUrl)))
+        if (validUrl != canonicalUrl) return
+        AlertDialog.Builder(this)
+            .setTitle("Retry offline save?")
+            .setMessage("Retry this same searched recording, rather than a different " +
+                "catalog match. Only proceed if you have permission to keep it offline. " +
+                "Unavailable, restricted, or protected audio cannot be saved.")
+            .setPositiveButton("Retry save") { _, _ ->
+                val requested = runCatching {
+                    SearchTrackSaveQueue.enqueue(
+                        this, VideoPreview(title, "", canonicalUrl, "", 0L))
+                }
+                requested.onSuccess { operation ->
+                    operation.result.addListener({
+                        if (isFinishing || isDestroyed) return@addListener
+                        runCatching { operation.result.get() }
+                            .onSuccess {
+                                overview.text = "Save queued. Its result appears in Downloads."
+                            }
+                            .onFailure {
+                                overview.text = "Could not queue retry. Try from Search."
+                            }
+                    }, androidx.core.content.ContextCompat.getMainExecutor(this))
+                    overview.text = "Requesting another save attempt..."
+                }.onFailure {
+                    overview.text = "Retry cannot be queued. Try from Search."
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun rounded(color: Int) = GradientDrawable().apply {
