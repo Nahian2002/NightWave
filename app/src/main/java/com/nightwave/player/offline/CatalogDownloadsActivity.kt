@@ -97,14 +97,30 @@ class CatalogDownloadsActivity : ComponentActivity() {
         overview.text = "$active queued/running · $completed completed · " +
             infos.size + " jobs"
         if (infos.isEmpty()) {
-            entries.addView(label("No downloads yet. Search for CC0/public-domain audio.",
+            entries.addView(label("No download jobs yet. Saved audio is in Offline Library.",
                 14f, 0xFFB7CAD4.toInt()))
             return
         }
+        fun savedId(info: WorkInfo): String? = when {
+            SearchTrackSaveQueue.TAG in info.tags ->
+                info.outputData.getString(SearchTrackSaveQueue.KEY_ID)
+            DirectAudioDownloadQueue.TAG in info.tags ->
+                info.outputData.getString(DirectAudioDownloadQueue.KEY_DONE)
+            else -> info.outputData.getString(CatalogDownloadQueue.KEY_DONE)
+        }
+        // WorkManager SUCCEEDED records survive deletion of the saved file.
+        // Batch-check their IDs against the actual private audio library
+        // before displaying Ready Offline or offering a play button.
+        val completedIds = infos.asSequence()
+            .filter { it.state == WorkInfo.State.SUCCEEDED }
+            .mapNotNull(::savedId).toSet()
+        val availableIds = OfflineAudioLibrary(this).availableIds(completedIds)
         infos.sortedWith(compareBy<WorkInfo> { it.state.isFinished }
             .thenBy { it.id.toString() }).take(60).forEach { info ->
             val isDirect = DirectAudioDownloadQueue.TAG in info.tags
             val isSearch = SearchTrackSaveQueue.TAG in info.tags
+            val actuallySaved = info.state == WorkInfo.State.SUCCEEDED &&
+                savedId(info) in availableIds
             val titlePrefix = when {
                 isSearch -> SearchTrackSaveQueue.TITLE_TAG
                 isDirect -> DirectAudioDownloadQueue.TITLE_TAG
@@ -131,7 +147,9 @@ class CatalogDownloadsActivity : ComponentActivity() {
             val state = when (info.state) {
                 WorkInfo.State.ENQUEUED -> "Queued · Waiting for network"
                 WorkInfo.State.RUNNING -> "Downloading" + progress
-                WorkInfo.State.SUCCEEDED -> "Saved in Offline Library"
+                WorkInfo.State.SUCCEEDED -> if (actuallySaved)
+                    "Ready offline · Verified local file" else
+                    "Saved previously · Local audio is missing or unavailable"
                 WorkInfo.State.FAILED -> "Failed · " +
                     info.outputData.getString(
                         when {
@@ -163,12 +181,13 @@ class CatalogDownloadsActivity : ComponentActivity() {
                     val savedTitle = if (isDirect || isSearch) title else info.outputData.getString(
                         CatalogDownloadQueue.KEY_SAVED_TITLE).orEmpty()
                     card.addView(label(
-                        if (isSearch) "Play saved offline  →" else "Open saved song  →",
+                        if (!actuallySaved) "Open Offline Library  →"
+                        else if (isSearch) "Play saved offline  →" else "Open saved song  →",
                         14f, 0xFF94E2D8.toInt(), true).apply {
                         gravity = Gravity.CENTER
                         setOnClickListener {
-                            val id = if (isSearch) info.outputData.getString(
-                                SearchTrackSaveQueue.KEY_ID) else null
+                            val id = if (isSearch && actuallySaved)
+                                info.outputData.getString(SearchTrackSaveQueue.KEY_ID) else null
                             val offline = runCatching {
                                 val library = OfflineAudioLibrary(this@CatalogDownloadsActivity)
                                 id?.let { library.find(it) }
