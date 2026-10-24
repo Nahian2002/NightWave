@@ -141,6 +141,23 @@ class OfflineAudioLibrary(private val context: Context) {
         null
     }
 
+    /**
+     * Read-only batched membership and file-health check for offline search.
+     * Parse the existing index once, rather than calling fileFor() hundreds
+     * of times and repeatedly reparsing a potentially 5,000-song index.
+     * A missing, changed, unreadable or malformed entry is never returned.
+     * PlaybackService still revalidates its own media item before playback.
+     */
+    fun availableIds(requested: Set<String>): Set<String> {
+        if (requested.isEmpty()) return emptySet()
+        val snapshot = runCatching { songs() }.getOrNull() ?: return emptySet()
+        return snapshot.asSequence()
+            .filter { it.id in requested }
+            .filter { inspectFile(it).first == OfflineFileHealth.AVAILABLE }
+            .map { it.id }
+            .toSet()
+    }
+
     fun find(id: String): OfflineSong? = songs().firstOrNull { it.id == id }
 
     fun import(uri: Uri): OfflineSong = synchronized(OfflineLibraryIndexLock.monitor) {
