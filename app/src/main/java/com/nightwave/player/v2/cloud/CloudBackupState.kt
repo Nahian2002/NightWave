@@ -11,12 +11,13 @@ data class CloudBackupStatus(
     val includePreferences: Boolean = false,
     val wifiOnly: Boolean = true,
     val lastSuccessMs: Long = 0L,
-    val lastResult: String = "Cloud backup is off"
+    val lastResult: String = "Cloud backup is off",
+    val revision: Long = 0L
 )
 
-/** Bounded snapshot; account identity only, never OAuth tokens. */
+/** A revision prevents disconnect/reconnect of the same account from matching old work. */
 fun CloudBackupStatus.consentSnapshot(): CloudBackupConsent = CloudBackupConsent(
-    account, enabled, includeHistory, includeLyrics, includePreferences, wifiOnly
+    account, enabled, includeHistory, includeLyrics, includePreferences, wifiOnly, revision
 )
 
 class CloudBackupState(context: Context) {
@@ -24,7 +25,14 @@ class CloudBackupState(context: Context) {
         "nightwave_cloud_backup_v1", Context.MODE_PRIVATE
     )
 
-    fun read() = CloudBackupStatus(
+    companion object {
+        // Every CloudBackupState instance in this process uses the same guard.
+        // A read/consent check and its status write must not race a disconnect.
+        private val guard = Any()
+        private const val REVISION_KEY = "consent_revision"
+    }
+
+    private fun readLocked() = CloudBackupStatus(
         account = prefs.getString("account", "").orEmpty(),
         enabled = prefs.getBoolean("enabled", false),
         includeHistory = prefs.getBoolean("history", false),
@@ -32,41 +40,85 @@ class CloudBackupState(context: Context) {
         includePreferences = prefs.getBoolean("preferences", false),
         wifiOnly = prefs.getBoolean("wifi_only", true),
         lastSuccessMs = prefs.getLong("last_success_ms", 0L),
-        lastResult = prefs.getString("last_result", "Cloud backup is off").orEmpty()
+        lastResult = prefs.getString("last_result", "Cloud backup is off").orEmpty(),
+        revision = prefs.getLong(REVISION_KEY, 0L)
     )
 
+    fun read(): CloudBackupStatus = synchronized(guard) { readLocked() }
+
+    private fun nextRevision(): Long {
+        val current = prefs.getLong(REVISION_KEY, 0L)
+        return if (current == Long.MAX_VALUE) 1L else current + 1L
+    }
+
     /** Called only after interactive authorization confirms a specific account. */
-    fun connect(account: String): Boolean {
-        if (account.isBlank() || !account.contains('@')) return false
-        val previous = read()
+    fun connect(account: String): Boolean = synchronized(guard) {
+        if (account.isBlank() || !account.contains('@')) return@synchronized false
+        val previous = readLocked()
         // Switching accounts MUST require a new first successful upload.
         val switched = !previous.account.equals(account, ignoreCase = true)
-        return prefs.edit()
+        prefs.edit()
             .putString("account", account)
             .putBoolean("enabled", false)
             .putLong("last_success_ms", if (switched) 0 else previous.lastSuccessMs)
+            .putLong(REVISION_KEY, nextRevision())
             .putString("last_result", "Account authorized; initial backup pending")
             .commit()
     }
 
-    fun setHistory(value: Boolean) = prefs.edit().putBoolean("history", value).commit()
-    fun setLyrics(value: Boolean) = prefs.edit().putBoolean("lyrics", value).commit()
-    fun setPreferences(value: Boolean) = prefs.edit().putBoolean("preferences", value).commit()
-    fun setWifiOnly(value: Boolean) = prefs.edit().putBoolean("wifi_only", value).commit()
+    private fun setChoice(key: String, value: Boolean): Boolean = synchronized(guard) {
+        prefs.edit().putBoolean(key, value)
+            .putLong(REVISION_KEY, nextRevision()).commit()
+    }
 
-    fun success(account: String, whenMs: Long): Boolean {
-        if (!read().account.equals(account, ignoreCase = true)) return false
-        return prefs.edit().putBoolean("enabled", true)
+    fun setHistory(value: Boolean) = setChoice("history", value)
+    fun setLyrics(value: Boolean) = setChoice("lyrics", value)
+    fun setPreferences(value: Boolean) = setChoice("preferences", value)
+    fun setWifiOnly(value: Boolean) = setChoice("wifi_only", value)
+
+    /** Interactive first backup: existing call site and contract are preserved. */
+    fun success(account: String, whenMs: Long): Boolean = synchronized(guard) {
+        if (!readLocked().account.equals(account, ignoreCase = true)) {
+            return@synchronized false
+        }
+        prefs.edit().putBoolean("enabled", true)
             .putLong("last_success_ms", whenMs)
             .putString("last_result", "Backup verified")
             .commit()
     }
 
-    fun status(message: String): Boolean =
-        prefs.edit().putString("last_result", message.take(130)).commit()
+    /** Atomically accept a worker's result only while its exact consent is current. */
+    fun successIfCurrent(
+        consent: CloudBackupConsent, whenMs: Long, created: Boolean
+    ): Boolean = synchronized(guard) {
+        if (!CloudBackupConsentPolicy.same(consent, readLocked().consentSnapshot())) {
+            return@synchronized false
+        }
+        prefs.edit().putBoolean("enabled", true)
+            .putLong("last_success_ms", whenMs)
+            .putString("last_result",
+                if (created) "Backup verified" else "Already backed up; library unchanged")
+            .commit()
+    }
 
-    fun disconnect(): Boolean = prefs.edit()
-        .remove("account").putBoolean("enabled", false)
-        .putString("last_result", "Disconnected on this device; Drive snapshots remain")
-        .commit()
+    /** Old or cancelled workers cannot replace the current account's status. */
+    fun statusIfCurrent(consent: CloudBackupConsent, message: String): Boolean =
+        synchronized(guard) {
+            if (!CloudBackupConsentPolicy.same(consent, readLocked().consentSnapshot())) {
+                return@synchronized false
+            }
+            prefs.edit().putString("last_result", message.take(130)).commit()
+        }
+
+    fun status(message: String): Boolean = synchronized(guard) {
+        prefs.edit().putString("last_result", message.take(130)).commit()
+    }
+
+    fun disconnect(): Boolean = synchronized(guard) {
+        prefs.edit()
+            .remove("account").putBoolean("enabled", false)
+            .putLong(REVISION_KEY, nextRevision())
+            .putString("last_result", "Disconnected on this device; Drive snapshots remain")
+            .commit()
+    }
 }
