@@ -64,7 +64,11 @@ assert 'NetworkType.UNMETERED' in worker
 assert 'PeriodicWorkRequestBuilder<NightWaveCloudWorker>(24, TimeUnit.HOURS)' in worker
 assert 'authorize(NightWaveCloudAuthorization.request(settings.account))' in worker
 assert 'if (authorization.hasResolution())' in worker
-assert 'store.read().account != settings.account' in worker
+assert 'CloudBackupConsentPolicy.same(consent,' in worker
+assert 'beforeUpload.consentSnapshot()' in worker
+assert 'store.successIfCurrent(consent,' in worker
+assert 'store.statusIfCurrent(consent,' in worker
+assert 'NightWaveDriveClient(token).authorizedEmailAddress()' in worker
 assert 'ExistingPeriodicWorkPolicy.UPDATE' in worker
 
 # Manual export and confirmed restore remain intact.
