@@ -25,6 +25,13 @@ class CatalogDownloadsActivity : ComponentActivity() {
     private var searchedJobs: List<WorkInfo> = emptyList()
     private fun refreshJobs() = render(catalogJobs + directJobs + searchedJobs)
 
+    override fun onResume() {
+        super.onResume()
+        // A user may delete saved audio in Offline Library and return here
+        // without any WorkManager status event. Recheck real file availability.
+        if (::entries.isInitialized && ::overview.isInitialized) refreshJobs()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val root = LinearLayout(this).apply {
@@ -111,12 +118,13 @@ class CatalogDownloadsActivity : ComponentActivity() {
         // WorkManager SUCCEEDED records survive deletion of the saved file.
         // Batch-check their IDs against the actual private audio library
         // before displaying Ready Offline or offering a play button.
-        val completedIds = infos.asSequence()
+        val visibleJobs = infos.sortedWith(compareBy<WorkInfo> { it.state.isFinished }
+            .thenBy { it.id.toString() }).take(60)
+        val completedIds = visibleJobs.asSequence()
             .filter { it.state == WorkInfo.State.SUCCEEDED }
             .mapNotNull(::savedId).toSet()
         val availableIds = OfflineAudioLibrary(this).availableIds(completedIds)
-        infos.sortedWith(compareBy<WorkInfo> { it.state.isFinished }
-            .thenBy { it.id.toString() }).take(60).forEach { info ->
+        visibleJobs.forEach { info ->
             val isDirect = DirectAudioDownloadQueue.TAG in info.tags
             val isSearch = SearchTrackSaveQueue.TAG in info.tags
             val actuallySaved = OfflineDownloadStatusPolicy.isReady(
