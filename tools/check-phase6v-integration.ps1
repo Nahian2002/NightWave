@@ -88,7 +88,7 @@ Require $backupWorker 'store.statusIfCurrent(consent,' 'worker consent-fenced st
 Require $consentPolicy 'expected.lyrics == current.lyrics' 'worker lyrics privacy opt-in'
 Require $consentPolicy 'expected.preferences == current.preferences' 'worker preferences privacy opt-in'
 Require $consentPolicy 'expected.revision == current.revision' 'worker same-account reconnect fence'
-Require $state 'putLong(REVISION_KEY, nextRevision())' 'persistent backup consent revision
+Require $state 'putLong(REVISION_KEY, nextRevision())' 'persistent backup consent revision'
 Require $cloud 'backUpIfChangedVerified(bytes: ByteArray)' 'verified smart backup'
 Require $cloud 'appDataFolder' 'metadata backup appDataFolder'
 Require $recovery 'restoreCloudIfUnchanged(' 'restore preview-fence'
