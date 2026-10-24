@@ -48,6 +48,7 @@ on:
       - feature/nightwave-v2-nw24-scalable-offline-library
       - feature/nightwave-v2-nw25-adaptive-premium-ui
       - feature/nightwave-v2-nw26-google-search-lyrics
+      - fix/nightwave-v2-nw27-final-hardening
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
@@ -60,6 +61,7 @@ on:
       - feature/nightwave-v2-nw24-scalable-offline-library
       - feature/nightwave-v2-nw25-adaptive-premium-ui
       - feature/nightwave-v2-nw26-google-search-lyrics
+      - fix/nightwave-v2-nw27-final-hardening
       - feature/nightwave-v2-phase5r-accessibility-build-gates
       - feature/nightwave-v2-phase5s-build-recovery
       - feature/nightwave-v2-phase5t-reliable-discovery
@@ -166,6 +168,8 @@ jobs:
           python3 tools/verify_nw25_ui.py
           python3 tools/verify_nw26_cloud_search.py --self-test
           python3 tools/verify_nw26_cloud_search.py
+          python3 tools/verify_nw27_hardening.py --self-test
+          python3 tools/verify_nw27_hardening.py
           pwsh -NoProfile -File tools/check-kotlin-compat.ps1 -SelfTest
           pwsh -NoProfile -File tools/check-kotlin-compat.ps1
           pwsh -NoProfile -File tools/check-builder-syntax.ps1
@@ -274,6 +278,7 @@ jobs:
             python3 tools/nw24_capacity_smoke.py
             python3 tools/nw25_adaptive_chrome_smoke.py
             python3 tools/nw26_reliability_smoke.py
+            python3 tools/nw27_hardening_smoke.py
           else
             echo "SKIP: standalone kotlinc not provisioned; Gradle Kotlin gate is required"
           fi
