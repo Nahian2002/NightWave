@@ -79,6 +79,34 @@ class OfflineLibraryHealthInstrumentedTest {
         }
     }
 
+    @Test fun batchAvailableIdsRejectsMissingOrChangedFilesWithoutRewritingIndex() {
+        val live = OfflineSong(UUID.randomUUID().toString() + ".mp3",
+            "Batch health", "audio/mpeg", 192L)
+        val missing = OfflineSong(UUID.randomUUID().toString() + ".mp3",
+            "Missing batch item", "audio/mpeg", 192L)
+        val array = JSONArray(indexedSong(live))
+        array.put(JSONObject()
+            .put("id", missing.id).put("title", missing.title)
+            .put("mime", missing.mimeType).put("size", missing.bytes))
+        val serialized = array.toString()
+        val root = File(app.filesDir, "offline_audio")
+        assertTrue(root.isDirectory || root.mkdirs())
+        val file = File(root, live.id)
+        try {
+            assertTrue(file.createNewFile())
+            file.writeBytes(ByteArray(192) { 9 })
+            withIndex(serialized) {
+                assertEquals(setOf(live.id), library.availableIds(
+                    setOf(live.id, missing.id, "not-an-indexed-song")))
+                file.writeBytes(ByteArray(17) { 9 })
+                assertTrue(library.availableIds(setOf(live.id, missing.id)).isEmpty())
+                assertEquals(serialized, prefs.getString("items", null))
+            }
+        } finally {
+            file.delete()
+        }
+    }
+
     @Test fun unreadableIndexHasAReportButKeepsOriginalBytes() {
         val broken = "{not valid JSON"
         withIndex(broken) {
