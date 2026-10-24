@@ -44,6 +44,23 @@ foreach ($name in $scripts) {
     }
 }
 
+
+# Prevent regression of the optional trusted-signer argument bug:
+# passing a named -TrustedSignerSHA256 with no value makes powershell.exe -File
+# fail with "Missing an argument" before the signer verifier can run.
+$builderPath = Join-Path $PSScriptRoot 'build-windows.ps1'
+if (Test-Path -LiteralPath $builderPath -PathType Leaf) {
+    $builderSource = [System.IO.File]::ReadAllText($builderPath)
+    $guardedTrust = $builderSource.Contains('if (-not [string]::IsNullOrWhiteSpace($env:NIGHTWAVE_TRUSTED_SIGNER_SHA256))')
+    $optionalAppend = $builderSource.Contains('$verifierArgs += @(''-TrustedSignerSHA256'', $env:NIGHTWAVE_TRUSTED_SIGNER_SHA256)')
+    $arrayInvocation = $builderSource.Contains('& powershell.exe @verifierArgs 2>&1 | Out-String')
+    $unsafeInvocation = $builderSource.Contains('-TrustedSignerSHA256 $env:NIGHTWAVE_TRUSTED_SIGNER_SHA256 2>&1')
+    if (-not $guardedTrust -or -not $optionalAppend -or
+        -not $arrayInvocation -or $unsafeInvocation) {
+        $issues += 'The APK verifier must omit the optional trusted-signer parameter when unset.'
+    }
+}
+
 if ($issues.Count -gt 0) {
     # Preserve a previous local build, only within the generated dist folder.
     $apk = Join-Path $dist 'NightWave-debug.apk'
