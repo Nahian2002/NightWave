@@ -31,12 +31,14 @@ class PermittedAudioDownloader(private val context: Context) {
         .callTimeout(8, TimeUnit.MINUTES)
         .followRedirects(false)
         .followSslRedirects(false)
-        .dns(Dns { hostname ->
-            val resolved = Dns.SYSTEM.lookup(hostname)
-            require(resolved.isNotEmpty() && resolved.all(::isPublicAddress)) {
-                "Private or unsafe network address blocked"
+        .dns(object : Dns {
+            override fun lookup(hostname: String): List<InetAddress> {
+                val resolved = Dns.SYSTEM.lookup(hostname)
+                require(resolved.isNotEmpty() && resolved.all(::isPublicAddress)) {
+                    "Private or unsafe network address blocked"
+                }
+                return resolved
             }
-            resolved
         })
         .build()
 
