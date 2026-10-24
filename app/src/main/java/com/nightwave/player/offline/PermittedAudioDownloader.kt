@@ -232,6 +232,17 @@ class PermittedAudioDownloader(private val context: Context) {
                                 prefixCount += copy
                             }
                             output.write(buffer, 0, n)
+                            if (searchAudioOnly &&
+                                (received % (4L * 1024L * 1024L) < n ||
+                                    (length > 0L && received == length))) {
+                                val freeNow = runCatching {
+                                    StatFs(context.applicationContext.filesDir.absolutePath)
+                                        .availableBytes
+                                }.getOrDefault(-1L)
+                                require(OfflineSaveStoragePolicy.canContinue(freeNow, received)) {
+                                    "Device storage is too low to finish saving audio safely."
+                                }
+                            }
                             progress(received, length.takeIf { it > 0 })
                         }
                         output.fd.sync()
@@ -240,6 +251,16 @@ class PermittedAudioDownloader(private val context: Context) {
                 check(!cancelled.get()) { "Download cancelled" }
                 require(received > 0 && (length < 0 || received == length)) {
                     "Audio download was incomplete."
+                }
+                if (searchAudioOnly) {
+                    // Also cover unknown-length streams whose final chunk is
+                    // smaller than the periodic 4 MiB free-space checkpoint.
+                    val freeNow = runCatching {
+                        StatFs(context.applicationContext.filesDir.absolutePath).availableBytes
+                    }.getOrDefault(-1L)
+                    require(OfflineSaveStoragePolicy.canContinue(freeNow, received)) {
+                        "Device storage is too low to finish saving audio safely."
+                    }
                 }
                 val firstBytes = prefix.copyOf(prefixCount)
                 val format = PermittedAudioDownloadPolicy.detectAudioExtension(
