@@ -184,6 +184,8 @@ class OfflineLibraryActivity : ComponentActivity() {
         }
         sortControl = label("Sort: " + sortLabels[sortMode] + "  ▾", 12f, 0xFFB5C8D8.toInt()).apply {
             gravity = Gravity.CENTER_VERTICAL
+            maxLines = 1
+            ellipsize = android.text.TextUtils.TruncateAt.END
             setOnClickListener {
                 AlertDialog.Builder(this@OfflineLibraryActivity)
                     .setTitle("Sort offline music")
