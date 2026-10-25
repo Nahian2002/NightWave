@@ -353,6 +353,24 @@ try {
     }
     Say 'NW34 offline source preflight PASS (Android compilation still mandatory).'
 
+    # NW40: Windows PowerShell-only integration check before Gradle.
+    # This keeps zero-Python local builds viable while rejecting incomplete
+    # NW36–NW40 checkouts. Full Android/JVM compilation remains mandatory.
+    $stage = 'NW40 source integrity preflight'
+    $nw40Gate = Join-Path $PSScriptRoot 'check-nw40-stability.ps1'
+    if (-not (Test-Path -LiteralPath $nw40Gate -PathType Leaf)) {
+        throw 'NW40 source gate missing; check out the complete NW40 branch.'
+    }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $nw40Gate -SelfTest
+    if ($LASTEXITCODE -ne 0) {
+        throw 'NW40 PowerShell source gate self-test failed. Gradle not started.'
+    }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $nw40Gate
+    if ($LASTEXITCODE -ne 0) {
+        throw 'NW40 source integrity failed. Gradle not started.'
+    }
+    Say 'NW40 source preflight PASS (full Android Gradle compilation still mandatory).'
+
     # NW-08: fingerprint all app source/resources/tests and source-build tooling,
     # not only ten representative files. The helper is run again after Gradle,
     # detecting file additions/removals as well as changes.
