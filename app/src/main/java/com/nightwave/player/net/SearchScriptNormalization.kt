@@ -17,7 +17,10 @@ internal object SearchScriptNormalization {
     fun normalize(value: String): String {
         val plain = Normalizer.normalize(
             value.take(512).lowercase(Locale.ROOT), Normalizer.Form.NFKD)
-        return latinDiacritic.replace(plain, "")
+        val words = latinDiacritic.replace(plain, "")
             .replace(boundaries, " ").replace(spaces, " ").trim()
+        // NFKD decomposes the Bangla "ো" vowel into two marks. Recompose
+        // canonically so normalized Bangla text is stable and round-trippable.
+        return Normalizer.normalize(words, Normalizer.Form.NFC)
     }
 }
