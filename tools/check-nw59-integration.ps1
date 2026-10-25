@@ -160,7 +160,7 @@ Assert-NW59OpaquePlayer $player
 Assert-NW59Has $player 'color = colors.onSurface)' 'Sound and playback contrast'
 Assert-NW59Has $offlineUi 'OfflineLibraryViewPolicy.accessibilityLabel(filter)' 'TalkBack issues filter'
 Assert-NW59Has $offlineUi 'library.healthReport()' 'offline file health validation'
-Assert-NW59Has $downloads 'OfflineAudioLibrary(this).availableIds(allSavedIds)' 'downloaded file must exist'
+Assert-NW59Has $downloads 'OfflineAudioLibrary(applicationContext).availableIds(savedIds)' 'downloaded file must exist'
 Assert-NW59Has $downloads 'Resume restarts from zero' 'honest no-byte-resume label'
 Assert-NW59Missing $downloads 'LayoutParams(-1, dp(44))' 'undersized transfer actions'
 Assert-NW59Has $filter 'Filter.ATTENTION -> "Issues"' 'compact offline filter'
