@@ -14,10 +14,6 @@ object CloudConnectionHelpPolicy {
         val needsSetupReport: Boolean
     )
 
-    fun guidance(
-        failure: CloudAuthorizationFailureStore.LastFailure?
-    ): Guidance? = failure?.let { guidance(it.stage, it.code) }
-
     fun guidance(stage: CloudAuthorizationFailurePolicy.Stage, code: Int?): Guidance {
         if (stage == CloudAuthorizationFailurePolicy.Stage.DRIVE_CHECK) {
             return when (code) {
