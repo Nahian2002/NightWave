@@ -52,6 +52,7 @@ on:
       # NW37's search-history and song-menu micro-polish needs a fresh full compile.
       - feature/nightwave-nw37-search-and-song-actions
       - feature/nightwave-nw38-library-pins-storage
+      - feature/nightwave-nw39-atomic-playlist-edits
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
