@@ -105,7 +105,7 @@ class OfflinePlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it)
         }
         if (shuffle && target != index) {
             if (index in ids.indices) {
-                forwardVisits.addLast(index)
+                forwardVisits.add(index)
                 if (forwardVisits.size > MAX_ITEMS) forwardVisits.removeFirst()
             }
             unplayed.remove(target)
