@@ -34,7 +34,8 @@ $required = @(
     'app/src/main/java/com/nightwave/player/v2/ui/NightWaveMotionPolicy.kt',
     'app/src/main/java/com/nightwave/player/v2/ui/LibraryUiRefreshPolicy.kt',
     'docs/NW52_FINAL_INTEGRATION.md',
-    'RELEASE_READINESS.md'
+    'RELEASE_READINESS.md',
+    'tools/verify_nw52_ui_prebuild.py'
 )
 43..52 | ForEach-Object { $required += ('tools/verify_nw' + $_ + '*') }
 foreach ($item in $required) {
@@ -45,6 +46,9 @@ foreach ($item in $required) {
 }
 $gradle = [IO.File]::ReadAllText((Join-Path $root 'app/build.gradle.kts'))
 $manifest = [IO.File]::ReadAllText((Join-Path $root 'app/src/main/AndroidManifest.xml'))
+$activity = [IO.File]::ReadAllText((Join-Path $root 'app/src/main/java/com/nightwave/player/v2/ui/NightWaveStudioActivity.kt'))
+$offlineActivity = [IO.File]::ReadAllText((Join-Path $root 'app/src/main/java/com/nightwave/player/offline/OfflineLibraryActivity.kt'))
+$recentCard = [IO.File]::ReadAllText((Join-Path $root 'app/src/main/java/com/nightwave/player/v2/ui/NightWaveEverydaySurfaces.kt'))
 $player = [IO.File]::ReadAllText((Join-Path $root 'app/src/main/java/com/nightwave/player/v2/ui/StudioPlayerScreens.kt'))
 $readme = [IO.File]::ReadAllText((Join-Path $root 'docs/NW52_FINAL_INTEGRATION.md'))
 Assert-NW52Marker $gradle 'applicationId = "com.nightwave.player"' 'unchanged package ID'
@@ -53,6 +57,17 @@ Assert-NW52Marker $gradle 'targetSdk = 35' 'private candidate target SDK'
 Assert-NW52Marker $manifest 'android:allowBackup="false"' 'private-data backup policy'
 Assert-NW52Marker $manifest 'android:usesCleartextTraffic="false"' 'HTTPS-only policy'
 Assert-NW52Marker $player 'seekToForTrack' 'track-bound seek protection'
+Assert-NW52Marker $player 'enabled = state.hasTrack,' 'disable inert offline action with no track'
+Assert-NW52Marker $activity 'openSearch = { navigateToTab(StudioTab.SEARCH) }' 'Home search destination'
+Assert-NW52Marker $activity '"Discover music", openSearch' 'Home empty-state real Search navigation'
+Assert-NW52Marker $activity 'Icons.Outlined.Search, "nw47-home-search", openSearch)' 'Home Search shortcut'
+Assert-NW52Marker $activity '.height(48.dp)) {' 'restorable mini-player tap targets'
+Assert-NW52Marker $recentCard 'onClick = onRemove' 'recent removal distinct from playback'
+Assert-NW52Marker $offlineActivity 'OfflineLibraryViewPolicy.includes(' 'offline file-health filter'
+Assert-NW52Marker $offlineActivity 'contentDescription = "Sort offline music' 'sort accessibility'
+if ($activity.Contains('Icons.Outlined.Search, "nw47-home-search") { onSearch("music") }')) {
+    throw 'NW52 Home Search shortcut regressed to a generic music query.'
+}
 Assert-NW52Marker $readme 'NO-GO' 'no misleading public-release claim'
 Assert-NW52Marker $readme 'feature/nightwave-nw52-final-integration-release-gates' 'NW52 source identification'
 
