@@ -118,6 +118,7 @@ import com.nightwave.player.v2.lyrics.LyricsPresentationPolicy
 import com.nightwave.player.playback.PlaybackQueue
 import com.nightwave.player.playback.SleepTimerPolicy
 import com.nightwave.player.playback.CrossfadePolicy
+import com.nightwave.player.playback.AudioTransitionUiPolicy
 import kotlin.math.roundToInt
 import com.nightwave.player.playback.OfflinePlaybackSpeedPolicy
 import com.nightwave.player.playback.ListeningLevelPolicy
@@ -980,6 +981,17 @@ fun StudioNowPlayingOverlay(
                     Text(if (crossfadeSeconds == 0) "Crossfade · Off"
                         else "Crossfade · " + crossfadeSeconds + " sec")
                 }
+                Text(AudioTransitionUiPolicy.description(
+                    offline = state.offline,
+                    crossfadeSeconds = crossfadeSeconds,
+                    shuffled = state.shuffle,
+                    repeatOne = state.repeat == PlaybackQueue.Repeat.ONE,
+                    normalSpeed = offlineSpeedPercent ==
+                        OfflinePlaybackSpeedPolicy.NORMAL_PERCENT
+                ), modifier = Modifier.fillMaxWidth().padding(
+                    horizontal = 8.dp, vertical = 5.dp),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = colors.onSurfaceVariant)
                 if (crossfadeOptionsOpen) {
                     androidx.compose.material3.AlertDialog(
                         onDismissRequest = { crossfadeOptionsOpen = false },
@@ -988,8 +1000,7 @@ fun StudioNowPlayingOverlay(
                             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                                 Text("Overlap two locally imported songs. Streaming tracks use normal playback.",
                                     style = MaterialTheme.typography.bodyMedium)
-                                Text(if (crossfadeDraft == 0) "Off · normal gapless playback"
-                                    else "${crossfadeDraft} seconds overlap",
+                                Text(AudioTransitionUiPolicy.dialogDetail(crossfadeDraft),
                                     style = MaterialTheme.typography.titleMedium,
                                     color = MaterialTheme.colorScheme.primary)
                                 Slider(
