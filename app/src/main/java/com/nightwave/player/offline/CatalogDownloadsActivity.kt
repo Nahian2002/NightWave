@@ -82,7 +82,7 @@ class CatalogDownloadsActivity : ComponentActivity() {
                 refreshJobs()
             }
         }
-        root.addView(historyToggle, LinearLayout.LayoutParams(-1, dp(43)))
+        root.addView(historyToggle, LinearLayout.LayoutParams(-1, dp(48)))
         entries = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         scroll = ScrollView(this).apply { addView(entries) }
         root.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
@@ -359,7 +359,7 @@ class CatalogDownloadsActivity : ComponentActivity() {
                         if (result) refreshJobs()
                         else overview.text = "Could not update download history visibility."
                     }
-                }, LinearLayout.LayoutParams(-1, dp(43)))
+                }, LinearLayout.LayoutParams(-1, dp(48)))
             }
             entries.addView(card, LinearLayout.LayoutParams(-1, -2).apply {
                 bottomMargin = dp(11)
