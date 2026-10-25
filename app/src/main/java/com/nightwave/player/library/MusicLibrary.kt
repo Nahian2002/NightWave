@@ -62,6 +62,29 @@ class MusicLibrary(context: Context) {
     fun removeFromPlaylist(name: String, url: String): Boolean =
         LegacyLibraryTransaction.mutate(app, LibraryChange.RemoveFromPlaylist(name, url)).accepted
 
+    /** All selected songs are checked and removed in one guarded library transaction. */
+    fun bulkRemoveFromPlaylist(
+        name: String, urls: List<String>, expectedUrls: List<String>
+    ): LibraryChangeResult = LegacyLibraryTransaction.mutate(app,
+        LibraryChange.BulkRemoveFromPlaylist(name, urls, expectedUrls))
+
+    /** Copy selected public entries into a target playlist, skipping existing duplicates. */
+    fun bulkAddToPlaylist(
+        name: String, tracks: List<VideoPreview>, expectedUrls: List<String>
+    ): LibraryChangeResult = LegacyLibraryTransaction.mutate(app,
+        LibraryChange.BulkAddToPlaylist(name, tracks, expectedUrls))
+
+    fun reorderPlaylist(
+        name: String, expectedUrls: List<String>, orderedUrls: List<String>
+    ): LibraryChangeResult = LegacyLibraryTransaction.mutate(app,
+        LibraryChange.ReorderPlaylist(name, expectedUrls, orderedUrls))
+
+    /** Undo rejects a changed playlist rather than overwriting new listening activity. */
+    fun restorePlaylistIfUnchanged(
+        name: String, expected: List<VideoPreview>, restore: List<VideoPreview>
+    ): LibraryChangeResult = LegacyLibraryTransaction.mutate(app,
+        LibraryChange.RestorePlaylistIfUnchanged(name, expected, restore))
+
     /** Legacy readers remain functional for old and new saved collections. */
     private fun read(key: String): List<VideoPreview> = try {
         val arr = JSONArray(prefs.getString(key, "[]") ?: "[]")
