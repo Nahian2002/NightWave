@@ -174,7 +174,7 @@ foreach ($tuple in @(
     @('DownloadCenterViewPolicyTest.kt', 'DownloadCenterViewPolicy'),
     @('OfflineLibraryViewPolicyTest.kt', 'OfflineLibraryViewPolicy')
 )) {
-    $testPath = Join-Path $sourceRoot ('test\\java\\com\\nightwave\\player\\offline\\' + $tuple[0])
+    $testPath = Join-Path $sourceRoot ('test/java/com/nightwave/player/offline/' + $tuple[0])
     if (-not (Test-Path -LiteralPath $testPath -PathType Leaf)) {
         $issues.Add(('Missing NW48 Kotlin unit test: ' + $tuple[0]))
         continue
