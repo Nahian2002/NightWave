@@ -43,6 +43,42 @@ class SmartLibraryPolicyTest {
         assertEquals(2, smart.first { it.id.endsWith("/long") }.songs.size)
     }
 
+    @Test fun rediscoverExcludesRecentAndRetainsOnlyLikedSongs() {
+        val recentLike = track("Played yesterday", "A", 160L, 1)
+        val olderLike = track("Forgotten favorite", "B", 175L, 2)
+        val playlistOnly = track("Saved playlist", "C", 185L, 3)
+        val collections = SmartLibraryPolicy.generate(
+            listOf(recentLike, olderLike), listOf(recentLike),
+            listOf(listOf(playlistOnly)))
+        assertEquals(listOf(olderLike.url),
+            collections.single { it.id.endsWith("/liked") }.songs.map { it.url })
+    }
+
+    @Test fun hugeFavoritesCannotHidePlaylistOnlyCreatorCollection() {
+        val favorites = (1..400).map {
+            track("Favorite $it", "Favorite Creator $it", 180L, it)
+        }
+        val playlistOnlyA = track("Hidden Playlist One", "Playlist Only", 180L, 500)
+        val playlistOnlyB = track("Hidden Playlist Two", "Playlist Only", 180L, 501)
+        val collections = SmartLibraryPolicy.generate(
+            favorites, emptyList(), listOf(listOf(playlistOnlyA, playlistOnlyB)))
+        assertTrue(collections.any { collection ->
+            collection.songs.map { it.url }.containsAll(
+                listOf(playlistOnlyA.url, playlistOnlyB.url))
+        })
+    }
+
+    @Test fun malformedPublicReferencesNeverAppearInSmartCollections() {
+        val valid = track("Playable", "Artist", 280L, 1)
+        val forged = VideoPreview("Private fake", "Artist",
+            "file:///data/user/0/nightwave/secrets.mp3", "", 310L)
+        val collections = SmartLibraryPolicy.generate(
+            listOf(valid, forged), listOf(forged, valid),
+            listOf(listOf(forged, valid)))
+        assertTrue(collections.isNotEmpty())
+        assertTrue(collections.flatMap { it.songs }.all { it.url == valid.url })
+    }
+
     @Test fun generatedCollectionCountRemainsBounded() {
         val many = (0..100).map { track("Song $it", "Creator ${it / 2}", 100L, it) }
         val smart = SmartLibraryPolicy.generate(many, many, listOf(many))
