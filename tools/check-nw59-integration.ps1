@@ -121,6 +121,9 @@ $relative = @(
     'tools/verify_nw61_oauth_report.py',
     'tools/verify_nw62_download_health.py',
     'app/src/main/java/com/nightwave/player/offline/DownloadFileVerificationPolicy.kt',
+    'app/src/main/java/com/nightwave/player/offline/DownloadHistoryPagePolicy.kt',
+    'app/src/test/java/com/nightwave/player/offline/DownloadHistoryPagePolicyTest.kt',
+    'docs/NW63_DOWNLOAD_HISTORY_NAVIGATION.md',
     'app/src/test/java/com/nightwave/player/offline/DownloadFileVerificationPolicyTest.kt',
     'tools/check-google-oauth.ps1',
     'check-google-oauth.cmd',
@@ -163,7 +166,7 @@ Assert-NW59OpaquePlayer $player
 Assert-NW59Has $player 'color = colors.onSurface)' 'Sound and playback contrast'
 Assert-NW59Has $offlineUi 'OfflineLibraryViewPolicy.accessibilityLabel(filter)' 'TalkBack issues filter'
 Assert-NW59Has $offlineUi 'library.healthReport()' 'offline file health validation'
-Assert-NW59Has $downloads 'OfflineAudioLibrary(this).availableIds(allSavedIds)' 'downloaded file must exist'
+Assert-NW59Has $downloads 'OfflineAudioLibrary(applicationContext).availableIds(ids)' 'NW62 background verification of actual saved files'
 Assert-NW59Has $downloads 'Resume restarts from zero' 'honest no-byte-resume label'
 Assert-NW59Missing $downloads 'LayoutParams(-1, dp(44))' 'undersized transfer actions'
 Assert-NW59Has $filter 'Filter.ATTENTION -> "Issues"' 'compact offline filter'
@@ -204,5 +207,21 @@ Assert-NW59Has $downloads 'DownloadFileVerificationPolicy.ready(' 'do not trust 
 Assert-NW59Has $downloads 'DownloadFileVerificationPolicy.needsAttention(' 'honest Issues filter'
 Assert-NW59Has $downloadsPolicy '!checking && !verificationFailed' 'pending files are not Ready'
 Assert-NW59Missing $downloads 'val availableIds = OfflineAudioLibrary(this).availableIds(allSavedIds)' 'old main-thread storage check'
-Write-Host 'NW62 cumulative NW53-NW62 source guard PASS. Gradle/JVM/device QA still mandatory.'
+# NW63: browsing all history must not be truncated to the earliest 60 results.
+$pages = [IO.File]::ReadAllText($files['app/src/main/java/com/nightwave/player/offline/DownloadHistoryPagePolicy.kt'])
+$pagesTest = [IO.File]::ReadAllText($files['app/src/test/java/com/nightwave/player/offline/DownloadHistoryPagePolicyTest.kt'])
+Assert-NW59Has $downloads 'val historyJobs = displayInfos.sortedWith(' 'retry dedup before paging'
+Assert-NW59Has $downloads 'val filteredJobs = historyJobs.filter' 'filter before paging'
+Assert-NW59Has $downloads 'DownloadHistoryPagePolicy.normalizedPage(' 'clamp old page after deletions'
+Assert-NW59Has $downloads 'DownloadHistoryPagePolicy.offset(historyPage, filteredJobs.size)' 'all filtered history remains reachable'
+Assert-NW59Has $downloads '.take(DownloadHistoryPagePolicy.PAGE_SIZE)' '60 cards per page'
+Assert-NW59Has $downloads 'DownloadHistoryPagePolicy.summary(' 'honest page caption'
+Assert-NW59Has $downloads 'historyPage += 1' 'Older navigation'
+Assert-NW59Has $downloads 'historyPage = (historyPage - 1).coerceAtLeast(0)' 'Newer navigation'
+Assert-NW59Has $downloads 'outState.putInt("nw63-download-page", historyPage)' 'rotation restores history page'
+Assert-NW59Has $pages 'const val PAGE_SIZE = 60' 'bounded per-page inflation'
+Assert-NW59Has $pages 'requestedPage.coerceIn(0,' 'index clamp'
+Assert-NW59Has $pagesTest 'changingFiltersOrShrinkingHistoryClampsOutdatedPage' 'paging regression tests'
+Assert-NW59Missing $downloads '}.take(60)' 'old hard-coded history truncation'
+Write-Host 'NW63 cumulative NW53-NW63 source guard PASS. Gradle/JVM/device QA still mandatory.'
 exit 0
