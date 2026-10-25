@@ -163,4 +163,91 @@ class LibraryMutationPlanTest {
         assertEquals(listOf("B"), result.updated.names())
         assertEquals(listOf(song(2)), result.updated.songs("B"))
     }
+
+    @Test fun bulkRemovalIsAtomicAndKeepsAllOtherCollections() {
+        val a = song(1); val b = song(2); val c = song(3)
+        val before = zero.copy(favorites = listOf(b), recent = listOf(a),
+            playlists = listOf("Focus" to listOf(a, b, c), "Other" to listOf(c)))
+        val good = LibraryMutationPlan.apply(before, LibraryChange.BulkRemoveFromPlaylist(
+            "Focus", listOf(a.url, c.url), listOf(a.url, b.url, c.url)))
+        assertTrue(good.accepted && good.changed)
+        assertEquals(listOf(b), good.updated.songs("Focus"))
+        assertEquals(listOf(c), good.updated.songs("Other"))
+        assertEquals(before.favorites, good.updated.favorites)
+        assertEquals(before.recent, good.updated.recent)
+        assertEquals(listOf(a,b,c), before.songs("Focus"))
+        val stale = LibraryMutationPlan.apply(good.updated, LibraryChange.BulkRemoveFromPlaylist(
+            "Focus", listOf(b.url), listOf(a.url,b.url,c.url)))
+        assertFalse(stale.accepted)
+        assertEquals(good.updated, stale.updated)
+    }
+
+    @Test fun bulkInvalidOrOversizedSelectionsChangeNothing() {
+        val a = song(1); val b = song(2)
+        val before = zero.copy(playlists = listOf("Focus" to listOf(a,b)))
+        for (invalid in listOf(emptyList(), listOf(a.url,a.url),
+            listOf(a.url, song(4).url), (1..21).map { song(it).url })) {
+            val result = LibraryMutationPlan.apply(before,
+                LibraryChange.BulkRemoveFromPlaylist("Focus", invalid, listOf(a.url,b.url)))
+            assertFalse(result.accepted)
+            assertEquals(before, result.updated)
+        }
+    }
+
+    @Test fun bulkCopySkipsExistingTracksButRejectsUnsafeAndOverflow() {
+        val a = song(1); val b = song(2); val c = song(3)
+        val before = zero.copy(playlists = listOf("Source" to listOf(a,b,c),
+            "Target" to listOf(a)))
+        val good = LibraryMutationPlan.apply(before,
+            LibraryChange.BulkAddToPlaylist("Target", listOf(a,b,c), listOf(a.url)))
+        assertTrue(good.accepted)
+        assertEquals(listOf(a,b,c), good.updated.songs("Target"))
+        assertEquals(listOf(a,b,c), good.updated.songs("Source"))
+        val bad = LibraryMutationPlan.apply(before,
+            LibraryChange.BulkAddToPlaylist("Target", listOf(b,
+                b.copy(url = "file:///private/music.mp3")), listOf(a.url)))
+        assertFalse(bad.accepted)
+        val stale = LibraryMutationPlan.apply(good.updated,
+            LibraryChange.BulkAddToPlaylist("Target", listOf(song(4)), listOf(a.url)))
+        assertFalse(stale.accepted)
+        val full = zero.copy(playlists = listOf("Target" to (1..300).map(::song)))
+        assertFalse(LibraryMutationPlan.apply(full, LibraryChange.BulkAddToPlaylist(
+            "Target", listOf(song(301)), full.songs("Target").map { it.url })).accepted)
+    }
+
+    @Test fun reorderOnlyAllowsExactPermutationAndStaleSourceIsRejected() {
+        val a = song(1).copy(title="Custom title"); val b = song(2); val c = song(3)
+        val before = zero.copy(playlists = listOf("Focus" to listOf(a,b,c)))
+        val accepted = LibraryMutationPlan.apply(before, LibraryChange.ReorderPlaylist(
+            "Focus", listOf(a.url,b.url,c.url), listOf(c.url,a.url,b.url)))
+        assertTrue(accepted.accepted)
+        assertEquals(listOf(c,a,b), accepted.updated.songs("Focus"))
+        for (invalid in listOf(listOf(a.url,a.url,b.url),
+            listOf(c.url,b.url), listOf(c.url, song(8).url, a.url))) {
+            assertFalse(LibraryMutationPlan.apply(before, LibraryChange.ReorderPlaylist(
+                "Focus", listOf(a.url,b.url,c.url), invalid)).accepted)
+        }
+        assertFalse(LibraryMutationPlan.apply(accepted.updated, LibraryChange.ReorderPlaylist(
+            "Focus", listOf(a.url,b.url,c.url), listOf(b.url,a.url,c.url))).accepted)
+    }
+
+    @Test fun conditionalUndoRestoresOnlyUnchangedPlaylistAndMetadata() {
+        val a = song(1).copy(title="Old title"); val b = song(2)
+        val before = zero.copy(favorites = listOf(a),
+            playlists = listOf("Focus" to listOf(a,b), "Other" to listOf(b)))
+        val after = LibraryMutationPlan.apply(before, LibraryChange.BulkRemoveFromPlaylist(
+            "Focus", listOf(a.url), listOf(a.url,b.url))).updated
+        val undo = LibraryMutationPlan.apply(after, LibraryChange.RestorePlaylistIfUnchanged(
+            "Focus", listOf(b), listOf(a,b)))
+        assertTrue(undo.accepted)
+        assertEquals(before, undo.updated)
+        val edited = LibraryMutationPlan.apply(after, LibraryChange.AddToPlaylist("Focus", song(3))).updated
+        val blocked = LibraryMutationPlan.apply(edited,
+            LibraryChange.RestorePlaylistIfUnchanged("Focus", listOf(b), listOf(a,b)))
+        assertFalse(blocked.accepted)
+        assertEquals(edited, blocked.updated)
+        assertFalse(LibraryMutationPlan.apply(after,
+            LibraryChange.RestorePlaylistIfUnchanged("Focus", listOf(b),
+                listOf(a.copy(url="https://youtube.com.evil.test/watch?v=123"),b))).accepted)
+    }
 }
