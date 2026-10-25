@@ -1,8 +1,10 @@
 # NightWave — Local Build, Safe Update and Release Procedure
 
-**Updated:** 22 October 2026  
-**Current integrated source:** [NightWave NW-16 offline direct-audio downloader](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-v2-nw16-authorized-offline-downloads)  
-**Current status:** NW-12 compiled six hash-matched Kotlin policy files and passed 28 local assertions, corrected the JUnit failure parser and expanded nested source fingerprinting. **No passing full Android Gradle build, installed-device signer compatibility or phone acceptance is verified**. Release NO-GO.
+**Updated:** 25 October 2026  
+**Current integrated source:** [NW52 Final Integration](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-nw52-final-integration-release-gates) — 10 stacked source batches, NW43–NW52.  
+**Current status:** **SOURCE IMPLEMENTED; release NO-GO.** No successful full Android Gradle/JUnit/androidTest compilation, verified installed-device signer compatibility, production signing, complete Google authorization, device acceptance or legal/media-rights approval. Android remains `versionCode=35`, `versionName=2.0.0-alpha5s`, target/compile API 35 for this private debug candidate. Do not confuse this with Play API-36 readiness.
+
+**For current instructions use [NW52 final integration and safe build plan](NW52_FINAL_INTEGRATION.md)**; older NW-12 through NW-16 evidence below is kept for history and does not certify the current branch. Download the **entire NW52 branch ZIP**, not old `main`. Run `build-windows.cmd` and review the status + signer before attempting a safe device update.
 
 ## NW-12 verified local Kotlin source and JUnit report fix
 
