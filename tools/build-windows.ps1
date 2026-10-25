@@ -308,6 +308,10 @@ try {
     if (-not (Test-Path -LiteralPath $phase6v7a -PathType Leaf)) {
         throw 'NightWave 6V7A premium UI source gate missing. Use the complete ZIP.'
     }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $phase6v7a -SelfTest
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Phase 6V7A hide/playback regression self-test failed; Gradle not started.'
+    }
     & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $phase6v7a
     if ($LASTEXITCODE -ne 0) {
         throw 'Phase 6V7A premium UI preflight failed; Gradle not started.'
