@@ -73,23 +73,23 @@ fun NightWavePremiumNavigation(
     val tags = listOf("home", "search", "library", "profile")
     Surface(
         modifier = Modifier.fillMaxWidth()
-            .padding(horizontal = 10.dp, vertical = 2.dp),
+            .padding(horizontal = 12.dp, vertical = 4.dp),
         color = colors.surface,
-        tonalElevation = 2.dp,
-        shadowElevation = 5.dp,
-        shape = RoundedCornerShape(19.dp)
+        tonalElevation = 1.dp,
+        shadowElevation = 8.dp,
+        shape = RoundedCornerShape(23.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth()
                 .height(navHeight)
-                .padding(horizontal = 5.dp, vertical = 2.dp),
-            horizontalArrangement = Arrangement.spacedBy(3.dp),
+                .padding(horizontal = 6.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             names.forEachIndexed { index, label ->
                 val active = NightWaveChromePolicy.selectedTab(selectedIndex) == index
                 val color by animateColorAsState(
-                    targetValue = if (active) colors.primary.copy(alpha = .12f)
+                    targetValue = if (active) colors.primary.copy(alpha = .17f)
                         else Color.Transparent,
                     animationSpec = tween(
                         durationMillis = NightWaveAdaptiveChromePolicy.motionDurationMs(reducedMotion, 160)
@@ -98,7 +98,7 @@ fun NightWavePremiumNavigation(
                 )
                 Box(
                     modifier = Modifier.weight(1f).fillMaxHeight()
-                        .clip(RoundedCornerShape(17.dp))
+                        .clip(RoundedCornerShape(18.dp))
                         .background(color)
                         .clickable(role = Role.Tab) { onNavigate(index) }
                         .semantics { selected = active }
@@ -109,7 +109,7 @@ fun NightWavePremiumNavigation(
                         Box(
                             modifier = Modifier.align(Alignment.TopCenter)
                                 .padding(top = 1.dp)
-                                .size(width = 22.dp, height = 2.dp)
+                                .size(width = 25.dp, height = 3.dp)
                                 .clip(CircleShape)
                                 .background(colors.primary)
                         )
@@ -123,16 +123,16 @@ fun NightWavePremiumNavigation(
                             contentDescription = null,
                             tint = if (active) colors.primary
                                 else colors.onSurfaceVariant,
-                            modifier = Modifier.size(if (extraLargeText) 22.dp else 21.dp)
+                            modifier = Modifier.size(if (extraLargeText) 24.dp else 23.dp)
                         )
-                        Spacer(Modifier.height(if (extraLargeText) 2.dp else 3.dp))
+                        Spacer(Modifier.height(if (extraLargeText) 3.dp else 4.dp))
                         Text(
                             label,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             style = MaterialTheme.typography.labelSmall.copy(
-                                fontSize = if (extraLargeText) 13.sp else 12.sp,
-                                lineHeight = if (extraLargeText) 19.sp else 16.sp),
+                                fontSize = if (extraLargeText) 14.sp else 13.sp,
+                                lineHeight = if (extraLargeText) 19.sp else 18.sp),
                             fontWeight = if (active) FontWeight.Bold
                                 else FontWeight.Medium,
                             color = if (active) colors.onSurface
