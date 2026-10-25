@@ -56,6 +56,7 @@ on:
       - feature/nightwave-nw40-stability-integration
       - feature/nightwave-nw41-premium-experience-auth-diagnostics
       - feature/nightwave-nw42-expressive-motion-system
+      - feature/nightwave-nw43-queue-correctness
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
@@ -142,6 +143,8 @@ jobs:
           python3 tools/verify_source.py
           python3 tools/verify_nw40_stability.py --self-test
           python3 tools/verify_nw40_stability.py
+          python3 tools/verify_nw43_queue.py --self-test
+          python3 tools/verify_nw43_queue.py
           python3 tools/nw40_pure_kotlin_smoke.py --self-test
           python3 tools/verify_nw01_recovery.py
           python3 tools/verify_nw02_sound_studio.py
