@@ -18,6 +18,11 @@ import android.widget.TextView
 import android.widget.ProgressBar
 import android.content.res.ColorStateList
 import androidx.activity.ComponentActivity
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.nightwave.player.net.VideoPreview
@@ -37,6 +42,11 @@ class CatalogDownloadsActivity : ComponentActivity() {
     private var searchedJobs: List<WorkInfo> = emptyList()
     private val progressSamples = HashMap<UUID, Pair<Long, Long>>()
     private val observedSpeed = HashMap<UUID, Long>()
+    // Previous code checked every saved file on the UI thread whenever a
+    // WorkManager event or periodic transfer tick refreshed the whole list.
+    private var healthRefreshJob: Job? = null
+    private var healthReadGeneration = 0L
+    private var uiPaused = false
     private val uiHandler = Handler(Looper.getMainLooper())
     private val stagnantTransferRefresh = object : Runnable {
         override fun run() {
@@ -48,10 +58,41 @@ class CatalogDownloadsActivity : ComponentActivity() {
             }
         }
     }
-    private fun refreshJobs() = render(catalogJobs + directJobs + searchedJobs)
+    private fun refreshJobs() {
+        if (uiPaused || !::entries.isInitialized || isFinishing || isDestroyed) return
+        val snapshot = catalogJobs + directJobs + searchedJobs
+        val generation = ++healthReadGeneration
+        healthRefreshJob?.cancel()
+        healthRefreshJob = lifecycleScope.launch {
+            // Inspect real physical files on IO. Status remains unverified
+            // until this finishes; a WorkManager SUCCEEDED flag is never
+            // treated as proof that the downloaded file still exists.
+            val available = withContext(Dispatchers.IO) {
+                val savedIds = snapshot.asSequence()
+                    .filter { it.state == WorkInfo.State.SUCCEEDED }
+                    .mapNotNull { job ->
+                        when {
+                            SearchTrackSaveQueue.TAG in job.tags ->
+                                job.outputData.getString(SearchTrackSaveQueue.KEY_ID)
+                            DirectAudioDownloadQueue.TAG in job.tags ->
+                                job.outputData.getString(DirectAudioDownloadQueue.KEY_DONE)
+                            else -> job.outputData.getString(CatalogDownloadQueue.KEY_DONE)
+                        }
+                    }.toSet()
+                runCatching {
+                    OfflineAudioLibrary(applicationContext).availableIds(savedIds)
+                }.getOrDefault(emptySet())
+            }
+            if (!DownloadHealthRefreshPolicy.mayPublish(
+                    generation, healthReadGeneration, uiPaused, isFinishing, isDestroyed
+                )) return@launch
+            render(snapshot, available)
+        }
+    }
 
     override fun onResume() {
         super.onResume()
+        uiPaused = false
         // A user may delete saved audio in Offline Library and return here
         // without any WorkManager status event. Recheck real file availability.
         if (::entries.isInitialized && ::overview.isInitialized) refreshJobs()
@@ -65,6 +106,9 @@ class CatalogDownloadsActivity : ComponentActivity() {
     }
 
     override fun onPause() {
+        uiPaused = true
+        ++healthReadGeneration
+        healthRefreshJob?.cancel()
         uiHandler.removeCallbacks(stagnantTransferRefresh)
         super.onPause()
     }
@@ -166,7 +210,7 @@ class CatalogDownloadsActivity : ComponentActivity() {
             }
     }
 
-    private fun render(infos: List<WorkInfo>) {
+    private fun render(infos: List<WorkInfo>, availableIds: Set<String>) {
         if (isFinishing || isDestroyed) return
         val originalPosition = if (::scroll.isInitialized) scroll.scrollY else 0
         entries.removeAllViews()
@@ -177,21 +221,8 @@ class CatalogDownloadsActivity : ComponentActivity() {
         historyToggle.text = if (showHiddenJobs)
             "Hide dismissed jobs · ${hidden.size} hidden  ▴"
         else "Show dismissed jobs · ${hidden.size} hidden  ▾"
-        // One batched health read covers all completed work identities, not
-        // just the first 60 shown cards. A success with a deleted file is an
-        // issue, never silently counted as offline-ready.
-        val allSavedIds = displayInfos.asSequence()
-            .filter { it.state == WorkInfo.State.SUCCEEDED }
-            .mapNotNull { job ->
-                when {
-                    SearchTrackSaveQueue.TAG in job.tags ->
-                        job.outputData.getString(SearchTrackSaveQueue.KEY_ID)
-                    DirectAudioDownloadQueue.TAG in job.tags ->
-                        job.outputData.getString(DirectAudioDownloadQueue.KEY_DONE)
-                    else -> job.outputData.getString(CatalogDownloadQueue.KEY_DONE)
-                }
-            }.toSet()
-        val availableIds = OfflineAudioLibrary(this).availableIds(allSavedIds)
+        // A generation-fenced, physical-file-verified snapshot arrives
+        // from Dispatchers.IO. Never do canonical-file or index I/O here.
         fun isVerified(info: WorkInfo): Boolean {
             val saved = when {
                 SearchTrackSaveQueue.TAG in info.tags ->
