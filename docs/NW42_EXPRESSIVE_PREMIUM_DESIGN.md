@@ -31,7 +31,7 @@ This NW42 pass reuses the already included Compose/Coil libraries; **no large pa
 
 ## Google Drive issue (separate from appearance)
 
-Google authorization still **fails** in the provided user report (Google ApiException internal error 8). NW41 already exposes `You > Account & backup > Copy Google setup report`, reading the **actual installed APK SHA-1**, package and Play Services status, without tokens or email. NW42 intentionally does not replace Google's official AuthorizationClient flow or bypass OAuth.
+Google authorization still **fails** in the provided user report (Google ApiException internal error 8). NW41 already exposes `You > Account & backup > Copy Google setup report`, reading the **actual installed APK SHA-1**, package and Play Services status, without tokens or email. NW42 adds **Open Google OAuth settings**, which opens the official Google Cloud Clients page for user-controlled configuration (it does not grant access). NW42 intentionally does not replace Google's official AuthorizationClient flow or bypass OAuth.
 
 Per [Google Android authorization guidance](https://developer.android.com/identity/authorization) and [Google APK certificate client-auth guidance](https://developers.google.com/android/guides/client-auth), verify in the relevant Google Cloud project:
 
