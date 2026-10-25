@@ -43,13 +43,12 @@ class OfflineShuffleForwardNavigationTest {
     @Test fun explicitJumpCreatesANewShuffleBranch() {
         val q = queue()
         q.next() // b
-        q.next() // c
-        q.previous() // b, forward c
-        assertEquals("d.mp3", q.jump(3))
-        // A stale return to C must not override a fresh explicit Jump.
-        assertEquals("a.mp3", q.next())
-        assertEquals("d.mp3", q.previous())
-        assertEquals("a.mp3", q.next())
+        q.previous() // a, forward b
+        assertEquals("c.mp3", q.jump(2))
+        // The next random *unplayed* track is d, not stale forward b.
+        assertEquals("d.mp3", q.next())
+        assertEquals("c.mp3", q.previous())
+        assertEquals("d.mp3", q.next())
     }
 
     @Test fun togglingShuffleOrSelectingNewPlaylistDropsOldForwardTrail() {
