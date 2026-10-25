@@ -3951,7 +3951,7 @@ private fun StudioLibrary(
     val visiblePlaylists = remember(playlistPreviews, playlistFilter,
         playlistSort, showFilledOnly, validFolder, folderSnapshot, pinnedPlaylistNames) {
         val filtered = LibraryBrowsePolicy.playlists(playlistPreviews, playlistFilter,
-            playlistSort, showFilledOnly).filter { preview ->
+            playlistSort, showFilledOnly, matchContainedSongs = true).filter { preview ->
             when (validFolder) {
                 null -> true
                 "nightwave://folder/unfiled" -> folderSnapshot.folderOf(preview.name) == null
@@ -4258,7 +4258,7 @@ private fun StudioLibrary(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(15.dp),
                             singleLine = true,
-                            placeholder = { Text("Search your playlist names") },
+                            placeholder = { Text("Search playlists or their songs") },
                             leadingIcon = {
                                 Icon(Icons.Outlined.Search, contentDescription = null)
                             },
