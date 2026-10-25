@@ -84,6 +84,10 @@ class OfflineLibraryActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        availabilityFilter = savedInstanceState?.getString("nw48-offline-filter")
+            ?.let { stored -> runCatching {
+                OfflineLibraryViewPolicy.Filter.valueOf(stored)
+            }.getOrNull() } ?: OfflineLibraryViewPolicy.Filter.ALL
         library = OfflineAudioLibrary(this)
         searchText = intent.getStringExtra(EXTRA_SEARCH_QUERY).orEmpty().trim().take(160)
         val root = LinearLayout(this).apply {
@@ -353,6 +357,11 @@ class OfflineLibraryActivity : ComponentActivity() {
         setContentView(frame)
         NightWaveSafeInsets.bind(frame)
         // onResume performs the initial and every subsequent fresh disk health check.
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putString("nw48-offline-filter", availabilityFilter.name)
+        super.onSaveInstanceState(outState)
     }
 
     override fun onResume() {
