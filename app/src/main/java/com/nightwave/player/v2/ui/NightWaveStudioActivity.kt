@@ -30,6 +30,8 @@ import com.nightwave.player.v2.insights.ListeningMemorySummary
 import com.nightwave.player.v2.cloud.CloudAccountPresentation
 import com.nightwave.player.v2.cloud.CloudAuthorizationRecoveryPolicy
 import com.nightwave.player.v2.cloud.CloudAuthorizationDiagnosticPolicy
+import com.nightwave.player.v2.cloud.CloudAuthorizationFailurePolicy
+import com.nightwave.player.v2.cloud.CloudAuthorizationFailureStore
 import com.nightwave.player.v2.cloud.CloudBackupStatus
 import com.nightwave.player.v2.cloud.CloudBackupConsentPolicy
 import com.nightwave.player.v2.cloud.consentSnapshot
@@ -333,6 +335,7 @@ class NightWaveStudioActivity : ComponentActivity() {
         get() = lyricsEditorRetained.pendingExport
         set(value) { lyricsEditorRetained.pendingExport = value }
     private lateinit var cloudStore: CloudBackupState
+    private val cloudFailureStore by lazy { CloudAuthorizationFailureStore(this) }
     private var cloudInfo by mutableStateOf(CloudBackupStatus())
     private var cloudBusy by mutableStateOf(false)
     private var cloudPendingAction = ""
@@ -382,11 +385,15 @@ class NightWaveStudioActivity : ComponentActivity() {
             }
             cloudBusy = false
             cloudPendingAction = ""
-            val message = CloudAuthorizationDiagnosticPolicy.resolution(
-                result.resultCode == RESULT_OK, result.data != null, code)
-            cloudStore.status(message)
-            refreshCloud()
-            showMessage(message)
+            if (code == null && result.resultCode != RESULT_OK) {
+                // A real user dismissal isn't necessarily an OAuth failure.
+                cloudStore.status("Google permission was not completed; local music unchanged")
+                refreshCloud()
+                showMessage("Google permission not completed. Your library is safe.")
+            } else {
+                cloudAuthorizationFailed(
+                    CloudAuthorizationFailurePolicy.Stage.ACCOUNT_PICKER, code)
+            }
         } else {
             runCatching {
                 Identity.getAuthorizationClient(this).getAuthorizationResultFromIntent(result.data!!)
@@ -395,10 +402,8 @@ class NightWaveStudioActivity : ComponentActivity() {
                     cloudBusy = false
                     cloudPendingAction = ""
                     val code = (error as? com.google.android.gms.common.api.ApiException)?.statusCode
-                    val message = CloudAuthorizationDiagnosticPolicy.resolution(true, true, code)
-                    cloudStore.status(message)
-                    refreshCloud()
-                    showMessage(message)
+                    cloudAuthorizationFailed(
+                        CloudAuthorizationFailurePolicy.Stage.ACCOUNT_PICKER, code)
                 }
         }
     }
@@ -1197,6 +1202,20 @@ class NightWaveStudioActivity : ComponentActivity() {
         if (::cloudStore.isInitialized) cloudInfo = cloudStore.read()
     }
 
+    /**
+     * Only record a numeric public Google status and the lifecycle stage.
+     * No email, token, Intent contents or exception message is retained.
+     */
+    private fun cloudAuthorizationFailed(
+        stage: CloudAuthorizationFailurePolicy.Stage, code: Int?
+    ) {
+        cloudFailureStore.record(stage, code)
+        val message = CloudAuthorizationFailurePolicy.shortMessage(code, stage)
+        cloudStore.status(message)
+        refreshCloud()
+        showMessage(message)
+    }
+
     private fun requestCloudAction(action: String) {
         if (cloudBusy) return
         if (CloudAuthorizationRecoveryPolicy.safeAction(action) == null) {
@@ -1228,9 +1247,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                     attempt, cloudRequestGeneration, cloudBusy, cloudAwaitingResolution)) {
                 cloudBusy = false
                 cloudPendingAction = ""
-                cloudStore.status("Google Drive authorization timed out before opening")
-                refreshCloud()
-                showMessage("Google services did not respond. Retry Drive connection.")
+                cloudAuthorizationFailed(CloudAuthorizationFailurePolicy.Stage.REQUEST, null)
             }
         }
         val name = if (action == "connect") null else cloudStore.read().account
@@ -1242,9 +1259,7 @@ class NightWaveStudioActivity : ComponentActivity() {
         } catch (_: Exception) {
             cloudBusy = false
             cloudPendingAction = ""
-            cloudStore.status("Google authorization could not start on this device")
-            refreshCloud()
-            showMessage("Google Drive sign-in could not start. Check Google Play services.")
+            cloudAuthorizationFailed(CloudAuthorizationFailurePolicy.Stage.REQUEST, null)
             return
         }
         authorization.addOnSuccessListener { response ->
@@ -1256,9 +1271,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                     if (pending == null) {
                         cloudBusy = false
                         cloudPendingAction = ""
-                        cloudStore.status("Google returned no account permission screen")
-                        refreshCloud()
-                        showMessage("Google Drive authorization could not open. Check Google Play services.")
+                        cloudAuthorizationFailed(CloudAuthorizationFailurePolicy.Stage.REQUEST, null)
                     } else {
                         cloudAwaitingResolution = true
                         runCatching {
@@ -1267,9 +1280,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                             cloudAwaitingResolution = false
                             cloudBusy = false
                             cloudPendingAction = ""
-                            cloudStore.status("Google permission dialog unavailable")
-                            refreshCloud()
-                            showMessage("Google permission screen could not open on this device.")
+                            cloudAuthorizationFailed(CloudAuthorizationFailurePolicy.Stage.REQUEST, null)
                         }
                     }
                 } else finishCloudAuthorization(response)
@@ -1284,12 +1295,8 @@ class NightWaveStudioActivity : ComponentActivity() {
                 // Do not log OAuth tokens, email addresses or exception text.
                 val statusCode =
                     (error as? com.google.android.gms.common.api.ApiException)?.statusCode
-                val message = if (statusCode != null)
-                    CloudAuthorizationDiagnosticPolicy.apiStatus(statusCode)
-                else "Google Drive authorization could not start. Verify Google Play services and APK OAuth registration."
-                cloudStore.status(message)
-                refreshCloud()
-                showMessage("$message. Check Google Play services and app authorization setup.")
+                cloudAuthorizationFailed(
+                    CloudAuthorizationFailurePolicy.Stage.REQUEST, statusCode)
             }
     }
 
@@ -1307,9 +1314,8 @@ class NightWaveStudioActivity : ComponentActivity() {
         val token = runCatching { NightWaveCloudAuthorization.requireToken(result) }.getOrNull()
         if (token == null) {
             cloudBusy = false
-            cloudStore.status("Google Drive access token or permission was missing")
-            refreshCloud()
-            showMessage("Drive permission was not granted. Check Google authorization settings.")
+            cloudAuthorizationFailed(
+                CloudAuthorizationFailurePolicy.Stage.ACCOUNT_PICKER, null)
             return
         }
         val legacyAccount = NightWaveCloudAuthorization.authorizedAccount(result)
@@ -1328,12 +1334,13 @@ class NightWaveStudioActivity : ComponentActivity() {
                 (legacyAccount != null && !account.equals(legacyAccount, ignoreCase = true))) {
                 cloudBusy = false
                 val code = (verified.exceptionOrNull() as? DriveHttpFailure)?.statusCode
-                cloudStore.status(if (code != null) DriveHttpFailurePolicy.message(code)
-                    else "Could not verify the account for this Drive permission")
+                cloudFailureStore.record(
+                    CloudAuthorizationFailurePolicy.Stage.DRIVE_CHECK, code)
+                val message = if (code != null) DriveHttpFailurePolicy.message(code)
+                    else "Google permitted access, but Drive account verification failed. Retry later."
+                cloudStore.status(message)
                 refreshCloud()
-                showMessage(if (code != null) DriveHttpFailurePolicy.message(code)
-                    else "Google selected an account but Drive could not verify it. " +
-                    "Check your internet connection and Android OAuth certificate setup.")
+                showMessage(message)
                 return@launch
             }
             finishVerifiedCloudAuthorization(action, token, account)
@@ -1344,6 +1351,7 @@ class NightWaveStudioActivity : ComponentActivity() {
         if (action == "connect") {
             cloudBusy = false
             if (cloudStore.connect(account)) {
+                cloudFailureStore.clear()
                 runCatching { NightWaveCloudSchedule.stop(this) }
                 refreshCloud()
                 showMessage("Drive connected. Choose Back up now or Preview restore.")
