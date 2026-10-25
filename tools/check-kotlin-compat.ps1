@@ -203,6 +203,42 @@ if (Test-Path -LiteralPath $permittedDownloaderPath -PathType Leaf) {
     $issues.Add('PermittedAudioDownloader.kt is missing.')
 }
 
+# NW43: Search is a selectable single-song source, not an implicit 20-item
+# queue. Full playlist/mix Play commands must remain separate from this guard.
+$studioPath = Join-Path $sourceRoot 'main\java\com\nightwave\player\v2\ui\NightWaveStudioActivity.kt'
+$queuePath = Join-Path $sourceRoot 'main\java\com\nightwave\player\playback\PlaybackQueue.kt'
+$servicePath = Join-Path $sourceRoot 'main\java\com\nightwave\player\playback\PlaybackService.kt'
+if ((Test-Path -LiteralPath $studioPath -PathType Leaf) -and
+    (Test-Path -LiteralPath $queuePath -PathType Leaf) -and
+    (Test-Path -LiteralPath $servicePath -PathType Leaf)) {
+    $studio = [System.IO.File]::ReadAllText($studioPath)
+    $queueSource = [System.IO.File]::ReadAllText($queuePath)
+    $service = [System.IO.File]::ReadAllText($servicePath)
+    $start = $studio.IndexOf('private fun StudioSearch(')
+    $finish = $studio.IndexOf('private fun StudioLibrary(')
+    if ($start -lt 0 -or $finish -le $start) {
+        $issues.Add('NW43 Search and Library function boundaries missing.')
+    } else {
+        $searchContent = $studio.Substring($start, $finish - $start)
+        foreach ($bad in @('onPlay(song, state.videos)', 'onPlay(song, savedMatches)',
+            'onPlay(song, savedTracks)', 'onPlay(song, selectedCreatorGroup.tracks)')) {
+            if ($searchContent.Contains($bad)) {
+                $issues.Add(('NW43 Search must not autoqueue search results: ' + $bad))
+            }
+        }
+        if ($searchContent.Split(@('onPlay(song, listOf(song))'),
+            [System.StringSplitOptions]::None).Length -ne 5) {
+            $issues.Add('NW43: four Search results must enqueue selected song only.')
+        }
+    }
+    if (-not $queueSource.Contains('fun insertNext(entry: QueueEntry): Boolean') -or
+        -not $service.Contains('ACTION_ENQUEUE, ACTION_PLAY_NEXT ->')) {
+        $issues.Add('NW43 explicit Play Next service/queue wiring missing.')
+    }
+} else {
+    $issues.Add('NW43 queue, service or Studio source missing.')
+}
+
 $gradlePath = Join-Path $root 'app\build.gradle.kts'
 if (-not (Test-Path -LiteralPath $gradlePath)) {
     $issues.Add('Missing app/build.gradle.kts.')
