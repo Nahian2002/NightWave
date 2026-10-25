@@ -151,8 +151,11 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
     fun next(automatic: Boolean = false): QueueEntry? {
         if (entries.isEmpty()) return null
         if (automatic && repeat == Repeat.ONE) return current
+        // Manually chosen Play Next still counts the current track as visited
+        // in a shuffle cycle, so it cannot be replayed as an unseen candidate.
+        if (shuffle && index >= 0) shuffledSeen.add(index)
         val queuedNext = manualNext.firstOrNull()?.let { wanted ->
-            entries.indexOfFirst { it.url == wanted && it != current }
+            entries.indexOfFirst { it.url == wanted && it.url != current?.url }
         }?.takeIf { it >= 0 }
         val target = when {
             queuedNext != null -> {
@@ -160,7 +163,6 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
                 queuedNext
             }
             shuffle && entries.size > 1 -> {
-                if (index >= 0) shuffledSeen.add(index)
                 var candidates = entries.indices.filter { it !in shuffledSeen }
                 if (candidates.isEmpty() && repeat == Repeat.ALL) {
                     shuffledSeen.clear()
