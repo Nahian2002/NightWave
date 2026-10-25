@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -250,6 +251,7 @@ fun MusicTrackTile(
     video: VideoPreview,
     modifier: Modifier = Modifier,
     onOptions: (() -> Unit)? = null,
+    onRemove: (() -> Unit)? = null,
     isPlaying: Boolean = false,
     surface: NightWaveTrackSurface = NightWaveTrackSurface.HOME,
     onClick: () -> Unit
@@ -281,8 +283,15 @@ fun MusicTrackTile(
                 style = MaterialTheme.typography.bodyMedium,
                 color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
+        if (onRemove != null) {
+            IconButton(onClick = onRemove, modifier = Modifier.size(42.dp)) {
+                Icon(Icons.Outlined.Close,
+                    contentDescription = "Remove " + identity.title + " from Recently Played",
+                    modifier = Modifier.size(19.dp), tint = scheme.onSurfaceVariant)
+            }
+        }
         if (onOptions != null) {
-            IconButton(onClick = onOptions, modifier = Modifier.size(48.dp)) {
+            IconButton(onClick = onOptions, modifier = Modifier.size(44.dp)) {
                 Icon(Icons.Outlined.MoreVert,
                     contentDescription = "Options for " + video.title,
                     tint = scheme.onSurfaceVariant)
