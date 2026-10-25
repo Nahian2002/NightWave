@@ -387,6 +387,7 @@ class NightWaveStudioActivity : ComponentActivity() {
             cloudPendingAction = ""
             if (code == null && result.resultCode != RESULT_OK) {
                 // A real user dismissal isn't necessarily an OAuth failure.
+                cloudFailureStore.clear()
                 cloudStore.status("Google permission was not completed; local music unchanged")
                 refreshCloud()
                 showMessage("Google permission not completed. Your library is safe.")
