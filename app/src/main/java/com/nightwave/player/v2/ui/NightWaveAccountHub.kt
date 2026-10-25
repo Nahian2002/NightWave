@@ -96,7 +96,7 @@ internal fun NightWaveAccountHubDialog(
         CloudAuthorizationFailureStore(appContext).read()
     }
     val connectionGuidance = remember(lastGoogleFailure) {
-        CloudConnectionHelpPolicy.guidance(lastGoogleFailure)
+        lastGoogleFailure?.let { CloudConnectionHelpPolicy.guidance(it.stage, it.code) }
     }
 
     Dialog(onDismissRequest = onDismiss,
