@@ -99,53 +99,12 @@ class OfflineLibraryActivity : ComponentActivity() {
         header.addView(label("NightWave", 22f, Color.WHITE, true),
             LinearLayout.LayoutParams(0, -2, 1f))
         root.addView(header)
-        root.addView(label("Offline library", 26f, Color.WHITE, true).apply {
+        root.addView(label("Offline music", 26f, Color.WHITE, true).apply {
             setPadding(0, dp(20), 0, dp(4))
         })
-        root.addView(label("Saved audio, available without internet.", 14f, 0xFFABB8CC.toInt()).apply {
+        root.addView(label("Your saved audio · Ready without internet", 14f, 0xFFABB8CC.toInt()).apply {
             setPadding(0, 0, 0, dp(15))
         })
-        root.addView(label("☁  My Google Drive music", 14f, 0xFF91E2D7.toInt(), true).apply {
-            gravity = Gravity.CENTER_VERTICAL
-            setPadding(dp(13), 0, 0, 0)
-            setOnClickListener {
-                startActivity(Intent(this@OfflineLibraryActivity, NightWaveLockerActivity::class.java))
-            }
-        }, LinearLayout.LayoutParams(-1, dp(48)))
-        root.addView(label("Find music to save offline", 15f, 0xFF08141B.toInt(), true).apply {
-            gravity = Gravity.CENTER
-            background = cardBackground(0xFF91E2D7.toInt())
-            contentDescription = "Search licensed music and save it inside NightWave"
-            setOnClickListener {
-                startActivity(Intent(this@OfflineLibraryActivity,
-                    FreeAudioCatalogActivity::class.java))
-            }
-        }, LinearLayout.LayoutParams(-1, dp(52)).apply { bottomMargin = dp(10) })
-        root.addView(label("Downloads and queue  →", 15f, 0xFF94E2D8.toInt(), true).apply {
-            gravity = Gravity.CENTER
-            background = cardBackground(0xFF213840.toInt())
-            contentDescription = "Review download progress, saved audio and cancellation"
-            setOnClickListener {
-                startActivity(Intent(this@OfflineLibraryActivity,
-                    CatalogDownloadsActivity::class.java))
-            }
-        }, LinearLayout.LayoutParams(-1, dp(48)).apply { bottomMargin = dp(10) })
-        root.addView(label("+  Import audio files", 15f, 0xFF101A21.toInt(), true).apply {
-            gravity = Gravity.CENTER
-            background = cardBackground(0xFF91E2D7.toInt())
-            setOnClickListener {
-                pick.launch(arrayOf("audio/*", "application/ogg", "application/octet-stream"))
-            }
-        }, LinearLayout.LayoutParams(-1, dp(51)))
-        root.addView(label("Download permitted audio", 15f, 0xFF91E2D7.toInt(), true).apply {
-            gravity = Gravity.CENTER
-            background = cardBackground(0xFF213840.toInt())
-            contentDescription = "Download a directly linked audio file to Offline Library"
-            setOnClickListener {
-                startActivity(Intent(this@OfflineLibraryActivity,
-                    PermittedAudioDownloadActivity::class.java))
-            }
-        }, LinearLayout.LayoutParams(-1, dp(49)).apply { topMargin = dp(11) })
         val search = EditText(this).apply {
             hint = "Search saved songs"
             setSingleLine(true)
@@ -176,8 +135,55 @@ class OfflineLibraryActivity : ComponentActivity() {
         }
         if (searchText.isNotBlank()) search.setText(searchText)
         root.addView(search, LinearLayout.LayoutParams(-1, dp(49)).apply {
-            topMargin = dp(14)
+            topMargin = dp(6); bottomMargin = dp(10)
         })
+        fun quickAction(text: String, description: String, bright: Boolean,
+            action: () -> Unit): TextView = label(text, 14f,
+                if (bright) 0xFF101A21.toInt() else 0xFFB1EBE3.toInt(), true).apply {
+            gravity = Gravity.CENTER
+            maxLines = 1
+            ellipsize = android.text.TextUtils.TruncateAt.END
+            setPadding(dp(5), 0, dp(5), 0)
+            background = cardBackground(
+                if (bright) 0xFF91E2D7.toInt() else 0xFF213840.toInt())
+            contentDescription = description
+            setOnClickListener { action() }
+        }
+        val quickActions = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+        quickActions.addView(quickAction("Downloads", "Review download progress and history",
+            false) {
+            startActivity(Intent(this@OfflineLibraryActivity, CatalogDownloadsActivity::class.java))
+        }, LinearLayout.LayoutParams(0, dp(48), 1f).apply { rightMargin = dp(5) })
+        quickActions.addView(quickAction("Import files", "Import audio from your device", true) {
+            pick.launch(arrayOf("audio/*", "application/ogg", "application/octet-stream"))
+        }, LinearLayout.LayoutParams(0, dp(48), 1f).apply { leftMargin = dp(5) })
+        root.addView(quickActions, LinearLayout.LayoutParams(-1, dp(48)).apply {
+            bottomMargin = dp(8)
+        })
+        val otherSources = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+        otherSources.addView(quickAction("Find audio", "Browse licensed audio sources", false) {
+            startActivity(Intent(this@OfflineLibraryActivity, FreeAudioCatalogActivity::class.java))
+        }, LinearLayout.LayoutParams(0, dp(48), 1f).apply { rightMargin = dp(5) })
+        otherSources.addView(quickAction("Direct link", "Download your authorized audio URL", false) {
+            startActivity(Intent(this@OfflineLibraryActivity,
+                PermittedAudioDownloadActivity::class.java))
+        }, LinearLayout.LayoutParams(0, dp(48), 1f).apply { leftMargin = dp(5) })
+        root.addView(otherSources, LinearLayout.LayoutParams(-1, dp(48)).apply {
+            bottomMargin = dp(6)
+        })
+        root.addView(label("☁  My Google Drive music  ›", 13f,
+            0xFF91E2D7.toInt(), true).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            contentDescription = "Open your own Google Drive music"
+            setPadding(dp(7), 0, 0, 0)
+            setOnClickListener {
+                startActivity(Intent(this@OfflineLibraryActivity, NightWaveLockerActivity::class.java))
+            }
+        }, LinearLayout.LayoutParams(-1, dp(44)))
         val controls = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL

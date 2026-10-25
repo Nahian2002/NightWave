@@ -139,6 +139,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -871,6 +872,11 @@ class NightWaveStudioActivity : ComponentActivity() {
                     isFavorite = { url -> library.isFavorite(url) },
                     onToggleFavorite = { video -> library.toggleFavorite(video); refresh() },
                     onSongOptions = { video -> showSongOptions(video) },
+                    onPlaylistSongOptions = { name, video ->
+                        showPlaylistSongOptions(name, video)
+                    },
+                    onRemoveRecent = { video -> confirmRemoveRecent(video) },
+                    onClearRecent = { confirmClearRecent() },
                     onSharePlaylist = { name, tracks -> sharePlaylist(name, tracks) },
                     onImportSharedPlaylist = { promptSharedPlaylistPaste() },
                     onSaveCurrentToPlaylist = { saveCurrentToPlaylist() },
@@ -1821,6 +1827,33 @@ class NightWaveStudioActivity : ComponentActivity() {
             }.setNegativeButton("Close", null).show()
     }
 
+    private fun showPlaylistSongOptions(name: String, song: VideoPreview) {
+        if (name !in library.playlistNames() ||
+            library.playlist(name).none { it.url == song.url }) {
+            showSongOptions(song)
+            return
+        }
+        AlertDialog.Builder(this).setTitle(song.title.take(110))
+            .setItems(arrayOf("Play now", "More song actions", "Remove from this playlist")) {
+                    _, selected ->
+                when (selected) {
+                    0 -> playSearchedOfflineFirst(song, library.playlist(name))
+                    1 -> showSongOptions(song)
+                    2 -> AlertDialog.Builder(this)
+                        .setTitle("Remove from ${name.take(55)}?")
+                        .setMessage("Remove this entry from the playlist only? " +
+                            "Liked songs, listening history and offline audio remain saved.")
+                        .setNegativeButton("Keep", null)
+                        .setPositiveButton("Remove") { _, _ ->
+                            if (library.removeFromPlaylist(name, song.url)) {
+                                refresh()
+                                showMessage("Removed from $name. Other music is unchanged.")
+                            } else showMessage("Playlist is unchanged. Try again.")
+                        }.show()
+                }
+            }.setNegativeButton("Close", null).show()
+    }
+
     private fun promptPlaylistName(initial: String = "", onSave: (String) -> Unit) {
         val name = EditText(this).apply {
             setSingleLine(true)
@@ -2177,6 +2210,39 @@ class NightWaveStudioActivity : ComponentActivity() {
             }.setNegativeButton("Close", null).show()
     }
 
+    private fun confirmRemoveRecent(song: VideoPreview) {
+        AlertDialog.Builder(this)
+            .setTitle("Remove from Recently Played?")
+            .setMessage(song.title.take(90) + "\n\nOnly the listening-history entry is removed. " +
+                "Liked songs, playlists and saved offline audio stay untouched.")
+            .setNegativeButton("Keep", null)
+            .setPositiveButton("Remove") { _, _ ->
+                if (library.removeRecent(song.url)) {
+                    refresh()
+                    showMessage("Removed from history. Undo last edit is available in Profile.")
+                } else showMessage("History unchanged; try again.")
+            }.show()
+    }
+
+    private fun confirmClearRecent() {
+        val count = library.recent().size
+        if (count == 0) {
+            showMessage("Recently Played is already empty.")
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Clear Recently Played?")
+            .setMessage("Remove $count history entries? Liked songs, playlists and downloaded " +
+                "audio will not be deleted. Undo the last library edit from Profile.")
+            .setNegativeButton("Keep", null)
+            .setPositiveButton("Clear history") { _, _ ->
+                if (library.clearRecent()) {
+                    refresh()
+                    showMessage("History cleared. Your saved music is unchanged.")
+                } else showMessage("History could not be cleared. Your music is unchanged.")
+            }.show()
+    }
+
     private fun confirmLastWriteRecovery() {
         AlertDialog.Builder(this)
             .setTitle("Undo the last library edit?")
@@ -2304,6 +2370,7 @@ class NightWaveStudioActivity : ComponentActivity() {
 }
 
 private const val LIKED_COLLECTION = "nightwave://local-liked"
+private const val RECENT_COLLECTION = "nightwave://local-recent"
 private enum class StudioTab(val caption: String) {
     HOME("Home"), SEARCH("Search"), LIBRARY("Library"), PROFILE("You")
 }
@@ -2366,6 +2433,9 @@ private fun StudioRoot(
     isFavorite: (String) -> Boolean,
     onToggleFavorite: (VideoPreview) -> Unit,
     onSongOptions: (VideoPreview) -> Unit,
+    onRemoveRecent: (VideoPreview) -> Unit,
+    onClearRecent: () -> Unit,
+    onPlaylistSongOptions: (String, VideoPreview) -> Unit,
     onSharePlaylist: (String, List<VideoPreview>) -> Unit,
     onImportSharedPlaylist: () -> Unit,
     onSaveCurrentToPlaylist: () -> Unit,
@@ -2558,6 +2628,7 @@ private fun StudioRoot(
                             }
                         },
                         onPlay = onPlay, onSongOptions = onSongOptions,
+                        onRemoveRecent = onRemoveRecent, onClearRecent = onClearRecent,
                         openLibrary = { navigateToTab(StudioTab.LIBRARY) }
                     )
                     StudioTab.SEARCH -> StudioSearch(
@@ -2579,7 +2650,8 @@ private fun StudioRoot(
                         onOfflineSearch = onOfflineSearch
                     )
                     StudioTab.LIBRARY -> StudioLibrary(
-                        modifier = Modifier, favorites = favorites, names = playlistNames,
+                        modifier = Modifier, favorites = favorites, recent = recent,
+                        names = playlistNames,
                         libraryRevision = libraryRevision, roomPreviewActive = roomPreviewActive,
                         smartCollections = smartCollections, folderSnapshot = folderSnapshot,
                         playingUrl = playerState.videoUrl.takeIf { playerState.playing }.orEmpty(),
@@ -2588,6 +2660,8 @@ private fun StudioRoot(
                         getPlaylist = getPlaylist, onPlay = onPlay,
                         onQuickPlay = onLibraryQuickPlay,
                         onSongOptions = onSongOptions,
+                        onPlaylistSongOptions = onPlaylistSongOptions,
+                        onRemoveRecent = onRemoveRecent, onClearRecent = onClearRecent,
                         onSharePlaylist = onSharePlaylist,
                         onImportSharedPlaylist = onImportSharedPlaylist,
                         onManage = onLegacyPlayer,
@@ -2631,7 +2705,11 @@ private fun StudioRoot(
                         onShareDiagnostics = onShareDiagnostics,
                         onOpenClassic = onOpenClassic,
                         onEqualizer = { showSoundStudio = true },
-                        onOpenAccount = { showAccountHub = true }
+                        onOpenAccount = { showAccountHub = true },
+                        onManageHistory = {
+                            selectedPlaylist = RECENT_COLLECTION
+                            navigateToTab(StudioTab.LIBRARY)
+                        }
                     )
                 }
             }
@@ -2705,7 +2783,9 @@ private fun StudioHome(
     playingUrl: String, onSearch: (String) -> Unit,
     onResumeSpotlight: (VideoPreview, List<VideoPreview>) -> Unit,
     onPlay: (VideoPreview, List<VideoPreview>) -> Unit,
-    onSongOptions: (VideoPreview) -> Unit, openLibrary: () -> Unit
+    onSongOptions: (VideoPreview) -> Unit,
+    onRemoveRecent: (VideoPreview) -> Unit,
+    onClearRecent: () -> Unit, openLibrary: () -> Unit
 ) {
     val dayNumber = java.time.LocalDate.now().toEpochDay()
     // Extend the existing personal mixes, rather than replacing them.
@@ -2723,6 +2803,7 @@ private fun StudioHome(
     }
     var chosenMixKey by rememberSaveable { mutableStateOf<String?>(null) }
     var showAllMixTracks by rememberSaveable { mutableStateOf(false) }
+    var showAllRecent by rememberSaveable { mutableStateOf(false) }
     val chosenMix = mixes.firstOrNull { it.key == chosenMixKey }
     val palettes = listOf(
         listOf(Color(0xFF423163), Color(0xFF242B57)),
@@ -2755,6 +2836,41 @@ private fun StudioHome(
                 onResume = { recent.firstOrNull()?.let { onResumeSpotlight(it, recent) } },
                 onDiscover = { onSearch("night drive music") }
             )
+        }
+        item(key = "recent-heading") {
+            Row(Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween) {
+                Column(Modifier.weight(1f)) {
+                    SectionHeading("Recently played",
+                        if (recent.isEmpty()) "Your listening history appears here"
+                        else "${recent.size} tracks · Private to this device")
+                }
+                if (recent.size > 6) {
+                    TextButton(onClick = { showAllRecent = !showAllRecent }) {
+                        Text(if (showAllRecent) "Show less" else "See all")
+                    }
+                }
+            }
+        }
+        if (recent.isEmpty()) item {
+            EmptyMusicCard("Your soundtrack starts here",
+                "Songs you play will appear here, ready for another listen.",
+                "Discover music") { onSearch("music") }
+        } else {
+            items(if (showAllRecent) recent.take(100) else recent.take(6),
+                key = { "recent:" + it.url }) { song ->
+                MusicTrackTile(song, isPlaying = playingUrl == song.url,
+                    onOptions = { onSongOptions(song) },
+                    onRemove = { onRemoveRecent(song) },
+                    onClick = { onPlay(song, recent) })
+            }
+            if (showAllRecent) item(key = "clear-listening-history") {
+                OutlinedButton(onClick = onClearRecent,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                    Text("Clear Recently Played")
+                }
+            }
         }
         if (mixes.isNotEmpty()) {
             item {
@@ -2827,16 +2943,6 @@ private fun StudioHome(
                     }
                 }
             }
-        }
-        item { SectionHeading("Recently played", "Pick up another favorite") }
-        if (recent.isEmpty()) item {
-            EmptyMusicCard("Your soundtrack starts here",
-                "Songs you play will appear here, ready for another listen.",
-                "Discover music") { onSearch("music") }
-        } else items(recent.take(6), key = { it.url }) { song ->
-            MusicTrackTile(song, isPlaying = playingUrl == song.url,
-                onOptions = { onSongOptions(song) },
-                onClick = { onPlay(song, recent) })
         }
         item {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
@@ -3037,6 +3143,16 @@ private fun StudioSearch(
             }
         }
         if (query.isBlank() && !searching) {
+            item(key = "search-offline-quick-access") {
+                OutlinedButton(onClick = { onOfflineSearch("") },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                    shape = RoundedCornerShape(15.dp)) {
+                    Icon(Icons.Outlined.LibraryMusic,
+                        contentDescription = null, modifier = Modifier.size(19.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("Browse offline songs")
+                }
+            }
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
                     NightWaveMicroLabel("Explore by mood")
@@ -3270,7 +3386,8 @@ private fun StudioSearch(
 
 @Composable
 private fun StudioLibrary(
-    modifier: Modifier, favorites: List<VideoPreview>, names: List<String>,
+    modifier: Modifier, favorites: List<VideoPreview>, recent: List<VideoPreview>,
+    names: List<String>,
     libraryRevision: Int, roomPreviewActive: Boolean,
     smartCollections: List<SmartLibraryCollection>,
     folderSnapshot: PlaylistFolderSnapshot,
@@ -3285,6 +3402,8 @@ private fun StudioLibrary(
     offlineResumeTitle: String?, offlineResumePositionMs: Long,
     onResumeOffline: () -> Unit,
     onSongOptions: (VideoPreview) -> Unit,
+    onRemoveRecent: (VideoPreview) -> Unit, onClearRecent: () -> Unit,
+    onPlaylistSongOptions: (String, VideoPreview) -> Unit,
     onSharePlaylist: (String, List<VideoPreview>) -> Unit,
     onImportSharedPlaylist: () -> Unit
 ) {
@@ -3315,6 +3434,7 @@ private fun StudioLibrary(
     val selectedSmart = smartCollections.firstOrNull { it.id == selectedPlaylist }
     val tracks = when {
         selectedPlaylist == null || selectedPlaylist == LIKED_COLLECTION -> favorites
+        selectedPlaylist == RECENT_COLLECTION -> recent
         selectedSmart != null -> selectedSmart.songs
         else -> playlistPreviews.firstOrNull { it.name == selectedPlaylist }?.songs.orEmpty()
     }
@@ -3343,16 +3463,27 @@ private fun StudioLibrary(
                     NightWaveCollectionHeader(
                         name = when {
                             selectedPlaylist == LIKED_COLLECTION -> "Liked Songs"
+                            selectedPlaylist == RECENT_COLLECTION -> "Recently Played"
                             selectedSmart != null -> selectedSmart.title
                             else -> selectedPlaylist ?: "Your library"
                         },
                         description = when {
                             selectedPlaylist == null -> "Saved music across your collections"
+                            selectedPlaylist == RECENT_COLLECTION ->
+                                "Your history · Remove entries without deleting saved music"
                             selectedSmart != null -> selectedSmart.description
                             else -> NightWaveCollectionChrome.sectionSubtitle(
                                 tracks.size, "saved track", "saved tracks")
                         }
                     )
+                }
+            }
+        }
+        if (selectedPlaylist == RECENT_COLLECTION && tracks.isNotEmpty()) {
+            item(key = "library-clear-recent") {
+                OutlinedButton(onClick = onClearRecent,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                    Text("Clear Recently Played")
                 }
             }
         }
@@ -3458,6 +3589,13 @@ private fun StudioLibrary(
                     favorites.size.toString() + " tracks",
                     cover = favorites.firstOrNull()) {
                     onSelectPlaylist(LIKED_COLLECTION)
+                }
+            }
+            item(key = "library-recent-collection") {
+                MusicCollectionTile("Recently played",
+                    recent.size.toString() + " history entries · Edit",
+                    cover = recent.firstOrNull()) {
+                    onSelectPlaylist(RECENT_COLLECTION)
                 }
             }
             item(key = "library-quick-navigation") {
@@ -3599,8 +3737,11 @@ private fun StudioLibrary(
             }
         }
         item {
-            SectionHeading(if (selectedPlaylist == null) "Recently liked" else "Saved tracks",
-                if (selectedPlaylist == null) "Your latest five liked songs" else null)
+            SectionHeading(when (selectedPlaylist) {
+                    null -> "Recently liked"
+                    RECENT_COLLECTION -> "Listening history"
+                    else -> "Saved tracks"
+                }, if (selectedPlaylist == null) "Your latest five liked songs" else null)
         }
         if (selectedPlaylist != null && tracks.isNotEmpty()) {
             item {
@@ -3642,8 +3783,12 @@ private fun StudioLibrary(
         }
         if (visibleTracks.isEmpty()) item {
             EmptyMusicCard(
-                if (tracks.isEmpty()) "Nothing here yet" else "No matching tracks",
-                if (tracks.isEmpty()) "Save a song to build your collection."
+                if (selectedPlaylist == RECENT_COLLECTION && tracks.isEmpty())
+                    "No recent plays" else if (tracks.isEmpty()) "Nothing here yet"
+                    else "No matching tracks",
+                if (selectedPlaylist == RECENT_COLLECTION && tracks.isEmpty())
+                    "Songs you play appear here. Liked and downloaded music stays saved."
+                else if (tracks.isEmpty()) "Save a song to build your collection."
                 else "Try another title or artist.",
                 if (tracks.isEmpty()) "Find music" else "Clear filter") {
                 if (tracks.isEmpty()) onSearch() else localFilter = ""
@@ -3651,10 +3796,18 @@ private fun StudioLibrary(
         } else items(visibleTracks, key = { it.url }) { song ->
             MusicTrackTile(song, isPlaying = playingUrl == song.url,
                 surface = NightWaveTrackSurface.LIBRARY,
-                onOptions = { onSongOptions(song) },
+                onOptions = {
+                    if (selectedPlaylist != null &&
+                        selectedPlaylist in names && selectedSmart == null &&
+                        selectedPlaylist != LIKED_COLLECTION) {
+                        onPlaylistSongOptions(selectedPlaylist, song)
+                    } else onSongOptions(song)
+                },
+                onRemove = if (selectedPlaylist == RECENT_COLLECTION)
+                    ({ onRemoveRecent(song) }) else null,
                 onClick = { onPlay(song, if (selectedPlaylist == null) tracks else orderedTracks) })
         }
-        item {
+        if (selectedPlaylist == null || selectedPlaylist in names) item {
             OutlinedButton(onClick = onManage, modifier = Modifier.fillMaxWidth()) {
                 Text("Manage playlists")
             }
@@ -3689,7 +3842,8 @@ private fun StudioProfile(
     onEnableRoomPreview: () -> Unit, onUseLegacyReads: () -> Unit,
     onShareDiagnostics: () -> Unit, onOpenClassic: () -> Unit,
     onEqualizer: () -> Unit,
-    onOpenAccount: () -> Unit
+    onOpenAccount: () -> Unit,
+    onManageHistory: () -> Unit
 ) {
     var name by rememberSaveable(profile.localId) { mutableStateOf(profile.displayName) }
     var editing by rememberSaveable { mutableStateOf(false) }
@@ -3915,6 +4069,10 @@ private fun StudioProfile(
                         ListeningInsightsPanel(insights)
                     }
                 }
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                StudioProfileRow("Manage Recently Played",
+                    "Remove one entry or clear history · Saved music stays",
+                    Icons.Outlined.LibraryMusic, onManageHistory)
             }
         }
 

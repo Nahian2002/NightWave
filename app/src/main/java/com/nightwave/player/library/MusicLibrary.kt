@@ -28,6 +28,13 @@ class MusicLibrary(context: Context) {
         LegacyLibraryTransaction.mutate(app, LibraryChange.RecordRecent(video))
     }
 
+    /** History-only actions: never delete favorites, playlists or offline audio. */
+    fun removeRecent(url: String): Boolean =
+        LegacyLibraryTransaction.mutate(app, LibraryChange.RemoveRecent(url)).changed
+
+    fun clearRecent(): Boolean =
+        LegacyLibraryTransaction.mutate(app, LibraryChange.ClearRecent).changed
+
     fun playlistNames(): List<String> = try {
         val names = JSONArray(prefs.getString("playlist_names", "[]") ?: "[]")
         (0 until names.length()).map { names.optString(it) }.filter { it.isNotBlank() }

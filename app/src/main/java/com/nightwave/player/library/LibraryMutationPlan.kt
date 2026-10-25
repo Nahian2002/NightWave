@@ -16,6 +16,8 @@ data class LibraryCollections(
 sealed interface LibraryChange {
     data class ToggleFavorite(val song: VideoPreview) : LibraryChange
     data class RecordRecent(val song: VideoPreview) : LibraryChange
+    data class RemoveRecent(val url: String) : LibraryChange
+    data object ClearRecent : LibraryChange
     data class CreatePlaylist(val name: String) : LibraryChange
     data class DeletePlaylist(val name: String) : LibraryChange
     data class RenamePlaylist(val oldName: String, val newName: String) : LibraryChange
@@ -66,6 +68,15 @@ object LibraryMutationPlan {
                 // all listening history at 99 instead of the intended 100.
                 accepted(old.copy(recent = (listOf(song) +
                     old.recent.filterNot { it.url == song.url }).take(100)))
+            }
+            is LibraryChange.RemoveRecent -> {
+                val url = VideoLink.normalize(operation.url) ?: return rejected()
+                if (old.recent.none { it.url == url }) return rejected()
+                accepted(old.copy(recent = old.recent.filterNot { it.url == url }))
+            }
+            LibraryChange.ClearRecent -> {
+                if (old.recent.isEmpty()) return rejected()
+                accepted(old.copy(recent = emptyList()))
             }
             is LibraryChange.CreatePlaylist -> {
                 val name = operation.name.trim().take(60)
