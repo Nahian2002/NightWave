@@ -1,6 +1,9 @@
 package com.nightwave.player.v2.ui
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -33,6 +36,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -89,12 +93,19 @@ fun NightWavePremiumNavigation(
             names.forEachIndexed { index, label ->
                 val active = NightWaveChromePolicy.selectedTab(selectedIndex) == index
                 val color by animateColorAsState(
-                    targetValue = if (active) colors.primary.copy(alpha = .17f)
+                    targetValue = if (active) colors.primary.copy(alpha = .16f)
                         else Color.Transparent,
                     animationSpec = tween(
-                        durationMillis = NightWaveAdaptiveChromePolicy.motionDurationMs(reducedMotion, 160)
+                        durationMillis = NightWaveMotionPolicy.duration(
+                            reducedMotion, NightWaveMotionPolicy.NAV_MS)
                     ),
                     label = "NightWave selected destination"
+                )
+                val iconScale by animateFloatAsState(
+                    targetValue = NightWaveMotionPolicy.tabScale(active, reducedMotion),
+                    animationSpec = if (reducedMotion) snap() else spring(
+                        dampingRatio = .76f, stiffness = 510f),
+                    label = "NightWave tab spring"
                 )
                 Box(
                     modifier = Modifier.weight(1f).fillMaxHeight()
@@ -124,6 +135,10 @@ fun NightWavePremiumNavigation(
                             tint = if (active) colors.primary
                                 else colors.onSurfaceVariant,
                             modifier = Modifier.size(if (extraLargeText) 24.dp else 23.dp)
+                                .graphicsLayer {
+                                    scaleX = iconScale
+                                    scaleY = iconScale
+                                }
                         )
                         Spacer(Modifier.height(if (extraLargeText) 3.dp else 4.dp))
                         Text(
