@@ -13,7 +13,9 @@ data class Palette(
     val danger: Long,
     val isDark: Boolean
 ) {
-    fun contrastOnAccent(): Long = if (isDark) 0xFF100D20 else 0xFF17111A
+    // All current light palettes use a dark accent to keep small labels
+    // readable on cards. Light lettering is required on that dark accent.
+    fun contrastOnAccent(): Long = if (isDark) 0xFF100D20 else 0xFFF9F7F2
 }
 
 object NightWaveDesign {
@@ -37,8 +39,8 @@ object NightWaveDesign {
             0xFFC6B6FF, 0xFF4A3E6C, 0xFF363251, 0xFFFFB1B5, true
         )
         NightWaveTheme.PEARL -> Palette(
-            0xFFF9F7F2, 0xFFF0EAE2, 0xFFE4D9CB, 0xFF29262B, 0xFF6C646A,
-            0xFFB48883, 0xFFE8D4CF, 0xFFCEC4C0, 0xFFB53D51, false
+            0xFFF9F7F2, 0xFFF0EAE2, 0xFFE4D9CB, 0xFF29262B, 0xFF625A63,
+            0xFF815154, 0xFFE8D4CF, 0xFFCEC4C0, 0xFFB53D51, false
         )
         NightWaveTheme.AMOLED -> Palette(
             0xFF000000, 0xFF121518, 0xFF1B2228, 0xFFFFFFFF, 0xFFA8B6C0,
