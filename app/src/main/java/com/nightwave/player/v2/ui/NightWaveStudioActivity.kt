@@ -1765,6 +1765,11 @@ class NightWaveStudioActivity : ComponentActivity() {
         super.onResume()
         if (::library.isInitialized) refresh()
         if (::folderStore.isInitialized) folderSnapshot = folderStore.snapshot()
+        if (::pinStore.isInitialized && ::library.isInitialized) {
+            // Classic/library edits can rename playlists while this activity is paused.
+            // Resynchronize optional pin metadata without writing library content.
+            pinnedPlaylistNames = pinStore.snapshot(library.playlistNames())
+        }
         if (::offlineSpeedStore.isInitialized) offlineSpeedPercent = offlineSpeedStore.read()
         if (::listeningLevelStore.isInitialized) listeningLevelPercent = listeningLevelStore.read()
         if (::crossfadeSettings.isInitialized) crossfadeSeconds = crossfadeSettings.read()
