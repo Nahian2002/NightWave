@@ -164,19 +164,25 @@ class PlaybackService : MediaLibraryService() {
                 "Waiting for an active audio session. Start a song first.")
             return
         }
-        if (activeEqualizer != null && equalizerSessionId == sessionId) return
+        val existing = activeEqualizer
+        if (existing != null && EqualizerSessionPolicy.canReuse(
+                requestedEqPreset, equalizerSessionId, sessionId,
+                runCatching { existing.enabled }.getOrDefault(false),
+                runCatching { existing.hasControl() }.getOrDefault(false))) return
+        // Control may be revoked when Android changes output/audio effects.
+        // Rebuild instead of reporting an old instance as active.
         releaseEqualizer()
         var candidate: Equalizer? = null
         try {
             candidate = Equalizer(0, sessionId)
-            eqCapabilities.publish(candidate, sessionId)
-            // Android effects are shared per audio session and another effect
-            // may own this engine. Never report success without control.
+            // Android effects are shared per audio session. Do not publish
+            // a ready UI snapshot until the active session actually owns EQ.
             if (!candidate.hasControl()) {
                 eqStatus.write(requestedEqPreset, false,
                     "Equalizer unavailable: another effect controls this audio session.")
                 return
             }
+            eqCapabilities.publish(candidate, sessionId)
             if (requestedEqPreset == 21) {
                 // Manual mode: range and band count come from this exact device/session.
                 val range = candidate.bandLevelRange
@@ -199,7 +205,7 @@ class PlaybackService : MediaLibraryService() {
                 candidate.usePreset(presetIndex.toShort())
             }
             candidate.enabled = true
-            if (!candidate.enabled) {
+            if (!candidate.enabled || !candidate.hasControl()) {
                 eqStatus.write(requestedEqPreset, false,
                     "Android audio effects could not be enabled on this session.")
                 return
@@ -517,8 +523,18 @@ class PlaybackService : MediaLibraryService() {
         val ids = offlineQueue.snapshot()
         val id = ids.getOrNull(index) ?: return cancelCrossfade()
         val session = mediaSession ?: return cancelCrossfade()
-        if (crossfadeOutgoing !== old || new.currentMediaItem?.mediaId != "offline:$id" ||
-            !offlinePlaying || !offlineGaplessActive || sleepTimerPaused) {
+        if (crossfadeOutgoing !== old ||
+            !CrossfadeHandoffPolicy.mayHandoff(
+                offline = offlinePlaying, gaplessTimeline = offlineGaplessActive,
+                shuffled = offlineQueue.shuffle,
+                repeatOne = offlineQueue.repeat == PlaybackQueue.Repeat.ONE,
+                timerPaused = sleepTimerPaused,
+                outgoingPlaying = old.isPlaying, incomingPlaying = new.isPlaying,
+                oldIndex = old.currentMediaItemIndex,
+                nextIndex = index, count = old.mediaItemCount,
+                selectedId = offlineQueue.current, nextId = id,
+                outgoingMediaId = old.currentMediaItem?.mediaId,
+                incomingMediaId = new.currentMediaItem?.mediaId)) {
             cancelCrossfade()
             return
         }
@@ -1313,15 +1329,19 @@ class PlaybackService : MediaLibraryService() {
                     var probe: Equalizer? = null
                     try {
                         probe = activeEqualizer ?: Equalizer(0, session)
-                        eqCapabilities.publish(probe, session)
+                        val controlsEffect = probe.hasControl()
+                        if (controlsEffect) eqCapabilities.publish(probe, session)
+                        else eqCapabilities.clear()
                         // On a cold app launch the old SharedPreferences receipt
                         // can still say "active"; the new service has no effect.
                         val activeOnSession = activeEqualizer === probe &&
                             equalizerSessionId == session && probe.enabled &&
-                            probe.hasControl()
+                            controlsEffect
                         eqStatus.write(requestedEqPreset, activeOnSession,
                             if (activeOnSession)
                                 "Enabled on playback session. Audibility depends on audio route."
+                            else if (!controlsEffect)
+                                "Android EQ is controlled by another effect or unavailable."
                             else "Equalizer off. Select an available device preset.")
                     } catch (_: Exception) {
                         eqCapabilities.clear()
