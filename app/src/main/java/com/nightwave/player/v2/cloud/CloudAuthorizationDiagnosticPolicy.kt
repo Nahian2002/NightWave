@@ -18,9 +18,10 @@ object CloudAuthorizationDiagnosticPolicy {
     fun apiStatus(code: Int): String = when (code) {
         10 -> "Google OAuth setup error (10). Check Android package, APK SHA-1, Drive API and test-user access."
         7 -> "Google authorization network error (7). Check internet and retry."
-        8 -> "Google authorization internal error (8). Retry once, update Google Play services, " +
-            "then run check-google-oauth.cmd on Windows. Verify your Android OAuth " +
-            "client matches com.nightwave.player and this APK signer SHA-1; enable Drive API."
+        8 -> "Google authorization internal error (8). Check Google Play services, then " +
+            "open You > Account & backup > Copy Google setup report to see this APK signer SHA-1. " +
+            "Match its package and SHA-1 to your Android OAuth client, enable Drive API, " +
+            "or run check-google-oauth.cmd on Windows. The account chooser alone is not permission."
         13 -> "Google authorization error (13). Retry and verify your Android OAuth registration."
         16, 12501 -> "Google authorization was cancelled ($code). Finish the account consent screen."
         17, 4 -> "Google account access unavailable ($code). Check account and Play services."
