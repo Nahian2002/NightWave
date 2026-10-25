@@ -99,6 +99,27 @@ if (Test-Path -LiteralPath $builderPath -PathType Leaf) {
     }
 }
 
+# NW61 OAuth diagnostics must bind to the newest successfully verified APK,
+# never report a stale dist APK after the latest build has failed.
+$oauthChecker = Join-Path $PSScriptRoot 'check-google-oauth.ps1'
+if (Test-Path -LiteralPath $oauthChecker -PathType Leaf) {
+    $oauthSource = [System.IO.File]::ReadAllText($oauthChecker)
+    foreach ($required in @(
+        'Test-VerifiedApkStatus $status $apkSha256',
+        'Get-FileHash -LiteralPath $ApkPath -Algorithm SHA256',
+        'Get-ChildItem -LiteralPath $parent -Directory',
+        'INCONCLUSIVE - no current verified APK',
+        'if ($SelfTest)'
+    )) {
+        if (-not $oauthSource.Contains($required)) {
+            $issues += ('NW61 safe OAuth report gate missing: ' + $required)
+        }
+    }
+    if ($oauthSource.Contains('build-tools\35.0.0')) {
+        $issues += 'NW61 OAuth report may not hard-code an SDK Build Tools version.'
+    }
+}
+
 if ($issues.Count -gt 0) {
     # Preserve a previous local build, only within the generated dist folder.
     $apk = Join-Path $dist 'NightWave-debug.apk'
