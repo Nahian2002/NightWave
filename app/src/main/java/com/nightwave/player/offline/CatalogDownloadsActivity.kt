@@ -33,6 +33,10 @@ class CatalogDownloadsActivity : ComponentActivity() {
     private lateinit var filterRow: LinearLayout
     private var currentFilter = DownloadCenterViewPolicy.Filter.ALL
     private var showHiddenJobs = false
+    // Only one 60-row page of WorkManager history is inflated at a time.
+    // Filtering and retry deduplication happen before paging.
+    private var historyPage = 0
+    private var resetHistoryScroll = false
     private lateinit var scroll: ScrollView
     private val manager by lazy { WorkManager.getInstance(applicationContext) }
     private var catalogJobs: List<WorkInfo> = emptyList()
@@ -122,6 +126,8 @@ class CatalogDownloadsActivity : ComponentActivity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putString("nw48-download-filter", currentFilter.name)
+        outState.putInt("nw63-download-page", historyPage)
+        outState.putBoolean("nw63-show-hidden", showHiddenJobs)
         super.onSaveInstanceState(outState)
     }
 
@@ -145,6 +151,8 @@ class CatalogDownloadsActivity : ComponentActivity() {
             ?.let { stored -> runCatching {
                 DownloadCenterViewPolicy.Filter.valueOf(stored)
             }.getOrNull() } ?: DownloadCenterViewPolicy.Filter.ALL
+        historyPage = savedInstanceState?.getInt("nw63-download-page", 0) ?: 0
+        showHiddenJobs = savedInstanceState?.getBoolean("nw63-show-hidden", false) ?: false
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(18), dp(16), dp(18), dp(12))
@@ -197,6 +205,8 @@ class CatalogDownloadsActivity : ComponentActivity() {
             gravity = Gravity.CENTER_VERTICAL
             setOnClickListener {
                 showHiddenJobs = !showHiddenJobs
+                historyPage = 0
+                resetHistoryScroll = true
                 refreshJobs()
             }
         }
@@ -246,7 +256,9 @@ class CatalogDownloadsActivity : ComponentActivity() {
 
     private fun render(infos: List<WorkInfo>) {
         if (isFinishing || isDestroyed) return
-        val originalPosition = if (::scroll.isInitialized) scroll.scrollY else 0
+        val originalPosition = if (resetHistoryScroll) 0
+            else if (::scroll.isInitialized) scroll.scrollY else 0
+        resetHistoryScroll = false
         entries.removeAllViews()
         val hidden = DownloadHistoryVisibility.hiddenIds(this)
         val displayInfos = if (showHiddenJobs) infos else infos.filterNot {
@@ -271,20 +283,6 @@ class CatalogDownloadsActivity : ComponentActivity() {
                 info.state == WorkInfo.State.SUCCEEDED, saved, availableIds,
                 verifyingFiles, fileCheckFailed)
         }
-        val active = displayInfos.count {
-            DownloadCenterViewPolicy.isActive(it.state.name)
-        }
-        val ready = displayInfos.count { isVerified(it) }
-        val attention = displayInfos.count {
-            DownloadFileVerificationPolicy.needsAttention(
-                it.state.name, savedIdFromOutput(it), availableIds,
-                verifyingFiles, fileCheckFailed)
-        }
-        overview.text = when {
-            verifyingFiles -> "Checking saved files · $active active"
-            fileCheckFailed -> "Could not verify saved files · Reopen Downloads to retry"
-            else -> "$active active · $ready ready offline · $attention need attention"
-        }
         filterRow.removeAllViews()
         DownloadCenterViewPolicy.Filter.entries.forEach { filter ->
             filterRow.addView(label(DownloadCenterViewPolicy.label(filter), 13f,
@@ -297,6 +295,8 @@ class CatalogDownloadsActivity : ComponentActivity() {
                     " downloads"
                 setOnClickListener {
                     currentFilter = filter
+                    historyPage = 0
+                    resetHistoryScroll = true
                     refreshJobs()
                 }
             }, LinearLayout.LayoutParams(0, dp(48), 1f).apply {
@@ -312,26 +312,48 @@ class CatalogDownloadsActivity : ComponentActivity() {
         // 60 historical transfers existed. Active jobs first, then most
         // recently requested jobs. Older untagged jobs remain visible later.
         val seenSearchUrls = HashSet<String>()
-        val visibleJobs = displayInfos.sortedWith(compareBy<WorkInfo> { it.state.isFinished }
+        val historyJobs = displayInfos.sortedWith(compareBy<WorkInfo> { it.state.isFinished }
             .thenByDescending { OfflineSaveRetryPolicy.requestedAt(it.tags) }
             .thenBy { it.id.toString() })
             .filter { info ->
-                // Retry creates a fresh WorkRequest. Keep the newest/current
-                // entry for each identified song; do not show stale failures
-                // as duplicate rows next to a newer successful attempt.
+                // A newer retry supersedes an older entry for the same song.
+                // Deduplicate before calculating counters and page positions.
                 val url = if (SearchTrackSaveQueue.TAG in info.tags)
                     OfflineSaveRetryPolicy.retryUrl(info.tags) else null
                 url == null || seenSearchUrls.add(url)
-            }.filter { info ->
-                // SUCCEEDED work cannot be shown as "Issues" before a real
-                // background file-health check finishes or if it fails.
-                if (currentFilter == DownloadCenterViewPolicy.Filter.ATTENTION)
-                    DownloadFileVerificationPolicy.needsAttention(
-                        info.state.name, savedIdFromOutput(info),
-                        availableIds, verifyingFiles, fileCheckFailed)
-                else DownloadCenterViewPolicy.matches(
-                    currentFilter, info.state.name, isVerified(info))
-            }.take(60)
+            }
+        val active = historyJobs.count {
+            DownloadCenterViewPolicy.isActive(it.state.name)
+        }
+        val ready = historyJobs.count { isVerified(it) }
+        val attention = historyJobs.count {
+            DownloadFileVerificationPolicy.needsAttention(
+                it.state.name, savedIdFromOutput(it), availableIds,
+                verifyingFiles, fileCheckFailed)
+        }
+        overview.text = when {
+            verifyingFiles -> "Checking saved files · $active active"
+            fileCheckFailed -> "Could not verify saved files · Reopen Downloads to retry"
+            else -> "$active active · $ready ready offline · $attention need attention"
+        }
+        val filteredJobs = historyJobs.filter { info ->
+            // SUCCEEDED work cannot become an Issues alert while its
+            // local file verification is still pending or inconclusive.
+            if (currentFilter == DownloadCenterViewPolicy.Filter.ATTENTION)
+                DownloadFileVerificationPolicy.needsAttention(
+                    info.state.name, savedIdFromOutput(info),
+                    availableIds, verifyingFiles, fileCheckFailed)
+            else DownloadCenterViewPolicy.matches(
+                currentFilter, info.state.name, isVerified(info))
+        }
+        // NW63: the previous .take(60) permanently hid older history.
+        // Page after filtering, preserving every WorkManager record without
+        // inflating unbounded rows. A shrinking queue clamps the saved page.
+        historyPage = DownloadHistoryPagePolicy.normalizedPage(
+            historyPage, filteredJobs.size)
+        val visibleJobs = filteredJobs.drop(
+            DownloadHistoryPagePolicy.offset(historyPage, filteredJobs.size))
+            .take(DownloadHistoryPagePolicy.PAGE_SIZE)
         if (visibleJobs.isEmpty()) {
             entries.addView(label(
                 if (verifyingFiles) "Checking saved audio files…"
@@ -591,6 +613,51 @@ class CatalogDownloadsActivity : ComponentActivity() {
             }
             entries.addView(card, LinearLayout.LayoutParams(-1, -2).apply {
                 bottomMargin = dp(9)
+            })
+        }
+        if (DownloadHistoryPagePolicy.pageCount(filteredJobs.size) > 1) {
+            val pageSummary = DownloadHistoryPagePolicy.summary(
+                historyPage, filteredJobs.size)
+            entries.addView(label(pageSummary, 12f, 0xFFB7CAD4.toInt()).apply {
+                gravity = Gravity.CENTER
+                contentDescription = pageSummary
+            }, LinearLayout.LayoutParams(-1, dp(35)))
+            val pager = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+            }
+            val canGoNewer = DownloadHistoryPagePolicy.hasPrevious(
+                historyPage, filteredJobs.size)
+            pager.addView(label("‹  Newer", 14f, 0xFF98E5DB.toInt(), true).apply {
+                gravity = Gravity.CENTER
+                isEnabled = canGoNewer
+                alpha = if (canGoNewer) 1f else 0.40f
+                contentDescription = "Newer download history page"
+                setOnClickListener {
+                    historyPage = (historyPage - 1).coerceAtLeast(0)
+                    resetHistoryScroll = true
+                    render(catalogJobs + directJobs + searchedJobs)
+                }
+            }, LinearLayout.LayoutParams(0, dp(52), 1f).apply {
+                marginEnd = dp(5)
+            })
+            val canGoOlder = DownloadHistoryPagePolicy.hasNext(
+                historyPage, filteredJobs.size)
+            pager.addView(label("Older  ›", 14f, 0xFF98E5DB.toInt(), true).apply {
+                gravity = Gravity.CENTER
+                isEnabled = canGoOlder
+                alpha = if (canGoOlder) 1f else 0.40f
+                contentDescription = "Older download history page"
+                setOnClickListener {
+                    historyPage += 1
+                    resetHistoryScroll = true
+                    render(catalogJobs + directJobs + searchedJobs)
+                }
+            }, LinearLayout.LayoutParams(0, dp(52), 1f).apply {
+                marginStart = dp(5)
+            })
+            entries.addView(pager, LinearLayout.LayoutParams(-1, dp(52)).apply {
+                bottomMargin = dp(15)
             })
         }
         scroll.post {
