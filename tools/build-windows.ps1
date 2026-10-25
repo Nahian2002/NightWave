@@ -371,6 +371,23 @@ try {
     }
     Say 'NW40 source preflight PASS (full Android Gradle compilation still mandatory).'
 
+    # NW52: confirm the complete 10-batch source ZIP before expensive SDK,
+    # Kotlin/JUnit compile or APK verification. No Python needed on Windows.
+    $stage = 'NW52 full source integration preflight'
+    $nw52Gate = Join-Path $PSScriptRoot 'check-nw52-integration.ps1'
+    if (-not (Test-Path -LiteralPath $nw52Gate -PathType Leaf)) {
+        throw 'NW52 cumulative source guard missing. Download the full NW52 ZIP.'
+    }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $nw52Gate -SelfTest
+    if ($LASTEXITCODE -ne 0) {
+        throw 'NW52 PowerShell source guard self-test failed; Gradle not started.'
+    }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $nw52Gate -ProjectRoot $project
+    if ($LASTEXITCODE -ne 0) {
+        throw 'NW52 integration source guard failed; Gradle not started.'
+    }
+    Say 'NW52 cumulative source preflight PASS (Android compilation still mandatory).'
+
     # NW-08: fingerprint all app source/resources/tests and source-build tooling,
     # not only ten representative files. The helper is run again after Gradle,
     # detecting file additions/removals as well as changes.
