@@ -45,6 +45,15 @@ class CatalogDownloadsActivity : ComponentActivity() {
     private val progressSamples = HashMap<UUID, Pair<Long, Long>>()
     private val observedSpeed = HashMap<UUID, Long>()
     private val uiHandler = Handler(Looper.getMainLooper())
+    // WorkManager can notify separately for each source/progress tick. Keep
+    // only one pending UI paint and always read the newest lists when it runs.
+    private var refreshScheduled = false
+    private var lastPaintedAtMs = -1L
+    private var displayedFilter: DownloadCenterViewPolicy.Filter? = null
+    private val coalescedRefresh = Runnable {
+        refreshScheduled = false
+        if (!isFinishing && !isDestroyed && ::entries.isInitialized) refreshJobs()
+    }
     // One slow storage scan should not block the UI or queue unlimited work.
     // Retain only the newest waiting health check; superseded generations
     // can never replace current WorkManager state or claim a deleted file Ready.
@@ -101,12 +110,27 @@ class CatalogDownloadsActivity : ComponentActivity() {
             if (!isFinishing && !isDestroyed) {
                 if ((catalogJobs + directJobs + searchedJobs).any {
                         it.state == WorkInfo.State.RUNNING
-                    } && ::entries.isInitialized) refreshJobs()
+                    } && ::entries.isInitialized) requestObserverRefresh()
                 uiHandler.postDelayed(this, 5_000L)
             }
         }
     }
+    private fun requestObserverRefresh() {
+        if (isFinishing || isDestroyed || !::entries.isInitialized ||
+            refreshScheduled) return
+        refreshScheduled = true
+        val delay = DownloadRefreshPolicy.delayMs(
+            lastPaintedAtMs, SystemClock.elapsedRealtime())
+        if (!uiHandler.postDelayed(coalescedRefresh, delay)) {
+            refreshScheduled = false
+        }
+    }
+
     private fun refreshJobs() {
+        // User actions and resume must be immediate; a delayed observer tick
+        // must never replay outdated list data after this explicit refresh.
+        uiHandler.removeCallbacks(coalescedRefresh)
+        refreshScheduled = false
         val latest = catalogJobs + directJobs + searchedJobs
         requestFileVerification(latest)
         render(latest)
@@ -119,6 +143,7 @@ class CatalogDownloadsActivity : ComponentActivity() {
         // Re-entering from Offline Library may reveal a deleted private file.
         // Recheck on background IO even when WorkManager records are unchanged.
         requestedSavedIds = null
+        lastPaintedAtMs = -1L
         if (::entries.isInitialized && ::overview.isInitialized) refreshJobs()
         uiHandler.removeCallbacks(stagnantTransferRefresh)
         uiHandler.postDelayed(stagnantTransferRefresh, 5_000L)
@@ -133,6 +158,11 @@ class CatalogDownloadsActivity : ComponentActivity() {
 
     override fun onPause() {
         uiHandler.removeCallbacks(stagnantTransferRefresh)
+        uiHandler.removeCallbacks(coalescedRefresh)
+        refreshScheduled = false
+        lastPaintedAtMs = -1L
+        progressSamples.clear()
+        observedSpeed.clear()
         verificationGeneration++
         requestedSavedIds = null
         super.onPause()
@@ -141,6 +171,8 @@ class CatalogDownloadsActivity : ComponentActivity() {
     override fun onDestroy() {
         verificationGeneration++
         uiHandler.removeCallbacks(stagnantTransferRefresh)
+        uiHandler.removeCallbacks(coalescedRefresh)
+        refreshScheduled = false
         fileVerifier.shutdownNow()
         super.onDestroy()
     }
@@ -232,17 +264,17 @@ class CatalogDownloadsActivity : ComponentActivity() {
         manager.getWorkInfosByTagLiveData(CatalogDownloadQueue.TAG)
             .observe(this) { updates ->
                 catalogJobs = updates.orEmpty()
-                refreshJobs()
+                requestObserverRefresh()
             }
         manager.getWorkInfosByTagLiveData(DirectAudioDownloadQueue.TAG)
             .observe(this) { updates ->
                 directJobs = updates.orEmpty()
-                refreshJobs()
+                requestObserverRefresh()
             }
         manager.getWorkInfosByTagLiveData(SearchTrackSaveQueue.TAG)
             .observe(this) { updates ->
                 searchedJobs = updates.orEmpty()
-                refreshJobs()
+                requestObserverRefresh()
             }
     }
 
@@ -256,6 +288,7 @@ class CatalogDownloadsActivity : ComponentActivity() {
 
     private fun render(infos: List<WorkInfo>) {
         if (isFinishing || isDestroyed) return
+        lastPaintedAtMs = SystemClock.elapsedRealtime()
         val originalPosition = if (resetHistoryScroll) 0
             else if (::scroll.isInitialized) scroll.scrollY else 0
         resetHistoryScroll = false
@@ -283,8 +316,11 @@ class CatalogDownloadsActivity : ComponentActivity() {
                 info.state == WorkInfo.State.SUCCEEDED, saved, availableIds,
                 verifyingFiles, fileCheckFailed)
         }
-        filterRow.removeAllViews()
-        DownloadCenterViewPolicy.Filter.entries.forEach { filter ->
+        // Static tabs are rebuilt only when selection changes, not on every
+        // byte-progress callback. Download cards remain state authoritative.
+        if (displayedFilter != currentFilter) {
+            filterRow.removeAllViews()
+            DownloadCenterViewPolicy.Filter.entries.forEach { filter ->
             filterRow.addView(label(DownloadCenterViewPolicy.label(filter), 13f,
                 if (currentFilter == filter) 0xFF0C1B20.toInt()
                 else 0xFFB8D0DA.toInt(), currentFilter == filter).apply {
@@ -303,6 +339,8 @@ class CatalogDownloadsActivity : ComponentActivity() {
                 marginStart = dp(2)
                 marginEnd = dp(2)
             })
+            }
+            displayedFilter = currentFilter
         }
         fun savedId(info: WorkInfo): String? = savedIdFromOutput(info)
         // WorkManager SUCCEEDED records survive deletion of the saved file.
@@ -346,14 +384,23 @@ class CatalogDownloadsActivity : ComponentActivity() {
             else DownloadCenterViewPolicy.matches(
                 currentFilter, info.state.name, isVerified(info))
         }
+        // NW64: discard speed samples for jobs no longer running, even if
+        // their row is on another page or hidden. Avoid stale rates and
+        // unbounded transient UI bookkeeping across long sessions.
+        val runningIds = infos.asSequence()
+            .filter { it.state == WorkInfo.State.RUNNING }
+            .map { it.id }.toSet()
+        progressSamples.keys.retainAll(runningIds)
+        observedSpeed.keys.retainAll(runningIds)
         // NW63: the previous .take(60) permanently hid older history.
         // Page after filtering, preserving every WorkManager record without
         // inflating unbounded rows. A shrinking queue clamps the saved page.
         historyPage = DownloadHistoryPagePolicy.normalizedPage(
             historyPage, filteredJobs.size)
-        val visibleJobs = filteredJobs.drop(
-            DownloadHistoryPagePolicy.offset(historyPage, filteredJobs.size))
-            .take(DownloadHistoryPagePolicy.PAGE_SIZE)
+        val pageStart = DownloadHistoryPagePolicy.offset(
+            historyPage, filteredJobs.size)
+        val visibleJobs = filteredJobs.subList(pageStart,
+            minOf(filteredJobs.size, pageStart + DownloadHistoryPagePolicy.PAGE_SIZE))
         if (visibleJobs.isEmpty()) {
             entries.addView(label(
                 if (verifyingFiles) "Checking saved audio files…"
