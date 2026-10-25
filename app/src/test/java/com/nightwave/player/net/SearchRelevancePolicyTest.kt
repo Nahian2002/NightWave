@@ -12,6 +12,24 @@ class SearchRelevancePolicyTest {
     private val b = "abc12345679"
     private val c = "abc12345670"
 
+    @Test fun banglaVowelSignsArePreservedAndRemainDistinct() {
+        val complete = "ভালোবাসা"
+        val withoutVowels = "ভলবস"
+        assertEquals(complete, SearchRelevancePolicy.normalize(complete))
+        assertFalse(SearchRelevancePolicy.normalize(complete) ==
+            SearchRelevancePolicy.normalize(withoutVowels))
+        val original = track(a, "ভালোবাসা - রাত", "বাংলা সংগীত")
+        assertEquals(listOf(original), SavedTrackSearch.match("ভালোবাসা", listOf(original)))
+        assertTrue(SavedTrackSearch.match("ভলবস", listOf(original)).isEmpty())
+    }
+
+    @Test fun staleBanglaSearchResultsCannotMatchDifferentVowelSpelling() {
+        val first = SearchRelevancePolicy.prepare("মালা")
+        val second = SearchRelevancePolicy.prepare("মেলা")
+        assertFalse(first.text == second.text)
+        assertTrue(first.valid && second.valid)
+    }
+
     @Test fun accentInsensitiveSavedTitleMatch() {
         val original = track(a, "Beyoncé - Halo", "Beyoncé")
         assertEquals(listOf(original), SavedTrackSearch.match("beyonce halo", listOf(original)))
