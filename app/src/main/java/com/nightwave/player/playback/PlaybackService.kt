@@ -1654,6 +1654,9 @@ class PlaybackService : MediaLibraryService() {
 
     private fun advanceOffline(forward: Boolean, automatic: Boolean = false): Boolean {
         cancelCrossfade()
+        // Manual Next/Previous is a fresh user request; unlike automatic
+        // decoding recovery, it may retry a previously failed local track.
+        if (!automatic) offlineDecodeFailedIds.clear()
         val player = exoPlayer
         if (offlineGaplessActive && player != null) {
             // The timeline already owns validated local media items. Avoid
