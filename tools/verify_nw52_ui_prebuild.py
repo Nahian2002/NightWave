@@ -12,6 +12,29 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 UI = ROOT / "app/src/main/java/com/nightwave/player/v2/ui"
 OFFLINE = ROOT / "app/src/main/java/com/nightwave/player/offline"
+ANDROID_UI_TEST = ROOT / "app/src/androidTest/java/com/nightwave/player/v2/ui"
+
+
+def check_instrumented_assertion_imports(test_sources: dict[str, str]) -> None:
+    """assertExists/assertDoesNotExist are SemanticsNodeInteraction METHODS.
+
+    They are not separately imported as top-level androidx.compose.ui.test API.
+    Keep all valid node-query and Compose JUnit imports in place.
+    """
+    unsupported = (
+        "import androidx.compose.ui.test.assertExists",
+        "import androidx.compose.ui.test.assertDoesNotExist",
+    )
+    for filename, body in test_sources.items():
+        for invalid_import in unsupported:
+            if invalid_import in body.splitlines():
+                raise AssertionError(filename + ": invalid import " + invalid_import)
+        if "import androidx.compose.ui.test.junit4.createComposeRule" not in body:
+            raise AssertionError(filename + ": Compose test rule import missing")
+        if "import androidx.compose.ui.test.onNodeWithText" not in body:
+            raise AssertionError(filename + ": Compose node finder import missing")
+        if ".assertExists()" not in body:
+            raise AssertionError(filename + ": assertions unexpectedly removed")
 
 
 def check(activity: str, player: str, recent: str, chrome: str,
@@ -77,7 +100,30 @@ def main() -> int:
     ]
     src = [ (base / name).read_text(encoding="utf-8") for base, name in files ]
     check(*src)
+    assertion_tests = {
+        filename: (ANDROID_UI_TEST / filename).read_text(encoding="utf-8")
+        for filename in (
+            "NightWaveEverydaySurfacesInstrumentedTest.kt",
+            "NightWaveQueueSectionsInstrumentedTest.kt",
+        )
+    }
+    check_instrumented_assertion_imports(assertion_tests)
     if args.self_test:
+        for filename, invalid in (
+            ("NightWaveEverydaySurfacesInstrumentedTest.kt",
+             "import androidx.compose.ui.test.assertExists"),
+            ("NightWaveQueueSectionsInstrumentedTest.kt",
+             "import androidx.compose.ui.test.assertDoesNotExist"),
+        ):
+            broken = dict(assertion_tests)
+            broken[filename] = invalid + "\n" + broken[filename]
+            try:
+                check_instrumented_assertion_imports(broken)
+            except AssertionError:
+                pass
+            else:
+                raise AssertionError("Invalid Compose test import fixture accepted")
+
         for index, old, bad in [
             (0, "openSearch = { navigateToTab(StudioTab.SEARCH) }",
              "openSearch = { onPrepareSearch(\"music\", SearchMode.SONGS) }"),
