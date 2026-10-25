@@ -203,13 +203,25 @@ class CatalogDownloadsActivity : ComponentActivity() {
             return OfflineDownloadStatusPolicy.isReady(
                 info.state == WorkInfo.State.SUCCEEDED, saved, availableIds)
         }
-        val active = displayInfos.count {
-            DownloadCenterViewPolicy.isActive(it.state.name)
+        // WorkManager retains old retry attempts even after a newer attempt.
+        // Project each filter first so the Ready tab can show a still-valid
+        // saved song even if its newer retry failed. Verify the real file.
+        val projectedRows = displayInfos.map { info ->
+            DownloadHistoryProjectionPolicy.Row(
+                workId = info.id.toString(),
+                retryKey = if (SearchTrackSaveQueue.TAG in info.tags)
+                    OfflineSaveRetryPolicy.retryUrl(info.tags) else null,
+                state = info.state.name,
+                availableFile = isVerified(info),
+                requestedAtMs = OfflineSaveRetryPolicy.requestedAt(info.tags)
+            )
         }
-        val ready = displayInfos.count { isVerified(it) }
-        val attention = displayInfos.count {
-            DownloadCenterViewPolicy.needsAttention(it.state.name, isVerified(it))
-        }
+        val active = DownloadHistoryProjectionPolicy.count(
+            projectedRows, DownloadCenterViewPolicy.Filter.ACTIVE)
+        val ready = DownloadHistoryProjectionPolicy.count(
+            projectedRows, DownloadCenterViewPolicy.Filter.READY)
+        val attention = DownloadHistoryProjectionPolicy.count(
+            projectedRows, DownloadCenterViewPolicy.Filter.ATTENTION)
         overview.text = "$active active · $ready ready offline · $attention need attention"
         filterRow.removeAllViews()
         DownloadCenterViewPolicy.Filter.entries.forEach { filter ->
@@ -237,27 +249,13 @@ class CatalogDownloadsActivity : ComponentActivity() {
                 info.outputData.getString(DirectAudioDownloadQueue.KEY_DONE)
             else -> info.outputData.getString(CatalogDownloadQueue.KEY_DONE)
         }
-        // WorkManager SUCCEEDED records survive deletion of the saved file.
-        // Batch-check their IDs against the actual private audio library
-        // before displaying Ready Offline or offering a play button.
-        // The former UUID ordering could hide the newest saved tracks once
-        // 60 historical transfers existed. Active jobs first, then most
-        // recently requested jobs. Older untagged jobs remain visible later.
-        val seenSearchUrls = HashSet<String>()
-        val visibleJobs = displayInfos.sortedWith(compareBy<WorkInfo> { it.state.isFinished }
-            .thenByDescending { OfflineSaveRetryPolicy.requestedAt(it.tags) }
-            .thenBy { it.id.toString() })
-            .filter { info ->
-                // Retry creates a fresh WorkRequest. Keep the newest/current
-                // entry for each identified song; do not show stale failures
-                // as duplicate rows next to a newer successful attempt.
-                val url = if (SearchTrackSaveQueue.TAG in info.tags)
-                    OfflineSaveRetryPolicy.retryUrl(info.tags) else null
-                url == null || seenSearchUrls.add(url)
-            }.filter { info ->
-                DownloadCenterViewPolicy.matches(
-                    currentFilter, info.state.name, isVerified(info))
-            }.take(60)
+        // Source identity deduplication happens *within* the selected
+        // filter. A newer failed retry cannot hide a verified older save
+        // when the listener switches to Ready. Keep the stable 60-row cap.
+        val workById = displayInfos.associateBy { it.id.toString() }
+        val visibleJobs = DownloadHistoryProjectionPolicy.select(
+            projectedRows, currentFilter
+        ).take(60).mapNotNull { workById[it] }
         if (visibleJobs.isEmpty()) {
             entries.addView(label(DownloadCenterViewPolicy.emptyMessage(currentFilter),
                 14f, 0xFFB7CAD4.toInt()).apply { setPadding(dp(4), dp(15), 0, 0) })
