@@ -13,7 +13,9 @@ class QueueStateStore(context: Context) {
         val tracks: List<QueueEntry>,
         val index: Int,
         val shuffle: Boolean,
-        val repeat: PlaybackQueue.Repeat
+        val repeat: PlaybackQueue.Repeat,
+        /** Explicit user Play Next items, public watch URLs only. */
+        val manualNextUrls: List<String> = emptyList()
     )
 
     data class Bookmark(val url: String, val positionMs: Long, val durationMs: Long)
@@ -110,9 +112,15 @@ class QueueStateStore(context: Context) {
                 .put("creator", it.creator.take(150))
                 .put("artwork", it.artwork.take(2_000)))
         }
+        val priority = JSONArray()
+        queue.priorityNextUrls().filter { url ->
+            QueueRestorePolicy.isCanonicalPublicWatchUrl(url) &&
+                entries.indexOfFirst { it.url == url } > selectedIndex
+        }.take(100).forEach(priority::put)
         val state = JSONObject().put("tracks", tracks).put("index", selectedIndex)
             .put("selected_url", selectedUrl.orEmpty())
             .put("shuffle", queue.shuffle).put("repeat", queue.repeat.name)
+            .put("manual_next", priority)
         // Queue changes happen on explicit selections / transitions, not the
         // 2.5-second playhead ticker. Flush them so a process kill cannot
         // silently revert the selected track to a stale persisted index.
@@ -147,7 +155,14 @@ class QueueStateStore(context: Context) {
             val repeat = runCatching {
                 PlaybackQueue.Repeat.valueOf(state.optString("repeat", "OFF"))
             }.getOrDefault(PlaybackQueue.Repeat.OFF)
-            Snapshot(tracks, restoredIndex, state.optBoolean("shuffle", false), repeat)
+            val upcomingUrls = tracks.drop(restoredIndex + 1).map { it.url }.toSet()
+            val storedPriority = state.optJSONArray("manual_next") ?: JSONArray()
+            val priorityUrls = (0 until minOf(storedPriority.length(), 100))
+                .mapNotNull { i ->
+                    storedPriority.optString(i).takeIf { it in upcomingUrls }
+                }.distinct()
+            Snapshot(tracks, restoredIndex, state.optBoolean("shuffle", false),
+                repeat, priorityUrls)
         }
     } catch (_: Exception) {
         // Preserve raw preferences for explicit user-controlled recovery.
@@ -159,5 +174,8 @@ class QueueStateStore(context: Context) {
         queue.replace(snapshot.tracks, snapshot.index)
         queue.shuffle = snapshot.shuffle
         queue.repeat = snapshot.repeat
+        // Shuffle setter resets transient history; explicit user choices are
+        // restored last, keeping Play Next deterministic after process death.
+        queue.restoreNextPriorities(snapshot.manualNextUrls)
     }
 }
