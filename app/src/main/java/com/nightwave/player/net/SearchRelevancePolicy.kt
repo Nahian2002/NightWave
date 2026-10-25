@@ -1,7 +1,5 @@
 package com.nightwave.player.net
 
-import java.text.Normalizer
-import java.util.Locale
 
 /**
  * Shared pure ranking policy for saved public references and provider results.
@@ -13,24 +11,14 @@ object SearchRelevancePolicy {
         val valid: Boolean get() = terms.isNotEmpty()
     }
 
-    // Bounded normalization: punctuation becomes word boundaries and Latin
-    // combining accents are removed. Original saved/provider metadata is intact.
-    // Only fold marks attached to Latin base letters. Removing *all* marks
-    // destroyed Bengali vowel signs and made distinct Bangla titles collide.
-    private val latinDiacritic = Regex("(?<=\\p{IsLatin})\\p{M}+")
-    private val boundaries = Regex("[^\\p{L}\\p{M}\\p{N}]+")
-    private val spaces = Regex("\\s+")
+    // Share the exact same search key for UI queries, saved music and
+    // online music-score comparison. Unicode vowel marks are not disposable.
     private val unhelpful = listOf(
         "reaction", "tutorial", "review", "commentary", "explained",
         "interview", "podcast", "behind the scenes"
     )
 
-    fun normalize(value: String): String {
-        val plain = Normalizer.normalize(value.take(512).lowercase(Locale.ROOT),
-            Normalizer.Form.NFKD)
-        return latinDiacritic.replace(plain, "").replace(boundaries, " ")
-            .replace(spaces, " ").trim()
-    }
+    fun normalize(value: String): String = SearchScriptNormalization.normalize(value)
 
     fun prepare(raw: String): Query {
         val text = normalize(raw.take(160))
