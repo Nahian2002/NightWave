@@ -103,6 +103,9 @@ $relative = @(
     'app/src/main/java/com/nightwave/player/v2/model/NightWaveDesign.kt',
     'app/src/main/java/com/nightwave/player/v2/model/NightWaveContrastPolicy.kt',
     'app/src/main/java/com/nightwave/player/v2/ui/NightWavePlayerOverlayPolicy.kt',
+    'app/src/main/java/com/nightwave/player/playback/PlaybackService.kt',
+    'app/src/main/java/com/nightwave/player/playback/OfflineDecodeRecoveryPolicy.kt',
+    'app/src/test/java/com/nightwave/player/playback/OfflineDecodeRecoveryPolicyTest.kt',
     'app/src/test/java/com/nightwave/player/v2/cloud/CloudConnectionHelpPolicyTest.kt',
     'app/src/test/java/com/nightwave/player/v2/ui/SearchConsumerCopyPolicyTest.kt',
     'app/src/test/java/com/nightwave/player/offline/OfflineLibraryViewPolicyTest.kt',
@@ -114,6 +117,7 @@ $relative = @(
     'tools/verify_nw56_contrast.py',
     'tools/verify_nw57_home.py',
     'tools/verify_nw58_overlay.py',
+    'tools/verify_nw60_offline_recovery.py',
     'docs/NW53_GOOGLE_RECOVERY_UX.md',
     'docs/NW54_SEARCH_CLARITY.md',
     'docs/NW55_OFFLINE_DOWNLOAD_VISUAL_POLISH.md',
@@ -161,5 +165,18 @@ Assert-NW59Has $palette '0xFF815154' 'readable Pearl accent'
 Assert-NW59Has $palette 'else 0xFFF9F7F2' 'readable Pearl action text'
 Assert-NW59Has $activity 'openSearch = { navigateToTab(StudioTab.SEARCH) }' 'Home Search action preserved'
 Assert-NW59Has $player 'seekToForTrack' 'safe lyric track-bound seek'
-Write-Host 'NW59 cumulative NW53-NW58 source guard PASS. Gradle/JVM/device QA still mandatory.'
+# NW60 recovers once per local ID instead of silently ignoring decoder errors.
+$playback = [IO.File]::ReadAllText($files[$main + 'playback/PlaybackService.kt'])
+$decode = [IO.File]::ReadAllText($files[$main + 'playback/OfflineDecodeRecoveryPolicy.kt'])
+Assert-NW59Has $playback 'OfflineDecodeRecoveryPolicy.belongsToSelection(' 'decoder error belongs to active selection'
+Assert-NW59Has $playback 'offlineDecodeFailedIds.add(selectedId!!)' 'bounded failed ID receipt'
+Assert-NW59Has $playback 'generation != atErrorGeneration' 'deferred recovery generation fence'
+Assert-NW59Has $playback 'OfflineDecodeRecoveryPolicy.nextLinearIndex(' 'private linear fallback'
+Assert-NW59Has $playback 'OfflineDecodeRecoveryPolicy.safeShuffledIndex(' 'Media3 shuffle navigation'
+Assert-NW59Has $playback 'if (!automatic) offlineDecodeFailedIds.clear()' 'manual retry'
+Assert-NW59Has $playback 'if (player.playbackState == Player.STATE_IDLE) player.prepare()' 'manual jump after failure'
+Assert-NW59Has $decode 'ids[at] !in alreadyFailed' 'no repeated failed offline ID'
+Assert-NW59Has $decode 'ids[it] !in alreadyFailed' 'shuffle does not retry failed ID'
+Assert-NW59Missing $playback 'if (offlinePlaying || queue.current?.url != video) return' 'silent offline decode error'
+Write-Host 'NW60 cumulative NW53-NW60 source guard PASS. Gradle/JVM/device QA still mandatory.'
 exit 0
