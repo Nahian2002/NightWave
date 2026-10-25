@@ -12,7 +12,7 @@ function Test-VerifiedApkStatus([string]$Status, [string]$ActualSha256) {
     if ($Status -notmatch '(?m)^SUCCESS - NightWave Android debug APK locally verified\r?$') {
         return $false
     }
-    $digest = [regex]::Match($Status, '(?m)^SHA256:\\s*([A-Fa-f0-9]{64})\\r?$')
+    $digest = [regex]::Match($Status, '(?m)^SHA256:\s*([A-Fa-f0-9]{64})\r?$')
     if (-not $digest.Success) { return $false }
     return [string]::Equals($digest.Groups[1].Value, $ActualSha256,
         [System.StringComparison]::OrdinalIgnoreCase)
@@ -97,16 +97,16 @@ try {
         throw 'Unexpected multiple APK signers. Google OAuth identity is inconclusive.'
     }
     $sha1Match = [regex]::Match($signOutput,
-        '(?m)^Signer #1 certificate SHA-1 digest:\\s*([0-9a-fA-F]{40})\\r?$')
+        '(?m)^Signer #1 certificate SHA-1 digest:\s*([0-9a-fA-F]{40})\r?$')
     if (-not $sha1Match.Success) { throw 'Unable to verify APK signer SHA-1.' }
     $sha1 = $sha1Match.Groups[1].Value.ToUpperInvariant()
     $sha256Match = [regex]::Match($signOutput,
-        '(?m)^Signer #1 certificate SHA-256 digest:\\s*([0-9a-fA-F]{64})\\r?$')
+        '(?m)^Signer #1 certificate SHA-256 digest:\s*([0-9a-fA-F]{64})\r?$')
     if (-not $sha256Match.Success) { throw 'Unable to verify APK signer SHA-256.' }
     $sha256 = $sha256Match.Groups[1].Value.ToUpperInvariant()
     $info = (& $tools.Aapt dump badging $ApkPath 2>&1 | Out-String)
     if ($LASTEXITCODE -ne 0) { throw 'Unable to read APK package identity.' }
-    $packageMatch = [regex]::Match($info, "(?m)^package:\\s+name='([^']+)'")
+    $packageMatch = [regex]::Match($info, "(?m)^package:\s+name='([^']+)'")
     if (-not $packageMatch.Success) { throw 'Unable to confirm APK package identity.' }
     $package = $packageMatch.Groups[1].Value
     if ($package -ne 'com.nightwave.player') {
