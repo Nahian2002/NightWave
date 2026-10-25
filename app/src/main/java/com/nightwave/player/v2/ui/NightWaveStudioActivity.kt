@@ -1408,21 +1408,20 @@ class NightWaveStudioActivity : ComponentActivity() {
                                 "Run Back up now again to verify the current choices.")
                             return@onSuccess
                         }
-                        if (cloudStore.success(expectedAccount, System.currentTimeMillis())) {
+                        if (cloudStore.successIfCurrent(
+                                operationConsent, System.currentTimeMillis(), outcome.created)) {
                             runCatching {
                                 NightWaveCloudSchedule.update(this@NightWaveStudioActivity)
                             }.onFailure {
                                 cloudStore.status("Upload verified; backup schedule needs attention")
                             }
-                            if (!outcome.created &&
-                                cloudStore.read().lastResult == "Backup verified") {
-                                cloudStore.status("Already backed up; library unchanged")
-                            }
                             refreshCloud()
                             showMessage(if (outcome.created) "Cloud backup uploaded and verified."
                                 else "Cloud backup already current; nothing uploaded.")
                         } else {
-                            showMessage("Backup checked, but scheduling needs a fresh connection.")
+                            refreshCloud()
+                            showMessage("Backup finished, but your privacy choices or Google account " +
+                                "changed. Reconnect or back up again to verify the new settings.")
                         }
                     }
                     is CloudActionResult.Snapshots -> {
