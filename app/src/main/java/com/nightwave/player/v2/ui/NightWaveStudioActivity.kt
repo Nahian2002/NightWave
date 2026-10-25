@@ -2830,6 +2830,41 @@ private fun StudioHome(
                 onDiscover = { onSearch("night drive music") }
             )
         }
+        item(key = "recent-heading") {
+            Row(Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween) {
+                Column(Modifier.weight(1f)) {
+                    SectionHeading("Recently played",
+                        if (recent.isEmpty()) "Your listening history appears here"
+                        else "${recent.size} tracks · Private to this device")
+                }
+                if (recent.size > 6) {
+                    TextButton(onClick = { showAllRecent = !showAllRecent }) {
+                        Text(if (showAllRecent) "Show less" else "See all")
+                    }
+                }
+            }
+        }
+        if (recent.isEmpty()) item {
+            EmptyMusicCard("Your soundtrack starts here",
+                "Songs you play will appear here, ready for another listen.",
+                "Discover music") { onSearch("music") }
+        } else {
+            items(if (showAllRecent) recent.take(100) else recent.take(6),
+                key = { "recent:" + it.url }) { song ->
+                MusicTrackTile(song, isPlaying = playingUrl == song.url,
+                    onOptions = { onSongOptions(song) },
+                    onRemove = { onRemoveRecent(song) },
+                    onClick = { onPlay(song, recent) })
+            }
+            if (showAllRecent) item(key = "clear-listening-history") {
+                OutlinedButton(onClick = onClearRecent,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                    Text("Clear Recently Played")
+                }
+            }
+        }
         if (mixes.isNotEmpty()) {
             item {
                 SectionHeading("Made for you",
@@ -2899,41 +2934,6 @@ private fun StudioHome(
                         palettes[index % palettes.size], Modifier.width(178.dp)) {
                         onSearch(shortcut.query)
                     }
-                }
-            }
-        }
-        item(key = "recent-heading") {
-            Row(Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween) {
-                Column(Modifier.weight(1f)) {
-                    SectionHeading("Recently played",
-                        if (recent.isEmpty()) "Your listening history appears here"
-                        else "${recent.size} tracks · Private to this device")
-                }
-                if (recent.size > 6) {
-                    TextButton(onClick = { showAllRecent = !showAllRecent }) {
-                        Text(if (showAllRecent) "Show less" else "See all")
-                    }
-                }
-            }
-        }
-        if (recent.isEmpty()) item {
-            EmptyMusicCard("Your soundtrack starts here",
-                "Songs you play will appear here, ready for another listen.",
-                "Discover music") { onSearch("music") }
-        } else {
-            items(if (showAllRecent) recent.take(100) else recent.take(6),
-                key = { "recent:" + it.url }) { song ->
-                MusicTrackTile(song, isPlaying = playingUrl == song.url,
-                    onOptions = { onSongOptions(song) },
-                    onRemove = { onRemoveRecent(song) },
-                    onClick = { onPlay(song, recent) })
-            }
-            if (showAllRecent) item(key = "clear-listening-history") {
-                OutlinedButton(onClick = onClearRecent,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
-                    Text("Clear Recently Played")
                 }
             }
         }
