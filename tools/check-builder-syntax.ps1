@@ -93,8 +93,8 @@ if (Test-Path -LiteralPath $nw59Preflight -PathType Leaf) {
 }
 if (Test-Path -LiteralPath $builderPath -PathType Leaf) {
     $builder = [System.IO.File]::ReadAllText($builderPath)
-    if (-not $builder.Contains("-File "+'$nw59Gate'+" -SelfTest") -or
-        -not $builder.Contains("-File "+'$nw59Gate'+" -ProjectRoot "+'$project')) {
+    if (-not $builder.Contains('-File $nw59Gate -SelfTest') -or
+        -not $builder.Contains('-File $nw59Gate -ProjectRoot $project')) {
         $issues += 'NW59 Windows source self-test and project check must run before Gradle.'
     }
 }
