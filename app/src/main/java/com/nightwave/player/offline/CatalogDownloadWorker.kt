@@ -52,6 +52,11 @@ class CatalogDownloadWorker(
 
         return try {
             ensureNotificationChannel()
+            // A WorkManager retry is a clean start, not a byte-range resume.
+            // Never carry a previous attempt's progress into a new transfer.
+            setProgressAsync(Data.Builder()
+                .putLong(CatalogDownloadQueue.KEY_RECEIVED, 0L)
+                .putLong(CatalogDownloadQueue.KEY_TOTAL, -1L).build())
             setForegroundAsync(foreground(candidate.title, 0, null)).get()
             if (isStopped) return failed("Download cancelled")
             val source = PermittedAudioDownloadPolicy.prepare(
