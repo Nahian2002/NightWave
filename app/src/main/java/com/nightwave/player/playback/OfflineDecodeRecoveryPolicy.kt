@@ -19,6 +19,26 @@ internal object OfflineDecodeRecoveryPolicy {
             queueIds.contains(selectedId) &&
             selectedId !in alreadyFailed
 
+    /**
+     * The decoder error is posted out of Media3's callback. The user can
+     * pause or change selection before the post runs without changing the
+     * queue's source URLs or even the playback generation in every pathway.
+     * Recheck current play intent and the exact private selected media ID.
+     */
+    fun acceptsPostedRecovery(
+        expectedMediaId: String, atErrorGeneration: Int,
+        currentGeneration: Int, currentMediaId: String?,
+        selectedId: String?, queueIds: List<String>, failedIds: Set<String>,
+        wantsPlayback: Boolean, sleepTimerPaused: Boolean
+    ): Boolean = wantsPlayback && !sleepTimerPaused &&
+        atErrorGeneration == currentGeneration &&
+        currentMediaId == expectedMediaId &&
+        !selectedId.isNullOrBlank() &&
+        expectedMediaId == PREFIX + selectedId &&
+        selectedId in failedIds &&
+        queueIds.size in 1..MAX_QUEUE_SIZE &&
+        selectedId in queueIds
+
     /** Find a later, *different*, unfailed track without changing the queue. */
     fun nextLinearIndex(ids: List<String>, currentIndex: Int,
                         alreadyFailed: Set<String>, repeatAll: Boolean): Int? {
