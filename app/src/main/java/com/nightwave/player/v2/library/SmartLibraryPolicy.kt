@@ -1,6 +1,7 @@
 package com.nightwave.player.v2.library
 
 import com.nightwave.player.net.MusicIdentity
+import com.nightwave.player.core.VideoLink
 import com.nightwave.player.net.VideoPreview
 import java.util.Locale
 
@@ -20,22 +21,31 @@ object SmartLibraryPolicy {
         recent: List<VideoPreview>,
         playlists: List<List<VideoPreview>>
     ): List<SmartLibraryCollection> {
-        // Stable first appearance, no mutation of source collections.
-        val pool = (favorites + recent + playlists.take(60).flatten())
-            .take(MAX_SOURCE_TRACKS).filter { it.url.isNotBlank() }
-            .distinctBy { it.url }
+        // Each source has a fair budget: even a very large Favorites/Recent
+        // list cannot starve playlist-only tracks. Reject malformed public
+        // references without rewriting any stored playlist or playback URL.
+        val eligible: (VideoPreview) -> Boolean = { song ->
+            VideoLink.normalize(song.url) == song.url
+        }
+        val pool = SmartDiscoveryPoolPolicy.gather(
+            favorites, recent, playlists, VideoPreview::url, eligible
+        )
         if (pool.isEmpty()) return emptyList()
         val result = mutableListOf<SmartLibraryCollection>()
-        val recentSafe = recent.take(100).filter { it.url.isNotBlank() }
-            .distinctBy { it.url }
+        val recentSafe = recent.asSequence().filter(eligible)
+            .distinctBy(VideoPreview::url).take(100).toList()
         if (recentSafe.isNotEmpty()) result.add(SmartLibraryCollection(
             PREFIX + "recent", "Recent rotation",
             "Recently played tracks from your local history", recentSafe))
-        val likedUrls = favorites.mapTo(hashSetOf()) { it.url }
-        val rediscover = pool.filter { it.url in likedUrls }.reversed().take(60)
+        val likedUrls = favorites.asSequence().filter(eligible)
+            .mapTo(hashSetOf()) { it.url }
+        val recentUrls = recentSafe.mapTo(hashSetOf()) { it.url }
+        val rediscover = SmartDiscoveryPoolPolicy.rediscover(
+            pool, likedUrls, recentUrls, VideoPreview::url
+        )
         if (rediscover.isNotEmpty()) result.add(SmartLibraryCollection(
             PREFIX + "liked", "Rediscover your likes",
-            "Saved favorites, presented in a different order", rediscover))
+            "Liked tracks outside your recent listening rotation", rediscover))
         val longTracks = pool.filter { it.durationSeconds >= 240L }.take(80)
         if (longTracks.size >= 2) result.add(SmartLibraryCollection(
             PREFIX + "long", "Long listens",
