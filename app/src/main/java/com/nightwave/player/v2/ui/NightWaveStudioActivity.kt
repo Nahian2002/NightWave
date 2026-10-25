@@ -2005,10 +2005,16 @@ class NightWaveStudioActivity : ComponentActivity() {
                             "Liked songs, listening history and offline audio remain saved.")
                         .setNegativeButton("Keep", null)
                         .setPositiveButton("Remove") { _, _ ->
-                            if (library.removeFromPlaylist(name, song.url)) {
+                            val before = library.playlist(name)
+                            val updated = library.bulkRemoveFromPlaylist(
+                                name, listOf(song.url), before.map { it.url })
+                            if (updated.accepted && updated.changed) {
+                                playlistUndo = PlaylistUndoState(name, before,
+                                    updated.updated.songs(name),
+                                    "Removed from ${name.take(40)}")
                                 refresh()
-                                showMessage("Removed from $name. Other music is unchanged.")
-                            } else showMessage("Playlist is unchanged. Try again.")
+                                showMessage("Removed from playlist · Undo in Library.")
+                            } else showMessage("Playlist changed or couldn't be saved.")
                         }.show()
                 }
             }.setNegativeButton("Close", null).show()
