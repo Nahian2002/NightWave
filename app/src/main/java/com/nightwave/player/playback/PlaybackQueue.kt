@@ -126,11 +126,13 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
             return true
         }
         val prior = entries.indexOfFirst { it.url == entry.url }
-        if (prior >= 0 && prior <= index) return false // Don't rewrite history.
         if (prior < 0 && entries.size >= 100) return false
         val toInsert = if (prior >= 0) {
             val existing = entries.removeAt(prior)
             remapForRemoval(prior)
+            // Moving a song from earlier in the visible queue shifts the
+            // current slot left; preserve the exact song that is still playing.
+            if (prior < index) index--
             existing // Keep previously saved exact title/artwork metadata.
         } else entry
         val target = (index + 1).coerceAtMost(entries.size)
