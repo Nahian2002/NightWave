@@ -64,6 +64,7 @@ on:
       - feature/nightwave-nw48-downloads-offline2
       - feature/nightwave-nw49-audio-lyrics-studio
       - feature/nightwave-nw50-premium-motion
+      - feature/nightwave-nw51-performance-reliability
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
@@ -166,6 +167,8 @@ jobs:
           python3 tools/verify_nw49_audio_lyrics.py
           python3 tools/verify_nw50_motion.py --self-test
           python3 tools/verify_nw50_motion.py
+          python3 tools/verify_nw51_reliability.py --self-test
+          python3 tools/verify_nw51_reliability.py
           python3 tools/nw44_kotlin_smoke.py --self-test
           python3 tools/nw40_pure_kotlin_smoke.py --self-test
           python3 tools/verify_nw01_recovery.py
