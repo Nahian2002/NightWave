@@ -19,6 +19,28 @@ class OfflineDecodeRecoveryPolicyTest {
         assertFalse(p.belongsToSelection(null, "a.mp3", queue, emptySet()))
     }
 
+    @Test fun deferredDecodeRecoveryCannotUndoUserPauseOrStaleSelection() {
+        fun ok(
+            actualMediaId: String? = "offline:a.mp3",
+            selected: String? = "a.mp3", failed: Set<String> = setOf("a.mp3"),
+            playing: Boolean = true, timerPaused: Boolean = false,
+            posted: Int = 7, current: Int = 7, ids: List<String> = queue
+        ) = p.acceptsPostedRecovery(
+            "offline:a.mp3", posted, current, actualMediaId, selected,
+            ids, failed, playing, timerPaused
+        )
+        assertTrue(ok())
+        assertFalse(ok(playing = false)) // Pause does not necessarily bump generation.
+        assertFalse(ok(timerPaused = true))
+        assertFalse(ok(current = 8))
+        assertFalse(ok(actualMediaId = "offline:b.mp3"))
+        assertFalse(ok(selected = "b.mp3"))
+        assertFalse(ok(selected = null))
+        assertFalse(ok(failed = emptySet()))
+        assertFalse(ok(ids = emptyList()))
+        assertFalse(ok(ids = List(p.MAX_QUEUE_SIZE + 1) { "a.mp3" }))
+    }
+
     @Test fun linearRecoverySkipsBrokenTracksAndNeverRevisitsFailedIds() {
         assertEquals(1, p.nextLinearIndex(queue, 0, setOf("a.mp3"), false) ?: -1)
         assertEquals(2, p.nextLinearIndex(queue, 0, setOf("a.mp3", "b.mp3"), false) ?: -1)
