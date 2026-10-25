@@ -48,7 +48,9 @@ fun main() {
         expect(a.toSet().all { it in (favorites + played + folders.flatten()).toSet() },
             "only input references $seed")
         val previous = played.toSet()
-        val rediscover = p.rediscover(a, favorites.toSet(), previous, Int::toString,
+        val rediscover = p.rediscover(a,
+            favorites.mapTo(hashSetOf()) { it.toString() },
+            previous.mapTo(hashSetOf()) { it.toString() }, Int::toString,
             limit = random.nextInt(0, 80))
         expect(rediscover.all { it in favorites && it !in previous },
             "real unplayed-liked $seed")
