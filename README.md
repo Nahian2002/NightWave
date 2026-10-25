@@ -1,5 +1,8 @@
 # NightWave
 
+> **NW40 verification continuation, 25 October 2026:** Windows `build-windows.cmd` now runs a PowerShell-only NW40 integrity preflight before Gradle (no Python needed). GitHub Actions also includes PowerShell and reproducible standalone Kotlin gates. Exact committed Kotlin sources passed **26 local smoke assertions** (13 pure policy + 13 SearchHistoryStore with isolated Android/JSON test doubles). These are **NOT** a full Android build. GitHub's runner did not start, and Android SDK/Gradle are unavailable in the current execution environment. See [NW40 evidence and safe local build path](docs/NW40_STABILITY_INTEGRATION_AND_BUILD_GATE.md).
+
+
 > **NW40 — STABILITY INTEGRATION (SOURCE-ONLY CHECKS PASS, FULL ANDROID BUILD BLOCKED, 25 October 2026).** [NW40 source](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-nw40-stability-integration): strict search-history corruption preservation, safer legacy pin refresh, crash-guarded song options, fresh-source checks before bulk copy, test-isolated search-history instrumentation, and `tools/verify_nw40_stability.py` (17/17 source checks). **Android/JVM Gradle build and physical-device QA are still unverified** because [the CI job](https://github.com/Nahian2002/NightWave/actions/runs/40177499450) ended without a runner or executed steps. Do not install over existing music data without build/signing verification. [Read NW40 test plan](docs/NW40_STABILITY_INTEGRATION_AND_BUILD_GATE.md).
 
 
