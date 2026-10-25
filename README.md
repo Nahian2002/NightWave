@@ -2,13 +2,13 @@
 
 **Android audio-first music player · active development, private source · not yet public release-ready.**
 
-> **NW52 FINAL INTEGRATION (2026-10-25):** The NW43–NW52 development batches are stacked in [the current NW52 source branch](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-nw52-final-integration-release-gates). Source-only release gates, Android build workflow, optional runner heartbeat and a no-data-loss final QA checklist have been prepared. **No passing full Android build, device acceptance, production signing, Google Drive login or platform/media-rights review is confirmed. PUBLIC APK / GOOGLE PLAY: NO-GO.** See [NW52 integration and safe build plan](docs/NW52_FINAL_INTEGRATION.md) and [Release Readiness](RELEASE_READINESS.md).
+> **NW60 INTEGRATED SOURCE (2026-10-25):** The NW43–NW60 work is cumulatively stacked in [the NW60 development branch](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-nw60-offline-playback-recovery). NW60 fixes a real source-level local decoder-error recovery gap, while preserving on-device music and queue ownership. The isolated pure Kotlin policy compiled and passed 11 smoke assertions; **the combined NW60 Android build, full JVM tests, installed-device signer compatibility, Google error 8, and phone UX are NOT verified**. **PUBLIC APK / GOOGLE PLAY: NO-GO.** See [NW60 playback recovery and device QA](docs/NW60_OFFLINE_PLAYBACK_RECOVERY.md), [NW59 build checks](docs/NW59_INTEGRATED_BUILD_HARDENING.md), and [Release Readiness](RELEASE_READINESS.md).
 
 ### Current workflow
 
-Use **Code → Download ZIP** from `feature/nightwave-nw52-final-integration-release-gates` for the *integrated source* (default `main` is not the candidate). Extract a complete ZIP and run `build-windows.cmd` locally. **Never uninstall or wipe the installed app** to fix signing/build errors; run `check-device-update.cmd` before attempting an in-place update. A debug APK, even if compiled, is not a production Play release.
+Use **Code → Download ZIP** from `feature/nightwave-nw60-offline-playback-recovery` for the latest combined source. Default `main` and old NW52–NW59 archives are not the current candidate. Extract into a clean directory and run `build-windows.cmd`; NW59's Windows source guard now also checks NW60 decoder recovery before Gradle. **Do not uninstall or clear NightWave's existing music** to repair a signing/build problem; run `check-device-update.cmd` before a signer-compatible in-place update. A compiled debug APK is not a public production release.
 
-The following archived notes document earlier batches and may mention out-of-date branches, versions or evidence. The NW52 guide above supersedes those historical references.
+Older notes below are phase history, not confirmation of NW60 device success.
 
 ---
 
