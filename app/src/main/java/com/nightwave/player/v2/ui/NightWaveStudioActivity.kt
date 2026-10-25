@@ -3536,9 +3536,9 @@ private fun StudioSearch(
                         Text("Back to discovery")
                     }
                     SectionHeading(selectedCreatorGroup.name,
-                        selectedCreatorGroup.trackCount.toString() +
-                            " saved public videos · from your library")
-                    Text("A local creator shortcut based on video metadata, not an official artist profile.",
+                        SearchConsumerCopyPolicy.savedCreatorSubtitle(
+                            selectedCreatorGroup.trackCount))
+                    Text(SearchConsumerCopyPolicy.savedCreatorNotice(),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                     if (selectedCreatorGroup.hasMore) {
@@ -3794,15 +3794,21 @@ private fun StudioSearch(
                     Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
                         Text("Finding music…",
                             style = MaterialTheme.typography.titleSmall)
-                        Text("Your saved songs are available while this loads.",
+                        Text(SearchConsumerCopyPolicy.loadingHint(
+                            savedMatches.isNotEmpty() || offlineMatches.isNotEmpty()),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
         } else if (responseMatchesQuery && state.videos.isNotEmpty()) {
-            item { SectionHeading(if (mode == SearchMode.VIDEOS) "Videos" else "Music discovery",
-                state.videos.size.toString() + " public results · " + state.provider) }
+            item(key = "nw54-public-results-heading") {
+                SectionHeading(
+                    SearchConsumerCopyPolicy.resultsTitle(
+                        if (mode == SearchMode.VIDEOS) SearchConsumerCopyPolicy.Mode.VIDEOS
+                        else SearchConsumerCopyPolicy.Mode.SONGS),
+                    SearchConsumerCopyPolicy.resultCount(state.videos.size))
+            }
             if (state.error.isNotBlank()) {
                 item {
                     Text("Showing the previous results. Refresh couldn't complete.",
@@ -3813,7 +3819,7 @@ private fun StudioSearch(
             if (publicGroups.bestMatches.isNotEmpty()) {
                 item(key = "public-best-heading") {
                     SectionHeading("Best matches",
-                        "Ranked using titles and creators · not verified artist identities")
+                        SearchConsumerCopyPolicy.bestMatchesSubtitle())
                 }
                 items(publicGroups.bestMatches, key = { "public:" + it.url }) { song ->
                     MusicTrackTile(song, isPlaying = playingUrl == song.url,
@@ -3826,7 +3832,7 @@ private fun StudioSearch(
                 if (publicGroups.bestMatches.isNotEmpty()) {
                     item(key = "public-more-heading") {
                         SectionHeading("More results",
-                            "Includes covers, remixes and other public videos")
+                            SearchConsumerCopyPolicy.moreResultsSubtitle())
                     }
                 }
                 items(publicGroups.moreResults, key = { "public:" + it.url }) { song ->
@@ -3843,10 +3849,10 @@ private fun StudioSearch(
                     .background(MaterialTheme.colorScheme.surface)
                     .padding(horizontal = 14.dp, vertical = 13.dp),
                     verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                    Text("Public search temporarily unavailable",
+                    Text(SearchConsumerCopyPolicy.unavailableTitle(),
                         style = MaterialTheme.typography.titleSmall)
-                    Text("Your saved music is still searchable. Retry NightWave " +
-                        "or use official YouTube search.",
+                    Text(SearchConsumerCopyPolicy.fallbackHint(
+                        savedMatches.isNotEmpty() || offlineMatches.isNotEmpty()),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
