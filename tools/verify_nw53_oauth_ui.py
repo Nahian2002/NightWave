@@ -26,7 +26,7 @@ def check(help_policy: str, account_hub: str, test: str, activity: str) -> None:
             "installed APK signing SHA-1",
         ),
         "hub": (
-            "CloudConnectionHelpPolicy.guidance(lastGoogleFailure)",
+            "CloudConnectionHelpPolicy.guidance(it.stage, it.code)",
             "openExternalFlow(onConnect)",
             "Retry Google connection",
             "guidance.offerSingleRetry",
