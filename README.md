@@ -2,13 +2,13 @@
 
 **Android audio-first music player · active development, private source · not yet public release-ready.**
 
-> **NW61 INTEGRATED SOURCE (2026-10-25):** The NW43–NW61 changes are stacked on [the NW61 branch](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-nw61-google-oauth-diagnostics). NW61 repairs **Google OAuth diagnostic reliability**, requiring an exact last-successful-build APK SHA-256 match before publishing package/signing SHA-1 and using installed Android Build Tools without a hard-coded version. It **does not claim Google error 8 has been fixed**. NW60's bounded offline decoder recovery and all prior updates remain included. No NW61 APK, full Android build, device OAuth success or public release acceptance has been verified. **PUBLIC APK/PLAY: NO-GO.** See [NW61 Google OAuth setup](docs/NW61_GOOGLE_OAUTH_SETUP.md) and [Release Readiness](RELEASE_READINESS.md).
+> **NW62 INTEGRATED SOURCE:** This branch stacks NightWave NW43–NW62. **NW62 moves Downloads' private-file health verification off the UI thread**, caches verified snapshots across WorkManager progress updates and prevents unverified completed jobs from falsely appearing Ready or broken. It does **not** change downloaded songs, their queue, or Google's authorization scopes. Full Android compilation, device playback, Google sign-in error 8 and real download throughput **remain unverified**. **PUBLIC APK/PLAY: NO-GO.** Read [NW62 Downloads verification](docs/NW62_DOWNLOAD_STATUS_PERFORMANCE.md), [NW61 OAuth diagnostic guide](docs/NW61_GOOGLE_OAUTH_SETUP.md) and [Release Readiness](RELEASE_READINESS.md).
 
-### Latest local workflow
+### Current local build
 
-Download the ZIP from `feature/nightwave-nw61-google-oauth-diagnostics`, extract it into a fresh directory, and run `build-windows.cmd`. Once it **finishes successfully**, run `check-google-oauth.cmd` to obtain `dist/NightWave-google-oauth-setup.txt`. If the latest build failed, the OAuth script deliberately refuses to report an old APK's signing fingerprint. Verify Android client package/SHA-1 and the Drive API in **your own** Google Cloud project; compare the phone's installed APK identity using NightWave's in-app safe setup report. Run `check-device-update.cmd` before upgrading and **never uninstall/clear saved music** to fix OAuth.
+Download **Code → Download ZIP** from `feature/nightwave-nw62-download-status-performance`, extract into a new clean folder and run `build-windows.cmd`. The Windows preflight now checks NW62 before Gradle; a passing preflight alone does **not** verify Android compilation. After a fully successful build, run `check-google-oauth.cmd` to inspect only the exact verified APK, and `check-device-update.cmd` before upgrading the phone. **Never uninstall NightWave or wipe offline audio** as a workaround for signing errors.
 
-Older notes are archived phase history and do not prove NW61 runtime behavior.
+Older phase notes below document historical work, not proof of NW62 build or phone testing.
 
 ---
 
