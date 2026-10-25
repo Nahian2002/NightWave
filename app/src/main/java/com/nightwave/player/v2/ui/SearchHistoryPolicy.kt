@@ -12,7 +12,7 @@ internal object SearchHistoryPolicy {
 
     fun normalize(raw: String): String? {
         val trimmed = raw.trim()
-        if (trimmed.isEmpty() || trimmed.any { it.isISOControl() }) return null
+        if (trimmed.isEmpty() || trimmed.any { Character.isISOControl(it) }) return null
         return trimmed.replace(Regex("\\s+"), " ").take(MAX_QUERY_CHARS)
             .takeIf { it.isNotBlank() }
     }
