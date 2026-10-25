@@ -1,5 +1,8 @@
 # NightWave
 
+> **NW42 — EXPRESSIVE PREMIUM MOTION & ARTWORK-LED REDESIGN (SOURCE-ONLY, 25 October 2026).** Based on the latest 5.6-minute phone recording, this branch upgrades Home/mixtape visuals to genuine saved-song art, consolidates repetitive stat cards, makes Search more compact, presents You settings as an editorial list, and animates tab/player/current-song state with reduced-motion support. **12/12 source wiring checks and 13/13 exact-source standalone Kotlin policy assertions passed; full Android build/device polish NOT verified.** Google status 8 still requires checking OAuth Android client registration against the installed APK signing SHA-1; it has **not** been automatically fixed. [NW42 implementation and QA](docs/NW42_EXPRESSIVE_PREMIUM_DESIGN.md).
+
+
 > **NW41 — Recorded-device premium polish + Google OAuth diagnostic (SOURCE PREVIEW; Android build pending, 25 October 2026).** Based on two real phone recordings, this development branch improves the typography, bottom navigation, music cards, Search header, native action dialogs and Downloads layout/progress. It also adds **You > Account & backup > Copy Google setup report** with the installed APK signer SHA-1 to diagnose ongoing Google Drive error 8. This feature **does not itself fix Google's authorization or increase permitted download sources**. Compile/device QA is mandatory before updating your installed app. [Scope and review](docs/NW41_VIDEO_REVIEW_PREMIUM_PASS.md).
 
 
