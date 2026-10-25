@@ -447,8 +447,14 @@ class CatalogDownloadsActivity : ComponentActivity() {
             val progress = DownloadCenterViewPolicy.percent(received, total)
                 ?.let { " · $it%" }
                 ?: if (received > 0L) " · " + (received / 1024L) + " KB" else ""
-            val pausedByUser = isSearch &&
+            val markedPause = isSearch &&
                 SearchOfflinePauseState.isMarked(this, info.id)
+            // A requested pause is only confirmed after WorkManager
+            // reports CANCELLED; FAILED and SUCCEEDED must never look Paused.
+            val pausedByUser = DownloadRecoveryPolicy.isPaused(
+                info.state.name, markedPause)
+            val pausePending = DownloadRecoveryPolicy.isPausing(
+                info.state.name, markedPause)
             val now = SystemClock.elapsedRealtime()
             val previousSample = progressSamples[info.id]
             if (info.state == WorkInfo.State.RUNNING) {
@@ -486,9 +492,9 @@ class CatalogDownloadsActivity : ComponentActivity() {
                         ?: "")
             } else ""
             val state = when (info.state) {
-                WorkInfo.State.ENQUEUED -> if (pausedByUser)
+                WorkInfo.State.ENQUEUED -> if (pausePending)
                     "Pausing · Waiting for worker to stop" else "Queued · Waiting for network"
-                WorkInfo.State.RUNNING -> if (pausedByUser)
+                WorkInfo.State.RUNNING -> if (pausePending)
                     "Pausing · Cancelling current transfer" else
                     "Downloading" + progress + rateText
                 WorkInfo.State.SUCCEEDED -> when {
@@ -497,16 +503,18 @@ class CatalogDownloadsActivity : ComponentActivity() {
                     else -> OfflineDownloadStatusPolicy.statusForCompleted(actuallySaved)
                 }
                 WorkInfo.State.FAILED -> "Failed · " +
-                    info.outputData.getString(
+                    DownloadRecoveryPolicy.failedMessage(info.outputData.getString(
                         when {
                             isSearch -> SearchTrackSaveQueue.KEY_ERROR
                             isDirect -> DirectAudioDownloadQueue.KEY_ERROR
                             else -> CatalogDownloadQueue.KEY_ERROR
-                        }).orEmpty()
+                        }))
                 WorkInfo.State.CANCELLED -> if (pausedByUser)
                     "Paused · Resume restarts from zero (partial bytes not retained)"
                     else "Cancelled · No partial track saved"
-                WorkInfo.State.BLOCKED -> "Waiting for another queued job"
+                WorkInfo.State.BLOCKED -> if (pausePending)
+                    "Pausing · Waiting for worker to stop" else
+                    "Waiting for another queued job"
             }
             val card = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
@@ -540,7 +548,9 @@ class CatalogDownloadsActivity : ComponentActivity() {
             }
             card.addView(heading)
             card.addView(label(state, 13f,
-                if (info.state == WorkInfo.State.FAILED || (info.state == WorkInfo.State.SUCCEEDED && !actuallySaved))
+                if (info.state == WorkInfo.State.FAILED ||
+                    (info.state == WorkInfo.State.SUCCEEDED && !actuallySaved &&
+                        !verifyingFiles && !fileCheckFailed))
                     0xFFF0B7B7.toInt() else 0xFFB4C7D3.toInt()).apply {
                 setPadding(0, dp(5), 0, dp(7))
                 maxLines = 3
@@ -569,7 +579,8 @@ class CatalogDownloadsActivity : ComponentActivity() {
                         orientation = LinearLayout.HORIZONTAL
                         gravity = Gravity.CENTER_VERTICAL
                     }
-                    if (pauseUrl != null && !pausedByUser) {
+                    if (DownloadRecoveryPolicy.mayRequestPause(
+                            info.state.name, markedPause, pauseUrl != null)) {
                         actionRow.addView(label("Pause", 13f,
                             0xFF91E2D7.toInt(), true).apply {
                             gravity = Gravity.CENTER
@@ -583,8 +594,22 @@ class CatalogDownloadsActivity : ComponentActivity() {
                         setOnClickListener {
                             // Cancel is distinct from Pause. A deliberate
                             // cancel must never leave a resumable UI marker.
-                            if (isSearch) SearchOfflinePauseState.clear(this@CatalogDownloadsActivity, info.id)
+                            val latestState = (catalogJobs + directJobs + searchedJobs)
+                                .firstOrNull { it.id == info.id }?.state
+                            if (latestState == null || latestState.isFinished) {
+                                overview.text = "Download already finished. Refresh to see the result."
+                                refreshJobs()
+                                return@setOnClickListener
+                            }
+                            if (isSearch && markedPause &&
+                                !SearchOfflinePauseState.clear(
+                                    this@CatalogDownloadsActivity, info.id)) {
+                                overview.text = "Could not clear pause state. Cancel not sent."
+                                return@setOnClickListener
+                            }
                             manager.cancelWorkById(info.id)
+                            overview.text = "Cancellation requested…"
+                            refreshJobs()
                         }
                     }, LinearLayout.LayoutParams(0, dp(48), 1f))
                     card.addView(actionRow)
@@ -621,7 +646,8 @@ class CatalogDownloadsActivity : ComponentActivity() {
                     // A historical success record is not an offline file.
                     // Offer recovery of the exact searched recording only
                     // when the local file was later deleted/unavailable.
-                    val restoreUrl = if (isSearch && !actuallySaved)
+                    val restoreUrl = if (isSearch && !actuallySaved &&
+                        !verifyingFiles && !fileCheckFailed)
                         OfflineSaveRetryPolicy.retryUrl(info.tags) else null
                     if (restoreUrl != null) {
                         card.addView(label("Save this song again  →", 14f,
@@ -638,8 +664,8 @@ class CatalogDownloadsActivity : ComponentActivity() {
                         OfflineSaveRetryPolicy.canOfferRetry(
                             info.state.isFinished, false, info.tags)) {
                         card.addView(label(
-                            if (pausedByUser) "Start download again  →"
-                            else "Retry saving this song  →", 14f,
+                            DownloadRecoveryPolicy.retryLabel(
+                                info.state.name, markedPause) + "  →", 14f,
                             0xFF9FE3DF.toInt(), true).apply {
                             gravity = Gravity.CENTER
                             setOnClickListener {
@@ -734,10 +760,25 @@ class CatalogDownloadsActivity : ComponentActivity() {
                 "is removed; tapping Resume starts again from zero because " +
                 "the source may not support byte-range continuation.")
             .setPositiveButton("Pause") { _, _ ->
-                if (SearchOfflinePauseState.mark(this, info.id)) {
+                // The dialog may have been open while the transfer finished.
+                // Recheck its most recent WorkInfo state before persisting a
+                // pause marker, or completed files can be mislabelled paused.
+                val latestState = (catalogJobs + directJobs + searchedJobs)
+                    .firstOrNull { it.id == info.id }?.state
+                val marked = SearchOfflinePauseState.isMarked(this, info.id)
+                val eligible = OfflineSaveRetryPolicy.retryUrl(info.tags) != null
+                if (latestState == null ||
+                    !DownloadRecoveryPolicy.mayRequestPause(
+                        latestState.name, marked, eligible)) {
+                    overview.text = "Download state changed. Review its current status."
+                    refreshJobs()
+                } else if (SearchOfflinePauseState.mark(this, info.id)) {
                     manager.cancelWorkById(info.id)
-                    overview.text = "Stopping download. Resume is available once cancelled."
-                } else overview.text = "Could not record pause safely. Nothing cancelled."
+                    overview.text = "Stopping download. Resume is available after cancellation."
+                    refreshJobs()
+                } else {
+                    overview.text = "Could not record pause safely. Nothing cancelled."
+                }
             }
             .setNegativeButton("Keep downloading", null)
             .show()
@@ -759,6 +800,16 @@ class CatalogDownloadsActivity : ComponentActivity() {
                 "catalog match. Only proceed if you have permission to keep it offline. " +
                 "Unavailable, restricted, or protected audio cannot be saved.")
             .setPositiveButton("Retry save") { _, _ ->
+                if (resumeOf != null) {
+                    val latest = (catalogJobs + directJobs + searchedJobs)
+                        .firstOrNull { it.id == resumeOf }
+                    if (latest?.state != WorkInfo.State.CANCELLED ||
+                        !SearchOfflinePauseState.isMarked(this, resumeOf)) {
+                        overview.text = "This pause changed. Review download status before retrying."
+                        refreshJobs()
+                        return@setPositiveButton
+                    }
+                }
                 val requested = runCatching {
                     SearchTrackSaveQueue.enqueue(
                         this, VideoPreview(title, "", canonicalUrl, "", 0L))
@@ -770,13 +821,13 @@ class CatalogDownloadsActivity : ComponentActivity() {
                             .onSuccess {
                                 if (resumeOf != null) SearchOfflinePauseState.clear(
                                     this@CatalogDownloadsActivity, resumeOf)
-                                overview.text = "Save queued. Its result appears in Downloads."
+                                overview.text = "Save request accepted. Existing in-progress work may be reused."
                             }
                             .onFailure {
                                 overview.text = "Could not queue retry. Try from Search."
                             }
                     }, androidx.core.content.ContextCompat.getMainExecutor(this))
-                    overview.text = "Requesting another save attempt..."
+                    overview.text = "Requesting a save attempt…"
                 }.onFailure {
                     overview.text = "Retry cannot be queued. Try from Search."
                 }
