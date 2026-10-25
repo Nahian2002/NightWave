@@ -1,5 +1,10 @@
 package com.nightwave.player.v2.ui
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.snap
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -42,6 +47,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -261,11 +267,29 @@ fun MusicTrackTile(
     val identity = MusicIdentity.display(video.title, video.author)
     val largeText = LocalDensity.current.fontScale >= 1.3f
     val shape = RoundedCornerShape(if (surface == NightWaveTrackSurface.SEARCH) 14.dp else 18.dp)
-    val background = if (isPlaying) scheme.primary.copy(alpha = .12f)
-        else if (surface == NightWaveTrackSurface.SEARCH) scheme.surfaceVariant.copy(alpha = .30f)
-        else scheme.surface
-    val stroke = if (isPlaying) scheme.primary.copy(alpha = .55f)
-        else scheme.outline.copy(alpha = .22f)
+    val reducedMotion = LocalNightWaveReduceMotion.current
+    val tintDuration = NightWaveMotionPolicy.duration(
+        reducedMotion, NightWaveMotionPolicy.SURFACE_MS)
+    val background by animateColorAsState(
+        targetValue = if (isPlaying) scheme.primary.copy(alpha = .13f)
+            else if (surface == NightWaveTrackSurface.SEARCH)
+                scheme.surfaceVariant.copy(alpha = .25f)
+            else scheme.surface.copy(alpha = .76f),
+        animationSpec = tween(durationMillis = tintDuration),
+        label = "Song selection surface"
+    )
+    val stroke by animateColorAsState(
+        targetValue = if (isPlaying) scheme.primary.copy(alpha = .53f)
+            else scheme.outline.copy(alpha = .18f),
+        animationSpec = tween(durationMillis = tintDuration),
+        label = "Song selection outline"
+    )
+    val artScale by animateFloatAsState(
+        targetValue = NightWaveMotionPolicy.artworkScale(isPlaying, reducedMotion),
+        animationSpec = if (reducedMotion) snap() else spring(
+            dampingRatio = .82f, stiffness = 460f),
+        label = "Current song artwork emphasis"
+    )
     Row(
         modifier = modifier.fillMaxWidth()
             .heightIn(min = NightWaveCollectionChrome.TRACK_MIN_HEIGHT_DP.dp).clip(shape)
@@ -277,7 +301,11 @@ fun MusicTrackTile(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        TrackArtwork(video, Modifier.size(NightWaveCollectionChrome.TRACK_ARTWORK_DP.dp))
+        TrackArtwork(video, Modifier.size(NightWaveCollectionChrome.TRACK_ARTWORK_DP.dp)
+            .graphicsLayer {
+                scaleX = artScale
+                scaleY = artScale
+            })
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
             Text(identity.title, style = MaterialTheme.typography.titleMedium,
                 color = if (isPlaying) scheme.primary else scheme.onSurface,
