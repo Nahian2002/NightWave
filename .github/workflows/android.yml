@@ -84,6 +84,7 @@ on:
       - feature/nightwave-nw68-audio-session-crossfade-safety
       - feature/nightwave-nw69-queue-transition-consistency
       - feature/nightwave-nw70-local-search-language-performance
+      - feature/nightwave-nw71-smart-library-discovery
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
