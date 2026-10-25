@@ -26,27 +26,27 @@ if ($SelfTest) {
 
 $root = (Resolve-Path -LiteralPath $ProjectRoot).Path
 $required = @(
-    'app\build.gradle.kts',
-    'app\src\main\AndroidManifest.xml',
-    'app\src\main\java\com\nightwave\player\playback\SoundStudioTuningPolicy.kt',
-    'app\src\main\java\com\nightwave\player\offline\DownloadCenterViewPolicy.kt',
-    'app\src\main\java\com\nightwave\player\v2\ui\StudioPlayerScreens.kt',
-    'app\src\main\java\com\nightwave\player\v2\ui\NightWaveMotionPolicy.kt',
-    'app\src\main\java\com\nightwave\player\v2\ui\LibraryUiRefreshPolicy.kt',
-    'docs\NW52_FINAL_INTEGRATION.md',
+    'app/build.gradle.kts',
+    'app/src/main/AndroidManifest.xml',
+    'app/src/main/java/com/nightwave/player/playback/SoundStudioTuningPolicy.kt',
+    'app/src/main/java/com/nightwave/player/offline/DownloadCenterViewPolicy.kt',
+    'app/src/main/java/com/nightwave/player/v2/ui/StudioPlayerScreens.kt',
+    'app/src/main/java/com/nightwave/player/v2/ui/NightWaveMotionPolicy.kt',
+    'app/src/main/java/com/nightwave/player/v2/ui/LibraryUiRefreshPolicy.kt',
+    'docs/NW52_FINAL_INTEGRATION.md',
     'RELEASE_READINESS.md'
 )
-43..52 | ForEach-Object { $required += ('tools\verify_nw' + $_ + '*') }
+43..52 | ForEach-Object { $required += ('tools/verify_nw' + $_ + '*') }
 foreach ($item in $required) {
     $match = @(Get-ChildItem -Path (Join-Path $root $item) -File -ErrorAction SilentlyContinue)
     if ($match.Count -eq 0) {
         throw "NW52 incomplete integrated source ZIP: missing $item"
     }
 }
-$gradle = [IO.File]::ReadAllText((Join-Path $root 'app\build.gradle.kts'))
-$manifest = [IO.File]::ReadAllText((Join-Path $root 'app\src\main\AndroidManifest.xml'))
-$player = [IO.File]::ReadAllText((Join-Path $root 'app\src\main\java\com\nightwave\player\v2\ui\StudioPlayerScreens.kt'))
-$readme = [IO.File]::ReadAllText((Join-Path $root 'docs\NW52_FINAL_INTEGRATION.md'))
+$gradle = [IO.File]::ReadAllText((Join-Path $root 'app/build.gradle.kts'))
+$manifest = [IO.File]::ReadAllText((Join-Path $root 'app/src/main/AndroidManifest.xml'))
+$player = [IO.File]::ReadAllText((Join-Path $root 'app/src/main/java/com/nightwave/player/v2/ui/StudioPlayerScreens.kt'))
+$readme = [IO.File]::ReadAllText((Join-Path $root 'docs/NW52_FINAL_INTEGRATION.md'))
 Assert-NW52Marker $gradle 'applicationId = "com.nightwave.player"' 'unchanged package ID'
 Assert-NW52Marker $gradle 'versionCode = 35' 'private candidate versionCode'
 Assert-NW52Marker $gradle 'targetSdk = 35' 'private candidate target SDK'
@@ -57,9 +57,9 @@ Assert-NW52Marker $readme 'NO-GO' 'no misleading public-release claim'
 Assert-NW52Marker $readme 'feature/nightwave-nw52-final-integration-release-gates' 'NW52 source identification'
 
 foreach ($source in @(
-    'app\src\main\java\com\nightwave\player\v2\ui\StudioPlayerScreens.kt',
-    'app\src\main\java\com\nightwave\player\v2\ui\NightWaveStudioActivity.kt',
-    'app\src\main\java\com\nightwave\player\playback\PlaybackService.kt'
+    'app/src/main/java/com/nightwave/player/v2/ui/StudioPlayerScreens.kt',
+    'app/src/main/java/com/nightwave/player/v2/ui/NightWaveStudioActivity.kt',
+    'app/src/main/java/com/nightwave/player/playback/PlaybackService.kt'
 )) {
     $body = [IO.File]::ReadAllText((Join-Path $root $source))
     if ($body -match '(?m)^(<<<<<<< |>>>>>>> )') {
