@@ -2,13 +2,13 @@
 
 **Android audio-first music player · active development, private source · not yet public release-ready.**
 
-> **NW62 INTEGRATED SOURCE:** This branch stacks NightWave NW43–NW62. **NW62 moves Downloads' private-file health verification off the UI thread**, caches verified snapshots across WorkManager progress updates and prevents unverified completed jobs from falsely appearing Ready or broken. It does **not** change downloaded songs, their queue, or Google's authorization scopes. Full Android compilation, device playback, Google sign-in error 8 and real download throughput **remain unverified**. **PUBLIC APK/PLAY: NO-GO.** Read [NW62 Downloads verification](docs/NW62_DOWNLOAD_STATUS_PERFORMANCE.md), [NW61 OAuth diagnostic guide](docs/NW61_GOOGLE_OAUTH_SETUP.md) and [Release Readiness](RELEASE_READINESS.md).
+> **NW63 INTEGRATED SOURCE:** This branch stacks NightWave NW43–NW63. **Downloads now lets you browse older transfer history in 60-item pages** with Newer / Older, accurate page counts, filter-aware navigation and retained screen state. It also fixes a stale Windows preflight that rejected the safe NW62 background file-health check. Music files, playback, download jobs and Google scopes remain unchanged. **20/20 exact pure Kotlin paging assertions passed locally; full Android build and phone QA are still unverified. PUBLIC APK/PLAY: NO-GO.** Read [NW63 history and build fix](docs/NW63_DOWNLOAD_HISTORY_NAVIGATION.md), [NW62 file-health responsiveness](docs/NW62_DOWNLOAD_STATUS_PERFORMANCE.md), and [Release Readiness](RELEASE_READINESS.md).
 
 ### Current local build
 
-Download **Code → Download ZIP** from `feature/nightwave-nw62-download-status-performance`, extract into a new clean folder and run `build-windows.cmd`. The Windows preflight now checks NW62 before Gradle; a passing preflight alone does **not** verify Android compilation. After a fully successful build, run `check-google-oauth.cmd` to inspect only the exact verified APK, and `check-device-update.cmd` before upgrading the phone. **Never uninstall NightWave or wipe offline audio** as a workaround for signing errors.
+Download **Code → Download ZIP** from `feature/nightwave-nw63-download-history-navigation`, extract into a new clean folder and run `build-windows.cmd`. A passing source preflight alone does **not** prove Android compilation. After a fully successful build, run `check-google-oauth.cmd` for the exact signed APK and `check-device-update.cmd` before upgrading the phone. **Never uninstall NightWave or erase offline audio** to work around signing/OAuth errors.
 
-Older phase notes below document historical work, not proof of NW62 build or phone testing.
+Older phase notes below document historical work, not proof of NW63 build or phone testing.
 
 ---
 
