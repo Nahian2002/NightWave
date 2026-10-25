@@ -172,6 +172,8 @@ jobs:
           python3 tools/verify_nw51_reliability.py
           python3 tools/verify_nw52_release.py --self-test
           python3 tools/verify_nw52_release.py --json
+          python3 tools/verify_nw52_ui_prebuild.py --self-test
+          python3 tools/verify_nw52_ui_prebuild.py
           python3 tools/nw44_kotlin_smoke.py --self-test
           python3 tools/nw40_pure_kotlin_smoke.py --self-test
           python3 tools/verify_nw01_recovery.py
