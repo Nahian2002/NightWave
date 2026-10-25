@@ -182,7 +182,8 @@ class PlaybackService : MediaLibraryService() {
                 // Manual mode: range and band count come from this exact device/session.
                 val range = candidate.bandLevelRange
                 for ((index, level) in manualLevels) {
-                    if (index >= candidate.numberOfBands.toInt() || level < range[0] || level > range[1]) {
+                    if (index !in 0 until candidate.numberOfBands.toInt() ||
+                        level < range[0] || level > range[1]) {
                         eqStatus.write(requestedEqPreset, false,
                             "Manual equalizer settings are unsupported by this audio session.")
                         return
@@ -1269,11 +1270,23 @@ class PlaybackService : MediaLibraryService() {
             ACTION_EQ_BAND_SET -> {
                 val band = intent.getIntExtra(EXTRA_EQ_BAND, -1)
                 val level = intent.getIntExtra(EXTRA_EQ_LEVEL_MB, Int.MIN_VALUE)
-                if (band in 0..4 && level in -1500..1500) {
+                val session = exoPlayer?.audioSessionId ?: C.AUDIO_SESSION_ID_UNSET
+                val caps = eqCapabilities.read()
+                val supported = SoundStudioPolicy.safeManualRange(
+                    caps.minimumMb, caps.maximumMb)
+                // Older callers may still send individual band commands. Never
+                // assume five bands or mutate a working EQ on stale session data.
+                if (session > 0 && caps.sessionReady &&
+                    caps.audioSessionId == session &&
+                    band in caps.centersHz.indices &&
+                    supported != null && level in supported) {
                     manualLevels[band] = level.toShort()
                     requestedEqPreset = 21
                     releaseEqualizer()
-                    applyEqualizer(exoPlayer?.audioSessionId ?: C.AUDIO_SESSION_ID_UNSET)
+                    applyEqualizer(session)
+                } else {
+                    eqStatus.write(requestedEqPreset, activeEqualizer?.enabled == true,
+                        "Rejected: unsupported band or stale audio session")
                 }
             }
             ACTION_NORMALIZATION_SET -> {
@@ -1382,7 +1395,9 @@ class PlaybackService : MediaLibraryService() {
                 }
             }
         }
-        if (intent?.action == ACTION_EQ_PRESET_SET || intent?.action == ACTION_EQ_BANDS_APPLY) {
+        if (intent?.action == ACTION_EQ_PRESET_SET ||
+            intent?.action == ACTION_EQ_BANDS_APPLY ||
+            intent?.action == ACTION_EQ_BAND_SET) {
             val id = intent.getStringExtra(EXTRA_EQ_COMMAND_ID).orEmpty()
             if (id.length in 1..80) {
                 val receipt = eqStatus.read()
