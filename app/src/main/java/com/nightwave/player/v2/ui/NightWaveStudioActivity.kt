@@ -2954,7 +2954,8 @@ private fun StudioRoot(
                             selectedPlaylist = LIKED_COLLECTION
                             navigateToTab(StudioTab.LIBRARY)
                         },
-                        openOffline = onOfflineLibrary
+                        openOffline = onOfflineLibrary,
+                        openSearch = { navigateToTab(StudioTab.SEARCH) }
                     )
                     StudioTab.SEARCH -> {
                         val indexedAudio by produceState(
@@ -3159,7 +3160,8 @@ private fun StudioHome(
     onSongOptions: (VideoPreview) -> Unit,
     onRemoveRecent: (VideoPreview) -> Unit,
     onClearRecent: () -> Unit, openLibrary: () -> Unit,
-    openLikedSongs: () -> Unit, openOffline: () -> Unit
+    openLikedSongs: () -> Unit, openOffline: () -> Unit,
+    openSearch: () -> Unit
 ) {
     val dayNumber = java.time.LocalDate.now().toEpochDay()
     // Extend the existing personal mixes, rather than replacing them.
@@ -3217,7 +3219,7 @@ private fun StudioHome(
                 NightWaveQuickActionPill("Liked songs",
                     Icons.Outlined.FavoriteBorder, "nw47-home-liked", openLikedSongs)
                 NightWaveQuickActionPill("Find music",
-                    Icons.Outlined.Search, "nw47-home-search") { onSearch("music") }
+                    Icons.Outlined.Search, "nw47-home-search", openSearch)
             }
         }
         item {
@@ -3249,7 +3251,7 @@ private fun StudioHome(
         if (recent.isEmpty()) item {
             EmptyMusicCard("Your soundtrack starts here",
                 "Songs you play will appear here, ready for another listen.",
-                "Discover music") { onSearch("music") }
+                "Discover music", openSearch)
         } else {
             item(key = "nw47-recent-shelf") {
                 LazyRow(
