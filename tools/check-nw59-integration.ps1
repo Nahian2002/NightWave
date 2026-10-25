@@ -109,6 +109,7 @@ $relative = @(
     'app/src/main/java/com/nightwave/player/offline/OfflinePlaybackQueue.kt',
     'app/src/test/java/com/nightwave/player/offline/OfflineShuffleForwardNavigationTest.kt',
     'app/src/test/java/com/nightwave/player/playback/PublicQueuePastPriorityTest.kt',
+    'tools/NW69QueueSmoke.kt',
     'docs/NW69_QUEUE_TRANSITION_CONSISTENCY.md',
     'app/src/main/java/com/nightwave/player/playback/AudioEngineOwnershipPolicy.kt',
     'app/src/main/java/com/nightwave/player/playback/EqualizerCapabilities.kt',
@@ -372,5 +373,8 @@ Assert-NW59Missing $publicQueue 'forwardVisits.addLast(index)' 'unsupported Kotl
 Assert-NW59Missing $offlineQueue 'forwardVisits.addLast(index)' 'unsupported offline ArrayDeque.addLast'
 Assert-NW59Has $publicPriorityTests 'jumpingPastSeveralPlayNextEntriesDoesNotAutoRewind' 'skip priority regression'
 Assert-NW59Has $publicPriorityTests 'validFuturePrioritySurvivesJumpToEarlierSong' 'future priority preservation'
+$queueSmoke = [IO.File]::ReadAllText($files['tools/NW69QueueSmoke.kt'])
+Assert-NW59Has $queueSmoke 'fun main() {' 'reproducible pure Kotlin smoke'
+Assert-NW59Has $queueSmoke 'repeat(5_000)' 'deterministic queue index stress'
 Write-Host 'NW69 cumulative NW53-NW69 source guard PASS. Gradle/JVM/device QA still mandatory.'
 exit 0
