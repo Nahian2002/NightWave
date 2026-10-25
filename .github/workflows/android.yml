@@ -75,6 +75,7 @@ on:
       - feature/nightwave-nw59-integrated-build-gates
       - feature/nightwave-nw60-offline-playback-recovery
       - feature/nightwave-nw61-google-oauth-diagnostics
+      - feature/nightwave-nw62-download-status-performance
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
@@ -199,6 +200,8 @@ jobs:
           python3 tools/verify_nw60_offline_recovery.py
           python3 tools/verify_nw61_oauth_report.py --self-test
           python3 tools/verify_nw61_oauth_report.py
+          python3 tools/verify_nw62_download_health.py --self-test
+          python3 tools/verify_nw62_download_health.py
           python3 tools/nw44_kotlin_smoke.py --self-test
           python3 tools/nw40_pure_kotlin_smoke.py --self-test
           python3 tools/verify_nw01_recovery.py
