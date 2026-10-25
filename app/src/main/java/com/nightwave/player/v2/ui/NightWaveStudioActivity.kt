@@ -78,6 +78,9 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
@@ -150,6 +153,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -163,6 +168,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.IntOffset
+import kotlin.math.roundToInt
 import com.nightwave.player.library.MusicLibrary
 import com.nightwave.player.offline.FreeAudioCatalogActivity
 import com.nightwave.player.offline.CatalogDownloadsActivity
@@ -940,11 +947,13 @@ class NightWaveStudioActivity : ComponentActivity() {
                         val now = library.playlist(name)
                         val current = now.map { it.url }
                         val index = current.indexOf(url)
-                        if (current != expected || index < 0 || index + delta !in current.indices) {
-                            showMessage("Playlist changed; reopen it before reordering.")
+                        val destination = (index + delta).coerceIn(0, current.lastIndex.coerceAtLeast(0))
+                        if (current != expected || index < 0 || destination == index) {
+                            showMessage("Playlist changed or track is already at the edge.")
                         } else {
                             val ordered = current.toMutableList()
-                            java.util.Collections.swap(ordered, index, index + delta)
+                            val moved = ordered.removeAt(index)
+                            ordered.add(destination, moved)
                             val updated = library.reorderPlaylist(name, expected, ordered)
                             if (updated.accepted && updated.changed) {
                                 playlistUndo = PlaylistUndoState(name, now,
@@ -4214,8 +4223,8 @@ private fun StudioLibrary(
                 }
             }
             } else item(key = "playlist-order-help") {
-                Text("Use ↑ and ↓ to arrange the saved order. Song playback is paused " +
-                    "only for these editing taps; your current audio keeps playing.",
+                Text("Drag the ⠿ handle to move multiple rows, or tap ↑ and ↓. " +
+                    "Only the saved playlist order changes; audio playback continues.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
@@ -4233,22 +4242,31 @@ private fun StudioLibrary(
                 if (tracks.isEmpty()) onSearch() else localFilter = ""
             }
         } else items(visibleTracks, key = { it.url }) { song ->
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            var rowHeightPx by remember(song.url) { mutableStateOf(0) }
+            var dragOffsetPx by remember(song.url) { mutableStateOf(0f) }
+            Row(Modifier.fillMaxWidth().onSizeChanged { rowHeightPx = it.height },
+                verticalAlignment = Alignment.CenterVertically) {
                 if (reorderingTracks && canSelectPlaylistTracks) {
-                    val index = tracks.indexOfFirst { it.url == song.url }
-                    IconButton(
-                        onClick = {
-                            selectedPlaylist?.let { name ->
-                                onMovePlaylistSong(name, song.url, -1, tracks.map { it.url })
+                    Box(Modifier.size(48.dp)
+                        .offset { IntOffset(0, dragOffsetPx.roundToInt()) }
+                        .draggable(
+                            orientation = Orientation.Vertical,
+                            state = rememberDraggableState { delta -> dragOffsetPx += delta },
+                            onDragStarted = { dragOffsetPx = 0f },
+                            onDragStopped = {
+                                val steps = if (rowHeightPx > 0)
+                                    (dragOffsetPx / rowHeightPx).roundToInt() else 0
+                                dragOffsetPx = 0f
+                                if (steps != 0) selectedPlaylist?.let { name ->
+                                    onMovePlaylistSong(name, song.url, steps, tracks.map { it.url })
+                                }
                             }
+                        ).semantics {
+                            contentDescription = "Drag " + song.title + " to reorder"
                         },
-                        enabled = index > 0,
-                        modifier = Modifier.size(48.dp).semantics {
-                            contentDescription = "Move " + song.title + " up"
-                        }) {
-                        Text("↑", style = MaterialTheme.typography.titleLarge,
-                            color = if (index > 0) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = .35f))
+                        contentAlignment = Alignment.Center) {
+                        Text("⠿", style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.primary)
                     }
                 }
                 if (selectingTracks && canSelectPlaylistTracks) {
@@ -4291,20 +4309,36 @@ private fun StudioLibrary(
                 }
                 if (reorderingTracks && canSelectPlaylistTracks) {
                     val index = tracks.indexOfFirst { it.url == song.url }
-                    IconButton(
-                        onClick = {
-                            selectedPlaylist?.let { name ->
-                                onMovePlaylistSong(name, song.url, 1, tracks.map { it.url })
-                            }
-                        },
-                        enabled = index >= 0 && index < tracks.lastIndex,
-                        modifier = Modifier.size(48.dp).semantics {
-                            contentDescription = "Move " + song.title + " down"
-                        }) {
-                        Text("↓", style = MaterialTheme.typography.titleLarge,
-                            color = if (index >= 0 && index < tracks.lastIndex)
-                                MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = .35f))
+                    Column {
+                        IconButton(
+                            onClick = {
+                                selectedPlaylist?.let { name ->
+                                    onMovePlaylistSong(name, song.url, -1, tracks.map { it.url })
+                                }
+                            },
+                            enabled = index > 0,
+                            modifier = Modifier.size(48.dp).semantics {
+                                contentDescription = "Move " + song.title + " up"
+                            }) {
+                            Text("↑", style = MaterialTheme.typography.titleLarge,
+                                color = if (index > 0) MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = .35f))
+                        }
+                        IconButton(
+                            onClick = {
+                                selectedPlaylist?.let { name ->
+                                    onMovePlaylistSong(name, song.url, 1, tracks.map { it.url })
+                                }
+                            },
+                            enabled = index >= 0 && index < tracks.lastIndex,
+                            modifier = Modifier.size(48.dp).semantics {
+                                contentDescription = "Move " + song.title + " down"
+                            }) {
+                            Text("↓", style = MaterialTheme.typography.titleLarge,
+                                color = if (index >= 0 && index < tracks.lastIndex)
+                                    MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = .35f))
+                        }
                     }
                 }
             }
