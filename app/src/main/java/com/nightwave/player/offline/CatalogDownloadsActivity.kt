@@ -81,13 +81,14 @@ class CatalogDownloadsActivity : ComponentActivity() {
             setBackgroundColor(0xFF0C131B.toInt())
         }
         root.addView(label("‹  NightWave", 18f, 0xFF98E5DB.toInt(), true).apply {
-            setPadding(0, 0, 0, dp(15))
+            gravity = Gravity.CENTER_VERTICAL
+            contentDescription = "Back to NightWave"
             setOnClickListener { finish() }
-        })
-        root.addView(label("Downloads", 30f, Color.WHITE, true))
-        root.addView(label("Your music, ready when you are",
-            14f, 0xFFABC0CB.toInt()).apply {
-            setPadding(0, dp(4), 0, dp(14))
+        }, LinearLayout.LayoutParams(-1, dp(48)))
+        root.addView(label("Downloads", 24f, Color.WHITE, true))
+        root.addView(label("Save music for offline listening",
+            13f, 0xFFB7CAD4.toInt()).apply {
+            setPadding(0, dp(3), 0, dp(10))
         })
         // Two equally prominent destinations instead of stacked full-width buttons.
         val destinations = LinearLayout(this).apply {
@@ -410,7 +411,7 @@ class CatalogDownloadsActivity : ComponentActivity() {
                         gravity = Gravity.CENTER_VERTICAL
                     }
                     if (pauseUrl != null && !pausedByUser) {
-                        actionRow.addView(label("Pause (restart)", 13f,
+                        actionRow.addView(label("Pause", 13f,
                             0xFF91E2D7.toInt(), true).apply {
                             gravity = Gravity.CENTER
                             contentDescription = "Pause download; resuming restarts from zero"
@@ -457,7 +458,7 @@ class CatalogDownloadsActivity : ComponentActivity() {
                                     .putExtra(OfflineLibraryActivity.EXTRA_SEARCH_QUERY, savedTitle))
                             }
                         }
-                    }, LinearLayout.LayoutParams(-1, dp(44)))
+                    }, LinearLayout.LayoutParams(-1, dp(48)))
                     // A historical success record is not an offline file.
                     // Offer recovery of the exact searched recording only
                     // when the local file was later deleted/unavailable.
@@ -468,7 +469,7 @@ class CatalogDownloadsActivity : ComponentActivity() {
                             0xFF9FE3DF.toInt(), true).apply {
                             gravity = Gravity.CENTER
                             setOnClickListener { confirmSearchRetry(restoreUrl, title) }
-                        }, LinearLayout.LayoutParams(-1, dp(44)))
+                        }, LinearLayout.LayoutParams(-1, dp(48)))
                     }
                 }
                 else -> {
@@ -478,7 +479,7 @@ class CatalogDownloadsActivity : ComponentActivity() {
                         OfflineSaveRetryPolicy.canOfferRetry(
                             info.state.isFinished, false, info.tags)) {
                         card.addView(label(
-                            if (pausedByUser) "Resume save · Restart transfer  →"
+                            if (pausedByUser) "Start download again  →"
                             else "Retry saving this song  →", 14f,
                             0xFF9FE3DF.toInt(), true).apply {
                             gravity = Gravity.CENTER
@@ -486,7 +487,7 @@ class CatalogDownloadsActivity : ComponentActivity() {
                                 confirmSearchRetry(retryUrl, title,
                                     if (pausedByUser) info.id else null)
                             }
-                        }, LinearLayout.LayoutParams(-1, dp(44)))
+                        }, LinearLayout.LayoutParams(-1, dp(48)))
                     }
                     card.addView(label(
                         if (isSearch) "View other offline audio sources  →"
@@ -504,7 +505,7 @@ class CatalogDownloadsActivity : ComponentActivity() {
                                     .putExtra(FreeAudioCatalogActivity.EXTRA_QUERY, title))
                             }
                         }
-                    }, LinearLayout.LayoutParams(-1, dp(44)))
+                    }, LinearLayout.LayoutParams(-1, dp(48)))
                 }
             }
             entries.addView(card, LinearLayout.LayoutParams(-1, -2).apply {
