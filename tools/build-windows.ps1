@@ -355,7 +355,7 @@ try {
 
     # NW40: Windows PowerShell-only integration check before Gradle.
     # This keeps zero-Python local builds viable while rejecting incomplete
-    # NW36–NW40 checkouts. Full Android/JVM compilation remains mandatory.
+    # NW36-NW40 checkouts. Full Android/JVM compilation remains mandatory.
     $stage = 'NW40 source integrity preflight'
     $nw40Gate = Join-Path $PSScriptRoot 'check-nw40-stability.ps1'
     if (-not (Test-Path -LiteralPath $nw40Gate -PathType Leaf)) {
