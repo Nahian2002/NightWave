@@ -39,6 +39,8 @@ class OfflineLibraryActivity : ComponentActivity() {
     private lateinit var resumeControl: TextView
     private lateinit var sortControl: TextView
     private lateinit var playAllControl: TextView
+    private lateinit var availabilityFilters: LinearLayout
+    private var availabilityFilter = OfflineLibraryViewPolicy.Filter.ALL
     private lateinit var pageLabel: TextView
     private lateinit var previousPage: TextView
     private lateinit var nextPage: TextView
@@ -238,6 +240,16 @@ class OfflineLibraryActivity : ComponentActivity() {
         }
         controls.addView(shuffleAllControl, LinearLayout.LayoutParams(dp(99), dp(49)))
         root.addView(controls)
+        // Read-only file health filter: missing or damaged audio is still
+        // indexed and accessible for manual recovery, never auto-cleaned.
+        availabilityFilters = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        root.addView(availabilityFilters, LinearLayout.LayoutParams(-1, dp(52)).apply {
+            topMargin = dp(5)
+            bottomMargin = dp(4)
+        })
         // Local playback shortcuts use the same Media3 service as the widget
         // and notification. They never invoke a network resolve.
         val mediaControls = LinearLayout(this).apply {
@@ -378,12 +390,39 @@ class OfflineLibraryActivity : ComponentActivity() {
         playableIds = report.entries.asSequence()
             .filter { it.health == OfflineFileHealth.AVAILABLE }
             .map { it.song.id }.toSet()
-        val filtered = OfflineTrackSearch.match(searchText, all)
+        val healthFiltered = OfflineTrackSearch.match(searchText, all)
+            .filter { song ->
+                OfflineLibraryViewPolicy.includes(availabilityFilter,
+                    healthById[song.id] ?: OfflineFileHealth.UNREADABLE)
+            }
         visibleSongs = when (sortMode) {
-            1 -> filtered.sortedWith(compareBy<OfflineSong> { it.title.lowercase() }.thenBy { it.id })
-            2 -> filtered.sortedWith(compareBy<OfflineSong> { it.bytes }.thenBy { it.title.lowercase() })
-            3 -> filtered.sortedWith(compareByDescending<OfflineSong> { it.bytes }.thenBy { it.title.lowercase() })
-            else -> if (searchText.isBlank()) filtered.asReversed() else filtered
+            1 -> healthFiltered.sortedWith(compareBy<OfflineSong> { it.title.lowercase() }.thenBy { it.id })
+            2 -> healthFiltered.sortedWith(compareBy<OfflineSong> { it.bytes }.thenBy { it.title.lowercase() })
+            3 -> healthFiltered.sortedWith(compareByDescending<OfflineSong> { it.bytes }.thenBy { it.title.lowercase() })
+            else -> if (searchText.isBlank()) healthFiltered.asReversed() else healthFiltered
+        }
+        availabilityFilters.removeAllViews()
+        OfflineLibraryViewPolicy.Filter.entries.forEach { filter ->
+            availabilityFilters.addView(label(OfflineLibraryViewPolicy.label(filter),
+                12f, if (availabilityFilter == filter) 0xFF09131B.toInt()
+                else 0xFFB6D1D8.toInt(), availabilityFilter == filter).apply {
+                gravity = Gravity.CENTER
+                contentDescription = "Show " + OfflineLibraryViewPolicy.label(filter) +
+                    " offline songs"
+                background = cardBackground(if (availabilityFilter == filter)
+                    0xFF91E2D7.toInt() else 0xFF213840.toInt())
+                setOnClickListener {
+                    if (availabilityFilter != filter) {
+                        availabilityFilter = filter
+                        page = 0
+                        refresh()
+                        trackScroll.post { trackScroll.scrollTo(0, 0) }
+                    }
+                }
+            }, LinearLayout.LayoutParams(0, dp(48), 1f).apply {
+                marginStart = dp(2)
+                marginEnd = dp(2)
+            })
         }
         val checkpoint = OfflineSessionStore(this).read()
         val resumeSong = all.firstOrNull { it.id == checkpoint?.selectedId }
@@ -413,8 +452,8 @@ class OfflineLibraryActivity : ComponentActivity() {
             .take(OfflineLibraryCapacity.pageSize())
         tracks.removeAllViews()
         if (visibleSongs.isEmpty()) tracks.addView(label(
-            if (all.isEmpty()) "No offline songs yet. Import audio you own or are licensed to use."
-            else "No matching songs. Try another search.",
+            OfflineLibraryViewPolicy.emptyMessage(
+                availabilityFilter, all.isNotEmpty(), searchText.isNotBlank()),
             14f, 0xFFABB8CC.toInt()
         ).apply { setPadding(dp(5), dp(25), 0, 0) })
         pageSongs.forEach { song ->
@@ -454,7 +493,7 @@ class OfflineLibraryActivity : ComponentActivity() {
                     if (available) launchPlayback(song)
                     else status(availability + ". File was not removed.")
                 }
-            }, LinearLayout.LayoutParams(dp(49), dp(47)))
+            }, LinearLayout.LayoutParams(dp(48), dp(48)))
             row.addView(label("☁", 20f, 0xFF91E2D7.toInt()).apply {
                 gravity = Gravity.CENTER
                 alpha = if (available) 1f else 0.35f
@@ -467,7 +506,7 @@ class OfflineLibraryActivity : ComponentActivity() {
                         status("Audio unavailable for upload. Entry preserved.")
                     }
                 }
-            }, LinearLayout.LayoutParams(dp(43), dp(47)))
+            }, LinearLayout.LayoutParams(dp(48), dp(48)))
             row.addView(label("⋮", 24f, 0xFFB9C9D6.toInt()).apply {
                 gravity = Gravity.CENTER
                 contentDescription = "Remove offline track " + song.title
@@ -494,7 +533,7 @@ class OfflineLibraryActivity : ComponentActivity() {
                             }.show()
                     }
                 }
-            }, LinearLayout.LayoutParams(dp(39), dp(47)))
+            }, LinearLayout.LayoutParams(dp(48), dp(48)))
             tracks.addView(row, LinearLayout.LayoutParams(-1,
                 dp(NightWaveAdaptiveChromePolicy.nativeRowHeightDp(
                     resources.configuration.fontScale))).apply {
