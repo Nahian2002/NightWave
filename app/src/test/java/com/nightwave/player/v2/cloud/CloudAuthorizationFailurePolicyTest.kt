@@ -37,7 +37,10 @@ class CloudAuthorizationFailurePolicyTest {
     @Test fun unexpectedStatusNeverLeaksCredentialsOrGoogleResponseBody() {
         val output = CloudAuthorizationFailurePolicy.shortMessage(
             99, CloudAuthorizationFailurePolicy.Stage.DRIVE_CHECK)
-        assertTrue(output.contains("(99)"))
+        // DRIVE_CHECK returns an HTTP status, unlike Google Sign-In statuses.
+        // A safe, unrecognized Drive response is labeled "HTTP 99", not "(99)".
+        assertTrue(output.contains("HTTP 99"))
+        assertFalse(output.contains("authorization error"))
         assertFalse(output.contains("Bearer"))
         assertFalse(output.contains("Authorization:"))
         assertFalse(output.contains("accessToken"))
