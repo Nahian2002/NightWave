@@ -601,7 +601,9 @@ class CatalogDownloadsActivity : ComponentActivity() {
                                 refreshJobs()
                                 return@setOnClickListener
                             }
-                            if (isSearch && markedPause &&
+                            if (isSearch &&
+                                SearchOfflinePauseState.isMarked(
+                                    this@CatalogDownloadsActivity, info.id) &&
                                 !SearchOfflinePauseState.clear(
                                     this@CatalogDownloadsActivity, info.id)) {
                                 overview.text = "Could not clear pause state. Cancel not sent."
