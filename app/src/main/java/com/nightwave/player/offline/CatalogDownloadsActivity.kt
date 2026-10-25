@@ -257,10 +257,32 @@ class CatalogDownloadsActivity : ComponentActivity() {
                 background = rounded(0xFF162731.toInt())
                 setPadding(dp(15), dp(13), dp(15), dp(8))
             }
-            card.addView(label(title, 16f, Color.WHITE, true).apply {
+            val heading = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+            }
+            heading.addView(label(title, 16f, Color.WHITE, true).apply {
                 maxLines = 2
                 ellipsize = android.text.TextUtils.TruncateAt.END
-            })
+            }, LinearLayout.LayoutParams(0, -2, 1f))
+            if (info.state.isFinished) {
+                heading.addView(label(
+                    if (info.id.toString() in hidden) "↺" else "×",
+                    22f, 0xFFADC0CE.toInt(), true).apply {
+                    gravity = Gravity.CENTER
+                    contentDescription = if (info.id.toString() in hidden)
+                        "Restore this download entry to history"
+                    else "Hide this download from history; the audio file will not be deleted"
+                    setOnClickListener {
+                        val ok = if (info.id.toString() in hidden)
+                            DownloadHistoryVisibility.restore(this@CatalogDownloadsActivity, info.id)
+                        else DownloadHistoryVisibility.hide(this@CatalogDownloadsActivity, info.id)
+                        if (ok) refreshJobs()
+                        else overview.text = "Could not update download history visibility."
+                    }
+                }, LinearLayout.LayoutParams(dp(48), dp(48)))
+            }
+            card.addView(heading)
             card.addView(label(state, 13f,
                 if (info.state == WorkInfo.State.FAILED || (info.state == WorkInfo.State.SUCCEEDED && !actuallySaved))
                     0xFFF0B7B7.toInt() else 0xFFB4C7D3.toInt()).apply {
@@ -287,23 +309,29 @@ class CatalogDownloadsActivity : ComponentActivity() {
                 WorkInfo.State.ENQUEUED, WorkInfo.State.RUNNING, WorkInfo.State.BLOCKED -> {
                     val pauseUrl = if (isSearch)
                         OfflineSaveRetryPolicy.retryUrl(info.tags) else null
+                    val actionRow = LinearLayout(this).apply {
+                        orientation = LinearLayout.HORIZONTAL
+                        gravity = Gravity.CENTER_VERTICAL
+                    }
                     if (pauseUrl != null && !pausedByUser) {
-                        card.addView(label("Pause · restart required", 13f,
+                        actionRow.addView(label("Pause (restart)", 13f,
                             0xFF91E2D7.toInt(), true).apply {
                             gravity = Gravity.CENTER
                             contentDescription = "Pause download; resuming restarts from zero"
                             setOnClickListener { confirmSearchPause(info) }
-                        }, LinearLayout.LayoutParams(-1, dp(44)))
+                        }, LinearLayout.LayoutParams(0, dp(48), 1f))
                     }
-                    card.addView(label("Cancel download", 14f, 0xFFF0B7B7.toInt(), true).apply {
+                    actionRow.addView(label("Cancel", 14f, 0xFFF0B7B7.toInt(), true).apply {
                         gravity = Gravity.CENTER
+                        contentDescription = "Cancel download"
                         setOnClickListener {
                             // Cancel is distinct from Pause. A deliberate
                             // cancel must never leave a resumable UI marker.
                             if (isSearch) SearchOfflinePauseState.clear(this@CatalogDownloadsActivity, info.id)
                             manager.cancelWorkById(info.id)
                         }
-                    }, LinearLayout.LayoutParams(-1, dp(44)))
+                    }, LinearLayout.LayoutParams(0, dp(48), 1f))
+                    card.addView(actionRow)
                 }
                 WorkInfo.State.SUCCEEDED -> {
                     val savedTitle = if (isDirect || isSearch) title else info.outputData.getString(
@@ -382,22 +410,6 @@ class CatalogDownloadsActivity : ComponentActivity() {
                         }
                     }, LinearLayout.LayoutParams(-1, dp(44)))
                 }
-            }
-            if (info.state.isFinished) {
-                card.addView(label(
-                    if (info.id.toString() in hidden)
-                        "Restore to Downloads  →" else "Hide from Downloads  ×",
-                    13f, 0xFFB9C9D6.toInt(), true).apply {
-                    gravity = Gravity.CENTER
-                    contentDescription = "Hide or restore this finished download history entry"
-                    setOnClickListener {
-                        val result = if (info.id.toString() in hidden)
-                            DownloadHistoryVisibility.restore(this@CatalogDownloadsActivity, info.id)
-                        else DownloadHistoryVisibility.hide(this@CatalogDownloadsActivity, info.id)
-                        if (result) refreshJobs()
-                        else overview.text = "Could not update download history visibility."
-                    }
-                }, LinearLayout.LayoutParams(-1, dp(40)))
             }
             entries.addView(card, LinearLayout.LayoutParams(-1, -2).apply {
                 bottomMargin = dp(9)
