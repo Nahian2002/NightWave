@@ -36,6 +36,10 @@ class DirectAudioDownloadWorker(
         if (isStopped) return fail("Download cancelled")
         return try {
             makeNotificationChannel()
+            // Failed attempts leave no reusable partial bytes.
+            setProgressAsync(Data.Builder()
+                .putLong(DirectAudioDownloadQueue.KEY_RECEIVED, 0L)
+                .putLong(DirectAudioDownloadQueue.KEY_TOTAL, -1L).build())
             setForegroundAsync(foreground(source.fileName, 0L, null)).get()
             if (isStopped) return fail("Download cancelled")
             val downloader = PermittedAudioDownloader(applicationContext)
