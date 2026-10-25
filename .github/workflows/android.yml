@@ -55,6 +55,7 @@ on:
       - feature/nightwave-nw39-atomic-playlist-edits
       - feature/nightwave-nw40-stability-integration
       - feature/nightwave-nw41-premium-experience-auth-diagnostics
+      - feature/nightwave-nw42-expressive-motion-system
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
