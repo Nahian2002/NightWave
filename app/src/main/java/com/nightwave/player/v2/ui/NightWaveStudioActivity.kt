@@ -932,7 +932,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                         val freshSource = fromName in library.playlistNames() &&
                             urls.isNotEmpty() && urls.size == selected.size &&
                             urls.size <= LibraryBulkSelectionPolicy.MAX_SELECTED &&
-                            urls.all { url -> source.any { it.url == url } }
+                            selected.all { track -> source.any { it == track } }
                         val names = library.playlistNames().filterNot { it == fromName }
                         if (!freshSource) showMessage("Source playlist changed. Reopen selection.")
                         else if (names.isEmpty()) showMessage("Create another playlist before copying.")
