@@ -99,6 +99,18 @@ def check(files: dict[str, str]) -> None:
         for marker in markers:
             if marker not in body:
                 raise AssertionError(f"{name}: missing {marker!r}")
+    # Kotlin nested types belong to the policy type, not a val holding
+    # the policy singleton. p.Filter produced 17 unresolved references in
+    # the first NW52 integrated Gradle unit-test compilation.
+    for test, policy in (
+        ("DownloadCenterViewPolicyTest.kt", "DownloadCenterViewPolicy"),
+        ("OfflineLibraryViewPolicyTest.kt", "OfflineLibraryViewPolicy"),
+    ):
+        body = files[test]
+        if "p.Filter." in body:
+            raise AssertionError(f"{test}: invalid p.Filter enum reference; use {policy}.Filter")
+        if f"{policy}.Filter." not in body:
+            raise AssertionError(f"{test}: expected nested enum type qualifier missing")
     center = files["CatalogDownloadsActivity.kt"]
     if center.index("DownloadCenterViewPolicy.matches(") > center.index(
             "}.take(60)"):
@@ -145,6 +157,10 @@ def main() -> None:
         rejected("CatalogDownloadWorker.kt", "received < lastBytes", "false")
         rejected("OfflineLibraryViewPolicy.kt",
                  "health == OfflineFileHealth.AVAILABLE", "true")
+        rejected("DownloadCenterViewPolicyTest.kt",
+                 "DownloadCenterViewPolicy.Filter.", "p.Filter.")
+        rejected("OfflineLibraryViewPolicyTest.kt",
+                 "OfflineLibraryViewPolicy.Filter.", "p.Filter.")
         rejected("OfflineLibraryActivity.kt",
                  "library.healthReport()", "library.songs()")
         rejected("SearchTrackSaveWorker.kt",
