@@ -13,12 +13,12 @@ class CloudAuthorizationFailureStore(context: Context) {
 
     data class LastFailure(val stage: CloudAuthorizationFailurePolicy.Stage, val code: Int?)
 
-    fun read(): LastFailure? {
+    fun read(): LastFailure? = runCatching {
         val stage = CloudAuthorizationFailurePolicy.supportedStage(
-            prefs.getString("stage", null)) ?: return null
+            prefs.getString("stage", null)) ?: return@runCatching null
         val raw = prefs.getInt("status_code", Int.MIN_VALUE)
-        return LastFailure(stage, raw.takeUnless { it == Int.MIN_VALUE })
-    }
+        LastFailure(stage, raw.takeUnless { it == Int.MIN_VALUE })
+    }.getOrNull()
 
     /** No raw Google error bodies, OAuth extras or authorization data. */
     fun record(stage: CloudAuthorizationFailurePolicy.Stage, code: Int?): Boolean =
