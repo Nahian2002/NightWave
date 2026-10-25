@@ -42,6 +42,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
+import com.nightwave.player.net.VideoPreview
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
@@ -168,7 +171,8 @@ fun NightWavePremiumNavigation(
 fun NightWaveHomeHero(
     greeting: String,
     displayName: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    lastTrack: VideoPreview? = null
 ) {
     val colors = MaterialTheme.colorScheme
     val accent = colors.primary
@@ -191,22 +195,40 @@ fun NightWaveHomeHero(
             )
             .testTag("nightwave-home-hero")
     ) {
-        Canvas(
-            modifier = Modifier.align(Alignment.CenterEnd)
-                .size(width = 138.dp, height = heroHeight)
-        ) {
-            val center = Offset(size.width * .78f, size.height * .52f)
-            val scale = size.minDimension
-            for (ring in 0..2) {
-                drawCircle(
-                    accent.copy(alpha = .12f + ring * .055f),
-                    radius = scale * (.22f + ring * .15f),
-                    center = center,
-                    style = Stroke(width = 1.5.dp.toPx(), cap = StrokeCap.Round)
-                )
+        if (!lastTrack?.thumbnail.isNullOrBlank()) {
+            // The user actually listened to this song: genuine artwork makes
+            // the hero personal, not a fabricated looping visual or stock art.
+            AsyncImage(
+                model = lastTrack?.thumbnail,
+                contentDescription = null,
+                modifier = Modifier.align(Alignment.CenterEnd)
+                    .size(width = 164.dp, height = heroHeight),
+                contentScale = ContentScale.Crop,
+                alpha = .72f
+            )
+            Box(Modifier.fillMaxSize().background(
+                Brush.horizontalGradient(listOf(
+                    colors.surfaceVariant.copy(alpha = .96f),
+                    colors.surfaceVariant.copy(alpha = .72f),
+                    colors.surface.copy(alpha = .15f)
+                ))
+            ))
+        } else {
+            Canvas(
+                modifier = Modifier.align(Alignment.CenterEnd)
+                    .size(width = 138.dp, height = heroHeight)
+            ) {
+                val center = Offset(size.width * .78f, size.height * .52f)
+                val scale = size.minDimension
+                for (ring in 0..2) {
+                    drawCircle(
+                        accent.copy(alpha = .11f + ring * .04f),
+                        radius = scale * (.22f + ring * .15f),
+                        center = center,
+                        style = Stroke(width = 1.5.dp.toPx(), cap = StrokeCap.Round)
+                    )
+                }
             }
-            drawCircle(accent.copy(alpha = .32f), radius = 4.dp.toPx(),
-                center = center)
         }
         Column(
             modifier = Modifier.fillMaxHeight().fillMaxWidth(
