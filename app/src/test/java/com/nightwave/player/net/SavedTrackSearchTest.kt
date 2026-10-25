@@ -39,6 +39,26 @@ class SavedTrackSearchTest {
             SavedTrackSearch.match("night", listOf(song, song)))
     }
 
+    @Test fun duplicateUrlKeepsTheHighestRelevanceMetadata() {
+        val first = track("Moonlight extended upload", "Creator", "abc12345678")
+        val exact = track("Moonlight", "Creator", "abc12345678")
+        val other = track("Moonlight remix", "Someone", "abc12345679")
+        assertEquals(listOf(exact, other),
+            SavedTrackSearch.match("moonlight", listOf(first, other, exact)))
+    }
+
+    @Test fun nonpositiveLimitReturnsNoTrackOrSuggestion() {
+        val songs = listOf(track("Moonlight", "Creator", "abc12345678"))
+        assertTrue(SavedTrackSearch.match("moon", songs, 0).isEmpty())
+        assertTrue(SavedTrackSearch.match("moon", songs, -50).isEmpty())
+    }
+
+    @Test fun banglaSavedSongSearchRespectsActualVowelMarks() {
+        val original = track("ভালোবাসা", "বাংলা গান", "abc12345678")
+        assertEquals(listOf(original), SavedTrackSearch.match("ভালোবাসা", listOf(original)))
+        assertTrue(SavedTrackSearch.match("ভলবস", listOf(original)).isEmpty())
+    }
+
     @Test fun resultLimitIsBoundedAndDeterministic() {
         val many = (0 until 35).map {
             track("Night Track $it", "Creator", "v" + it.toString().padStart(10, '0'))
