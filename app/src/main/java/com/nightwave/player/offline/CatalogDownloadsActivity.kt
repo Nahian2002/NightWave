@@ -7,6 +7,8 @@ import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.os.SystemClock
+import android.os.Handler
+import android.os.Looper
 import java.util.UUID
 import android.view.Gravity
 import android.widget.FrameLayout
@@ -35,6 +37,17 @@ class CatalogDownloadsActivity : ComponentActivity() {
     private var searchedJobs: List<WorkInfo> = emptyList()
     private val progressSamples = HashMap<UUID, Pair<Long, Long>>()
     private val observedSpeed = HashMap<UUID, Long>()
+    private val uiHandler = Handler(Looper.getMainLooper())
+    private val stagnantTransferRefresh = object : Runnable {
+        override fun run() {
+            if (!isFinishing && !isDestroyed) {
+                if ((catalogJobs + directJobs + searchedJobs).any {
+                        it.state == WorkInfo.State.RUNNING
+                    } && ::entries.isInitialized) refreshJobs()
+                uiHandler.postDelayed(this, 5_000L)
+            }
+        }
+    }
     private fun refreshJobs() = render(catalogJobs + directJobs + searchedJobs)
 
     override fun onResume() {
@@ -42,6 +55,13 @@ class CatalogDownloadsActivity : ComponentActivity() {
         // A user may delete saved audio in Offline Library and return here
         // without any WorkManager status event. Recheck real file availability.
         if (::entries.isInitialized && ::overview.isInitialized) refreshJobs()
+        uiHandler.removeCallbacks(stagnantTransferRefresh)
+        uiHandler.postDelayed(stagnantTransferRefresh, 5_000L)
+    }
+
+    override fun onPause() {
+        uiHandler.removeCallbacks(stagnantTransferRefresh)
+        super.onPause()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -290,7 +310,10 @@ class CatalogDownloadsActivity : ComponentActivity() {
                     progressSamples[info.id]?.second, now)
                 else null
             val rateText = if (received > 0L && info.state == WorkInfo.State.RUNNING) {
-                " · " + OfflineTransferRatePolicy.display(rate) +
+                " · " + (if (rate == null && previousSample != null &&
+                    now - previousSample.second > 8_000L)
+                    "No new bytes · Waiting for source"
+                    else OfflineTransferRatePolicy.display(rate)) +
                     (OfflineTransferRatePolicy.etaSeconds(received, total, rate)
                         ?.takeIf { it in 1..86400L }
                         ?.let { " · about " + (it / 60L) + "m " + (it % 60L) + "s left" }
