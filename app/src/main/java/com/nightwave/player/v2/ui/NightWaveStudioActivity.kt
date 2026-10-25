@@ -3739,7 +3739,12 @@ private fun StudioLibrary(
     val canSelectPlaylistTracks = selectedPlaylist != null && selectedPlaylist in names &&
         selectedSmart == null
     var selectingTracks by remember(selectedPlaylist) { mutableStateOf(false) }
+    var reorderingTracks by remember(selectedPlaylist) { mutableStateOf(false) }
     var selectedTrackUrls by remember(selectedPlaylist) { mutableStateOf<Set<String>>(emptySet()) }
+    LaunchedEffect(selectedPlaylist, tracks) {
+        // Drop stale checkboxes after another device surface edits this playlist.
+        selectedTrackUrls = selectedTrackUrls.intersect(tracks.map { it.url }.toSet())
+    }
     val selectedTracks = LibraryBulkSelectionPolicy.selected(orderedTracks, selectedTrackUrls)
     val quickPlayableTracks = remember(orderedTracks) {
         LibraryQuickPlayPolicy.plan(orderedTracks, shuffle = false, seed = 0L).songs
@@ -3748,6 +3753,26 @@ private fun StudioLibrary(
         contentPadding = PaddingValues(start = 19.dp, end = 19.dp,
             top = 19.dp, bottom = 40.dp),
         verticalArrangement = Arrangement.spacedBy(13.dp)) {
+        if (playlistUndo != null) {
+            item(key = "playlist-undo-banner") {
+                Surface(shape = RoundedCornerShape(14.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant) {
+                    Row(Modifier.fillMaxWidth().padding(horizontal = 11.dp, vertical = 7.dp),
+                        verticalAlignment = Alignment.CenterVertically) {
+                        Text(playlistUndo.message,
+                            style = MaterialTheme.typography.bodySmall,
+                            maxLines = 2, overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f))
+                        TextButton(onClick = onUndoPlaylistEdit,
+                            modifier = Modifier.heightIn(min = 48.dp)) { Text("Undo") }
+                        IconButton(onClick = onDismissPlaylistUndo,
+                            modifier = Modifier.size(48.dp)) {
+                            Icon(Icons.Outlined.Close, contentDescription = "Dismiss playlist Undo")
+                        }
+                    }
+                }
+            }
+        }
         item {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (selectedPlaylist != null) IconButton(onClick = { onSelectPlaylist(null) }) {
@@ -4075,12 +4100,23 @@ private fun StudioLibrary(
                         OutlinedButton(
                             onClick = {
                                 selectingTracks = !selectingTracks
+                                reorderingTracks = false
                                 selectedTrackUrls = emptySet()
                             },
                             modifier = Modifier.weight(1f).heightIn(min = 48.dp)) {
                             Text(if (selectingTracks) "Cancel selection" else "Select songs")
                         }
-                        if (selectingTracks) {
+                        if (!selectingTracks) {
+                            OutlinedButton(
+                                onClick = {
+                                    reorderingTracks = !reorderingTracks
+                                    sortMode = LibraryBrowsePolicy.SORT_SAVED
+                                    localFilter = ""
+                                },
+                                modifier = Modifier.weight(1f).heightIn(min = 48.dp)) {
+                                Text(if (reorderingTracks) "Done ordering" else "Reorder")
+                            }
+                        } else {
                             OutlinedButton(
                                 onClick = {
                                     selectedTrackUrls = LibraryBulkSelectionPolicy
@@ -4099,9 +4135,28 @@ private fun StudioLibrary(
                         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                             Text("${selectedTracks.size} of " +
                                 LibraryBulkSelectionPolicy.MAX_SELECTED +
-                                " selected · public song links only",
+                                " selected · playlist edits or public links",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Row(Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                OutlinedButton(
+                                    onClick = {
+                                        selectedPlaylist?.let { onBulkCopy(it, selectedTracks) }
+                                    },
+                                    enabled = selectedTracks.isNotEmpty(),
+                                    modifier = Modifier.weight(1f).heightIn(min = 48.dp)) {
+                                    Text("Copy to…", maxLines = 1)
+                                }
+                                OutlinedButton(
+                                    onClick = {
+                                        selectedPlaylist?.let { onBulkRemove(it, selectedTracks) }
+                                    },
+                                    enabled = selectedTracks.isNotEmpty(),
+                                    modifier = Modifier.weight(1f).heightIn(min = 48.dp)) {
+                                    Text("Remove", maxLines = 1)
+                                }
+                            }
                             Row(Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 OutlinedButton(
@@ -4172,6 +4227,21 @@ private fun StudioLibrary(
             }
         } else items(visibleTracks, key = { it.url }) { song ->
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                if (reorderingTracks && canSelectPlaylistTracks) {
+                    val index = tracks.indexOfFirst { it.url == song.url }
+                    IconButton(
+                        onClick = {
+                            selectedPlaylist?.let { name ->
+                                onMovePlaylistSong(name, song.url, -1, tracks.map { it.url })
+                            }
+                        },
+                        enabled = index > 0,
+                        modifier = Modifier.size(48.dp)) {
+                        Text("↑", style = MaterialTheme.typography.titleLarge,
+                            color = if (index > 0) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = .35f))
+                    }
+                }
                 if (selectingTracks && canSelectPlaylistTracks) {
                     androidx.compose.material3.Checkbox(
                         checked = song.url in selectedTrackUrls,
@@ -4190,6 +4260,8 @@ private fun StudioLibrary(
                             if (selectingTracks && canSelectPlaylistTracks) {
                                 selectedTrackUrls = LibraryBulkSelectionPolicy.toggle(
                                     selectedTrackUrls, song.url, orderedTracks)
+                            } else if (reorderingTracks && canSelectPlaylistTracks) {
+                                Unit
                             } else if (selectedPlaylist != null &&
                                 selectedPlaylist in names && selectedSmart == null &&
                                 selectedPlaylist != LIKED_COLLECTION) {
@@ -4202,9 +4274,27 @@ private fun StudioLibrary(
                             if (selectingTracks && canSelectPlaylistTracks) {
                                 selectedTrackUrls = LibraryBulkSelectionPolicy.toggle(
                                     selectedTrackUrls, song.url, orderedTracks)
+                            } else if (reorderingTracks && canSelectPlaylistTracks) {
+                                Unit
                             } else onPlay(song,
                                 if (selectedPlaylist == null) tracks else orderedTracks)
                         })
+                }
+                if (reorderingTracks && canSelectPlaylistTracks) {
+                    val index = tracks.indexOfFirst { it.url == song.url }
+                    IconButton(
+                        onClick = {
+                            selectedPlaylist?.let { name ->
+                                onMovePlaylistSong(name, song.url, 1, tracks.map { it.url })
+                            }
+                        },
+                        enabled = index >= 0 && index < tracks.lastIndex,
+                        modifier = Modifier.size(48.dp)) {
+                        Text("↓", style = MaterialTheme.typography.titleLarge,
+                            color = if (index >= 0 && index < tracks.lastIndex)
+                                MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = .35f))
+                    }
                 }
             }
         }
