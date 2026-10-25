@@ -99,6 +99,8 @@ $relative = @(
     'app/src/main/java/com/nightwave/player/v2/ui/SearchConsumerCopyPolicy.kt',
     'app/src/main/java/com/nightwave/player/offline/OfflineLibraryActivity.kt',
     'app/src/main/java/com/nightwave/player/offline/CatalogDownloadsActivity.kt',
+    'app/src/main/java/com/nightwave/player/offline/DownloadHealthRefreshPolicy.kt',
+    'app/src/test/java/com/nightwave/player/offline/DownloadHealthRefreshPolicyTest.kt',
     'app/src/main/java/com/nightwave/player/offline/OfflineLibraryViewPolicy.kt',
     'app/src/main/java/com/nightwave/player/v2/model/NightWaveDesign.kt',
     'app/src/main/java/com/nightwave/player/v2/model/NightWaveContrastPolicy.kt',
@@ -119,6 +121,7 @@ $relative = @(
     'tools/verify_nw58_overlay.py',
     'tools/verify_nw60_offline_recovery.py',
     'tools/verify_nw61_oauth_report.py',
+    'tools/verify_nw62_download_health.py',
     'tools/check-google-oauth.ps1',
     'check-google-oauth.cmd',
     'docs/NW53_GOOGLE_RECOVERY_UX.md',
@@ -189,5 +192,17 @@ Assert-NW59Has $oauthSource 'Get-FileHash -LiteralPath $ApkPath -Algorithm SHA25
 Assert-NW59Has $oauthSource 'Get-ChildItem -LiteralPath $parent -Directory' 'flexible SDK Build Tools search'
 Assert-NW59Has $oauthSource 'INCONCLUSIVE - no current verified APK' 'failed-build report invalidation'
 Assert-NW59Missing $oauthSource 'build-tools\35.0.0' 'hardcoded diagnostic SDK version'
-Write-Host 'NW61 cumulative NW53-NW61 source guard PASS. Gradle/JVM/device QA still mandatory.'
+# NW62: verified file-health reads must run off the main thread and
+# be fenced against stale WorkManager results and paused screens.
+$health = [IO.File]::ReadAllText($files[$offline + 'DownloadHealthRefreshPolicy.kt'])
+Assert-NW59Has $downloads 'withContext(Dispatchers.IO)' 'Downloads file health off UI'
+Assert-NW59Has $downloads 'healthRefreshJob?.cancel()' 'cancel stale Download health read'
+Assert-NW59Has $downloads 'OfflineAudioLibrary(applicationContext).availableIds(savedIds)' 'physical file verification'
+Assert-NW59Has $downloads 'DownloadHealthRefreshPolicy.mayPublish(' 'generation fence'
+Assert-NW59Has $downloads 'render(snapshot, available)' 'verified async snapshot render'
+Assert-NW59Has $downloads 'uiPaused = true' 'pause closes UI read'
+Assert-NW59Has $health 'submittedGeneration == currentGeneration' 'latest update only'
+Assert-NW59Has $health '!paused && !finishing && !destroyed' 'reject background UI update'
+Assert-NW59Missing $downloads 'OfflineAudioLibrary(this).availableIds(allSavedIds)' 'legacy blocking file check'
+Write-Host 'NW62 cumulative NW53-NW62 source guard PASS. Gradle/JVM/device QA still mandatory.'
 exit 0
