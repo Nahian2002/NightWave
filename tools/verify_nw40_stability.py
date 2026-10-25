@@ -43,8 +43,9 @@ def audit(sources: dict[str, str]) -> list[tuple[str, bool]]:
     check("Reorder requires exact permutation",
         "operation.orderedUrls.toSet() != current.toSet()" in m)
     check("Playlist edits use existing guarded legacy writer",
-        all("LegacyLibraryTransaction.mutate(app," in sources["facade"][
-            sources["facade"].index("fun bulkRemoveFromPlaylist"):]))
+        "fun bulkRemoveFromPlaylist" in sources["facade"] and
+        "fun restorePlaylistIfUnchanged" in sources["facade"] and
+        sources["facade"].count("LegacyLibraryTransaction.mutate(app,") >= 4)
     check("Existing writer retains recovery commit",
         "if (!saved)" in sources["writer"] and "if (!editor.commit())" in sources["writer"])
     check("Dedicated drag gestures and accessible move controls exist",
