@@ -3,6 +3,7 @@ package com.nightwave.player.v2.ui
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -260,13 +261,16 @@ fun MusicTrackTile(
     val identity = MusicIdentity.display(video.title, video.author)
     val largeText = LocalDensity.current.fontScale >= 1.3f
     val shape = RoundedCornerShape(if (surface == NightWaveTrackSurface.SEARCH) 14.dp else 18.dp)
-    val background = if (isPlaying) scheme.primary.copy(alpha = .15f)
-        else if (surface == NightWaveTrackSurface.SEARCH) scheme.surfaceVariant.copy(alpha = .56f)
+    val background = if (isPlaying) scheme.primary.copy(alpha = .12f)
+        else if (surface == NightWaveTrackSurface.SEARCH) scheme.surfaceVariant.copy(alpha = .30f)
         else scheme.surface
+    val stroke = if (isPlaying) scheme.primary.copy(alpha = .55f)
+        else scheme.outline.copy(alpha = .22f)
     Row(
         modifier = modifier.fillMaxWidth()
             .heightIn(min = NightWaveCollectionChrome.TRACK_MIN_HEIGHT_DP.dp).clip(shape)
             .background(background)
+            .border(1.dp, stroke, shape)
             .testTag("nightwave-track-" + surface.name.lowercase())
             .clickable(onClick = onClick)
             .padding(vertical = 7.dp, horizontal = 10.dp),
@@ -314,6 +318,7 @@ fun MusicCollectionTile(
             .heightIn(min = NightWaveCollectionChrome.COLLECTION_MIN_HEIGHT_DP.dp)
             .testTag("nightwave-library-collection"),
         shape = RoundedCornerShape(18.dp),
+        border = BorderStroke(1.dp, colors.outline.copy(alpha = .22f)),
         colors = CardDefaults.cardColors(containerColor = colors.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
@@ -346,10 +351,11 @@ fun MusicCollectionTile(
 @Composable
 fun EmptyMusicCard(title: String, description: String, action: String, onAction: () -> Unit) {
     Surface(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onAction),
+        onClick = onAction,
+        modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = .26f))
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .65f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = .30f))
     ) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(title, style = MaterialTheme.typography.titleLarge)
