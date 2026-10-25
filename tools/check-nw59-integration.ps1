@@ -123,6 +123,9 @@ $relative = @(
     'app/src/main/java/com/nightwave/player/offline/DownloadFileVerificationPolicy.kt',
     'app/src/main/java/com/nightwave/player/offline/DownloadHistoryPagePolicy.kt',
     'app/src/main/java/com/nightwave/player/offline/DownloadRefreshPolicy.kt',
+    'app/src/main/java/com/nightwave/player/offline/DownloadRecoveryPolicy.kt',
+    'app/src/test/java/com/nightwave/player/offline/DownloadRecoveryPolicyTest.kt',
+    'docs/NW65_DOWNLOAD_RECOVERY_SAFETY.md',
     'app/src/test/java/com/nightwave/player/offline/DownloadRefreshPolicyTest.kt',
     'docs/NW64_DOWNLOAD_RESPONSIVENESS.md',
     'app/src/test/java/com/nightwave/player/offline/DownloadHistoryPagePolicyTest.kt',
@@ -244,5 +247,24 @@ Assert-NW59Has $downloads 'scroll.post {' 'defer scroll restore after layout'
 Assert-NW59Has $refreshPolicy 'const val MIN_UI_INTERVAL_MS = 400L' 'bounded paint delay'
 Assert-NW59Has $refreshTests 'burstsAreSpacedAndEventuallyFlushed' 'clock and progress tests'
 Assert-NW59Missing $downloads '}.take(60)' 'never truncate full history'
-Write-Host 'NW64 cumulative NW53-NW64 source guard PASS. Gradle/JVM/device QA still mandatory.'
+# NW65: statuses must never echo untrusted worker exceptions or mislabel a
+# completed/failed job as Paused. Keep NW62's source-of-truth file check.
+$recoveryPolicy = [IO.File]::ReadAllText($files['app/src/main/java/com/nightwave/player/offline/DownloadRecoveryPolicy.kt'])
+$recoveryTests = [IO.File]::ReadAllText($files['app/src/test/java/com/nightwave/player/offline/DownloadRecoveryPolicyTest.kt'])
+Assert-NW59Has $recoveryPolicy 'internal object DownloadRecoveryPolicy' 'redacted recovery policy exists'
+Assert-NW59Has $recoveryPolicy 'fun failedMessage(raw: String?): String' 'typed failure classification'
+Assert-NW59Has $recoveryPolicy 'state == "CANCELLED" && pauseMarked' 'pause only after WorkManager cancelled'
+Assert-NW59Has $recoveryPolicy 'eligibleSource && !pauseMarked' 'no redundant pause requests'
+Assert-NW59Has $downloads 'DownloadRecoveryPolicy.failedMessage(info.outputData.getString(' 'never display raw worker exception'
+Assert-NW59Has $downloads 'DownloadRecoveryPolicy.isPaused(' 'honest cancelled marker state'
+Assert-NW59Has $downloads 'DownloadRecoveryPolicy.isPausing(' 'active cancellation acknowledged'
+Assert-NW59Has $downloads 'DownloadRecoveryPolicy.mayRequestPause(' 'stale dialog guard'
+Assert-NW59Has $downloads 'DownloadRecoveryPolicy.retryLabel(' 'accurate restart wording'
+Assert-NW59Has $downloads '!verifyingFiles && !fileCheckFailed' 'no false missing-file or retry before health scan'
+Assert-NW59Has $downloads 'latest?.state != WorkInfo.State.CANCELLED' 'resume must wait for cancellation'
+Assert-NW59Has $downloads 'Existing in-progress work may be reused.' 'honest unique-work keep message'
+Assert-NW59Has $recoveryTests 'workFailureCannotDisplaySecretUrlsOrLocalPaths' 'secret redaction tests'
+Assert-NW59Has $recoveryTests 'pausedOnlyAfterWorkManagerReportsCancelled' 'cancel lifecycle tests'
+Assert-NW59Missing $downloads 'else CatalogDownloadQueue.KEY_ERROR\n                        }).orEmpty()' 'raw failed worker message'
+Write-Host 'NW65 cumulative NW53-NW65 source guard PASS. Gradle/JVM/device QA still mandatory.'
 exit 0
