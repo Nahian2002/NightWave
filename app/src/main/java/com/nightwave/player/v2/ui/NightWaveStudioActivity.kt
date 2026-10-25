@@ -722,7 +722,10 @@ class NightWaveStudioActivity : ComponentActivity() {
                     }
                 }
             }
-            NightWaveMaterialTheme(profile.theme) {
+            NightWaveMaterialTheme(
+                choice = profile.theme,
+                reduceMotion = profile.motion == MotionPreference.REDUCED
+            ) {
                 StudioRoot(
                     profile = profile, favorites = favorites, recent = recentlyPlayed,
                     libraryRevision = libraryRevision,
