@@ -564,6 +564,9 @@ class PlaybackService : MediaLibraryService() {
     // The service owns the only pending Undo. No playlist/audio-file writes.
     private var pendingQueueRemoval: Pair<String, PlaybackQueue.RemovedUpcoming>? = null
     private val offlineQueue = OfflinePlaybackQueue()
+    // Decode-error IDs only; never removes or rewrites private audio.
+    // Reset on explicit offline selection, not on a successful queue transition.
+    private val offlineDecodeFailedIds = mutableSetOf<String>()
     private lateinit var offlineControls: OfflinePlaybackPreferencesStore
     private lateinit var offlineSession: OfflineSessionStore
     private lateinit var listeningMemory: ListeningMemoryStore
@@ -779,7 +782,54 @@ class PlaybackService : MediaLibraryService() {
             sampleListening()
             val player = exoPlayer ?: return
             val video = player.currentMediaItem?.mediaId ?: return
-            if (offlinePlaying || queue.current?.url != video) return
+            if (offlinePlaying) {
+                val ids = offlineQueue.snapshot()
+                val selectedId = offlineQueue.current
+                if (!OfflineDecodeRecoveryPolicy.belongsToSelection(
+                        video, selectedId, ids, offlineDecodeFailedIds)) return
+                // One attempted decoder failure per ID per explicit selection.
+                offlineDecodeFailedIds.add(selectedId!!)
+                val atErrorGeneration = generation
+                main.post {
+                    if (!offlinePlaying || generation != atErrorGeneration ||
+                        exoPlayer?.currentMediaItem?.mediaId != video) return@post
+                    val playerNow = exoPlayer ?: return@post
+                    val queueIds = offlineQueue.snapshot()
+                    val currentIndex = offlineQueue.index
+                    val targetIndex = if (offlineQueue.shuffle) {
+                        OfflineDecodeRecoveryPolicy.safeShuffledIndex(
+                            queueIds, currentIndex, playerNow.nextMediaItemIndex,
+                            offlineDecodeFailedIds)
+                    } else {
+                        OfflineDecodeRecoveryPolicy.nextLinearIndex(
+                            queueIds, currentIndex, offlineDecodeFailedIds,
+                            offlineQueue.repeat == PlaybackQueue.Repeat.ALL)
+                    }
+                    if (targetIndex == null) {
+                        // No looping through the same undecodable file, and
+                        // never touch user-owned audio or external storage.
+                        Log.w("NightWavePlayback",
+                            "Offline decoder failed; no untried next track")
+                        return@post
+                    }
+                    val nextId = queueIds[targetIndex]
+                    Log.w("NightWavePlayback",
+                        "Offline decoder error; trying next saved track")
+                    if (offlineGaplessActive) {
+                        // Media3 retains ownership of its local validated
+                        // playlist; a decoder error can leave STATE_IDLE.
+                        playerNow.seekTo(targetIndex, 0L)
+                        if (playerNow.playbackState == Player.STATE_IDLE)
+                            playerNow.prepare()
+                        playerNow.play()
+                    } else {
+                        if (offlineQueue.jump(targetIndex) != null)
+                            playOfflineId(nextId)
+                    }
+                }
+                return
+            }
+            if (queue.current?.url != video) return
             if (autoRetriedVideo == video) {
                 savedQueue.recordFailure(video, "Stream refresh failed. Tap Retry to try again.")
                 return
@@ -1184,6 +1234,7 @@ class PlaybackService : MediaLibraryService() {
             }
             ACTION_PLAY_OFFLINE -> {
                 cancelCrossfade()
+                offlineDecodeFailedIds.clear()
                 val id = intent.getStringExtra(EXTRA_OFFLINE_ID).orEmpty()
                 val localLibrary = OfflineAudioLibrary(this)
                 // Accept only registered private IDs, never externally supplied paths.
@@ -1197,9 +1248,14 @@ class PlaybackService : MediaLibraryService() {
                     if (!playOfflineId(id, localLibrary)) advanceOffline(forward = true)
                 }
             }
-            ACTION_RESUME_OFFLINE -> resumeOfflineSession()
+            ACTION_RESUME_OFFLINE -> {
+                offlineDecodeFailedIds.clear()
+                resumeOfflineSession()
+            }
             ACTION_JUMP_OFFLINE -> if (offlinePlaying) {
                 cancelCrossfade()
+                // A user-selected jump is a fresh recovery opportunity.
+                offlineDecodeFailedIds.clear()
                 val index = intent.getIntExtra(EXTRA_INDEX, -1)
                 val player = exoPlayer
                 val id = offlineQueue.snapshot().getOrNull(index)
