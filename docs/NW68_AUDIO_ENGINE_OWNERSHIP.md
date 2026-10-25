@@ -2,7 +2,7 @@
 
 **Parent:** `feature/nightwave-nw67-playback-transition-reliability`  
 **Branch:** `feature/nightwave-nw68-audio-session-crossfade-safety`  
-**Status:** Source changes committed and read back; pure Kotlin JVM regression tests committed, **not yet executed with Gradle**. Android compilation, hardware audio effects and Samsung playback QA remain **unverified**. Public release: **NO-GO**.
+**Status:** Source changes committed and read back; **581/581 isolated Kotlin/JVM policy assertions PASS** using the exact GitHub blob (SHA-1 `ac91c00a45d33f83f9da645bbe8bfe859774460c`). The committed JUnit tests are **not yet executed with Gradle**. Android compilation, hardware audio effects and Samsung playback QA remain **unverified**. Public release: **NO-GO**.
 
 ## Source problems addressed
 
@@ -20,8 +20,9 @@
 
 ## Verification status
 
-- `AudioEngineOwnershipPolicyTest.kt` added with ownership/session, range, effect-enabled, stale media/queue index, stopped second deck, Shuffle, Repeat One and sleep-timer permutations.
+- `AudioEngineOwnershipPolicyTest.kt` added with ownership/session, range, effect-enabled, stale media/queue index, stopped second deck, Shuffle, Repeat One and sleep-timer permutations. The exact committed pure Kotlin policy (verified with `git hash-object`) was compiled in isolation using `kotlinc` and passed **581/581** local logic assertions covering combinations of session control and handoff conditions. This does not run Android classes or hardware effects.
 - Cumulative Windows source guard updated for the ownership checks and NW67–NW66 invariants; its presence is **not proof the guard or Gradle ran**.
+- GitHub Android workflow run `40229270373` completed **failure** almost immediately with no returned step details. The reason could not be determined from the accessible workflow logs; **this is not evidence of an Android compiler error or a successful build**.
 - **No completed Android/JVM Gradle run or Samsung hardware audio measurement is available** from this phase. Do not rate equalizer audibility or actual crossfade perfection as 10/10.
 
 ## Acceptance after an independently verified complete build
