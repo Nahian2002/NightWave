@@ -106,6 +106,10 @@ $relative = @(
     'app/src/main/java/com/nightwave/player/playback/PlaybackService.kt',
     'app/src/main/java/com/nightwave/player/playback/OfflineDecodeRecoveryPolicy.kt',
     'app/src/main/java/com/nightwave/player/playback/PlaybackQueue.kt',
+    'app/src/main/java/com/nightwave/player/offline/OfflinePlaybackQueue.kt',
+    'app/src/test/java/com/nightwave/player/offline/OfflineShuffleForwardNavigationTest.kt',
+    'app/src/test/java/com/nightwave/player/playback/PublicQueuePastPriorityTest.kt',
+    'docs/NW69_QUEUE_TRANSITION_CONSISTENCY.md',
     'app/src/main/java/com/nightwave/player/playback/AudioEngineOwnershipPolicy.kt',
     'app/src/main/java/com/nightwave/player/playback/EqualizerCapabilities.kt',
     'app/src/test/java/com/nightwave/player/playback/AudioEngineOwnershipPolicyTest.kt',
@@ -312,7 +316,7 @@ $publicQueue = [IO.File]::ReadAllText($files['app/src/main/java/com/nightwave/pl
 $forwardTests = [IO.File]::ReadAllText($files['app/src/test/java/com/nightwave/player/playback/ShuffleForwardNavigationTest.kt'])
 $offlineRecoveryTests = [IO.File]::ReadAllText($files['app/src/test/java/com/nightwave/player/playback/OfflineDecodeRecoveryPolicyTest.kt'])
 Assert-NW59Has $publicQueue 'private val forwardVisits = ArrayDeque<Int>()' 'session-only forward history'
-Assert-NW59Has $publicQueue 'forwardVisits.addLast(index)' 'save shuffle forward step'
+Assert-NW59Has $publicQueue 'forwardVisits.add(index)' 'save shuffle forward step with Kotlin-compatible ArrayDeque'
 Assert-NW59Has $publicQueue 'forwardVisits.removeLast()' 'retrace real shuffle order'
 Assert-NW59Has $publicQueue 'forwardVisits.clear()' 'invalidate stale trail on edits'
 Assert-NW59Has $publicQueue 'queuedNext != null -> {' 'manual Play Next outranks redo'
@@ -344,5 +348,29 @@ Assert-NW59Has $playback 'CrossfadeHandoffPolicy.mayHandoff(' 'service gates ses
 Assert-NW59Has $playback 'outgoingPlaying = old.isPlaying, incomingPlaying = new.isPlaying' 'never handoff paused deck'
 Assert-NW59Has $ownershipTests 'eqInstanceMustStillOwnSameLiveSession' 'EQ session ownership tests'
 Assert-NW59Has $ownershipTests 'staleMediaOrSelectionNeverReceivesSession' 'crossfade stale ID tests'
-Write-Host 'NW68 cumulative NW53-NW68 source guard PASS. Gradle/JVM/device QA still mandatory.'
+# NW69: legacy offline shuffle must retrace real forwards; public Play Next
+# cannot jump backwards to an already passed priority. Also prevent old
+# Kotlin ArrayDeque.addFirst/addLast compile regressions from prior sources.
+$offlineQueue = [IO.File]::ReadAllText($files['app/src/main/java/com/nightwave/player/offline/OfflinePlaybackQueue.kt'])
+$offlineForwardTests = [IO.File]::ReadAllText($files['app/src/test/java/com/nightwave/player/offline/OfflineShuffleForwardNavigationTest.kt'])
+$publicPriorityTests = [IO.File]::ReadAllText($files['app/src/test/java/com/nightwave/player/playback/PublicQueuePastPriorityTest.kt'])
+Assert-NW59Has $offlineQueue 'private val forwardVisits = ArrayDeque<Int>()' 'offline shuffle forward history'
+Assert-NW59Has $offlineQueue 'forwardVisits.add(index)' 'offline Previous records next target'
+Assert-NW59Has $offlineQueue 'forwardVisits.removeLast()' 'offline Next replays real forward target'
+Assert-NW59Has $offlineQueue 'unplayed.remove(forward)' 'forward target not replayed randomly'
+Assert-NW59Has $offlineQueue 'forwardVisits.clear() // explicit new branch' 'new jump drops old redo'
+Assert-NW59Has $offlineForwardTests 'multiplePreviousThenNextRetracesExactlyTheSongsHeard' 'offline shuffle redo test'
+Assert-NW59Has $offlineForwardTests 'repeatOneDoesNotConsumeForwardHistoryDuringAutoReplay' 'repeat-one preservation'
+Assert-NW59Has $publicQueue 'private fun discardPastPriorities()' 'past Play Next cleanup'
+Assert-NW59Has $publicQueue 'manualNext.removeAll { wanted ->' 'remove only no-longer-upcoming priorities'
+Assert-NW59Has $publicQueue 'discardPastPriorities()' 'priority cleanup invoked on navigation'
+Assert-NW59Has $publicQueue 'manualNext.add(0, entry.url)' 'Kotlin-compatible first-priority insertion'
+Assert-NW59Has $publicQueue 'manualNext.add(wanted)' 'Kotlin-compatible priority restore'
+Assert-NW59Missing $publicQueue 'manualNext.addFirst(entry.url)' 'unsupported Kotlin ArrayDeque.addFirst'
+Assert-NW59Missing $publicQueue 'manualNext.addLast(wanted)' 'unsupported Kotlin ArrayDeque.addLast'
+Assert-NW59Missing $publicQueue 'forwardVisits.addLast(index)' 'unsupported Kotlin ArrayDeque.addLast'
+Assert-NW59Missing $offlineQueue 'forwardVisits.addLast(index)' 'unsupported offline ArrayDeque.addLast'
+Assert-NW59Has $publicPriorityTests 'jumpingPastSeveralPlayNextEntriesDoesNotAutoRewind' 'skip priority regression'
+Assert-NW59Has $publicPriorityTests 'validFuturePrioritySurvivesJumpToEarlierSong' 'future priority preservation'
+Write-Host 'NW69 cumulative NW53-NW69 source guard PASS. Gradle/JVM/device QA still mandatory.'
 exit 0
