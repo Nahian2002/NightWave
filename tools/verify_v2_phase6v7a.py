@@ -7,6 +7,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 import tempfile
+import re
 
 ROOT = Path(__file__).resolve().parents[1]
 MAIN = "app/src/main/java/com/nightwave/player/v2/ui/"
@@ -67,9 +68,10 @@ CHECKS = {
         'testTag("nightwave-mini-player")',
         "NightWaveChromePolicy.showMiniNext(",
         "queueCount = state.queue.size",
-        "actions::playPause",
-        "actions::next",
-        "IconButton(onClick = onHide",
+        "actions.playPause()",
+        "actions.next()",
+        "onHide()",
+        "IconButton(onClick = {",
         "detectVerticalDragGestures(",
         "PlayerGestureRules.decideVerticalSwipe(",
         "PlayerProgressRules.fraction(",
@@ -102,6 +104,29 @@ TESTS = {
 }
 
 
+def hide_only_changes_visibility(source: str) -> bool:
+    """Inspect the actual Close button lambda, not an obsolete click syntax.
+
+    NW50 added optional Android haptics; the button legitimately uses
+    IconButton(onClick = { ... onHide() }) instead of onClick = onHide.
+    This guard must reject any audio/playback/service call in that lambda.
+    """
+    marker = '"Hide mini-player; music keeps playing"'
+    position = source.rfind(marker)
+    if position < 0:
+        return False
+    begin = source.rfind("IconButton(onClick = {", 0, position)
+    if begin < 0:
+        return False
+    end = source.find("}, modifier = Modifier.size(48.dp))", begin)
+    if end < begin or end > position:
+        return False
+    handler = source[begin:end]
+    return ("onHide()" in handler and
+        re.search(r"\\bactions\\s*\\.|\\b(?:pause|stop)\\s*\\(|"
+                  r"startService\\s*\\(|ACTION_(?:PAUSE|STOP)", handler, re.I) is None)
+
+
 def audit(root: Path) -> list[str]:
     errors: list[str] = []
     for path, strings in CHECKS.items():
@@ -113,6 +138,8 @@ def audit(root: Path) -> list[str]:
         for token in strings:
             if token not in data:
                 errors.append(path + ": missing " + repr(token))
+        if path == MAIN + "StudioPlayerScreens.kt" and not hide_only_changes_visibility(data):
+            errors.append(path + ": Hide must not call playback, pause, stop or service controls")
     for path, (minimum, method_names) in TESTS.items():
         file = root / path
         if not file.is_file():
@@ -134,6 +161,15 @@ def self_test() -> None:
             dest = root / path
             dest.parent.mkdir(parents=True, exist_ok=True)
             dest.write_text("\n".join(strings), encoding="utf-8")
+        mini_fixture = root / (MAIN + "StudioPlayerScreens.kt")
+        mini_source = mini_fixture.read_text(encoding="utf-8")
+        mini_source += (\
+            '\\nIconButton(onClick = { onHide() }, modifier = Modifier.size(48.dp)) {'
+            '\\n  Icon(Icons.Outlined.Close,'
+            '\\n       contentDescription = "Hide mini-player; music keeps playing")'
+            '\\n}\\n'
+        )
+        mini_fixture.write_text(mini_source, encoding="utf-8")
         for path, (minimum, methods) in TESTS.items():
             dest = root / path
             dest.parent.mkdir(parents=True, exist_ok=True)
@@ -149,10 +185,21 @@ def self_test() -> None:
         ), encoding="utf-8")
         assert any("userScrollEnabled" in problem for problem in audit(root))
         mini = root / (MAIN + "StudioPlayerScreens.kt")
-        mini.write_text(mini.read_text(encoding="utf-8").replace(
-            '"Hide mini-player; music keeps playing"', '"Stop music"'
+        safe_source = mini.read_text(encoding="utf-8")
+        mini.write_text(safe_source.replace(
+            'contentDescription = "Hide mini-player; music keeps playing"',
+            'contentDescription = "Stop music"'
         ), encoding="utf-8")
-        assert any("Hide mini-player" in problem for problem in audit(root))
+        assert any("Hide mini-player" in problem or "Hide must not" in problem
+                   for problem in audit(root))
+        mini.write_text(safe_source.replace(
+            'onHide() }, modifier', 'onHide(); actions.playPause() }, modifier'
+        ), encoding="utf-8")
+        assert any("Hide must not" in problem for problem in audit(root))
+        mini.write_text(safe_source.replace(
+            'onHide() }, modifier', 'actions.playPause() }, modifier'
+        ), encoding="utf-8")
+        assert any("Hide must not" in problem for problem in audit(root))
         motion = root / (MAIN + "NightWaveMotionPolicy.kt")
         motion.write_text(motion.read_text(encoding="utf-8").replace(
             "if (reduceMotion) 0 else requested.coerceIn(0, MAX_MS)",
