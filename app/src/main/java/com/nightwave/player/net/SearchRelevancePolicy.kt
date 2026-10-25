@@ -15,7 +15,10 @@ object SearchRelevancePolicy {
 
     // Bounded normalization: punctuation becomes word boundaries and Latin
     // combining accents are removed. Original saved/provider metadata is intact.
-    private val combining = Regex("\\p{M}+")
+    // Only fold marks attached to Latin base letters. Removing *all* marks
+    // destroyed Bengali vowel signs and made distinct Bangla titles collide.
+    private val latinDiacritic = Regex("(?<=\\p{IsLatin})\\p{M}+")
+    private val boundaries = Regex("[^\\p{L}\\p{M}\\p{N}]+")
     private val spaces = Regex("\\s+")
     private val unhelpful = listOf(
         "reaction", "tutorial", "review", "commentary", "explained",
@@ -24,9 +27,9 @@ object SearchRelevancePolicy {
 
     fun normalize(value: String): String {
         val plain = Normalizer.normalize(value.take(512).lowercase(Locale.ROOT),
-            Normalizer.Form.NFKD).replace(combining, "")
-        return plain.map { if (it.isLetterOrDigit()) it else ' ' }
-            .joinToString("").replace(spaces, " ").trim()
+            Normalizer.Form.NFKD)
+        return latinDiacritic.replace(plain, "").replace(boundaries, " ")
+            .replace(spaces, " ").trim()
     }
 
     fun prepare(raw: String): Query {
