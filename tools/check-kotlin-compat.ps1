@@ -25,6 +25,17 @@ function Test-NightWaveGreeting([string]$Body) {
     return ($Body.Contains('"Welcome, " + firstName + "') -and -not $Body.Contains('"Welcome,  + firstName + "'))
 }
 
+function Test-ComposeAnimatedDelegate([string]$Body) {
+    # Compose animate*AsState returns State<T>. Delegation with "by" must
+    # have runtime.getValue (or the runtime wildcard) imported in that file.
+    # This is a syntax-pattern guard, not a type checker.
+    $delegated = [regex]::IsMatch($Body,
+        '(?m)^\s*(?:val|var)\s+\w+\s+by\s+animate\w*AsState\s*\(')
+    if (-not $delegated) { return $true }
+    return ($Body.Contains('import androidx.compose.runtime.getValue') -or
+        $Body.Contains('import androidx.compose.runtime.*'))
+}
+
 if ($SelfTest) {
     if (-not (Test-NightWaveGreeting '"Welcome, " + firstName + "good"')) {
         throw 'Valid Home greeting concatenation was rejected.'
@@ -45,6 +56,19 @@ if ($SelfTest) {
     if ($actuallyRepeated.Count -ne 1 -or $actuallyRepeated[0] -cne 'a.B') {
         throw 'Kotlin exact duplicate import was not detected.'
     }
+    $badAnimation = 'import androidx.compose.animation.animateColorAsState' + [Environment]::NewLine +
+        'val background by animateColorAsState(targetValue = Color.White)'
+    if (Test-ComposeAnimatedDelegate $badAnimation) {
+        throw 'Missing Compose runtime.getValue import was not detected.'
+    }
+    if (-not (Test-ComposeAnimatedDelegate (
+        'import androidx.compose.runtime.getValue' + [Environment]::NewLine + $badAnimation))) {
+        throw 'Correctly imported animated delegate was rejected.'
+    }
+    if (-not (Test-ComposeAnimatedDelegate 'val background = animateColorAsState(targetValue = Color.White).value')) {
+        throw 'Non-delegated Compose State incorrectly requires getValue.'
+    }
+    Write-Host 'PASS: Compose animation delegates require runtime.getValue when using by.'
     Write-Host 'PASS: Kotlin import checker distinguishes case and detects genuine duplicates.'
     exit 0
 }
@@ -76,6 +100,10 @@ foreach ($file in $files) {
     # compiles only when its foundation.layout import is in the same file.
     # Check every Kotlin file, not just the three positions from the 6H1 log.
     $source = [System.IO.File]::ReadAllText($file.FullName)
+    if (-not (Test-ComposeAnimatedDelegate $source)) {
+        $issues.Add(('Missing androidx.compose.runtime.getValue for animated State delegate in {0}' -f
+            $file.FullName.Substring($root.Length + 1)))
+    }
     if ($source -match '\.\s*fillMaxSize\s*\(' -and
         -not ($imports -ccontains 'androidx.compose.foundation.layout.fillMaxSize') -and
         -not ($imports -ccontains 'androidx.compose.foundation.layout.*')) {
