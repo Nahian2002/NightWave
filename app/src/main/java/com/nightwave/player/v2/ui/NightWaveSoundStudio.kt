@@ -49,6 +49,7 @@ import com.nightwave.player.playback.EqualizerCapabilities
 import com.nightwave.player.playback.EqualizerStatusStore
 import com.nightwave.player.playback.PlaybackService
 import com.nightwave.player.playback.SoundStudioPolicy
+import com.nightwave.player.playback.SoundStudioTuningPolicy
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.UUID
@@ -71,6 +72,7 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
     var pendingCommand by remember { mutableStateOf<String?>(null) }
     var notice by remember { mutableStateOf("") }
     var draftLevels by remember { mutableStateOf(emptyList<Int>()) }
+    var selectedShape by remember { mutableStateOf<SoundStudioTuningPolicy.Shape?>(null) }
 
     fun applySnapshot(resetDraft: Boolean) {
         val latest = capabilityStore.read()
@@ -85,6 +87,7 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                 )) latest.levelsMb else SoundStudioPolicy.flatLevels(
                     latest.centersHz.size, allowed.first, allowed.last
                 )
+            selectedShape = null
         }
         capabilities = latest
         status = statusStore.read()
@@ -184,6 +187,10 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
             draftLevels, capabilities.centersHz.size,
             manualRange.first, manualRange.last)
     val busy = loading || pendingCommand != null
+    val draftEdited = capabilities.sessionReady &&
+        SoundStudioTuningPolicy.hasChanged(draftLevels, capabilities.levelsMb)
+    val tuningStatus = SoundStudioTuningPolicy.statusLabel(
+        status.active, status.selected, draftEdited)
 
     Dialog(onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)) {
@@ -241,6 +248,9 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                                         strokeWidth = 2.dp)
                                 }
                                 Text(status.message, style = MaterialTheme.typography.bodyMedium)
+                                Text(tuningStatus, style = MaterialTheme.typography.labelMedium,
+                                    color = if (draftEdited) primary else muted,
+                                    fontWeight = FontWeight.SemiBold)
                                 Text(
                                     if (capabilities.sessionReady)
                                         "${capabilities.centersHz.size} bands · " +
@@ -353,8 +363,46 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                                         draftLevels = SoundStudioPolicy.flatLevels(
                                             capabilities.centersHz.size,
                                             range.first, range.last)
+                                        selectedShape = SoundStudioTuningPolicy.Shape.FLAT
                                     }
                                 }) { Text("Reset flat") }
+                        }
+                    }
+
+                    item(key = "nw49-guided-eq") {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("Guided tuning",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold)
+                            Text("Select a real device-band curve, then apply it to hear the change.",
+                                style = MaterialTheme.typography.bodySmall, color = muted)
+                            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                                horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                                SoundStudioTuningPolicy.Shape.entries.forEach { shape ->
+                                    FilterChip(
+                                        selected = selectedShape == shape,
+                                        enabled = !busy && capabilities.sessionReady &&
+                                            manualRange != null &&
+                                            capabilities.centersHz.isNotEmpty(),
+                                        onClick = {
+                                            val updated = SoundStudioTuningPolicy.draft(
+                                                shape, capabilities.centersHz,
+                                                capabilities.minimumMb, capabilities.maximumMb)
+                                            if (updated != null) {
+                                                draftLevels = updated
+                                                selectedShape = shape
+                                            } else notice = "This audio device cannot use that tuning."
+                                        },
+                                        label = { Text(SoundStudioTuningPolicy.label(shape)) }
+                                    )
+                                }
+                            }
+                            selectedShape?.let { shape ->
+                                Text(SoundStudioTuningPolicy.hint(shape),
+                                    style = MaterialTheme.typography.labelSmall, color = muted)
+                            }
+                            if (draftEdited) Text("Preview only · Apply manual EQ to hear changes.",
+                                style = MaterialTheme.typography.labelSmall, color = primary)
                         }
                     }
 
@@ -389,6 +437,7 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                                                     draftLevels, index, value.toInt(),
                                                     manualRange.first,
                                                     manualRange.last)
+                                                selectedShape = null
                                             },
                                             valueRange = (
                                                 manualRange.first.toFloat()..
