@@ -24,6 +24,20 @@ sealed interface LibraryChange {
     data class AddToPlaylist(val name: String, val song: VideoPreview) : LibraryChange
     data class ImportSharedPlaylist(val name: String, val tracks: List<VideoPreview>) : LibraryChange
     data class RemoveFromPlaylist(val name: String, val url: String) : LibraryChange
+    /** Exact playlist snapshot guards prevent stale UI actions from overwriting newer edits. */
+    data class BulkRemoveFromPlaylist(
+        val name: String, val urls: List<String>, val expectedUrls: List<String>
+    ) : LibraryChange
+    data class BulkAddToPlaylist(
+        val name: String, val tracks: List<VideoPreview>, val expectedUrls: List<String>
+    ) : LibraryChange
+    data class ReorderPlaylist(
+        val name: String, val expectedUrls: List<String>, val orderedUrls: List<String>
+    ) : LibraryChange
+    /** One-level Undo: only the precisely matching post-edit playlist is restored. */
+    data class RestorePlaylistIfUnchanged(
+        val name: String, val expected: List<VideoPreview>, val restore: List<VideoPreview>
+    ) : LibraryChange
 }
 
 /** 'accepted' reports command success; 'added' is for toggleFavorite semantics. */
@@ -138,6 +152,65 @@ object LibraryMutationPlan {
                     old.names().none { it.equals(candidate, ignoreCase = true) }
                 } ?: return rejected()
                 accepted(old.copy(playlists = old.playlists + (chosen to clean)))
+            }
+
+            is LibraryChange.BulkRemoveFromPlaylist -> {
+                if (operation.name !in old.names() ||
+                    operation.urls.size !in 1..20 ||
+                    operation.urls.distinct().size != operation.urls.size) return rejected()
+                val tracks = old.songs(operation.name)
+                if (tracks.map { it.url } != operation.expectedUrls) return rejected()
+                val selected = operation.urls.map { VideoLink.normalize(it) ?: return rejected() }
+                if (selected.toSet().size != selected.size ||
+                    tracks.none { it.url in selected } || !selected.all { url ->
+                        tracks.any { it.url == url }
+                    }) return rejected()
+                accepted(old.copy(playlists = old.playlists.map { (name, songs) ->
+                    name to if (name == operation.name)
+                        songs.filterNot { it.url in selected } else songs
+                }))
+            }
+            is LibraryChange.BulkAddToPlaylist -> {
+                if (operation.name !in old.names() ||
+                    operation.tracks.size !in 1..20) return rejected()
+                val tracks = old.songs(operation.name)
+                if (tracks.map { it.url } != operation.expectedUrls) return rejected()
+                // Normalize every input first: one unsafe entry cancels the whole batch.
+                val proposed = operation.tracks.map { video(it) ?: return rejected() }
+                if (proposed.map { it.url }.toSet().size != proposed.size) return rejected()
+                val existing = tracks.map { it.url }.toSet()
+                val additions = proposed.filterNot { it.url in existing }
+                if (additions.isEmpty() || tracks.size + additions.size > 300) return rejected()
+                accepted(old.copy(playlists = old.playlists.map { (name, songs) ->
+                    name to if (name == operation.name) songs + additions else songs
+                }))
+            }
+            is LibraryChange.ReorderPlaylist -> {
+                if (operation.name !in old.names()) return rejected()
+                val tracks = old.songs(operation.name)
+                val current = tracks.map { it.url }
+                if (current.size < 2 || current != operation.expectedUrls ||
+                    operation.orderedUrls.size != current.size ||
+                    operation.orderedUrls.toSet().size != current.size ||
+                    operation.orderedUrls.toSet() != current.toSet() ||
+                    operation.orderedUrls == current) return rejected()
+                val byUrl = tracks.associateBy { it.url }
+                val reordered = operation.orderedUrls.map { byUrl[it] ?: return rejected() }
+                accepted(old.copy(playlists = old.playlists.map { (name, songs) ->
+                    name to if (name == operation.name) reordered else songs
+                }))
+            }
+            is LibraryChange.RestorePlaylistIfUnchanged -> {
+                if (operation.name !in old.names() ||
+                    old.songs(operation.name) != operation.expected ||
+                    operation.restore.size > 300 ||
+                    operation.restore.map { it.url }.toSet().size != operation.restore.size ||
+                    operation.restore == operation.expected) return rejected()
+                val restored = operation.restore.map { video(it) ?: return rejected() }
+                if (restored != operation.restore) return rejected() // Preserve exact original metadata.
+                accepted(old.copy(playlists = old.playlists.map { (name, songs) ->
+                    name to if (name == operation.name) restored else songs
+                }))
             }
             is LibraryChange.RemoveFromPlaylist -> {
                 if (operation.name !in old.names()) return rejected()
