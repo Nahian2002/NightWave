@@ -99,7 +99,7 @@ class CatalogDownloadWorker(
             else if (error is IOException && runAttemptCount < 2) Result.retry()
             else failed(
                 if (error is IOException) "Network transfer failed; retry from the catalog"
-                else "Download rejected; check file and license or choose another result"
+                else DownloadRecoveryPolicy.failedMessage(error.message)
             )
         } finally {
             currentDownload = null
