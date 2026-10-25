@@ -1,5 +1,7 @@
 package com.nightwave.player.v2.ui
 
+import android.view.HapticFeedbackConstants
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
@@ -91,6 +93,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
@@ -147,6 +150,7 @@ fun StudioMiniPlayer(
         state.offline, state.playing, state.buffering, state.resolving, state.error)
     val identity = MusicIdentity.display(state.title, state.artist)
     val reducedMotion = LocalNightWaveReduceMotion.current
+    val hapticView = LocalView.current
     val miniScale by animateFloatAsState(
         targetValue = NightWaveMotionPolicy.artworkScale(state.playing, reducedMotion),
         animationSpec = if (reducedMotion) snap() else spring(
@@ -210,16 +214,28 @@ fun StudioMiniPlayer(
                 Row(
                     modifier = Modifier.weight(1f).fillMaxHeight()
                         .clip(RoundedCornerShape(10.dp))
-                        .clickable(onClick = onExpand),
+                        .clickable {
+                            if (!reducedMotion)
+                                hapticView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                            onExpand()
+                        },
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(9.dp)
                 ) {
-                    CoverArt(state.thumbnail, Modifier.size(
-                        if (fontScale >= 1.3f) 44.dp else 40.dp)
-                        .graphicsLayer {
-                            scaleX = miniScale
-                            scaleY = miniScale
-                        }, 11)
+                    Crossfade(
+                        targetState = state.thumbnail,
+                        animationSpec = tween(
+                            durationMillis = NightWaveMotionPolicy.duration(
+                                reducedMotion, NightWaveMotionPolicy.COVER_MS)),
+                        label = "Mini player changing cover"
+                    ) { thumbnail ->
+                        CoverArt(thumbnail, Modifier.size(
+                            if (fontScale >= 1.3f) 44.dp else 40.dp)
+                            .graphicsLayer {
+                                scaleX = miniScale
+                                scaleY = miniScale
+                            }, 11)
+                    }
                     Column(Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(if (state.title.isBlank()) "Restoring your last track…"
@@ -240,13 +256,21 @@ fun StudioMiniPlayer(
                         )
                     }
                 }
-                IconButton(onClick = actions::playPause, modifier = Modifier.size(48.dp)) {
+                IconButton(onClick = {
+                    if (!reducedMotion)
+                        hapticView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                    actions.playPause()
+                }, modifier = Modifier.size(48.dp)) {
                     Icon(if (state.playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
                         contentDescription = if (state.playing) "Pause playback" else "Resume playback",
                         tint = colors.onSurface)
                 }
                 if (showNext) {
-                    IconButton(onClick = actions::next, modifier = Modifier.size(48.dp),
+                    IconButton(onClick = {
+                        if (!reducedMotion)
+                            hapticView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                        actions.next()
+                    }, modifier = Modifier.size(48.dp),
                         enabled = state.connected && !state.buffering) {
                         Icon(Icons.Outlined.SkipNext, contentDescription = "Next track",
                             tint = colors.onSurface)
@@ -254,7 +278,11 @@ fun StudioMiniPlayer(
                 }
                 // Only updates the host's compactHidden UI flag. This MUST NOT
                 // invoke pause/stop/service intents or clear Media3's queue.
-                IconButton(onClick = onHide, modifier = Modifier.size(48.dp)) {
+                IconButton(onClick = {
+                    if (!reducedMotion)
+                        hapticView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                    onHide()
+                }, modifier = Modifier.size(48.dp)) {
                     Icon(Icons.Outlined.Close,
                         contentDescription = "Hide mini-player; music keeps playing",
                         tint = colors.onSurfaceVariant,
@@ -337,8 +365,20 @@ fun StudioNowPlayingOverlay(
     onEditLyrics: () -> Unit = {},
     onRemoveLyrics: () -> Unit = {}
 ) {
-    val enter = if (reduceMotion) EnterTransition.None else slideInVertically(initialOffsetY = { it }) + fadeIn()
-    val exit = if (reduceMotion) ExitTransition.None else slideOutVertically(targetOffsetY = { it }) + fadeOut()
+    // No full-height fly-in: short translated motion and alpha make the
+    // player feel attached to the mini player instead of sliding across a screen.
+    val enter = if (reduceMotion) EnterTransition.None else
+        slideInVertically(
+            animationSpec = tween(durationMillis = NightWaveMotionPolicy.PLAYER_ENTER_MS),
+            initialOffsetY = NightWaveMotionPolicy::playerEntryOffsetPx
+        ) + fadeIn(animationSpec = tween(
+            durationMillis = NightWaveMotionPolicy.PLAYER_ENTER_MS))
+    val exit = if (reduceMotion) ExitTransition.None else
+        slideOutVertically(
+            animationSpec = tween(durationMillis = NightWaveMotionPolicy.PLAYER_EXIT_MS),
+            targetOffsetY = NightWaveMotionPolicy::playerExitOffsetPx
+        ) + fadeOut(animationSpec = tween(
+            durationMillis = NightWaveMotionPolicy.PLAYER_EXIT_MS))
     AnimatedVisibility(visible = expanded, enter = enter, exit = exit) {
         val colors = MaterialTheme.colorScheme
         BoxWithConstraints(Modifier.fillMaxSize()
@@ -654,7 +694,9 @@ fun StudioNowPlayingOverlay(
                 ) {
                     Crossfade(
                         targetState = state.thumbnail,
-                        animationSpec = tween(durationMillis = if (reduceMotion) 0 else 180),
+                        animationSpec = tween(
+                            durationMillis = NightWaveMotionPolicy.duration(
+                                reduceMotion, NightWaveMotionPolicy.COVER_MS)),
                         label = "Player artwork"
                     ) { thumbnail ->
                         CoverArt(thumbnail, Modifier.fillMaxSize(),
@@ -1297,7 +1339,8 @@ private fun SwipeUpcomingRow(
     var travel by remember(title, number) { mutableStateOf(0f) }
     val animatedTravel by animateFloatAsState(
         targetValue = travel,
-        animationSpec = tween(durationMillis = if (reduceMotion) 0 else 130),
+        animationSpec = tween(durationMillis = NightWaveMotionPolicy.duration(
+            reduceMotion, NightWaveMotionPolicy.FEEDBACK_MS)),
         label = "Upcoming track swipe"
     )
     Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp))) {
