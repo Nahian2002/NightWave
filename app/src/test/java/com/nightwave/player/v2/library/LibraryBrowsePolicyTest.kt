@@ -61,7 +61,7 @@ class LibraryBrowsePolicyTest {
 
     @Test fun optionalPlaylistSearchFindsSongsWithoutChangingPlaylistName() {
         val night = LibraryPlaylistPreview("Evening", listOf(
-            video("ভালোবাসা", "Bangla Creator", "abc12345678"),
+            video("ভালোবাসা", "বাংলা শিল্পী", "abc12345678"),
             video("Café Nights", "French Creator", "abc12345679")))
         val empty = playlist("Travel")
         assertTrue(LibraryBrowsePolicy.playlists(
