@@ -1814,7 +1814,8 @@ class NightWaveStudioActivity : ComponentActivity() {
         val offlineReady = SearchTrackOfflineIndex.readySong(this, video.url) != null
         AlertDialog.Builder(this).setTitle(video.title)
             .setItems(arrayOf(likeText, "Save to playlist", "Add to queue",
-                "Play now", if (offlineReady) "Play saved offline" else "Save offline")) { _, selected ->
+                "Play now", if (offlineReady) "Play saved offline" else "Save offline",
+                "Share song link")) { _, selected ->
                 when (selected) {
                     0 -> { library.toggleFavorite(video); refresh() }
                     1 -> saveSongToPlaylist(video)
@@ -1823,6 +1824,20 @@ class NightWaveStudioActivity : ComponentActivity() {
                     4 -> if (offlineReady) {
                         if (!playSavedFromSearch(video)) openOfflineSaving(video)
                     } else openOfflineSaving(video)
+                    5 -> {
+                        val publicUrl = VideoLink.normalize(video.url)
+                        if (publicUrl == null) {
+                            showMessage("This track has no shareable public link.")
+                        } else {
+                            runCatching {
+                                val send = Intent(Intent.ACTION_SEND).apply {
+                                    type = "text/plain"
+                                    putExtra(Intent.EXTRA_TEXT, publicUrl)
+                                }
+                                startActivity(Intent.createChooser(send, "Share song"))
+                            }.onFailure { showMessage("Sharing is unavailable on this device.") }
+                        }
+                    }
                 }
             }.setNegativeButton("Close", null).show()
     }
@@ -2460,6 +2475,12 @@ private fun StudioRoot(
     // The pager is the single source of truth for swipes, tabs and Back.
     // Pager state survives rotation and process recreation through Compose Saver.
     val studioContext = androidx.compose.ui.platform.LocalContext.current
+    // Explicit search history stays on device, outside music and cloud backup.
+    val searchHistoryStore = remember(studioContext) { SearchHistoryStore(studioContext) }
+    var searchHistory by remember { mutableStateOf(searchHistoryStore.read()) }
+    var removedSearchSnapshot by remember {
+        mutableStateOf<Pair<List<String>, List<String>>?>(null)
+    }
     val pagerState = rememberPagerState(initialPage = StudioTab.HOME.ordinal) {
         StudioTab.entries.size
     }
@@ -2647,7 +2668,38 @@ private fun StudioRoot(
                                 OfflineAudioLibrary(studioContext).songs().take(400)
                             }.getOrDefault(emptyList())
                         },
-                        onOfflineSearch = onOfflineSearch
+                        onOfflineSearch = onOfflineSearch,
+                        searchHistory = searchHistory,
+                        canUndoSearchRemoval = removedSearchSnapshot != null,
+                        onRecordSearch = { entered ->
+                            searchHistory = searchHistoryStore.record(entered)
+                            removedSearchSnapshot = null
+                        },
+                        onRemoveSearch = { entered ->
+                            val before = searchHistoryStore.read()
+                            val after = searchHistoryStore.remove(entered)
+                            searchHistory = after
+                            removedSearchSnapshot = if (after != before) before to after else null
+                        },
+                        onUndoSearchRemoval = {
+                            removedSearchSnapshot?.let { (before, after) ->
+                                searchHistory = searchHistoryStore.restoreIfUnchanged(after, before)
+                            }
+                            removedSearchSnapshot = null
+                        },
+                        onClearSearch = {
+                            if (searchHistory.isNotEmpty()) {
+                                AlertDialog.Builder(studioContext)
+                                    .setTitle("Clear recent searches?")
+                                    .setMessage("Only searches on this device are removed. " +
+                                        "Your songs, playlists and downloads stay untouched.")
+                                    .setNegativeButton("Keep", null)
+                                    .setPositiveButton("Clear searches") { _, _ ->
+                                        searchHistory = searchHistoryStore.clear()
+                                        removedSearchSnapshot = null
+                                    }.show()
+                            }
+                        }
                     )
                     StudioTab.LIBRARY -> StudioLibrary(
                         modifier = Modifier, favorites = favorites, recent = recent,
@@ -2971,7 +3023,13 @@ private fun StudioSearch(
     playingUrl: String,
     savedTracks: List<VideoPreview>,
     offlineSongs: List<OfflineSong>,
-    onOfflineSearch: (String) -> Unit
+    onOfflineSearch: (String) -> Unit,
+    searchHistory: List<String>,
+    canUndoSearchRemoval: Boolean,
+    onRecordSearch: (String) -> Unit,
+    onRemoveSearch: (String) -> Unit,
+    onUndoSearchRemoval: () -> Unit,
+    onClearSearch: () -> Unit
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var mode by rememberSaveable { mutableStateOf(SearchMode.SONGS) }
@@ -2986,7 +3044,13 @@ private fun StudioSearch(
     }
     // Search on the keyboard stays inside NightWave. YouTube stays an
     // explicit alternative when public provider results are unavailable.
-    val submit = { if (query.isNotBlank()) onNativeSearch(query.trim(), mode) }
+    val submit = {
+        val entered = query.trim()
+        if (entered.isNotBlank()) {
+            onRecordSearch(entered)
+            onNativeSearch(entered, mode)
+        }
+    }
     val savedMatches = remember(query, savedTracks) {
         SavedTrackSearch.match(query, savedTracks)
     }
@@ -3087,7 +3151,7 @@ private fun StudioSearch(
                     OutlinedButton(onClick = {
                         selectedCreator = null
                         showAllCreators = false
-                    }, modifier = Modifier.height(44.dp)) {
+                    }, modifier = Modifier.heightIn(min = 48.dp)) {
                         Text("Back to discovery")
                     }
                     SectionHeading(selectedCreatorGroup.name,
@@ -3104,8 +3168,9 @@ private fun StudioSearch(
                     }
                     OutlinedButton(onClick = {
                         mode = SearchMode.SONGS
+                        onRecordSearch(selectedCreatorGroup.name)
                         onPrimarySearch(selectedCreatorGroup.name, SearchMode.SONGS)
-                    }, modifier = Modifier.fillMaxWidth().height(44.dp)) {
+                    }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
                         Text("Search this creator on YouTube")
                     }
                 }
@@ -3131,7 +3196,10 @@ private fun StudioSearch(
                             maxLines = 1)
                     }
                     OutlinedButton(
-                        onClick = { onPrimarySearch(query.trim(), mode) },
+                        onClick = {
+                            onRecordSearch(query.trim())
+                            onPrimarySearch(query.trim(), mode)
+                        },
                         modifier = Modifier.weight(1f).height(49.dp),
                         shape = RoundedCornerShape(15.dp)
                     ) { Text("YouTube") }
@@ -3143,6 +3211,58 @@ private fun StudioSearch(
             }
         }
         if (query.isBlank() && !searching) {
+            if (searchHistory.isNotEmpty()) {
+                item(key = "search-history-heading") {
+                    Row(Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Recent searches", style = MaterialTheme.typography.titleSmall)
+                        TextButton(onClick = onClearSearch,
+                            modifier = Modifier.heightIn(min = 48.dp)) {
+                            Text("Clear all")
+                        }
+                    }
+                }
+                items(searchHistory, key = { "search-history:" + it.lowercase(java.util.Locale.ROOT) }) { previous ->
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Surface(
+                            onClick = {
+                                query = previous
+                                mode = SearchMode.SONGS
+                                selectedCreator = null
+                                onRecordSearch(previous)
+                                onNativeSearch(previous, SearchMode.SONGS)
+                            },
+                            modifier = Modifier.weight(1f).heightIn(min = 48.dp),
+                            shape = RoundedCornerShape(13.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant
+                        ) {
+                            Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                Icon(Icons.Outlined.Search, contentDescription = null,
+                                    modifier = Modifier.size(18.dp))
+                                Text(previous, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                    style = MaterialTheme.typography.bodyMedium)
+                            }
+                        }
+                        IconButton(onClick = { onRemoveSearch(previous) },
+                            modifier = Modifier.size(48.dp)) {
+                            Icon(Icons.Outlined.Close,
+                                contentDescription = "Remove " + previous + " from search history")
+                        }
+                    }
+                }
+            }
+            if (canUndoSearchRemoval) {
+                item(key = "search-history-undo") {
+                    TextButton(onClick = onUndoSearchRemoval,
+                        modifier = Modifier.heightIn(min = 48.dp)) {
+                        Text("Undo last search-history removal")
+                    }
+                }
+            }
             item(key = "search-offline-quick-access") {
                 OutlinedButton(onClick = { onOfflineSearch("") },
                     modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
@@ -3163,6 +3283,7 @@ private fun StudioSearch(
                                     onClick = {
                                         mode = SearchMode.SONGS
                                         query = shortcut.query
+                                        onRecordSearch(shortcut.query)
                                         onPrimarySearch(shortcut.query, SearchMode.SONGS)
                                     },
                                     label = { Text(shortcut.title, maxLines = 1) },
@@ -3201,7 +3322,7 @@ private fun StudioSearch(
                 item(key = "all-saved-creators-toggle") {
                     OutlinedButton(
                         onClick = { showAllCreators = !showAllCreators },
-                        modifier = Modifier.fillMaxWidth().height(44.dp),
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
                         shape = RoundedCornerShape(14.dp)
                     ) {
                         Text(if (showAllCreators) "Hide saved creators"
@@ -3258,7 +3379,7 @@ private fun StudioSearch(
         if (query.isNotBlank()) {
             item {
                 OutlinedButton(onClick = { quickOptionsExpanded = !quickOptionsExpanded },
-                    modifier = Modifier.fillMaxWidth().height(44.dp)) {
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
                     Text(if (quickOptionsExpanded) "Hide advanced search"
                         else "More search options")
                 }
