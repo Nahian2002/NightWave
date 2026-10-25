@@ -85,8 +85,8 @@ fun NightWaveRecentShelfTile(
     onRemove: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
-    val identity = remember(song.title, song.artist) {
-        MusicIdentity.display(song.title, song.artist)
+    val identity = remember(song.title, song.author) {
+        MusicIdentity.display(song.title, song.author)
     }
     val preferred = remember(song.thumbnail) {
         NightWaveArtworkPolicy.preferredArtwork(song.thumbnail)
