@@ -36,6 +36,13 @@ function Test-ComposeAnimatedDelegate([string]$Body) {
         $Body.Contains('import androidx.compose.runtime.*'))
 }
 
+function Test-QualifiedFilterEnum([string]$Body, [string]$PolicyType) {
+    # A singleton value's p.Filter is not a Kotlin nested type path.
+    # Always reference PolicyType.Filter, regardless of a local val p.
+    return (-not $Body.Contains('p.Filter.') -and
+        $Body.Contains(($PolicyType + '.Filter.')))
+}
+
 if ($SelfTest) {
     if (-not (Test-NightWaveGreeting '"Welcome, " + firstName + "good"')) {
         throw 'Valid Home greeting concatenation was rejected.'
@@ -68,6 +75,13 @@ if ($SelfTest) {
     if (-not (Test-ComposeAnimatedDelegate 'val background = animateColorAsState(targetValue = Color.White).value')) {
         throw 'Non-delegated Compose State incorrectly requires getValue.'
     }
+    if (-not (Test-QualifiedFilterEnum 'DownloadCenterViewPolicy.Filter.READY' 'DownloadCenterViewPolicy')) {
+        throw 'Properly qualified nested policy Filter enum was rejected.'
+    }
+    if (Test-QualifiedFilterEnum 'p.Filter.READY' 'DownloadCenterViewPolicy') {
+        throw 'Invalid Kotlin p.Filter nested enum reference was accepted.'
+    }
+    Write-Host 'PASS: Filter enum references use the declaring Kotlin object type.'
     Write-Host 'PASS: Compose animation delegates require runtime.getValue when using by.'
     Write-Host 'PASS: Kotlin import checker distinguishes case and detects genuine duplicates.'
     exit 0
@@ -150,6 +164,25 @@ if ((Test-Path -LiteralPath $smartPath -PathType Leaf) -and
     }
     if (-not $smartSource.Contains('it.durationSeconds >= 240L')) {
         $issues.Add('Smart Library long-listen durationSeconds boundary check is missing.')
+    }
+}
+
+# NW52 2026-10-25 Gradle compileDebugUnitTestKotlin errors:
+# Nested enums must be accessed via their declaring object type. In Kotlin,
+# 'val p = DownloadCenterViewPolicy; p.Filter.READY' does NOT resolve.
+foreach ($tuple in @(
+    @('DownloadCenterViewPolicyTest.kt', 'DownloadCenterViewPolicy'),
+    @('OfflineLibraryViewPolicyTest.kt', 'OfflineLibraryViewPolicy')
+)) {
+    $testPath = Join-Path $sourceRoot ('test\\java\\com\\nightwave\\player\\offline\\' + $tuple[0])
+    if (-not (Test-Path -LiteralPath $testPath -PathType Leaf)) {
+        $issues.Add(('Missing NW48 Kotlin unit test: ' + $tuple[0]))
+        continue
+    }
+    $testSource = [System.IO.File]::ReadAllText($testPath)
+    if (-not (Test-QualifiedFilterEnum $testSource $tuple[1])) {
+        $issues.Add(('Invalid enum qualification in ' + $tuple[0] +
+            ': replace p.Filter with ' + $tuple[1] + '.Filter'))
     }
 }
 
