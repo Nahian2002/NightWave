@@ -386,7 +386,8 @@ fun StudioNowPlayingOverlay(
     // through the player at the start/end of the NW50 transition. Keep a
     // solid, non-animated backdrop for the entire transition lifetime.
     // The backdrop goes away only when the closing animation is complete.
-    if (expanded || overlayVisibility.currentState || overlayVisibility.targetState) {
+    if (NightWavePlayerOverlayPolicy.retainBackdrop(
+            expanded, overlayVisibility.currentState, overlayVisibility.targetState)) {
         Box(Modifier.fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .testTag("nw58-opaque-player-backdrop"))
