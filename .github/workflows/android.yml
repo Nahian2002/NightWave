@@ -53,6 +53,7 @@ on:
       - feature/nightwave-nw37-search-and-song-actions
       - feature/nightwave-nw38-library-pins-storage
       - feature/nightwave-nw39-atomic-playlist-edits
+      - feature/nightwave-nw40-stability-integration
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
@@ -137,6 +138,8 @@ jobs:
       - name: Source integrity, build recovery and official-first search checks
         run: |
           python3 tools/verify_source.py
+          python3 tools/verify_nw40_stability.py --self-test
+          python3 tools/verify_nw40_stability.py
           python3 tools/verify_nw01_recovery.py
           python3 tools/verify_nw02_sound_studio.py
           python3 tools/verify_nw03_account_hub.py
