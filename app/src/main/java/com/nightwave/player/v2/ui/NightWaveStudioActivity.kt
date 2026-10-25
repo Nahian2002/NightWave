@@ -872,6 +872,9 @@ class NightWaveStudioActivity : ComponentActivity() {
                     isFavorite = { url -> library.isFavorite(url) },
                     onToggleFavorite = { video -> library.toggleFavorite(video); refresh() },
                     onSongOptions = { video -> showSongOptions(video) },
+                    onPlaylistSongOptions = { name, video ->
+                        showPlaylistSongOptions(name, video)
+                    },
                     onRemoveRecent = { video -> confirmRemoveRecent(video) },
                     onClearRecent = { confirmClearRecent() },
                     onSharePlaylist = { name, tracks -> sharePlaylist(name, tracks) },
@@ -1824,6 +1827,33 @@ class NightWaveStudioActivity : ComponentActivity() {
             }.setNegativeButton("Close", null).show()
     }
 
+    private fun showPlaylistSongOptions(name: String, song: VideoPreview) {
+        if (name !in library.playlistNames() ||
+            library.playlist(name).none { it.url == song.url }) {
+            showSongOptions(song)
+            return
+        }
+        AlertDialog.Builder(this).setTitle(song.title.take(110))
+            .setItems(arrayOf("Play now", "More song actions", "Remove from this playlist")) {
+                    _, selected ->
+                when (selected) {
+                    0 -> playSearchedOfflineFirst(song, library.playlist(name))
+                    1 -> showSongOptions(song)
+                    2 -> AlertDialog.Builder(this)
+                        .setTitle("Remove from ${name.take(55)}?")
+                        .setMessage("Remove this entry from the playlist only? " +
+                            "Liked songs, listening history and offline audio remain saved.")
+                        .setNegativeButton("Keep", null)
+                        .setPositiveButton("Remove") { _, _ ->
+                            if (library.removeFromPlaylist(name, song.url)) {
+                                refresh()
+                                showMessage("Removed from $name. Other music is unchanged.")
+                            } else showMessage("Playlist is unchanged. Try again.")
+                        }.show()
+                }
+            }.setNegativeButton("Close", null).show()
+    }
+
     private fun promptPlaylistName(initial: String = "", onSave: (String) -> Unit) {
         val name = EditText(this).apply {
             setSingleLine(true)
@@ -2404,6 +2434,7 @@ private fun StudioRoot(
     onSongOptions: (VideoPreview) -> Unit,
     onRemoveRecent: (VideoPreview) -> Unit,
     onClearRecent: () -> Unit,
+    onPlaylistSongOptions: (String, VideoPreview) -> Unit,
     onSharePlaylist: (String, List<VideoPreview>) -> Unit,
     onImportSharedPlaylist: () -> Unit,
     onSaveCurrentToPlaylist: () -> Unit,
@@ -2627,6 +2658,7 @@ private fun StudioRoot(
                         getPlaylist = getPlaylist, onPlay = onPlay,
                         onQuickPlay = onLibraryQuickPlay,
                         onSongOptions = onSongOptions,
+                        onPlaylistSongOptions = onPlaylistSongOptions,
                         onSharePlaylist = onSharePlaylist,
                         onImportSharedPlaylist = onImportSharedPlaylist,
                         onManage = onLegacyPlayer,
@@ -3352,6 +3384,7 @@ private fun StudioLibrary(
     offlineResumeTitle: String?, offlineResumePositionMs: Long,
     onResumeOffline: () -> Unit,
     onSongOptions: (VideoPreview) -> Unit,
+    onPlaylistSongOptions: (String, VideoPreview) -> Unit,
     onSharePlaylist: (String, List<VideoPreview>) -> Unit,
     onImportSharedPlaylist: () -> Unit
 ) {
@@ -3718,7 +3751,13 @@ private fun StudioLibrary(
         } else items(visibleTracks, key = { it.url }) { song ->
             MusicTrackTile(song, isPlaying = playingUrl == song.url,
                 surface = NightWaveTrackSurface.LIBRARY,
-                onOptions = { onSongOptions(song) },
+                onOptions = {
+                    if (selectedPlaylist != null &&
+                        selectedPlaylist in names && selectedSmart == null &&
+                        selectedPlaylist != LIKED_COLLECTION) {
+                        onPlaylistSongOptions(selectedPlaylist, song)
+                    } else onSongOptions(song)
+                },
                 onClick = { onPlay(song, if (selectedPlaylist == null) tracks else orderedTracks) })
         }
         item {
