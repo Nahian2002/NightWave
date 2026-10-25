@@ -87,6 +87,22 @@ def audit(d):
             problems.append(f"{k}: missing regression declarations")
     if "CloudAuthorizationFailurePolicy.shortMessage(" not in flow:
         problems.append("OAuth errors must be concise and stage-specific")
+    # NW52: unlike sign-in status "(8)", Drive-check failures report HTTP
+    # status "HTTP 99". The prior mistaken "(99)" assertion blocked all
+    # 1,022 JVM tests despite compiling the main Android app successfully.
+    policy_test = d.get("policy_tests", "")
+    policy_source = d.get("diagnostics", "")
+    required_safe_assertions = (
+        'assertTrue(output.contains("HTTP 99"))',
+        'assertFalse(output.contains("authorization error"))',
+        'assertFalse(output.contains("Bearer"))',
+        'assertFalse(output.contains("Authorization:"))',
+        'assertFalse(output.contains("accessToken"))',
+    )
+    if ('else -> "Drive account verification failed (HTTP $code).' not in policy_source
+            or any(check not in policy_test for check in required_safe_assertions)
+            or 'assertTrue(output.contains("(99)"))' in policy_test):
+        problems.append("Drive HTTP diagnostic format / credential privacy test is out of sync")
     return problems
 
 def main():
@@ -98,12 +114,26 @@ def main():
         fake = {k: "\n".join(v) for k,v in NEEDS.items()}
         fake["report_tests"] = "@Test fun test() {}\n" * 2
         fake["backup_tests"] = "@Test fun test() {}\n" * 4
-        fake["policy_tests"] = "@Test fun test() {}\n" * 4
+        fake["policy_tests"] = ("@Test fun test() {}\n" * 4
+             + '\n'.join((
+                 'assertTrue(output.contains("HTTP 99"))',
+                 'assertFalse(output.contains("authorization error"))',
+                 'assertFalse(output.contains("Bearer"))',
+                 'assertFalse(output.contains("Authorization:"))',
+                 'assertFalse(output.contains("accessToken"))',
+             )))
+        fake["diagnostics"] += '\nelse -> "Drive account verification failed (HTTP $code).'
         fake["flow"] += "\nCloudAuthorizationFailurePolicy.shortMessage("
         assert not audit(fake), audit(fake)
         bad = dict(fake)
         bad["flow"] += "\ncloudStore.success(expectedAccount, System.currentTimeMillis())"
         assert audit(bad)
+        bad = dict(fake)
+        bad["policy_tests"] = bad["policy_tests"].replace(
+            'assertTrue(output.contains("HTTP 99"))',
+            'assertTrue(output.contains("(99)"))')
+        assert any("Drive HTTP diagnostic" in p for p in audit(bad)), audit(bad)
+        print("PASS: NW45 gate catches incorrect Drive HTTP status test expectation")
         print("PASS: NW45 gate catches non-atomic verified backup regression")
         return 0
     data = {}
