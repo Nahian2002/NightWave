@@ -189,6 +189,7 @@ import com.nightwave.player.v2.library.LibraryBrowsePolicy
 import com.nightwave.player.v2.library.LibraryQuickPlayPolicy
 import com.nightwave.player.v2.library.LibraryPlaylistPreview
 import com.nightwave.player.v2.library.PlaylistPinStore
+import com.nightwave.player.v2.library.LibraryBulkSelectionPolicy
 import com.nightwave.player.v2.library.PlaylistPinPolicy
 import com.nightwave.player.v2.library.PlaylistFolderStore
 import com.nightwave.player.v2.library.PlaylistFolderSnapshot
@@ -885,6 +886,30 @@ class NightWaveStudioActivity : ComponentActivity() {
                     onRemoveRecent = { video -> confirmRemoveRecent(video) },
                     onClearRecent = { confirmClearRecent() },
                     onSharePlaylist = { name, tracks -> sharePlaylist(name, tracks) },
+                    onBulkShareLinks = { songs, copyOnly ->
+                        val safe = songs.take(LibraryBulkSelectionPolicy.MAX_SELECTED)
+                            .mapNotNull { VideoLink.normalize(it.url) }.distinct()
+                        if (safe.isEmpty()) showMessage("No public song links selected.")
+                        else {
+                            val links = safe.joinToString("\n")
+                            if (copyOnly) {
+                                runCatching {
+                                    val clipboard = getSystemService(
+                                        android.content.Context.CLIPBOARD_SERVICE)
+                                        as android.content.ClipboardManager
+                                    clipboard.setPrimaryClip(android.content.ClipData.newPlainText(
+                                        "NightWave selected song links", links))
+                                }.onSuccess { showMessage("${safe.size} song links copied.") }
+                                    .onFailure { showMessage("Couldn't copy song links.") }
+                            } else runCatching {
+                                val share = Intent(Intent.ACTION_SEND).apply {
+                                    type = "text/plain"
+                                    putExtra(Intent.EXTRA_TEXT, links)
+                                }
+                                startActivity(Intent.createChooser(share, "Share selected songs"))
+                            }.onFailure { showMessage("Sharing is unavailable on this device.") }
+                        }
+                    },
                     onImportSharedPlaylist = { promptSharedPlaylistPaste() },
                     onSaveCurrentToPlaylist = { saveCurrentToPlaylist() },
                     onSaveCurrentOffline = { saveCurrentOffline() },
@@ -2489,6 +2514,7 @@ private fun StudioRoot(
     onClearRecent: () -> Unit,
     onPlaylistSongOptions: (String, VideoPreview) -> Unit,
     onSharePlaylist: (String, List<VideoPreview>) -> Unit,
+    onBulkShareLinks: (List<VideoPreview>, Boolean) -> Unit,
     onImportSharedPlaylist: () -> Unit,
     onSaveCurrentToPlaylist: () -> Unit,
     onSaveCurrentOffline: () -> Unit,
@@ -2754,6 +2780,7 @@ private fun StudioRoot(
                         onPlaylistSongOptions = onPlaylistSongOptions,
                         onRemoveRecent = onRemoveRecent, onClearRecent = onClearRecent,
                         onSharePlaylist = onSharePlaylist,
+                        onBulkShareLinks = onBulkShareLinks,
                         onImportSharedPlaylist = onImportSharedPlaylist,
                         onManage = onLegacyPlayer,
                         onCreatePlaylist = onCreatePlaylist,
@@ -3567,6 +3594,7 @@ private fun StudioLibrary(
     onRemoveRecent: (VideoPreview) -> Unit, onClearRecent: () -> Unit,
     onPlaylistSongOptions: (String, VideoPreview) -> Unit,
     onSharePlaylist: (String, List<VideoPreview>) -> Unit,
+    onBulkShareLinks: (List<VideoPreview>, Boolean) -> Unit,
     onImportSharedPlaylist: () -> Unit
 ) {
     // The library's name/order and song lists are read-only. Cache snapshots
@@ -3610,6 +3638,11 @@ private fun StudioLibrary(
         else LibraryBrowsePolicy.songs(tracks, localFilter, sortMode)
     }
     val visibleTracks = if (selectedPlaylist == null) tracks.take(5) else orderedTracks
+    val canSelectPlaylistTracks = selectedPlaylist != null && selectedPlaylist in names &&
+        selectedSmart == null
+    var selectingTracks by remember(selectedPlaylist) { mutableStateOf(false) }
+    var selectedTrackUrls by remember(selectedPlaylist) { mutableStateOf<Set<String>>(emptySet()) }
+    val selectedTracks = LibraryBulkSelectionPolicy.selected(orderedTracks, selectedTrackUrls)
     val quickPlayableTracks = remember(orderedTracks) {
         LibraryQuickPlayPolicy.plan(orderedTracks, shuffle = false, seed = 0L).songs
     }
@@ -3937,6 +3970,59 @@ private fun StudioLibrary(
                 }, if (selectedPlaylist == null) "Your latest five liked songs" else null)
         }
         if (selectedPlaylist != null && tracks.isNotEmpty()) {
+            if (canSelectPlaylistTracks) {
+                item(key = "playlist-bulk-mode") {
+                    Row(Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(
+                            onClick = {
+                                selectingTracks = !selectingTracks
+                                selectedTrackUrls = emptySet()
+                            },
+                            modifier = Modifier.weight(1f).heightIn(min = 48.dp)) {
+                            Text(if (selectingTracks) "Cancel selection" else "Select songs")
+                        }
+                        if (selectingTracks) {
+                            OutlinedButton(
+                                onClick = {
+                                    selectedTrackUrls = LibraryBulkSelectionPolicy
+                                        .selectVisible(orderedTracks)
+                                },
+                                modifier = Modifier.weight(1f).heightIn(min = 48.dp)) {
+                                Text("Select first " +
+                                    minOf(orderedTracks.size,
+                                        LibraryBulkSelectionPolicy.MAX_SELECTED))
+                            }
+                        }
+                    }
+                }
+                if (selectingTracks) {
+                    item(key = "playlist-bulk-actions") {
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text("${selectedTracks.size} of " +
+                                LibraryBulkSelectionPolicy.MAX_SELECTED +
+                                " selected · public song links only",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Row(Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                OutlinedButton(
+                                    onClick = { onBulkShareLinks(selectedTracks, true) },
+                                    enabled = selectedTracks.isNotEmpty(),
+                                    modifier = Modifier.weight(1f).heightIn(min = 48.dp)) {
+                                    Text("Copy links")
+                                }
+                                OutlinedButton(
+                                    onClick = { onBulkShareLinks(selectedTracks, false) },
+                                    enabled = selectedTracks.isNotEmpty(),
+                                    modifier = Modifier.weight(1f).heightIn(min = 48.dp)) {
+                                    Text("Share links")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             item {
                 OutlinedTextField(
                     value = localFilter, onValueChange = { localFilter = it.take(80) },
@@ -3987,18 +4073,42 @@ private fun StudioLibrary(
                 if (tracks.isEmpty()) onSearch() else localFilter = ""
             }
         } else items(visibleTracks, key = { it.url }) { song ->
-            MusicTrackTile(song, isPlaying = playingUrl == song.url,
-                surface = NightWaveTrackSurface.LIBRARY,
-                onOptions = {
-                    if (selectedPlaylist != null &&
-                        selectedPlaylist in names && selectedSmart == null &&
-                        selectedPlaylist != LIKED_COLLECTION) {
-                        onPlaylistSongOptions(selectedPlaylist, song)
-                    } else onSongOptions(song)
-                },
-                onRemove = if (selectedPlaylist == RECENT_COLLECTION)
-                    ({ onRemoveRecent(song) }) else null,
-                onClick = { onPlay(song, if (selectedPlaylist == null) tracks else orderedTracks) })
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                if (selectingTracks && canSelectPlaylistTracks) {
+                    androidx.compose.material3.Checkbox(
+                        checked = song.url in selectedTrackUrls,
+                        onCheckedChange = {
+                            selectedTrackUrls = LibraryBulkSelectionPolicy.toggle(
+                                selectedTrackUrls, song.url, orderedTracks)
+                        },
+                        modifier = Modifier.size(48.dp).semantics {
+                            contentDescription = "Select " + song.title
+                        })
+                }
+                Box(Modifier.weight(1f)) {
+                    MusicTrackTile(song, isPlaying = playingUrl == song.url,
+                        surface = NightWaveTrackSurface.LIBRARY,
+                        onOptions = {
+                            if (selectingTracks && canSelectPlaylistTracks) {
+                                selectedTrackUrls = LibraryBulkSelectionPolicy.toggle(
+                                    selectedTrackUrls, song.url, orderedTracks)
+                            } else if (selectedPlaylist != null &&
+                                selectedPlaylist in names && selectedSmart == null &&
+                                selectedPlaylist != LIKED_COLLECTION) {
+                                onPlaylistSongOptions(selectedPlaylist, song)
+                            } else onSongOptions(song)
+                        },
+                        onRemove = if (selectedPlaylist == RECENT_COLLECTION)
+                            ({ onRemoveRecent(song) }) else null,
+                        onClick = {
+                            if (selectingTracks && canSelectPlaylistTracks) {
+                                selectedTrackUrls = LibraryBulkSelectionPolicy.toggle(
+                                    selectedTrackUrls, song.url, orderedTracks)
+                            } else onPlay(song,
+                                if (selectedPlaylist == null) tracks else orderedTracks)
+                        })
+                }
+            }
         }
         if (selectedPlaylist == null || selectedPlaylist in names) item {
             OutlinedButton(onClick = onManage, modifier = Modifier.fillMaxWidth()) {
