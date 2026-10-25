@@ -44,6 +44,7 @@ import android.net.Uri
 import com.nightwave.player.v2.cloud.InstalledApkOAuthIdentity
 import com.nightwave.player.v2.cloud.CloudAuthorizationFailureStore
 import com.nightwave.player.v2.cloud.CloudAuthorizationFailurePolicy
+import com.nightwave.player.v2.cloud.CloudConnectionHelpPolicy
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -93,6 +94,9 @@ internal fun NightWaveAccountHubDialog(
     var oauthCopied by remember { mutableStateOf(false) }
     val lastGoogleFailure = remember(cloud.lastResult, appContext) {
         CloudAuthorizationFailureStore(appContext).read()
+    }
+    val connectionGuidance = remember(lastGoogleFailure) {
+        CloudConnectionHelpPolicy.guidance(lastGoogleFailure)
     }
 
     Dialog(onDismissRequest = onDismiss,
@@ -203,7 +207,8 @@ internal fun NightWaveAccountHubDialog(
                                     color = muted)
                                 Button(
                                     onClick = {
-                                        if (connected) confirmChangeAccount = true else onConnect()
+                                        if (connected) confirmChangeAccount = true
+                                        else openExternalFlow(onConnect)
                                     },
                                     modifier = Modifier.fillMaxWidth(),
                                     enabled = !busy
@@ -291,6 +296,25 @@ internal fun NightWaveAccountHubDialog(
                                             style = MaterialTheme.typography.labelSmall,
                                             color = muted)
                                     }
+                                    connectionGuidance?.let { guidance ->
+                                        Text(guidance.title,
+                                            style = MaterialTheme.typography.titleSmall,
+                                            fontWeight = FontWeight.SemiBold)
+                                        Text(guidance.detail,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = muted)
+                                        Text(guidance.nextStep,
+                                            style = MaterialTheme.typography.bodyMedium)
+                                        if (guidance.offerSingleRetry) {
+                                            OutlinedButton(
+                                                enabled = !busy,
+                                                modifier = Modifier.fillMaxWidth(),
+                                                onClick = { openExternalFlow(onConnect) }
+                                            ) {
+                                                Text("Retry Google connection")
+                                            }
+                                        }
+                                    }
                                     Text("Installed APK signing SHA-1",
                                         style = MaterialTheme.typography.labelLarge)
                                     Text(apkFingerprint?.chunked(29)?.joinToString("\n")
@@ -366,7 +390,7 @@ internal fun NightWaveAccountHubDialog(
             confirmButton = {
                 TextButton(onClick = {
                     confirmChangeAccount = false
-                    onConnect()
+                    openExternalFlow(onConnect)
                 }) { Text("Continue") }
             },
             dismissButton = {
