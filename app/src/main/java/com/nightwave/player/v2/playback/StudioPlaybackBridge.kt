@@ -88,6 +88,34 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
     private var released = false
     private var ticking = false
     private var ticksSinceReconcile = 0
+    // A rapid burst of Play Next / Add / Remove must not enqueue an
+    // unbounded list of identical UI refresh closures on the main Looper.
+    private val queueEntriesRefreshEarly = Runnable {
+        if (!released && ticking) refreshQueueEntriesOnly()
+    }
+    private val queueEntriesRefreshLate = Runnable {
+        if (!released && ticking) refreshQueueEntriesOnly()
+    }
+    private val queueFullRefreshEarly = Runnable {
+        if (!released && ticking) refreshQueue()
+    }
+    private val queueFullRefreshLate = Runnable {
+        if (!released && ticking) refreshQueue()
+    }
+    private fun cancelQueueUiRefreshes() {
+        main.removeCallbacks(queueEntriesRefreshEarly)
+        main.removeCallbacks(queueEntriesRefreshLate)
+        main.removeCallbacks(queueFullRefreshEarly)
+        main.removeCallbacks(queueFullRefreshLate)
+    }
+    private fun scheduleQueueEntriesRefresh() {
+        main.removeCallbacks(queueEntriesRefreshEarly)
+        main.removeCallbacks(queueEntriesRefreshLate)
+        if (!released && ticking) {
+            main.postDelayed(queueEntriesRefreshEarly, 220L)
+            main.postDelayed(queueEntriesRefreshLate, 780L)
+        }
+    }
     private data class PendingRepeat(val mode: PlaybackQueue.Repeat, val id: String, val expiresAt: Long)
     private var pendingRepeat: PendingRepeat? = null
     private data class PendingOfflineRepeat(val mode: PlaybackQueue.Repeat, val expiresAt: Long)
@@ -306,6 +334,7 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
         ticking = false
         main.removeCallbacks(ticker)
         main.removeCallbacks(oneShotReconnect)
+        cancelQueueUiRefreshes()
     }
 
     @MainThread
@@ -495,8 +524,7 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
             // Media3 item identity does not change when we only add a track.
             // Reconcile the persisted queue after the service handles the intent;
             // do not claim success before the single-writer service has saved it.
-            main.postDelayed({ if (!released) refreshQueueEntriesOnly() }, 220L)
-            main.postDelayed({ if (!released) refreshQueueEntriesOnly() }, 780L)
+            scheduleQueueEntriesRefresh()
         } catch (e: Exception) {
             state = state.copy(error = "Could not update the listening queue.")
         }
@@ -651,8 +679,12 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
     private fun scheduleQueueRefresh() {
         // The service receives asynchronous intents. Don't read the old
         // persisted snapshot in the same call stack before onStartCommand.
-        main.postDelayed({ if (!released) refreshQueue() }, 180L)
-        main.postDelayed({ if (!released) refreshQueue() }, 700L)
+        main.removeCallbacks(queueFullRefreshEarly)
+        main.removeCallbacks(queueFullRefreshLate)
+        if (!released && ticking) {
+            main.postDelayed(queueFullRefreshEarly, 180L)
+            main.postDelayed(queueFullRefreshLate, 700L)
+        }
     }
 
     override fun toggleShuffle() {
