@@ -20,7 +20,7 @@ def verify(library: str, downloads: str, policy: str, unit_test: str) -> None:
             'library.healthReport()',
             'library.delete(song)',
             'Play all visible offline tracks',
-            'onClickListener',
+            'setOnClickListener',
         ),
         "downloads": (
             'label("Downloads", 24f',
