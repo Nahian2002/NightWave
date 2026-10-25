@@ -13,10 +13,15 @@ internal object DownloadRecoveryPolicy {
     fun failedMessage(raw: String?): String {
         val text = raw.orEmpty().lowercase(Locale.ROOT)
         return when {
+            "saved audio could not be verified" in text ||
+                "saved file could not be verified" in text ->
+                "Saved audio needs verification. Check Offline Library before retrying."
             "search link was not recorded" in text ||
                 "search association failed" in text ->
                 "Audio may already be in Offline Library. Check there before retrying."
             "not enough device storage" in text ||
+                "not enough private storage" in text ||
+                "not enough storage" in text ||
                 "device storage is too low" in text ||
                 "no space left" in text || "enospc" in text ||
                 "insufficient storage" in text ->
