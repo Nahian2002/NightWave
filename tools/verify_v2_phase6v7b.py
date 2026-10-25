@@ -16,7 +16,10 @@ REQUIRED = {
     PREFIX+"NightWaveDiscoveryChrome.kt": [
         "fun NightWaveDiscoveryHeader(", "fun NightWaveCollectionHeader(",
         '"nightwave-discovery-header"', '"nightwave-collection-header"',
-        "Brush.horizontalGradient(", "Icons.Outlined.LibraryMusic",
+        'testTag("nightwave-save-offline-search")',
+        "FreeAudioCatalogActivity::class.java",
+        "BorderStroke(1.dp, palette.primary.copy(alpha = .27f))",
+        "Icons.Outlined.LibraryMusic",
     ],
     PREFIX+"StudioComponents.kt": [
         "surface: NightWaveTrackSurface = NightWaveTrackSurface.HOME",
@@ -29,7 +32,7 @@ REQUIRED = {
         "IconButton(onClick = onOptions",
     ],
     PREFIX+"NightWaveStudioActivity.kt": [
-        "NightWaveDiscoveryHeader()", "NightWaveCollectionHeader(",
+        "NightWaveDiscoveryHeader(searchQuery = query)", "NightWaveCollectionHeader(",
         "surface = NightWaveTrackSurface.SEARCH",
         "surface = NightWaveTrackSurface.LIBRARY",
         "SavedTrackSearch.match(query, savedTracks)",
@@ -93,6 +96,12 @@ def self_test():
             "LibraryBrowsePolicy.songs(", "unsafe_reorder("
         ),encoding="utf-8")
         assert any("LibraryBrowsePolicy.songs" in e for e in audit(root))
+        header = root/(PREFIX+"NightWaveDiscoveryChrome.kt")
+        header.write_text(header.read_text(encoding="utf-8").replace(
+            'testTag("nightwave-save-offline-search")',
+            'testTag("offline-action-regression")'
+        ),encoding="utf-8")
+        assert any("nightwave-save-offline-search" in e for e in audit(root))
     print("PASS: 6V7B synthetic audit catches loss of existing library sorting")
 
 def main():
