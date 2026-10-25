@@ -221,13 +221,14 @@ class OfflineLibraryActivity : ComponentActivity() {
             setOnClickListener {
                 startActivity(Intent(this@OfflineLibraryActivity, NightWaveLockerActivity::class.java))
             }
-        }, LinearLayout.LayoutParams(-1, dp(44)))
+        }, LinearLayout.LayoutParams(-1, dp(48)))
         val controls = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
         }
         sortControl = label("Sort: " + sortLabels[sortMode] + "  ▾", 12f, 0xFFB5C8D8.toInt()).apply {
             gravity = Gravity.CENTER_VERTICAL
+            contentDescription = "Sort offline music · " + sortLabels[sortMode]
             maxLines = 1
             ellipsize = android.text.TextUtils.TruncateAt.END
             setOnClickListener {
@@ -237,6 +238,7 @@ class OfflineLibraryActivity : ComponentActivity() {
                         sortMode = which
                         page = 0
                         text = "Sort: " + sortLabels[sortMode] + "  ▾"
+                        contentDescription = "Sort offline music · " + sortLabels[sortMode]
                         dialog.dismiss()
                         refresh()
                         trackScroll.post { trackScroll.scrollTo(0, 0) }
