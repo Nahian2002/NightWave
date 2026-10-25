@@ -495,8 +495,8 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
             // Media3 item identity does not change when we only add a track.
             // Reconcile the persisted queue after the service handles the intent;
             // do not claim success before the single-writer service has saved it.
-            main.postDelayed({ if (!released) refreshQueue() }, 220L)
-            main.postDelayed({ if (!released) refreshQueue() }, 780L)
+            main.postDelayed({ if (!released) refreshQueueEntriesOnly() }, 220L)
+            main.postDelayed({ if (!released) refreshQueueEntriesOnly() }, 780L)
         } catch (e: Exception) {
             state = state.copy(error = "Could not update the listening queue.")
         }
@@ -758,6 +758,19 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
         } catch (error: RuntimeException) {
             handleControlFailure("seek", error)
         }
+    }
+
+    /** A queue-only update must never snap the playing seek bar to an old bookmark. */
+    private fun refreshQueueEntriesOnly() {
+        if (state.offline) return
+        val snapshot = QueueStateStore(context).read()
+        state = state.copy(
+            queue = snapshot.tracks.map { entry ->
+                VideoPreview(entry.title, entry.creator, entry.url, entry.artwork, 0L)
+            },
+            queueIndex = snapshot.index,
+            manualNextUrls = snapshot.manualNextUrls
+        )
     }
 
     override fun refreshQueue() {
