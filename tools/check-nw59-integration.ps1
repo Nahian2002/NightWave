@@ -108,6 +108,14 @@ $relative = @(
     'app/src/main/java/com/nightwave/player/playback/PlaybackQueue.kt',
     'app/src/main/java/com/nightwave/player/offline/OfflinePlaybackQueue.kt',
     'app/src/main/java/com/nightwave/player/net/SearchScriptNormalization.kt',
+    'app/src/main/java/com/nightwave/player/v2/library/SmartDiscoveryPoolPolicy.kt',
+    'app/src/main/java/com/nightwave/player/v2/library/SmartLibraryPolicy.kt',
+    'app/src/main/java/com/nightwave/player/v2/library/LibraryBrowsePolicy.kt',
+    'app/src/test/java/com/nightwave/player/v2/library/SmartDiscoveryPoolPolicyTest.kt',
+    'app/src/test/java/com/nightwave/player/v2/library/SmartLibraryPolicyTest.kt',
+    'app/src/test/java/com/nightwave/player/v2/library/LibraryBrowsePolicyTest.kt',
+    'tools/NW71SmartDiscoverySmoke.kt',
+    'docs/NW71_SMART_LIBRARY_DISCOVERY.md',
     'app/src/main/java/com/nightwave/player/net/SearchRelevancePolicy.kt',
     'app/src/main/java/com/nightwave/player/net/SavedTrackSearch.kt',
     'app/src/main/java/com/nightwave/player/net/MusicIdentity.kt',
@@ -417,5 +425,30 @@ Assert-NW59Has $searchSmoke 'repeat(1_200)' 'repeatable Unicode normalization st
 Assert-NW59Has $relevanceTests 'banglaVowelSignsArePreservedAndRemainDistinct' 'Bangla vowel identity test'
 Assert-NW59Has $savedSearchTests 'duplicateUrlKeepsTheHighestRelevanceMetadata' 'saved URL duplicate ranking test'
 Assert-NW59Has $suggestionTests 'creatorsPastTheOld350ItemCutoffAreDiscoverableLocally' 'older creator regression'
-Write-Host 'NW70 cumulative NW53-NW70 source guard PASS. Gradle/JVM/device QA still mandatory.'
+# NW71: read-only playlist discovery and fair, authentic Smart Library cards.
+$discoveryPool = [IO.File]::ReadAllText($files['app/src/main/java/com/nightwave/player/v2/library/SmartDiscoveryPoolPolicy.kt'])
+$smartCollections = [IO.File]::ReadAllText($files['app/src/main/java/com/nightwave/player/v2/library/SmartLibraryPolicy.kt'])
+$browse = [IO.File]::ReadAllText($files['app/src/main/java/com/nightwave/player/v2/library/LibraryBrowsePolicy.kt'])
+$discoveryTests = [IO.File]::ReadAllText($files['app/src/test/java/com/nightwave/player/v2/library/SmartDiscoveryPoolPolicyTest.kt'])
+$smartTests = [IO.File]::ReadAllText($files['app/src/test/java/com/nightwave/player/v2/library/SmartLibraryPolicyTest.kt'])
+$browseTests = [IO.File]::ReadAllText($files['app/src/test/java/com/nightwave/player/v2/library/LibraryBrowsePolicyTest.kt'])
+$smoke = [IO.File]::ReadAllText($files['tools/NW71SmartDiscoverySmoke.kt'])
+Assert-NW59Has $discoveryPool 'const val FAVORITE_QUOTA = 200' 'favorites reserved budget'
+Assert-NW59Has $discoveryPool 'const val RECENT_QUOTA = 150' 'recent reserved budget'
+Assert-NW59Has $discoveryPool 'const val PLAYLIST_QUOTA = 250' 'playlist-only reserved budget'
+Assert-NW59Has $discoveryPool 'playlists.asSequence().take(60).flatMap' 'bounded lazy playlist collection scan'
+Assert-NW59Has $discoveryPool 'id in favoriteKeys && id !in recentKeys' 'rediscover not recently heard favorites'
+Assert-NW59Has $smartCollections 'SmartDiscoveryPoolPolicy.gather(' 'collection uses fair pool'
+Assert-NW59Has $smartCollections 'VideoLink.normalize(song.url) == song.url' 'saved public reference identity'
+Assert-NW59Has $smartCollections 'SmartDiscoveryPoolPolicy.rediscover(' 'actual liked but not recently played'
+Assert-NW59Has $smartCollections 'recent.asSequence().filter(eligible)' 'canonical recent shelf'
+Assert-NW59Has $browse 'matchContainedSongs: Boolean = false' 'opt-in playlist song lookup'
+Assert-NW59Has $browse '.take(100)' 'bounded playlist song scan'
+Assert-NW59Has $activity 'matchContainedSongs = true' 'Library enables playlist contents search'
+Assert-NW59Has $activity '"Search playlists or their songs"' 'accurate search placeholder'
+Assert-NW59Has $discoveryTests 'hugeFavoritesAndRecentDoNotHidePlaylistOnlyTracks' 'quota regression'
+Assert-NW59Has $smartTests 'rediscoverExcludesRecentAndRetainsOnlyLikedSongs' 'smart recent exclusion test'
+Assert-NW59Has $browseTests 'songTermsMustMatchOneSongNotAcrossDifferentPlaylistTracks' 'bounded semantic playlist matching'
+Assert-NW59Has $smoke 'repeat(2_000)' 'randomized JVM checks recorded'
+Write-Host 'NW71 cumulative NW53-NW71 source guard PASS. Gradle/JVM/device QA still mandatory.'
 exit 0
