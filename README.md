@@ -2,13 +2,13 @@
 
 **Android audio-first music player · active development, private source · not yet public release-ready.**
 
-> **NW66 INTEGRATED SOURCE:** This branch stacks NightWave NW43–NW66. NW66 extends low-storage protection to **all authorized downloads**, not only searched audio, and blocks WorkManager SUCCESS until the saved song is independently found as a readable, indexed private file. The new guard also protects unknown-length transfers before final import. Existing offline files, IDs, playlists, download retries, NW62–NW65 UX, Google authorization scopes, source restrictions and package identity are unchanged. **109/109 exact-source Kotlin/JVM completion/recovery assertions PASS; full Android Gradle build, installed-device playback and interrupted-transfer testing remain unverified; public APK/Play: NO-GO.** [NW66 changes and acceptance plan](docs/NW66_OFFLINE_INTEGRITY_AND_RECOVERY.md) · [Release readiness](RELEASE_READINESS.md).
+> **NW67 INTEGRATED SOURCE:** This cumulative development branch stacks NightWave NW43–NW67. NW67 fixes **Shuffle Previous → Next** navigation by preserving a bounded session-only forward trail and fences deferred offline Media3 decoder recovery so it cannot automatically restart a track after the user pauses or the sleep timer intervenes. Play Next priority, Repeat Off/All/One, existing gapless pipeline, online resolver, offline audio and NW62–NW66 download protections remain unchanged. **Regression tests are committed but complete Android Gradle/JUnit, physical-device playback and Google OAuth error 8 remain UNVERIFIED. Public APK/Play: NO-GO.** See [NW67 playback transitions](docs/NW67_PLAYBACK_TRANSITIONS.md) and [Release Readiness](RELEASE_READINESS.md).
 
 ### Current local source
 
-Download **Code → Download ZIP** from `feature/nightwave-nw66-offline-integrity-recovery` into a new clean folder; use `build-windows.cmd` for Windows compilation. Source preflight success is not Android compilation success. After a successful verified build, run `check-google-oauth.cmd` and `check-device-update.cmd` before any installed-app update. **Never uninstall NightWave, clear its data or delete offline songs to fix a signing or OAuth error.**
+Use **Code → Download ZIP** from `feature/nightwave-nw67-playback-transition-reliability`, extract into a **new clean Windows folder** and run `build-windows.cmd` when you are ready for integration testing. A successful source gate is not proof of Android compilation. After a complete build success, check `check-google-oauth.cmd` and `check-device-update.cmd` before replacing the installed Samsung app. **Do not uninstall NightWave, clear storage or delete downloaded music** to fix OAuth or signing errors.
 
-Earlier NW43–NW65 phase notes are historical records, not NW66 device verification.
+Older NW43–NW66 notes below are historical and not NW67 runtime validation.
 
 ---
 
