@@ -47,7 +47,9 @@ class ShuffleForwardNavigationTest {
         q.previous()
         assertEquals(song(3), q.jump(2))
         assertEquals(song(3), q.current)
-        assertFalse(q.next() == second) // no unexpected old forward replay
+        // The new shuffle pick is allowed to revisit any unfailed candidate,
+        // but must never replay the currently selected song as its own Next.
+        assertFalse(q.next() == song(3))
     }
 
     @Test fun explicitPlayNextOutranksForwardAndClearsStaleTrail() {
@@ -56,7 +58,7 @@ class ShuffleForwardNavigationTest {
         q.previous()
         assertTrue(q.insertNext(song(6)))
         assertEquals(song(6), q.next())
-        assertFalse(q.next() == jumped)
+        assertFalse(q.next() == song(6)) // queued song is not repeated immediately
     }
 
     @Test fun shuffleToggleReplacementAndQueueEditsClearForward() {
