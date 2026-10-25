@@ -52,6 +52,7 @@ class SearchTrackSaveWorker(
             val downloader = PermittedAudioDownloader(applicationContext)
             transfer = downloader
             var lastRefresh = 0L
+            var lastReported = -1L
             val saved = downloader.downloadResolvedSearchAudio(
                 stream.audioUrl, stream.video.title.ifBlank { title }
             ) { received, total ->
@@ -61,8 +62,9 @@ class SearchTrackSaveWorker(
                 }
                 val now = SystemClock.elapsedRealtime()
                 if (lastRefresh == 0L || now - lastRefresh >= 800L ||
-                    (total != null && received == total)) {
+                    (total != null && received == total) || received < lastReported) {
                     lastRefresh = now
+                    lastReported = received
                     setProgressAsync(Data.Builder()
                         .putLong(SearchTrackSaveQueue.KEY_RECEIVED, received)
                         .putLong(SearchTrackSaveQueue.KEY_TOTAL, total ?: -1L).build())
