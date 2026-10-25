@@ -254,6 +254,14 @@ internal data class PendingLyricsExport(
     val prepared: PreparedLyricsExport
 )
 
+/** One user-visible playlist Undo, guarded by an exact post-edit snapshot. */
+private data class PlaylistUndoState(
+    val playlist: String,
+    val before: List<VideoPreview>,
+    val after: List<VideoPreview>,
+    val message: String
+)
+
 private sealed interface CloudActionResult {
     data class Backup(val created: Boolean) : CloudActionResult
     data class Snapshots(val items: List<DriveSnapshot>) : CloudActionResult
@@ -607,6 +615,7 @@ class NightWaveStudioActivity : ComponentActivity() {
     private var recentlyPlayed by mutableStateOf<List<VideoPreview>>(emptyList())
     /** Invalidates cached playlist recommendations after edits without renaming playlists. */
     private var libraryRevision by mutableStateOf(0)
+    private var playlistUndo by mutableStateOf<PlaylistUndoState?>(null)
     private var offlineResumeTitle by mutableStateOf<String?>(null)
     private var offlineResumePositionMs by mutableStateOf(0L)
     private var names by mutableStateOf<List<String>>(emptyList())
@@ -886,6 +895,77 @@ class NightWaveStudioActivity : ComponentActivity() {
                     onRemoveRecent = { video -> confirmRemoveRecent(video) },
                     onClearRecent = { confirmClearRecent() },
                     onSharePlaylist = { name, tracks -> sharePlaylist(name, tracks) },
+                    onBulkRemove = { name, selected ->
+                        val before = library.playlist(name)
+                        val urls = selected.map { it.url }.distinct()
+                        if (urls.isEmpty() || urls.size > 20 ||
+                            !urls.all { target -> before.any { it.url == target } }) {
+                            showMessage("Selection is no longer current. Refresh the playlist.")
+                        } else AlertDialog.Builder(this)
+                            .setTitle("Remove ${urls.size} songs from playlist?")
+                            .setMessage("Only the “${name.take(50)}” playlist changes. " +
+                                "Liked songs, listening history and offline audio are retained.")
+                            .setNegativeButton("Keep", null)
+                            .setPositiveButton("Remove") { _, _ ->
+                                val updated = library.bulkRemoveFromPlaylist(
+                                    name, urls, before.map { it.url })
+                                if (updated.accepted && updated.changed) {
+                                    playlistUndo = PlaylistUndoState(name, before,
+                                        updated.updated.songs(name),
+                                        "Removed ${urls.size} songs from ${name.take(40)}")
+                                    refresh()
+                                    showMessage("Removed from playlist · Undo available in Library.")
+                                } else showMessage("Playlist changed or couldn't be saved. Try again.")
+                            }.show()
+                    },
+                    onBulkCopy = { fromName, selected ->
+                        val names = library.playlistNames().filterNot { it == fromName }
+                        if (names.isEmpty()) showMessage("Create another playlist before copying.")
+                        else AlertDialog.Builder(this).setTitle("Copy selected songs to…")
+                            .setItems(names.toTypedArray()) { _, chosen ->
+                                val destination = names[chosen]
+                                val before = library.playlist(destination)
+                                val updated = library.bulkAddToPlaylist(
+                                    destination, selected, before.map { it.url })
+                                if (updated.accepted && updated.changed) {
+                                    playlistUndo = PlaylistUndoState(destination, before,
+                                        updated.updated.songs(destination),
+                                        "Copied songs to ${destination.take(40)}")
+                                    refresh()
+                                    showMessage("Copied to playlist · Undo available in Library.")
+                                } else showMessage("Nothing copied; target changed, is full, or already has these songs.")
+                            }.setNegativeButton("Cancel", null).show()
+                    },
+                    onMovePlaylistSong = { name, url, delta, expected ->
+                        val now = library.playlist(name)
+                        val current = now.map { it.url }
+                        val index = current.indexOf(url)
+                        if (current != expected || index < 0 || index + delta !in current.indices) {
+                            showMessage("Playlist changed; reopen it before reordering.")
+                        } else {
+                            val ordered = current.toMutableList()
+                            java.util.Collections.swap(ordered, index, index + delta)
+                            val updated = library.reorderPlaylist(name, expected, ordered)
+                            if (updated.accepted && updated.changed) {
+                                playlistUndo = PlaylistUndoState(name, now,
+                                    updated.updated.songs(name), "Playlist order updated")
+                                refresh()
+                            } else showMessage("Couldn't save new track order. Try again.")
+                        }
+                    },
+                    playlistUndo = playlistUndo,
+                    onUndoPlaylistEdit = {
+                        playlistUndo?.let { pending ->
+                            val restored = library.restorePlaylistIfUnchanged(
+                                pending.playlist, pending.after, pending.before)
+                            if (restored.accepted && restored.changed) {
+                                showMessage("Playlist change undone.")
+                                refresh()
+                            } else showMessage("Undo is unavailable: playlist changed again.")
+                        }
+                        playlistUndo = null
+                    },
+                    onDismissPlaylistUndo = { playlistUndo = null },
                     onBulkShareLinks = { songs, copyOnly ->
                         val safe = songs.take(LibraryBulkSelectionPolicy.MAX_SELECTED)
                             .mapNotNull { VideoLink.normalize(it.url) }.distinct()
@@ -2515,6 +2595,12 @@ private fun StudioRoot(
     onPlaylistSongOptions: (String, VideoPreview) -> Unit,
     onSharePlaylist: (String, List<VideoPreview>) -> Unit,
     onBulkShareLinks: (List<VideoPreview>, Boolean) -> Unit,
+    onBulkRemove: (String, List<VideoPreview>) -> Unit,
+    onBulkCopy: (String, List<VideoPreview>) -> Unit,
+    onMovePlaylistSong: (String, String, Int, List<String>) -> Unit,
+    playlistUndo: PlaylistUndoState?,
+    onUndoPlaylistEdit: () -> Unit,
+    onDismissPlaylistUndo: () -> Unit,
     onImportSharedPlaylist: () -> Unit,
     onSaveCurrentToPlaylist: () -> Unit,
     onSaveCurrentOffline: () -> Unit,
@@ -2781,6 +2867,12 @@ private fun StudioRoot(
                         onRemoveRecent = onRemoveRecent, onClearRecent = onClearRecent,
                         onSharePlaylist = onSharePlaylist,
                         onBulkShareLinks = onBulkShareLinks,
+                        onBulkRemove = onBulkRemove,
+                        onBulkCopy = onBulkCopy,
+                        onMovePlaylistSong = onMovePlaylistSong,
+                        playlistUndo = playlistUndo,
+                        onUndoPlaylistEdit = onUndoPlaylistEdit,
+                        onDismissPlaylistUndo = onDismissPlaylistUndo,
                         onImportSharedPlaylist = onImportSharedPlaylist,
                         onManage = onLegacyPlayer,
                         onCreatePlaylist = onCreatePlaylist,
@@ -3595,6 +3687,12 @@ private fun StudioLibrary(
     onPlaylistSongOptions: (String, VideoPreview) -> Unit,
     onSharePlaylist: (String, List<VideoPreview>) -> Unit,
     onBulkShareLinks: (List<VideoPreview>, Boolean) -> Unit,
+    onBulkRemove: (String, List<VideoPreview>) -> Unit,
+    onBulkCopy: (String, List<VideoPreview>) -> Unit,
+    onMovePlaylistSong: (String, String, Int, List<String>) -> Unit,
+    playlistUndo: PlaylistUndoState?,
+    onUndoPlaylistEdit: () -> Unit,
+    onDismissPlaylistUndo: () -> Unit,
     onImportSharedPlaylist: () -> Unit
 ) {
     // The library's name/order and song lists are read-only. Cache snapshots
