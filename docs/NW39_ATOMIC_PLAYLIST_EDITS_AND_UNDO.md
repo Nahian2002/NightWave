@@ -38,7 +38,8 @@
 ## Automated QA status
 
 - Verified via source audit: change types appear in the exhaustive `LibraryMutationPlan.apply` dispatcher; new facade calls, UI callbacks, undo guard and drag modifier are wired to their intended paths.
-- Test cases were **written, not confirmed executed**. Full Kotlin/Android Gradle compilation has **not** passed.
+- **Standalone local Kotlin proof:** The Git blob SHA of `PlaylistReorderGesturePolicy.kt` was matched exactly (`a20b42168a8c2d51acd2472979e362cdb34ae2d9`), the file was compiled with `kotlinc`, and 10 direct assertions passed for drag thresholds, nonfinite input, invalid row heights and clamped target indices. This verifies that small pure policy, **not the Android UI**.
+- The added Android/JVM Gradle test suites (including `LibraryMutationPlanTest`) were **written, not confirmed executed**. Full Android Gradle compilation has **not** passed.
 - [NW39 GitHub Actions run](https://github.com/Nahian2002/NightWave/actions/runs/40176072917): failed before the job reached any runner (runner_id=0, zero steps). This provides no Kotlin compiler result.
 - Do **not** treat source review or previously passed NW38 policy smoke as evidence that NW39 builds successfully.
 
