@@ -45,6 +45,8 @@ data class StudioPlayerState(
     val repeat: PlaybackQueue.Repeat = PlaybackQueue.Repeat.OFF,
     val queue: List<VideoPreview> = emptyList(),
     val queueIndex: Int = -1,
+    /** Public IDs explicitly selected via Play Next, in priority order. */
+    val manualNextUrls: List<String> = emptyList(),
     val error: String? = null
 ) {
     val hasTrack: Boolean get() = videoUrl.isNotBlank()
@@ -416,6 +418,7 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
             queue = if (offlineId != null) offlineList.first
                 else current.tracks.map { VideoPreview(it.title, it.creator, it.url, it.artwork, 0) },
             queueIndex = if (offlineId != null) offlineList.second else current.index,
+            manualNextUrls = if (offlineId != null) emptyList() else current.manualNextUrls,
             error = if (player.playerError != null)
                 "Audio playback failed. Tap Retry or choose another song."
                 else if (offlineId != null || resolving) null
