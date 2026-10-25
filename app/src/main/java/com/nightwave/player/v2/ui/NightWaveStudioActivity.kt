@@ -2556,7 +2556,8 @@ class NightWaveStudioActivity : ComponentActivity() {
                         (checkpoint?.positionMs ?: 0L).coerceAtLeast(0L) else 0L
                 }.getOrDefault(null to 0L)
             }
-            if (token != offlineResumeReadGeneration || isFinishing || isDestroyed)
+            if (!LibraryUiRefreshPolicy.accepts(
+                    token, offlineResumeReadGeneration, isFinishing, isDestroyed))
                 return@launch
             offlineResumeTitle = result.first
             offlineResumePositionMs = result.second
@@ -2571,7 +2572,8 @@ class NightWaveStudioActivity : ComponentActivity() {
             val updated = withContext(Dispatchers.IO) {
                 runCatching { library.recent() }.getOrNull()
             } ?: return@launch
-            if (token != recentRefreshGeneration || isFinishing || isDestroyed)
+            if (!LibraryUiRefreshPolicy.accepts(
+                    token, recentRefreshGeneration, isFinishing, isDestroyed))
                 return@launch
             if (recentlyPlayed != updated) {
                 recentlyPlayed = updated
