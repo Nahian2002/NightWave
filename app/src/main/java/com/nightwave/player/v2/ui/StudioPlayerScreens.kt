@@ -1125,16 +1125,25 @@ fun StudioQueueSheet(
             Text("Your listening queue", style = MaterialTheme.typography.headlineSmall)
             val removable = !state.offline && !state.shuffle && state.connected
             val currentIndex = state.queueIndex.takeIf { it in state.queue.indices }
-            val upcoming = state.queue.withIndex().filter { slot ->
-                if (state.shuffle) slot.index != currentIndex
-                else currentIndex != null && slot.index > currentIndex
+            val pendingUrls = state.manualNextUrls
+            val explicitNext = state.queue.withIndex().filter { slot ->
+                slot.index != currentIndex && slot.value.url in pendingUrls
+            }.sortedBy { pendingUrls.indexOf(it.value.url) }
+            val explicitUrls = explicitNext.map { it.value.url }.toSet()
+            val upcomingPool = state.queue.withIndex().filter { slot ->
+                slot.value.url !in explicitUrls &&
+                    (if (state.shuffle) slot.index != currentIndex
+                     else currentIndex != null && slot.index > currentIndex)
             }
+            val upcoming = explicitNext + upcomingPool
             val earlier = if (state.shuffle || currentIndex == null) emptyList()
                 else state.queue.withIndex().filter { it.index < currentIndex }
             Text(
                 when {
                     state.offline -> "Offline collection · private audio files stay on device"
-                    state.shuffle -> "Shuffle on · the next track is chosen from this pool"
+                    state.shuffle && explicitNext.isNotEmpty() ->
+                        "${explicitNext.size} Play Next choices · remaining tracks shuffled"
+                    state.shuffle -> "Shuffle on · order varies until you choose Play next"
                     upcoming.isEmpty() -> "No tracks after this song · choose Play next to add one"
                     else -> "${upcoming.size} upcoming · swipe left to remove a queued track"
                 },
@@ -1165,7 +1174,9 @@ fun StudioQueueSheet(
                         )
                     }
                     item(key = "queue-upcoming-header") {
-                        Text(if (state.shuffle) "SHUFFLE POOL · ORDER VARIES" else "UP NEXT",
+                        Text(if (explicitNext.isNotEmpty()) "PLAY NEXT"
+                            else if (state.shuffle) "SHUFFLE POOL · ORDER VARIES"
+                            else "UP NEXT",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(top = 10.dp))
@@ -1179,21 +1190,30 @@ fun StudioQueueSheet(
                     }
                     // Absolute slot keys never collide even when a restored queue
                     // contains duplicate public URLs.
-                    itemsIndexed(upcoming, key = { _, slot -> "next-${slot.index}" }) { _, slot ->
+                    itemsIndexed(upcoming, key = { _, slot -> "next-${slot.index}" }) { pos, slot ->
                         val index = slot.index
                         val video = slot.value
-                        SwipeUpcomingRow(
-                            number = index + 1,
-                            title = video.title,
-                            subtitle = video.author,
-                            artwork = video.thumbnail,
-                            isPlaying = false,
-                            canRemove = removable &&
-                                video.url.startsWith("https://www.youtube.com/watch?v="),
-                            reduceMotion = reduceMotion,
-                            onSelect = { onSelect(index) },
-                            onRemove = { requestRemove(index, video.url) }
-                        )
+                        Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                            if (explicitNext.isNotEmpty() && pos == explicitNext.size) {
+                                Text(if (state.shuffle) "SHUFFLE POOL · ORDER VARIES"
+                                    else "UP NEXT",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(top = 9.dp))
+                            }
+                            SwipeUpcomingRow(
+                                number = index + 1,
+                                title = video.title,
+                                subtitle = video.author,
+                                artwork = video.thumbnail,
+                                isPlaying = false,
+                                canRemove = removable &&
+                                    video.url.startsWith("https://www.youtube.com/watch?v="),
+                                reduceMotion = reduceMotion,
+                                onSelect = { onSelect(index) },
+                                onRemove = { requestRemove(index, video.url) }
+                            )
+                        }
                     }
                     if (earlier.isNotEmpty()) {
                         item(key = "queue-earlier-header") {
