@@ -940,21 +940,24 @@ class NightWaveStudioActivity : ComponentActivity() {
                             .setItems(names.toTypedArray()) { _, chosen ->
                                 val destination = names[chosen]
                                 val latestSource = library.playlist(fromName)
-                                if (!selected.all { target ->
-                                        latestSource.any { it.url == target.url }
-                                    }) {
+                                if (fromName !in library.playlistNames() ||
+                                    latestSource != source) {
+                                    // Metadata and order matter too: stale source records
+                                    // must never overwrite newer library information.
                                     showMessage("Source playlist changed. Nothing was copied.")
                                 } else {
-                                val before = library.playlist(destination)
-                                val updated = library.bulkAddToPlaylist(
-                                    destination, selected, before.map { it.url })
-                                if (updated.accepted && updated.changed) {
-                                    playlistUndo = PlaylistUndoState(destination, before,
-                                        updated.updated.songs(destination),
-                                        "Copied songs to ${destination.take(40)}")
-                                    refresh()
-                                    showMessage("Copied to playlist · Undo available in Library.")
-                                } else showMessage("Nothing copied; target changed, is full, or already has these songs.")
+                                    val before = library.playlist(destination)
+                                    val updated = library.bulkAddToPlaylist(
+                                        destination, selected, before.map { it.url })
+                                    if (updated.accepted && updated.changed) {
+                                        playlistUndo = PlaylistUndoState(destination, before,
+                                            updated.updated.songs(destination),
+                                            "Copied songs to ${destination.take(40)}")
+                                        refresh()
+                                        showMessage("Copied to playlist · Undo available in Library.")
+                                    } else {
+                                        showMessage("Nothing copied; target changed, is full, or already has these songs.")
+                                    }
                                 }
                             }.setNegativeButton("Cancel", null).show()
                     },
