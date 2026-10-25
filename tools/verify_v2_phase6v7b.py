@@ -37,7 +37,7 @@ REQUIRED = {
         "surface = NightWaveTrackSurface.LIBRARY",
         "SavedTrackSearch.match(query, savedTracks)",
         "LibraryBrowsePolicy.playlists(", "LibraryBrowsePolicy.songs(",
-        "onClick = { onPlay(song, savedMatches) }",
+        "onClick = { onPlay(song, listOf(song)) }",
         "onSelectPlaylist(collection.name)",
         "onSelectPlaylist(LIKED_COLLECTION)",
         "onSearch = { navigateToTab(StudioTab.SEARCH) }",
