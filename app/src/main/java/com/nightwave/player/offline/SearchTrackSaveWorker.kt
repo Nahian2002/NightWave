@@ -43,6 +43,10 @@ class SearchTrackSaveWorker(
         }
         return try {
             ensureChannel()
+            // Resolve and restart cleanly on WorkManager retries.
+            setProgressAsync(Data.Builder()
+                .putLong(SearchTrackSaveQueue.KEY_RECEIVED, 0L)
+                .putLong(SearchTrackSaveQueue.KEY_TOTAL, -1L).build())
             setForegroundAsync(foreground(title, 0L, null)).get()
             if (isStopped) return fail("Cancelled")
             // Resolve at execution time. Signed streaming addresses expire and
