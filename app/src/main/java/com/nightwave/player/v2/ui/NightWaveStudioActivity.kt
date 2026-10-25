@@ -3143,6 +3143,16 @@ private fun StudioSearch(
             }
         }
         if (query.isBlank() && !searching) {
+            item(key = "search-offline-quick-access") {
+                OutlinedButton(onClick = { onOfflineSearch("") },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                    shape = RoundedCornerShape(15.dp)) {
+                    Icon(Icons.Outlined.LibraryMusic,
+                        contentDescription = null, modifier = Modifier.size(19.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("Browse offline songs")
+                }
+            }
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
                     NightWaveMicroLabel("Explore by mood")
