@@ -48,7 +48,6 @@ import com.nightwave.player.offline.OfflineGaplessPolicy
 import com.nightwave.player.offline.OfflinePlaybackPreferencesStore
 import com.nightwave.player.offline.OfflineSessionStore
 import com.nightwave.player.v2.ui.NightWaveStudioActivity
-import java.util.concurrent.Executors
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
@@ -569,7 +568,12 @@ class PlaybackService : MediaLibraryService() {
     private lateinit var offlineSession: OfflineSessionStore
     private lateinit var listeningMemory: ListeningMemoryStore
     private val listeningMeter = ListeningSessionMeter()
-    private val listeningWriter = Executors.newSingleThreadExecutor()
+    private val listeningWriter = ThreadPoolExecutor(
+        1, 1, 30L, TimeUnit.SECONDS,
+        ArrayBlockingQueue<Runnable>(ListeningDispatchPolicy.MAX_PENDING_WRITES),
+        ThreadPoolExecutor.AbortPolicy()
+    )
+    private var lastListeningOverflowWarningMs = 0L
     private var lastMemoryConsentRevision = -1L
     private var autoRetriedVideo: String? = null
     private val progressWriter = object : Runnable {
@@ -631,8 +635,20 @@ class PlaybackService : MediaLibraryService() {
             // Never serialize/commit aggregates from a Media3 callback.
             // A single worker preserves pulse order; store rechecks consent.
             pulses.forEach { pulse ->
-                listeningWriter.execute {
-                    runCatching { listeningMemory.record(pulse, revision) }
+                try {
+                    listeningWriter.execute {
+                        runCatching { listeningMemory.record(pulse, revision) }
+                    }
+                } catch (_: java.util.concurrent.RejectedExecutionException) {
+                    // Insights may lose a pulse under severely slow storage,
+                    // but audio callbacks must not throw or block.
+                    val now = SystemClock.elapsedRealtime()
+                    if (ListeningDispatchPolicy.shouldWarn(
+                            now, lastListeningOverflowWarningMs)) {
+                        lastListeningOverflowWarningMs = now
+                        Log.w("NightWavePlayback",
+                            "Listening insights backlog saturated; skipping optional sample")
+                    }
                 }
             }
         } catch (_: Exception) {
