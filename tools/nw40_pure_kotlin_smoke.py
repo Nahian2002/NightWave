@@ -46,7 +46,7 @@ def main():
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
     if args.self_test:
-        assert HARNESS.count("    check(") == 11  # multiline checks count once
+        assert HARNESS.count("    check(") == 13  # every assertion counts once
         assert len(SOURCES) == 2
         print("PASS: NW40 Kotlin smoke harness self-test (not compiled)")
         return 0
