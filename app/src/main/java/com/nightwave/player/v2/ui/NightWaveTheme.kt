@@ -19,6 +19,8 @@ import com.nightwave.player.v2.model.NightWaveTheme as ThemeChoice
 // Color(ULong) interprets the low bits as a color-space ID and can crash at startup.
 internal fun paletteColor(raw: Long) = Color(raw.toInt())
 val LocalNightWavePalette = staticCompositionLocalOf { NightWaveDesign.palette(ThemeChoice.MIDNIGHT) }
+/** User motion preference shared by all Compose surfaces, including modal sheets. */
+val LocalNightWaveReduceMotion = staticCompositionLocalOf { false }
 
 private val premiumTypography = Typography(
     displayLarge = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 44.sp, lineHeight = 50.sp, letterSpacing = (-1.3f).sp, fontWeight = FontWeight.ExtraBold),
@@ -33,7 +35,11 @@ private val premiumTypography = Typography(
 )
 
 @Composable
-fun NightWaveMaterialTheme(choice: ThemeChoice, content: @Composable () -> Unit) {
+fun NightWaveMaterialTheme(
+    choice: ThemeChoice,
+    reduceMotion: Boolean = false,
+    content: @Composable () -> Unit
+) {
     val palette = NightWaveDesign.palette(choice)
     val scheme = if (palette.isDark) darkColorScheme(
         primary = paletteColor(palette.accent), onPrimary = paletteColor(palette.contrastOnAccent()),
@@ -48,7 +54,10 @@ fun NightWaveMaterialTheme(choice: ThemeChoice, content: @Composable () -> Unit)
         surfaceVariant = paletteColor(palette.raised), onSurfaceVariant = paletteColor(palette.secondary),
         outline = paletteColor(palette.outline), error = paletteColor(palette.danger)
     )
-    CompositionLocalProvider(LocalNightWavePalette provides palette) {
+    CompositionLocalProvider(
+        LocalNightWavePalette provides palette,
+        LocalNightWaveReduceMotion provides reduceMotion
+    ) {
         MaterialTheme(colorScheme = scheme, typography = premiumTypography, content = content)
     }
 }
