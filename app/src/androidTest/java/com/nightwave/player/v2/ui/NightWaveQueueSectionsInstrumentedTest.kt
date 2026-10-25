@@ -54,6 +54,27 @@ class NightWaveQueueSectionsInstrumentedTest {
         compose.onNodeWithTag("nightwave-upcoming-2").assertExists()
     }
 
+    @Test fun explicitlyChosenNextIsSeparateFromTheShufflePool() {
+        compose.setContent {
+            MaterialTheme {
+                StudioQueueSheet(
+                    state = StudioPlayerState(
+                        connected = true, queue = listOf(song(1), song(3), song(2)),
+                        queueIndex = 0, videoUrl = song(1).url,
+                        shuffle = true, manualNextUrls = listOf(song(3).url),
+                        playing = true
+                    ),
+                    onDismiss = {}, onSelect = {},
+                    onRemoveUpcoming = { _, _ -> null },
+                    onUndoRemoval = {}, reduceMotion = true
+                )
+            }
+        }
+        compose.waitForIdle()
+        compose.onNodeWithText("PLAY NEXT").assertExists()
+        compose.onNodeWithText("SHUFFLE POOL · ORDER VARIES").assertExists()
+    }
+
     @Test fun shufflePoolIsNeverClaimedToBeOrderedUpNext() {
         render(listOf(song(1), song(2)), 0, shuffled = true)
         compose.onNodeWithText("SHUFFLE POOL · ORDER VARIES").assertExists()
