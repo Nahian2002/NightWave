@@ -3384,7 +3384,7 @@ private fun StudioSearch(
                 MusicTrackTile(song, isPlaying = playingUrl == song.url,
                     surface = NightWaveTrackSurface.SEARCH,
                     onOptions = { onSongOptions(song) },
-                    onClick = { onPlay(song, selectedCreatorGroup.tracks) })
+                    onClick = { onPlay(song, listOf(song)) })
             }
         } else {
         if (query.isNotBlank()) {
@@ -3571,7 +3571,7 @@ private fun StudioSearch(
                     MusicTrackTile(song, isPlaying = playingUrl == song.url,
                     surface = NightWaveTrackSurface.SEARCH,
                         onOptions = { onSongOptions(song) },
-                        onClick = { onPlay(song, savedTracks) })
+                        onClick = { onPlay(song, listOf(song)) })
                 }
             } else {
                 item {
@@ -3619,7 +3619,7 @@ private fun StudioSearch(
                 MusicTrackTile(song, isPlaying = playingUrl == song.url,
                     surface = NightWaveTrackSurface.SEARCH,
                     onOptions = { onSongOptions(song) },
-                    onClick = { onPlay(song, savedMatches) })
+                    onClick = { onPlay(song, listOf(song)) })
             }
         }
         if (offlineMatches.isNotEmpty()) {
@@ -3659,7 +3659,7 @@ private fun StudioSearch(
                 MusicTrackTile(song, isPlaying = playingUrl == song.url,
                     surface = NightWaveTrackSurface.SEARCH,
                     onOptions = { onSongOptions(song) },
-                    onClick = { onPlay(song, state.videos) })
+                    onClick = { onPlay(song, listOf(song)) })
             }
         } else if (responseMatchesQuery && state.error.isNotBlank()) {
             item {
