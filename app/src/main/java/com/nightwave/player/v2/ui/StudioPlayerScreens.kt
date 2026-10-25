@@ -453,12 +453,18 @@ fun StudioNowPlayingOverlay(
                         itemsIndexed(lyrics.cues,
                             key = { index, _ -> index }) { index, cue ->
                             val current = index == activeCue
+                            // NW49: a queued tap belongs to the displayed track.
+                            // It may not seek another song after a rapid skip.
+                            val cueOriginTrack = state.videoUrl
                             Surface(
                                 onClick = {
-                                    actions.seekTo(LyricsSyncPolicy.seekPosition(
-                                        cue, lyricsOffsetMs, state.durationMs))
+                                    actions.seekToForTrack(cueOriginTrack,
+                                        LyricsSyncPolicy.seekPosition(
+                                            cue, lyricsOffsetMs, state.durationMs))
+                                    lyricsAutoFollow = true
                                 },
-                                enabled = state.connected && state.hasTrack,
+                                enabled = state.connected && state.hasTrack &&
+                                    cueOriginTrack.isNotBlank(),
                                 modifier = Modifier.fillMaxWidth()
                                     .testTag("lyrics-cue-$index"),
                                 shape = RoundedCornerShape(14.dp),
