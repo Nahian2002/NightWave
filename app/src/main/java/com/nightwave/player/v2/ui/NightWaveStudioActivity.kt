@@ -3408,6 +3408,12 @@ private fun StudioSearch(
             emptyList<com.nightwave.player.net.LocalSearchSuggestion>()),
         query, savedTracks, offlineSongs
     ) {
+        // produceState retains its previous value across key changes.
+        // Explicitly clear it BEFORE any suspend/debounce, or an old search
+        // can briefly appear as new local suggestions while typing.
+        value = Triple(
+            emptyList<VideoPreview>(), emptyList<OfflineSong>(),
+            emptyList<com.nightwave.player.net.LocalSearchSuggestion>())
         if (query.isNotBlank()) {
             delay(120L) // debounce typing; do not delay explicit online Search
             value = withContext(Dispatchers.Default) {
