@@ -141,6 +141,20 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
         return true
     }
 
+    /** Public video IDs only; QueueStateStore validates them again before disk. */
+    fun priorityNextUrls(): List<String> = manualNext.filter { wanted ->
+        entries.indexOfFirst { it.url == wanted } > index
+    }.distinct().take(100)
+
+    /** Restore only existing upcoming URLs; old/corrupt snapshots yield no priority. */
+    fun restoreNextPriorities(urls: List<String>) {
+        manualNext.clear()
+        urls.distinct().take(100).forEach { wanted ->
+            if (entries.indexOfFirst { it.url == wanted } > index)
+                manualNext.addLast(wanted)
+        }
+    }
+
     fun add(entry: QueueEntry): Boolean {
         if (entries.size >= 100 || entries.any { it.url == entry.url }) return false
         entries.add(entry)
