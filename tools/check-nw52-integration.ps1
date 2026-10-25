@@ -2,7 +2,7 @@
 # credentials, Android SDK, application install or mutation required.
 [CmdletBinding()]
 param(
-    [string]$ProjectRoot = (Join-Path $PSScriptRoot '..'),
+    [string]$ProjectRoot = '',
     [switch]$SelfTest
 )
 $ErrorActionPreference = 'Stop'
@@ -24,7 +24,16 @@ if ($SelfTest) {
     exit 0
 }
 
-$root = (Resolve-Path -LiteralPath $ProjectRoot).Path
+# Resolve the default only *after* PowerShell binds parameters. During
+# -File invocation, $PSScriptRoot is not reliable inside param defaults,
+# especially when -SelfTest is called with no -ProjectRoot.
+if ([string]::IsNullOrWhiteSpace($ProjectRoot)) {
+    $ProjectRoot = Join-Path -Path $PSScriptRoot -ChildPath '..'
+}
+$root = (Resolve-Path -LiteralPath $ProjectRoot -ErrorAction Stop).Path
+if (-not (Test-Path -LiteralPath $root -PathType Container)) {
+    throw "NW52 project root is not a directory: $root"
+}
 $required = @(
     'app/build.gradle.kts',
     'app/src/main/AndroidManifest.xml',
