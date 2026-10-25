@@ -168,6 +168,18 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
         }
     }
 
+    /**
+     * A user Jump can leap beyond several explicit Play Next entries. Those
+     * priorities then belong to the *past*, not the upcoming queue. Remove
+     * stale priorities before choosing Next; never travel backwards to play
+     * a skipped priority. No titles, URLs or files are deleted.
+     */
+    private fun discardPastPriorities() {
+        manualNext.removeAll { wanted ->
+            entries.indexOfFirst { it.url == wanted } <= index
+        }
+    }
+
     fun add(entry: QueueEntry): Boolean {
         if (entries.size >= 100 || entries.any { it.url == entry.url }) return false
         entries.add(entry)
@@ -181,6 +193,7 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
         // Manually chosen Play Next still counts the current track as visited
         // in a shuffle cycle, so it cannot be replayed as an unseen candidate.
         if (shuffle && index >= 0) shuffledSeen.add(index)
+        discardPastPriorities()
         // Explicit Play Next wins over a forward retrace. Otherwise retrace
         // Previous's actual track before introducing a new shuffle pick.
         val queuedNext = manualNext.firstOrNull()?.let { wanted ->
@@ -219,6 +232,7 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
         index = target
         // Linear playback or explicit jump can reach pending priority itself.
         manualNext.remove(current?.url)
+        discardPastPriorities()
         return current
     }
 
@@ -231,6 +245,7 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
         }
         index = to
         manualNext.remove(current?.url)
+        discardPastPriorities()
         return current
     }
 
