@@ -82,6 +82,7 @@ on:
       - feature/nightwave-nw66-offline-integrity-recovery
       - feature/nightwave-nw67-playback-transition-reliability
       - feature/nightwave-nw68-audio-session-crossfade-safety
+      - feature/nightwave-nw69-queue-transition-consistency
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
