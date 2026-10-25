@@ -3080,7 +3080,8 @@ private fun StudioHome(
         item(key = "nightwave-premium-home-header") {
             NightWaveHomeHero(
                 greeting = NightWaveChromePolicy.greeting(java.time.LocalTime.now().hour),
-                displayName = profile.displayName
+                displayName = profile.displayName,
+                lastTrack = recent.firstOrNull()
             )
         }
         item {
