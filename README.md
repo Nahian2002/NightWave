@@ -2,13 +2,13 @@
 
 **Android audio-first music player · active development, private source · not yet public release-ready.**
 
-> **NW70 INTEGRATED SOURCE:** This branch stacks NightWave NW43–NW70. NW70 improves **Bangla/mixed-script search accuracy** by preserving Bengali vowel marks in saved/public matching, ranks duplicate saved URLs using their best available metadata, and debounces local saved/offline searches on a background dispatcher rather than the Compose UI thread. Older saved creators beyond the old 350-item scan limit can also appear in local suggestions. **2,424/2,424 exact-source Kotlin Unicode smoke assertions PASS; JUnit/Gradle, complete Android compilation and Samsung search responsiveness remain UNVERIFIED. Public APK/Play: NO-GO.** See [NW70 improvements and test plan](docs/NW70_LOCAL_SEARCH_UNICODE_PERFORMANCE.md) and [Release Readiness](RELEASE_READINESS.md).
+> **NW71 INTEGRATED SOURCE:** This cumulative branch stacks NightWave NW43–NW71. NW71 improves **Smart Library recommendations without invented content**: Favorites, Recent and playlist tracks receive fair bounded representation, `Rediscover your likes` excludes recent listening, and dynamic shelves reject invalid/noncanonical public links without modifying originals. Library playlist search can now find a containing playlist by an actual saved song or creator. **12,010/12,010 exact-source Kotlin/JVM Smart Library policy assertions PASS; full Android Gradle/JUnit build, on-device UX and Google OAuth error 8 remain UNVERIFIED. Public APK/Play: NO-GO.** See [NW71 details and testing](docs/NW71_SMART_LIBRARY_DISCOVERY.md) and [Release Readiness](RELEASE_READINESS.md).
 
 ### Current cumulative source
 
-Download **Code → Download ZIP** from `feature/nightwave-nw70-local-search-language-performance`, extract into a **clean new Windows folder**, and run `build-windows.cmd` when ready for integrated Android testing. Passing a Kotlin smoke test or PowerShell source guard is not a full Android build. After a complete successful build run `check-google-oauth.cmd` and `check-device-update.cmd` before installing over the existing Samsung app. **Never uninstall NightWave or erase offline songs to fix signing or OAuth problems.**
+Download **Code → Download ZIP** from `feature/nightwave-nw71-smart-library-discovery`, extract into a **clean Windows folder** and run `build-windows.cmd` when ready for complete Android testing. A standalone Kotlin source PASS is not a successful Android build. After the build succeeds, run `check-google-oauth.cmd` and `check-device-update.cmd` before installing an update over the existing Samsung app. **Do not uninstall NightWave, clear app data, or delete offline music to fix signing/OAuth errors.**
 
-Older NW43–NW69 notes are historical records, not NW70 device verification.
+Earlier NW43–NW70 phase notes document source progress, not NW71 device verification.
 
 ---
 
