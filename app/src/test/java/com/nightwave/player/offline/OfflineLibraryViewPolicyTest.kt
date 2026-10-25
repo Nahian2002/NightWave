@@ -19,6 +19,21 @@ class OfflineLibraryViewPolicyTest {
         }
     }
 
+    @Test fun compactFiltersKeepFullAccessibleLabels() {
+        val p = OfflineLibraryViewPolicy
+        assertTrue(p.label(OfflineLibraryViewPolicy.Filter.ATTENTION) == "Issues")
+        assertTrue(p.accessibilityLabel(OfflineLibraryViewPolicy.Filter.ATTENTION) == "Needs attention")
+        assertTrue(p.accessibilityLabel(OfflineLibraryViewPolicy.Filter.READY) == "Ready offline")
+    }
+
+    @Test fun summaryRemainsReadableAndDoesNotLeakInternalIndexDetails() {
+        val p = OfflineLibraryViewPolicy
+        assertTrue(p.summary(4, 20, 18, 2).contains("4 of 20 tracks"))
+        assertTrue(p.summary(4, 20, 18, 2).contains("2 need attention"))
+        assertTrue(p.summary(-2, 0, 0, 0).contains("0 of 0"))
+        assertTrue(!p.summary(4, 20, 18, 2).contains("indexed"))
+    }
+
     @Test fun emptyMessagesDistinguishLostFilesFromNoSavedSongs() {
         val p = OfflineLibraryViewPolicy
         assertTrue(p.emptyMessage(OfflineLibraryViewPolicy.Filter.ALL, false, false).contains("Import audio"))
