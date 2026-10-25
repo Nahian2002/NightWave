@@ -140,6 +140,7 @@ jobs:
           python3 tools/verify_source.py
           python3 tools/verify_nw40_stability.py --self-test
           python3 tools/verify_nw40_stability.py
+          python3 tools/nw40_pure_kotlin_smoke.py --self-test
           python3 tools/verify_nw01_recovery.py
           python3 tools/verify_nw02_sound_studio.py
           python3 tools/verify_nw03_account_hub.py
@@ -280,6 +281,7 @@ jobs:
       - name: Standalone Kotlin compiler smoke (when compiler present)
         run: |
           if command -v kotlinc >/dev/null 2>&1; then
+            python3 tools/nw40_pure_kotlin_smoke.py
             python3 tools/nw10_kotlin_smoke.py
             python3 tools/nw12_verified_kotlin.py
             python3 tools/nw22_audio_core_smoke.py
