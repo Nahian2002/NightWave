@@ -35,6 +35,7 @@ class OfflineLibraryActivity : ComponentActivity() {
     private lateinit var tracks: LinearLayout
     private lateinit var trackScroll: ScrollView
     private lateinit var state: TextView
+    private lateinit var storageSummary: TextView
     private lateinit var resumeControl: TextView
     private lateinit var sortControl: TextView
     private lateinit var playAllControl: TextView
@@ -103,8 +104,14 @@ class OfflineLibraryActivity : ComponentActivity() {
             setPadding(0, dp(20), 0, dp(4))
         })
         root.addView(label("Your saved audio · Ready without internet", 14f, 0xFFABB8CC.toInt()).apply {
-            setPadding(0, 0, 0, dp(15))
+            setPadding(0, 0, 0, dp(7))
         })
+        storageSummary = label("Checking offline storage…", 12f, 0xFF91E2D7.toInt()).apply {
+            maxLines = 2
+            setPadding(0, 0, 0, dp(10))
+            contentDescription = "Offline music storage and device free space"
+        }
+        root.addView(storageSummary, LinearLayout.LayoutParams(-1, -2))
         val search = EditText(this).apply {
             hint = "Search saved songs"
             setSingleLine(true)
@@ -345,6 +352,7 @@ class OfflineLibraryActivity : ComponentActivity() {
     private fun refresh() {
         val report = cachedReport ?: library.healthReport().also { cachedReport = it }
         if (!report.indexReadable) {
+            storageSummary.text = "Storage totals unavailable · offline index needs attention"
             tracks.removeAllViews()
             visibleSongs = emptyList()
             playableIds = emptySet()
@@ -359,6 +367,13 @@ class OfflineLibraryActivity : ComponentActivity() {
             return
         }
         val all = report.entries.map { it.song }
+        val availableEntries = report.entries.filter {
+            it.health == OfflineFileHealth.AVAILABLE
+        }
+        val importedBytes = availableEntries.sumOf { it.song.bytes.coerceAtLeast(0L) }
+        val freeBytes = runCatching { filesDir.usableSpace }.getOrDefault(-1L)
+        storageSummary.text = OfflineStorageSummary.label(
+            availableEntries.size, importedBytes, freeBytes, report.attentionCount)
         val healthById = report.entries.associate { it.song.id to it.health }
         playableIds = report.entries.asSequence()
             .filter { it.health == OfflineFileHealth.AVAILABLE }
