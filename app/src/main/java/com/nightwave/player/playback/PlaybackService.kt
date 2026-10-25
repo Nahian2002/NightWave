@@ -70,6 +70,7 @@ class PlaybackService : MediaLibraryService() {
         const val ACTION_PLAY_QUEUE = "com.nightwave.player.PLAY_QUEUE"
         const val EXTRA_QUEUE_DISPLAY_ORDER = "queue_display_order"
         const val ACTION_ENQUEUE = "com.nightwave.player.ENQUEUE"
+        const val ACTION_PLAY_NEXT = "com.nightwave.player.PLAY_NEXT"
         const val ACTION_REMOVE_UPCOMING = "com.nightwave.player.REMOVE_UPCOMING"
         const val ACTION_UNDO_REMOVE_UPCOMING = "com.nightwave.player.UNDO_REMOVE_UPCOMING"
         const val EXTRA_QUEUE_TOKEN = "queue_token"
@@ -1140,14 +1141,27 @@ class PlaybackService : MediaLibraryService() {
                     savedQueue.save(queue)
                 }
             }
-            ACTION_ENQUEUE -> {
-                val url = intent.getStringExtra(EXTRA_URLS)
-                if (url != null && QueueRestorePolicy.isCanonicalPublicWatchUrl(url)) {
-                    if (queue.add(QueueEntry(url,
+            ACTION_ENQUEUE, ACTION_PLAY_NEXT -> {
+                // Never enqueue an online item behind privately imported audio.
+                // Keep the two playback modes isolated and the current song intact.
+                if (!offlinePlaying) {
+                    val url = intent.getStringExtra(EXTRA_URLS)
+                    if (url != null && QueueRestorePolicy.isCanonicalPublicWatchUrl(url)) {
+                        val entry = QueueEntry(url,
                             intent.getStringExtra(EXTRA_TITLES).orEmpty(),
                             intent.getStringExtra(EXTRA_CREATORS).orEmpty(),
-                            intent.getStringExtra(EXTRA_ARTWORKS).orEmpty()))) {
-                        savedQueue.save(queue)
+                            intent.getStringExtra(EXTRA_ARTWORKS).orEmpty())
+                        val wasEmpty = queue.current == null
+                        val applied = if (intent.action == ACTION_PLAY_NEXT)
+                            queue.insertNext(entry) else queue.add(entry)
+                        if (applied) {
+                            savedQueue.save(queue)
+                            if (wasEmpty && intent.action == ACTION_PLAY_NEXT) {
+                                // Play Next on an empty queue behaves like Play Now.
+                                offlineQueue.reset()
+                                queue.current?.let { resolveAndPlay(it) }
+                            }
+                        }
                     }
                 }
             }
