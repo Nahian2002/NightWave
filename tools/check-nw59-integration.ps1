@@ -107,6 +107,17 @@ $relative = @(
     'app/src/main/java/com/nightwave/player/playback/OfflineDecodeRecoveryPolicy.kt',
     'app/src/main/java/com/nightwave/player/playback/PlaybackQueue.kt',
     'app/src/main/java/com/nightwave/player/offline/OfflinePlaybackQueue.kt',
+    'app/src/main/java/com/nightwave/player/net/SearchScriptNormalization.kt',
+    'app/src/main/java/com/nightwave/player/net/SearchRelevancePolicy.kt',
+    'app/src/main/java/com/nightwave/player/net/SavedTrackSearch.kt',
+    'app/src/main/java/com/nightwave/player/net/MusicIdentity.kt',
+    'app/src/main/java/com/nightwave/player/net/LocalSearchSuggestions.kt',
+    'app/src/test/java/com/nightwave/player/net/SearchRelevancePolicyTest.kt',
+    'app/src/test/java/com/nightwave/player/net/SavedTrackSearchTest.kt',
+    'app/src/test/java/com/nightwave/player/net/LocalSearchSuggestionsTest.kt',
+    'app/src/test/java/com/nightwave/player/net/SearchResultPresentationPolicyTest.kt',
+    'tools/NW70SearchSmoke.kt',
+    'docs/NW70_LOCAL_SEARCH_UNICODE_PERFORMANCE.md',
     'app/src/test/java/com/nightwave/player/offline/OfflineShuffleForwardNavigationTest.kt',
     'app/src/test/java/com/nightwave/player/playback/PublicQueuePastPriorityTest.kt',
     'tools/NW69QueueSmoke.kt',
@@ -207,7 +218,7 @@ $playback = [IO.File]::ReadAllText($files[$main + 'playback/PlaybackService.kt']
 $decode = [IO.File]::ReadAllText($files[$main + 'playback/OfflineDecodeRecoveryPolicy.kt'])
 Assert-NW59Has $playback 'OfflineDecodeRecoveryPolicy.belongsToSelection(' 'decoder error belongs to active selection'
 Assert-NW59Has $playback 'offlineDecodeFailedIds.add(selectedId!!)' 'bounded failed ID receipt'
-Assert-NW59Has $playback 'generation != atErrorGeneration' 'deferred recovery generation fence'
+Assert-NW59Has $playback 'atErrorGeneration = generation' 'capture deferred recovery generation before post'
 Assert-NW59Has $playback 'OfflineDecodeRecoveryPolicy.nextLinearIndex(' 'private linear fallback'
 Assert-NW59Has $playback 'OfflineDecodeRecoveryPolicy.safeShuffledIndex(' 'Media3 shuffle navigation'
 Assert-NW59Has $playback 'if (!automatic) offlineDecodeFailedIds.clear()' 'manual retry'
@@ -376,5 +387,34 @@ Assert-NW59Has $publicPriorityTests 'validFuturePrioritySurvivesJumpToEarlierSon
 $queueSmoke = [IO.File]::ReadAllText($files['tools/NW69QueueSmoke.kt'])
 Assert-NW59Has $queueSmoke 'fun main() {' 'reproducible pure Kotlin smoke'
 Assert-NW59Has $queueSmoke 'repeat(5_000)' 'deterministic queue index stress'
-Write-Host 'NW69 cumulative NW53-NW69 source guard PASS. Gradle/JVM/device QA still mandatory.'
+# NW70: Bangla vowel signs may never be dropped from saved/public search
+# keys. Local text indexing runs off the UI thread with stale-result fencing.
+$normalizer = [IO.File]::ReadAllText($files['app/src/main/java/com/nightwave/player/net/SearchScriptNormalization.kt'])
+$relevance = [IO.File]::ReadAllText($files['app/src/main/java/com/nightwave/player/net/SearchRelevancePolicy.kt'])
+$savedSearch = [IO.File]::ReadAllText($files['app/src/main/java/com/nightwave/player/net/SavedTrackSearch.kt'])
+$creators = [IO.File]::ReadAllText($files['app/src/main/java/com/nightwave/player/net/MusicIdentity.kt'])
+$suggestions = [IO.File]::ReadAllText($files['app/src/main/java/com/nightwave/player/net/LocalSearchSuggestions.kt'])
+$searchSmoke = [IO.File]::ReadAllText($files['tools/NW70SearchSmoke.kt'])
+$relevanceTests = [IO.File]::ReadAllText($files['app/src/test/java/com/nightwave/player/net/SearchRelevancePolicyTest.kt'])
+$savedSearchTests = [IO.File]::ReadAllText($files['app/src/test/java/com/nightwave/player/net/SavedTrackSearchTest.kt'])
+$suggestionTests = [IO.File]::ReadAllText($files['app/src/test/java/com/nightwave/player/net/LocalSearchSuggestionsTest.kt'])
+Assert-NW59Has $normalizer 'private val latinDiacritic' 'Latin-only accent folding'
+Assert-NW59Has $normalizer 'Normalizer.Form.NFC' 'recompose Bangla vowel marks'
+Assert-NW59Has $relevance 'SearchScriptNormalization.normalize(value)' 'shared search key'
+Assert-NW59Missing $relevance 'private val combining = Regex(' 'old all-script mark stripper'
+Assert-NW59Has $savedSearch 'val score = SearchRelevancePolicy.savedScore(prepared, track)' 'single metadata score'
+Assert-NW59Has $savedSearch '.distinctBy { it.first.url }' 'best-scoring saved URL'
+Assert-NW59Has $savedSearch 'if (limit <= 0) return emptyList()' 'zero limit returns zero results'
+Assert-NW59Has $activity 'val localSearch by produceState(' 'cancel stale local search state'
+Assert-NW59Has $activity 'delay(120L) // debounce typing' 'no repeated heavy scans per keystroke'
+Assert-NW59Has $activity 'value = withContext(Dispatchers.Default)' 'local ranking off UI thread'
+Assert-NW59Has $activity 'val savedMatches = localSearch.first' 'UI saved library uses latest background result'
+Assert-NW59Has $creators 'scanLimit: Int = 350' 'Home scan remains bounded'
+Assert-NW59Has $creators 'scanLimit.coerceAtMost(5_000)' 'explicit wider creator search bounded'
+Assert-NW59Has $suggestions 'limit = 12, scanLimit = 5_000' 'older creators are searchable'
+Assert-NW59Has $searchSmoke 'repeat(1_200)' 'repeatable Unicode normalization stress'
+Assert-NW59Has $relevanceTests 'banglaVowelSignsArePreservedAndRemainDistinct' 'Bangla vowel identity test'
+Assert-NW59Has $savedSearchTests 'duplicateUrlKeepsTheHighestRelevanceMetadata' 'saved URL duplicate ranking test'
+Assert-NW59Has $suggestionTests 'creatorsPastTheOld350ItemCutoffAreDiscoverableLocally' 'older creator regression'
+Write-Host 'NW70 cumulative NW53-NW70 source guard PASS. Gradle/JVM/device QA still mandatory.'
 exit 0
