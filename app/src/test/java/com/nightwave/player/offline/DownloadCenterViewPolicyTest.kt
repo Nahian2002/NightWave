@@ -10,17 +10,17 @@ import org.junit.Test
 class DownloadCenterViewPolicyTest {
     @Test fun statusDependsOnActualFileNotWorkManagerSuccessAlone() {
         val p = DownloadCenterViewPolicy
-        assertTrue(p.matches(p.Filter.READY, "SUCCEEDED", true))
-        assertFalse(p.matches(p.Filter.READY, "SUCCEEDED", false))
-        assertTrue(p.matches(p.Filter.ATTENTION, "SUCCEEDED", false))
-        assertTrue(p.matches(p.Filter.ATTENTION, "FAILED", false))
-        assertTrue(p.matches(p.Filter.ATTENTION, "CANCELLED", false))
-        assertFalse(p.matches(p.Filter.ATTENTION, "RUNNING", false))
+        assertTrue(p.matches(DownloadCenterViewPolicy.Filter.READY, "SUCCEEDED", true))
+        assertFalse(p.matches(DownloadCenterViewPolicy.Filter.READY, "SUCCEEDED", false))
+        assertTrue(p.matches(DownloadCenterViewPolicy.Filter.ATTENTION, "SUCCEEDED", false))
+        assertTrue(p.matches(DownloadCenterViewPolicy.Filter.ATTENTION, "FAILED", false))
+        assertTrue(p.matches(DownloadCenterViewPolicy.Filter.ATTENTION, "CANCELLED", false))
+        assertFalse(p.matches(DownloadCenterViewPolicy.Filter.ATTENTION, "RUNNING", false))
         for (state in listOf("ENQUEUED", "RUNNING", "BLOCKED")) {
-            assertTrue(p.matches(p.Filter.ACTIVE, state, false))
-            assertFalse(p.matches(p.Filter.READY, state, true))
+            assertTrue(p.matches(DownloadCenterViewPolicy.Filter.ACTIVE, state, false))
+            assertFalse(p.matches(DownloadCenterViewPolicy.Filter.READY, state, true))
         }
-        assertTrue(p.matches(p.Filter.ALL, "UNKNOWN", false))
+        assertTrue(p.matches(DownloadCenterViewPolicy.Filter.ALL, "UNKNOWN", false))
     }
 
     @Test fun percentCannotOverflowOrMisreportInvalidTotals() {
@@ -45,8 +45,8 @@ class DownloadCenterViewPolicyTest {
 
     @Test fun emptyScreensTellTheTruth() {
         val p = DownloadCenterViewPolicy
-        assertTrue(p.emptyMessage(p.Filter.ACTIVE).contains("No active"))
-        assertTrue(p.emptyMessage(p.Filter.READY).contains("No verified"))
-        assertTrue(p.emptyMessage(p.Filter.ATTENTION).contains("No failed"))
+        assertTrue(p.emptyMessage(DownloadCenterViewPolicy.Filter.ACTIVE).contains("No active"))
+        assertTrue(p.emptyMessage(DownloadCenterViewPolicy.Filter.READY).contains("No verified"))
+        assertTrue(p.emptyMessage(DownloadCenterViewPolicy.Filter.ATTENTION).contains("No failed"))
     }
 }
