@@ -68,7 +68,8 @@ class CatalogDownloadWorker(
                     throw IOException("Download cancelled")
                 }
                 val now = SystemClock.elapsedRealtime()
-                if (now - lastUi >= 700L || received == total || lastBytes < 0) {
+                if (now - lastUi >= 700L || received == total || lastBytes < 0 ||
+                    received < lastBytes) {
                     lastUi = now
                     lastBytes = received
                     setProgressAsync(Data.Builder()
