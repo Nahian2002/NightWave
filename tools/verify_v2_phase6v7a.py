@@ -123,8 +123,8 @@ def hide_only_changes_visibility(source: str) -> bool:
         return False
     handler = source[begin:end]
     return ("onHide()" in handler and
-        re.search(r"\\bactions\\s*\\.|\\b(?:pause|stop)\\s*\\(|"
-                  r"startService\\s*\\(|ACTION_(?:PAUSE|STOP)", handler, re.I) is None)
+        re.search(r"\bactions\s*\.|\b(?:pause|stop)\s*\(|"
+                  r"startService\s*\(|ACTION_(?:PAUSE|STOP)", handler, re.I) is None)
 
 
 def audit(root: Path) -> list[str]:
@@ -163,11 +163,11 @@ def self_test() -> None:
             dest.write_text("\n".join(strings), encoding="utf-8")
         mini_fixture = root / (MAIN + "StudioPlayerScreens.kt")
         mini_source = mini_fixture.read_text(encoding="utf-8")
-        mini_source += (\
-            '\\nIconButton(onClick = { onHide() }, modifier = Modifier.size(48.dp)) {'
-            '\\n  Icon(Icons.Outlined.Close,'
-            '\\n       contentDescription = "Hide mini-player; music keeps playing")'
-            '\\n}\\n'
+        mini_source += (
+            '\nIconButton(onClick = { onHide() }, modifier = Modifier.size(48.dp)) {'
+            '\n  Icon(Icons.Outlined.Close,'
+            '\n       contentDescription = "Hide mini-player; music keeps playing")'
+            '\n}\n'
         )
         mini_fixture.write_text(mini_source, encoding="utf-8")
         for path, (minimum, methods) in TESTS.items():
