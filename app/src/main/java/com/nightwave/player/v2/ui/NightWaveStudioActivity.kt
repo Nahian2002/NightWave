@@ -2884,7 +2884,7 @@ private fun StudioRoot(
                         color = MaterialTheme.colorScheme.surfaceVariant,
                         shape = RoundedCornerShape(13.dp),
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp)
-                            .height(40.dp)) {
+                            .height(48.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center) {
                             Icon(Icons.Outlined.PlayArrow,
