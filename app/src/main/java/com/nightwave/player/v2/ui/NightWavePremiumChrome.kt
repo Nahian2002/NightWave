@@ -1,5 +1,7 @@
 package com.nightwave.player.v2.ui
 
+import android.view.HapticFeedbackConstants
+
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -47,6 +49,7 @@ import coil.compose.AsyncImage
 import com.nightwave.player.net.VideoPreview
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -67,6 +70,7 @@ fun NightWavePremiumNavigation(
     onNavigate: (Int) -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
+    val hapticView = LocalView.current
     val fontScale = LocalDensity.current.fontScale
     val navHeight = NightWaveAdaptiveChromePolicy.navHeightDp(fontScale).dp
     val extraLargeText = fontScale >= 1.6f
@@ -107,27 +111,43 @@ fun NightWavePremiumNavigation(
                 val iconScale by animateFloatAsState(
                     targetValue = NightWaveMotionPolicy.tabScale(active, reducedMotion),
                     animationSpec = if (reducedMotion) snap() else spring(
-                        dampingRatio = .76f, stiffness = 510f),
+                        dampingRatio = .88f, stiffness = 600f),
                     label = "NightWave tab spring"
+                )
+                val indicatorProgress by animateFloatAsState(
+                    targetValue = if (active) 1f else 0f,
+                    animationSpec = if (reducedMotion) snap() else tween(
+                        durationMillis = NightWaveMotionPolicy.duration(
+                            false, NightWaveMotionPolicy.FEEDBACK_MS)),
+                    label = "NightWave tab indicator"
                 )
                 Box(
                     modifier = Modifier.weight(1f).fillMaxHeight()
                         .clip(RoundedCornerShape(18.dp))
                         .background(color)
-                        .clickable(role = Role.Tab) { onNavigate(index) }
+                        .clickable(role = Role.Tab) {
+                            if (NightWaveMotionPolicy.tabHaptic(selectedIndex, index,
+                                    names.size, reducedMotion)) {
+                                // Android handles device/user haptic preference.
+                                hapticView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                            }
+                            if (!active) onNavigate(index)
+                        }
                         .semantics { selected = active }
                         .testTag("nightwave-tab-" + tags[index]),
                     contentAlignment = Alignment.Center
                 ) {
-                    if (active) {
-                        Box(
-                            modifier = Modifier.align(Alignment.TopCenter)
-                                .padding(top = 1.dp)
-                                .size(width = 25.dp, height = 3.dp)
-                                .clip(CircleShape)
-                                .background(colors.primary)
-                        )
-                    }
+                    Box(
+                        modifier = Modifier.align(Alignment.TopCenter)
+                            .padding(top = 1.dp)
+                            .size(width = 25.dp, height = 3.dp)
+                            .graphicsLayer {
+                                alpha = indicatorProgress
+                                scaleX = indicatorProgress
+                            }
+                            .clip(CircleShape)
+                            .background(colors.primary)
+                    )
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
