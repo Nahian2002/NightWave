@@ -3316,6 +3316,10 @@ private fun StudioSearch(
             query, mode, state.videos)
         else SearchResultPresentationPolicy.Groups(emptyList(), emptyList())
     }
+    // All public-result groups share one user-intent playback command.
+    val playSinglePublic = { selected: VideoPreview ->
+        onPlay(selected, listOf(selected))
+    }
     LazyColumn(
         modifier.fillMaxWidth().widthIn(max = 740.dp).fillMaxHeight(),
         contentPadding = PaddingValues(start = 19.dp, end = 19.dp,
@@ -3689,7 +3693,7 @@ private fun StudioSearch(
                     MusicTrackTile(song, isPlaying = playingUrl == song.url,
                         surface = NightWaveTrackSurface.SEARCH,
                         onOptions = { onSongOptions(song) },
-                        onClick = { onPlay(song, listOf(song)) })
+                        onClick = { playSinglePublic(song) })
                 }
             }
             if (publicGroups.moreResults.isNotEmpty()) {
@@ -3703,7 +3707,7 @@ private fun StudioSearch(
                     MusicTrackTile(song, isPlaying = playingUrl == song.url,
                         surface = NightWaveTrackSurface.SEARCH,
                         onOptions = { onSongOptions(song) },
-                        onClick = { onPlay(song, listOf(song)) })
+                        onClick = { playSinglePublic(song) })
                 }
             }
         } else if (responseMatchesQuery && state.error.isNotBlank()) {
