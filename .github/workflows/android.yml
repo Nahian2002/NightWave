@@ -79,6 +79,7 @@ on:
       - feature/nightwave-nw63-download-history-navigation
       - feature/nightwave-nw64-download-refresh-performance
       - feature/nightwave-nw65-download-recovery-safety
+      - feature/nightwave-nw66-offline-integrity-recovery
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
