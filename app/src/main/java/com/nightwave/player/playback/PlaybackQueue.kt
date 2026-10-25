@@ -22,7 +22,8 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
                 // linear Previous or a new Shuffle session.
                 visited.clear()
                 shuffledSeen.clear()
-                manualNext.clear()
+                // Shuffle mode changes must not erase explicit Play Next
+                // choices. Those selections are not random history.
             }
         }
     var repeat: Repeat = Repeat.OFF
