@@ -116,7 +116,7 @@ class QueueStateStore(context: Context) {
         queue.priorityNextUrls().filter { url ->
             QueueRestorePolicy.isCanonicalPublicWatchUrl(url) &&
                 entries.indexOfFirst { it.url == url } > selectedIndex
-        }.take(100).forEach(priority::put)
+        }.take(100).forEach { priority.put(it) }
         val state = JSONObject().put("tracks", tracks).put("index", selectedIndex)
             .put("selected_url", selectedUrl.orEmpty())
             .put("shuffle", queue.shuffle).put("repeat", queue.repeat.name)
