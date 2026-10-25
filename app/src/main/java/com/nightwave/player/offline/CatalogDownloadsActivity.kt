@@ -49,6 +49,7 @@ class CatalogDownloadsActivity : ComponentActivity() {
     // only one pending UI paint and always read the newest lists when it runs.
     private var refreshScheduled = false
     private var lastPaintedAtMs = -1L
+    private var scrollRestoreGeneration = 0
     private var displayedFilter: DownloadCenterViewPolicy.Filter? = null
     private val coalescedRefresh = Runnable {
         refreshScheduled = false
@@ -289,6 +290,7 @@ class CatalogDownloadsActivity : ComponentActivity() {
     private fun render(infos: List<WorkInfo>) {
         if (isFinishing || isDestroyed) return
         lastPaintedAtMs = SystemClock.elapsedRealtime()
+        val scrollTicket = ++scrollRestoreGeneration
         val originalPosition = if (resetHistoryScroll) 0
             else if (::scroll.isInitialized) scroll.scrollY else 0
         resetHistoryScroll = false
@@ -399,14 +401,21 @@ class CatalogDownloadsActivity : ComponentActivity() {
             historyPage, filteredJobs.size)
         val pageStart = DownloadHistoryPagePolicy.offset(
             historyPage, filteredJobs.size)
-        val visibleJobs = filteredJobs.subList(pageStart,
-            minOf(filteredJobs.size, pageStart + DownloadHistoryPagePolicy.PAGE_SIZE))
+        // Clamp using remaining length so even a very large history cannot
+        // overflow pageStart + PAGE_SIZE.
+        val pageEnd = pageStart + minOf(DownloadHistoryPagePolicy.PAGE_SIZE,
+            filteredJobs.size - pageStart)
+        val visibleJobs = filteredJobs.subList(pageStart, pageEnd)
         if (visibleJobs.isEmpty()) {
             entries.addView(label(
                 if (verifyingFiles) "Checking saved audio files…"
                 else if (fileCheckFailed) "Saved-file verification unavailable"
                 else DownloadCenterViewPolicy.emptyMessage(currentFilter),
                 14f, 0xFFB7CAD4.toInt()).apply { setPadding(dp(4), dp(15), 0, 0) })
+            scroll.post {
+                if (!isFinishing && !isDestroyed &&
+                    scrollTicket == scrollRestoreGeneration) scroll.scrollTo(0, 0)
+            }
             return
         }
         visibleJobs.forEach { info ->
@@ -708,7 +717,10 @@ class CatalogDownloadsActivity : ComponentActivity() {
             })
         }
         scroll.post {
-            if (!isFinishing && !isDestroyed) scroll.scrollTo(0, originalPosition)
+            // Older queued restorations must never override newer UI state.
+            if (!isFinishing && !isDestroyed &&
+                scrollTicket == scrollRestoreGeneration &&
+                scroll.scrollY != originalPosition) scroll.scrollTo(0, originalPosition)
         }
     }
 
