@@ -63,10 +63,16 @@ object MusicIdentity {
     }
 
     /** Counts DISTINCT, actually saved/recent public videos, never inferred plays. */
-    fun creatorsFrom(tracks: List<VideoPreview>, limit: Int = 8): List<SavedCreatorShortcut> {
-        if (limit <= 0) return emptyList()
+    fun creatorsFrom(
+        tracks: List<VideoPreview>, limit: Int = 8, scanLimit: Int = 350
+    ): List<SavedCreatorShortcut> {
+        if (limit <= 0 || scanLimit <= 0) return emptyList()
         val names = linkedMapOf<String, Pair<String, Int>>()
-        tracks.take(350).distinctBy { it.url }.forEach { video ->
+        // The usual Home shortcuts stay at the existing 350-item budget.
+        // NW70 can explicitly scan more saved references on a background
+        // dispatcher, without silently losing creators past item 350.
+        tracks.take(scanLimit.coerceAtMost(5_000))
+            .distinctBy { it.url }.forEach { video ->
             val label = display(video.title, video.author).artistOrCreator.trim()
             val normalized = label.lowercase(Locale.ROOT)
             if (normalized.isBlank() || normalized in genericCreators) return@forEach
