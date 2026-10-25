@@ -304,6 +304,11 @@ jobs:
           python3 tools/verify_v2_phase6v7b.py --self-test
           python3 tools/verify_v2_phase6v7b.py
           python3 tools/ci_compile_summary.py --self-test
+      - name: Windows source guard cross-check on hosted PowerShell
+        shell: pwsh
+        run: |
+          ./tools/check-nw52-integration.ps1 -SelfTest
+          ./tools/check-nw52-integration.ps1 -ProjectRoot .
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
