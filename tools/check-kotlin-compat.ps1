@@ -43,6 +43,27 @@ function Test-QualifiedFilterEnum([string]$Body, [string]$PolicyType) {
         $Body.Contains(($PolicyType + '.Filter.')))
 }
 
+function Test-CloudDriveHttpDiagnosticContract([string]$PolicySource, [string]$TestSource) {
+    # The same numeric value is formatted differently for Drive HTTP vs Google
+    # Sign-In. Do not change production messages to satisfy a stale JVM test.
+    if (-not $PolicySource.Contains('else -> "Drive account verification failed (HTTP $code).')) {
+        return $false
+    }
+    if (-not $TestSource.Contains('assertTrue(output.contains("HTTP 99"))') -or
+        $TestSource.Contains('assertTrue(output.contains("(99)"))')) {
+        return $false
+    }
+    foreach ($guard in @(
+        'assertFalse(output.contains("authorization error"))',
+        'assertFalse(output.contains("Bearer"))',
+        'assertFalse(output.contains("Authorization:"))',
+        'assertFalse(output.contains("accessToken"))'
+    )) {
+        if (-not $TestSource.Contains($guard)) { return $false }
+    }
+    return $true
+}
+
 if ($SelfTest) {
     if (-not (Test-NightWaveGreeting '"Welcome, " + firstName + "good"')) {
         throw 'Valid Home greeting concatenation was rejected.'
@@ -81,6 +102,23 @@ if ($SelfTest) {
     if (Test-QualifiedFilterEnum 'p.Filter.READY' 'DownloadCenterViewPolicy') {
         throw 'Invalid Kotlin p.Filter nested enum reference was accepted.'
     }
+    $safeHttpPolicy = 'else -> "Drive account verification failed (HTTP $code).'
+    $safeHttpTests = @(
+        'assertTrue(output.contains("HTTP 99"))',
+        'assertFalse(output.contains("authorization error"))',
+        'assertFalse(output.contains("Bearer"))',
+        'assertFalse(output.contains("Authorization:"))',
+        'assertFalse(output.contains("accessToken"))'
+    ) -join [Environment]::NewLine
+    if (-not (Test-CloudDriveHttpDiagnosticContract $safeHttpPolicy $safeHttpTests)) {
+        throw 'Valid Drive HTTP test contract was incorrectly rejected.'
+    }
+    if (Test-CloudDriveHttpDiagnosticContract $safeHttpPolicy (
+        $safeHttpTests.Replace('assertTrue(output.contains("HTTP 99"))',
+            'assertTrue(output.contains("(99)"))'))) {
+        throw 'Stale Drive HTTP 99 assertion was not detected.'
+    }
+    Write-Host 'PASS: Drive verification HTTP status and credential safety source test.'
     Write-Host 'PASS: Filter enum references use the declaring Kotlin object type.'
     Write-Host 'PASS: Compose animation delegates require runtime.getValue when using by.'
     Write-Host 'PASS: Kotlin import checker distinguishes case and detects genuine duplicates.'
@@ -184,6 +222,21 @@ foreach ($tuple in @(
         $issues.Add(('Invalid enum qualification in ' + $tuple[0] +
             ': replace p.Filter with ' + $tuple[1] + '.Filter'))
     }
+}
+
+# NW52 2026-10-25 real JVM test failure: a Drive HTTP 99 diagnostic
+# must be asserted as "HTTP 99", not the Google Sign-In status "(99)".
+$cloudPolicy = Join-Path $sourceRoot 'main/java/com/nightwave/player/v2/cloud/CloudAuthorizationFailurePolicy.kt'
+$cloudTest = Join-Path $sourceRoot 'test/java/com/nightwave/player/v2/cloud/CloudAuthorizationFailurePolicyTest.kt'
+if ((Test-Path -LiteralPath $cloudPolicy -PathType Leaf) -and
+    (Test-Path -LiteralPath $cloudTest -PathType Leaf)) {
+    $cloudPolicySource = [System.IO.File]::ReadAllText($cloudPolicy)
+    $cloudTestSource = [System.IO.File]::ReadAllText($cloudTest)
+    if (-not (Test-CloudDriveHttpDiagnosticContract $cloudPolicySource $cloudTestSource)) {
+        $issues.Add('NW52 Google Drive test must expect HTTP 99 and forbid credential/token leakage.')
+    }
+} else {
+    $issues.Add('NW52 CloudAuthorizationFailurePolicy Kotlin source/tests missing.')
 }
 
 # 2026-10-19 Gradle unit-test Kotlin type regressions.
