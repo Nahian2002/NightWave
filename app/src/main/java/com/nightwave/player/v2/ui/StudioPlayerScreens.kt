@@ -4,6 +4,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
@@ -91,6 +93,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.graphics.Brush
@@ -142,11 +145,19 @@ fun StudioMiniPlayer(
     val health = PlaybackHealthPolicy.classify(state.hasTrack, state.connected,
         state.offline, state.playing, state.buffering, state.resolving, state.error)
     val identity = MusicIdentity.display(state.title, state.artist)
+    val reducedMotion = LocalNightWaveReduceMotion.current
+    val miniScale by animateFloatAsState(
+        targetValue = NightWaveMotionPolicy.artworkScale(state.playing, reducedMotion),
+        animationSpec = if (reducedMotion) snap() else spring(
+            dampingRatio = .78f, stiffness = 500f),
+        label = "Mini player artwork motion"
+    )
     var travel by remember(state.videoUrl) { mutableStateOf(0f) }
     Column(
-        modifier = modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 2.dp)
+        modifier = modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 3.dp)
             .testTag("nightwave-mini-player")
-            .clip(RoundedCornerShape(16.dp))
+            .shadow(8.dp, RoundedCornerShape(19.dp))
+            .clip(RoundedCornerShape(19.dp))
             .background(
                 Brush.horizontalGradient(listOf(
                     NightWaveVisualLanguage.accent(state.videoUrl).copy(alpha = .20f),
@@ -203,7 +214,11 @@ fun StudioMiniPlayer(
                     horizontalArrangement = Arrangement.spacedBy(9.dp)
                 ) {
                     CoverArt(state.thumbnail, Modifier.size(
-                        if (fontScale >= 1.3f) 44.dp else 38.dp), 9)
+                        if (fontScale >= 1.3f) 44.dp else 40.dp)
+                        .graphicsLayer {
+                            scaleX = miniScale
+                            scaleY = miniScale
+                        }, 11)
                     Column(Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(if (state.title.isBlank()) "Restoring your last track…"
@@ -338,6 +353,13 @@ fun StudioNowPlayingOverlay(
                 maxWidth.value, maxHeight.value, fontScale).dp
             val canSwipeArtwork = state.connected && !state.buffering && state.queue.size > 1
             var horizontalTravel by remember(state.videoUrl) { mutableStateOf(0f) }
+            val playingArtworkScale by animateFloatAsState(
+                targetValue = NightWaveMotionPolicy.artworkScale(
+                    state.playing, reduceMotion),
+                animationSpec = if (reduceMotion) snap() else spring(
+                    dampingRatio = .78f, stiffness = 310f),
+                label = "Now Playing artwork spring"
+            )
             var lyricsOpen by remember(state.videoUrl) { mutableStateOf(false) }
             var lyricsGuideOpen by remember(state.videoUrl) { mutableStateOf(false) }
             var lyricsImmersive by remember(state.videoUrl) { mutableStateOf(false) }
@@ -576,7 +598,12 @@ fun StudioNowPlayingOverlay(
                 }
                 Spacer(Modifier.height(3.dp))
                 Box(
-                    Modifier.size(art).clip(RoundedCornerShape(22.dp))
+                    Modifier.size(art)
+                        .graphicsLayer {
+                            scaleX = playingArtworkScale
+                            scaleY = playingArtworkScale
+                        }
+                        .clip(RoundedCornerShape(24.dp))
                         .background(colors.surfaceVariant)
                         .border(1.dp,
                             NightWaveVisualLanguage.accent(state.videoUrl).copy(alpha = .46f),
