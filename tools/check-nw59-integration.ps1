@@ -124,6 +124,14 @@ $relative = @(
     'app/src/main/java/com/nightwave/player/offline/DownloadHistoryPagePolicy.kt',
     'app/src/main/java/com/nightwave/player/offline/DownloadRefreshPolicy.kt',
     'app/src/main/java/com/nightwave/player/offline/DownloadRecoveryPolicy.kt',
+    'app/src/main/java/com/nightwave/player/offline/OfflineTransferCompletionPolicy.kt',
+    'app/src/test/java/com/nightwave/player/offline/OfflineTransferCompletionPolicyTest.kt',
+    'app/src/main/java/com/nightwave/player/offline/PermittedAudioDownloader.kt',
+    'app/src/main/java/com/nightwave/player/offline/OfflineSaveStoragePolicy.kt',
+    'app/src/main/java/com/nightwave/player/offline/CatalogDownloadWorker.kt',
+    'app/src/main/java/com/nightwave/player/offline/DirectAudioDownloadWorker.kt',
+    'app/src/main/java/com/nightwave/player/offline/SearchTrackSaveWorker.kt',
+    'docs/NW66_OFFLINE_INTEGRITY_AND_RECOVERY.md',
     'app/src/test/java/com/nightwave/player/offline/DownloadRecoveryPolicyTest.kt',
     'docs/NW65_DOWNLOAD_RECOVERY_SAFETY.md',
     'app/src/test/java/com/nightwave/player/offline/DownloadRefreshPolicyTest.kt',
@@ -266,5 +274,29 @@ Assert-NW59Has $downloads 'Existing in-progress work may be reused.' 'honest uni
 Assert-NW59Has $recoveryTests 'workFailureCannotDisplaySecretUrlsOrLocalPaths' 'secret redaction tests'
 Assert-NW59Has $recoveryTests 'pausedOnlyAfterWorkManagerReportsCancelled' 'cancel lifecycle tests'
 Assert-NW59Missing $downloads 'else CatalogDownloadQueue.KEY_ERROR\n                        }).orEmpty()' 'raw failed worker message'
-Write-Host 'NW65 cumulative NW53-NW65 source guard PASS. Gradle/JVM/device QA still mandatory.'
+# NW66: all source types preserve space for the verified second private copy;
+# every WorkManager success needs an independently indexed and readable file.
+$completion = [IO.File]::ReadAllText($files['app/src/main/java/com/nightwave/player/offline/OfflineTransferCompletionPolicy.kt'])
+$completionTests = [IO.File]::ReadAllText($files['app/src/test/java/com/nightwave/player/offline/OfflineTransferCompletionPolicyTest.kt'])
+$downloader = [IO.File]::ReadAllText($files['app/src/main/java/com/nightwave/player/offline/PermittedAudioDownloader.kt'])
+$catalogWorker = [IO.File]::ReadAllText($files['app/src/main/java/com/nightwave/player/offline/CatalogDownloadWorker.kt'])
+$directWorker = [IO.File]::ReadAllText($files['app/src/main/java/com/nightwave/player/offline/DirectAudioDownloadWorker.kt'])
+$searchedWorker = [IO.File]::ReadAllText($files['app/src/main/java/com/nightwave/player/offline/SearchTrackSaveWorker.kt'])
+$storagePolicy = [IO.File]::ReadAllText($files['app/src/main/java/com/nightwave/player/offline/OfflineSaveStoragePolicy.kt'])
+Assert-NW59Has $completion '!wasStopped && !savedId.isNullOrBlank()' 'stopped or missing result cannot succeed'
+Assert-NW59Has $completion 'savedId in verifiedAvailableIds' 'indexed file proof'
+Assert-NW59Has $completionTests 'stopAfterImportCannotFalselyMarkWorkSuccessful' 'post-import race regression'
+Assert-NW59Has $downloader 'OfflineSaveStoragePolicy.canStart(' 'all-type transfer start storage guard'
+Assert-NW59Has $downloader 'OfflineSaveStoragePolicy.canContinue(' 'all-type transfer continuation guard'
+Assert-NW59Missing $downloader 'if (searchAudioOnly &&' 'search-only headroom check'
+Assert-NW59Has $storagePolicy 'availableBytes >= alreadyStagedBytes + MIN_FREE_BYTES' 'second copy reserve'
+foreach ($worker in @($catalogWorker, $directWorker, $searchedWorker)) {
+    Assert-NW59Has $worker 'OfflineAudioLibrary(applicationContext)' 'worker verifies indexed library'
+    Assert-NW59Has $worker '.availableIds(setOf(saved.id))' 'worker checks saved ID'
+    Assert-NW59Has $worker 'OfflineTransferCompletionPolicy.canCommit(isStopped, saved.id, verified)' 'verified completion gate'
+    Assert-NW59Has $worker 'OfflineTransferCompletionPolicy.NOT_VERIFIED' 'non-destructive failure guidance'
+}
+Assert-NW59Has $recoveryPolicy '"saved audio could not be verified" in text' 'post-import warning category'
+Assert-NW59Has $recoveryPolicy '"not enough private storage" in text' 'direct/catalog storage messages'
+Write-Host 'NW66 cumulative NW53-NW66 source guard PASS. Gradle/JVM/device QA still mandatory.'
 exit 0
