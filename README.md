@@ -1,5 +1,8 @@
 # NightWave
 
+> **NW40 — STABILITY INTEGRATION (SOURCE-ONLY CHECKS PASS, FULL ANDROID BUILD BLOCKED, 25 October 2026).** [NW40 source](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-nw40-stability-integration): strict search-history corruption preservation, safer legacy pin refresh, crash-guarded song options, fresh-source checks before bulk copy, test-isolated search-history instrumentation, and `tools/verify_nw40_stability.py` (17/17 source checks). **Android/JVM Gradle build and physical-device QA are still unverified** because [the CI job](https://github.com/Nahian2002/NightWave/actions/runs/40177499450) ended without a runner or executed steps. Do not install over existing music data without build/signing verification. [Read NW40 test plan](docs/NW40_STABILITY_INTEGRATION_AND_BUILD_GATE.md).
+
+
 > **NW39 — ATOMIC PLAYLIST EDITS, DRAG-TO-REORDER & UNDO (SOURCE PATCH; DEVICE QA PENDING, 25 October 2026).** [NW39 branch](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-nw39-atomic-playlist-edits) adds guarded multi-song Copy/Remove, saved-order drag handle and accessible move buttons, plus one-level conflict-safe Undo for playlist edits. Writes use the existing single-writer recovery-protected transaction, without deleting favorites/offline audio or changing the serverless architecture. **Standalone drag-policy Kotlin compile + 10 assertions passed; Android/JVM Gradle suites not executed and full app build NOT VERIFIED (runner unavailable).** [NW39 QA and scope](docs/NW39_ATOMIC_PLAYLIST_EDITS_AND_UNDO.md).
 
 
