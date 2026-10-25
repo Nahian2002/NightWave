@@ -19,8 +19,9 @@ All three download types already created random private `.pending` staging files
 
 ## Test coverage and limitations
 
+- Compiled the exact committed `OfflineTransferCompletionPolicy.kt` and `DownloadRecoveryPolicy.kt` with local `kotlinc` and ran **109/109 standalone JVM smoke assertions**. Confirmed Git blob SHA-1 parity: completion `6518fed83fabfe6a5ca39fa4cff2355b7bf42ca0`, recovery `cc253779c590f3c870d36df3f489a716bd0db6a4`. The smoke exercises completion gates across stopped/available/missing combinations, lifecycle pause statuses and redacted/idempotent error categories. A failed intermediate smoke uncovered an already-sanitized recovery message losing its category; fixed and retested to 109/109 PASS.
 - Added `OfflineTransferCompletionPolicyTest.kt` covering current valid ID, stopped job, missing ID, wrong indexed ID and ambiguous/unavailable verification status.
-- Extended `DownloadRecoveryPolicyTest.kt` with safe post-import recovery and private-storage messages.
+- Extended `DownloadRecoveryPolicyTest.kt` with safe post-import recovery, private-storage messages and idempotent worker/UI classification. These JUnit suites are **not yet run under Android Gradle**.
 - Extended the Windows cumulative PowerShell preflight to assert that **all three workers** use the final file check; the downloader applies both free-space checkpoints without search-only gating; and the new policy/tests exist.
 - **Source presence checks and GitHub readback** do not prove Android compilation, network behavior, file-system race safety, MediaExtractor behavior or full data durability. Actual Android Gradle/JUnit and physical-device QA remain mandatory.
 - No automatic cleanup of other pending files was added. A stale file may belong to an active worker; deleting it without knowing ownership could corrupt a concurrent transfer. Each existing download continues to clean up only its own temporary file via `finally`.
