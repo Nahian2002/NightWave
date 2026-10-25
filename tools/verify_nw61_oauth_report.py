@@ -38,7 +38,6 @@ def verify(script: str, launcher: str, builder: str, syntax: str) -> None:
             "INCONCLUSIVE - no current verified APK",
             "check-device-update.cmd",
             "Google Drive API",
-            "never",  # see placeholder replacement below
         ),
         "launcher": (
             'check-google-oauth.ps1" -SelfTest',
@@ -59,8 +58,6 @@ def verify(script: str, launcher: str, builder: str, syntax: str) -> None:
     }
     for name, words in needed.items():
         for token in words:
-            if token == "never":
-                continue
             if token not in sources[name]:
                 raise AssertionError(name + " missing " + repr(token))
 
