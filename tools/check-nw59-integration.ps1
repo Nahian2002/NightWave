@@ -118,12 +118,16 @@ $relative = @(
     'tools/verify_nw57_home.py',
     'tools/verify_nw58_overlay.py',
     'tools/verify_nw60_offline_recovery.py',
+    'tools/verify_nw61_oauth_report.py',
+    'tools/check-google-oauth.ps1',
+    'check-google-oauth.cmd',
     'docs/NW53_GOOGLE_RECOVERY_UX.md',
     'docs/NW54_SEARCH_CLARITY.md',
     'docs/NW55_OFFLINE_DOWNLOAD_VISUAL_POLISH.md',
     'docs/NW56_THEME_CONTRAST.md',
     'docs/NW57_HOME_FIRST_FOLD.md',
-    'docs/NW58_PLAYER_OVERLAY.md'
+    'docs/NW58_PLAYER_OVERLAY.md',
+    'docs/NW61_GOOGLE_OAUTH_SETUP.md'
 )
 $files = @{}
 foreach ($name in $relative) {
@@ -178,5 +182,12 @@ Assert-NW59Has $playback 'if (player.playbackState == Player.STATE_IDLE) player.
 Assert-NW59Has $decode 'ids[at] !in alreadyFailed' 'no repeated failed offline ID'
 Assert-NW59Has $decode 'ids[it] !in alreadyFailed' 'shuffle does not retry failed ID'
 Assert-NW59Missing $playback 'if (offlinePlaying || queue.current?.url != video) return' 'silent offline decode error'
-Write-Host 'NW60 cumulative NW53-NW60 source guard PASS. Gradle/JVM/device QA still mandatory.'
+# NW61 local OAuth fingerprint may only describe a verified, current APK.
+$oauthSource = [IO.File]::ReadAllText($files['tools/check-google-oauth.ps1'])
+Assert-NW59Has $oauthSource 'Test-VerifiedApkStatus $status $apkSha256' 'verified APK hash required'
+Assert-NW59Has $oauthSource 'Get-FileHash -LiteralPath $ApkPath -Algorithm SHA256' 'APK hash check'
+Assert-NW59Has $oauthSource 'Get-ChildItem -LiteralPath $parent -Directory' 'flexible SDK Build Tools search'
+Assert-NW59Has $oauthSource 'INCONCLUSIVE - no current verified APK' 'failed-build report invalidation'
+Assert-NW59Missing $oauthSource 'build-tools\35.0.0' 'hardcoded diagnostic SDK version'
+Write-Host 'NW61 cumulative NW53-NW61 source guard PASS. Gradle/JVM/device QA still mandatory.'
 exit 0
