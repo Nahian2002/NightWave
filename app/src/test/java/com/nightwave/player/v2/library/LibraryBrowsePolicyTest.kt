@@ -59,6 +59,31 @@ class LibraryBrowsePolicyTest {
             LibraryBrowsePolicy.playlists(input, "night drive", "saved", false).map { it.name })
     }
 
+    @Test fun optionalPlaylistSearchFindsSongsWithoutChangingPlaylistName() {
+        val night = LibraryPlaylistPreview("Evening", listOf(
+            video("ভালোবাসা", "Bangla Creator", "abc12345678"),
+            video("Café Nights", "French Creator", "abc12345679")))
+        val empty = playlist("Travel")
+        assertTrue(LibraryBrowsePolicy.playlists(
+            listOf(night, empty), "cafe", "saved", false).isEmpty())
+        assertEquals(listOf(night), LibraryBrowsePolicy.playlists(
+            listOf(night, empty), "cafe", "saved", false,
+            matchContainedSongs = true))
+        assertEquals(listOf(night), LibraryBrowsePolicy.playlists(
+            listOf(night, empty), "বাংলা", "saved", false,
+            matchContainedSongs = true))
+        assertEquals("Evening", night.name)
+    }
+
+    @Test fun songTermsMustMatchOneSongNotAcrossDifferentPlaylistTracks() {
+        val combo = LibraryPlaylistPreview("My songs", listOf(
+            video("North Wind", "A", "abc12345678"),
+            video("South Coast", "B", "abc12345679")))
+        assertTrue(LibraryBrowsePolicy.playlists(
+            listOf(combo), "north south", "saved", false,
+            matchContainedSongs = true).isEmpty())
+    }
+
     @Test fun punctuationOnlyPlaylistFilterIsSafe() {
         val input = listOf(playlist("A"), playlist("B"))
         assertEquals(input, LibraryBrowsePolicy.playlists(input, "--", "saved", false))
