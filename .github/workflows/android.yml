@@ -70,6 +70,7 @@ on:
       - feature/nightwave-nw54-search-clarity
       - feature/nightwave-nw55-offline-download-polish
       - feature/nightwave-nw56-theme-contrast
+      - feature/nightwave-nw57-home-first-fold
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
@@ -186,6 +187,8 @@ jobs:
           python3 tools/verify_nw55_offline_chrome.py
           python3 tools/verify_nw56_contrast.py --self-test
           python3 tools/verify_nw56_contrast.py
+          python3 tools/verify_nw57_home.py --self-test
+          python3 tools/verify_nw57_home.py
           python3 tools/nw44_kotlin_smoke.py --self-test
           python3 tools/nw40_pure_kotlin_smoke.py --self-test
           python3 tools/verify_nw01_recovery.py
