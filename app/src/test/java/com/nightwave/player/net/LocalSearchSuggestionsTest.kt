@@ -48,6 +48,18 @@ class LocalSearchSuggestionsTest {
             it.label == "Bright Star" && it.detail.contains("saved videos") })
     }
 
+    @Test fun creatorsPastTheOld350ItemCutoffAreDiscoverableLocally() {
+        val older = (0 until 420).map { i ->
+            item("ref" + i.toString().padStart(8, '0'), "Song $i", "Earlier Creator")
+        }
+        val late = item("late0012345", "Evening Tune", "Bengali Classics")
+        val suggestions = LocalSearchSuggestions.suggest(
+            "Bengali Classics", older + late)
+        assertTrue(suggestions.any { it.kind == LocalSearchSuggestion.Kind.CREATOR &&
+            it.label == "Bengali Classics" })
+        assertTrue(suggestions.size <= 8)
+    }
+
     @Test fun titleAndCreatorAreNotSilentlyRewrittenOrUploaded() {
         val title = "Beyoncé - Halo (Official Audio)"
         val track = item("aaaaaaa0001", title, "Beyoncé")
