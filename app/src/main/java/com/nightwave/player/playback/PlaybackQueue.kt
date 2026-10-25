@@ -150,7 +150,7 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
         remapForInsertion(target)
         // Only queue contents and order are persisted, never a private stream URL.
         manualNext.remove(entry.url)
-        manualNext.addFirst(entry.url)
+        manualNext.add(0, entry.url)
         return true
     }
 
@@ -164,7 +164,7 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
         manualNext.clear()
         urls.distinct().take(100).forEach { wanted ->
             if (entries.indexOfFirst { it.url == wanted } > index)
-                manualNext.addLast(wanted)
+                manualNext.add(wanted)
         }
     }
 
