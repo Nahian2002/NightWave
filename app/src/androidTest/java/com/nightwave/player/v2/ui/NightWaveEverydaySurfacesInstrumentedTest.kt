@@ -62,8 +62,8 @@ class NightWaveEverydaySurfacesInstrumentedTest {
                 }
             }
         }
-        compose.onNodeWithText("Example song").assertExists()
-        compose.onNodeWithText("Example creator").assertExists()
+        compose.onNodeWithText("Example song", useUnmergedTree = true).assertExists()
+        compose.onNodeWithText("Example creator", useUnmergedTree = true).assertExists()
         compose.onNodeWithTag("nw47-recent-play").assertExists().performClick()
         compose.onNodeWithTag("nw47-recent-options").assertExists().performClick()
         compose.onNodeWithTag("nw47-recent-remove").assertExists().performClick()
