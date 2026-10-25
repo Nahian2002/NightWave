@@ -2870,15 +2870,40 @@ private fun StudioHome(
                 }
             }
         }
-        item { SectionHeading("Recently played", "Pick up another favorite") }
+        item(key = "recent-heading") {
+            Row(Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween) {
+                Column(Modifier.weight(1f)) {
+                    SectionHeading("Recently played",
+                        if (recent.isEmpty()) "Your listening history appears here"
+                        else "${recent.size} tracks · Private to this device")
+                }
+                if (recent.size > 6) {
+                    TextButton(onClick = { showAllRecent = !showAllRecent }) {
+                        Text(if (showAllRecent) "Show less" else "See all")
+                    }
+                }
+            }
+        }
         if (recent.isEmpty()) item {
             EmptyMusicCard("Your soundtrack starts here",
                 "Songs you play will appear here, ready for another listen.",
                 "Discover music") { onSearch("music") }
-        } else items(recent.take(6), key = { it.url }) { song ->
-            MusicTrackTile(song, isPlaying = playingUrl == song.url,
-                onOptions = { onSongOptions(song) },
-                onClick = { onPlay(song, recent) })
+        } else {
+            items(if (showAllRecent) recent.take(100) else recent.take(6),
+                key = { "recent:" + it.url }) { song ->
+                MusicTrackTile(song, isPlaying = playingUrl == song.url,
+                    onOptions = { onSongOptions(song) },
+                    onRemove = { onRemoveRecent(song) },
+                    onClick = { onPlay(song, recent) })
+            }
+            if (showAllRecent) item(key = "clear-listening-history") {
+                OutlinedButton(onClick = onClearRecent,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                    Text("Clear Recently Played")
+                }
+            }
         }
         item {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
