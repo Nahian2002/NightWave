@@ -26,7 +26,7 @@
 
 ## Additional preflight introduced
 
-- `tools/verify_nw52_ui_prebuild.py`: **27 static UI/source invariants** plus six deliberately broken fixtures (`--self-test`) covering Search routing, inert buttons, recent removal, tab reselect, offline health and real saved-file readiness.
+- `tools/verify_nw52_ui_prebuild.py`: **28 static UI/source invariants** plus six deliberately broken fixtures (`--self-test`) covering Search routing, inert buttons, recent removal, tab reselect, offline health and real saved-file readiness.
 - `tools/check-nw52-integration.ps1` now enforces critical corrected routes/button guards before the Windows builder invokes Gradle, with no Python requirement.
 - GitHub Android verification workflow invokes the Python source check. **The repo's hosted runner has not executed jobs**: earlier actual NW52 canary and Android jobs returned `runner_id=0`, `steps=[]`, so there is no pass/fail compiler result from CI.
 
