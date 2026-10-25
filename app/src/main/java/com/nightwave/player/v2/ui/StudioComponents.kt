@@ -284,14 +284,14 @@ fun MusicTrackTile(
                 color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         if (onRemove != null) {
-            IconButton(onClick = onRemove, modifier = Modifier.size(42.dp)) {
+            IconButton(onClick = onRemove, modifier = Modifier.size(48.dp)) {
                 Icon(Icons.Outlined.Close,
                     contentDescription = "Remove " + identity.title + " from Recently Played",
                     modifier = Modifier.size(19.dp), tint = scheme.onSurfaceVariant)
             }
         }
         if (onOptions != null) {
-            IconButton(onClick = onOptions, modifier = Modifier.size(44.dp)) {
+            IconButton(onClick = onOptions, modifier = Modifier.size(48.dp)) {
                 Icon(Icons.Outlined.MoreVert,
                     contentDescription = "Options for " + video.title,
                     tint = scheme.onSurfaceVariant)
