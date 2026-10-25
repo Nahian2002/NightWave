@@ -43,6 +43,20 @@ class DownloadRecoveryPolicyTest {
             .contains("Free device space"))
     }
 
+    @Test fun safeRecoveryMessagesRemainStableWhenWorkerAndUiBothClassify() {
+        val examples = listOf(
+            "Audio was saved in Offline Library, but its search link was not recorded",
+            "Saved audio could not be verified",
+            "Not enough private storage for offline audio",
+            "HTTP 429", "HTTP 403", "HTTP 404",
+            "No supported playable audio", "Connection interrupted"
+        )
+        examples.forEach { error ->
+            val first = p.failedMessage(error)
+            assertEquals(first, p.failedMessage(first))
+        }
+    }
+
     @Test fun pausedOnlyAfterWorkManagerReportsCancelled() {
         assertFalse(p.isPaused("RUNNING", true))
         assertFalse(p.isPaused("FAILED", true))
