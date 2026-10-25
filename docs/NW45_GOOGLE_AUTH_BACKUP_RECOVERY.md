@@ -20,7 +20,7 @@ These are checks, not a claim that SHA mismatch is the cause of error 8 or that 
 
 ## Implemented in source
 
-1. **Concise, staged auth errors**: `CloudAuthorizationFailurePolicy` distinguishes request failure before the chooser, account picker/consent failure, and post-grant Drive verification failure. Error 8 suggests a **single manual retry**, then Play services / project setup; error 10 explains configuration, 7 connectivity and 16 cancellation. No silent infinite permission retries.
+1. **Concise, staged auth errors**: `CloudAuthorizationFailurePolicy` distinguishes request failure before the chooser, account picker/consent failure, and post-grant Drive verification failure. Error 8 suggests a **single manual retry**, then Play services / project setup; error 10 explains configuration, 7 connectivity and 16 cancellation. Drive verification HTTP 401/403 is reported separately from OAuth codes. No silent infinite permission retries.
 2. **Credential-free diagnostics**: `CloudAuthorizationFailureStore` holds only an allowlisted stage and bounded numeric status in private preferences. It never writes an email, access token, OAuth request Intent, signing private material or exception body. Corrupt optional prefs fail closed. `InstalledApkOAuthIdentity.report()` now includes last public error code/stage alongside actual APK signer SHA-1 and Play services status; successful connection or user cancellation clears obsolete failure metadata.
 3. **Activity integration**: error callbacks update stages consistently without changing user account/library values. Selected Drive account is still verified with an HTTPS `about.get` call before local account association. Failure leaves local guest music intact.
 4. **Account UI**: dynamic help shows short reason and relevant stage when available; otherwise a neutral setup introduction. The existing safe `Copy Google setup report` and `Open Google OAuth settings` actions remain.
@@ -35,7 +35,7 @@ Drive backup remains **opt-in** and backs up library metadata/selected optional 
 
 ## Tests and verification
 
-- **Four new pure JVM tests**: distinguish codes 8/10/7/16, stage-aware messages, avoid credentials and tolerate unknown stages.
+- **Five new pure JVM tests**: distinguish codes 8/10/7/16, Drive HTTP 401/403 vs Google OAuth codes, stage-aware messages, avoid credentials and tolerate unknown stages.
 - **Two Android tests** with isolated, test-suffixed SharedPreferences: only error code/stage are recorded and exposed in the copy report; malformed codes ignored.
 - **Four Android first-backup tests** using isolated preferences: exact-consent first backup, outdated privacy revision, disconnect/reconnect revision and unchanged snapshot reporting.
 - `tools/verify_nw45_drive.py` and its negative self-test enforce exact token-free scope, stage report, UI wiring, and atomic manual verification. Android CI branch wired.
