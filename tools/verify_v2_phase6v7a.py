@@ -28,13 +28,23 @@ CHECKS = {
         '"nightwave-home-hero"',
         "Role.Tab", "selected = active",
         'listOf("Home", "Search", "Library", "You")',
-        "NightWaveChromePolicy.NAV_HEIGHT_DP.dp",
-        "NightWaveAdaptiveChromePolicy.motionDurationMs(reducedMotion, 160)",
+        "NightWaveAdaptiveChromePolicy.navHeightDp(fontScale).dp",
+        "NightWaveMotionPolicy.duration(",
+        "NightWaveMotionPolicy.tabScale(active, reducedMotion)",
+        "if (reducedMotion) snap()",
         "onNavigate(index)",
         "colors.surface", "Brush.horizontalGradient(",
     ),
     MAIN + "NightWaveAdaptiveChromePolicy.kt": (
         "if (reducedMotion) 0 else regularMs.coerceIn(0, 600)",
+    ),
+    MAIN + "NightWaveMotionPolicy.kt": (
+        "object NightWaveMotionPolicy",
+        "if (reduceMotion) 0 else requested.coerceIn(0, MAX_MS)",
+        "if (reduceMotion) 1f",
+    ),
+    MAIN + "NightWaveTheme.kt": (
+        "LocalNightWaveReduceMotion provides reduceMotion",
     ),
     MAIN + "NightWaveStudioActivity.kt": (
         "private enum class StudioTab(",
@@ -143,6 +153,12 @@ def self_test() -> None:
             '"Hide mini-player; music keeps playing"', '"Stop music"'
         ), encoding="utf-8")
         assert any("Hide mini-player" in problem for problem in audit(root))
+        motion = root / (MAIN + "NightWaveMotionPolicy.kt")
+        motion.write_text(motion.read_text(encoding="utf-8").replace(
+            "if (reduceMotion) 0 else requested.coerceIn(0, MAX_MS)",
+            "requested.coerceIn(0, MAX_MS)"
+        ), encoding="utf-8")
+        assert any("reduceMotion" in problem for problem in audit(root))
     print("PASS: synthetic 6V7A gate detects pager-swipe and hide-audio regressions")
 
 
