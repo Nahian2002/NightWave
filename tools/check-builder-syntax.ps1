@@ -7,7 +7,7 @@ $ErrorActionPreference = 'Stop'
 $project = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $dist = Join-Path $project 'dist'
 New-Item -ItemType Directory -Path $dist -Force | Out-Null
-$scripts = @('build-windows.ps1', 'verify-apk-signature.ps1', 'check-device-update.ps1', 'capture-nightwave-crash.ps1', 'diagnose-build.ps1', 'check-kotlin-compat.ps1', 'check-phase6p-integration.ps1', 'check-phase6v-integration.ps1', 'check-phase6v4-integration.ps1', 'check-phase6v5-integration.ps1', 'check-phase6v5b-integration.ps1', 'check-phase6v5c-integration.ps1', 'check-phase6v6a-integration.ps1', 'check-phase6v6b-integration.ps1', 'check-phase6v6c-integration.ps1', 'check-phase6v6d-integration.ps1', 'check-phase6v6e-integration.ps1', 'check-phase6v6f-integration.ps1', 'smoke-lyrics-kotlin.ps1', 'check-kotlin-bytearray-fixtures.ps1', 'check-phase6v7a-integration.ps1', 'check-phase6v7b-integration.ps1', 'check-nw07-source-gate.ps1', 'get-nw08-source-inputs.ps1', 'nw11-junit-report.ps1', 'check-nw27-integrity.ps1', 'check-nw34-offline-integrity.ps1', 'check-google-oauth.ps1', 'check-nw40-stability.ps1', 'check-nw52-integration.ps1', 'check-builder-syntax.ps1')
+$scripts = @('build-windows.ps1', 'verify-apk-signature.ps1', 'check-device-update.ps1', 'capture-nightwave-crash.ps1', 'diagnose-build.ps1', 'check-kotlin-compat.ps1', 'check-phase6p-integration.ps1', 'check-phase6v-integration.ps1', 'check-phase6v4-integration.ps1', 'check-phase6v5-integration.ps1', 'check-phase6v5b-integration.ps1', 'check-phase6v5c-integration.ps1', 'check-phase6v6a-integration.ps1', 'check-phase6v6b-integration.ps1', 'check-phase6v6c-integration.ps1', 'check-phase6v6d-integration.ps1', 'check-phase6v6e-integration.ps1', 'check-phase6v6f-integration.ps1', 'smoke-lyrics-kotlin.ps1', 'check-kotlin-bytearray-fixtures.ps1', 'check-phase6v7a-integration.ps1', 'check-phase6v7b-integration.ps1', 'check-nw07-source-gate.ps1', 'get-nw08-source-inputs.ps1', 'nw11-junit-report.ps1', 'check-nw27-integrity.ps1', 'check-nw34-offline-integrity.ps1', 'check-google-oauth.ps1', 'check-nw40-stability.ps1', 'check-nw52-integration.ps1', 'check-nw59-integration.ps1', 'check-builder-syntax.ps1')
 $issues = @()
 
 foreach ($name in $scripts) {
@@ -75,6 +75,27 @@ if (Test-Path -LiteralPath $nw52Preflight -PathType Leaf) {
     }
     if (-not $nw52Source.Contains('if ($SelfTest)')) {
         $issues += 'NW52 source guard self-test branch has been removed.'
+    }
+}
+
+# NW59 must keep the same safe ordering as NW52. Never resolve
+# ProjectRoot through PSScriptRoot during parameter binding. Also ensure the
+# Windows builder runs the newly added read-only source check before Gradle.
+$nw59Preflight = Join-Path $PSScriptRoot 'check-nw59-integration.ps1'
+if (Test-Path -LiteralPath $nw59Preflight -PathType Leaf) {
+    $nw59Source = [System.IO.File]::ReadAllText($nw59Preflight)
+    if ($nw59Source.Contains('$ProjectRoot = (Join-Path $PSScriptRoot')) {
+        $issues += 'NW59 prematurely resolves ProjectRoot in param defaults.'
+    }
+    if (-not $nw59Source.Contains('if ($SelfTest)')) {
+        $issues += 'NW59 source check must expose a standalone negative self-test.'
+    }
+}
+if (Test-Path -LiteralPath $builderPath -PathType Leaf) {
+    $builder = [System.IO.File]::ReadAllText($builderPath)
+    if (-not $builder.Contains("-File "+'$nw59Gate'+" -SelfTest") -or
+        -not $builder.Contains("-File "+'$nw59Gate'+" -ProjectRoot "+'$project')) {
+        $issues += 'NW59 Windows source self-test and project check must run before Gradle.'
     }
 }
 
