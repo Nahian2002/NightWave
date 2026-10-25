@@ -28,7 +28,7 @@ internal object CrossfadeHandoffPolicy {
         repeatOne: Boolean, timerPaused: Boolean,
         outgoingPlaying: Boolean, incomingPlaying: Boolean,
         oldIndex: Int, nextIndex: Int, count: Int,
-        selectedId: String?, outgoingMediaId: String?,
+        selectedId: String?, nextId: String?, outgoingMediaId: String?,
         incomingMediaId: String?
     ): Boolean =
         offline && gaplessTimeline && !shuffled && !repeatOne &&
@@ -37,6 +37,7 @@ internal object CrossfadeHandoffPolicy {
             nextIndex in 1 until count &&
             !selectedId.isNullOrBlank() &&
             outgoingMediaId == "offline:$selectedId" &&
-            !incomingMediaId.isNullOrBlank() &&
+            !nextId.isNullOrBlank() &&
+            incomingMediaId == "offline:$nextId" &&
             incomingMediaId != outgoingMediaId
 }
