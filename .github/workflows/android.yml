@@ -68,6 +68,7 @@ on:
       - feature/nightwave-nw52-final-integration-release-gates
       - feature/nightwave-nw53-google-recovery-ux
       - feature/nightwave-nw54-search-clarity
+      - feature/nightwave-nw55-offline-download-polish
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
@@ -180,6 +181,8 @@ jobs:
           python3 tools/verify_nw53_oauth_ui.py
           python3 tools/verify_nw54_search_copy.py --self-test
           python3 tools/verify_nw54_search_copy.py
+          python3 tools/verify_nw55_offline_chrome.py --self-test
+          python3 tools/verify_nw55_offline_chrome.py
           python3 tools/nw44_kotlin_smoke.py --self-test
           python3 tools/nw40_pure_kotlin_smoke.py --self-test
           python3 tools/verify_nw01_recovery.py
