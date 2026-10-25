@@ -17,7 +17,7 @@ Now **all four** Search tap paths (creator-view, saved suggestions, matching sav
 
 - **Play Next** is an explicit action in regular and named-playlist song options, separate from Play Now / Play Playlist and Add to Queue.
 - `ACTION_PLAY_NEXT` is owned by `PlaybackService`, not by a Compose component. It validates a canonical public watch URL and refuses cross-mode queue changes during imported offline playback.
-- `PlaybackQueue.insertNext` inserts a new URL directly after the playing item, or moves an existing **upcoming** item to that position without duplicating it. Previously played/current songs are not silently reordered. Full 100-item queues may reorder an existing entry, but cannot grow beyond capacity.
+- `PlaybackQueue.insertNext` inserts a new URL directly after the playing item, or moves an existing **upcoming** item to that position without duplicating it. The currently playing song is never duplicated, but an **explicit** Play Next choice can move a previously listed song into the next slot without interrupting the exact current track. Full 100-item queues may reorder an existing entry, but cannot grow beyond capacity.
 - Multiple Play Next choices work in latest-first order. Explicit manual next choices outrank random shuffle picks; Repeat One still repeats automatically until the user manually skips or changes Repeat.
 - Add to Queue remains append-only; no source-based implicit enqueue. Unsupported URLs never enter online queue. Queue actions from the Android UI are asynchronous and must not claim success until service state is visible.
 - Play Next on an empty public queue selects and begins the requested track, avoiding a phantom waiting state.
