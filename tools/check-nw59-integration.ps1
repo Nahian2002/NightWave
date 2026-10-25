@@ -122,6 +122,9 @@ $relative = @(
     'tools/verify_nw62_download_health.py',
     'app/src/main/java/com/nightwave/player/offline/DownloadFileVerificationPolicy.kt',
     'app/src/main/java/com/nightwave/player/offline/DownloadHistoryPagePolicy.kt',
+    'app/src/main/java/com/nightwave/player/offline/DownloadRefreshPolicy.kt',
+    'app/src/test/java/com/nightwave/player/offline/DownloadRefreshPolicyTest.kt',
+    'docs/NW64_DOWNLOAD_RESPONSIVENESS.md',
     'app/src/test/java/com/nightwave/player/offline/DownloadHistoryPagePolicyTest.kt',
     'docs/NW63_DOWNLOAD_HISTORY_NAVIGATION.md',
     'app/src/test/java/com/nightwave/player/offline/DownloadFileVerificationPolicyTest.kt',
@@ -214,7 +217,8 @@ Assert-NW59Has $downloads 'val historyJobs = displayInfos.sortedWith(' 'retry de
 Assert-NW59Has $downloads 'val filteredJobs = historyJobs.filter' 'filter before paging'
 Assert-NW59Has $downloads 'DownloadHistoryPagePolicy.normalizedPage(' 'clamp old page after deletions'
 Assert-NW59Has $downloads 'DownloadHistoryPagePolicy.offset(historyPage, filteredJobs.size)' 'all filtered history remains reachable'
-Assert-NW59Has $downloads '.take(DownloadHistoryPagePolicy.PAGE_SIZE)' '60 cards per page'
+Assert-NW59Has $downloads 'filteredJobs.subList(pageStart,' 'memory-light page view'
+Assert-NW59Has $downloads 'pageStart + DownloadHistoryPagePolicy.PAGE_SIZE' '60 cards per page'
 Assert-NW59Has $downloads 'DownloadHistoryPagePolicy.summary(' 'honest page caption'
 Assert-NW59Has $downloads 'historyPage += 1' 'Older navigation'
 Assert-NW59Has $downloads 'historyPage = (historyPage - 1).coerceAtLeast(0)' 'Newer navigation'
@@ -223,5 +227,20 @@ Assert-NW59Has $pages 'const val PAGE_SIZE = 60' 'bounded per-page inflation'
 Assert-NW59Has $pages 'requestedPage.coerceIn(0,' 'index clamp'
 Assert-NW59Has $pagesTest 'changingFiltersOrShrinkingHistoryClampsOutdatedPage' 'paging regression tests'
 Assert-NW59Missing $downloads '}.take(60)' 'old hard-coded history truncation'
-Write-Host 'NW63 cumulative NW53-NW63 source guard PASS. Gradle/JVM/device QA still mandatory.'
+# NW64: progress events are coalesced, never allowed to mutate WorkManager.
+$refreshPolicy = [IO.File]::ReadAllText($files['app/src/main/java/com/nightwave/player/offline/DownloadRefreshPolicy.kt'])
+$refreshTests = [IO.File]::ReadAllText($files['app/src/test/java/com/nightwave/player/offline/DownloadRefreshPolicyTest.kt'])
+Assert-NW59Has $downloads 'private val coalescedRefresh = Runnable {' 'single deferred refresh'
+Assert-NW59Has $downloads 'DownloadRefreshPolicy.delayMs(' 'bounded progress burst delay'
+Assert-NW59Has $downloads 'private fun requestObserverRefresh()' 'latest-state coalescer'
+Assert-NW59Has $downloads 'uiHandler.postDelayed(coalescedRefresh, delay)' 'eventual deferred repaint'
+Assert-NW59Has $downloads 'uiHandler.removeCallbacks(coalescedRefresh)' 'discard stale pending paints'
+Assert-NW59Has $downloads 'progressSamples.keys.retainAll(runningIds)' 'prune obsolete transfer samples'
+Assert-NW59Has $downloads 'observedSpeed.keys.retainAll(runningIds)' 'prune obsolete speed samples'
+Assert-NW59Has $downloads 'if (displayedFilter != currentFilter) {' 'do not rebuild filter chips for each tick'
+Assert-NW59Has $downloads 'val visibleJobs = filteredJobs.subList(' 'no extra copying for page slicing'
+Assert-NW59Has $refreshPolicy 'const val MIN_UI_INTERVAL_MS = 400L' 'bounded paint delay'
+Assert-NW59Has $refreshTests 'burstsAreSpacedAndEventuallyFlushed' 'clock and progress tests'
+Assert-NW59Missing $downloads '}.take(60)' 'never truncate full history'
+Write-Host 'NW64 cumulative NW53-NW64 source guard PASS. Gradle/JVM/device QA still mandatory.'
 exit 0
