@@ -80,20 +80,36 @@ object SearchRelevancePolicy {
     fun publicScore(query: Query, track: VideoPreview): Int {
         if (!query.valid) return 0
         val id = identity(track)
-        val covered = query.terms.count { it in id.searchable }
+        // Canonicalize only for scoring, never for the actual song metadata.
+        // A user searching "Alone 2" can reach "Alone, Pt. II" without
+        // treating unrelated Home Alone 2 clips as the best music match.
+        val wanted = SearchMusicIntentPolicy.canonical(query.text)
+        val title = SearchMusicIntentPolicy.canonical(id.title)
+        val artist = SearchMusicIntentPolicy.canonical(id.artist)
+        val searchable = SearchMusicIntentPolicy.canonical(id.searchable)
+        val terms = prepare(wanted).terms
+        if (terms.isEmpty()) return 0
+        val covered = terms.count { term ->
+            if (term.all(Char::isDigit))
+                searchable.split(' ').any { it == term }
+            else term in searchable
+        }
         var score = covered * 13
-        if (covered == query.terms.size) score += 75
-        if (id.title == query.text) score += 140
-        else if (id.title.startsWith(query.text)) score += 100
-        else if (query.text in id.title) score += 72
-        if (id.artist == query.text) score += 85
-        else if (id.artist.startsWith(query.text)) score += 40
-        else if (query.text in id.artist) score += 26
-        if (query.terms.all { it in id.title }) score += 30
+        if (covered == terms.size) score += 75
+        if (title == wanted) score += 140
+        else if (title.startsWith(wanted)) score += 100
+        else if (wanted in title) score += 72
+        if (artist == wanted) score += 85
+        else if (artist.startsWith(wanted)) score += 40
+        else if (wanted in artist) score += 26
+        if (terms.all { it in title }) score += 30
         if (track.durationSeconds in 90L..660L) score += 6
         val original = normalize(track.title)
         if ("official audio" in original || "official music video" in original) score += 8
-        // If the listener actually searches for "reaction", do not suppress it.
+        // Metadata is unverified: these cues are weak ranking hints only.
+        score += SearchMusicIntentPolicy.titleSignal(wanted, track)
+        score += SearchMusicIntentPolicy.variantPenalty(wanted, track)
+        // If the listener explicitly requests a reaction, do not suppress it.
         if (unhelpful.any { phrase ->
             phrase in original && phrase !in query.text
         }) score -= 110
