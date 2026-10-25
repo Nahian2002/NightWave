@@ -24,6 +24,7 @@ Animation honors reduced-motion for artwork spring, transition and shadow emphas
 ## Verification & test matrix
 
 - **Source guard review: PASS** (2026-10-25): playback callbacks and accessibility semantics kept, new tags present, safe sizing policy present, queue → lyrics → audio hierarchy correct.
+- **Exact-file Kotlin policy smoke: PASS**: compiled `NightWaveNowPlayingLayoutPolicy.kt` locally with `kotlinc`; `git hash-object` matches GitHub blob `cb7332657e3287f82d63ad20423043966cea7f97`. Geometry smoke covers normal phone, compact/split screen, large text, tablet and invalid measurements. A floating-point edge in the split-screen assertion was fixed with a 1dp test tolerance. **This is not an Android UI compilation.**
 - New JVM test `NightWaveNowPlayingLayoutPolicyTest` covers portrait 390dp, compact 320dp, 300dp split-screen, large text, wide tablet/landscape and NaN/infinite/negative geometry.
 - `tools/verify_nw46_player.py --self-test` supplies four negative fixtures; workflow calls source self-test, regular source test, and existing Gradle gates.
 - **No successful Android build confirmed.** GitHub Actions run 40196021059 for the NW46 workflow commit failed within seconds and exposed no executed job steps; no compiler or unit-test result can be inferred.
