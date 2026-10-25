@@ -26,6 +26,7 @@ The exact committed Kotlin production queue blobs were copied into an isolated J
 - `tools/NW69QueueSmoke.kt` added to provide a reproducible Android-free version of the smoke.
 - Added Android Gradle JUnit tests: `OfflineShuffleForwardNavigationTest.kt` and `PublicQueuePastPriorityTest.kt`. These test sources are committed, **not yet run with Gradle**. A successful pure Kotlin smoke does not prove Android compilation or real device playback.
 - Updated `tools/check-nw59-integration.ps1` to require NW69 behavior and forbid the incompatible `ArrayDeque` call sites. Existing NW53–NW68 source checks are retained. PowerShell execution remains pending on Windows.
+- GitHub workflow run [40230681563](https://github.com/Nahian2002/NightWave/actions/runs/40230681563) returned **failure** with no available executed-step details. That does not establish whether Kotlin or Android compilation started or failed; real Android build status remains **unverified**.
 
 To reproduce the standalone JVM test with `kotlinc` installed, from the project root execute:
 
