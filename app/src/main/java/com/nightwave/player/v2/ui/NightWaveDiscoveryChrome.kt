@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.LibraryMusic
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Download
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -41,17 +42,18 @@ fun NightWaveDiscoveryHeader(searchQuery: String = "") {
     val context = LocalContext.current
     Surface(
         modifier = Modifier.fillMaxWidth().testTag("nightwave-discovery-header"),
-        shape = RoundedCornerShape(22.dp),
-        color = palette.surface
+        shape = RoundedCornerShape(20.dp),
+        color = palette.surfaceVariant.copy(alpha = .36f),
+        border = BorderStroke(1.dp, palette.outline.copy(alpha = .26f))
     ) {
         Column(
             modifier = Modifier.fillMaxWidth()
                 .background(Brush.horizontalGradient(
-                    listOf(palette.primary.copy(alpha = .17f),
-                        palette.surfaceVariant, palette.surface)
+                    listOf(palette.primary.copy(alpha = .12f),
+                        palette.surfaceVariant.copy(alpha = .30f), palette.surface)
                 ))
-                .padding(horizontal = 16.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(11.dp)
+                .padding(horizontal = 15.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(7.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -59,8 +61,8 @@ fun NightWaveDiscoveryHeader(searchQuery: String = "") {
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Box(
-                    Modifier.size(46.dp).clip(RoundedCornerShape(16.dp))
-                        .background(palette.primary.copy(alpha = .17f)),
+                    Modifier.size(40.dp).clip(RoundedCornerShape(13.dp))
+                        .background(palette.primary.copy(alpha = .16f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(Icons.Outlined.Search, contentDescription = null,
@@ -68,12 +70,12 @@ fun NightWaveDiscoveryHeader(searchQuery: String = "") {
                 }
                 Column(verticalArrangement = Arrangement.spacedBy(3.dp),
                     modifier = Modifier.weight(1f)) {
-                    NightWaveMicroLabel("Discover")
+                    NightWaveMicroLabel("Discovery")
                     Text("Find your sound",
-                        style = MaterialTheme.typography.headlineSmall,
+                        style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold, maxLines = 2,
                         overflow = TextOverflow.Ellipsis)
-                    Text("Search your library and discover more music",
+                    Text("Your saved music and the wider world",
                         style = MaterialTheme.typography.bodySmall,
                         color = palette.onSurfaceVariant, maxLines = 2,
                         overflow = TextOverflow.Ellipsis)
@@ -88,15 +90,15 @@ fun NightWaveDiscoveryHeader(searchQuery: String = "") {
                         .putExtra(FreeAudioCatalogActivity.EXTRA_QUERY,
                             searchQuery.trim().take(100)))
                 },
-                modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(palette.primary.copy(alpha = .12f))
+                modifier = Modifier.fillMaxWidth().heightIn(min = 44.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(palette.primary.copy(alpha = .10f))
                     .testTag("nightwave-save-offline-search")
             ) {
                 Icon(Icons.Outlined.Download, contentDescription = null,
                     modifier = Modifier.size(19.dp))
                 Spacer(Modifier.width(10.dp))
-                Text("Find music to save offline",
+                Text("Explore offline-ready music",
                     maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
         }
