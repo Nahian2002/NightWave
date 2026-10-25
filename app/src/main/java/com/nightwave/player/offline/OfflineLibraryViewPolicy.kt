@@ -16,7 +16,23 @@ object OfflineLibraryViewPolicy {
     fun label(filter: Filter): String = when (filter) {
         Filter.ALL -> "All"
         Filter.READY -> "Ready offline"
+        Filter.ATTENTION -> "Issues"
+    }
+
+    /** Short on small screens; a full description remains available to TalkBack. */
+    fun accessibilityLabel(filter: Filter): String = when (filter) {
+        Filter.ALL -> "All"
+        Filter.READY -> "Ready offline"
         Filter.ATTENTION -> "Needs attention"
+    }
+
+    fun summary(visible: Int, total: Int, playable: Int, issues: Int): String {
+        val count = visible.coerceAtLeast(0)
+        val totalCount = total.coerceAtLeast(0)
+        val playableCount = playable.coerceAtLeast(0)
+        val issueCount = issues.coerceAtLeast(0)
+        return "$count of $totalCount tracks · $playableCount ready offline" +
+            if (issueCount > 0) " · $issueCount need attention" else ""
     }
 
     fun emptyMessage(
