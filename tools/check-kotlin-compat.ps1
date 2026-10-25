@@ -226,9 +226,13 @@ if ((Test-Path -LiteralPath $studioPath -PathType Leaf) -and
                 $issues.Add(('NW43 Search must not autoqueue search results: ' + $bad))
             }
         }
-        if ($searchContent.Split(@('onPlay(song, listOf(song))'),
-            [System.StringSplitOptions]::None).Length -ne 5) {
-            $issues.Add('NW43: four Search results must enqueue selected song only.')
+        $savedPaths = $searchContent.Split(@('onPlay(song, listOf(song))'),
+            [System.StringSplitOptions]::None).Length - 1
+        $singlePublic = $searchContent.Contains('onPlay(selected, listOf(selected))')
+        $publicPathCount = $searchContent.Split(@('playSinglePublic(song)'),
+            [System.StringSplitOptions]::None).Length - 1
+        if ($savedPaths -ne 3 -or -not $singlePublic -or $publicPathCount -ne 2) {
+            $issues.Add('NW44: all grouped Search taps must remain single-song.')
         }
     }
     if (-not $queueSource.Contains('fun insertNext(entry: QueueEntry): Boolean') -or
