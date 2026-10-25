@@ -10,6 +10,9 @@ import android.os.SystemClock
 import android.os.Handler
 import android.os.Looper
 import java.util.UUID
+import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 import android.view.Gravity
 import android.widget.FrameLayout
 import android.widget.LinearLayout
@@ -38,6 +41,57 @@ class CatalogDownloadsActivity : ComponentActivity() {
     private val progressSamples = HashMap<UUID, Pair<Long, Long>>()
     private val observedSpeed = HashMap<UUID, Long>()
     private val uiHandler = Handler(Looper.getMainLooper())
+    // One slow storage scan should not block the UI or queue unlimited work.
+    // Retain only the newest waiting health check; superseded generations
+    // can never replace current WorkManager state or claim a deleted file Ready.
+    private val fileVerifier = ThreadPoolExecutor(
+        1, 1, 15L, TimeUnit.SECONDS,
+        ArrayBlockingQueue<Runnable>(1),
+        ThreadPoolExecutor.DiscardOldestPolicy()
+    )
+    private var requestedSavedIds: Set<String>? = null
+    private var verifiedAvailableIds: Set<String> = emptySet()
+    private var verificationGeneration = 0
+    private var verifyingFiles = false
+    private var fileCheckFailed = false
+
+    private fun savedIds(infos: List<WorkInfo>): Set<String> =
+        infos.asSequence()
+            .filter { it.state == WorkInfo.State.SUCCEEDED }
+            .mapNotNull { job ->
+                when {
+                    SearchTrackSaveQueue.TAG in job.tags ->
+                        job.outputData.getString(SearchTrackSaveQueue.KEY_ID)
+                    DirectAudioDownloadQueue.TAG in job.tags ->
+                        job.outputData.getString(DirectAudioDownloadQueue.KEY_DONE)
+                    else -> job.outputData.getString(CatalogDownloadQueue.KEY_DONE)
+                }
+            }.filter(String::isNotBlank).toSet()
+
+    private fun requestFileVerification(infos: List<WorkInfo>) {
+        val ids = savedIds(infos)
+        if (!DownloadFileVerificationPolicy.needsRead(ids, requestedSavedIds)) return
+        requestedSavedIds = ids
+        verifiedAvailableIds = emptySet()
+        fileCheckFailed = false
+        verifyingFiles = ids.isNotEmpty()
+        val ticket = ++verificationGeneration
+        if (ids.isEmpty()) return
+        fileVerifier.execute {
+            val answer = runCatching {
+                OfflineAudioLibrary(applicationContext).availableIds(ids)
+            }
+            uiHandler.post {
+                if (!DownloadFileVerificationPolicy.canPublish(
+                        ticket, verificationGeneration, isFinishing, isDestroyed))
+                    return@post
+                verifyingFiles = false
+                fileCheckFailed = answer.isFailure
+                verifiedAvailableIds = answer.getOrDefault(emptySet())
+                render(catalogJobs + directJobs + searchedJobs)
+            }
+        }
+    }
     private val stagnantTransferRefresh = object : Runnable {
         override fun run() {
             if (!isFinishing && !isDestroyed) {
@@ -48,12 +102,19 @@ class CatalogDownloadsActivity : ComponentActivity() {
             }
         }
     }
-    private fun refreshJobs() = render(catalogJobs + directJobs + searchedJobs)
+    private fun refreshJobs() {
+        val latest = catalogJobs + directJobs + searchedJobs
+        requestFileVerification(latest)
+        render(latest)
+    }
 
     override fun onResume() {
         super.onResume()
         // A user may delete saved audio in Offline Library and return here
         // without any WorkManager status event. Recheck real file availability.
+        // Re-entering from Offline Library may reveal a deleted private file.
+        // Recheck on background IO even when WorkManager records are unchanged.
+        requestedSavedIds = null
         if (::entries.isInitialized && ::overview.isInitialized) refreshJobs()
         uiHandler.removeCallbacks(stagnantTransferRefresh)
         uiHandler.postDelayed(stagnantTransferRefresh, 5_000L)
@@ -66,7 +127,16 @@ class CatalogDownloadsActivity : ComponentActivity() {
 
     override fun onPause() {
         uiHandler.removeCallbacks(stagnantTransferRefresh)
+        verificationGeneration++
+        requestedSavedIds = null
         super.onPause()
+    }
+
+    override fun onDestroy() {
+        verificationGeneration++
+        uiHandler.removeCallbacks(stagnantTransferRefresh)
+        fileVerifier.shutdownNow()
+        super.onDestroy()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -166,6 +236,14 @@ class CatalogDownloadsActivity : ComponentActivity() {
             }
     }
 
+    private fun savedIdFromOutput(info: WorkInfo): String? = when {
+        SearchTrackSaveQueue.TAG in info.tags ->
+            info.outputData.getString(SearchTrackSaveQueue.KEY_ID)
+        DirectAudioDownloadQueue.TAG in info.tags ->
+            info.outputData.getString(DirectAudioDownloadQueue.KEY_DONE)
+        else -> info.outputData.getString(CatalogDownloadQueue.KEY_DONE)
+    }
+
     private fun render(infos: List<WorkInfo>) {
         if (isFinishing || isDestroyed) return
         val originalPosition = if (::scroll.isInitialized) scroll.scrollY else 0
@@ -177,21 +255,10 @@ class CatalogDownloadsActivity : ComponentActivity() {
         historyToggle.text = if (showHiddenJobs)
             "Hide dismissed jobs · ${hidden.size} hidden  ▴"
         else "Show dismissed jobs · ${hidden.size} hidden  ▾"
-        // One batched health read covers all completed work identities, not
-        // just the first 60 shown cards. A success with a deleted file is an
-        // issue, never silently counted as offline-ready.
-        val allSavedIds = displayInfos.asSequence()
-            .filter { it.state == WorkInfo.State.SUCCEEDED }
-            .mapNotNull { job ->
-                when {
-                    SearchTrackSaveQueue.TAG in job.tags ->
-                        job.outputData.getString(SearchTrackSaveQueue.KEY_ID)
-                    DirectAudioDownloadQueue.TAG in job.tags ->
-                        job.outputData.getString(DirectAudioDownloadQueue.KEY_DONE)
-                    else -> job.outputData.getString(CatalogDownloadQueue.KEY_DONE)
-                }
-            }.toSet()
-        val availableIds = OfflineAudioLibrary(this).availableIds(allSavedIds)
+        // NW62: no private library index read or file stat on the UI thread.
+        // Worker snapshots are generation-fenced; never mark a pending or
+        // failed verification as Ready merely because WorkManager succeeded.
+        val availableIds = verifiedAvailableIds
         fun isVerified(info: WorkInfo): Boolean {
             val saved = when {
                 SearchTrackSaveQueue.TAG in info.tags ->
@@ -200,17 +267,24 @@ class CatalogDownloadsActivity : ComponentActivity() {
                     info.outputData.getString(DirectAudioDownloadQueue.KEY_DONE)
                 else -> info.outputData.getString(CatalogDownloadQueue.KEY_DONE)
             }
-            return OfflineDownloadStatusPolicy.isReady(
-                info.state == WorkInfo.State.SUCCEEDED, saved, availableIds)
+            return DownloadFileVerificationPolicy.ready(
+                info.state == WorkInfo.State.SUCCEEDED, saved, availableIds,
+                verifyingFiles, fileCheckFailed)
         }
         val active = displayInfos.count {
             DownloadCenterViewPolicy.isActive(it.state.name)
         }
         val ready = displayInfos.count { isVerified(it) }
         val attention = displayInfos.count {
-            DownloadCenterViewPolicy.needsAttention(it.state.name, isVerified(it))
+            DownloadFileVerificationPolicy.needsAttention(
+                it.state.name, savedIdFromOutput(it), availableIds,
+                verifyingFiles, fileCheckFailed)
         }
-        overview.text = "$active active · $ready ready offline · $attention need attention"
+        overview.text = when {
+            verifyingFiles -> "Checking saved files · $active active"
+            fileCheckFailed -> "Could not verify saved files · Reopen Downloads to retry"
+            else -> "$active active · $ready ready offline · $attention need attention"
+        }
         filterRow.removeAllViews()
         DownloadCenterViewPolicy.Filter.entries.forEach { filter ->
             filterRow.addView(label(DownloadCenterViewPolicy.label(filter), 13f,
@@ -230,13 +304,7 @@ class CatalogDownloadsActivity : ComponentActivity() {
                 marginEnd = dp(2)
             })
         }
-        fun savedId(info: WorkInfo): String? = when {
-            SearchTrackSaveQueue.TAG in info.tags ->
-                info.outputData.getString(SearchTrackSaveQueue.KEY_ID)
-            DirectAudioDownloadQueue.TAG in info.tags ->
-                info.outputData.getString(DirectAudioDownloadQueue.KEY_DONE)
-            else -> info.outputData.getString(CatalogDownloadQueue.KEY_DONE)
-        }
+        fun savedId(info: WorkInfo): String? = savedIdFromOutput(info)
         // WorkManager SUCCEEDED records survive deletion of the saved file.
         // Batch-check their IDs against the actual private audio library
         // before displaying Ready Offline or offering a play button.
@@ -255,19 +323,25 @@ class CatalogDownloadsActivity : ComponentActivity() {
                     OfflineSaveRetryPolicy.retryUrl(info.tags) else null
                 url == null || seenSearchUrls.add(url)
             }.filter { info ->
+                // Show pending verified rows under All. Ready/Issues will
+                // repopulate only after file-health validation completes.
                 DownloadCenterViewPolicy.matches(
                     currentFilter, info.state.name, isVerified(info))
             }.take(60)
         if (visibleJobs.isEmpty()) {
-            entries.addView(label(DownloadCenterViewPolicy.emptyMessage(currentFilter),
+            entries.addView(label(
+                if (verifyingFiles) "Checking saved audio files…"
+                else if (fileCheckFailed) "Saved-file verification unavailable"
+                else DownloadCenterViewPolicy.emptyMessage(currentFilter),
                 14f, 0xFFB7CAD4.toInt()).apply { setPadding(dp(4), dp(15), 0, 0) })
             return
         }
         visibleJobs.forEach { info ->
             val isDirect = DirectAudioDownloadQueue.TAG in info.tags
             val isSearch = SearchTrackSaveQueue.TAG in info.tags
-            val actuallySaved = OfflineDownloadStatusPolicy.isReady(
-                info.state == WorkInfo.State.SUCCEEDED, savedId(info), availableIds)
+            val actuallySaved = DownloadFileVerificationPolicy.ready(
+                info.state == WorkInfo.State.SUCCEEDED, savedId(info), availableIds,
+                verifyingFiles, fileCheckFailed)
             val titlePrefix = when {
                 isSearch -> SearchTrackSaveQueue.TITLE_TAG
                 isDirect -> DirectAudioDownloadQueue.TITLE_TAG
@@ -335,8 +409,11 @@ class CatalogDownloadsActivity : ComponentActivity() {
                 WorkInfo.State.RUNNING -> if (pausedByUser)
                     "Pausing · Cancelling current transfer" else
                     "Downloading" + progress + rateText
-                WorkInfo.State.SUCCEEDED ->
-                    OfflineDownloadStatusPolicy.statusForCompleted(actuallySaved)
+                WorkInfo.State.SUCCEEDED -> when {
+                    verifyingFiles -> "Checking saved audio file…"
+                    fileCheckFailed -> "Could not verify saved audio · Reopen Downloads"
+                    else -> OfflineDownloadStatusPolicy.statusForCompleted(actuallySaved)
+                }
                 WorkInfo.State.FAILED -> "Failed · " +
                     info.outputData.getString(
                         when {
