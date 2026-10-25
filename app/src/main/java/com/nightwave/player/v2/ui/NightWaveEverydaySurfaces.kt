@@ -1,5 +1,8 @@
 package com.nightwave.player.v2.ui
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -31,10 +34,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalView
+import android.view.HapticFeedbackConstants
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -85,6 +91,21 @@ fun NightWaveRecentShelfTile(
     onRemove: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
+    val reducedMotion = LocalNightWaveReduceMotion.current
+    val hapticView = LocalView.current
+    val background by animateColorAsState(
+        targetValue = if (isPlaying) colors.primary.copy(alpha = .16f)
+            else colors.surface,
+        animationSpec = tween(durationMillis = NightWaveMotionPolicy.duration(
+            reducedMotion, NightWaveMotionPolicy.SURFACE_MS)),
+        label = "Recent song playing"
+    )
+    val artworkScale by animateFloatAsState(
+        targetValue = NightWaveMotionPolicy.artworkScale(isPlaying, reducedMotion),
+        animationSpec = tween(durationMillis = NightWaveMotionPolicy.duration(
+            reducedMotion, NightWaveMotionPolicy.COVER_MS)),
+        label = "Recent artwork emphasis"
+    )
     val identity = remember(song.title, song.author) {
         MusicIdentity.display(song.title, song.author)
     }
@@ -96,11 +117,19 @@ fun NightWaveRecentShelfTile(
 
     Column(Modifier.width(156.dp).testTag("nw47-recent-tile"),
         verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Surface(onClick = onPlay, shape = RoundedCornerShape(18.dp),
-            color = colors.surface, modifier = Modifier.fillMaxWidth()
+        Surface(onClick = {
+            if (!reducedMotion)
+                hapticView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+            onPlay()
+        }, shape = RoundedCornerShape(18.dp),
+            color = background, modifier = Modifier.fillMaxWidth()
                 .testTag("nw47-recent-play")) {
             Column {
                 Box(Modifier.fillMaxWidth().aspectRatio(1f)
+                    .graphicsLayer {
+                        scaleX = artworkScale
+                        scaleY = artworkScale
+                    }
                     .clip(RoundedCornerShape(18.dp))
                     .background(Brush.linearGradient(listOf(
                         NightWaveVisualLanguage.accent(song.url).copy(alpha = .54f),
