@@ -196,6 +196,7 @@ import com.nightwave.player.v2.library.LibraryBrowsePolicy
 import com.nightwave.player.v2.library.LibraryQuickPlayPolicy
 import com.nightwave.player.v2.library.LibraryPlaylistPreview
 import com.nightwave.player.v2.library.PlaylistPinStore
+import com.nightwave.player.v2.library.PlaylistReorderGesturePolicy
 import com.nightwave.player.v2.library.LibraryBulkSelectionPolicy
 import com.nightwave.player.v2.library.PlaylistPinPolicy
 import com.nightwave.player.v2.library.PlaylistFolderStore
@@ -947,8 +948,9 @@ class NightWaveStudioActivity : ComponentActivity() {
                         val now = library.playlist(name)
                         val current = now.map { it.url }
                         val index = current.indexOf(url)
-                        val destination = (index + delta).coerceIn(0, current.lastIndex.coerceAtLeast(0))
-                        if (current != expected || index < 0 || destination == index) {
+                        val destination = PlaylistReorderGesturePolicy.target(
+                            index, delta, current.size)
+                        if (current != expected || destination == null) {
                             showMessage("Playlist changed or track is already at the edge.")
                         } else {
                             val ordered = current.toMutableList()
@@ -4261,7 +4263,8 @@ private fun StudioLibrary(
                             onDragStarted = { dragOffsetPx = 0f },
                             onDragStopped = {
                                 val steps = if (rowHeightPx > 0)
-                                    (dragOffsetPx / rowHeightPx).roundToInt() else 0
+                                    PlaylistReorderGesturePolicy.offsetToSteps(
+                                        dragOffsetPx, rowHeightPx) else 0
                                 dragOffsetPx = 0f
                                 if (steps != 0) selectedPlaylist?.let { name ->
                                     onMovePlaylistSong(name, song.url, steps, tracks.map { it.url })
