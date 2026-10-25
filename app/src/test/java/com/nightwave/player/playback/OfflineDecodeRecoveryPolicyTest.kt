@@ -20,21 +20,21 @@ class OfflineDecodeRecoveryPolicyTest {
     }
 
     @Test fun linearRecoverySkipsBrokenTracksAndNeverRevisitsFailedIds() {
-        assertEquals(1, p.nextLinearIndex(queue, 0, setOf("a.mp3"), false))
-        assertEquals(2, p.nextLinearIndex(queue, 0, setOf("a.mp3", "b.mp3"), false))
+        assertEquals(1, p.nextLinearIndex(queue, 0, setOf("a.mp3"), false) ?: -1)
+        assertEquals(2, p.nextLinearIndex(queue, 0, setOf("a.mp3", "b.mp3"), false) ?: -1)
         assertNull(p.nextLinearIndex(queue, 1, setOf("a.mp3", "b.mp3", "c.mp3"), false))
         assertNull(p.nextLinearIndex(queue, 0, setOf("a.mp3", "b.mp3", "c.mp3"), true))
     }
 
     @Test fun repeatAllCanWrapButNeverReplayBrokenSource() {
-        assertEquals(0, p.nextLinearIndex(queue, 2, setOf("c.mp3"), true))
-        assertEquals(1, p.nextLinearIndex(queue, 2, setOf("a.mp3", "c.mp3"), true))
+        assertEquals(0, p.nextLinearIndex(queue, 2, setOf("c.mp3"), true) ?: -1)
+        assertEquals(1, p.nextLinearIndex(queue, 2, setOf("a.mp3", "c.mp3"), true) ?: -1)
         assertNull(p.nextLinearIndex(queue, 2, setOf("c.mp3"), false))
         assertNull(p.nextLinearIndex(listOf("only.mp3"), 0, setOf("only.mp3"), true))
     }
 
     @Test fun shuffleOnlyUsesMedia3OwnedNextSlot() {
-        assertEquals(2, p.safeShuffledIndex(queue, 0, 2, setOf("a.mp3")))
+        assertEquals(2, p.safeShuffledIndex(queue, 0, 2, setOf("a.mp3")) ?: -1)
         assertNull(p.safeShuffledIndex(queue, 0, 0, setOf("a.mp3")))
         assertNull(p.safeShuffledIndex(queue, 0, -1, setOf("a.mp3")))
         assertNull(p.safeShuffledIndex(queue, 0, 2, setOf("a.mp3", "c.mp3")))
