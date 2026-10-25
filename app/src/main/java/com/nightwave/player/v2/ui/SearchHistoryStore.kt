@@ -23,7 +23,7 @@ internal class SearchHistoryStore(context: Context) {
 
     private fun write(entries: List<String>): Boolean = runCatching {
         val array = JSONArray()
-        SearchHistoryPolicy.sanitize(entries).forEach(array::put)
+        SearchHistoryPolicy.sanitize(entries).forEach { array.put(it) }
         preferences.edit().putString(key, array.toString()).commit()
     }.getOrDefault(false)
 
