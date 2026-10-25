@@ -1268,6 +1268,9 @@ class PlaybackService : MediaLibraryService() {
                         offlineSession.saveSelection(offlineQueue.snapshot(), id, 0L)
                     }
                     player.seekTo(index, 0L)
+                    // After a local decoder exception Media3 can be IDLE;
+                    // seek alone does not prepare a new item for Play.
+                    if (player.playbackState == Player.STATE_IDLE) player.prepare()
                     player.play()
                 } else if (!offlineGaplessActive) {
                     val next = offlineQueue.jump(index)
@@ -1661,6 +1664,7 @@ class PlaybackService : MediaLibraryService() {
             val id = offlineQueue.snapshot().getOrNull(next) ?: return false
             if (player.getMediaItemAt(next).mediaId != "offline:$id") return false
             player.seekTo(next, 0L)
+            if (player.playbackState == Player.STATE_IDLE) player.prepare()
             player.play()
             return true
         }
