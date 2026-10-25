@@ -44,6 +44,20 @@ class CloudAuthorizationFailurePolicyTest {
         assertTrue(output.length < 155)
     }
 
+    @Test fun driveHttpErrorsAreNotMisreportedAsGoogleSignInErrors() {
+        val forbidden = CloudAuthorizationFailurePolicy.shortMessage(
+            403, CloudAuthorizationFailurePolicy.Stage.DRIVE_CHECK)
+        assertTrue(forbidden.contains("HTTP 403"))
+        assertTrue(forbidden.contains("Drive verification"))
+        assertFalse(forbidden.contains("authorization error"))
+        val expired = CloudAuthorizationFailurePolicy.shortMessage(
+            401, CloudAuthorizationFailurePolicy.Stage.DRIVE_CHECK)
+        assertTrue(expired.contains("Reconnect"))
+        assertTrue(CloudAuthorizationFailurePolicy.shortMessage(
+            null, CloudAuthorizationFailurePolicy.Stage.DRIVE_CHECK)
+            .contains("permission returned"))
+    }
+
     @Test fun onlyDeclaredStagesCanBeReadBackFromPrefs() {
         for (stage in CloudAuthorizationFailurePolicy.Stage.values()) {
             assertEquals(stage, CloudAuthorizationFailurePolicy.supportedStage(stage.name))
