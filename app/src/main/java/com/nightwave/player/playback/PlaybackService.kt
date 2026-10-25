@@ -791,10 +791,19 @@ class PlaybackService : MediaLibraryService() {
                 offlineDecodeFailedIds.add(selectedId!!)
                 val atErrorGeneration = generation
                 main.post {
-                    if (!offlinePlaying || generation != atErrorGeneration ||
-                        exoPlayer?.currentMediaItem?.mediaId != video) return@post
+                    if (!offlinePlaying) return@post
                     val playerNow = exoPlayer ?: return@post
                     val queueIds = offlineQueue.snapshot()
+                    if (!OfflineDecodeRecoveryPolicy.acceptsPostedRecovery(
+                            expectedMediaId = video,
+                            atErrorGeneration = atErrorGeneration,
+                            currentGeneration = generation,
+                            currentMediaId = playerNow.currentMediaItem?.mediaId,
+                            selectedId = offlineQueue.current,
+                            queueIds = queueIds,
+                            failedIds = offlineDecodeFailedIds,
+                            wantsPlayback = playerNow.playWhenReady,
+                            sleepTimerPaused = sleepTimerPaused)) return@post
                     val currentIndex = offlineQueue.index
                     val targetIndex = if (offlineQueue.shuffle) {
                         OfflineDecodeRecoveryPolicy.safeShuffledIndex(
