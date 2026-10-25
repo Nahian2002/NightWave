@@ -1223,13 +1223,19 @@ class NightWaveStudioActivity : ComponentActivity() {
             showMessage("Unknown Google Drive action.")
             return
         }
-        val playServicesCode = GoogleApiAvailability.getInstance()
-            .isGooglePlayServicesAvailable(this)
+        val googleAvailability = GoogleApiAvailability.getInstance()
+        val playServicesCode = googleAvailability.isGooglePlayServicesAvailable(this)
         if (playServicesCode != ConnectionResult.SUCCESS) {
             val message = "Google Play services unavailable (status $playServicesCode)"
             cloudStore.status(message)
             refreshCloud()
-            showMessage("$message. Update or enable Google Play services and retry.")
+            if (googleAvailability.isUserResolvableError(playServicesCode)) {
+                // Native Google UI, not an untrusted browser or login capture.
+                runCatching {
+                    googleAvailability.getErrorDialog(this, playServicesCode, 4501)?.show()
+                }
+            }
+            showMessage("$message. Resolve the Google Play services prompt and retry.")
             return
         }
         if (action != "connect" && cloudStore.read().account.isBlank()) {
