@@ -51,6 +51,7 @@ class CloudConnectionHelpPolicyTest {
             assertFalse(text.contains("Authorization:"))
             assertFalse(text.contains("@gmail.com"))
         }
-        assertEquals(null, policy.guidance(null))
+        assertTrue(policy.guidance(
+            CloudAuthorizationFailurePolicy.Stage.REQUEST, null).needsSetupReport)
     }
 }
