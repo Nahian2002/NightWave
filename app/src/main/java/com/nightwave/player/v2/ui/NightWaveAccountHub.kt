@@ -34,6 +34,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
+import android.content.Context
+import android.content.ClipboardManager
+import android.content.ClipData
+import com.nightwave.player.v2.cloud.InstalledApkOAuthIdentity
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -76,6 +82,11 @@ internal fun NightWaveAccountHubDialog(
     val canBackUp = CloudAccountPresentation.canBackUp(cloud, busy)
     val primary = MaterialTheme.colorScheme.primary
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
+    val appContext = LocalContext.current
+    val apkFingerprint = remember(appContext) {
+        InstalledApkOAuthIdentity.signingSha1(appContext)
+    }
+    var oauthCopied by remember { mutableStateOf(false) }
 
     Dialog(onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)) {
@@ -250,15 +261,48 @@ internal fun NightWaveAccountHubDialog(
                             style = MaterialTheme.typography.bodySmall)
                     }
                     if (!connected) {
-                        item {
-                            Text("If Google account selection closes without connecting, " +
-                                "run check-google-oauth.cmd from the Windows build folder. " +
-                                "Register its Android package and signing SHA-1 in Google " +
-                                "Cloud's OAuth client; enable Drive API and add yourself " +
-                                "as a test user when OAuth is in Testing mode. " +
-                                "Then try Connect Google Drive again.",
-                                color = muted,
-                                style = MaterialTheme.typography.bodySmall)
+                        item(key = "google-connection-help") {
+                            Card(shape = RoundedCornerShape(18.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+                                Column(Modifier.fillMaxWidth().padding(15.dp),
+                                    verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                                    Text("Google connection needs attention",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.SemiBold)
+                                    Text("If choosing an account returns error 8, " +
+                                        "check the OAuth registration for the exact APK " +
+                                        "installed on this phone.",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = muted)
+                                    Text("Installed APK signing SHA-1",
+                                        style = MaterialTheme.typography.labelLarge)
+                                    Text(apkFingerprint?.chunked(29)?.joinToString("\n")
+                                            ?: "Not available on this device",
+                                        style = MaterialTheme.typography.bodySmall.copy(
+                                            fontFamily = FontFamily.Monospace),
+                                        color = primary)
+                                    Text("Compare this fingerprint and package " +
+                                        "com.nightwave.player against your Android OAuth client. " +
+                                        "Enable Google Drive API and check OAuth test users.",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = muted)
+                                    OutlinedButton(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        onClick = {
+                                            oauthCopied = runCatching {
+                                                val clip = appContext.getSystemService(
+                                                    Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                                clip.setPrimaryClip(ClipData.newPlainText(
+                                                    "NightWave OAuth setup",
+                                                    InstalledApkOAuthIdentity.report(appContext)))
+                                            }.isSuccess
+                                        }) {
+                                        Text(if (oauthCopied)
+                                            "Setup report copied" else "Copy Google setup report")
+                                    }
+                                }
+                            }
                         }
                     }
                 }
