@@ -294,7 +294,7 @@ class CatalogDownloadsActivity : ComponentActivity() {
                     isIndeterminate = total <= 0L
                     if (total > 0L) {
                         max = 1000
-                        progress = ((received.coerceAtLeast(0L).toDouble() / total) * 1000.0)
+                        this.progress = ((received.coerceAtLeast(0L).toDouble() / total) * 1000.0)
                             .toInt().coerceIn(0, 1000)
                     }
                     progressTintList = ColorStateList.valueOf(0xFF94E2D8.toInt())
