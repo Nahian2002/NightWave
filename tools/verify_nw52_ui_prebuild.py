@@ -73,7 +73,7 @@ def check(activity: str, player: str, recent: str, chrome: str,
          '}, LinearLayout.LayoutParams(-1, dp(48)))\n        val controls' in offline),
         ("offline-sort-screenreader", 'contentDescription = "Sort offline music · "' in offline),
         ("offline-health-filters", "OfflineLibraryViewPolicy.includes(" in offline),
-        ("download-ready-requires-file", "OfflineAudioLibrary(this).availableIds(allSavedIds)" in downloads),
+        ("download-ready-requires-file", "OfflineAudioLibrary(applicationContext).availableIds(savedIds)" in downloads),
         ("download-paused-state-honest", "Resume restarts from zero" in downloads),
         ("download-stalled-state-honest", "No new bytes · Waiting for source" in downloads),
     ]
@@ -131,7 +131,7 @@ def main() -> int:
             (2, "onClick = onRemove", "onClick = onPlay"),
             (3, "if (!active) onNavigate(index)", "onNavigate(index)"),
             (4, "OfflineLibraryViewPolicy.includes(", "true // bypassed"),
-            (5, "OfflineAudioLibrary(this).availableIds(allSavedIds)", "emptySet()"),
+            (5, "OfflineAudioLibrary(applicationContext).availableIds(savedIds)", "emptySet()"),
         ]:
             mutated = list(src)
             assert old in mutated[index], (index, old)
