@@ -42,6 +42,8 @@ import android.content.ClipData
 import android.content.Intent
 import android.net.Uri
 import com.nightwave.player.v2.cloud.InstalledApkOAuthIdentity
+import com.nightwave.player.v2.cloud.CloudAuthorizationFailureStore
+import com.nightwave.player.v2.cloud.CloudAuthorizationFailurePolicy
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -89,6 +91,9 @@ internal fun NightWaveAccountHubDialog(
         InstalledApkOAuthIdentity.signingSha1(appContext)
     }
     var oauthCopied by remember { mutableStateOf(false) }
+    val lastGoogleFailure = remember(cloud.lastResult, appContext) {
+        CloudAuthorizationFailureStore(appContext).read()
+    }
 
     Dialog(onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)) {
@@ -269,14 +274,23 @@ internal fun NightWaveAccountHubDialog(
                                     containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
                                 Column(Modifier.fillMaxWidth().padding(15.dp),
                                     verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                                    Text("Google connection needs attention",
+                                    Text(if (lastGoogleFailure == null)
+                                        "Set up Google Drive backup" else "Google connection help",
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.SemiBold)
-                                    Text("If choosing an account returns error 8, " +
-                                        "check the OAuth registration for the exact APK " +
-                                        "installed on this phone.",
+                                    Text(if (lastGoogleFailure == null)
+                                        "Connect your Google account to back up library metadata. " +
+                                            "Your local music stays available without Google."
+                                    else CloudAuthorizationFailurePolicy.shortMessage(
+                                        lastGoogleFailure.code, lastGoogleFailure.stage),
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = muted)
+                                    if (lastGoogleFailure != null) {
+                                        Text("Step: " + CloudAuthorizationFailurePolicy.stageLabel(
+                                            lastGoogleFailure.stage),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = muted)
+                                    }
                                     Text("Installed APK signing SHA-1",
                                         style = MaterialTheme.typography.labelLarge)
                                     Text(apkFingerprint?.chunked(29)?.joinToString("\n")
@@ -284,9 +298,9 @@ internal fun NightWaveAccountHubDialog(
                                         style = MaterialTheme.typography.bodySmall.copy(
                                             fontFamily = FontFamily.Monospace),
                                         color = primary)
-                                    Text("Compare this fingerprint and package " +
-                                        "com.nightwave.player against your Android OAuth client. " +
-                                        "Enable Google Drive API and check OAuth test users.",
+                                    Text("If the error repeats, compare this APK's package and " +
+                                        "SHA-1 with the Android OAuth client. Check Drive API, " +
+                                        "Google Play services and OAuth test users.",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = muted)
                                     OutlinedButton(
