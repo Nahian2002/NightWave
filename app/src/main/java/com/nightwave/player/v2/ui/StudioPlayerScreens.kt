@@ -815,13 +815,15 @@ fun StudioNowPlayingOverlay(
                 Spacer(Modifier.height(10.dp))
                 Surface(
                     onClick = onSaveOffline,
+                    enabled = state.hasTrack,
                     modifier = Modifier.fillMaxWidth().height(52.dp)
                         .testTag("nightwave-now-playing-offline-action"),
                     shape = RoundedCornerShape(18.dp),
                     color = colors.surfaceVariant.copy(alpha = .74f)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
-                        Text(if (state.offline) "Open offline library"
+                        Text(if (!state.hasTrack) "Choose a track first"
+                            else if (state.offline) "Open offline library"
                             else "Save for offline listening",
                             style = MaterialTheme.typography.labelLarge,
                             color = colors.onSurface)
