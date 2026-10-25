@@ -63,10 +63,15 @@ class DirectAudioDownloadWorker(
                     setForegroundAsync(foreground(source.fileName, received, total))
                 }
             }
-            if (isStopped) fail("Download cancelled") else
-                Result.success(Data.Builder()
-                    .putString(DirectAudioDownloadQueue.KEY_DONE, saved.id)
-                    .build())
+            // Recheck indexed readable storage after the private import.
+            // Never equate network completion with playable offline audio.
+            val verified = OfflineAudioLibrary(applicationContext)
+                .availableIds(setOf(saved.id))
+            if (!OfflineTransferCompletionPolicy.canCommit(isStopped, saved.id, verified)) {
+                fail(OfflineTransferCompletionPolicy.NOT_VERIFIED)
+            } else Result.success(Data.Builder()
+                .putString(DirectAudioDownloadQueue.KEY_DONE, saved.id)
+                .build())
         } catch (error: Exception) {
             if (isStopped) fail("Download cancelled")
             else if (error is IOException && runAttemptCount < 2) Result.retry()
