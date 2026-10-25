@@ -26,7 +26,7 @@ def check(files: dict[str, str]) -> None:
         "CatalogDownloadsActivity.kt": [
             "DownloadCenterViewPolicy.Filter.entries",
             "DownloadCenterViewPolicy.matches(",
-            "OfflineAudioLibrary(this).availableIds(allSavedIds)",
+            "OfflineAudioLibrary(applicationContext).availableIds(savedIds)",
             "DownloadCenterViewPolicy.percent(received, total)",
             "DownloadCenterViewPolicy.recentRate(",
             "No new bytes · Waiting for source",
