@@ -10,6 +10,8 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
     private val entries = mutableListOf<QueueEntry>()
     private val visited = ArrayDeque<Int>()
     private val shuffledSeen = mutableSetOf<Int>()
+    /** Explicit Play Next always outranks shuffle candidates in this session. */
+    private val manualNext = ArrayDeque<String>()
     var index: Int = -1
         private set
     var shuffle: Boolean = false
@@ -20,6 +22,7 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
                 // linear Previous or a new Shuffle session.
                 visited.clear()
                 shuffledSeen.clear()
+                manualNext.clear()
             }
         }
     var repeat: Repeat = Repeat.OFF
@@ -33,6 +36,7 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
         shuffle = false
         visited.clear()
         shuffledSeen.clear()
+        manualNext.clear()
     }
     val size: Int get() = entries.size
     val current: QueueEntry? get() = entries.getOrNull(index)
@@ -46,6 +50,7 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
         entries.addAll(items.distinctBy { it.url }.take(100))
         visited.clear()
         shuffledSeen.clear()
+        manualNext.clear()
         index = if (entries.isEmpty()) -1 else {
             val exactIndex = entries.indexOfFirst { it.url == requestedUrl }
             if (exactIndex >= 0) exactIndex else selected.coerceIn(0, entries.lastIndex)
@@ -66,6 +71,7 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
         if (shuffle || at <= index || at !in entries.indices ||
             entries[at].url != expectedUrl) return null
         val removed = entries.removeAt(at)
+        manualNext.remove(removed.url)
         remapForRemoval(at)
         return RemovedUpcoming(removed, at, playing)
     }
@@ -106,6 +112,35 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
         shuffleHistory.forEach { old -> shuffledSeen.add(if (old >= at) old + 1 else old) }
     }
 
+    /**
+     * Play Next differs from Add to Queue: it moves an already queued URL or
+     * inserts a valid new item directly after the current song.
+     * For shuffle, manual priority is consumed by next() before random picks.
+     * Only the service is permitted to persist/start the resulting queue.
+     */
+    fun insertNext(entry: QueueEntry): Boolean {
+        if (entry.url.isBlank() || current?.url == entry.url) return false
+        if (current == null) {
+            replace(listOf(entry), 0)
+            return true
+        }
+        val prior = entries.indexOfFirst { it.url == entry.url }
+        if (prior >= 0 && prior <= index) return false // Don't rewrite history.
+        if (prior < 0 && entries.size >= 100) return false
+        val toInsert = if (prior >= 0) {
+            val existing = entries.removeAt(prior)
+            remapForRemoval(prior)
+            existing // Keep previously saved exact title/artwork metadata.
+        } else entry
+        val target = (index + 1).coerceAtMost(entries.size)
+        entries.add(target, toInsert)
+        remapForInsertion(target)
+        // Only queue contents and order are persisted, never a private stream URL.
+        manualNext.remove(entry.url)
+        manualNext.addFirst(entry.url)
+        return true
+    }
+
     fun add(entry: QueueEntry): Boolean {
         if (entries.size >= 100 || entries.any { it.url == entry.url }) return false
         entries.add(entry)
@@ -116,7 +151,14 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
     fun next(automatic: Boolean = false): QueueEntry? {
         if (entries.isEmpty()) return null
         if (automatic && repeat == Repeat.ONE) return current
+        val queuedNext = manualNext.firstOrNull()?.let { wanted ->
+            entries.indexOfFirst { it.url == wanted && it != current }
+        }?.takeIf { it >= 0 }
         val target = when {
+            queuedNext != null -> {
+                manualNext.removeFirst()
+                queuedNext
+            }
             shuffle && entries.size > 1 -> {
                 if (index >= 0) shuffledSeen.add(index)
                 var candidates = entries.indices.filter { it !in shuffledSeen }
@@ -136,6 +178,8 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
             if (visited.size > 100) visited.removeFirst()
         }
         index = target
+        // Linear playback or explicit jump can reach pending priority itself.
+        manualNext.remove(current?.url)
         return current
     }
 
@@ -146,6 +190,7 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
             if (visited.size > 100) visited.removeFirst()
         }
         index = to
+        manualNext.remove(current?.url)
         return current
     }
 
@@ -169,6 +214,7 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
         entries.clear()
         visited.clear()
         shuffledSeen.clear()
+        manualNext.clear()
         index = -1
     }
 }
