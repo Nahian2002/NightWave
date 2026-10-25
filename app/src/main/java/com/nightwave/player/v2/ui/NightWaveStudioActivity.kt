@@ -3222,16 +3222,9 @@ private fun StudioHome(
                     Icons.Outlined.Search, "nw47-home-search", openSearch)
             }
         }
-        item {
-            ListeningSpotlight(
-                lastTrack = recent.firstOrNull(),
-                onResume = { recent.firstOrNull()?.let { onResumeSpotlight(it, recent) } },
-                onDiscover = { onSearch("night drive music") }
-            )
-        }
-        item(key = "nw47-home-library-stats") {
-            NightWaveLibraryNumbers(favorites.size, recent.size, onLibrary = openLibrary)
-        }
+        // The hero already displays the last-played artwork and Continue
+        // is an explicit action above. A second 181dp ListeningSpotlight
+        // repeated the same song and pushed real music below the fold.
         item(key = "recent-heading") {
             Row(Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -3275,6 +3268,9 @@ private fun StudioHome(
                     Text("Clear Recently Played")
                 }
             }
+        }
+        item(key = "nw47-home-library-stats") {
+            NightWaveLibraryNumbers(favorites.size, recent.size, onLibrary = openLibrary)
         }
         if (mixes.isNotEmpty()) {
             item {
