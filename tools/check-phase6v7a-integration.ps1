@@ -26,6 +26,8 @@ function TestCount([string]$path, [int]$minimum) {
 $prefix = 'app/src/main/java/com/nightwave/player/v2/ui/'
 $policy = Read-Source ($prefix + 'NightWaveChromePolicy.kt')
 $chrome = Read-Source ($prefix + 'NightWavePremiumChrome.kt')
+$motion = Read-Source ($prefix + 'NightWaveMotionPolicy.kt')
+$theme = Read-Source ($prefix + 'NightWaveTheme.kt')
 $activity = Read-Source ($prefix + 'NightWaveStudioActivity.kt')
 $mini = Read-Source ($prefix + 'StudioPlayerScreens.kt')
 $build = Read-Source 'tools/build-windows.ps1'
@@ -39,7 +41,14 @@ Need $chrome 'fun NightWaveHomeHero(' 'Premium Home header not implemented'
 Need $chrome 'Role.Tab' 'Navigation accessibility role missing'
 Need $chrome 'selected = active' 'Selected navigation state missing'
 Need $chrome '"nightwave-tab-" + tags[index]' 'Original UI automation tags not preserved'
-Need $chrome 'NightWaveAdaptiveChromePolicy.motionDurationMs(reducedMotion, 160)' 'Reduced-motion navigation setting not honored'
+# NW42 replaces one hardcoded tween with a centrally bounded motion policy
+# and an instant snap fallback; keep both paths verified.
+Need $chrome 'NightWaveMotionPolicy.duration(' 'Motion duration not wired to navigation'
+Need $chrome 'NightWaveMotionPolicy.tabScale(active, reducedMotion)' 'Navigation selection motion not state-driven'
+Need $chrome 'if (reducedMotion) snap()' 'Reduced-motion navigation spring bypass missing'
+Need $motion 'if (reduceMotion) 0 else requested.coerceIn(0, MAX_MS)' 'Reduced-motion duration must be zero'
+Need $motion 'if (reduceMotion) 1f' 'Reduced-motion icon/artwork transforms must be neutral'
+Need $theme 'LocalNightWaveReduceMotion provides reduceMotion' 'App-wide reduced-motion preference not provided'
 Need (Read-Source ($prefix + 'NightWaveAdaptiveChromePolicy.kt')) 'if (reducedMotion) 0 else regularMs.coerceIn(0, 600)' 'Reduced-motion policy must return zero duration'
 Need $activity 'NightWavePremiumNavigation(' 'Root navigation not wired'
 Need $activity 'NightWaveHomeHero(' 'Home header not wired'
