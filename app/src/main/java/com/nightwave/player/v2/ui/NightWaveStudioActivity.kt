@@ -152,6 +152,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -356,6 +357,10 @@ class NightWaveStudioActivity : ComponentActivity() {
     private var nativeSearchState by mutableStateOf(StudioSearchSnapshot())
     private var nativeSearchJob: Job? = null
     private var nativeSearchGeneration = 0
+    private var offlineResumeReadJob: Job? = null
+    private var offlineResumeReadGeneration = 0
+    private var recentRefreshJob: Job? = null
+    private var recentRefreshGeneration = 0
     private var searchNavigationToken by mutableStateOf(0)
     private var shadowRunning = false
     private var shadowRequested = false
@@ -692,7 +697,9 @@ class NightWaveStudioActivity : ComponentActivity() {
                 }
             }
             LaunchedEffect(playback.state.videoUrl) {
-                if (playback.state.videoUrl.isNotBlank()) refresh()
+                // A public track change only affects listening history. Do not
+                // reset the Room preview or hash large offline audio on the UI.
+                if (playback.state.videoUrl.isNotBlank()) refreshRecentForTrackChange()
             }
             LaunchedEffect(playback.state.videoUrl, lyricsRevision) {
                 lyricsEditorSession?.let { session ->
@@ -1766,6 +1773,10 @@ class NightWaveStudioActivity : ComponentActivity() {
     }
 
     override fun onStop() {
+        offlineResumeReadJob?.cancel()
+        offlineResumeReadGeneration++
+        recentRefreshJob?.cancel()
+        recentRefreshGeneration++
         nativeSearchJob?.cancel()
         nativeSearchGeneration++
         if (nativeSearchState.loading) {
@@ -2521,14 +2532,52 @@ class NightWaveStudioActivity : ComponentActivity() {
         names = library.playlistNames()
         folderSnapshot = folderStore.snapshot()
         libraryRevision++
-        val checkpoint = OfflineSessionStore(this).read()
-        val song = checkpoint?.selectedId?.let { id ->
-            runCatching { OfflineAudioLibrary(this).find(id) }.getOrNull()
-        }?.takeIf { OfflineAudioLibrary(this).fileFor(it) != null }
-        offlineResumeTitle = song?.title
-        offlineResumePositionMs = if (song != null) (checkpoint?.positionMs ?: 0L) else 0L
+        refreshOfflineResume()
         // Do not enqueue a complete Room rewrite for every player/queue update.
         // onResume and the explicit "Recheck" action handle shadow verification.
+    }
+
+    /**
+     * Heavy offline-file validation can hash an entire recording. Run it on
+     * Dispatchers.IO and refuse stale results after another refresh or Stop.
+     * Never mutate the offline index just to render a resume shortcut.
+     */
+    private fun refreshOfflineResume() {
+        val token = ++offlineResumeReadGeneration
+        offlineResumeReadJob?.cancel()
+        offlineResumeReadJob = lifecycleScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                runCatching {
+                    val checkpoint = OfflineSessionStore(applicationContext).read()
+                    val lib = OfflineAudioLibrary(applicationContext)
+                    val song = checkpoint?.selectedId?.let(lib::find)
+                        ?.takeIf { lib.fileFor(it) != null }
+                    song?.title to if (song != null)
+                        (checkpoint?.positionMs ?: 0L).coerceAtLeast(0L) else 0L
+                }.getOrDefault(null to 0L)
+            }
+            if (token != offlineResumeReadGeneration || isFinishing || isDestroyed)
+                return@launch
+            offlineResumeTitle = result.first
+            offlineResumePositionMs = result.second
+        }
+    }
+
+    /** Only the real listening-history index changes when service plays a new song. */
+    private fun refreshRecentForTrackChange() {
+        val token = ++recentRefreshGeneration
+        recentRefreshJob?.cancel()
+        recentRefreshJob = lifecycleScope.launch {
+            val updated = withContext(Dispatchers.IO) {
+                runCatching { library.recent() }.getOrNull()
+            } ?: return@launch
+            if (token != recentRefreshGeneration || isFinishing || isDestroyed)
+                return@launch
+            if (recentlyPlayed != updated) {
+                recentlyPlayed = updated
+                libraryRevision++
+            }
+        }
     }
 
     /**
@@ -2905,7 +2954,20 @@ private fun StudioRoot(
                         },
                         openOffline = onOfflineLibrary
                     )
-                    StudioTab.SEARCH -> StudioSearch(
+                    StudioTab.SEARCH -> {
+                        val indexedAudio by produceState(
+                            initialValue = emptyList<com.nightwave.player.offline.OfflineSong>(),
+                            libraryRevision
+                        ) {
+                            // The old remember(...) block parsed the offline
+                            // index on the Compose UI thread on Search entry.
+                            value = withContext(Dispatchers.IO) {
+                                runCatching {
+                                    OfflineAudioLibrary(studioContext).songs().take(400)
+                                }.getOrDefault(emptyList())
+                            }
+                        }
+                        StudioSearch(
                         Modifier, searchState, onPrimarySearch, onSearch, onWebSearch,
                         onPlay, onSongOptions,
                         playerState.videoUrl.takeIf { playerState.playing }.orEmpty(),
@@ -2914,13 +2976,7 @@ private fun StudioRoot(
                                 .distinctBy { it.url }
                                 .take(350)
                         },
-                        offlineSongs = remember(libraryRevision) {
-                            // Read indexed titles, not entire file bodies, on tab entry.
-                            // Unreadable private indexes remain untouched.
-                            runCatching {
-                                OfflineAudioLibrary(studioContext).songs().take(400)
-                            }.getOrDefault(emptyList())
-                        },
+                        offlineSongs = indexedAudio,
                         onOfflineSearch = onOfflineSearch,
                         searchHistory = searchHistory,
                         canUndoSearchRemoval = removedSearchSnapshot != null,
@@ -2954,6 +3010,7 @@ private fun StudioRoot(
                             }
                         }
                     )
+                    }
                     StudioTab.LIBRARY -> StudioLibrary(
                         modifier = Modifier, favorites = favorites, recent = recent,
                         names = playlistNames,
