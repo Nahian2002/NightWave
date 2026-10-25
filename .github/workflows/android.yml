@@ -65,6 +65,7 @@ on:
       - feature/nightwave-nw49-audio-lyrics-studio
       - feature/nightwave-nw50-premium-motion
       - feature/nightwave-nw51-performance-reliability
+      - feature/nightwave-nw52-final-integration-release-gates
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
@@ -169,6 +170,8 @@ jobs:
           python3 tools/verify_nw50_motion.py
           python3 tools/verify_nw51_reliability.py --self-test
           python3 tools/verify_nw51_reliability.py
+          python3 tools/verify_nw52_release.py --self-test
+          python3 tools/verify_nw52_release.py --json
           python3 tools/nw44_kotlin_smoke.py --self-test
           python3 tools/nw40_pure_kotlin_smoke.py --self-test
           python3 tools/verify_nw01_recovery.py
@@ -359,7 +362,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: NightWave-NW16-dev-debug-UNVERIFIED-FOR-DEVICE
+          name: NightWave-NW52-dev-debug-NEEDS-SIGNER-DEVICE-QA
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 5
