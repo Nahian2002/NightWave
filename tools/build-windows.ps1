@@ -392,6 +392,23 @@ try {
     }
     Say 'NW52 cumulative source preflight PASS (Android compilation still mandatory).'
 
+    # NW59 validates all later NW53-NW58 stacked source upgrades without
+    # requiring Python on Windows. SelfTest must work without any project path.
+    $stage = 'NW59 cumulative upgrade regression preflight'
+    $nw59Gate = Join-Path $PSScriptRoot 'check-nw59-integration.ps1'
+    if (-not (Test-Path -LiteralPath $nw59Gate -PathType Leaf)) {
+        throw 'NW59 source guard missing. Download the complete NW59 ZIP.'
+    }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $nw59Gate -SelfTest
+    if ($LASTEXITCODE -ne 0) {
+        throw 'NW59 PowerShell regression self-test failed; Gradle not started.'
+    }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $nw59Gate -ProjectRoot $project
+    if ($LASTEXITCODE -ne 0) {
+        throw 'NW59 NW53-NW58 source integration failed; Gradle not started.'
+    }
+    Say 'NW59 cumulative upgrade source preflight PASS (Android Gradle/JUnit still required).'
+
     # NW-08: fingerprint all app source/resources/tests and source-build tooling,
     # not only ten representative files. The helper is run again after Gradle,
     # detecting file additions/removals as well as changes.
