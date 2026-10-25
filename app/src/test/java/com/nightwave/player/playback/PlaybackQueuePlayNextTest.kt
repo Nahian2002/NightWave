@@ -93,6 +93,19 @@ class PlaybackQueuePlayNextTest {
         assertTrue(q.shuffle)
     }
 
+    @Test fun togglingShufflePreservesUserChosenNext() {
+        val q = PlaybackQueue(pick = { 0 })
+        q.replace((1..4).map(::song), 0)
+        q.insertNext(song(4))
+        q.shuffle = true
+        assertEquals(listOf(song(4).url), q.priorityNextUrls())
+        assertEquals(song(4), q.next())
+        q.insertNext(song(3))
+        q.shuffle = false
+        assertEquals(listOf(song(3).url), q.priorityNextUrls())
+        assertEquals(song(3), q.next())
+    }
+
     @Test fun repeatOneStillRepeatsUntilExplicitUserSkip() {
         val q = PlaybackQueue()
         q.replace(listOf(song(1), song(2)), 0)
