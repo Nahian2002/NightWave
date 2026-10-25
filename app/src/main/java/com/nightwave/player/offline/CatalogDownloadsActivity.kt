@@ -59,6 +59,11 @@ class CatalogDownloadsActivity : ComponentActivity() {
         uiHandler.postDelayed(stagnantTransferRefresh, 5_000L)
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putString("nw48-download-filter", currentFilter.name)
+        super.onSaveInstanceState(outState)
+    }
+
     override fun onPause() {
         uiHandler.removeCallbacks(stagnantTransferRefresh)
         super.onPause()
@@ -66,6 +71,10 @@ class CatalogDownloadsActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        currentFilter = savedInstanceState?.getString("nw48-download-filter")
+            ?.let { stored -> runCatching {
+                DownloadCenterViewPolicy.Filter.valueOf(stored)
+            }.getOrNull() } ?: DownloadCenterViewPolicy.Filter.ALL
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(18), dp(16), dp(18), dp(12))
