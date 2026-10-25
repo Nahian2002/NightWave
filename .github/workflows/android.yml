@@ -76,6 +76,8 @@ on:
       - feature/nightwave-nw60-offline-playback-recovery
       - feature/nightwave-nw61-google-oauth-diagnostics
       - feature/nightwave-nw62-download-status-performance
+      - feature/nightwave-nw63-download-history-navigation
+      - feature/nightwave-nw64-download-refresh-performance
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
