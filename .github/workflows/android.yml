@@ -73,6 +73,7 @@ on:
       - feature/nightwave-nw57-home-first-fold
       - feature/nightwave-nw58-player-overlay-polish
       - feature/nightwave-nw59-integrated-build-gates
+      - feature/nightwave-nw60-offline-playback-recovery
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
@@ -193,6 +194,8 @@ jobs:
           python3 tools/verify_nw57_home.py
           python3 tools/verify_nw58_overlay.py --self-test
           python3 tools/verify_nw58_overlay.py
+          python3 tools/verify_nw60_offline_recovery.py --self-test
+          python3 tools/verify_nw60_offline_recovery.py
           python3 tools/nw44_kotlin_smoke.py --self-test
           python3 tools/nw40_pure_kotlin_smoke.py --self-test
           python3 tools/verify_nw01_recovery.py
