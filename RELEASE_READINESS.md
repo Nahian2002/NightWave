@@ -1,9 +1,12 @@
 # NightWave — Release Readiness
 
-**Status: NO-GO for public APK / Google Play. GitHub repository remains private.**
-**Prepared on:** 25 October 2026
+**Status: NO-GO for public APK / Google Play. GitHub repository remains private.**  
+**Updated on:** 25 October 2026  
+**Current integrated development branch:** `feature/nightwave-nw52-final-integration-release-gates` (NW43–NW52), **not** default `main`.
 
-The existing Android app is **unchanged** in this release-preparation branch. Nothing in this repository documentation proves that NightWave can legally or technically store every YouTube song for offline playback.
+The 10-source-batch roadmap is implemented as stacked code branches, **not** a compiled/released app. The current Android build remains API 35 and version `2.0.0-alpha5s`; a tested Android API 36 migration is mandatory for a 2026 Play phone submission. No green Gradle/JVM/Compose build, real Google authorization, production AAB/signing, external privacy disclosure, historical secret scan, or public-source/media rights approval is confirmed. The app has not been published. Nothing proves arbitrary YouTube songs may legally or technically be stored offline.
+
+**Build this exact branch only for private validation** using [NW52 Final Integration & Acceptance](docs/NW52_FINAL_INTEGRATION.md). Older NW34 release-preparation documents are historical, not proof of NW52 completion.
 
 ## Where to begin
 
