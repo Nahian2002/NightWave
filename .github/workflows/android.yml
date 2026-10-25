@@ -180,6 +180,8 @@ jobs:
           pwsh -NoProfile -File tools/check-kotlin-compat.ps1 -SelfTest
           pwsh -NoProfile -File tools/check-kotlin-compat.ps1
           pwsh -NoProfile -File tools/check-builder-syntax.ps1
+          pwsh -NoProfile -File tools/check-nw40-stability.ps1 -SelfTest
+          pwsh -NoProfile -File tools/check-nw40-stability.ps1
           pwsh -NoProfile -File tools/nw11-junit-report.ps1 -SelfTest
           pwsh -NoProfile -File tools/get-nw08-source-inputs.ps1 -SelfTest
           pwsh -NoProfile -File tools/check-nw07-source-gate.ps1 -SelfTest
