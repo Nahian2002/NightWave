@@ -54,7 +54,7 @@ function Assert-NW59SearchCopy([string]$Body) {
 }
 function Assert-NW59Home([string]$Body) {
     $start = $Body.IndexOf('private fun StudioHome(')
-    $finish = $Body.IndexOf('@Composable' + [char]10 + 'private fun MoodTile(', $start)
+    $finish = $Body.IndexOf('private fun MoodTile(', [Math]::Max(0, $start))
     if ($start -lt 0 -or $finish -lt $start) {
         throw 'NW59 cannot isolate Compose Home from source'
     }
