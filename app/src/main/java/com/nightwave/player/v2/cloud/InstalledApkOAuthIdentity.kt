@@ -36,12 +36,18 @@ object InstalledApkOAuthIdentity {
         val serviceStatus = if (serviceCode == ConnectionResult.SUCCESS) {
             "Available"
         } else "Needs attention (code $serviceCode)"
+        val lastFailure = CloudAuthorizationFailureStore(context).read()
+        val lastCode = lastFailure?.code?.toString() ?: "Not reported"
+        val lastStage = lastFailure?.stage?.let(
+            CloudAuthorizationFailurePolicy::stageLabel) ?: "Not reported"
         return listOf(
             "NightWave Google Drive authorization setup",
             "APK installed on this device (public details only)",
             "Android package: $packageName",
             "APK signing certificate SHA-1: $fingerprint",
             "Google Play services: $serviceStatus",
+            "Last failure status: $lastCode",
+            "Last failure stage: $lastStage",
             "Requested Drive scope: https://www.googleapis.com/auth/drive.appdata",
             "",
             "In Google Cloud Console, check the same project:",
@@ -52,7 +58,7 @@ object InstalledApkOAuthIdentity {
             "   as a test user if the app is in Testing mode.",
             "5. Ensure Google Play services are current, then retry.",
             "",
-            "Status 8 means Google reported an internal authorization error.",
+            "Status 8 = internal error (may be transient); status 10 = configuration error.",
             "This checklist helps diagnose configuration; it cannot guarantee",
             "connection or change Google's OAuth registration automatically.",
             "Never paste OAuth access tokens, client secrets or passwords."
