@@ -2705,7 +2705,11 @@ private fun StudioRoot(
                         onShareDiagnostics = onShareDiagnostics,
                         onOpenClassic = onOpenClassic,
                         onEqualizer = { showSoundStudio = true },
-                        onOpenAccount = { showAccountHub = true }
+                        onOpenAccount = { showAccountHub = true },
+                        onManageHistory = {
+                            selectedPlaylist = RECENT_COLLECTION
+                            navigateToTab(StudioTab.LIBRARY)
+                        }
                     )
                 }
             }
@@ -3769,8 +3773,12 @@ private fun StudioLibrary(
         }
         if (visibleTracks.isEmpty()) item {
             EmptyMusicCard(
-                if (tracks.isEmpty()) "Nothing here yet" else "No matching tracks",
-                if (tracks.isEmpty()) "Save a song to build your collection."
+                if (selectedPlaylist == RECENT_COLLECTION && tracks.isEmpty())
+                    "No recent plays" else if (tracks.isEmpty()) "Nothing here yet"
+                    else "No matching tracks",
+                if (selectedPlaylist == RECENT_COLLECTION && tracks.isEmpty())
+                    "Songs you play appear here. Liked and downloaded music stays saved."
+                else if (tracks.isEmpty()) "Save a song to build your collection."
                 else "Try another title or artist.",
                 if (tracks.isEmpty()) "Find music" else "Clear filter") {
                 if (tracks.isEmpty()) onSearch() else localFilter = ""
@@ -3789,7 +3797,7 @@ private fun StudioLibrary(
                     ({ onRemoveRecent(song) }) else null,
                 onClick = { onPlay(song, if (selectedPlaylist == null) tracks else orderedTracks) })
         }
-        item {
+        if (selectedPlaylist == null || selectedPlaylist in names) item {
             OutlinedButton(onClick = onManage, modifier = Modifier.fillMaxWidth()) {
                 Text("Manage playlists")
             }
@@ -3824,7 +3832,8 @@ private fun StudioProfile(
     onEnableRoomPreview: () -> Unit, onUseLegacyReads: () -> Unit,
     onShareDiagnostics: () -> Unit, onOpenClassic: () -> Unit,
     onEqualizer: () -> Unit,
-    onOpenAccount: () -> Unit
+    onOpenAccount: () -> Unit,
+    onManageHistory: () -> Unit
 ) {
     var name by rememberSaveable(profile.localId) { mutableStateOf(profile.displayName) }
     var editing by rememberSaveable { mutableStateOf(false) }
@@ -4050,6 +4059,10 @@ private fun StudioProfile(
                         ListeningInsightsPanel(insights)
                     }
                 }
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                StudioProfileRow("Manage Recently Played",
+                    "Remove one entry or clear history · Saved music stays",
+                    Icons.Outlined.LibraryMusic, onManageHistory)
             }
         }
 
