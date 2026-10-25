@@ -7,7 +7,7 @@ $ErrorActionPreference = 'Stop'
 $project = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $dist = Join-Path $project 'dist'
 New-Item -ItemType Directory -Path $dist -Force | Out-Null
-$scripts = @('build-windows.ps1', 'verify-apk-signature.ps1', 'check-device-update.ps1', 'capture-nightwave-crash.ps1', 'diagnose-build.ps1', 'check-kotlin-compat.ps1', 'check-phase6p-integration.ps1', 'check-phase6v-integration.ps1', 'check-phase6v4-integration.ps1', 'check-phase6v5-integration.ps1', 'check-phase6v5b-integration.ps1', 'check-phase6v5c-integration.ps1', 'check-phase6v6a-integration.ps1', 'check-phase6v6b-integration.ps1', 'check-phase6v6c-integration.ps1', 'check-phase6v6d-integration.ps1', 'check-phase6v6e-integration.ps1', 'check-phase6v6f-integration.ps1', 'smoke-lyrics-kotlin.ps1', 'check-kotlin-bytearray-fixtures.ps1', 'check-phase6v7a-integration.ps1', 'check-phase6v7b-integration.ps1', 'check-nw07-source-gate.ps1', 'get-nw08-source-inputs.ps1', 'nw11-junit-report.ps1', 'check-nw27-integrity.ps1', 'check-nw34-offline-integrity.ps1', 'check-google-oauth.ps1', 'check-nw40-stability.ps1', 'check-builder-syntax.ps1')
+$scripts = @('build-windows.ps1', 'verify-apk-signature.ps1', 'check-device-update.ps1', 'capture-nightwave-crash.ps1', 'diagnose-build.ps1', 'check-kotlin-compat.ps1', 'check-phase6p-integration.ps1', 'check-phase6v-integration.ps1', 'check-phase6v4-integration.ps1', 'check-phase6v5-integration.ps1', 'check-phase6v5b-integration.ps1', 'check-phase6v5c-integration.ps1', 'check-phase6v6a-integration.ps1', 'check-phase6v6b-integration.ps1', 'check-phase6v6c-integration.ps1', 'check-phase6v6d-integration.ps1', 'check-phase6v6e-integration.ps1', 'check-phase6v6f-integration.ps1', 'smoke-lyrics-kotlin.ps1', 'check-kotlin-bytearray-fixtures.ps1', 'check-phase6v7a-integration.ps1', 'check-phase6v7b-integration.ps1', 'check-nw07-source-gate.ps1', 'get-nw08-source-inputs.ps1', 'nw11-junit-report.ps1', 'check-nw27-integrity.ps1', 'check-nw34-offline-integrity.ps1', 'check-google-oauth.ps1', 'check-nw40-stability.ps1', 'check-nw52-integration.ps1', 'check-builder-syntax.ps1')
 $issues = @()
 
 foreach ($name in $scripts) {
@@ -58,6 +58,23 @@ if (Test-Path -LiteralPath $builderPath -PathType Leaf) {
     if (-not $guardedTrust -or -not $optionalAppend -or
         -not $arrayInvocation -or $unsafeInvocation) {
         $issues += 'The APK verifier must omit the optional trusted-signer parameter when unset.'
+    }
+}
+
+# NW52 preflight must not evaluate $PSScriptRoot in param() defaults.
+# powershell.exe -File may leave it empty while binding -SelfTest. Scan
+# preflight source here so the same startup bug cannot return unnoticed.
+$nw52Preflight = Join-Path $PSScriptRoot 'check-nw52-integration.ps1'
+if (Test-Path -LiteralPath $nw52Preflight -PathType Leaf) {
+    $nw52Source = [System.IO.File]::ReadAllText($nw52Preflight)
+    if ($nw52Source.Contains('$ProjectRoot = (Join-Path $PSScriptRoot')) {
+        $issues += 'NW52 must defer default ProjectRoot evaluation until after parameter binding.'
+    }
+    if (-not $nw52Source.Contains("if ([string]::IsNullOrWhiteSpace(" + '$ProjectRoot' + "))")) {
+        $issues += 'NW52 must resolve an omitted ProjectRoot inside the script body.'
+    }
+    if (-not $nw52Source.Contains('if ($SelfTest)')) {
+        $issues += 'NW52 source guard self-test branch has been removed.'
     }
 }
 
