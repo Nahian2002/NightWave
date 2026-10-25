@@ -1815,7 +1815,7 @@ class NightWaveStudioActivity : ComponentActivity() {
         AlertDialog.Builder(this).setTitle(video.title)
             .setItems(arrayOf(likeText, "Save to playlist", "Add to queue",
                 "Play now", if (offlineReady) "Play saved offline" else "Save offline",
-                "Share song link")) { _, selected ->
+                "Share song link", "Copy song link")) { _, selected ->
                 when (selected) {
                     0 -> { library.toggleFavorite(video); refresh() }
                     1 -> saveSongToPlaylist(video)
@@ -1824,6 +1824,21 @@ class NightWaveStudioActivity : ComponentActivity() {
                     4 -> if (offlineReady) {
                         if (!playSavedFromSearch(video)) openOfflineSaving(video)
                     } else openOfflineSaving(video)
+                    6 -> {
+                        val publicUrl = VideoLink.normalize(video.url)
+                        if (publicUrl == null) {
+                            showMessage("This track has no shareable public link.")
+                        } else {
+                            runCatching {
+                                val clipboard = getSystemService(android.content.Context.CLIPBOARD_SERVICE)
+                                    as android.content.ClipboardManager
+                                clipboard.setPrimaryClip(android.content.ClipData.newPlainText(
+                                    "NightWave song", publicUrl))
+                            }.onSuccess {
+                                showMessage("Song link copied.")
+                            }.onFailure { showMessage("Could not copy this song link.") }
+                        }
+                    }
                     5 -> {
                         val publicUrl = VideoLink.normalize(video.url)
                         if (publicUrl == null) {
