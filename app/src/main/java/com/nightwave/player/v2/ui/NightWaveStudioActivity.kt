@@ -106,6 +106,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -2890,7 +2891,12 @@ private fun StudioRoot(
                         },
                         onPlay = onPlay, onSongOptions = onSongOptions,
                         onRemoveRecent = onRemoveRecent, onClearRecent = onClearRecent,
-                        openLibrary = { navigateToTab(StudioTab.LIBRARY) }
+                        openLibrary = { navigateToTab(StudioTab.LIBRARY) },
+                        openLikedSongs = {
+                            selectedPlaylist = LIKED_COLLECTION
+                            navigateToTab(StudioTab.LIBRARY)
+                        },
+                        openOffline = onOfflineLibrary
                     )
                     StudioTab.SEARCH -> StudioSearch(
                         Modifier, searchState, onPrimarySearch, onSearch, onWebSearch,
@@ -3086,7 +3092,8 @@ private fun StudioHome(
     onPlay: (VideoPreview, List<VideoPreview>) -> Unit,
     onSongOptions: (VideoPreview) -> Unit,
     onRemoveRecent: (VideoPreview) -> Unit,
-    onClearRecent: () -> Unit, openLibrary: () -> Unit
+    onClearRecent: () -> Unit, openLibrary: () -> Unit,
+    openLikedSongs: () -> Unit, openOffline: () -> Unit
 ) {
     val dayNumber = java.time.LocalDate.now().toEpochDay()
     // Extend the existing personal mixes, rather than replacing them.
@@ -3129,8 +3136,23 @@ private fun StudioHome(
                 lastTrack = recent.firstOrNull()
             )
         }
-        item {
-            NightWaveLibraryNumbers(favorites.size, recent.size, onLibrary = openLibrary)
+        item(key = "nw47-home-quick-access") {
+            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())
+                    .testTag("nw47-home-quick-access"),
+                horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                if (recent.isNotEmpty()) {
+                    NightWaveQuickActionPill("Continue",
+                        Icons.Outlined.PlayArrow, "nw47-home-continue") {
+                        recent.firstOrNull()?.let { onResumeSpotlight(it, recent) }
+                    }
+                }
+                NightWaveQuickActionPill("Offline",
+                    Icons.Outlined.LibraryMusic, "nw47-home-offline", openOffline)
+                NightWaveQuickActionPill("Liked songs",
+                    Icons.Outlined.FavoriteBorder, "nw47-home-liked", openLikedSongs)
+                NightWaveQuickActionPill("Find music",
+                    Icons.Outlined.Search, "nw47-home-search") { onSearch("music") }
+            }
         }
         item {
             ListeningSpotlight(
@@ -3138,6 +3160,9 @@ private fun StudioHome(
                 onResume = { recent.firstOrNull()?.let { onResumeSpotlight(it, recent) } },
                 onDiscover = { onSearch("night drive music") }
             )
+        }
+        item(key = "nw47-home-library-stats") {
+            NightWaveLibraryNumbers(favorites.size, recent.size, onLibrary = openLibrary)
         }
         item(key = "recent-heading") {
             Row(Modifier.fillMaxWidth(),
@@ -3160,12 +3185,21 @@ private fun StudioHome(
                 "Songs you play will appear here, ready for another listen.",
                 "Discover music") { onSearch("music") }
         } else {
-            items(if (showAllRecent) recent.take(100) else recent.take(6),
-                key = { "recent:" + it.url }) { song ->
-                MusicTrackTile(song, isPlaying = playingUrl == song.url,
-                    onOptions = { onSongOptions(song) },
-                    onRemove = { onRemoveRecent(song) },
-                    onClick = { onPlay(song, recent) })
+            item(key = "nw47-recent-shelf") {
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth().testTag("nw47-recent-shelf"),
+                    horizontalArrangement = Arrangement.spacedBy(11.dp)
+                ) {
+                    items(if (showAllRecent) recent.take(100) else recent.take(6),
+                        key = { "recent:" + it.url }) { song ->
+                        NightWaveRecentShelfTile(
+                            song = song, isPlaying = playingUrl == song.url,
+                            onPlay = { onPlay(song, recent) },
+                            onOptions = { onSongOptions(song) },
+                            onRemove = { onRemoveRecent(song) }
+                        )
+                    }
+                }
             }
             if (showAllRecent) item(key = "clear-listening-history") {
                 OutlinedButton(onClick = onClearRecent,
@@ -3993,6 +4027,25 @@ private fun StudioLibrary(
             }
         }
         if (selectedPlaylist == null) {
+            item(key = "nw47-library-quick-access") {
+                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())
+                        .testTag("nw47-library-quick-access"),
+                    horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                    NightWaveQuickActionPill("Offline",
+                        Icons.Outlined.LibraryMusic, "nw47-library-offline", onOffline)
+                    NightWaveQuickActionPill("Liked",
+                        Icons.Outlined.FavoriteBorder, "nw47-library-liked") {
+                        onSelectPlaylist(LIKED_COLLECTION)
+                    }
+                    NightWaveQuickActionPill("History",
+                        Icons.Outlined.PlayArrow, "nw47-library-history") {
+                        onSelectPlaylist(RECENT_COLLECTION)
+                    }
+                    NightWaveQuickActionPill("New playlist",
+                        Icons.Outlined.AutoAwesome, "nw47-library-new-playlist",
+                        onCreatePlaylist)
+                }
+            }
             // Actual collection rows below serve as navigation. Avoid
             // duplicating them with two oversized, noninteractive counters.
             item {
@@ -4514,16 +4567,16 @@ private fun StudioProfile(
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     NightWaveMicroLabel("Personalize NightWave")
-                    Text("Your space", style = MaterialTheme.typography.headlineSmall.copy(
-                        fontWeight = FontWeight.Bold))
-                    Text("Profile, appearance and library protection",
+                    Text("You", style = MaterialTheme.typography.headlineSmall.copy(
+                        fontWeight = FontWeight.ExtraBold))
+                    Text("Your music, settings and privacy",
                         style = MaterialTheme.typography.bodySmall, color = muted)
                 }
                 Surface(shape = RoundedCornerShape(12.dp),
                     color = MaterialTheme.colorScheme.primary.copy(alpha = .13f)) {
                     Text(when (CloudAccountPresentation.stage(cloud)) {
                         CloudAccountPresentation.BackupStage.LOCAL_ONLY -> "LOCAL"
-                        CloudAccountPresentation.BackupStage.CONNECTED_NOT_BACKED_UP -> "DRIVE READY"
+                        CloudAccountPresentation.BackupStage.CONNECTED_NOT_BACKED_UP -> "CONNECTED"
                         CloudAccountPresentation.BackupStage.VERIFIED_BACKUP -> "BACKED UP"
                     },
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
@@ -4562,7 +4615,7 @@ private fun StudioProfile(
                             verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             Text(profile.displayName, style = MaterialTheme.typography.titleMedium,
                                 maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            Text("Guest profile · Saved on this device",
+                            Text("Local profile · Your music stays on this device",
                                 style = MaterialTheme.typography.bodySmall, color = muted,
                                 maxLines = 1)
                         }
@@ -4593,6 +4646,19 @@ private fun StudioProfile(
                         }
                     }
                 }
+            }
+        }
+
+        item(key = "nw47-you-quick-access") {
+            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())
+                    .testTag("nw47-you-quick-access"),
+                horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                NightWaveQuickActionPill("Account & backup",
+                    Icons.Outlined.Cloud, "nw47-you-account", onOpenAccount)
+                NightWaveQuickActionPill("Sound Studio",
+                    Icons.Outlined.GraphicEq, "nw47-you-sound", onEqualizer)
+                NightWaveQuickActionPill("History",
+                    Icons.Outlined.LibraryMusic, "nw47-you-history", onManageHistory)
             }
         }
 
