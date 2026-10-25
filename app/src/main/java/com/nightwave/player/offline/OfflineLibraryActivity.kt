@@ -173,8 +173,33 @@ class OfflineLibraryActivity : ComponentActivity() {
             pick.launch(arrayOf("audio/*", "application/ogg", "application/octet-stream"))
         }, LinearLayout.LayoutParams(0, dp(48), 1f).apply { leftMargin = dp(5) })
         root.addView(quickActions, LinearLayout.LayoutParams(-1, dp(48)).apply {
-            bottomMargin = dp(8)
+            bottomMargin = dp(4)
         })
+        // Compact by default: otherwise fixed-height secondary controls can
+        // push the entire offline song list below a short phone's viewport.
+        val extraTools = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            visibility = View.GONE
+        }
+        val toolsToggle = label("More sources & playback  ▾", 13f,
+            0xFFB1EBE3.toInt(), true).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(12), 0, dp(12), 0)
+            background = cardBackground(0xFF1B303A.toInt())
+            contentDescription = "Expand music sources and offline playback controls"
+            setOnClickListener {
+                val opening = extraTools.visibility != View.VISIBLE
+                extraTools.visibility = if (opening) View.VISIBLE else View.GONE
+                text = if (opening) "Hide extra tools  ▴" else "More sources & playback  ▾"
+                contentDescription = if (opening)
+                    "Collapse music sources and offline playback controls"
+                else "Expand music sources and offline playback controls"
+            }
+        }
+        root.addView(toolsToggle, LinearLayout.LayoutParams(-1, dp(48)).apply {
+            bottomMargin = dp(4)
+        })
+        root.addView(extraTools)
         val otherSources = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
         }
@@ -185,10 +210,10 @@ class OfflineLibraryActivity : ComponentActivity() {
             startActivity(Intent(this@OfflineLibraryActivity,
                 PermittedAudioDownloadActivity::class.java))
         }, LinearLayout.LayoutParams(0, dp(48), 1f).apply { leftMargin = dp(5) })
-        root.addView(otherSources, LinearLayout.LayoutParams(-1, dp(48)).apply {
+        extraTools.addView(otherSources, LinearLayout.LayoutParams(-1, dp(48)).apply {
             bottomMargin = dp(6)
         })
-        root.addView(label("☁  My Google Drive music  ›", 13f,
+        extraTools.addView(label("☁  My Google Drive music  ›", 13f,
             0xFF91E2D7.toInt(), true).apply {
             gravity = Gravity.CENTER_VERTICAL
             contentDescription = "Open your own Google Drive music"
@@ -273,13 +298,13 @@ class OfflineLibraryActivity : ComponentActivity() {
                 }
             }
         mediaControls.addView(playbackShortcut("⏮", "Previous offline song",
-            PlaybackService.ACTION_PREVIOUS), LinearLayout.LayoutParams(0, dp(45), 1f))
+            PlaybackService.ACTION_PREVIOUS), LinearLayout.LayoutParams(0, dp(48), 1f))
         mediaControls.addView(playbackShortcut("⏯", "Toggle offline pause or play",
             PlaybackService.ACTION_TOGGLE_OFFLINE_PLAY_PAUSE),
-            LinearLayout.LayoutParams(0, dp(45), 1f))
+            LinearLayout.LayoutParams(0, dp(48), 1f))
         mediaControls.addView(playbackShortcut("⏭", "Next offline song",
-            PlaybackService.ACTION_NEXT), LinearLayout.LayoutParams(0, dp(45), 1f))
-        root.addView(mediaControls, LinearLayout.LayoutParams(-1, dp(45)).apply {
+            PlaybackService.ACTION_NEXT), LinearLayout.LayoutParams(0, dp(48), 1f))
+        extraTools.addView(mediaControls, LinearLayout.LayoutParams(-1, dp(48)).apply {
             bottomMargin = dp(7)
         })
         val paging = LinearLayout(this).apply {
