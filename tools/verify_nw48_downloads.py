@@ -35,8 +35,7 @@ def check(files: dict[str, str]) -> None:
             "SearchOfflinePauseState.clear(this@CatalogDownloadsActivity, info.id)",
             "confirmSearchRetry(retryUrl, title,",
             "DownloadHistoryVisibility.hide(this@CatalogDownloadsActivity, info.id)",
-            "Downloaded",
-            "onClick",
+            "setOnClickListener",
         ],
         "OfflineLibraryViewPolicy.kt": [
             "enum class Filter { ALL, READY, ATTENTION }",
@@ -59,7 +58,7 @@ def check(files: dict[str, str]) -> None:
         "CatalogDownloadWorker.kt": [
             "received < lastBytes",
             "transfer.download(",
-            "FreeAudioIntegrity",
+            "candidate.sha1Base36",
         ],
         "DirectAudioDownloadWorker.kt": [
             "received < lastProgress",
