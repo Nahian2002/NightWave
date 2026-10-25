@@ -3388,30 +3388,30 @@ private fun StudioSearch(
         } else {
         if (query.isNotBlank()) {
             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp),
+                Row(Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(9.dp),
                     verticalAlignment = Alignment.CenterVertically) {
                     Button(
                         onClick = submit,
                         enabled = !searching,
-                        modifier = Modifier.weight(1f).height(49.dp),
-                        shape = RoundedCornerShape(15.dp)
+                        modifier = Modifier.weight(1.45f).heightIn(min = 48.dp),
+                        shape = RoundedCornerShape(16.dp)
                     ) {
-                        Text(if (searching) "Searching…" else "Search NightWave",
-                            maxLines = 1)
+                        Icon(Icons.Outlined.Search, contentDescription = null,
+                            modifier = Modifier.size(19.dp))
+                        Spacer(Modifier.width(7.dp))
+                        Text(if (searching) "Finding music…" else "Find music",
+                            maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                     OutlinedButton(
                         onClick = {
                             onRecordSearch(query.trim())
                             onPrimarySearch(query.trim(), mode)
                         },
-                        modifier = Modifier.weight(1f).height(49.dp),
-                        shape = RoundedCornerShape(15.dp)
-                    ) { Text("YouTube") }
+                        modifier = Modifier.weight(1f).heightIn(min = 48.dp),
+                        shape = RoundedCornerShape(16.dp)
+                    ) { Text("YouTube", maxLines = 1) }
                 }
-                Text("NightWave checks available public results. YouTube opens the " +
-                    "official search when providers cannot respond.",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         if (query.isBlank() && !searching) {
