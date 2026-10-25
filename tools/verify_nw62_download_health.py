@@ -69,8 +69,8 @@ def verify(ui: str, policy: str, tests: str) -> None:
     if "return OfflineDownloadStatusPolicy.isReady(" in ui:
         raise AssertionError("Ready must deny pending/stale/failed verification")
     code = ui.split("private fun render(infos: List<WorkInfo>)", 1)[1]
-    if "OfflineAudioLibrary(" in code:
-        raise AssertionError("Disk-backed library object is still used in render()")
+    if ".availableIds(" in code:
+        raise AssertionError("Downloads.render() must not stat indexed files on the UI thread")
     if "if (fileCheckFailed)" not in ui and "fileCheckFailed ->" not in ui:
         raise AssertionError("Unverified file state must not be shown as broken audio")
     if "Render saved file as available" in ui:
