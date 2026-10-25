@@ -3465,6 +3465,14 @@ private fun StudioLibrary(
                 }
             }
         }
+        if (selectedPlaylist == RECENT_COLLECTION && tracks.isNotEmpty()) {
+            item(key = "library-clear-recent") {
+                OutlinedButton(onClick = onClearRecent,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                    Text("Clear Recently Played")
+                }
+            }
+        }
         if (selectedPlaylist != null && tracks.isNotEmpty()) {
             item(key = "library-quick-play-actions") {
                 Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
@@ -3567,6 +3575,13 @@ private fun StudioLibrary(
                     favorites.size.toString() + " tracks",
                     cover = favorites.firstOrNull()) {
                     onSelectPlaylist(LIKED_COLLECTION)
+                }
+            }
+            item(key = "library-recent-collection") {
+                MusicCollectionTile("Recently played",
+                    recent.size.toString() + " history entries · Edit",
+                    cover = recent.firstOrNull()) {
+                    onSelectPlaylist(RECENT_COLLECTION)
                 }
             }
             item(key = "library-quick-navigation") {
@@ -3708,8 +3723,11 @@ private fun StudioLibrary(
             }
         }
         item {
-            SectionHeading(if (selectedPlaylist == null) "Recently liked" else "Saved tracks",
-                if (selectedPlaylist == null) "Your latest five liked songs" else null)
+            SectionHeading(when (selectedPlaylist) {
+                    null -> "Recently liked"
+                    RECENT_COLLECTION -> "Listening history"
+                    else -> "Saved tracks"
+                }, if (selectedPlaylist == null) "Your latest five liked songs" else null)
         }
         if (selectedPlaylist != null && tracks.isNotEmpty()) {
             item {
@@ -3767,6 +3785,8 @@ private fun StudioLibrary(
                         onPlaylistSongOptions(selectedPlaylist, song)
                     } else onSongOptions(song)
                 },
+                onRemove = if (selectedPlaylist == RECENT_COLLECTION)
+                    ({ onRemoveRecent(song) }) else null,
                 onClick = { onPlay(song, if (selectedPlaylist == null) tracks else orderedTracks) })
         }
         item {
