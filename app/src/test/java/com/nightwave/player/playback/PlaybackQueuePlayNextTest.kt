@@ -49,14 +49,17 @@ class PlaybackQueuePlayNextTest {
         assertEquals(song(4), q.next())
     }
 
-    @Test fun currentAndPreviouslyPlayedItemsAreNotSilentlyRewritten() {
+    @Test fun currentTrackCannotBeDuplicatedButEarlierQueueSongCanBeChosenNext() {
         val q = PlaybackQueue()
         q.replace(listOf(song(1), song(2), song(3)), 1)
         val before = q.snapshot()
         assertFalse(q.insertNext(song(2)))
-        assertFalse(q.insertNext(song(1)))
         assertEquals(before, q.snapshot())
-        assertEquals(1, q.index)
+        assertTrue(q.insertNext(song(1)))
+        assertEquals(listOf(song(2), song(1), song(3)), q.snapshot())
+        assertEquals(song(2), q.current)
+        assertEquals(0, q.index)
+        assertEquals(song(1), q.next())
     }
 
     @Test fun fullQueueMayReorderExistingButCannotAppendBeyondLimit() {
