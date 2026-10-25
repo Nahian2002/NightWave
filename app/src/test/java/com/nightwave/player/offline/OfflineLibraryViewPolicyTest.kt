@@ -21,10 +21,10 @@ class OfflineLibraryViewPolicyTest {
 
     @Test fun emptyMessagesDistinguishLostFilesFromNoSavedSongs() {
         val p = OfflineLibraryViewPolicy
-        assertTrue(p.emptyMessage(p.Filter.ALL, false, false).contains("Import audio"))
-        assertTrue(p.emptyMessage(p.Filter.READY, true, false).contains("No verified"))
-        assertTrue(p.emptyMessage(p.Filter.ATTENTION, true, false).contains("All indexed"))
-        assertTrue(p.emptyMessage(p.Filter.ATTENTION, true, true).contains("search and filter"))
-        assertFalse(p.emptyMessage(p.Filter.ATTENTION, true, false).contains("delete"))
+        assertTrue(p.emptyMessage(OfflineLibraryViewPolicy.Filter.ALL, false, false).contains("Import audio"))
+        assertTrue(p.emptyMessage(OfflineLibraryViewPolicy.Filter.READY, true, false).contains("No verified"))
+        assertTrue(p.emptyMessage(OfflineLibraryViewPolicy.Filter.ATTENTION, true, false).contains("All indexed"))
+        assertTrue(p.emptyMessage(OfflineLibraryViewPolicy.Filter.ATTENTION, true, true).contains("search and filter"))
+        assertFalse(p.emptyMessage(OfflineLibraryViewPolicy.Filter.ATTENTION, true, false).contains("delete"))
     }
 }
