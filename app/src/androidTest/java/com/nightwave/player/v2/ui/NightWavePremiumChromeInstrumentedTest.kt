@@ -50,6 +50,34 @@ class NightWavePremiumChromeInstrumentedTest {
         compose.runOnIdle { assertEquals(3, selection) }
     }
 
+    @Test fun repeatTapOnSelectedTabDoesNotDispatchDuplicateNavigation() {
+        var selection by mutableIntStateOf(0)
+        var navigateCalls by mutableIntStateOf(0)
+        compose.setContent {
+            MaterialTheme {
+                Box(Modifier.width(320.dp)) {
+                    NightWavePremiumNavigation(
+                        selectedIndex = selection,
+                        reducedMotion = true,
+                        onNavigate = {
+                            navigateCalls++
+                            selection = it
+                        }
+                    )
+                }
+            }
+        }
+        compose.onNodeWithTag("nightwave-tab-home").performClick()
+        compose.runOnIdle { assertEquals(0, navigateCalls) }
+        compose.onNodeWithTag("nightwave-tab-library").performClick()
+        compose.onNodeWithTag("nightwave-tab-library").assertIsSelected()
+        compose.onNodeWithTag("nightwave-tab-library").performClick()
+        compose.runOnIdle {
+            assertEquals(2, selection)
+            assertEquals(1, navigateCalls)
+        }
+    }
+
     @Test fun premiumHomeHeroHandlesUserProfileWithoutTrackMetadata() {
         compose.setContent {
             MaterialTheme {
