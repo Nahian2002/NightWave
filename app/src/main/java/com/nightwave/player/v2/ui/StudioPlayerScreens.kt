@@ -1122,20 +1122,28 @@ fun StudioQueueSheet(
         containerColor = MaterialTheme.colorScheme.surface
     ) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 18.dp)) {
-            Text("Up next", style = MaterialTheme.typography.headlineSmall)
+            Text("Your listening queue", style = MaterialTheme.typography.headlineSmall)
             val removable = !state.offline && !state.shuffle && state.connected
+            val currentIndex = state.queueIndex.takeIf { it in state.queue.indices }
+            val upcoming = state.queue.withIndex().filter { slot ->
+                if (state.shuffle) slot.index != currentIndex
+                else currentIndex != null && slot.index > currentIndex
+            }
+            val earlier = if (state.shuffle || currentIndex == null) emptyList()
+                else state.queue.withIndex().filter { it.index < currentIndex }
             Text(
                 when {
-                    state.offline -> "${state.queue.size} offline tracks · swipe removal unavailable for local files"
-                    state.shuffle -> "${state.queue.size} tracks · turn off shuffle to edit upcoming order"
-                    else -> "${state.queue.size} tracks · swipe left on upcoming songs to remove"
+                    state.offline -> "Offline collection · private audio files stay on device"
+                    state.shuffle -> "Shuffle on · the next track is chosen from this pool"
+                    upcoming.isEmpty() -> "No tracks after this song · choose Play next to add one"
+                    else -> "${upcoming.size} upcoming · swipe left to remove a queued track"
                 },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(Modifier.height(13.dp))
-            if (state.queue.isEmpty()) {
-                EmptyMusicCard("Your queue is empty", "Play any song to start listening.",
+            if (state.queue.isEmpty() || currentIndex == null) {
+                EmptyMusicCard("Your queue is empty", "Play a song to begin listening.",
                     "Close queue", onDismiss)
             } else {
                 LazyColumn(
@@ -1143,23 +1151,67 @@ fun StudioQueueSheet(
                     contentPadding = PaddingValues(bottom = 22.dp),
                     verticalArrangement = Arrangement.spacedBy(7.dp)
                 ) {
-                    // Repeated URLs can occur in a restored/imported queue. A duplicate
-                    // LazyColumn key crashes Compose; use the absolute queue slot.
-                    itemsIndexed(state.queue, key = { index, _ -> index }) { index, video ->
-                        val canRemove = removable && index > state.queueIndex &&
-                            state.queueIndex >= 0 &&
-                            video.url.startsWith("https://www.youtube.com/watch?v=")
+                    item(key = "queue-playing-header") {
+                        Text("PLAYING NOW", style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary)
+                    }
+                    item(key = "queue-playing-item") {
+                        val playing = state.queue[currentIndex]
+                        SwipeUpcomingRow(
+                            number = currentIndex + 1, title = playing.title,
+                            subtitle = playing.author, artwork = playing.thumbnail,
+                            isPlaying = true, canRemove = false, reduceMotion = reduceMotion,
+                            onSelect = { onSelect(currentIndex) }, onRemove = {}
+                        )
+                    }
+                    item(key = "queue-upcoming-header") {
+                        Text(if (state.shuffle) "SHUFFLE POOL · ORDER VARIES" else "UP NEXT",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 10.dp))
+                    }
+                    if (upcoming.isEmpty()) {
+                        item(key = "queue-no-upcoming") {
+                            Text("Nothing else in your queue.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                    // Absolute slot keys never collide even when a restored queue
+                    // contains duplicate public URLs.
+                    itemsIndexed(upcoming, key = { _, slot -> "next-${slot.index}" }) { _, slot ->
+                        val index = slot.index
+                        val video = slot.value
                         SwipeUpcomingRow(
                             number = index + 1,
                             title = video.title,
                             subtitle = video.author,
                             artwork = video.thumbnail,
-                            isPlaying = index == state.queueIndex,
-                            canRemove = canRemove,
+                            isPlaying = false,
+                            canRemove = removable &&
+                                video.url.startsWith("https://www.youtube.com/watch?v="),
                             reduceMotion = reduceMotion,
                             onSelect = { onSelect(index) },
                             onRemove = { requestRemove(index, video.url) }
                         )
+                    }
+                    if (earlier.isNotEmpty()) {
+                        item(key = "queue-earlier-header") {
+                            Text("EARLIER IN THIS QUEUE",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 12.dp))
+                        }
+                        itemsIndexed(earlier, key = { _, slot -> "earlier-${slot.index}" }) { _, slot ->
+                            val video = slot.value
+                            SwipeUpcomingRow(
+                                number = slot.index + 1, title = video.title,
+                                subtitle = video.author, artwork = video.thumbnail,
+                                isPlaying = false, canRemove = false,
+                                reduceMotion = reduceMotion,
+                                onSelect = { onSelect(slot.index) }, onRemove = {}
+                            )
+                        }
                     }
                 }
             }
