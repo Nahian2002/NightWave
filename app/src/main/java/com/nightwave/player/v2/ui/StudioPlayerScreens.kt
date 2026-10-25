@@ -977,7 +977,8 @@ fun StudioNowPlayingOverlay(
                         horizontalArrangement = Arrangement.SpaceBetween) {
                         Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
                             Text("Sound & playback", style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.SemiBold)
+                                fontWeight = FontWeight.SemiBold,
+                                color = colors.onSurface)
                             Text("Crossfade · Sleep timer · Listening level",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = colors.onSurfaceVariant)
