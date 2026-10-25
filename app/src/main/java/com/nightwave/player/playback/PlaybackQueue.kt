@@ -9,6 +9,9 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
     enum class Repeat { OFF, ALL, ONE }
     private val entries = mutableListOf<QueueEntry>()
     private val visited = ArrayDeque<Int>()
+    // Session-only forward trail. Shuffle Previous then Next retraces actual
+    // playback, rather than choosing an unrelated random unseen song.
+    private val forwardVisits = ArrayDeque<Int>()
     private val shuffledSeen = mutableSetOf<Int>()
     /** Explicit Play Next always outranks shuffle candidates in this session. */
     private val manualNext = ArrayDeque<String>()
@@ -21,6 +24,7 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
                 // A previous shuffled listening session must not leak into
                 // linear Previous or a new Shuffle session.
                 visited.clear()
+                forwardVisits.clear()
                 shuffledSeen.clear()
                 // Shuffle mode changes must not erase explicit Play Next
                 // choices. Those selections are not random history.
@@ -36,6 +40,7 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
     fun useExplicitDisplayOrder() {
         shuffle = false
         visited.clear()
+        forwardVisits.clear()
         shuffledSeen.clear()
         manualNext.clear()
     }
@@ -50,6 +55,7 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
         entries.clear()
         entries.addAll(items.distinctBy { it.url }.take(100))
         visited.clear()
+        forwardVisits.clear()
         shuffledSeen.clear()
         manualNext.clear()
         index = if (entries.isEmpty()) -1 else {
@@ -72,6 +78,7 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
         if (shuffle || at <= index || at !in entries.indices ||
             entries[at].url != expectedUrl) return null
         val removed = entries.removeAt(at)
+        forwardVisits.clear()
         manualNext.remove(removed.url)
         remapForRemoval(at)
         return RemovedUpcoming(removed, at, playing)
@@ -87,6 +94,7 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
             removed.at <= index || removed.at !in 0..entries.size ||
             entries.size >= 100 || entries.any { it.url == removed.entry.url }) return false
         entries.add(removed.at, removed.entry)
+        forwardVisits.clear()
         remapForInsertion(removed.at)
         return true
     }
@@ -127,6 +135,8 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
         }
         val prior = entries.indexOfFirst { it.url == entry.url }
         if (prior < 0 && entries.size >= 100) return false
+        // Reordering invalidates forward indices from a Previous traversal.
+        forwardVisits.clear()
         val toInsert = if (prior >= 0) {
             val existing = entries.removeAt(prior)
             remapForRemoval(prior)
@@ -171,13 +181,23 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
         // Manually chosen Play Next still counts the current track as visited
         // in a shuffle cycle, so it cannot be replayed as an unseen candidate.
         if (shuffle && index >= 0) shuffledSeen.add(index)
+        // Explicit Play Next wins over a forward retrace. Otherwise retrace
+        // Previous's actual track before introducing a new shuffle pick.
         val queuedNext = manualNext.firstOrNull()?.let { wanted ->
             entries.indexOfFirst { it.url == wanted && it.url != current?.url }
         }?.takeIf { it >= 0 }
+        val forward = if (shuffle && queuedNext == null)
+            forwardVisits.lastOrNull()?.takeIf { it in entries.indices && it != index }
+        else null
         val target = when {
             queuedNext != null -> {
+                forwardVisits.clear()
                 manualNext.removeFirst()
                 queuedNext
+            }
+            forward != null -> {
+                forwardVisits.removeLast()
+                forward
             }
             shuffle && entries.size > 1 -> {
                 var candidates = entries.indices.filter { it !in shuffledSeen }
@@ -204,6 +224,7 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
 
     fun jump(to: Int): QueueEntry? {
         if (to !in entries.indices) return null
+        if (to != index) forwardVisits.clear()
         if (shuffle && index >= 0 && index != to) {
             visited.add(index)
             if (visited.size > 100) visited.removeFirst()
@@ -221,6 +242,10 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
             // Without a real prior shuffled selection there is no meaningful
             // "previous" track; never guess using linear index ordering.
             if (visited.isEmpty()) return null
+            if (index in entries.indices) {
+                forwardVisits.addLast(index)
+                if (forwardVisits.size > 100) forwardVisits.removeFirst()
+            }
             index = visited.removeLast()
             return current
         }
@@ -232,6 +257,7 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
     fun reset() {
         entries.clear()
         visited.clear()
+        forwardVisits.clear()
         shuffledSeen.clear()
         manualNext.clear()
         index = -1
