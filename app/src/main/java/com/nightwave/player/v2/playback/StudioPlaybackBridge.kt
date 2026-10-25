@@ -492,6 +492,11 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
                 .putExtra(PlaybackService.EXTRA_CREATORS, video.author)
                 .putExtra(PlaybackService.EXTRA_ARTWORKS, video.thumbnail)
             context.startService(request)
+            // Media3 item identity does not change when we only add a track.
+            // Reconcile the persisted queue after the service handles the intent;
+            // do not claim success before the single-writer service has saved it.
+            main.postDelayed({ if (!released) refreshQueue() }, 220L)
+            main.postDelayed({ if (!released) refreshQueue() }, 780L)
         } catch (e: Exception) {
             state = state.copy(error = "Could not update the listening queue.")
         }
@@ -764,6 +769,7 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
             queue = if (state.offline) state.queue
                 else snapshot.tracks.map { VideoPreview(it.title, it.creator, it.url, it.artwork, 0L) },
             queueIndex = if (state.offline) state.queueIndex else snapshot.index,
+            manualNextUrls = if (state.offline) emptyList() else snapshot.manualNextUrls,
             shuffle = if (state.offline)
                 visibleOfflineShuffle(OfflinePlaybackPreferencesStore(context).shuffle())
                 else visiblePublicShuffle(snapshot.shuffle),
