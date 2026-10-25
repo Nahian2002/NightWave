@@ -3,6 +3,7 @@ package com.nightwave.player.v2.ui
 import android.content.Intent
 import com.nightwave.player.offline.FreeAudioCatalogActivity
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -40,66 +41,44 @@ import androidx.compose.ui.unit.dp
 fun NightWaveDiscoveryHeader(searchQuery: String = "") {
     val palette = MaterialTheme.colorScheme
     val context = LocalContext.current
-    Surface(
-        modifier = Modifier.fillMaxWidth().testTag("nightwave-discovery-header"),
-        shape = RoundedCornerShape(20.dp),
-        color = palette.surfaceVariant.copy(alpha = .36f),
-        border = BorderStroke(1.dp, palette.outline.copy(alpha = .26f))
+    // Artwork and results carry the screen. Do not spend a third of the
+    // viewport on another large generic discovery card.
+    Row(
+        modifier = Modifier.fillMaxWidth()
+            .padding(vertical = 8.dp)
+            .testTag("nightwave-discovery-header"),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth()
-                .background(Brush.horizontalGradient(
-                    listOf(palette.primary.copy(alpha = .12f),
-                        palette.surfaceVariant.copy(alpha = .30f), palette.surface)
-                ))
-                .padding(horizontal = 15.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(7.dp)
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            NightWaveMicroLabel("DISCOVER")
+            Text("Find your sound",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold, maxLines = 2,
+                overflow = TextOverflow.Ellipsis)
+        }
+        Surface(
+            onClick = {
+                context.startActivity(Intent(
+                    context, FreeAudioCatalogActivity::class.java)
+                    .putExtra(FreeAudioCatalogActivity.EXTRA_QUERY,
+                        searchQuery.trim().take(100)))
+            },
+            modifier = Modifier.heightIn(min = 48.dp)
+                .testTag("nightwave-save-offline-search"),
+            shape = RoundedCornerShape(15.dp),
+            color = palette.primary.copy(alpha = .11f),
+            border = BorderStroke(1.dp, palette.primary.copy(alpha = .27f))
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
+            Row(Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Box(
-                    Modifier.size(40.dp).clip(RoundedCornerShape(13.dp))
-                        .background(palette.primary.copy(alpha = .16f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(Icons.Outlined.Search, contentDescription = null,
-                        tint = palette.primary, modifier = Modifier.size(24.dp))
-                }
-                Column(verticalArrangement = Arrangement.spacedBy(3.dp),
-                    modifier = Modifier.weight(1f)) {
-                    NightWaveMicroLabel("Discovery")
-                    Text("Find your sound",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold, maxLines = 2,
-                        overflow = TextOverflow.Ellipsis)
-                    Text("Your saved music and the wider world",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = palette.onSurfaceVariant, maxLines = 2,
-                        overflow = TextOverflow.Ellipsis)
-                }
-            }
-            // Full-width secondary action does not compete with the text column
-            // on 320dp phones or under Android's increased font scale.
-            TextButton(
-                onClick = {
-                    context.startActivity(Intent(
-                        context, FreeAudioCatalogActivity::class.java)
-                        .putExtra(FreeAudioCatalogActivity.EXTRA_QUERY,
-                            searchQuery.trim().take(100)))
-                },
-                modifier = Modifier.fillMaxWidth().heightIn(min = 44.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(palette.primary.copy(alpha = .10f))
-                    .testTag("nightwave-save-offline-search")
-            ) {
+                horizontalArrangement = Arrangement.spacedBy(7.dp)) {
                 Icon(Icons.Outlined.Download, contentDescription = null,
-                    modifier = Modifier.size(19.dp))
-                Spacer(Modifier.width(10.dp))
-                Text("Explore offline-ready music",
-                    maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    tint = palette.primary, modifier = Modifier.size(19.dp))
+                Text("Offline",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = palette.primary,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
     }
