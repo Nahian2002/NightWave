@@ -29,6 +29,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -148,28 +150,49 @@ fun NightWaveMixCard(
 ) {
     val accent = NightWaveVisualLanguage.accent(mix.key)
     val scheme = MaterialTheme.colorScheme
+    val realCover = mix.tracks.firstOrNull()?.thumbnail?.takeIf { it.isNotBlank() }
     val trackLabel = "${mix.tracks.size} " +
         (if (mix.tracks.size == 1) "track" else "tracks") +
         " · " + (if (selected) "Collapse" else "View tracks")
     Card(
         onClick = onClick,
-        modifier = modifier.height(if (compact) 106.dp else 122.dp),
+        modifier = modifier.height(if (compact) 118.dp else 146.dp),
         shape = RoundedCornerShape(19.dp),
         colors = CardDefaults.cardColors(containerColor = scheme.surface)
     ) {
-        Box(Modifier.fillMaxSize().background(
-            Brush.linearGradient(
-                listOf(accent.copy(alpha = .23f), scheme.surfaceVariant, scheme.surface)
-            )
-        )) {
-            Canvas(Modifier.fillMaxSize()) {
-                val center = Offset(size.width * .89f, size.height * .16f)
-                drawCircle(accent.copy(alpha = .08f), radius = size.width * .31f, center = center)
-                drawCircle(accent.copy(alpha = .25f), radius = size.width * .24f,
-                    center = center, style = Stroke(width = 1.5.dp.toPx()))
+        Box(Modifier.fillMaxSize().background(scheme.surfaceVariant)) {
+            if (realCover != null) {
+                // Use genuine, already-saved video artwork, not repeated
+                // synthetic rings or fabricated album imagery.
+                AsyncImage(
+                    model = realCover, contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                    alpha = .70f
+                )
+                Box(Modifier.fillMaxSize().background(
+                    Brush.horizontalGradient(listOf(
+                        scheme.surface.copy(alpha = .98f),
+                        scheme.surface.copy(alpha = .78f),
+                        scheme.surface.copy(alpha = .22f)
+                    ))
+                ))
+            } else {
+                Box(Modifier.fillMaxSize().background(
+                    Brush.linearGradient(listOf(
+                        accent.copy(alpha = .22f), scheme.surfaceVariant, scheme.surface))
+                ))
+                Canvas(Modifier.fillMaxSize()) {
+                    val center = Offset(size.width * .89f, size.height * .16f)
+                    drawCircle(accent.copy(alpha = .07f),
+                        radius = size.width * .27f, center = center)
+                    drawCircle(accent.copy(alpha = .20f),
+                        radius = size.width * .23f, center = center,
+                        style = Stroke(width = 1.5.dp.toPx()))
+                }
             }
             Column(
-                Modifier.fillMaxSize().padding(horizontal = 14.dp, vertical = 11.dp),
+                Modifier.fillMaxSize().padding(horizontal = 17.dp, vertical = 14.dp),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically,
