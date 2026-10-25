@@ -22,6 +22,8 @@ import com.nightwave.player.net.VideoPreview
 class CatalogDownloadsActivity : ComponentActivity() {
     private lateinit var entries: LinearLayout
     private lateinit var overview: TextView
+    private lateinit var historyToggle: TextView
+    private var showHiddenJobs = false
     private lateinit var scroll: ScrollView
     private val manager by lazy { WorkManager.getInstance(applicationContext) }
     private var catalogJobs: List<WorkInfo> = emptyList()
@@ -73,6 +75,14 @@ class CatalogDownloadsActivity : ComponentActivity() {
         root.addView(overview, LinearLayout.LayoutParams(-1, -2).apply {
             bottomMargin = dp(11)
         })
+        historyToggle = label("", 13f, 0xFF91E2D7.toInt(), true).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            setOnClickListener {
+                showHiddenJobs = !showHiddenJobs
+                refreshJobs()
+            }
+        }
+        root.addView(historyToggle, LinearLayout.LayoutParams(-1, dp(43)))
         entries = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         scroll = ScrollView(this).apply { addView(entries) }
         root.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
@@ -105,12 +115,19 @@ class CatalogDownloadsActivity : ComponentActivity() {
         if (isFinishing || isDestroyed) return
         val originalPosition = if (::scroll.isInitialized) scroll.scrollY else 0
         entries.removeAllViews()
-        val active = infos.count { !it.state.isFinished }
-        val completed = infos.count { it.state == WorkInfo.State.SUCCEEDED }
+        val hidden = DownloadHistoryVisibility.hiddenIds(this)
+        val displayInfos = if (showHiddenJobs) infos else infos.filterNot {
+            it.id.toString() in hidden
+        }
+        historyToggle.text = if (showHiddenJobs)
+            "Hide dismissed jobs · ${hidden.size} hidden  ▴"
+        else "Show dismissed jobs · ${hidden.size} hidden  ▾"
+        val active = displayInfos.count { !it.state.isFinished }
+        val completed = displayInfos.count { it.state == WorkInfo.State.SUCCEEDED }
         overview.text = "$active queued/running · $completed completed · " +
-            infos.size + " jobs"
-        if (infos.isEmpty()) {
-            entries.addView(label("No download jobs yet. Saved audio is in Offline Library.",
+            displayInfos.size + " visible jobs"
+        if (displayInfos.isEmpty()) {
+            entries.addView(label("No visible download jobs. Saved music is in Offline Library.",
                 14f, 0xFFB7CAD4.toInt()))
             return
         }
@@ -128,7 +145,7 @@ class CatalogDownloadsActivity : ComponentActivity() {
         // 60 historical transfers existed. Active jobs first, then most
         // recently requested jobs. Older untagged jobs remain visible later.
         val seenSearchUrls = HashSet<String>()
-        val visibleJobs = infos.sortedWith(compareBy<WorkInfo> { it.state.isFinished }
+        val visibleJobs = displayInfos.sortedWith(compareBy<WorkInfo> { it.state.isFinished }
             .thenByDescending { OfflineSaveRetryPolicy.requestedAt(it.tags) }
             .thenBy { it.id.toString() })
             .filter { info ->
@@ -327,6 +344,22 @@ class CatalogDownloadsActivity : ComponentActivity() {
                         }
                     }, LinearLayout.LayoutParams(-1, dp(48)))
                 }
+            }
+            if (info.state.isFinished) {
+                card.addView(label(
+                    if (info.id.toString() in hidden)
+                        "Restore to Downloads  →" else "Hide from Downloads  ×",
+                    13f, 0xFFB9C9D6.toInt(), true).apply {
+                    gravity = Gravity.CENTER
+                    contentDescription = "Hide or restore this finished download history entry"
+                    setOnClickListener {
+                        val result = if (info.id.toString() in hidden)
+                            DownloadHistoryVisibility.restore(this@CatalogDownloadsActivity, info.id)
+                        else DownloadHistoryVisibility.hide(this@CatalogDownloadsActivity, info.id)
+                        if (result) refreshJobs()
+                        else overview.text = "Could not update download history visibility."
+                    }
+                }, LinearLayout.LayoutParams(-1, dp(43)))
             }
             entries.addView(card, LinearLayout.LayoutParams(-1, -2).apply {
                 bottomMargin = dp(11)
