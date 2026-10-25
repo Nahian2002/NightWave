@@ -39,6 +39,8 @@ import androidx.compose.ui.text.font.FontFamily
 import android.content.Context
 import android.content.ClipboardManager
 import android.content.ClipData
+import android.content.Intent
+import android.net.Uri
 import com.nightwave.player.v2.cloud.InstalledApkOAuthIdentity
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -300,6 +302,18 @@ internal fun NightWaveAccountHubDialog(
                                         }) {
                                         Text(if (oauthCopied)
                                             "Setup report copied" else "Copy Google setup report")
+                                    }
+                                    TextButton(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        onClick = {
+                                            runCatching {
+                                                appContext.startActivity(
+                                                    Intent(Intent.ACTION_VIEW,
+                                                        Uri.parse("https://console.cloud.google.com/auth/clients"))
+                                                )
+                                            }
+                                        }) {
+                                        Text("Open Google OAuth settings")
                                     }
                                 }
                             }
