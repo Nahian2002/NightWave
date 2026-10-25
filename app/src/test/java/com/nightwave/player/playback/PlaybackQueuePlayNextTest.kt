@@ -113,6 +113,33 @@ class PlaybackQueuePlayNextTest {
         assertNull(q.next())
     }
 
+    @Test fun manualPrioritySurvivesReconstructionEvenUnderShuffle() {
+        val q = PlaybackQueue(pick = { 0 })
+        q.replace((1..4).map(::song), 0)
+        q.shuffle = true
+        q.insertNext(song(4))
+        q.insertNext(song(3))
+        val priorities = q.priorityNextUrls()
+        assertEquals(listOf(song(3).url, song(4).url), priorities)
+        val copy = PlaybackQueue(pick = { 0 })
+        copy.replace(q.snapshot(), q.index)
+        copy.shuffle = true
+        copy.restoreNextPriorities(priorities)
+        assertEquals(song(3), copy.next())
+        assertEquals(song(4), copy.next())
+    }
+
+    @Test fun staleOrPastPriorityFromCorruptSnapshotIsIgnored() {
+        val q = PlaybackQueue(pick = { 0 })
+        q.replace((1..4).map(::song), 1)
+        q.shuffle = true
+        q.restoreNextPriorities(listOf(song(1).url, song(2).url,
+            "https://youtube.com.evil.test/unsafe", song(4).url, song(4).url))
+        assertEquals(listOf(song(4).url), q.priorityNextUrls())
+        assertEquals(song(4), q.next())
+        assertTrue(q.priorityNextUrls().isEmpty())
+    }
+
     @Test fun emptyQueuePlayNextCreatesOneSelectedSong() {
         val q = PlaybackQueue()
         assertTrue(q.insertNext(song(9)))
