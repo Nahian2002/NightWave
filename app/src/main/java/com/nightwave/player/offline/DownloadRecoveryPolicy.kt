@@ -17,6 +17,7 @@ internal object DownloadRecoveryPolicy {
             "saved audio needs verification" in text ||
                 "saved file could not be verified" in text ->
                 "Saved audio needs verification. Check Offline Library before retrying."
+            "audio may already be in offline library" in text ||
             "search link was not recorded" in text ||
                 "search association failed" in text ->
                 "Audio may already be in Offline Library. Check there before retrying."
