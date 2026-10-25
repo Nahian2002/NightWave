@@ -1966,6 +1966,32 @@ class NightWaveStudioActivity : ComponentActivity() {
         }
     }
 
+    /** User-intent queue action; never silently mixes online and offline sessions. */
+    private fun requestPublicQueueAction(video: VideoPreview, playNext: Boolean) {
+        val current = playback.state
+        if (current.offline) {
+            showMessage("Online and offline queues are separate. Switch to online music first.")
+            return
+        }
+        if (VideoLink.normalize(video.url) == null) {
+            showMessage("This song has no supported public queue link.")
+            return
+        }
+        if (playNext && current.videoUrl == video.url) {
+            showMessage("This song is already playing.")
+            return
+        }
+        if (!playNext && current.queue.any { it.url == video.url }) {
+            showMessage("This song is already in your queue.")
+            return
+        }
+        if (!playNext && current.queue.size >= 100) {
+            showMessage("Your queue is full (100 songs).")
+            return
+        }
+        if (playNext) playback.playNext(video) else playback.enqueue(video)
+    }
+
     private fun showSongOptions(video: VideoPreview) {
         val likeText = if (library.isFavorite(video.url)) "Unlike song" else "Like song"
         // A damaged offline index must not crash the ordinary song menu.
@@ -1981,16 +2007,8 @@ class NightWaveStudioActivity : ComponentActivity() {
                 when (selected) {
                     0 -> { library.toggleFavorite(video); refresh() }
                     1 -> saveSongToPlaylist(video)
-                    2 -> {
-                        if (playback.state.offline) showMessage(
-                            "Offline and online queues are separate. Switch to online music first.")
-                        else playback.playNext(video)
-                    }
-                    3 -> {
-                        if (playback.state.offline) showMessage(
-                            "Offline and online queues are separate. Switch to online music first.")
-                        else playback.enqueue(video)
-                    }
+                    2 -> requestPublicQueueAction(video, playNext = true)
+                    3 -> requestPublicQueueAction(video, playNext = false)
                     4 -> playSearchedOfflineFirst(video, listOf(video))
                     5 -> if (offlineReady) {
                         if (!playSavedFromSearch(video)) openOfflineSaving(video)
@@ -2035,12 +2053,15 @@ class NightWaveStudioActivity : ComponentActivity() {
             return
         }
         AlertDialog.Builder(this).setTitle(song.title.take(110))
-            .setItems(arrayOf("Play now", "More song actions", "Remove from this playlist")) {
+            .setItems(arrayOf("Play this playlist", "Play next",
+                "Add to end of queue", "More song actions", "Remove from this playlist")) {
                     _, selected ->
                 when (selected) {
                     0 -> playSearchedOfflineFirst(song, library.playlist(name))
-                    1 -> showSongOptions(song)
-                    2 -> AlertDialog.Builder(this)
+                    1 -> requestPublicQueueAction(song, playNext = true)
+                    2 -> requestPublicQueueAction(song, playNext = false)
+                    3 -> showSongOptions(song)
+                    4 -> AlertDialog.Builder(this)
                         .setTitle("Remove from ${name.take(55)}?")
                         .setMessage("Remove this entry from the playlist only? " +
                             "Liked songs, listening history and offline audio remain saved.")
