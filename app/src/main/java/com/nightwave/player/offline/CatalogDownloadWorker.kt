@@ -84,8 +84,13 @@ class CatalogDownloadWorker(
                     setForegroundAsync(foreground(candidate.title, received, total))
                 }
             }
-            if (isStopped) failed("Download cancelled")
-            else Result.success(Data.Builder()
+            // The staged copy and index commit have completed; re-read the
+            // actual private file before WorkManager declares SUCCESS.
+            val verified = OfflineAudioLibrary(applicationContext)
+                .availableIds(setOf(saved.id))
+            if (!OfflineTransferCompletionPolicy.canCommit(isStopped, saved.id, verified)) {
+                failed(OfflineTransferCompletionPolicy.NOT_VERIFIED)
+            } else Result.success(Data.Builder()
                 .putString(CatalogDownloadQueue.KEY_DONE, saved.id)
                 .putString(CatalogDownloadQueue.KEY_SAVED_TITLE, saved.title)
                 .build())
