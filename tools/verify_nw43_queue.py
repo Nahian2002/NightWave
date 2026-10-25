@@ -78,8 +78,12 @@ def audit(src):
     for needle in BAD_SEARCH_COLLECTIONS:
         if needle in search:
             errors.append("Search result illegally queues a collection: " + needle)
-    if search.count("onPlay(song, listOf(song))") != 4:
-        errors.append("Exactly four Search item-tap paths must be single-song")
+    # NW44 groups public results into two visual sections but funnels both
+    # through one single-song callback; three saved/creator pathways remain.
+    if (search.count("onPlay(song, listOf(song))") != 3 or
+        search.count("onPlay(selected, listOf(selected))") != 1 or
+        search.count("playSinglePublic(song)") != 2):
+        errors.append("All Search result taps must remain single-song")
     if src.get("unit", "").count("@Test fun ") < 14:
         errors.append("Queue Play Next pure tests incomplete")
     if src.get("android", "").count("@Test fun ") < 3:
@@ -97,7 +101,9 @@ def main():
         fake = {k: "\n".join(v) for k, v in NEEDS.items()}
         fake["ui"] = (
             "private fun StudioSearch(\n" +
-            "onPlay(song, listOf(song))\n" * 4 +
+            "onPlay(song, listOf(song))\n" * 3 +
+            "onPlay(selected, listOf(selected))\n" +
+            "playSinglePublic(song)\n" * 2 +
             "\nprivate fun StudioLibrary(\n" + fake["ui"]
         )
         fake["unit"] = "@Test fun x() {}\n" * 14
