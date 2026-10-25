@@ -406,6 +406,7 @@ Assert-NW59Has $savedSearch 'val score = SearchRelevancePolicy.savedScore(prepar
 Assert-NW59Has $savedSearch '.distinctBy { it.first.url }' 'best-scoring saved URL'
 Assert-NW59Has $savedSearch 'if (limit <= 0) return emptyList()' 'zero limit returns zero results'
 Assert-NW59Has $activity 'val localSearch by produceState(' 'cancel stale local search state'
+Assert-NW59Has $activity 'value = Triple(' 'explicitly clear produceState old results when keys change'
 Assert-NW59Has $activity 'delay(120L) // debounce typing' 'no repeated heavy scans per keystroke'
 Assert-NW59Has $activity 'value = withContext(Dispatchers.Default)' 'local ranking off UI thread'
 Assert-NW59Has $activity 'val savedMatches = localSearch.first' 'UI saved library uses latest background result'
