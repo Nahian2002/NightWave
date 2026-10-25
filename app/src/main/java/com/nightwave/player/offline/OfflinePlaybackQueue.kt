@@ -11,6 +11,9 @@ import kotlin.random.Random
 class OfflinePlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
     private val ids = mutableListOf<String>()
     private val visited = ArrayDeque<Int>()
+    // NW69: when Shuffle Previous retraces a song, Next should retrace the
+    // departed song before picking fresh candidates. Session-only, bounded.
+    private val forwardVisits = ArrayDeque<Int>()
     private val unplayed = mutableListOf<Int>()
     var index: Int = -1
         private set
@@ -27,6 +30,7 @@ class OfflinePlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it)
         if (shuffle == enabled) return
         shuffle = enabled
         visited.clear()
+        forwardVisits.clear()
         refillUnplayed()
     }
 
@@ -42,6 +46,7 @@ class OfflinePlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it)
         ids.addAll(clean)
         index = selected
         visited.clear()
+        forwardVisits.clear()
         refillUnplayed()
         return current
     }
@@ -60,9 +65,21 @@ class OfflinePlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it)
         if (shuffle && ids.size == 1 && repeat == PlaybackQueue.Repeat.ALL)
             return current
         val target = if (shuffle) {
-            if (unplayed.isEmpty() && repeat == PlaybackQueue.Repeat.ALL) refillUnplayed()
-            if (unplayed.isEmpty()) return null
-            unplayed.removeAt(pick(unplayed.size).coerceIn(0, unplayed.lastIndex))
+            // The old offline fallback added departed songs back to unplayed
+            // on Previous but lost their order. Retrace exactly, then remove
+            // the returned song from random candidates to prevent duplication.
+            val forward = forwardVisits.lastOrNull()
+                ?.takeIf { it in ids.indices && it != index }
+            if (forward != null) {
+                forwardVisits.removeLast()
+                unplayed.remove(forward)
+                forward
+            } else {
+                forwardVisits.clear() // defensive if the queue changed
+                if (unplayed.isEmpty() && repeat == PlaybackQueue.Repeat.ALL) refillUnplayed()
+                if (unplayed.isEmpty()) return null
+                unplayed.removeAt(pick(unplayed.size).coerceIn(0, unplayed.lastIndex))
+            }
         } else {
             when {
                 index < ids.lastIndex -> index + 1
@@ -87,6 +104,10 @@ class OfflinePlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it)
             else -> return null
         }
         if (shuffle && target != index) {
+            if (index in ids.indices) {
+                forwardVisits.addLast(index)
+                if (forwardVisits.size > MAX_ITEMS) forwardVisits.removeFirst()
+            }
             unplayed.remove(target)
             if (index !in unplayed) unplayed.add(index)
         }
@@ -99,6 +120,7 @@ class OfflinePlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it)
     fun jump(to: Int): String? {
         if (to !in ids.indices) return null
         if (to != index) {
+            forwardVisits.clear() // explicit new branch, not a Next redo
             if (shuffle) {
                 // In shuffle mode, Previous retraces the actual listening order.
                 if (index >= 0) pushHistory(index)
@@ -121,6 +143,7 @@ class OfflinePlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it)
     fun reset() {
         ids.clear()
         visited.clear()
+        forwardVisits.clear()
         unplayed.clear()
         index = -1
         // Keep the user's playback preferences across new offline selections.
