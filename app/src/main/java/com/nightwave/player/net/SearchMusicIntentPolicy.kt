@@ -16,6 +16,12 @@ object SearchMusicIntentPolicy {
         "five" to "5", "v" to "5"
     )
     private val separator = Regex("""\s+[-–—]\s+""")
+    // Search uses both "don't" and "dont"; keep common contractions together
+    // in scoring only, preserving all original displayed titles and URLs.
+    private val contractions = mapOf(
+        "don t" to "dont", "can t" to "cant", "won t" to "wont",
+        "isn t" to "isnt", "aren t" to "arent", "doesn t" to "doesnt"
+    )
     private val variants = listOf(
         "cover" to -70, "remix" to -48, "nightcore" to -65,
         "sped up" to -65, "slowed" to -55, "reverb" to -38,
@@ -26,7 +32,11 @@ object SearchMusicIntentPolicy {
     )
 
     fun canonical(raw: String): String {
-        val normalized = SearchRelevancePolicy.normalize(raw)
+        var normalized = SearchRelevancePolicy.normalize(raw)
+        contractions.forEach { (spaced, joined) ->
+            normalized = normalized.replace(
+                Regex("""\b""" + spaced + """\b"""), joined)
+        }
         return partNumber.replace(normalized) { match ->
             numbers[match.groupValues[1]] ?: match.groupValues[1]
         }
