@@ -106,6 +106,10 @@ $relative = @(
     'app/src/main/java/com/nightwave/player/playback/PlaybackService.kt',
     'app/src/main/java/com/nightwave/player/playback/OfflineDecodeRecoveryPolicy.kt',
     'app/src/main/java/com/nightwave/player/playback/PlaybackQueue.kt',
+    'app/src/main/java/com/nightwave/player/playback/AudioEngineOwnershipPolicy.kt',
+    'app/src/main/java/com/nightwave/player/playback/EqualizerCapabilities.kt',
+    'app/src/test/java/com/nightwave/player/playback/AudioEngineOwnershipPolicyTest.kt',
+    'docs/NW68_AUDIO_ENGINE_OWNERSHIP.md',
     'app/src/test/java/com/nightwave/player/playback/ShuffleForwardNavigationTest.kt',
     'app/src/test/java/com/nightwave/player/playback/OfflineDecodeRecoveryPolicyTest.kt',
     'docs/NW67_PLAYBACK_TRANSITIONS.md',
@@ -320,5 +324,25 @@ Assert-NW59Has $playback 'sleepTimerPaused = sleepTimerPaused' 'timer suppresses
 Assert-NW59Has $decode 'atErrorGeneration == currentGeneration' 'no old generation recovery'
 Assert-NW59Has $decode 'wantsPlayback && !sleepTimerPaused' 'play intent required'
 Assert-NW59Has $offlineRecoveryTests 'deferredDecodeRecoveryCannotUndoUserPauseOrStaleSelection' 'pause and stale selection tests'
-Write-Host 'NW67 cumulative NW53-NW67 source guard PASS. Gradle/JVM/device QA still mandatory.'
+# NW68: equalizer hardware capability must be owned by the current playback
+# audio session; a paused or stale crossfade deck cannot replace MediaSession.
+$ownership = [IO.File]::ReadAllText($files['app/src/main/java/com/nightwave/player/playback/AudioEngineOwnershipPolicy.kt'])
+$ownershipTests = [IO.File]::ReadAllText($files['app/src/test/java/com/nightwave/player/playback/AudioEngineOwnershipPolicyTest.kt'])
+$eqCapabilities = [IO.File]::ReadAllText($files['app/src/main/java/com/nightwave/player/playback/EqualizerCapabilities.kt'])
+Assert-NW59Has $ownership 'internal object EqualizerSessionPolicy' 'EQ ownership policy'
+Assert-NW59Has $ownership 'sessionId > 0 && hasControl && bandCount in 1..32' 'capabilities need actual control'
+Assert-NW59Has $ownership 'effectSessionId == playbackSessionId && enabled && hasControl' 'active effect session ownership'
+Assert-NW59Has $eqCapabilities 'EqualizerSessionPolicy.canPublish(' 'capability store checks actual control'
+Assert-NW59Has $eqCapabilities 'clear() // Never leave an old "ready" receipt after control loss.' 'stale EQ state cleared'
+Assert-NW59Has $playback 'EqualizerSessionPolicy.canReuse(' 'service cannot reuse stolen EQ'
+Assert-NW59Has $playback 'val controlsEffect = probe.hasControl()' 'EQ discovery checks ownership'
+Assert-NW59Has $playback 'if (controlsEffect) eqCapabilities.publish(probe, session)' 'never advertise other effect'
+Assert-NW59Has $ownership 'internal object CrossfadeHandoffPolicy' 'crossfade ownership policy'
+Assert-NW59Has $ownership 'timerPaused && outgoingPlaying' 'crossfade guard checks playing decks'
+Assert-NW59Has $ownership 'incomingMediaId == "offline:$nextId"' 'exact next private media identity'
+Assert-NW59Has $playback 'CrossfadeHandoffPolicy.mayHandoff(' 'service gates session handoff'
+Assert-NW59Has $playback 'outgoingPlaying = old.isPlaying, incomingPlaying = new.isPlaying' 'never handoff paused deck'
+Assert-NW59Has $ownershipTests 'eqInstanceMustStillOwnSameLiveSession' 'EQ session ownership tests'
+Assert-NW59Has $ownershipTests 'staleMediaOrSelectionNeverReceivesSession' 'crossfade stale ID tests'
+Write-Host 'NW68 cumulative NW53-NW68 source guard PASS. Gradle/JVM/device QA still mandatory.'
 exit 0
