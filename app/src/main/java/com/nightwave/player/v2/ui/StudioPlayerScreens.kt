@@ -381,12 +381,12 @@ fun StudioNowPlayingOverlay(
         ) + fadeOut(animationSpec = tween(
             durationMillis = NightWaveMotionPolicy.PLAYER_EXIT_MS))
     val overlayVisibility = remember { MutableTransitionState(false) }
-    overlayVisibility.targetState = expanded
+    LaunchedEffect(expanded) { overlayVisibility.targetState = expanded }
     // NW58: opacity on the animated *full-screen container* revealed Home
     // through the player at the start/end of the NW50 transition. Keep a
     // solid, non-animated backdrop for the entire transition lifetime.
     // The backdrop goes away only when the closing animation is complete.
-    if (overlayVisibility.currentState || overlayVisibility.targetState) {
+    if (expanded || overlayVisibility.currentState || overlayVisibility.targetState) {
         Box(Modifier.fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .testTag("nw58-opaque-player-backdrop"))
