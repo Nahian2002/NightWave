@@ -1,5 +1,8 @@
 # NightWave
 
+> **NW43 — Queue Correctness (SOURCE IMPLEMENTATION, NOT YET ANDROID-BUILT).** Tapping Search results now selects one track instead of silently queuing every result. Named playlists/mixes still play as collections. Song menus add explicit **Play Next** versus **Add to Queue**, with manually selected next tracks prioritized above Shuffle and stored as public IDs for restart recovery. Queue UI separates Playing Now, Play Next, true Up Next, and Shuffle Pool. **15 JVM + 6 Android regression tests written, not run; 18/18 source-wiring checks passed.** Google authorization 8, downloads and UI polishing are separate future batches. [NW43 details and acceptance](docs/NW43_QUEUE_CORRECTNESS.md).
+
+
 > **NW42 — EXPRESSIVE PREMIUM MOTION & ARTWORK-LED REDESIGN (SOURCE-ONLY, 25 October 2026).** Based on the latest 5.6-minute phone recording, this branch upgrades Home/mixtape visuals to genuine saved-song art, consolidates repetitive stat cards, makes Search more compact, presents You settings as an editorial list, and animates tab/player/current-song state with reduced-motion support. **12/12 source wiring checks and 13/13 exact-source standalone Kotlin policy assertions passed; full Android build/device polish NOT verified.** Google status 8 still requires checking OAuth Android client registration against the installed APK signing SHA-1; it has **not** been automatically fixed. [NW42 implementation and QA](docs/NW42_EXPRESSIVE_PREMIUM_DESIGN.md).
 
 
