@@ -78,8 +78,14 @@ class SearchTrackSaveWorker(
             if (isStopped) fail("Cancelled")
             else if (!SearchTrackOfflineIndex.linkVerified(applicationContext, canonical, saved)) {
                 fail("Audio was saved in Offline Library, but its search link was not recorded")
-            } else Result.success(Data.Builder()
-                .putString(SearchTrackSaveQueue.KEY_ID, saved.id).build())
+            } else {
+                val verified = OfflineAudioLibrary(applicationContext)
+                    .availableIds(setOf(saved.id))
+                if (!OfflineTransferCompletionPolicy.canCommit(isStopped, saved.id, verified))
+                    fail(OfflineTransferCompletionPolicy.NOT_VERIFIED)
+                else Result.success(Data.Builder()
+                    .putString(SearchTrackSaveQueue.KEY_ID, saved.id).build())
+            }
         } catch (error: Exception) {
             if (isStopped) fail("Cancelled")
             else if (error is IOException && runAttemptCount < 1) Result.retry()
