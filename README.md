@@ -1,5 +1,8 @@
 # NightWave
 
+> **NW41 — Recorded-device premium polish + Google OAuth diagnostic (SOURCE PREVIEW; Android build pending, 25 October 2026).** Based on two real phone recordings, this development branch improves the typography, bottom navigation, music cards, Search header, native action dialogs and Downloads layout/progress. It also adds **You > Account & backup > Copy Google setup report** with the installed APK signer SHA-1 to diagnose ongoing Google Drive error 8. This feature **does not itself fix Google's authorization or increase permitted download sources**. Compile/device QA is mandatory before updating your installed app. [Scope and review](docs/NW41_VIDEO_REVIEW_PREMIUM_PASS.md).
+
+
 > **NW40 verification continuation, 25 October 2026:** Windows `build-windows.cmd` now runs a PowerShell-only NW40 integrity preflight before Gradle (no Python needed). GitHub Actions also includes PowerShell and reproducible standalone Kotlin gates. Exact committed Kotlin sources passed **26 local smoke assertions** (13 pure policy + 13 SearchHistoryStore with isolated Android/JSON test doubles). These are **NOT** a full Android build. GitHub's runner did not start, and Android SDK/Gradle are unavailable in the current execution environment. See [NW40 evidence and safe local build path](docs/NW40_STABILITY_INTEGRATION_AND_BUILD_GATE.md).
 
 
