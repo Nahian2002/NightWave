@@ -2748,14 +2748,21 @@ private fun StudioRoot(
     var showSoundStudio by rememberSaveable { mutableStateOf(false) }
     var showAccountHub by rememberSaveable { mutableStateOf(false) }
     var compactHidden by rememberSaveable { mutableStateOf(false) }
+    var tabNavigationJob by remember { mutableStateOf<Job?>(null) }
     fun navigateToTab(destination: StudioTab) {
-        if (destination == tab) return
+        if (destination == tab && tabNavigationJob?.isActive != true) return
         if (destination != StudioTab.LIBRARY) selectedPlaylist = null
-        scope.launch {
-            if (profile.motion == MotionPreference.REDUCED) {
-                pagerState.scrollToPage(destination.ordinal)
+        // Most recent tap wins. Avoid multiple long animations and expensive
+        // intermediate-page compositions on distant-tab jumps.
+        tabNavigationJob?.cancel()
+        tabNavigationJob = scope.launch {
+            if (NightWaveMotionPolicy.animateTabChange(
+                    pagerState.currentPage, destination.ordinal,
+                    StudioTab.entries.size, profile.motion == MotionPreference.REDUCED)) {
+                pagerState.animateScrollToPage(destination.ordinal,
+                    animationSpec = tween(durationMillis = NightWaveMotionPolicy.NAV_MS))
             } else {
-                pagerState.animateScrollToPage(destination.ordinal)
+                pagerState.scrollToPage(destination.ordinal)
             }
         }
     }
