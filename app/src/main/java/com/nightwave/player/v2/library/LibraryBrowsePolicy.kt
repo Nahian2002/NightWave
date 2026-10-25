@@ -27,14 +27,20 @@ object LibraryBrowsePolicy {
         source: List<LibraryPlaylistPreview>,
         query: String,
         sort: String,
-        withTracksOnly: Boolean
+        withTracksOnly: Boolean,
+        matchContainedSongs: Boolean = false
     ): List<LibraryPlaylistPreview> {
         val search = SearchRelevancePolicy.prepare(query.take(80))
         val filtered = source.withIndex().filter { (_, playlist) ->
-            (!withTracksOnly || playlist.size > 0) &&
-                (!search.valid || search.terms.all {
-                    it in SearchRelevancePolicy.normalize(playlist.name)
-                })
+            if (withTracksOnly && playlist.size == 0) return@filter false
+            if (!search.valid) return@filter true
+            val name = SearchRelevancePolicy.normalize(playlist.name)
+            if (search.terms.all { it in name }) return@filter true
+            // Optional NW71 playlist discovery: find the containing playlist
+            // by one song's title/creator, not by joining unrelated songs.
+            // Bounded scan, view-only, no change to playlist membership/order.
+            matchContainedSongs && playlist.songs.asSequence().take(100)
+                .any { SearchRelevancePolicy.savedMatches(search, it) }
         }
         val ordered = when (sort) {
             SORT_NAME -> filtered.sortedWith(
