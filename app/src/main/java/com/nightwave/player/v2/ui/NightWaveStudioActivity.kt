@@ -1974,18 +1974,28 @@ class NightWaveStudioActivity : ComponentActivity() {
             SearchTrackOfflineIndex.readySong(this, video.url) != null
         }.getOrDefault(false)
         AlertDialog.Builder(this).setTitle(video.title)
-            .setItems(arrayOf(likeText, "Save to playlist", "Add to queue",
-                "Play now", if (offlineReady) "Play saved offline" else "Save offline",
+            .setItems(arrayOf(likeText, "Save to playlist", "Play next",
+                "Add to end of queue", "Play now",
+                if (offlineReady) "Play saved offline" else "Save offline",
                 "Share song link", "Copy song link")) { _, selected ->
                 when (selected) {
                     0 -> { library.toggleFavorite(video); refresh() }
                     1 -> saveSongToPlaylist(video)
-                    2 -> playback.enqueue(video)
-                    3 -> playSearchedOfflineFirst(video, listOf(video))
-                    4 -> if (offlineReady) {
+                    2 -> {
+                        if (playback.state.offline) showMessage(
+                            "Offline and online queues are separate. Switch to online music first.")
+                        else playback.playNext(video)
+                    }
+                    3 -> {
+                        if (playback.state.offline) showMessage(
+                            "Offline and online queues are separate. Switch to online music first.")
+                        else playback.enqueue(video)
+                    }
+                    4 -> playSearchedOfflineFirst(video, listOf(video))
+                    5 -> if (offlineReady) {
                         if (!playSavedFromSearch(video)) openOfflineSaving(video)
                     } else openOfflineSaving(video)
-                    6 -> {
+                    7 -> {
                         val publicUrl = VideoLink.normalize(video.url)
                         if (publicUrl == null) {
                             showMessage("This track has no shareable public link.")
@@ -2000,7 +2010,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                             }.onFailure { showMessage("Could not copy this song link.") }
                         }
                     }
-                    5 -> {
+                    6 -> {
                         val publicUrl = VideoLink.normalize(video.url)
                         if (publicUrl == null) {
                             showMessage("This track has no shareable public link.")
