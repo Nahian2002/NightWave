@@ -258,7 +258,7 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
             // "previous" track; never guess using linear index ordering.
             if (visited.isEmpty()) return null
             if (index in entries.indices) {
-                forwardVisits.addLast(index)
+                forwardVisits.add(index)
                 if (forwardVisits.size > 100) forwardVisits.removeFirst()
             }
             index = visited.removeLast()
