@@ -48,7 +48,8 @@ class DirectAudioDownloadWorker(
                     throw IOException("Download cancelled")
                 }
                 val now = SystemClock.elapsedRealtime()
-                if (lastProgress < 0L || now - lastTime > 750L || received == total) {
+                if (lastProgress < 0L || now - lastTime > 750L || received == total ||
+                    received < lastProgress) {
                     lastProgress = received
                     lastTime = now
                     setProgressAsync(Data.Builder()
