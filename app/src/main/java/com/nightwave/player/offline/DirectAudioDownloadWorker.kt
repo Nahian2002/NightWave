@@ -77,7 +77,7 @@ class DirectAudioDownloadWorker(
             else if (error is IOException && runAttemptCount < 2) Result.retry()
             else fail(
                 if (error is IOException) "Network interrupted; requeue the audio link."
-                else "Download rejected; check audio type, source or permissions."
+                else DownloadRecoveryPolicy.failedMessage(error.message)
             )
         } finally {
             transfer = null
