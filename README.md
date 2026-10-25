@@ -1,5 +1,8 @@
 # NightWave
 
+> **NW39 — ATOMIC PLAYLIST EDITS, DRAG-TO-REORDER & UNDO (SOURCE PATCH; DEVICE QA PENDING, 25 October 2026).** [NW39 branch](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-nw39-atomic-playlist-edits) adds guarded multi-song Copy/Remove, saved-order drag handle and accessible move buttons, plus one-level conflict-safe Undo for playlist edits. Writes use the existing single-writer recovery-protected transaction, without deleting favorites/offline audio or changing the serverless architecture. **JVM tests added but not executed; Android build NOT VERIFIED (runner unavailable).** [NW39 QA and scope](docs/NW39_ATOMIC_PLAYLIST_EDITS_AND_UNDO.md).
+
+
 > **NW38 — LIBRARY MICRO-POLISH: PINS, BULK LINK ACTIONS & STORAGE (SOURCE PATCH; DEVICE BUILD PENDING, 25 October 2026).** [NW38 branch](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-nw38-library-pins-storage) adds one-tap pinned playlists with stable sorting, isolated preferences and rename/delete cleanup; safe 20-song playlist selection for Copy/Share public links; and health-aware imported audio storage/free-space status. **Standalone Kotlin policy smoke passed; Android build/device testing is not yet verified**, and `main` is unchanged. [Details and acceptance checklist](docs/NW38_PINNED_PLAYLISTS_BULK_STORAGE.md).
 
 
