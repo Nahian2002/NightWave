@@ -14,6 +14,7 @@ internal object DownloadRecoveryPolicy {
         val text = raw.orEmpty().lowercase(Locale.ROOT)
         return when {
             "saved audio could not be verified" in text ||
+            "saved audio needs verification" in text ||
                 "saved file could not be verified" in text ->
                 "Saved audio needs verification. Check Offline Library before retrying."
             "search link was not recorded" in text ||
@@ -36,6 +37,7 @@ internal object DownloadRecoveryPolicy {
             "no independent audio-only stream" in text ||
                 "no supported public audio stream" in text ||
                 "no supported standalone audio" in text ||
+                "no supported playable audio" in text ||
                 "unsupported format" in text ||
                 "invalid audio" in text || "unplayable" in text ||
                 "no readable audio samples" in text ||
@@ -45,7 +47,8 @@ internal object DownloadRecoveryPolicy {
                 "not permitted" in text || "permission check" in text ->
                 "Audio failed a safety or permission check."
             "http 404" in text || "not found" in text ||
-                "recording unavailable" in text ->
+                "recording unavailable" in text ||
+                "no longer available" in text ->
                 "Recording is no longer available. Try another source."
             "connection interrupted" in text || "connection reset" in text ||
                 "timeout" in text || "timed out" in text ||
