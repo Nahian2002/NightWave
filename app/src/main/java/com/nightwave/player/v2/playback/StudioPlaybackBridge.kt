@@ -56,8 +56,6 @@ interface StudioPlayerActions {
     fun playPause()
     fun retry()
     fun enqueue(video: VideoPreview)
-    /** Explicit Play Next, never inferred from search results. */
-    fun playNext(video: VideoPreview) { enqueue(video) }
     fun previous()
     fun next()
     fun seekTo(positionMs: Long)
@@ -473,7 +471,8 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
     override fun enqueue(video: VideoPreview) = sendQueueAddition(
         video, PlaybackService.ACTION_ENQUEUE)
 
-    override fun playNext(video: VideoPreview) = sendQueueAddition(
+    /** Native v2 capability: legacy/fake player adapters cannot silently append. */
+    fun playNext(video: VideoPreview) = sendQueueAddition(
         video, PlaybackService.ACTION_PLAY_NEXT)
 
     private fun sendQueueAddition(video: VideoPreview, action: String) {
