@@ -1,5 +1,8 @@
 # NightWave
 
+> **NW44 — SMART SEARCH 2.0 (SOURCE IMPLEMENTED; ANDROID BUILD DEFERRED).** Improves Songs-mode relevance with conservative `Pt. II`/number aliases, contextual cover/remix/trailer demotion, 40 synthetic ranking fixtures, and a cleaner Search experience with direct Songs/Videos filters and grouped likely matches. Video mode/provider order, original URLs and titles, NW43 single-song playback, saved library and offline data are preserved. **20/20 source checks passed; Kotlin/JUnit/Android/device tests have not been run on the final build.** Google authorization remains a separate NW45 blocker. [NW44 scope and verification](docs/NW44_SMART_SEARCH_V2.md).
+
+
 > **NW43 — Queue Correctness (SOURCE IMPLEMENTATION, NOT YET ANDROID-BUILT).** Tapping Search results now selects one track instead of silently queuing every result. Named playlists/mixes still play as collections. Song menus add explicit **Play Next** versus **Add to Queue**, with manually selected next tracks prioritized above Shuffle and stored as public IDs for restart recovery. Queue UI separates Playing Now, Play Next, true Up Next, and Shuffle Pool. **15 JVM + 6 Android regression tests written, not run; 18/18 source-wiring checks passed.** Google authorization 8, downloads and UI polishing are separate future batches. [NW43 details and acceptance](docs/NW43_QUEUE_CORRECTNESS.md).
 
 
