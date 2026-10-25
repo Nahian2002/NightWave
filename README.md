@@ -1,5 +1,8 @@
 # NightWave
 
+> **NW38 — LIBRARY MICRO-POLISH: PINS, BULK LINK ACTIONS & STORAGE (SOURCE PATCH; DEVICE BUILD PENDING, 25 October 2026).** [NW38 branch](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-nw38-library-pins-storage) adds one-tap pinned playlists with stable sorting, isolated preferences and rename/delete cleanup; safe 20-song playlist selection for Copy/Share public links; and health-aware imported audio storage/free-space status. **Standalone Kotlin policy smoke passed; Android build/device testing is not yet verified**, and `main` is unchanged. [Details and acceptance checklist](docs/NW38_PINNED_PLAYLISTS_BULK_STORAGE.md).
+
+
 > **NW37 — SEARCH HISTORY & SONG ACTION MICRO-POLISH (SOURCE PATCH; DEVICE BUILD PENDING, 25 October 2026).** [NW37 branch](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-nw37-search-and-song-actions) adds private 12-entry explicit search history with per-row ×, confirmed clear, guarded Undo, one-tap re-search, Share Song and Copy Song Link, plus more accessible search controls. No audio, playlist or account data is changed. **Local Kotlin policy smoke passed; full Android build is NOT verified** because the first GitHub Actions run failed before allocating a runner. [NW37 details and acceptance tests](docs/NW37_SEARCH_AND_SONG_ACTIONS.md).
 
 
