@@ -35,7 +35,7 @@ object LocalSearchSuggestions {
 
         // Creator names are sourced only from actually saved distinct videos.
         // Match all terms to avoid irrelevant popular channels.
-        MusicIdentity.creatorsFrom(saved.take(5_000), limit = 12).forEach { creator ->
+        MusicIdentity.creatorsFrom(saved.take(5_000), limit = 12, scanLimit = 5_000).forEach { creator ->
             val key = SearchRelevancePolicy.normalize(creator.name)
             if (key.isNotBlank() &&
                 prepared.terms.all { it in key } &&
