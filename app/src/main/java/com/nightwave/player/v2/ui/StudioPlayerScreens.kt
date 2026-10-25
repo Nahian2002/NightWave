@@ -347,10 +347,10 @@ fun StudioNowPlayingOverlay(
             // remote thumbnails, preserving battery life and privacy.
             NightWaveBackdrop(state.videoUrl.ifBlank { "nightwave-player" }, Modifier.fillMaxSize())
             val fontScale = LocalDensity.current.fontScale
-            val contentPaddingDp = NightWaveAdaptiveChromePolicy.horizontalPaddingDp(
-                maxWidth.value)
-            val art = NightWaveAdaptiveChromePolicy.artworkSizeDp(
-                maxWidth.value, maxHeight.value, fontScale).dp
+            val playerLayout = NightWaveNowPlayingLayoutPolicy.resolve(
+                maxWidth.value, maxHeight.value, fontScale)
+            val contentPaddingDp = playerLayout.horizontalPaddingDp
+            val art = playerLayout.artworkDp.dp
             val canSwipeArtwork = state.connected && !state.buffering && state.queue.size > 1
             var horizontalTravel by remember(state.videoUrl) { mutableStateOf(0f) }
             val playingArtworkScale by animateFloatAsState(
@@ -561,7 +561,8 @@ fun StudioNowPlayingOverlay(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
-                Row(Modifier.fillMaxWidth().padding(top = 5.dp, bottom = 13.dp)
+                Row(Modifier.fillMaxWidth()
+                    .padding(top = 7.dp, bottom = playerLayout.headerBottomSpaceDp.dp)
                     .pointerInput(Unit) {
                         var dragged = 0f
                         detectVerticalDragGestures(
@@ -584,11 +585,13 @@ fun StudioNowPlayingOverlay(
                             tint = colors.onBackground)
                     }
                     Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("NIGHTWAVE", style = MaterialTheme.typography.labelSmall,
-                            color = colors.onSurfaceVariant)
-                        Text(if (state.offline) "OFFLINE AUDIO" else "NOW PLAYING",
-                            style = MaterialTheme.typography.labelLarge,
+                        Text("NightWave",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
                             color = colors.onBackground)
+                        Text(if (state.offline) "FROM YOUR OFFLINE LIBRARY" else "NOW PLAYING",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = colors.onSurfaceVariant)
                     }
                     IconButton(onClick = onSaveToPlaylist, enabled = !state.offline,
                         modifier = Modifier.size(48.dp)) {
@@ -596,18 +599,26 @@ fun StudioNowPlayingOverlay(
                             tint = colors.onBackground)
                     }
                 }
-                Spacer(Modifier.height(3.dp))
+                Spacer(Modifier.height(2.dp))
                 Box(
                     Modifier.size(art)
+                        .testTag("nightwave-now-playing-artwork")
+                        .shadow(if (reduceMotion) 8.dp else 20.dp,
+                            RoundedCornerShape(playerLayout.artworkCornerDp.dp))
                         .graphicsLayer {
                             scaleX = playingArtworkScale
                             scaleY = playingArtworkScale
                         }
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(colors.surfaceVariant)
+                        .clip(RoundedCornerShape(playerLayout.artworkCornerDp.dp))
+                        .background(
+                            Brush.linearGradient(listOf(
+                                NightWaveVisualLanguage.accent(state.videoUrl).copy(alpha = .36f),
+                                colors.surfaceVariant, colors.surface
+                            ))
+                        )
                         .border(1.dp,
-                            NightWaveVisualLanguage.accent(state.videoUrl).copy(alpha = .46f),
-                            RoundedCornerShape(22.dp)).then(
+                            colors.onBackground.copy(alpha = .12f),
+                            RoundedCornerShape(playerLayout.artworkCornerDp.dp)).then(
                         if (canSwipeArtwork) Modifier.pointerInput(
                             state.videoUrl, state.queue.size, state.connected, state.buffering
                         ) {
@@ -639,7 +650,8 @@ fun StudioNowPlayingOverlay(
                         animationSpec = tween(durationMillis = if (reduceMotion) 0 else 180),
                         label = "Player artwork"
                     ) { thumbnail ->
-                        CoverArt(thumbnail, Modifier.fillMaxSize(), 21)
+                        CoverArt(thumbnail, Modifier.fillMaxSize(),
+                            playerLayout.artworkCornerDp)
                     }
                     if (state.buffering) {
                         Box(
@@ -657,17 +669,19 @@ fun StudioNowPlayingOverlay(
                 // Don't advertise the source type as a prominent pill on
                 // every Now Playing screen. Keep only a useful gesture hint.
                 if (canSwipeArtwork) {
-                    Text("Swipe cover to skip",
-                        modifier = Modifier.padding(top = 8.dp),
+                    Text("SWIPE COVER TO SKIP",
+                        modifier = Modifier.padding(top = 11.dp),
                         style = MaterialTheme.typography.labelSmall,
-                        color = colors.onSurfaceVariant)
+                        color = colors.onSurfaceVariant.copy(alpha = .85f))
                 }
-                Spacer(Modifier.height(11.dp))
+                Spacer(Modifier.height(if (playerLayout.compact) 13.dp else 22.dp))
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text(if (state.title.isBlank()) "Choose a track"
                             else MusicIdentity.display(state.title, state.artist).title,
-                            style = MaterialTheme.typography.headlineSmall, color = colors.onBackground,
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = colors.onBackground,
                             maxLines = 2, overflow = TextOverflow.Ellipsis)
                         Spacer(Modifier.height(5.dp))
                         Text(MusicIdentity.display(state.title, state.artist).artistOrCreator,
@@ -721,8 +735,10 @@ fun StudioNowPlayingOverlay(
                     }
                     Surface(onClick = actions::playPause,
                         color = colors.primary,
-                        shadowElevation = if (reduceMotion) 0.dp else 5.dp,
-                        shape = CircleShape, modifier = Modifier.size(64.dp)) {
+                        shadowElevation = if (reduceMotion) 0.dp else 10.dp,
+                        shape = CircleShape,
+                        modifier = Modifier.size(if (playerLayout.compact) 64.dp else 72.dp)
+                            .testTag("nightwave-now-playing-play-pause")) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(if (state.playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
                                 contentDescription = if (state.playing) "Pause" else "Play",
@@ -748,30 +764,154 @@ fun StudioNowPlayingOverlay(
                     }
                 }
                 Spacer(Modifier.height(10.dp))
-                OutlinedButton(
+                Surface(
                     onClick = onSaveOffline,
-                    modifier = Modifier.fillMaxWidth().height(45.dp),
-                    shape = RoundedCornerShape(14.dp)
+                    modifier = Modifier.fillMaxWidth().height(52.dp)
+                        .testTag("nightwave-now-playing-offline-action"),
+                    shape = RoundedCornerShape(18.dp),
+                    color = colors.surfaceVariant.copy(alpha = .74f)
                 ) {
-                    Text(
-                        if (state.offline) "READY OFFLINE  ·  OPEN LIBRARY"
-                        else "SAVE OFFLINE",
-                        style = MaterialTheme.typography.labelLarge
-                    )
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(if (state.offline) "Open offline library"
+                            else "Save for offline listening",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = colors.onSurface)
+                    }
                 }
                 Spacer(Modifier.height(9.dp))
                 Surface(
-                    onClick = onOpenQueue, modifier = Modifier.fillMaxWidth().height(51.dp),
-                    shape = RoundedCornerShape(15.dp), color = colors.surface,
+                    onClick = onOpenQueue,
+                    modifier = Modifier.fillMaxWidth().height(54.dp)
+                        .testTag("nightwave-now-playing-queue-action"),
+                    shape = RoundedCornerShape(18.dp), color = colors.surface,
                     tonalElevation = 2.dp
                 ) {
                     Row(Modifier.fillMaxSize().padding(horizontal = 17.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("Queue · " + state.queue.size + " " +
-                            if (state.queue.size == 1) "track" else "tracks",
-                            style = MaterialTheme.typography.titleMedium)
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text("Up next", style = MaterialTheme.typography.labelSmall,
+                                color = colors.onSurfaceVariant)
+                            Text("Queue · " + state.queue.size + " " +
+                                if (state.queue.size == 1) "track" else "tracks",
+                                style = MaterialTheme.typography.titleMedium)
+                        }
                         Icon(Icons.AutoMirrored.Outlined.QueueMusic, contentDescription = "Open queue", tint = colors.primary)
+                    }
+                }
+                Spacer(Modifier.height(12.dp))
+                Surface(
+                    onClick = { lyricsOpen = !lyricsOpen },
+                    modifier = Modifier.fillMaxWidth().height(54.dp),
+                    shape = RoundedCornerShape(17.dp),
+                    color = colors.surface,
+                    tonalElevation = 1.dp
+                ) {
+                    Row(Modifier.fillMaxSize().padding(horizontal = 17.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Lyrics", style = MaterialTheme.typography.titleMedium)
+                        Text(if (lyricsOpen) "Hide" else "View",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = colors.primary)
+                    }
+                }
+                if (lyricsOpen) {
+                    Spacer(Modifier.height(10.dp))
+                    if (state.offline) {
+                        OutlinedButton(
+                            onClick = { lyricsGuideOpen = !lyricsGuideOpen },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(if (lyricsGuideOpen) "Hide LRC import guide"
+                                else "How to import synchronized lyrics")
+                        }
+                        if (lyricsGuideOpen) {
+                            Surface(
+                                modifier = Modifier.fillMaxWidth()
+                                    .padding(top = 8.dp, bottom = 10.dp),
+                                color = colors.surfaceVariant.copy(alpha = 0.55f),
+                                shape = RoundedCornerShape(14.dp)
+                            ) {
+                                Column(
+                                    Modifier.padding(14.dp),
+                                    verticalArrangement = Arrangement.spacedBy(7.dp)
+                                ) {
+                                    Text("TIMESTAMPED LRC · QUICK GUIDE",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = colors.primary)
+                                    Text("[00:12.50] First lyric line",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = colors.onSurface)
+                                    Text("[00:15.25] Next lyric line",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = colors.onSurface)
+                                    Text("Choose a UTF-8 .lrc file under 64 KB. " +
+                                        "NightWave reviews song-name hints, timestamp problems " +
+                                        "and an optional replacement before saving.",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = colors.onSurfaceVariant)
+                                    Text("LRC files must be supplied by you. " +
+                                        "Matching filenames do not prove matching lyrics.",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = colors.onSurfaceVariant)
+                                }
+                            }
+                        }
+                    }
+                    if (!state.offline) {
+                        Text("Synchronized lyrics are not available for public videos. " +
+                            "NightWave does not copy lyrics from streaming sites.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.onSurfaceVariant)
+                    } else if (lyrics == null) {
+                        Text("Import your own timestamped .lrc file to show lyrics for this local song.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = colors.onSurfaceVariant)
+                        Spacer(Modifier.height(8.dp))
+                        OutlinedButton(onClick = onImportLyrics,
+                            modifier = Modifier.fillMaxWidth()) { Text("Import synchronized lyrics") }
+                    } else {
+                        val active = LyricsSyncPolicy.activeIndex(
+                            lyrics, state.positionMs, lyricsOffsetMs)
+                        val start = (active - 2).coerceAtLeast(0)
+                        Text("Synchronized with this offline track",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = colors.onSurfaceVariant)
+                        Spacer(Modifier.height(8.dp))
+                        Column(Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                            lyrics.cues.drop(start).take(6).forEachIndexed { i, cue ->
+                                val current = start + i == active
+                                Text(cue.text, style = if (current)
+                                    MaterialTheme.typography.titleMedium
+                                    else MaterialTheme.typography.bodyLarge,
+                                    color = if (current) colors.primary
+                                        else colors.onSurfaceVariant)
+                            }
+                        }
+                        Spacer(Modifier.height(9.dp))
+                        OutlinedButton(onClick = { lyricsImmersive = true },
+                            modifier = Modifier.fillMaxWidth()) {
+                            Text("Open full-screen synchronized lyrics")
+                        }
+                        Text("Lyric timing · " + LyricsSyncPolicy.label(lyricsOffsetMs),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = colors.onSurfaceVariant)
+                        Spacer(Modifier.height(9.dp))
+                        OutlinedButton(onClick = onEditLyrics,
+                            modifier = Modifier.fillMaxWidth()
+                                .testTag("lyrics-open-editor")) {
+                            Text("Edit lyric lines & timestamps")
+                        }
+                        Spacer(Modifier.height(7.dp))
+                        Row(Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                            OutlinedButton(onClick = onImportLyrics,
+                                modifier = Modifier.weight(1f)) { Text("Replace .lrc") }
+                            OutlinedButton(onClick = onRemoveLyrics,
+                                modifier = Modifier.weight(1f)) { Text("Remove lyrics") }
+                        }
                     }
                 }
                 Spacer(Modifier.height(10.dp))
@@ -949,121 +1089,6 @@ fun StudioNowPlayingOverlay(
                         }
                     }
                 }
-                }
-                Spacer(Modifier.height(12.dp))
-                Surface(
-                    onClick = { lyricsOpen = !lyricsOpen },
-                    modifier = Modifier.fillMaxWidth().height(54.dp),
-                    shape = RoundedCornerShape(17.dp),
-                    color = colors.surface,
-                    tonalElevation = 1.dp
-                ) {
-                    Row(Modifier.fillMaxSize().padding(horizontal = 17.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("Lyrics", style = MaterialTheme.typography.titleMedium)
-                        Text(if (lyricsOpen) "Hide" else "View",
-                            style = MaterialTheme.typography.labelLarge,
-                            color = colors.primary)
-                    }
-                }
-                if (lyricsOpen) {
-                    Spacer(Modifier.height(10.dp))
-                    if (state.offline) {
-                        OutlinedButton(
-                            onClick = { lyricsGuideOpen = !lyricsGuideOpen },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(if (lyricsGuideOpen) "Hide LRC import guide"
-                                else "How to import synchronized lyrics")
-                        }
-                        if (lyricsGuideOpen) {
-                            Surface(
-                                modifier = Modifier.fillMaxWidth()
-                                    .padding(top = 8.dp, bottom = 10.dp),
-                                color = colors.surfaceVariant.copy(alpha = 0.55f),
-                                shape = RoundedCornerShape(14.dp)
-                            ) {
-                                Column(
-                                    Modifier.padding(14.dp),
-                                    verticalArrangement = Arrangement.spacedBy(7.dp)
-                                ) {
-                                    Text("TIMESTAMPED LRC · QUICK GUIDE",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = colors.primary)
-                                    Text("[00:12.50] First lyric line",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = colors.onSurface)
-                                    Text("[00:15.25] Next lyric line",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = colors.onSurface)
-                                    Text("Choose a UTF-8 .lrc file under 64 KB. " +
-                                        "NightWave reviews song-name hints, timestamp problems " +
-                                        "and an optional replacement before saving.",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = colors.onSurfaceVariant)
-                                    Text("LRC files must be supplied by you. " +
-                                        "Matching filenames do not prove matching lyrics.",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = colors.onSurfaceVariant)
-                                }
-                            }
-                        }
-                    }
-                    if (!state.offline) {
-                        Text("Synchronized lyrics are not available for public videos. " +
-                            "NightWave does not copy lyrics from streaming sites.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.onSurfaceVariant)
-                    } else if (lyrics == null) {
-                        Text("Import your own timestamped .lrc file to show lyrics for this local song.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = colors.onSurfaceVariant)
-                        Spacer(Modifier.height(8.dp))
-                        OutlinedButton(onClick = onImportLyrics,
-                            modifier = Modifier.fillMaxWidth()) { Text("Import synchronized lyrics") }
-                    } else {
-                        val active = LyricsSyncPolicy.activeIndex(
-                            lyrics, state.positionMs, lyricsOffsetMs)
-                        val start = (active - 2).coerceAtLeast(0)
-                        Text("Synchronized with this offline track",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = colors.onSurfaceVariant)
-                        Spacer(Modifier.height(8.dp))
-                        Column(Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                            lyrics.cues.drop(start).take(6).forEachIndexed { i, cue ->
-                                val current = start + i == active
-                                Text(cue.text, style = if (current)
-                                    MaterialTheme.typography.titleMedium
-                                    else MaterialTheme.typography.bodyLarge,
-                                    color = if (current) colors.primary
-                                        else colors.onSurfaceVariant)
-                            }
-                        }
-                        Spacer(Modifier.height(9.dp))
-                        OutlinedButton(onClick = { lyricsImmersive = true },
-                            modifier = Modifier.fillMaxWidth()) {
-                            Text("Open full-screen synchronized lyrics")
-                        }
-                        Text("Lyric timing · " + LyricsSyncPolicy.label(lyricsOffsetMs),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = colors.onSurfaceVariant)
-                        Spacer(Modifier.height(9.dp))
-                        OutlinedButton(onClick = onEditLyrics,
-                            modifier = Modifier.fillMaxWidth()
-                                .testTag("lyrics-open-editor")) {
-                            Text("Edit lyric lines & timestamps")
-                        }
-                        Spacer(Modifier.height(7.dp))
-                        Row(Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                            OutlinedButton(onClick = onImportLyrics,
-                                modifier = Modifier.weight(1f)) { Text("Replace .lrc") }
-                            OutlinedButton(onClick = onRemoveLyrics,
-                                modifier = Modifier.weight(1f)) { Text("Remove lyrics") }
-                        }
-                    }
                 }
                 Spacer(Modifier.height(26.dp))
                 if (state.buffering) {
