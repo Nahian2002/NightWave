@@ -18,6 +18,7 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.nightwave.player.net.VideoPreview
+import com.nightwave.player.core.VideoLink
 import com.nightwave.player.playback.PlaybackService
 import com.nightwave.player.playback.QueueStateStore
 import com.nightwave.player.playback.PlaybackQueue
@@ -55,6 +56,8 @@ interface StudioPlayerActions {
     fun playPause()
     fun retry()
     fun enqueue(video: VideoPreview)
+    /** Explicit Play Next, never inferred from search results. */
+    fun playNext(video: VideoPreview) { enqueue(video) }
     fun previous()
     fun next()
     fun seekTo(positionMs: Long)
@@ -467,17 +470,28 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
         }
     }
 
-    override fun enqueue(video: VideoPreview) {
+    override fun enqueue(video: VideoPreview) = sendQueueAddition(
+        video, PlaybackService.ACTION_ENQUEUE)
+
+    override fun playNext(video: VideoPreview) = sendQueueAddition(
+        video, PlaybackService.ACTION_PLAY_NEXT)
+
+    private fun sendQueueAddition(video: VideoPreview, action: String) {
+        val safeUrl = VideoLink.normalize(video.url)
+        if (safeUrl == null) {
+            state = state.copy(error = "Only valid public songs can join the online queue.")
+            return
+        }
         try {
             val request = Intent(context, PlaybackService::class.java)
-                .setAction(PlaybackService.ACTION_ENQUEUE)
-                .putExtra(PlaybackService.EXTRA_URLS, video.url)
+                .setAction(action)
+                .putExtra(PlaybackService.EXTRA_URLS, safeUrl)
                 .putExtra(PlaybackService.EXTRA_TITLES, video.title)
                 .putExtra(PlaybackService.EXTRA_CREATORS, video.author)
                 .putExtra(PlaybackService.EXTRA_ARTWORKS, video.thumbnail)
             context.startService(request)
         } catch (e: Exception) {
-            state = state.copy(error = "Could not add this track to the queue.")
+            state = state.copy(error = "Could not update the listening queue.")
         }
     }
 
