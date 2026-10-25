@@ -28,7 +28,7 @@ def verify(library: str, downloads: str, policy: str, unit_test: str) -> None:
             'actionRow.addView(label("Pause", 13f,',
             'Start download again',
             'Resume restarts from zero',
-            'OfflineAudioLibrary(this).availableIds(allSavedIds)',
+            'OfflineAudioLibrary(applicationContext).availableIds(savedIds)',
             'DownloadHistoryVisibility.hide(',
             'confirmSearchRetry(retryUrl, title,',
             'setOnClickListener',
