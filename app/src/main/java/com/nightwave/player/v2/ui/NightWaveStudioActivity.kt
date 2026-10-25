@@ -3398,15 +3398,30 @@ private fun StudioSearch(
             onNativeSearch(entered, mode)
         }
     }
-    val savedMatches = remember(query, savedTracks) {
-        SavedTrackSearch.match(query, savedTracks)
+    // NW70: Unicode-aware matching across large local libraries must not
+    // sort thousands of songs on the Compose/UI thread for every keystroke.
+    // Changing a query or library snapshot cancels the previous result and
+    // immediately clears it, so stale suggestions cannot be shown as new ones.
+    val localSearch by produceState(
+        initialValue = Triple(
+            emptyList<VideoPreview>(), emptyList<OfflineSong>(),
+            emptyList<com.nightwave.player.net.LocalSearchSuggestion>()),
+        query, savedTracks, offlineSongs
+    ) {
+        if (query.isNotBlank()) {
+            delay(120L) // debounce typing; do not delay explicit online Search
+            value = withContext(Dispatchers.Default) {
+                Triple(
+                    SavedTrackSearch.match(query, savedTracks),
+                    OfflineTrackSearch.match(query, offlineSongs).take(60),
+                    LocalSearchSuggestions.suggest(query, savedTracks, limit = 6)
+                )
+            }
+        }
     }
-    val offlineMatches = remember(query, offlineSongs) {
-        if (query.isBlank()) emptyList() else OfflineTrackSearch.match(query, offlineSongs).take(60)
-    }
-    val localSuggestions = remember(query, savedTracks) {
-        LocalSearchSuggestions.suggest(query, savedTracks, limit = 6)
-    }
+    val savedMatches = localSearch.first
+    val offlineMatches = localSearch.second
+    val localSuggestions = localSearch.third
     val offlineSuggestions = remember(offlineMatches) {
         offlineMatches.take(3)
     }
