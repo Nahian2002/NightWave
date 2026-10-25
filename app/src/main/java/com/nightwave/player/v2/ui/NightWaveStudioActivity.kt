@@ -4176,6 +4176,7 @@ private fun StudioLibrary(
                     }
                 }
             }
+            if (!reorderingTracks) {
             item {
                 OutlinedTextField(
                     value = localFilter, onValueChange = { localFilter = it.take(80) },
@@ -4212,6 +4213,12 @@ private fun StudioLibrary(
                         label = { Text("Creator") })
                 }
             }
+            } else item(key = "playlist-order-help") {
+                Text("Use ↑ and ↓ to arrange the saved order. Song playback is paused " +
+                    "only for these editing taps; your current audio keeps playing.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
         if (visibleTracks.isEmpty()) item {
             EmptyMusicCard(
@@ -4236,7 +4243,9 @@ private fun StudioLibrary(
                             }
                         },
                         enabled = index > 0,
-                        modifier = Modifier.size(48.dp)) {
+                        modifier = Modifier.size(48.dp).semantics {
+                            contentDescription = "Move " + song.title + " up"
+                        }) {
                         Text("↑", style = MaterialTheme.typography.titleLarge,
                             color = if (index > 0) MaterialTheme.colorScheme.primary
                                 else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = .35f))
@@ -4289,7 +4298,9 @@ private fun StudioLibrary(
                             }
                         },
                         enabled = index >= 0 && index < tracks.lastIndex,
-                        modifier = Modifier.size(48.dp)) {
+                        modifier = Modifier.size(48.dp).semantics {
+                            contentDescription = "Move " + song.title + " down"
+                        }) {
                         Text("↓", style = MaterialTheme.typography.titleLarge,
                             color = if (index >= 0 && index < tracks.lastIndex)
                                 MaterialTheme.colorScheme.primary
