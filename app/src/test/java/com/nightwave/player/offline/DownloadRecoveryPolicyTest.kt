@@ -34,6 +34,15 @@ class DownloadRecoveryPolicyTest {
             .contains("already be in Offline Library"))
     }
 
+    @Test fun postImportVerificationFailureOffersLibraryInspection() {
+        val status = p.failedMessage(
+            "Saved audio could not be verified. Check Offline Library before retrying.")
+        assertTrue(status.contains("Check Offline Library"))
+        assertFalse(status.contains("file:///"))
+        assertTrue(p.failedMessage("Not enough private storage for offline audio")
+            .contains("Free device space"))
+    }
+
     @Test fun pausedOnlyAfterWorkManagerReportsCancelled() {
         assertFalse(p.isPaused("RUNNING", true))
         assertFalse(p.isPaused("FAILED", true))
