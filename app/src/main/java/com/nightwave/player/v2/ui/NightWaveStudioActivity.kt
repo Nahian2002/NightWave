@@ -927,11 +927,24 @@ class NightWaveStudioActivity : ComponentActivity() {
                             }.show()
                     },
                     onBulkCopy = { fromName, selected ->
+                        val source = library.playlist(fromName)
+                        val urls = selected.map { it.url }.distinct()
+                        val freshSource = fromName in library.playlistNames() &&
+                            urls.isNotEmpty() && urls.size == selected.size &&
+                            urls.size <= LibraryBulkSelectionPolicy.MAX_SELECTED &&
+                            urls.all { url -> source.any { it.url == url } }
                         val names = library.playlistNames().filterNot { it == fromName }
-                        if (names.isEmpty()) showMessage("Create another playlist before copying.")
+                        if (!freshSource) showMessage("Source playlist changed. Reopen selection.")
+                        else if (names.isEmpty()) showMessage("Create another playlist before copying.")
                         else AlertDialog.Builder(this).setTitle("Copy selected songs to…")
                             .setItems(names.toTypedArray()) { _, chosen ->
                                 val destination = names[chosen]
+                                val latestSource = library.playlist(fromName)
+                                if (!selected.all { target ->
+                                        latestSource.any { it.url == target.url }
+                                    }) {
+                                    showMessage("Source playlist changed. Nothing was copied.")
+                                } else {
                                 val before = library.playlist(destination)
                                 val updated = library.bulkAddToPlaylist(
                                     destination, selected, before.map { it.url })
@@ -942,6 +955,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                                     refresh()
                                     showMessage("Copied to playlist · Undo available in Library.")
                                 } else showMessage("Nothing copied; target changed, is full, or already has these songs.")
+                                }
                             }.setNegativeButton("Cancel", null).show()
                     },
                     onMovePlaylistSong = { name, url, delta, expected ->
@@ -1948,7 +1962,11 @@ class NightWaveStudioActivity : ComponentActivity() {
 
     private fun showSongOptions(video: VideoPreview) {
         val likeText = if (library.isFavorite(video.url)) "Unlike song" else "Like song"
-        val offlineReady = SearchTrackOfflineIndex.readySong(this, video.url) != null
+        // A damaged offline index must not crash the ordinary song menu.
+        // The offline library retains its own explicit repair/recovery UI.
+        val offlineReady = runCatching {
+            SearchTrackOfflineIndex.readySong(this, video.url) != null
+        }.getOrDefault(false)
         AlertDialog.Builder(this).setTitle(video.title)
             .setItems(arrayOf(likeText, "Save to playlist", "Add to queue",
                 "Play now", if (offlineReady) "Play saved offline" else "Save offline",
