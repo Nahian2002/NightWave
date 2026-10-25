@@ -99,38 +99,40 @@ fun NightWaveLibraryNumbers(
     recentCount: Int,
     onLibrary: () -> Unit
 ) {
-    Row(horizontalArrangement = Arrangement.spacedBy(9.dp), modifier = Modifier.fillMaxWidth()) {
-        Surface(
-            onClick = onLibrary,
-            modifier = Modifier.weight(1f),
-            shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 1.dp
+    val colors = MaterialTheme.colorScheme
+    // One intentional library overview instead of multiple competing cards.
+    Surface(
+        onClick = onLibrary,
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        color = colors.surfaceVariant.copy(alpha = .38f)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth()
+                .padding(horizontal = 17.dp, vertical = 11.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text("YOUR LIBRARY", style = MaterialTheme.typography.labelSmall,
+                    color = colors.onSurfaceVariant)
+                Text("Your music, all in one place",
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(favoriteCount.toString(),
                     style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.Bold)
-                Text("Liked songs", style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    fontWeight = FontWeight.Bold, color = colors.primary)
+                Text("Liked", style = MaterialTheme.typography.labelSmall,
+                    color = colors.onSurfaceVariant)
             }
-        }
-        Surface(
-            modifier = Modifier.weight(1f),
-            shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 1.dp
-        ) {
-            Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(recentCount.toString(),
                     style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.Bold)
-                Text("Recent tracks", style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    fontWeight = FontWeight.Bold, color = colors.onSurface)
+                Text("Recent", style = MaterialTheme.typography.labelSmall,
+                    color = colors.onSurfaceVariant)
             }
         }
     }
