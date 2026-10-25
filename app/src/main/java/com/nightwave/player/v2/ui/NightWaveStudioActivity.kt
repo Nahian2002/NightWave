@@ -139,6 +139,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -871,6 +872,8 @@ class NightWaveStudioActivity : ComponentActivity() {
                     isFavorite = { url -> library.isFavorite(url) },
                     onToggleFavorite = { video -> library.toggleFavorite(video); refresh() },
                     onSongOptions = { video -> showSongOptions(video) },
+                    onRemoveRecent = { video -> confirmRemoveRecent(video) },
+                    onClearRecent = { confirmClearRecent() },
                     onSharePlaylist = { name, tracks -> sharePlaylist(name, tracks) },
                     onImportSharedPlaylist = { promptSharedPlaylistPaste() },
                     onSaveCurrentToPlaylist = { saveCurrentToPlaylist() },
@@ -2177,6 +2180,39 @@ class NightWaveStudioActivity : ComponentActivity() {
             }.setNegativeButton("Close", null).show()
     }
 
+    private fun confirmRemoveRecent(song: VideoPreview) {
+        AlertDialog.Builder(this)
+            .setTitle("Remove from Recently Played?")
+            .setMessage(song.title.take(90) + "\n\nOnly the listening-history entry is removed. " +
+                "Liked songs, playlists and saved offline audio stay untouched.")
+            .setNegativeButton("Keep", null)
+            .setPositiveButton("Remove") { _, _ ->
+                if (library.removeRecent(song.url)) {
+                    refresh()
+                    showMessage("Removed from history. Undo last edit is available in Profile.")
+                } else showMessage("History unchanged; try again.")
+            }.show()
+    }
+
+    private fun confirmClearRecent() {
+        val count = library.recent().size
+        if (count == 0) {
+            showMessage("Recently Played is already empty.")
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Clear Recently Played?")
+            .setMessage("Remove $count history entries? Liked songs, playlists and downloaded " +
+                "audio will not be deleted. Undo the last library edit from Profile.")
+            .setNegativeButton("Keep", null)
+            .setPositiveButton("Clear history") { _, _ ->
+                if (library.clearRecent()) {
+                    refresh()
+                    showMessage("History cleared. Your saved music is unchanged.")
+                } else showMessage("History could not be cleared. Your music is unchanged.")
+            }.show()
+    }
+
     private fun confirmLastWriteRecovery() {
         AlertDialog.Builder(this)
             .setTitle("Undo the last library edit?")
@@ -2366,6 +2402,8 @@ private fun StudioRoot(
     isFavorite: (String) -> Boolean,
     onToggleFavorite: (VideoPreview) -> Unit,
     onSongOptions: (VideoPreview) -> Unit,
+    onRemoveRecent: (VideoPreview) -> Unit,
+    onClearRecent: () -> Unit,
     onSharePlaylist: (String, List<VideoPreview>) -> Unit,
     onImportSharedPlaylist: () -> Unit,
     onSaveCurrentToPlaylist: () -> Unit,
@@ -2558,6 +2596,7 @@ private fun StudioRoot(
                             }
                         },
                         onPlay = onPlay, onSongOptions = onSongOptions,
+                        onRemoveRecent = onRemoveRecent, onClearRecent = onClearRecent,
                         openLibrary = { navigateToTab(StudioTab.LIBRARY) }
                     )
                     StudioTab.SEARCH -> StudioSearch(
@@ -2705,7 +2744,9 @@ private fun StudioHome(
     playingUrl: String, onSearch: (String) -> Unit,
     onResumeSpotlight: (VideoPreview, List<VideoPreview>) -> Unit,
     onPlay: (VideoPreview, List<VideoPreview>) -> Unit,
-    onSongOptions: (VideoPreview) -> Unit, openLibrary: () -> Unit
+    onSongOptions: (VideoPreview) -> Unit,
+    onRemoveRecent: (VideoPreview) -> Unit,
+    onClearRecent: () -> Unit, openLibrary: () -> Unit
 ) {
     val dayNumber = java.time.LocalDate.now().toEpochDay()
     // Extend the existing personal mixes, rather than replacing them.
@@ -2723,6 +2764,7 @@ private fun StudioHome(
     }
     var chosenMixKey by rememberSaveable { mutableStateOf<String?>(null) }
     var showAllMixTracks by rememberSaveable { mutableStateOf(false) }
+    var showAllRecent by rememberSaveable { mutableStateOf(false) }
     val chosenMix = mixes.firstOrNull { it.key == chosenMixKey }
     val palettes = listOf(
         listOf(Color(0xFF423163), Color(0xFF242B57)),
