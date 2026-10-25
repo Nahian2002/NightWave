@@ -1,5 +1,8 @@
 # NightWave
 
+> **NW45 — GOOGLE DRIVE AUTH RECOVERY (SOURCE ONLY; ACCOUNT CONNECTION UNVERIFIED).** Distinguishes error 8 (internal/possibly transient) from error 10 (configuration), records only a bounded public status/stage, exposes the installed APK signer SHA-1 and Play Services status in a safe copyable setup report, and atomically validates privacy revisions before marking manual backups verified. Background workers stop retrying permanent OAuth failures. **The external Google Cloud Android OAuth client, Drive API and phone consent still require live verification; no Google connection has been demonstrated yet.** [NW45 diagnosis, safety and test plan](docs/NW45_GOOGLE_AUTH_BACKUP_RECOVERY.md).
+
+
 > **NW44 — SMART SEARCH 2.0 (SOURCE IMPLEMENTED; ANDROID BUILD DEFERRED).** Improves Songs-mode relevance with conservative `Pt. II`/number aliases, contextual cover/remix/trailer demotion, 40 synthetic ranking fixtures, and a cleaner Search experience with direct Songs/Videos filters and grouped likely matches. Video mode/provider order, original URLs and titles, NW43 single-song playback, saved library and offline data are preserved. **20/20 source checks passed; Kotlin/JUnit/Android/device tests have not been run on the final build.** Google authorization remains a separate NW45 blocker. [NW44 scope and verification](docs/NW44_SMART_SEARCH_V2.md).
 
 
