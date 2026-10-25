@@ -13,17 +13,17 @@ class SoundStudioTuningPolicyTest {
 
     @Test fun generatedCurvesRespectActualDeviceBandCenters() {
         assertEquals(listOf(250, 180, -50, 0, 0),
-            policy.draft(policy.Shape.WARM, device, -1500, 1500))
+            policy.draft(SoundStudioTuningPolicy.Shape.WARM, device, -1500, 1500))
         assertEquals(listOf(-100, 0, 100, 120, 0),
-            policy.draft(policy.Shape.VOCALS, device, -1500, 1500))
+            policy.draft(SoundStudioTuningPolicy.Shape.VOCALS, device, -1500, 1500))
         assertEquals(listOf(-50, 0, 0, 50, 200),
-            policy.draft(policy.Shape.AIRY, device, -1500, 1500))
+            policy.draft(SoundStudioTuningPolicy.Shape.AIRY, device, -1500, 1500))
         assertEquals(List(device.size) { 0 },
-            policy.draft(policy.Shape.FLAT, device, -1500, 1500))
+            policy.draft(SoundStudioTuningPolicy.Shape.FLAT, device, -1500, 1500))
     }
 
     @Test fun neverRequestsOutOfRangeOrOverlyAggressiveBoosts() {
-        for (shape in policy.Shape.entries) {
+        for (shape in SoundStudioTuningPolicy.Shape.entries) {
             for (hz in listOf(20, 50, 120, 160, 250, 500, 1000, 2500, 6000, 20000)) {
                 assertTrue(policy.targetMb(shape, hz) in -100..250)
             }
@@ -33,13 +33,13 @@ class SoundStudioTuningPolicyTest {
     }
 
     @Test fun rejectsStaleOrUnsafeCapabilities() {
-        assertNull(policy.draft(policy.Shape.WARM, emptyList(), -1500, 1500))
-        assertNull(policy.draft(policy.Shape.WARM, listOf(0, 900), -1500, 1500))
-        assertNull(policy.draft(policy.Shape.WARM, List(33) { 1000 }, -1500, 1500))
-        assertNull(policy.draft(policy.Shape.WARM, device, 1800, 2000))
-        assertNull(policy.draft(policy.Shape.WARM, device, 100, -100))
+        assertNull(policy.draft(SoundStudioTuningPolicy.Shape.WARM, emptyList(), -1500, 1500))
+        assertNull(policy.draft(SoundStudioTuningPolicy.Shape.WARM, listOf(0, 900), -1500, 1500))
+        assertNull(policy.draft(SoundStudioTuningPolicy.Shape.WARM, List(33) { 1000 }, -1500, 1500))
+        assertNull(policy.draft(SoundStudioTuningPolicy.Shape.WARM, device, 1800, 2000))
+        assertNull(policy.draft(SoundStudioTuningPolicy.Shape.WARM, device, 100, -100))
         assertEquals(List(device.size) { 0 },
-            policy.draft(policy.Shape.FLAT, device, -1000, 1000))
+            policy.draft(SoundStudioTuningPolicy.Shape.FLAT, device, -1000, 1000))
     }
 
     @Test fun draftMustBeAppliedAndIsNotAClaimOfAudibleOutput() {
