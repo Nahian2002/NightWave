@@ -25,6 +25,13 @@ class SearchResultPresentationPolicyTest {
             "!!!", SearchMode.SONGS, "!!!", SearchMode.SONGS))
     }
 
+    @Test fun banglaVowelSpellingPreventsStalePublicResults() {
+        assertFalse(SearchResultPresentationPolicy.matches(
+            "মালা", SearchMode.SONGS, "মেলা", SearchMode.SONGS))
+        assertTrue(SearchResultPresentationPolicy.matches(
+            "ভালোবাসা", SearchMode.SONGS, "ভালোবাসা", SearchMode.SONGS))
+    }
+
     @Test fun emptyProviderResultsAreNotMisrepresentedAsMissingSavedMusic() {
         assertTrue(SearchResultPresentationPolicy.emptyHint(emptyList()).contains("No public results"))
         val song = VideoPreview("Music", "Artist", "https://example.com", "", 200L)
