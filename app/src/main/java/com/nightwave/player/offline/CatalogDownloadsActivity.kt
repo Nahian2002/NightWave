@@ -323,9 +323,13 @@ class CatalogDownloadsActivity : ComponentActivity() {
                     OfflineSaveRetryPolicy.retryUrl(info.tags) else null
                 url == null || seenSearchUrls.add(url)
             }.filter { info ->
-                // Show pending verified rows under All. Ready/Issues will
-                // repopulate only after file-health validation completes.
-                DownloadCenterViewPolicy.matches(
+                // SUCCEEDED work cannot be shown as "Issues" before a real
+                // background file-health check finishes or if it fails.
+                if (currentFilter == DownloadCenterViewPolicy.Filter.ATTENTION)
+                    DownloadFileVerificationPolicy.needsAttention(
+                        info.state.name, savedIdFromOutput(info),
+                        availableIds, verifyingFiles, fileCheckFailed)
+                else DownloadCenterViewPolicy.matches(
                     currentFilter, info.state.name, isVerified(info))
             }.take(60)
         if (visibleJobs.isEmpty()) {
