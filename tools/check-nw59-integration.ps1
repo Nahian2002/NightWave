@@ -105,6 +105,10 @@ $relative = @(
     'app/src/main/java/com/nightwave/player/v2/ui/NightWavePlayerOverlayPolicy.kt',
     'app/src/main/java/com/nightwave/player/playback/PlaybackService.kt',
     'app/src/main/java/com/nightwave/player/playback/OfflineDecodeRecoveryPolicy.kt',
+    'app/src/main/java/com/nightwave/player/playback/PlaybackQueue.kt',
+    'app/src/test/java/com/nightwave/player/playback/ShuffleForwardNavigationTest.kt',
+    'app/src/test/java/com/nightwave/player/playback/OfflineDecodeRecoveryPolicyTest.kt',
+    'docs/NW67_PLAYBACK_TRANSITIONS.md',
     'app/src/test/java/com/nightwave/player/playback/OfflineDecodeRecoveryPolicyTest.kt',
     'app/src/test/java/com/nightwave/player/v2/cloud/CloudConnectionHelpPolicyTest.kt',
     'app/src/test/java/com/nightwave/player/v2/ui/SearchConsumerCopyPolicyTest.kt',
@@ -298,5 +302,23 @@ foreach ($worker in @($catalogWorker, $directWorker, $searchedWorker)) {
 }
 Assert-NW59Has $recoveryPolicy '"saved audio could not be verified" in text' 'post-import warning category'
 Assert-NW59Has $recoveryPolicy '"not enough private storage" in text' 'direct/catalog storage messages'
-Write-Host 'NW66 cumulative NW53-NW66 source guard PASS. Gradle/JVM/device QA still mandatory.'
+# NW67: a shuffled backtrack must restore its real forward song. A delayed
+# offline Media3 decoder recovery must not override a pause or timer expiry.
+$publicQueue = [IO.File]::ReadAllText($files['app/src/main/java/com/nightwave/player/playback/PlaybackQueue.kt'])
+$forwardTests = [IO.File]::ReadAllText($files['app/src/test/java/com/nightwave/player/playback/ShuffleForwardNavigationTest.kt'])
+$offlineRecoveryTests = [IO.File]::ReadAllText($files['app/src/test/java/com/nightwave/player/playback/OfflineDecodeRecoveryPolicyTest.kt'])
+Assert-NW59Has $publicQueue 'private val forwardVisits = ArrayDeque<Int>()' 'session-only forward history'
+Assert-NW59Has $publicQueue 'forwardVisits.addLast(index)' 'save shuffle forward step'
+Assert-NW59Has $publicQueue 'forwardVisits.removeLast()' 'retrace real shuffle order'
+Assert-NW59Has $publicQueue 'forwardVisits.clear()' 'invalidate stale trail on edits'
+Assert-NW59Has $publicQueue 'queuedNext != null -> {' 'manual Play Next outranks redo'
+Assert-NW59Has $forwardTests 'multiplePreviousStepsCanBeRetracedForwardInOrder' 'multi-step shuffle history'
+Assert-NW59Has $forwardTests 'explicitPlayNextOutranksForwardAndClearsStaleTrail' 'manual priority over forward'
+Assert-NW59Has $playback 'OfflineDecodeRecoveryPolicy.acceptsPostedRecovery(' 'fenced posted decoder retry'
+Assert-NW59Has $playback 'wantsPlayback = playerNow.playWhenReady' 'pause suppresses automatic restart'
+Assert-NW59Has $playback 'sleepTimerPaused = sleepTimerPaused' 'timer suppresses restart'
+Assert-NW59Has $decode 'atErrorGeneration == currentGeneration' 'no old generation recovery'
+Assert-NW59Has $decode 'wantsPlayback && !sleepTimerPaused' 'play intent required'
+Assert-NW59Has $offlineRecoveryTests 'deferredDecodeRecoveryCannotUndoUserPauseOrStaleSelection' 'pause and stale selection tests'
+Write-Host 'NW67 cumulative NW53-NW67 source guard PASS. Gradle/JVM/device QA still mandatory.'
 exit 0
