@@ -30,6 +30,18 @@
 5. After a successful full compile, exercise Spotify-style NW36–NW39 interactions (recent-play remove/clear, search history, downloaded-music history, playlist pin, bulk select/copy/remove, drag reorder and Undo), offline media under airplane mode, account state, queue, screen-off playback, and background service resilience.
 6. The public-release gates remain separate: OAuth status 8, licensing for online-to-offline saving, permission/privacy disclosures, target SDK policy, signing and distribution checks.
 
+
+## Build-gate continuation — reproducible local verification
+
+- **Zero-Python Windows path:** Added `tools/check-nw40-stability.ps1` and wired it into `tools/build-windows.ps1` before any Gradle mutation. It checks expected source files, guarded playlist operations, recovery checkpoints, accessible drag controls, search corruption protection and isolated preferences. It is source validation only. The script's actual PowerShell execution on Windows remains **unverified** here because no PowerShell runtime is available.
+- **CI parity:** The same PowerShell gate and its self-test now run on Linux GitHub Actions when a runner is assigned, along with the existing `tools/verify_nw40_stability.py` source checks.
+- **Reproducible Kotlin smoke:** Added `tools/nw40_pure_kotlin_smoke.py` for two platform-independent production policy files and thirteen assertions. CI runs it if `kotlinc` is provisioned. A missing standalone Kotlin compiler is explicitly a SKIP; Gradle compilation remains mandatory.
+- **Verified here:** Git blob hashes from GitHub matched the locally compiled exact versions of `SearchHistoryPolicy.kt` (`22e660948b5be96237a647d2529d7f6d86910647`), `PlaylistReorderGesturePolicy.kt` (`a20b42168a8c2d51acd2472979e362cdb34ae2d9`) and `SearchHistoryStore.kt` (`0235549d03a3e66ebdb67a4c31c56ab89b0df10d`). Java 21 / Kotlin 1.9 compiled the first two real production files with **13 passing checks**. The real Store also compiled and executed with isolated Android/JSON test doubles: **13 further passing assertions** for valid history, deduplication, corrupt storage preservation and guarded Undo. The doubles are **not Android SDK** and do not prove instrumented Android behavior.
+- **Bulk copying:** The source playlist is now compared by exact song metadata and final content when the destination is selected; stale metadata/order aborts rather than copying outdated objects.
+- **Environment limitation:** This analysis runtime has neither Android SDK nor Gradle and cannot resolve GitHub's host to fetch them. The connected GitHub Actions jobs repeatedly end with `runner_id=0` and zero steps. Most recent [NW40 build attempt](https://github.com/Nahian2002/NightWave/actions/runs/40178074595) likewise failed before compilation. **No verified APK or full Android test report exists yet.**
+
+**Next actionable gate:** On the Windows checkout of the exact NW40 branch, run `build-windows.cmd`. It now performs NW40 source checks followed by the usual full Gradle build and Android test-source compilation. Review `dist/NightWave-build-status.txt`, `dist/NightWave-build-errors.txt` and `dist/NightWave-build-full.log` (if generated). Only after a successful build, run `check-device-update.cmd` with the same phone to verify signing compatibility. Do not uninstall or clear app data to force an update.
+
 ## Out of scope for NW40
 
 - This update **does not** fix Google OAuth status 8 or guarantee all YouTube searches can be downloaded for offline playback.
