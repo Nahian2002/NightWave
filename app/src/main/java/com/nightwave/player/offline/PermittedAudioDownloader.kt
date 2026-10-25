@@ -202,16 +202,15 @@ class PermittedAudioDownloader(private val context: Context) {
                 require(length <= PermittedAudioDownloadPolicy.MAX_BYTES) {
                     "File is larger than the 250 MB song limit."
                 }
-                if (searchAudioOnly) {
-                    // Import makes a second private copy. Fail early rather
-                    // than exhausting device storage after a long transfer.
-                    val available = runCatching {
-                        StatFs(context.applicationContext.filesDir.absolutePath).availableBytes
-                    }.getOrDefault(-1L)
-                    require(OfflineSaveStoragePolicy.canStart(
-                        available, length.takeIf { it > 0L })) {
-                        "Not enough device storage for this offline audio file."
-                    }
+                // ALL permitted sources are staged and then privately copied.
+                // NW66 applies the existing bounded storage policy to catalog
+                // and direct HTTPS downloads too, not just searched audio.
+                val available = runCatching {
+                    StatFs(context.applicationContext.filesDir.absolutePath).availableBytes
+                }.getOrDefault(-1L)
+                require(OfflineSaveStoragePolicy.canStart(
+                    available, length.takeIf { it > 0L })) {
+                    "Not enough device storage for this offline audio file."
                 }
                 var received = 0L
                 val prefix = ByteArray(64)
@@ -237,9 +236,8 @@ class PermittedAudioDownloader(private val context: Context) {
                                 prefixCount += copy
                             }
                             output.write(buffer, 0, n)
-                            if (searchAudioOnly &&
-                                (received % (4L * 1024L * 1024L) < n ||
-                                    (length > 0L && received == length))) {
+                            if (received % (4L * 1024L * 1024L) < n ||
+                                (length > 0L && received == length)) {
                                 val freeNow = runCatching {
                                     StatFs(context.applicationContext.filesDir.absolutePath)
                                         .availableBytes
@@ -257,15 +255,14 @@ class PermittedAudioDownloader(private val context: Context) {
                 require(received > 0 && (length < 0 || received == length)) {
                     "Audio download was incomplete."
                 }
-                if (searchAudioOnly) {
-                    // Also cover unknown-length streams whose final chunk is
-                    // smaller than the periodic 4 MiB free-space checkpoint.
-                    val freeNow = runCatching {
-                        StatFs(context.applicationContext.filesDir.absolutePath).availableBytes
-                    }.getOrDefault(-1L)
-                    require(OfflineSaveStoragePolicy.canContinue(freeNow, received)) {
-                        "Device storage is too low to finish saving audio safely."
-                    }
+                // An unknown-length source can finish before a 4 MiB
+                // checkpoint. Require space for the second private copy
+                // even in that short final-chunk case.
+                val freeNow = runCatching {
+                    StatFs(context.applicationContext.filesDir.absolutePath).availableBytes
+                }.getOrDefault(-1L)
+                require(OfflineSaveStoragePolicy.canContinue(freeNow, received)) {
+                    "Device storage is too low to finish saving audio safely."
                 }
                 val firstBytes = prefix.copyOf(prefixCount)
                 val format = PermittedAudioDownloadPolicy.detectAudioExtension(
