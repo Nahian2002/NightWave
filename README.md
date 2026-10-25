@@ -1,5 +1,17 @@
 # NightWave
 
+**Android audio-first music player · active development, private source · not yet public release-ready.**
+
+> **NW52 FINAL INTEGRATION (2026-10-25):** The NW43–NW52 development batches are stacked in [the current NW52 source branch](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-nw52-final-integration-release-gates). Source-only release gates, Android build workflow, optional runner heartbeat and a no-data-loss final QA checklist have been prepared. **No passing full Android build, device acceptance, production signing, Google Drive login or platform/media-rights review is confirmed. PUBLIC APK / GOOGLE PLAY: NO-GO.** See [NW52 integration and safe build plan](docs/NW52_FINAL_INTEGRATION.md) and [Release Readiness](RELEASE_READINESS.md).
+
+### Current workflow
+
+Use **Code → Download ZIP** from `feature/nightwave-nw52-final-integration-release-gates` for the *integrated source* (default `main` is not the candidate). Extract a complete ZIP and run `build-windows.cmd` locally. **Never uninstall or wipe the installed app** to fix signing/build errors; run `check-device-update.cmd` before attempting an in-place update. A debug APK, even if compiled, is not a production Play release.
+
+The following archived notes document earlier batches and may mention out-of-date branches, versions or evidence. The NW52 guide above supersedes those historical references.
+
+---
+
 > **NW45 — GOOGLE DRIVE AUTH RECOVERY (SOURCE ONLY; ACCOUNT CONNECTION UNVERIFIED).** Distinguishes error 8 (internal/possibly transient) from error 10 (configuration), records only a bounded public status/stage, exposes the installed APK signer SHA-1 and Play Services status in a safe copyable setup report, and atomically validates privacy revisions before marking manual backups verified. Background workers stop retrying permanent OAuth failures. **The external Google Cloud Android OAuth client, Drive API and phone consent still require live verification; no Google connection has been demonstrated yet.** [NW45 diagnosis, safety and test plan](docs/NW45_GOOGLE_AUTH_BACKUP_RECOVERY.md).
 
 
