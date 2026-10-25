@@ -187,6 +187,8 @@ import com.nightwave.player.net.SavedCreatorBrowser
 import com.nightwave.player.v2.library.LibraryBrowsePolicy
 import com.nightwave.player.v2.library.LibraryQuickPlayPolicy
 import com.nightwave.player.v2.library.LibraryPlaylistPreview
+import com.nightwave.player.v2.library.PlaylistPinStore
+import com.nightwave.player.v2.library.PlaylistPinPolicy
 import com.nightwave.player.v2.library.PlaylistFolderStore
 import com.nightwave.player.v2.library.PlaylistFolderSnapshot
 import com.nightwave.player.v2.library.SmartLibraryPolicy
@@ -270,6 +272,8 @@ class NightWaveStudioActivity : ComponentActivity() {
     private lateinit var profiles: GuestProfileStore
     private lateinit var library: MusicLibrary
     private lateinit var folderStore: PlaylistFolderStore
+    private lateinit var pinStore: PlaylistPinStore
+    private var pinnedPlaylistNames by mutableStateOf<List<String>>(emptyList())
     private var folderSnapshot by mutableStateOf(PlaylistFolderSnapshot())
     private lateinit var playback: StudioPlaybackBridge
     private lateinit var sleepTimerStatus: SleepTimerStatusStore
@@ -610,6 +614,8 @@ class NightWaveStudioActivity : ComponentActivity() {
         profiles = GuestProfileStore(this)
         library = MusicLibrary(this)
         folderStore = PlaylistFolderStore(this)
+        pinStore = PlaylistPinStore(this)
+        pinnedPlaylistNames = pinStore.snapshot(library.playlistNames())
         folderSnapshot = folderStore.snapshot()
         playback = StudioPlaybackBridge(this)
         sleepTimerStatus = SleepTimerStatusStore(this)
@@ -929,6 +935,15 @@ class NightWaveStudioActivity : ComponentActivity() {
                     onLegacyPlayer = { manageLibrary() },
                     onManageFolders = { managePlaylistFolders() },
                     onMovePlaylist = { name -> choosePlaylistFolder(name) },
+                    pinnedPlaylistNames = pinnedPlaylistNames,
+                    onTogglePinPlaylist = { name ->
+                        val result = pinStore.toggle(name, library.playlistNames())
+                        if (result == null) showMessage("Pin change was not saved.")
+                        else {
+                            pinnedPlaylistNames = result
+                            showMessage(if (name in result) "Playlist pinned." else "Playlist unpinned.")
+                        }
+                    },
                     onCreatePlaylist = {
                         promptPlaylistName { name ->
                             if (library.createPlaylist(name)) refresh()
@@ -2223,6 +2238,8 @@ class NightWaveStudioActivity : ComponentActivity() {
                             if (action == 0) promptPlaylistName(name) { updated ->
                                 if (library.renamePlaylist(name, updated)) {
                                     folderStore.playlistRenamed(name, updated)
+                                    pinStore.playlistRenamed(name, updated)
+                                    pinnedPlaylistNames = pinStore.snapshot(library.playlistNames())
                                     refresh()
                                 } else showMessage("That playlist name is unavailable.")
                             } else AlertDialog.Builder(this)
@@ -2232,6 +2249,8 @@ class NightWaveStudioActivity : ComponentActivity() {
                                 .setPositiveButton("Delete") { _, _ ->
                                     if (library.deletePlaylist(name)) {
                                         folderStore.playlistDeleted(name)
+                                        pinStore.playlistDeleted(name)
+                                        pinnedPlaylistNames = pinStore.snapshot(library.playlistNames())
                                         refresh()
                                     } else showMessage("Playlist could not be deleted.")
                                 }.show()
@@ -2413,6 +2432,8 @@ private fun StudioRoot(
     libraryRevision: Int,
     playlistNames: List<String>,
     folderSnapshot: PlaylistFolderSnapshot,
+    pinnedPlaylistNames: List<String>,
+    onTogglePinPlaylist: (String) -> Unit,
     getPlaylist: (String) -> List<VideoPreview>,
     onSaveProfile: (ProfileSettings) -> Unit,
     onExportGuest: () -> Unit,
@@ -2721,6 +2742,8 @@ private fun StudioRoot(
                         names = playlistNames,
                         libraryRevision = libraryRevision, roomPreviewActive = roomPreviewActive,
                         smartCollections = smartCollections, folderSnapshot = folderSnapshot,
+                        pinnedPlaylistNames = pinnedPlaylistNames,
+                        onTogglePinPlaylist = onTogglePinPlaylist,
                         playingUrl = playerState.videoUrl.takeIf { playerState.playing }.orEmpty(),
                         selectedPlaylist = selectedPlaylist,
                         onSelectPlaylist = { selectedPlaylist = it },
@@ -3527,6 +3550,8 @@ private fun StudioLibrary(
     libraryRevision: Int, roomPreviewActive: Boolean,
     smartCollections: List<SmartLibraryCollection>,
     folderSnapshot: PlaylistFolderSnapshot,
+    pinnedPlaylistNames: List<String>,
+    onTogglePinPlaylist: (String) -> Unit,
     playingUrl: String,
     selectedPlaylist: String?, onSelectPlaylist: (String?) -> Unit,
     getPlaylist: (String) -> List<VideoPreview>, onPlay: (VideoPreview, List<VideoPreview>) -> Unit,
@@ -3557,8 +3582,8 @@ private fun StudioLibrary(
         folder == "nightwave://folder/unfiled" || folder in folderSnapshot.folders
     }
     val visiblePlaylists = remember(playlistPreviews, playlistFilter,
-        playlistSort, showFilledOnly, validFolder, folderSnapshot) {
-        LibraryBrowsePolicy.playlists(playlistPreviews, playlistFilter,
+        playlistSort, showFilledOnly, validFolder, folderSnapshot, pinnedPlaylistNames) {
+        val filtered = LibraryBrowsePolicy.playlists(playlistPreviews, playlistFilter,
             playlistSort, showFilledOnly).filter { preview ->
             when (validFolder) {
                 null -> true
@@ -3566,6 +3591,7 @@ private fun StudioLibrary(
                 else -> folderSnapshot.folderOf(preview.name) == validFolder
             }
         }
+        PlaylistPinPolicy.pinnedFirst(filtered, pinnedPlaylistNames) { it.name }
     }
     val selectedSmart = smartCollections.firstOrNull { it.id == selectedPlaylist }
     val tracks = when {
@@ -3674,6 +3700,15 @@ private fun StudioLibrary(
         if (selectedPlaylist != null && selectedPlaylist in names &&
             selectedPlaylist != LIKED_COLLECTION && selectedSmart == null
         ) {
+            item(key = "pin-current-playlist") {
+                OutlinedButton(
+                    onClick = { onTogglePinPlaylist(selectedPlaylist) },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                ) {
+                    Text(if (selectedPlaylist in pinnedPlaylistNames) "Unpin playlist"
+                        else "Pin playlist to top")
+                }
+            }
             item(key = "move-current-to-folder") {
                 OutlinedButton(
                     onClick = { onMovePlaylist(selectedPlaylist) },
@@ -3863,7 +3898,8 @@ private fun StudioLibrary(
                 } else {
                     items(visiblePlaylists, key = { "playlist:" + it.name }) { collection ->
                         MusicCollectionTile(collection.name,
-                            collection.size.toString() + " tracks · " +
+                            (if (collection.name in pinnedPlaylistNames) "Pinned · " else "") +
+                                collection.size.toString() + " tracks · " +
                                 (folderSnapshot.folderOf(collection.name) ?: "Unfiled"),
                             cover = collection.cover) {
                             onSelectPlaylist(collection.name)
