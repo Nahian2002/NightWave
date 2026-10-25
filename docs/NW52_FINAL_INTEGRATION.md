@@ -6,6 +6,10 @@
 **Source roadmap:** NW43 → NW44 → NW45 → NW46 → NW47 → NW48 → NW49 → NW50 → NW51 → **NW52**  
 **Decision:** **NO-GO** for a public APK, Play submission, or changing the repository's private visibility.
 
+## NW52 pre-build UI audit
+
+The [25 October 2026 UI/action/source audit](NW52_PREBUILD_UI_AUDIT_20261025.md) records corrected Home Search routing, disabled no-track offline button, 48dp touch-target adjustments, 44 reviewed Kotlin source/test files and remaining compiler/visual limitations. A new `tools/verify_nw52_ui_prebuild.py` source gate (28 assertions plus six negative fixtures) and Windows PowerShell checks guard these regressions. **The audit is not a successful APK build or screenshot comparison.**
+
 ## What NW52 delivers
 
 - Preserves the 10-batch stacked Android source without blindly merging unrelated PRs into the old default `main` branch.
