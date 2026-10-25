@@ -3269,7 +3269,6 @@ private fun StudioSearch(
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var mode by rememberSaveable { mutableStateOf(SearchMode.SONGS) }
-    var quickOptionsExpanded by rememberSaveable { mutableStateOf(false) }
     var selectedCreator by rememberSaveable { mutableStateOf<String?>(null) }
     var showAllCreators by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(state.query) {
@@ -3312,6 +3311,11 @@ private fun StudioSearch(
     val responseMatchesQuery = SearchResultPresentationPolicy.matches(
         query, mode, state.query, state.mode)
     val searching = responseMatchesQuery && state.loading
+    val publicGroups = remember(query, mode, responseMatchesQuery, state.videos) {
+        if (responseMatchesQuery) SearchResultPresentationPolicy.groupMusic(
+            query, mode, state.videos)
+        else SearchResultPresentationPolicy.Groups(emptyList(), emptyList())
+    }
     LazyColumn(
         modifier.fillMaxWidth().widthIn(max = 740.dp).fillMaxHeight(),
         contentPadding = PaddingValues(start = 19.dp, end = 19.dp,
@@ -3338,6 +3342,27 @@ private fun StudioSearch(
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(onSearch = { submit() })
             )
+        }
+        if (query.isNotBlank()) {
+            item(key = "search-mode-selector") {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically) {
+                    FilterChip(selected = mode == SearchMode.SONGS,
+                        onClick = {
+                            if (mode != SearchMode.SONGS) {
+                                mode = SearchMode.SONGS
+                                onNativeSearch(query.trim(), SearchMode.SONGS)
+                            }
+                        }, label = { Text("Songs") })
+                    FilterChip(selected = mode == SearchMode.VIDEOS,
+                        onClick = {
+                            if (mode != SearchMode.VIDEOS) {
+                                mode = SearchMode.VIDEOS
+                                onNativeSearch(query.trim(), SearchMode.VIDEOS)
+                            }
+                        }, label = { Text("Videos") })
+                }
+            }
         }
         if (query.isNotBlank() &&
             (localSuggestions.isNotEmpty() || offlineSuggestions.isNotEmpty())) {
@@ -3543,7 +3568,6 @@ private fun StudioSearch(
                                         // Online search remains a separate tap.
                                         mode = SearchMode.SONGS
                                         selectedCreator = creator.name
-                                        quickOptionsExpanded = false
                                     },
                                     label = {
                                         Text(creator.name + " · " + creator.trackCount,
@@ -3578,7 +3602,6 @@ private fun StudioSearch(
                                                 selectedCreator = creator.name
                                                 showAllCreators = false
                                                 mode = SearchMode.SONGS
-                                                quickOptionsExpanded = false
                                             },
                                             label = {
                                                 Text(creator.name + " · " + creator.trackCount,
@@ -3610,35 +3633,6 @@ private fun StudioSearch(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-            }
-        }
-        if (query.isNotBlank()) {
-            item {
-                OutlinedButton(onClick = { quickOptionsExpanded = !quickOptionsExpanded },
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
-                    Text(if (quickOptionsExpanded) "Hide advanced search"
-                        else "More search options")
-                }
-            }
-            if (quickOptionsExpanded || (responseMatchesQuery &&
-                    (state.loading || state.error.isNotBlank() || state.videos.isNotEmpty()))) {
-            item {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    NightWaveMicroLabel("Search filters")
-                    Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                        FilterChip(selected = mode == SearchMode.SONGS,
-                            onClick = { mode = SearchMode.SONGS }, label = { Text("Songs") })
-                        FilterChip(selected = mode == SearchMode.VIDEOS,
-                            onClick = { mode = SearchMode.VIDEOS }, label = { Text("Videos") })
-                    }
-                }
-            }
-            item {
-                Text("Choose Songs or Videos, then tap Search NightWave above " +
-                    "to refresh results for that mode.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
             }
         }
         if (savedMatches.isNotEmpty()) {
@@ -3677,20 +3671,40 @@ private fun StudioSearch(
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         } else if (responseMatchesQuery && state.videos.isNotEmpty()) {
-            item { SectionHeading("Public results",
-                state.videos.size.toString() + " tracks · " + state.provider) }
+            item { SectionHeading(if (mode == SearchMode.VIDEOS) "Videos" else "Music discovery",
+                state.videos.size.toString() + " public results · " + state.provider) }
             if (state.error.isNotBlank()) {
                 item {
-                    Text("Showing earlier results for this search. Online refresh failed.",
+                    Text("Showing the previous results. Refresh couldn't complete.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
-            items(state.videos, key = { "public:" + it.url }) { song ->
-                MusicTrackTile(song, isPlaying = playingUrl == song.url,
-                    surface = NightWaveTrackSurface.SEARCH,
-                    onOptions = { onSongOptions(song) },
-                    onClick = { onPlay(song, listOf(song)) })
+            if (publicGroups.bestMatches.isNotEmpty()) {
+                item(key = "public-best-heading") {
+                    SectionHeading("Best matches",
+                        "Ranked using titles and creators · not verified artist identities")
+                }
+                items(publicGroups.bestMatches, key = { "public:" + it.url }) { song ->
+                    MusicTrackTile(song, isPlaying = playingUrl == song.url,
+                        surface = NightWaveTrackSurface.SEARCH,
+                        onOptions = { onSongOptions(song) },
+                        onClick = { onPlay(song, listOf(song)) })
+                }
+            }
+            if (publicGroups.moreResults.isNotEmpty()) {
+                if (publicGroups.bestMatches.isNotEmpty()) {
+                    item(key = "public-more-heading") {
+                        SectionHeading("More results",
+                            "Includes covers, remixes and other public videos")
+                    }
+                }
+                items(publicGroups.moreResults, key = { "public:" + it.url }) { song ->
+                    MusicTrackTile(song, isPlaying = playingUrl == song.url,
+                        surface = NightWaveTrackSurface.SEARCH,
+                        onOptions = { onSongOptions(song) },
+                        onClick = { onPlay(song, listOf(song)) })
+                }
             }
         } else if (responseMatchesQuery && state.error.isNotBlank()) {
             item {
@@ -3731,11 +3745,6 @@ private fun StudioSearch(
             }
         }
         if (query.isNotBlank()) {
-            item {
-                Text("Online search and playback depend on provider availability.",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
         }
         } // Keep creator-specific local browsing separate from public results.
     }
