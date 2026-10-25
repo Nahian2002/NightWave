@@ -93,7 +93,7 @@ class OfflineLibraryActivity : ComponentActivity() {
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(18), dp(17), dp(18), dp(10))
-            setBackgroundColor(0xFF090D14.toInt())
+            setBackgroundColor(0xFF0C131B.toInt())
         }
         val header = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -106,11 +106,11 @@ class OfflineLibraryActivity : ComponentActivity() {
         header.addView(label("NightWave", 22f, Color.WHITE, true),
             LinearLayout.LayoutParams(0, -2, 1f))
         root.addView(header)
-        root.addView(label("Offline music", 26f, Color.WHITE, true).apply {
-            setPadding(0, dp(20), 0, dp(4))
+        root.addView(label("Offline library", 24f, Color.WHITE, true).apply {
+            setPadding(0, dp(9), 0, dp(3))
         })
-        root.addView(label("Your saved audio · Ready without internet", 14f, 0xFFABB8CC.toInt()).apply {
-            setPadding(0, 0, 0, dp(7))
+        root.addView(label("Music saved on this device", 13f, 0xFFB7CAD4.toInt()).apply {
+            setPadding(0, 0, 0, dp(5))
         })
         storageSummary = label("Checking offline storage…", 12f, 0xFF91E2D7.toInt()).apply {
             maxLines = 2
@@ -371,12 +371,12 @@ class OfflineLibraryActivity : ComponentActivity() {
         tracks = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         trackScroll = ScrollView(this).apply { addView(tracks) }
         root.addView(trackScroll, LinearLayout.LayoutParams(-1, 0, 1f))
-        root.addView(label(
-            "Private on-device storage · Deleted if NightWave is uninstalled",
-            11f, 0xFF8294A8.toInt()
-        ).apply { gravity = Gravity.CENTER }, LinearLayout.LayoutParams(-1, dp(45)))
+        extraTools.addView(label(
+            "Private on-device audio · Removed if NightWave is uninstalled",
+            11f, 0xFF9EB3BF.toInt()
+        ).apply { gravity = Gravity.CENTER }, LinearLayout.LayoutParams(-1, dp(48)))
         val frame = FrameLayout(this).apply {
-            setBackgroundColor(0xFF090D14.toInt())
+            setBackgroundColor(0xFF0C131B.toInt())
         }
         val contentWidth = if (resources.configuration.screenWidthDp >= 780) dp(760) else -1
         frame.addView(root, FrameLayout.LayoutParams(contentWidth, -1,
@@ -443,7 +443,7 @@ class OfflineLibraryActivity : ComponentActivity() {
                 12f, if (availabilityFilter == filter) 0xFF09131B.toInt()
                 else 0xFFB6D1D8.toInt(), availabilityFilter == filter).apply {
                 gravity = Gravity.CENTER
-                contentDescription = "Show " + OfflineLibraryViewPolicy.label(filter) +
+                contentDescription = "Show " + OfflineLibraryViewPolicy.accessibilityLabel(filter) +
                     " offline songs"
                 background = cardBackground(if (availabilityFilter == filter)
                     0xFF91E2D7.toInt() else 0xFF213840.toInt())
@@ -471,11 +471,8 @@ class OfflineLibraryActivity : ComponentActivity() {
             resumeControl.maxLines = 1
             resumeControl.ellipsize = android.text.TextUtils.TruncateAt.END
         }
-        status(visibleSongs.size.toString() + " of " + all.size +
-            " tracks · " + report.playableCount + " available · " +
-            (all.sumOf { it.bytes } / (1024 * 1024)) + " MB indexed" +
-            if (report.attentionCount > 0)
-                " · " + report.attentionCount + " need attention (nothing removed)" else "")
+        status(OfflineLibraryViewPolicy.summary(
+            visibleSongs.size, all.size, report.playableCount, report.attentionCount))
         playAllControl.alpha = if (visibleSongs.any { it.id in playableIds }) 1f else 0.45f
         page = OfflineLibraryCapacity.safePage(page, visibleSongs.size)
         val numberOfPages = OfflineLibraryCapacity.pageCount(visibleSongs.size)
