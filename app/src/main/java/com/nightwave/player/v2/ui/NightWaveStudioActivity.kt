@@ -155,6 +155,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -3897,12 +3898,32 @@ private fun StudioLibrary(
                     }
                 } else {
                     items(visiblePlaylists, key = { "playlist:" + it.name }) { collection ->
-                        MusicCollectionTile(collection.name,
-                            (if (collection.name in pinnedPlaylistNames) "Pinned · " else "") +
-                                collection.size.toString() + " tracks · " +
-                                (folderSnapshot.folderOf(collection.name) ?: "Unfiled"),
-                            cover = collection.cover) {
-                            onSelectPlaylist(collection.name)
+                        val isPinned = collection.name in pinnedPlaylistNames
+                        Row(Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Box(Modifier.weight(1f)) {
+                                MusicCollectionTile(collection.name,
+                                    (if (isPinned) "Pinned · " else "") +
+                                        collection.size.toString() + " tracks · " +
+                                        (folderSnapshot.folderOf(collection.name) ?: "Unfiled"),
+                                    cover = collection.cover) {
+                                    onSelectPlaylist(collection.name)
+                                }
+                            }
+                            IconButton(
+                                onClick = { onTogglePinPlaylist(collection.name) },
+                                modifier = Modifier.size(48.dp).semantics {
+                                    contentDescription = if (isPinned)
+                                        "Unpin playlist " + collection.name
+                                    else "Pin playlist " + collection.name
+                                }
+                            ) {
+                                Text(if (isPinned) "★" else "☆",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    color = if (isPinned) MaterialTheme.colorScheme.primary
+                                        else MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
                         }
                     }
                 }
