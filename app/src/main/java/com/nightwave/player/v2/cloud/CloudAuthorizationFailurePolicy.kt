@@ -15,6 +15,16 @@ object CloudAuthorizationFailurePolicy {
     }
 
     fun shortMessage(code: Int?, stage: Stage): String {
+        // HTTP statuses from Drive verification are not Google Sign-In
+        // CommonStatusCodes; never confuse an HTTP 403 with OAuth error 8.
+        if (stage == Stage.DRIVE_CHECK) return when (code) {
+            401 -> "Drive account verification returned HTTP 401. Reconnect Google Drive."
+            403 -> "Drive verification was refused (HTTP 403). Check Drive API, OAuth scope and permissions."
+            408, 429 -> "Drive verification was delayed (HTTP $code). Try again later."
+            in 500..599 -> "Google Drive is unavailable (HTTP $code). Try again later."
+            null -> "Google permission returned, but Drive account verification did not finish."
+            else -> "Drive account verification failed (HTTP $code). See Google setup report."
+        }
         val where = when (stage) {
             Stage.REQUEST -> "before opening account selection"
             Stage.ACCOUNT_PICKER -> "after account selection"
