@@ -25,6 +25,8 @@ class CatalogDownloadsActivity : ComponentActivity() {
     private lateinit var entries: LinearLayout
     private lateinit var overview: TextView
     private lateinit var historyToggle: TextView
+    private lateinit var filterRow: LinearLayout
+    private var currentFilter = DownloadCenterViewPolicy.Filter.ALL
     private var showHiddenJobs = false
     private lateinit var scroll: ScrollView
     private val manager by lazy { WorkManager.getInstance(applicationContext) }
@@ -99,6 +101,13 @@ class CatalogDownloadsActivity : ComponentActivity() {
             }
         }
         root.addView(historyToggle, LinearLayout.LayoutParams(-1, dp(48)))
+        filterRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        root.addView(filterRow, LinearLayout.LayoutParams(-1, dp(51)).apply {
+            bottomMargin = dp(9)
+        })
         entries = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         scroll = ScrollView(this).apply { addView(entries) }
         root.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
@@ -138,14 +147,58 @@ class CatalogDownloadsActivity : ComponentActivity() {
         historyToggle.text = if (showHiddenJobs)
             "Hide dismissed jobs · ${hidden.size} hidden  ▴"
         else "Show dismissed jobs · ${hidden.size} hidden  ▾"
-        val active = displayInfos.count { !it.state.isFinished }
-        val completed = displayInfos.count { it.state == WorkInfo.State.SUCCEEDED }
-        overview.text = "$active queued/running · $completed completed · " +
-            displayInfos.size + " visible jobs"
-        if (displayInfos.isEmpty()) {
-            entries.addView(label("No visible download jobs. Saved music is in Offline Library.",
-                14f, 0xFFB7CAD4.toInt()))
-            return
+        // One batched health read covers all completed work identities, not
+        // just the first 60 shown cards. A success with a deleted file is an
+        // issue, never silently counted as offline-ready.
+        val allSavedIds = displayInfos.asSequence()
+            .filter { it.state == WorkInfo.State.SUCCEEDED }
+            .mapNotNull { job ->
+                when {
+                    SearchTrackSaveQueue.TAG in job.tags ->
+                        job.outputData.getString(SearchTrackSaveQueue.KEY_ID)
+                    DirectAudioDownloadQueue.TAG in job.tags ->
+                        job.outputData.getString(DirectAudioDownloadQueue.KEY_DONE)
+                    else -> job.outputData.getString(CatalogDownloadQueue.KEY_DONE)
+                }
+            }.toSet()
+        val availableIds = OfflineAudioLibrary(this).availableIds(allSavedIds)
+        fun isVerified(info: WorkInfo): Boolean {
+            val saved = when {
+                SearchTrackSaveQueue.TAG in info.tags ->
+                    info.outputData.getString(SearchTrackSaveQueue.KEY_ID)
+                DirectAudioDownloadQueue.TAG in info.tags ->
+                    info.outputData.getString(DirectAudioDownloadQueue.KEY_DONE)
+                else -> info.outputData.getString(CatalogDownloadQueue.KEY_DONE)
+            }
+            return OfflineDownloadStatusPolicy.isReady(
+                info.state == WorkInfo.State.SUCCEEDED, saved, availableIds)
+        }
+        val active = displayInfos.count {
+            DownloadCenterViewPolicy.isActive(it.state.name)
+        }
+        val ready = displayInfos.count { isVerified(it) }
+        val attention = displayInfos.count {
+            DownloadCenterViewPolicy.needsAttention(it.state.name, isVerified(it))
+        }
+        overview.text = "$active active · $ready ready offline · $attention need attention"
+        filterRow.removeAllViews()
+        DownloadCenterViewPolicy.Filter.entries.forEach { filter ->
+            filterRow.addView(label(DownloadCenterViewPolicy.label(filter), 13f,
+                if (currentFilter == filter) 0xFF0C1B20.toInt()
+                else 0xFFB8D0DA.toInt(), currentFilter == filter).apply {
+                gravity = Gravity.CENTER
+                background = rounded(if (currentFilter == filter)
+                    0xFF94E2D8.toInt() else 0xFF1B313A.toInt())
+                contentDescription = "Show " + DownloadCenterViewPolicy.label(filter) +
+                    " downloads"
+                setOnClickListener {
+                    currentFilter = filter
+                    refreshJobs()
+                }
+            }, LinearLayout.LayoutParams(0, dp(48), 1f).apply {
+                marginStart = dp(2)
+                marginEnd = dp(2)
+            })
         }
         fun savedId(info: WorkInfo): String? = when {
             SearchTrackSaveQueue.TAG in info.tags ->
@@ -171,11 +224,15 @@ class CatalogDownloadsActivity : ComponentActivity() {
                 val url = if (SearchTrackSaveQueue.TAG in info.tags)
                     OfflineSaveRetryPolicy.retryUrl(info.tags) else null
                 url == null || seenSearchUrls.add(url)
+            }.filter { info ->
+                DownloadCenterViewPolicy.matches(
+                    currentFilter, info.state.name, isVerified(info))
             }.take(60)
-        val completedIds = visibleJobs.asSequence()
-            .filter { it.state == WorkInfo.State.SUCCEEDED }
-            .mapNotNull(::savedId).toSet()
-        val availableIds = OfflineAudioLibrary(this).availableIds(completedIds)
+        if (visibleJobs.isEmpty()) {
+            entries.addView(label(DownloadCenterViewPolicy.emptyMessage(currentFilter),
+                14f, 0xFFB7CAD4.toInt()).apply { setPadding(dp(4), dp(15), 0, 0) })
+            return
+        }
         visibleJobs.forEach { info ->
             val isDirect = DirectAudioDownloadQueue.TAG in info.tags
             val isSearch = SearchTrackSaveQueue.TAG in info.tags
@@ -201,9 +258,9 @@ class CatalogDownloadsActivity : ComponentActivity() {
                     isDirect -> DirectAudioDownloadQueue.KEY_TOTAL
                     else -> CatalogDownloadQueue.KEY_TOTAL
                 }, -1L)
-            val progress = if (total > 0L) {
-                " · " + (100L * received / total).coerceIn(0, 100) + "%"
-            } else if (received > 0L) " · " + (received / 1024L) + " KB" else ""
+            val progress = DownloadCenterViewPolicy.percent(received, total)
+                ?.let { " · $it%" }
+                ?: if (received > 0L) " · " + (received / 1024L) + " KB" else ""
             val pausedByUser = isSearch &&
                 SearchOfflinePauseState.isMarked(this, info.id)
             val now = SystemClock.elapsedRealtime()
@@ -213,10 +270,14 @@ class CatalogDownloadsActivity : ComponentActivity() {
                     progressSamples[info.id] = received to now
                     observedSpeed.remove(info.id)
                 } else if (received > previousSample.first) {
+                    // Do not discard a valid baseline when UI ticks under
+                    // 250ms: accumulate changes until we can calculate speed.
                     val rate = OfflineTransferRatePolicy.bytesPerSecond(
                         received - previousSample.first, now - previousSample.second)
-                    if (rate != null) observedSpeed[info.id] = rate
-                    progressSamples[info.id] = received to now
+                    if (rate != null) {
+                        observedSpeed[info.id] = rate
+                        progressSamples[info.id] = received to now
+                    }
                 } else if (now - previousSample.second > 8000L) {
                     observedSpeed.remove(info.id)
                 }
@@ -224,8 +285,11 @@ class CatalogDownloadsActivity : ComponentActivity() {
                 progressSamples.remove(info.id)
                 observedSpeed.remove(info.id)
             }
-            val rate = observedSpeed[info.id]
-            val rateText = if (received > 0L) {
+            val rate = if (info.state == WorkInfo.State.RUNNING)
+                DownloadCenterViewPolicy.recentRate(observedSpeed[info.id],
+                    progressSamples[info.id]?.second, now)
+                else null
+            val rateText = if (received > 0L && info.state == WorkInfo.State.RUNNING) {
                 " · " + OfflineTransferRatePolicy.display(rate) +
                     (OfflineTransferRatePolicy.etaSeconds(received, total, rate)
                         ?.takeIf { it in 1..86400L }
@@ -291,11 +355,11 @@ class CatalogDownloadsActivity : ComponentActivity() {
             })
             if (info.state == WorkInfo.State.RUNNING || info.state == WorkInfo.State.ENQUEUED) {
                 val bar = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
-                    isIndeterminate = total <= 0L
-                    if (total > 0L) {
+                    val pct = DownloadCenterViewPolicy.percent(received, total)
+                    isIndeterminate = pct == null
+                    if (pct != null) {
                         max = 1000
-                        this.progress = ((received.coerceAtLeast(0L).toDouble() / total) * 1000.0)
-                            .toInt().coerceIn(0, 1000)
+                        this.progress = pct * 10
                     }
                     progressTintList = ColorStateList.valueOf(0xFF94E2D8.toInt())
                     progressBackgroundTintList = ColorStateList.valueOf(0xFF2D434F.toInt())
