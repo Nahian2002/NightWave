@@ -5,6 +5,7 @@ import android.view.HapticFeedbackConstants
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.snap
@@ -379,7 +380,22 @@ fun StudioNowPlayingOverlay(
             targetOffsetY = NightWaveMotionPolicy::playerExitOffsetPx
         ) + fadeOut(animationSpec = tween(
             durationMillis = NightWaveMotionPolicy.PLAYER_EXIT_MS))
-    AnimatedVisibility(visible = expanded, enter = enter, exit = exit) {
+    val overlayVisibility = remember { MutableTransitionState(false) }
+    overlayVisibility.targetState = expanded
+    // NW58: opacity on the animated *full-screen container* revealed Home
+    // through the player at the start/end of the NW50 transition. Keep a
+    // solid, non-animated backdrop for the entire transition lifetime.
+    // The backdrop goes away only when the closing animation is complete.
+    if (overlayVisibility.currentState || overlayVisibility.targetState) {
+        Box(Modifier.fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .testTag("nw58-opaque-player-backdrop"))
+    }
+    AnimatedVisibility(
+        visibleState = overlayVisibility,
+        enter = enter,
+        exit = exit
+    ) {
         val colors = MaterialTheme.colorScheme
         BoxWithConstraints(Modifier.fillMaxSize()
             .windowInsetsPadding(WindowInsets.safeDrawing)
