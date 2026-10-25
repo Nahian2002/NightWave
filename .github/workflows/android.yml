@@ -80,6 +80,7 @@ on:
       - feature/nightwave-nw64-download-refresh-performance
       - feature/nightwave-nw65-download-recovery-safety
       - feature/nightwave-nw66-offline-integrity-recovery
+      - feature/nightwave-nw67-playback-transition-reliability
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
