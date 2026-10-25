@@ -91,14 +91,31 @@ class NightWaveCloudWorker(
             // by a late failure from its cancelled/stale previous worker.
             if (!CloudBackupConsentPolicy.same(consent,
                     store.read().consentSnapshot())) return@withContext Result.success()
-            val code = (error as? DriveHttpFailure)?.statusCode
-            if (code != null && !DriveHttpFailurePolicy.mayRetry(code)) {
-                store.statusIfCurrent(consent, DriveHttpFailurePolicy.message(code))
-                Result.failure()
-            } else {
-                store.statusIfCurrent(consent,
-                    "Automatic backup could not finish; will retry when available")
-                if (runAttemptCount < 3) Result.retry() else Result.failure()
+            val driveCode = (error as? DriveHttpFailure)?.statusCode
+            val googleCode =
+                (error as? com.google.android.gms.common.api.ApiException)?.statusCode
+            when {
+                googleCode != null &&
+                    !CloudAuthorizationFailurePolicy.canSuggestRetry(googleCode) -> {
+                    // Background work cannot present a consent picker. Config
+                    // failures and user cancellations require an explicit
+                    // interactive action; retrying forever will not fix them.
+                    store.statusIfCurrent(consent,
+                        CloudAuthorizationFailurePolicy.shortMessage(
+                            googleCode, CloudAuthorizationFailurePolicy.Stage.REQUEST))
+                    Result.failure()
+                }
+                driveCode != null && !DriveHttpFailurePolicy.mayRetry(driveCode) -> {
+                    store.statusIfCurrent(consent, DriveHttpFailurePolicy.message(driveCode))
+                    Result.failure()
+                }
+                else -> {
+                    store.statusIfCurrent(consent,
+                        if (googleCode != null) "Automatic Drive authorization temporarily unavailable; " +
+                            "retrying when available"
+                        else "Automatic backup could not finish; will retry when available")
+                    if (runAttemptCount < 3) Result.retry() else Result.failure()
+                }
             }
         }
     }
