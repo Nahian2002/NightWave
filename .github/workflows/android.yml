@@ -72,6 +72,7 @@ on:
       - feature/nightwave-nw56-theme-contrast
       - feature/nightwave-nw57-home-first-fold
       - feature/nightwave-nw58-player-overlay-polish
+      - feature/nightwave-nw59-integrated-build-gates
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
@@ -329,6 +330,8 @@ jobs:
         run: |
           ./tools/check-nw52-integration.ps1 -SelfTest
           ./tools/check-nw52-integration.ps1 -ProjectRoot .
+          ./tools/check-nw59-integration.ps1 -SelfTest
+          ./tools/check-nw59-integration.ps1 -ProjectRoot .
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
