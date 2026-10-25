@@ -4827,17 +4827,16 @@ private fun StudioProfile(
 private fun StudioProfileGroup(
     title: String, content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit
 ) {
-    Card(
-        shape = RoundedCornerShape(17.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column {
-            Text(title, modifier = Modifier.padding(start = 14.dp, top = 12.dp, bottom = 3.dp),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
-            content()
-        }
+    // Settings are an editorial list, not a stack of oversized cards.
+    Column(Modifier.fillMaxWidth().padding(top = 9.dp, bottom = 3.dp)) {
+        Text(title.uppercase(java.util.Locale.ROOT),
+            modifier = Modifier.padding(start = 16.dp, top = 9.dp, bottom = 8.dp),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.primary)
+        HorizontalDivider(
+            color = MaterialTheme.colorScheme.outline.copy(alpha = .21f),
+            modifier = Modifier.padding(horizontal = 15.dp, vertical = 1.dp))
+        content()
     }
 }
 
@@ -4847,14 +4846,18 @@ private fun StudioProfileRow(
     onClick: () -> Unit, trailing: @Composable (() -> Unit)? = null
 ) {
     Row(
-        Modifier.fillMaxWidth().heightIn(min = 60.dp)
+        Modifier.fillMaxWidth().heightIn(min = 66.dp)
             .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 11.dp),
+            .padding(horizontal = 16.dp, vertical = 9.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(icon, contentDescription = null, modifier = Modifier.size(21.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        Box(Modifier.size(39.dp).clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = .09f)),
+            contentAlignment = Alignment.Center) {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp),
+                tint = MaterialTheme.colorScheme.primary.copy(alpha = .90f))
+        }
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(title, style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.SemiBold)
