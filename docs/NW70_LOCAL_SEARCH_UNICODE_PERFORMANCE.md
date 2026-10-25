@@ -24,6 +24,8 @@
 - A first executed smoke caught NFKD's decomposition of Bangla `ো`. The helper was corrected to return NFC-normalized search keys and retested to 2,424/2,424 PASS.
 - Added/extended JUnit source regression coverage in `SearchRelevancePolicyTest.kt`, `SavedTrackSearchTest.kt`, `LocalSearchSuggestionsTest.kt` and `SearchResultPresentationPolicyTest.kt`. They protect distinct Bangla vowel spellings, best metadata for duplicate saved URLs, nonpositive result limits, creator matches past entry 350 and stale result visibility. **JUnit under Android Gradle has not been executed here.**
 - The cumulative Windows `tools/check-nw59-integration.ps1` now requires these source contracts and fixes a stale pre-NW67 check of a removed decoder-recovery generation expression. **The PowerShell gate itself has not been executed here.**
+- Compose `produceState` retains its prior value across key restarts; NW70 explicitly assigns an empty triple before debounce, rather than assuming an `initialValue` reset. This prevents old-query local suggestions persisting during the 120 ms delay.
+- [GitHub Android workflow run 40232043080](https://github.com/Nahian2002/NightWave/actions/runs/40232043080) reported **failure** with no available executed-step details. Its failure source is **unknown**, not evidence of a successful or failed Kotlin/Android compiler invocation.
 - A standalone Unicode helper test does **not** establish app-wide compilation, actual Search UX speed, network provider reliability or availability of every requested song.
 
 Run the isolated smoke from the repository root (JDK and `kotlinc` required):
