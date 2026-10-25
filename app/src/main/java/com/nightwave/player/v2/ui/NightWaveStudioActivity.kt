@@ -2370,6 +2370,7 @@ class NightWaveStudioActivity : ComponentActivity() {
 }
 
 private const val LIKED_COLLECTION = "nightwave://local-liked"
+private const val RECENT_COLLECTION = "nightwave://local-recent"
 private enum class StudioTab(val caption: String) {
     HOME("Home"), SEARCH("Search"), LIBRARY("Library"), PROFILE("You")
 }
@@ -2649,7 +2650,8 @@ private fun StudioRoot(
                         onOfflineSearch = onOfflineSearch
                     )
                     StudioTab.LIBRARY -> StudioLibrary(
-                        modifier = Modifier, favorites = favorites, names = playlistNames,
+                        modifier = Modifier, favorites = favorites, recent = recent,
+                        names = playlistNames,
                         libraryRevision = libraryRevision, roomPreviewActive = roomPreviewActive,
                         smartCollections = smartCollections, folderSnapshot = folderSnapshot,
                         playingUrl = playerState.videoUrl.takeIf { playerState.playing }.orEmpty(),
@@ -2659,6 +2661,7 @@ private fun StudioRoot(
                         onQuickPlay = onLibraryQuickPlay,
                         onSongOptions = onSongOptions,
                         onPlaylistSongOptions = onPlaylistSongOptions,
+                        onRemoveRecent = onRemoveRecent, onClearRecent = onClearRecent,
                         onSharePlaylist = onSharePlaylist,
                         onImportSharedPlaylist = onImportSharedPlaylist,
                         onManage = onLegacyPlayer,
@@ -3369,7 +3372,8 @@ private fun StudioSearch(
 
 @Composable
 private fun StudioLibrary(
-    modifier: Modifier, favorites: List<VideoPreview>, names: List<String>,
+    modifier: Modifier, favorites: List<VideoPreview>, recent: List<VideoPreview>,
+    names: List<String>,
     libraryRevision: Int, roomPreviewActive: Boolean,
     smartCollections: List<SmartLibraryCollection>,
     folderSnapshot: PlaylistFolderSnapshot,
@@ -3384,6 +3388,7 @@ private fun StudioLibrary(
     offlineResumeTitle: String?, offlineResumePositionMs: Long,
     onResumeOffline: () -> Unit,
     onSongOptions: (VideoPreview) -> Unit,
+    onRemoveRecent: (VideoPreview) -> Unit, onClearRecent: () -> Unit,
     onPlaylistSongOptions: (String, VideoPreview) -> Unit,
     onSharePlaylist: (String, List<VideoPreview>) -> Unit,
     onImportSharedPlaylist: () -> Unit
@@ -3415,6 +3420,7 @@ private fun StudioLibrary(
     val selectedSmart = smartCollections.firstOrNull { it.id == selectedPlaylist }
     val tracks = when {
         selectedPlaylist == null || selectedPlaylist == LIKED_COLLECTION -> favorites
+        selectedPlaylist == RECENT_COLLECTION -> recent
         selectedSmart != null -> selectedSmart.songs
         else -> playlistPreviews.firstOrNull { it.name == selectedPlaylist }?.songs.orEmpty()
     }
@@ -3443,11 +3449,14 @@ private fun StudioLibrary(
                     NightWaveCollectionHeader(
                         name = when {
                             selectedPlaylist == LIKED_COLLECTION -> "Liked Songs"
+                            selectedPlaylist == RECENT_COLLECTION -> "Recently Played"
                             selectedSmart != null -> selectedSmart.title
                             else -> selectedPlaylist ?: "Your library"
                         },
                         description = when {
                             selectedPlaylist == null -> "Saved music across your collections"
+                            selectedPlaylist == RECENT_COLLECTION ->
+                                "Your history · Remove entries without deleting saved music"
                             selectedSmart != null -> selectedSmart.description
                             else -> NightWaveCollectionChrome.sectionSubtitle(
                                 tracks.size, "saved track", "saved tracks")
