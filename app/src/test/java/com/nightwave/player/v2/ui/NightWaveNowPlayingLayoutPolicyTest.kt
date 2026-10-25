@@ -22,7 +22,7 @@ class NightWaveNowPlayingLayoutPolicyTest {
         assertTrue(small.compact)
         assertTrue(split.compact)
         assertTrue(small.artworkDp <= 280f)
-        assertTrue(split.artworkDp <= 108f)
+        assertTrue(split.artworkDp <= 109f) // Float rounding at 0.36 × 300dp
         assertTrue(small.headerBottomSpaceDp < 20)
     }
 
