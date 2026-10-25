@@ -49,6 +49,8 @@ on:
       - feature/nightwave-v2-nw25-adaptive-premium-ui
       - feature/nightwave-v2-nw26-google-search-lyrics
       - fix/nightwave-v2-nw27-final-hardening
+      # NW37's search-history and song-menu micro-polish needs a fresh full compile.
+      - feature/nightwave-nw37-search-and-song-actions
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
