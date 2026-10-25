@@ -1,12 +1,23 @@
 <resources>
     <style name="Theme.NightWave" parent="android:style/Theme.Material.NoActionBar">
         <item name="android:fontFamily">sans</item>
-        <item name="android:colorAccent">#B7A2FF</item>
+        <item name="android:colorAccent">#8BE4D6</item>
+        <item name="android:alertDialogTheme">@style/Theme.NightWave.Dialog</item>
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:statusBarColor">#080B15</item>
         <item name="android:navigationBarColor">#101325</item>
         <item name="android:windowActionModeOverlay">true</item>
         <item name="android:windowBackground">#080B15</item>
         <item name="android:windowLightNavigationBar">false</item>
+    </style>
+    <!-- Apply the same NightWave palette to the legacy Android song-action menus.
+         Does not change their callbacks, playlist writes or audio playback. -->
+    <style name="Theme.NightWave.Dialog" parent="android:style/Theme.Material.Dialog.Alert">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:colorAccent">#8BE4D6</item>
+        <item name="android:textColorPrimary">#F4F8FD</item>
+        <item name="android:textColorSecondary">#ADC0CE</item>
+        <item name="android:windowBackground">@drawable/nightwave_dialog_background</item>
+        <item name="android:windowLightStatusBar">false</item>
     </style>
 </resources>
