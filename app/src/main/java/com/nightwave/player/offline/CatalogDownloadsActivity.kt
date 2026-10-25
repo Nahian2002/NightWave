@@ -13,6 +13,8 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import android.widget.ProgressBar
+import android.content.res.ColorStateList
 import androidx.activity.ComponentActivity
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
@@ -51,29 +53,43 @@ class CatalogDownloadsActivity : ComponentActivity() {
             setPadding(0, 0, 0, dp(15))
             setOnClickListener { finish() }
         })
-        root.addView(label("Downloads", 28f, Color.WHITE, true))
-        root.addView(label("Persistent queue · Authorized audio files",
-            13f, 0xFFABC0CB.toInt()).apply {
-            setPadding(0, dp(7), 0, dp(14))
+        root.addView(label("Downloads", 30f, Color.WHITE, true))
+        root.addView(label("Your music, ready when you are",
+            14f, 0xFFABC0CB.toInt()).apply {
+            setPadding(0, dp(4), 0, dp(14))
         })
-        root.addView(label("Search downloadable music  →", 14f, 0xFF0C1B20.toInt(), true).apply {
+        // Two equally prominent destinations instead of stacked full-width buttons.
+        val destinations = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+        destinations.addView(label("Discover audio", 14f, 0xFF0C1B20.toInt(), true).apply {
             background = rounded(0xFF94E2D8.toInt())
             gravity = Gravity.CENTER
+            contentDescription = "Discover authorized downloadable music"
             setOnClickListener {
                 startActivity(Intent(this@CatalogDownloadsActivity,
                     FreeAudioCatalogActivity::class.java))
             }
-        }, LinearLayout.LayoutParams(-1, dp(52)))
-        root.addView(label("Open Offline Library  →", 14f, 0xFF94E2D8.toInt(), true).apply {
+        }, LinearLayout.LayoutParams(0, dp(49), 1f).apply {
+            rightMargin = dp(5)
+        })
+        destinations.addView(label("Offline library", 14f, 0xFF9CE9DF.toInt(), true).apply {
+            background = rounded(0xFF1B313A.toInt())
             gravity = Gravity.CENTER
+            contentDescription = "Open saved offline audio library"
             setOnClickListener {
                 startActivity(Intent(this@CatalogDownloadsActivity,
                     OfflineLibraryActivity::class.java))
             }
-        }, LinearLayout.LayoutParams(-1, dp(48)))
-        overview = label("Loading queued downloads…", 13f, 0xFFB7CAD4.toInt())
+        }, LinearLayout.LayoutParams(0, dp(49), 1f).apply {
+            leftMargin = dp(5)
+        })
+        root.addView(destinations)
+        overview = label("Loading your downloads…", 13f, 0xFFB7CAD4.toInt()).apply {
+            setPadding(0, dp(13), 0, 0)
+        }
         root.addView(overview, LinearLayout.LayoutParams(-1, -2).apply {
-            bottomMargin = dp(11)
+            bottomMargin = dp(4)
         })
         historyToggle = label("", 13f, 0xFF91E2D7.toInt(), true).apply {
             gravity = Gravity.CENTER_VERTICAL
@@ -238,24 +254,46 @@ class CatalogDownloadsActivity : ComponentActivity() {
             }
             val card = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
-                background = rounded(0xFF182B35.toInt())
-                setPadding(dp(14), dp(13), dp(14), dp(11))
+                background = rounded(0xFF162731.toInt())
+                setPadding(dp(15), dp(13), dp(15), dp(8))
             }
-            card.addView(label(title, 15f, Color.WHITE, true).apply { maxLines = 2 })
-            card.addView(label(state, 12f, 0xFFB4C7D3.toInt()).apply {
-                setPadding(0, dp(6), 0, dp(8))
+            card.addView(label(title, 16f, Color.WHITE, true).apply {
+                maxLines = 2
+                ellipsize = android.text.TextUtils.TruncateAt.END
+            })
+            card.addView(label(state, 13f,
+                if (info.state == WorkInfo.State.FAILED || (info.state == WorkInfo.State.SUCCEEDED && !actuallySaved))
+                    0xFFF0B7B7.toInt() else 0xFFB4C7D3.toInt()).apply {
+                setPadding(0, dp(5), 0, dp(7))
                 maxLines = 3
             })
+            if (info.state == WorkInfo.State.RUNNING || info.state == WorkInfo.State.ENQUEUED) {
+                val bar = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
+                    isIndeterminate = total <= 0L
+                    if (total > 0L) {
+                        max = 1000
+                        progress = ((received.coerceAtLeast(0L).toDouble() / total) * 1000.0)
+                            .toInt().coerceIn(0, 1000)
+                    }
+                    progressTintList = ColorStateList.valueOf(0xFF94E2D8.toInt())
+                    progressBackgroundTintList = ColorStateList.valueOf(0xFF2D434F.toInt())
+                    indeterminateTintList = ColorStateList.valueOf(0xFF94E2D8.toInt())
+                }
+                card.addView(bar, LinearLayout.LayoutParams(-1, dp(5)).apply {
+                    bottomMargin = dp(7)
+                })
+            }
             when (info.state) {
                 WorkInfo.State.ENQUEUED, WorkInfo.State.RUNNING, WorkInfo.State.BLOCKED -> {
                     val pauseUrl = if (isSearch)
                         OfflineSaveRetryPolicy.retryUrl(info.tags) else null
                     if (pauseUrl != null && !pausedByUser) {
-                        card.addView(label("Pause · Restart needed to resume", 14f,
+                        card.addView(label("Pause · restart required", 13f,
                             0xFF91E2D7.toInt(), true).apply {
                             gravity = Gravity.CENTER
+                            contentDescription = "Pause download; resuming restarts from zero"
                             setOnClickListener { confirmSearchPause(info) }
-                        }, LinearLayout.LayoutParams(-1, dp(48)))
+                        }, LinearLayout.LayoutParams(-1, dp(44)))
                     }
                     card.addView(label("Cancel download", 14f, 0xFFF0B7B7.toInt(), true).apply {
                         gravity = Gravity.CENTER
@@ -265,7 +303,7 @@ class CatalogDownloadsActivity : ComponentActivity() {
                             if (isSearch) SearchOfflinePauseState.clear(this@CatalogDownloadsActivity, info.id)
                             manager.cancelWorkById(info.id)
                         }
-                    }, LinearLayout.LayoutParams(-1, dp(48)))
+                    }, LinearLayout.LayoutParams(-1, dp(44)))
                 }
                 WorkInfo.State.SUCCEEDED -> {
                     val savedTitle = if (isDirect || isSearch) title else info.outputData.getString(
@@ -295,7 +333,7 @@ class CatalogDownloadsActivity : ComponentActivity() {
                                     .putExtra(OfflineLibraryActivity.EXTRA_SEARCH_QUERY, savedTitle))
                             }
                         }
-                    }, LinearLayout.LayoutParams(-1, dp(48)))
+                    }, LinearLayout.LayoutParams(-1, dp(44)))
                     // A historical success record is not an offline file.
                     // Offer recovery of the exact searched recording only
                     // when the local file was later deleted/unavailable.
@@ -306,7 +344,7 @@ class CatalogDownloadsActivity : ComponentActivity() {
                             0xFF9FE3DF.toInt(), true).apply {
                             gravity = Gravity.CENTER
                             setOnClickListener { confirmSearchRetry(restoreUrl, title) }
-                        }, LinearLayout.LayoutParams(-1, dp(48)))
+                        }, LinearLayout.LayoutParams(-1, dp(44)))
                     }
                 }
                 else -> {
@@ -324,7 +362,7 @@ class CatalogDownloadsActivity : ComponentActivity() {
                                 confirmSearchRetry(retryUrl, title,
                                     if (pausedByUser) info.id else null)
                             }
-                        }, LinearLayout.LayoutParams(-1, dp(48)))
+                        }, LinearLayout.LayoutParams(-1, dp(44)))
                     }
                     card.addView(label(
                         if (isSearch) "View other offline audio sources  →"
@@ -342,7 +380,7 @@ class CatalogDownloadsActivity : ComponentActivity() {
                                     .putExtra(FreeAudioCatalogActivity.EXTRA_QUERY, title))
                             }
                         }
-                    }, LinearLayout.LayoutParams(-1, dp(48)))
+                    }, LinearLayout.LayoutParams(-1, dp(44)))
                 }
             }
             if (info.state.isFinished) {
@@ -359,10 +397,10 @@ class CatalogDownloadsActivity : ComponentActivity() {
                         if (result) refreshJobs()
                         else overview.text = "Could not update download history visibility."
                     }
-                }, LinearLayout.LayoutParams(-1, dp(48)))
+                }, LinearLayout.LayoutParams(-1, dp(40)))
             }
             entries.addView(card, LinearLayout.LayoutParams(-1, -2).apply {
-                bottomMargin = dp(11)
+                bottomMargin = dp(9)
             })
         }
         scroll.post {
