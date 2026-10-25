@@ -88,6 +88,7 @@ Need $activity 'onHide = { compactHidden = true }' 'Mini-player hide state not p
 Need $mini 'NightWaveChromePolicy.showMiniNext(' 'Mini-player responsive controls not wired'
 Need $mini 'PlayerGestureRules.decideVerticalSwipe(' 'Mini-player swipe gesture behavior removed'
 Need $mini 'actions.playPause()' 'Mini-player Play/Pause callback missing'
+Need $mini 'actions.next()' 'Mini-player Next callback missing'
 if (-not (Test-MiniHideDoesNotControlPlayback $mini)) {
     $problems.Add('Hide must only call onHide(); it must not pause or stop playback')
 }
