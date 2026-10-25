@@ -39,7 +39,12 @@ class EqualizerCapabilities(context: Context) {
         val bands = effect.numberOfBands.toInt().coerceIn(0, 32)
         val presets = effect.numberOfPresets.toInt().coerceIn(0, 20)
         val range = effect.bandLevelRange
-        if (range.size < 2 || range[0] > range[1]) return
+        if (range.size < 2 || !EqualizerSessionPolicy.canPublish(
+                sessionId, runCatching { effect.hasControl() }.getOrDefault(false),
+                bands, range[0].toInt(), range[1].toInt())) {
+            clear() // Never leave an old "ready" receipt after control loss.
+            return
+        }
         val editor = preferences.edit().clear()
             .putBoolean("ready", true).putInt("session", sessionId).putInt("count", bands)
             .putInt("presets", presets)
