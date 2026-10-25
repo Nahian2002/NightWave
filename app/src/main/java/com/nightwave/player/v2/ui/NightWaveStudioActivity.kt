@@ -3669,10 +3669,20 @@ private fun StudioSearch(
             }
         }
         if (searching) {
-            item {
-                Text("Checking public video search… Your saved songs remain available.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            item(key = "public-search-loading") {
+                Row(Modifier.fillMaxWidth().padding(vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    CircularProgressIndicator(modifier = Modifier.size(22.dp),
+                        strokeWidth = 2.dp)
+                    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Text("Finding music…",
+                            style = MaterialTheme.typography.titleSmall)
+                        Text("Your saved songs are available while this loads.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
             }
         } else if (responseMatchesQuery && state.videos.isNotEmpty()) {
             item { SectionHeading(if (mode == SearchMode.VIDEOS) "Videos" else "Music discovery",
@@ -3743,7 +3753,7 @@ private fun StudioSearch(
         } else if (query.isNotBlank() && savedMatches.isEmpty() &&
             offlineMatches.isEmpty() && !searching) {
             item {
-                Text("Nothing saved for this search yet. Try YouTube or another artist.",
+                Text("No saved matches yet. Search public music, or try a different title or artist.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
