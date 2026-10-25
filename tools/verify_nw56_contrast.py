@@ -67,7 +67,8 @@ def main():
             (0, "0xFF815154", "0xFFB48883"),
             (0, "else 0xFFF9F7F2", "else 0xFF17111A"),
             (2, "allTextColorsAreReadableOnTheirConfiguredSurfaces", "testNoChecks"),
-            (3, "color = colors.onSurface)", "color = colors.outline)"),
+            (3, 'color = colors.onSurface)\n                            Text("Crossfade',
+             'color = colors.outline)\n                            Text("Crossfade'),
         ):
             broken = src[:]
             assert a in broken[i], a
