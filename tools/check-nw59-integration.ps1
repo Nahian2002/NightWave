@@ -119,6 +119,9 @@ $relative = @(
     'tools/verify_nw58_overlay.py',
     'tools/verify_nw60_offline_recovery.py',
     'tools/verify_nw61_oauth_report.py',
+    'tools/verify_nw62_download_health.py',
+    'app/src/main/java/com/nightwave/player/offline/DownloadFileVerificationPolicy.kt',
+    'app/src/test/java/com/nightwave/player/offline/DownloadFileVerificationPolicyTest.kt',
     'tools/check-google-oauth.ps1',
     'check-google-oauth.cmd',
     'docs/NW53_GOOGLE_RECOVERY_UX.md',
@@ -189,5 +192,17 @@ Assert-NW59Has $oauthSource 'Get-FileHash -LiteralPath $ApkPath -Algorithm SHA25
 Assert-NW59Has $oauthSource 'Get-ChildItem -LiteralPath $parent -Directory' 'flexible SDK Build Tools search'
 Assert-NW59Has $oauthSource 'INCONCLUSIVE - no current verified APK' 'failed-build report invalidation'
 Assert-NW59Missing $oauthSource 'build-tools\35.0.0' 'hardcoded diagnostic SDK version'
-Write-Host 'NW61 cumulative NW53-NW61 source guard PASS. Gradle/JVM/device QA still mandatory.'
+# NW62: Downloads file availability is checked off the UI thread,
+# and pending checks can NEVER mark saved files Ready or broken.
+$downloadsPolicy = [IO.File]::ReadAllText($files['app/src/main/java/com/nightwave/player/offline/DownloadFileVerificationPolicy.kt'])
+Assert-NW59Has $downloads 'private val fileVerifier = ThreadPoolExecutor(' 'bounded file verification'
+Assert-NW59Has $downloads 'ArrayBlockingQueue<Runnable>(1)' 'bounded pending verification'
+Assert-NW59Has $downloads 'OfflineAudioLibrary(applicationContext).availableIds(ids)' 'background file inspection'
+Assert-NW59Has $downloads 'DownloadFileVerificationPolicy.canPublish(' 'discard stale file results'
+Assert-NW59Has $downloads 'fileVerifier.shutdownNow()' 'clean up verifier on destroy'
+Assert-NW59Has $downloads 'DownloadFileVerificationPolicy.ready(' 'do not trust WorkManager success alone'
+Assert-NW59Has $downloads 'DownloadFileVerificationPolicy.needsAttention(' 'honest Issues filter'
+Assert-NW59Has $downloadsPolicy '!checking && !verificationFailed' 'pending files are not Ready'
+Assert-NW59Missing $downloads 'val availableIds = OfflineAudioLibrary(this).availableIds(allSavedIds)' 'old main-thread storage check'
+Write-Host 'NW62 cumulative NW53-NW62 source guard PASS. Gradle/JVM/device QA still mandatory.'
 exit 0
