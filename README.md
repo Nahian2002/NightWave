@@ -2,7 +2,7 @@
 
 **Android audio-first music player · active development, private source · not yet public release-ready.**
 
-> **NW66 INTEGRATED SOURCE:** This branch stacks NightWave NW43–NW66. NW66 extends low-storage protection to **all authorized downloads**, not only searched audio, and blocks WorkManager SUCCESS until the saved song is independently found as a readable, indexed private file. The new guard also protects unknown-length transfers before final import. Existing offline files, IDs, playlists, download retries, NW62–NW65 UX, Google authorization scopes, source restrictions and package identity are unchanged. **Full Android Gradle build, installed-device playback and interrupted-transfer testing remain unverified; public APK/Play: NO-GO.** [NW66 changes and acceptance plan](docs/NW66_OFFLINE_INTEGRITY_AND_RECOVERY.md) · [Release readiness](RELEASE_READINESS.md).
+> **NW66 INTEGRATED SOURCE:** This branch stacks NightWave NW43–NW66. NW66 extends low-storage protection to **all authorized downloads**, not only searched audio, and blocks WorkManager SUCCESS until the saved song is independently found as a readable, indexed private file. The new guard also protects unknown-length transfers before final import. Existing offline files, IDs, playlists, download retries, NW62–NW65 UX, Google authorization scopes, source restrictions and package identity are unchanged. **109/109 exact-source Kotlin/JVM completion/recovery assertions PASS; full Android Gradle build, installed-device playback and interrupted-transfer testing remain unverified; public APK/Play: NO-GO.** [NW66 changes and acceptance plan](docs/NW66_OFFLINE_INTEGRITY_AND_RECOVERY.md) · [Release readiness](RELEASE_READINESS.md).
 
 ### Current local source
 
