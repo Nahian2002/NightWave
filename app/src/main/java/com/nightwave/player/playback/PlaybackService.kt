@@ -210,15 +210,32 @@ class PlaybackService : MediaLibraryService() {
                     "Android audio effects could not be enabled on this session.")
                 return
             }
+            // A successful setBandLevel() call is not proof Android retained
+            // the requested values. Verify on the same owned session before
+            // showing "active". Some devices quantize band steps.
+            val readback = if (requestedEqPreset == 21 && manualLevels.isNotEmpty()) {
+                val ordered = manualLevels.toSortedMap()
+                val actual = ordered.keys.map { band ->
+                    candidate.getBandLevel(band.toShort()).toInt()
+                }
+                EqualizerReadbackPolicy.inspect(
+                    ordered.values.map { it.toInt() }, actual)
+            } else EqualizerReadbackPolicy.Result.VERIFIED
+            if (readback == EqualizerReadbackPolicy.Result.MISMATCH ||
+                readback == EqualizerReadbackPolicy.Result.INVALID) {
+                eqStatus.write(requestedEqPreset, false,
+                    EqualizerReadbackPolicy.activeLabel(readback))
+                return // candidate is released; playback itself continues.
+            }
             activeEqualizer = candidate
             equalizerSessionId = sessionId
-            // Re-read the actual preset/manual band gains after applying the
-            // effect, so Sound Studio's response curve is not invented.
+            // Read back the actual band levels rather than painting a fake
+            // response curve for the selected hardware preset.
             runCatching { eqCapabilities.publish(candidate, sessionId) }
-            // Enabled is a platform API acknowledgement, NOT a claim that
-            // every Bluetooth/output route audibly applies the effect.
             eqStatus.write(requestedEqPreset, true,
-                "Enabled on playback session. Audibility depends on audio route.")
+                if (requestedEqPreset == 21)
+                    EqualizerReadbackPolicy.activeLabel(readback)
+                else "Enabled on playback session. Audibility depends on audio route.")
             candidate = null // ownership transferred
         } catch (_: Exception) {
             eqStatus.write(requestedEqPreset, false, "Unavailable on this audio session")
