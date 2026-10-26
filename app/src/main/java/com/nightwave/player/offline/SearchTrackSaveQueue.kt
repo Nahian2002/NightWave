@@ -22,6 +22,7 @@ object SearchTrackSaveQueue {
     const val KEY_ERROR = "offline_save_error"
     const val KEY_RECEIVED = "offline_received_bytes"
     const val KEY_TOTAL = "offline_expected_bytes"
+    const val KEY_VERIFYING = "nw79_transfer_verifying"
 
     fun enqueue(context: Context, video: VideoPreview): Operation {
         val canonical = SearchTrackSavePolicy.canonicalTrack(video.url)
