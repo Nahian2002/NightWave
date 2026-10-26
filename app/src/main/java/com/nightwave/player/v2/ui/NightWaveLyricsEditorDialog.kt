@@ -45,6 +45,7 @@ import com.nightwave.player.v2.lyrics.LyricCue
 import com.nightwave.player.v2.lyrics.LyricsEditorDraft
 import com.nightwave.player.v2.lyrics.LyricsEditorPolicy
 import com.nightwave.player.v2.lyrics.LyricsEditorNavigationPolicy
+import com.nightwave.player.v2.lyrics.LyricsReadingPolicy
 import com.nightwave.player.v2.lyrics.LyricsEditorSearchPolicy
 import com.nightwave.player.v2.lyrics.LyricsSyncPolicy
 import com.nightwave.player.v2.lyrics.TimedLyrics
@@ -247,8 +248,12 @@ fun NightWaveLyricsEditorDialog(
                 }
                 LaunchedEffect(selected, reduceMotion) {
                     if (selected in draft.cues.indices) {
-                        if (reduceMotion) listState.scrollToItem(selected)
-                        else listState.animateScrollToItem(selected)
+                        // A match/seek can jump a thousand timed lines.
+                        // Do not animate through every intermediate row.
+                        if (LyricsReadingPolicy.shouldAnimateScroll(
+                                listState.firstVisibleItemIndex, selected, reduceMotion))
+                            listState.animateScrollToItem(selected)
+                        else listState.scrollToItem(selected)
                     }
                 }
                 error?.let {
