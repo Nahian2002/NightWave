@@ -161,6 +161,7 @@ $relative = @(
     'tools/NW70SearchSmoke.kt',
     'docs/NW70_LOCAL_SEARCH_UNICODE_PERFORMANCE.md',
     'app/src/test/java/com/nightwave/player/offline/OfflineShuffleForwardNavigationTest.kt',
+    'app/src/test/java/com/nightwave/player/offline/OfflinePlaybackQueueTest.kt',
     'app/src/test/java/com/nightwave/player/playback/PublicQueuePastPriorityTest.kt',
     'tools/NW69QueueSmoke.kt',
     'docs/NW69_QUEUE_TRANSITION_CONSISTENCY.md',
@@ -408,6 +409,23 @@ Assert-NW59Has $ownershipTests 'staleMediaOrSelectionNeverReceivesSession' 'cros
 # Kotlin ArrayDeque.addFirst/addLast compile regressions from prior sources.
 $offlineQueue = [IO.File]::ReadAllText($files['app/src/main/java/com/nightwave/player/offline/OfflinePlaybackQueue.kt'])
 $offlineForwardTests = [IO.File]::ReadAllText($files['app/src/test/java/com/nightwave/player/offline/OfflineShuffleForwardNavigationTest.kt'])
+# NW75: a legacy pre-NW69 test incorrectly skipped the exact Shuffle Previous
+# redo target. An invalid jump must preserve A -> B redo before fresh C.
+$offlineLegacyTests = [IO.File]::ReadAllText($files['app/src/test/java/com/nightwave/player/offline/OfflinePlaybackQueueTest.kt'])
+$legacyJumpStart = $offlineLegacyTests.IndexOf('fun invalidShuffleJumpKeepsHistoryAndUnplayedOrder()')
+if ($legacyJumpStart -lt 0) { throw 'NW75 offline invalid jump regression missing' }
+$legacyJumpEnd = $offlineLegacyTests.IndexOf('@Test fun linearPreviousRepeatAllWrapsAtTheStart()', $legacyJumpStart)
+if ($legacyJumpEnd -le $legacyJumpStart) { throw 'NW75 offline invalid jump regression boundary missing' }
+$legacyJumpBlock = $offlineLegacyTests.Substring($legacyJumpStart, $legacyJumpEnd - $legacyJumpStart)
+Assert-NW59Order $legacyJumpBlock @(
+    'assertEquals("a", queue.previous())',
+    'assertEquals("b", queue.next())',
+    'assertEquals("c", queue.next())',
+    'assertNull(queue.next())',
+    'assertEquals("b", queue.previous())',
+    'assertEquals("c", queue.next())'
+) 'NW75 offline shuffle redo before unplayed random tracks'
+
 $publicPriorityTests = [IO.File]::ReadAllText($files['app/src/test/java/com/nightwave/player/playback/PublicQueuePastPriorityTest.kt'])
 Assert-NW59Has $offlineQueue 'private val forwardVisits = ArrayDeque<Int>()' 'offline shuffle forward history'
 Assert-NW59Has $offlineQueue 'forwardVisits.add(index)' 'offline Previous records next target'
