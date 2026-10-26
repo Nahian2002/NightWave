@@ -64,4 +64,23 @@ class LyricsPresentationPolicyTest {
             LyricsPresentationPolicy.lineProgress(lines, 0, 1000L, 55)
         }
     }
+
+    @Test fun nw89LongLrcBinaryNextCueLookupPreservesProgressAccuracy() {
+        val lyrics = TimedLyrics((0 until 1200).map {
+            LyricCue(it * 1000L, "Line $it")
+        })
+        assertEquals(.5f,
+            LyricsPresentationPolicy.lineProgress(lyrics, 800, 800_500L, 0), .00001f)
+        assertEquals(1f,
+            LyricsPresentationPolicy.lineProgress(lyrics, 1199, 2_000_000L, 0), .00001f)
+    }
+
+    @Test fun nw89ManySimultaneousCuesFindNextDistinctTimestamp() {
+        val lyrics = TimedLyrics(List(1000) { LyricCue(1000L, "Voice $it") } +
+            LyricCue(5000L, "Final line"))
+        assertEquals(.5f,
+            LyricsPresentationPolicy.lineProgress(lyrics, 5, 3000L, 0), .00001f)
+        assertEquals(.75f,
+            LyricsPresentationPolicy.lineProgress(lyrics, 999, 4000L, 0), .00001f)
+    }
 }
