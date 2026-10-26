@@ -43,4 +43,17 @@ class SearchOfflineFailurePolicyTest {
         assertFalse(rendered.contains("private_secret"))
         assertFalse(rendered.contains("googlevideo"))
     }
+
+    @Test fun transientSourceStatusesUseRedactedRetryGuidance() {
+        for (code in listOf(500, 502, 503, 504)) {
+            val rendered = SearchOfflineFailurePolicy.message(
+                "HTTP $code https://example.org/?secret=never-leak", true)
+            assertEquals("Audio source is temporarily unavailable. Retry later.", rendered)
+            assertFalse(rendered.contains("secret="))
+        }
+        for (code in listOf(408, 425)) {
+            assertEquals("Connection interrupted before audio was saved. Retry when online.",
+                SearchOfflineFailurePolicy.message("HTTP $code", true))
+        }
+    }
 }
