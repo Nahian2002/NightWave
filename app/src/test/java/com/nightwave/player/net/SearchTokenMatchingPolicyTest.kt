@@ -38,7 +38,7 @@ class SearchTokenMatchingPolicyTest {
         assertEquals(0, p.evidence("", p.tokens("night"), true))
         assertEquals(0, p.evidence("night", emptyList(), true))
         assertEquals(1, p.evidence("nightt", p.tokens("night"), true))
-        assertEquals(1, p.evidence("nigh", p.tokens("night"), true))
+        assertEquals(0, p.evidence("nigh", p.tokens("night"), true)) // Short words stay strict.
         assertEquals(0, p.evidence("nghit", p.tokens("night"), true))
     }
 }
