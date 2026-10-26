@@ -58,7 +58,7 @@ assert '"Show all playlists"' in library_ui
 
 
 home = ui.split("private fun StudioHome(", 1)[1].split(
-    "@Composable\\nprivate fun MoodTile(", 1)[0]
+    "@Composable\nprivate fun MoodTile(", 1)[0]
 assert "var confirmClearHistory by rememberSaveable" in home
 assert 'testTag("nw86-clear-recent-request")' in home
 assert 'testTag("nw86-clear-recent-confirm")' in home
