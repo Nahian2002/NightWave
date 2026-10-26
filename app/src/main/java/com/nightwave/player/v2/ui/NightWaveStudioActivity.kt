@@ -3259,6 +3259,7 @@ private fun StudioHome(
     var chosenMixKey by rememberSaveable { mutableStateOf<String?>(null) }
     var showAllMixTracks by rememberSaveable { mutableStateOf(false) }
     var showAllRecent by rememberSaveable { mutableStateOf(false) }
+    var confirmClearHistory by rememberSaveable { mutableStateOf(false) }
     val chosenMix = mixes.firstOrNull { it.key == chosenMixKey }
     val mixesPerRow = NightWaveHomeLayoutPolicy.mixColumns(
         androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.toFloat(),
@@ -4208,9 +4209,34 @@ private fun StudioLibrary(
         }
         if (selectedPlaylist == RECENT_COLLECTION && tracks.isNotEmpty()) {
             item(key = "library-clear-recent") {
-                OutlinedButton(onClick = onClearRecent,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
-                    Text("Clear Recently Played")
+                OutlinedButton(onClick = { confirmClearHistory = true },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                        .testTag("nw86-library-clear-recent-request")) {
+                    Text("Clear listening history")
+                }
+                if (confirmClearHistory) {
+                    androidx.compose.material3.AlertDialog(
+                        onDismissRequest = { confirmClearHistory = false },
+                        title = { Text("Clear Recently Played?") },
+                        text = {
+                            Text("Only your listening history is cleared. " +
+                                "Liked songs, playlists and offline audio stay saved.")
+                        },
+                        confirmButton = {
+                            androidx.compose.material3.TextButton(onClick = {
+                                confirmClearHistory = false
+                                onClearRecent()
+                            }, modifier = Modifier.testTag("nw86-library-clear-recent-confirm")) {
+                                Text("Clear history")
+                            }
+                        },
+                        dismissButton = {
+                            androidx.compose.material3.TextButton(
+                                onClick = { confirmClearHistory = false }) {
+                                Text("Cancel")
+                            }
+                        }
+                    )
                 }
             }
         }
