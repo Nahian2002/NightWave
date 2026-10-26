@@ -38,7 +38,8 @@ object LocalSearchSuggestions {
         MusicIdentity.creatorsFrom(saved.take(5_000), limit = 12, scanLimit = 5_000).forEach { creator ->
             val key = SearchRelevancePolicy.normalize(creator.name)
             if (key.isNotBlank() &&
-                prepared.terms.all { it in key } &&
+                SearchTokenMatchingPolicy.allCovered(
+                    prepared.terms, SearchTokenMatchingPolicy.tokens(key)) &&
                 seenQueries.add(key) && output.size < capped) {
                 output.add(LocalSearchSuggestion(
                     creator.name.take(100), creator.name.take(100),
