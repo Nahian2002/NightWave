@@ -1446,22 +1446,37 @@ class NightWaveStudioActivity : ComponentActivity() {
                         }
                     }
                     is CloudActionResult.Snapshots -> {
-                        showCloudSnapshotPicker(outcome.items, token,
-                            forMerge = action == "merge",
-                            expectedSession = operationConsent)
+                        // A late Drive response must not display snapshots from
+                        // an old account or privacy revision after reconnection.
+                        if (!CloudAccountSessionPolicy.same(
+                                operationConsent, cloudStore.read().consentSnapshot())) {
+                            refreshCloud()
+                            showMessage("Google account session changed. Preview again.")
+                        } else {
+                            showCloudSnapshotPicker(outcome.items, token,
+                                forMerge = action == "merge",
+                                expectedSession = operationConsent)
+                        }
                     }
                 }
             }.onFailure { error ->
-                // Only bounded, non-sensitive status to UI; never display an access token.
-                cloudStore.status(when {
+                // A failed old request must never overwrite the newly connected
+                // account's backup status. Tokens, account IDs and exception
+                // messages are excluded from user-visible diagnostics.
+                val message = when {
                     error is DriveHttpFailure ->
                         DriveHttpFailurePolicy.message(error.statusCode)
                     error.message == "No NightWave cloud backup found" ->
                         "No cloud backups found in this Google account"
                     else -> "Drive operation unsuccessful; local library unchanged"
-                })
-                refreshCloud()
-                showMessage(cloudStore.read().lastResult)
+                }
+                if (cloudStore.statusIfCurrent(operationConsent, message)) {
+                    refreshCloud()
+                    showMessage(message)
+                } else {
+                    refreshCloud()
+                    showMessage("Google account or backup choices changed. Start the action again.")
+                }
             }
         }
     }
