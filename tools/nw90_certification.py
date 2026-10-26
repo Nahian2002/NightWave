@@ -11,6 +11,7 @@ Examples:
       --report build/NightWave-NW90-candidate-gates.json
     python3 tools/nw90_certification.py --project-root . \
       --junit-dir app/build/test-results/testDebugUnitTest \
+      --build-log build/nightwave-gradle.log \
       --apk app/build/outputs/apk/debug/app-debug.apk \
       --report build/NightWave-NW90-after-build.json
 """
@@ -111,14 +112,31 @@ def matrix_status(path: Path) -> tuple[dict, dict]:
     summary["p1_total"] = sum(r["severity"] == "P1" for r in data)
     return gate("PASS", "139 unique defined cases; unexecuted cases remain NOT_RUN."), summary
 
-def report(root: Path, junit_dir: Path | None, apk: Path | None) -> dict:
+def report(
+    root: Path, junit_dir: Path | None, apk: Path | None,
+    build_log: Path | None = None
+) -> dict:
     matrix_gate, counts = matrix_status(root / MATRIX)
     checks = {name: gate("NOT_VERIFIED", "No current-source execution evidence.")
               for name in GATES}
     checks["source_matrix"] = matrix_gate
     junit_summary = {}
     if junit_dir is not None:
-        checks["jvm_unit_tests"], junit_summary = evidence_junit(junit_dir)
+        xml_gate, junit_summary = evidence_junit(junit_dir)
+        # XML files can survive from an earlier commit/build. A counters-only
+        # check is not fresh-current-source evidence without successful build
+        # output for this attempt, or the separate NW76 Windows receipt.
+        log_ok = False
+        if build_log is not None and build_log.is_file():
+            log_text = build_log.read_text(encoding="utf-8", errors="replace")
+            log_ok = bool(re.search(r"(?m)^BUILD SUCCESSFUL\b", log_text))
+        if xml_gate["status"] == "PASS" and not log_ok:
+            checks["jvm_unit_tests"] = gate(
+                "NOT_VERIFIED",
+                "JUnit XML counters are valid but no successful current-build "
+                "Gradle log was supplied; results could be stale.")
+        else:
+            checks["jvm_unit_tests"] = xml_gate
     if apk is not None and apk.is_file() and apk.stat().st_size > 100_000:
         checks["android_debug_apk"] = gate(
             "NOT_VERIFIED", "APK exists; signer, package identity and successful build receipt not yet verified.")
@@ -211,6 +229,7 @@ def main() -> int:
     parser.add_argument("--project-root", default=".")
     parser.add_argument("--report", default="build/NightWave-NW90-candidate-gates.json")
     parser.add_argument("--junit-dir")
+    parser.add_argument("--build-log")
     parser.add_argument("--apk")
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
@@ -223,7 +242,8 @@ def main() -> int:
             return None
         p = Path(path)
         return p if p.is_absolute() else root / p
-    result = report(root, in_root(args.junit_dir), in_root(args.apk))
+    result = report(root, in_root(args.junit_dir), in_root(args.apk),
+                    in_root(args.build_log))
     dest = in_root(args.report)
     assert dest is not None
     dest.parent.mkdir(parents=True, exist_ok=True)
