@@ -36,6 +36,7 @@ $a = @{
     level = (Source 'app/src/main/java/com/nightwave/player/playback/ListeningLevelPolicy.kt')
     store = (Source 'app/src/main/java/com/nightwave/player/playback/ListeningLevelStore.kt')
     search = (Source 'app/src/main/java/com/nightwave/player/net/SearchRelevancePolicy.kt')
+    unicode = (Source 'app/src/main/java/com/nightwave/player/net/SearchScriptNormalization.kt')
     saved = (Source 'app/src/main/java/com/nightwave/player/net/SavedTrackSearch.kt')
     gateway = (Source 'app/src/main/java/com/nightwave/player/net/YouTubeGateway.kt')
     creators = (Source 'app/src/main/java/com/nightwave/player/net/SavedCreatorBrowser.kt')
@@ -62,8 +63,16 @@ Require-Token $a.ui 'plan.first?.let { onQuickPlay(plan.songs) }' 'safe queue no
 Require-Token $a.ui 'enabled = quickPlayableTracks.isNotEmpty()' 'no empty quick-play button'
 Require-Token $a.level 'presetsPercent = listOf(100, 85, 70)' 'attenuation presets'
 Require-Token $a.store 'ListeningLevelPolicy.accepts(percent)' 'bounded persistent level'
-Require-Token $a.search 'Normalizer.Form.NFKD' 'accent-aware matching'
-Require-Token $a.saved 'SearchRelevancePolicy.savedMatches(prepared, track)' 'local saved search'
+# NW70 moved Unicode normalization into a dedicated policy and switched
+# saved search to one score pass. Verify functional wiring instead of the
+# removed pre-NW70 implementation's exact source text.
+Require-Token $a.search 'SearchScriptNormalization.normalize(value)' 'shared search normalization'
+Require-Token $a.unicode 'Normalizer.Form.NFKD' 'Latin accent normalization'
+Require-Token $a.unicode 'Normalizer.Form.NFC' 'Bengali vowel-sign recomposition'
+Require-Token $a.unicode 'latinDiacritic' 'Latin-only diacritic folding'
+Require-Token $a.saved 'SearchRelevancePolicy.savedScore(prepared, track)' 'ranked local saved search'
+Require-Token $a.saved '.distinctBy { it.first.url }' 'one result per saved URL'
+Require-Token $a.ui 'SavedTrackSearch.match(query, savedTracks)' 'local saved search shown in Search UI'
 Require-Token $a.gateway 'SearchRelevancePolicy.rankPublic(query, videos)' 'public relevance'
 Require-Token $a.creators 'VideoLink.normalize(video.url) != video.url' 'canonical creator references'
 Require-Token $a.creators 'MAX_QUEUE_TRACKS = 100' 'creator queue capacity'
