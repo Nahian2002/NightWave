@@ -26,16 +26,22 @@ object LyricsPresentationPolicy {
         val clock = positionMs.coerceIn(0L, Long.MAX_VALUE - LyricsSyncPolicy.MAX_OFFSET_MS) -
             offsetMs.toLong()
         if (clock <= start) return 0f
-        var next: Long? = null
-        for (index in activeIndex + 1 until lyrics.cues.size) {
-            val timestamp = lyrics.cues[index].timeMs
+        // Imported/edited LRC cues are sorted by timestamp. Seek directly
+        // to the next distinct timestamp in O(log n), not a full scan on
+        // every Now Playing progress update (up to 1,200 cues per file).
+        var low = activeIndex + 1
+        var high = lyrics.cues.lastIndex
+        var nextTime: Long? = null
+        while (low <= high) {
+            val middle = (low + high) ushr 1
+            val timestamp = lyrics.cues[middle].timeMs
             if (timestamp > start) {
-                next = timestamp
-                break
-            }
+                nextTime = timestamp
+                high = middle - 1
+            } else low = middle + 1
         }
-        val nextTime = next ?: return 1f
-        val span = (nextTime - start).coerceAtLeast(1L)
+        val next = nextTime ?: return 1f
+        val span = (next - start).coerceAtLeast(1L)
         return ((clock - start).toDouble() / span.toDouble()).coerceIn(0.0, 1.0).toFloat()
     }
 }
