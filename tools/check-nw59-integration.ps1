@@ -102,6 +102,8 @@ $relative = @(
     'app/src/test/java/com/nightwave/player/v2/ui/StudioUiStateSafetyPolicyTest.kt',
     'tools/NW74UiStateSmoke.kt',
     'docs/NW74_UI_STATE_INTEGRATION_GUARDS.md',
+    'tools/NW75IntegrationSmoke.kt',
+    'docs/NW75_FINAL_INTEGRATION.md',
     'app/src/main/java/com/nightwave/player/v2/cloud/CloudBackupState.kt',
     'app/src/main/java/com/nightwave/player/v2/cloud/CloudAccountPresentation.kt',
     'app/src/main/java/com/nightwave/player/v2/cloud/CloudConnectionHelpPolicy.kt',
@@ -546,5 +548,20 @@ Assert-NW59Missing $activity 'outcome.updated.playlists.last().first' 'no unchec
 Assert-NW59Has $studioSafetyTest 'removedPlaylistOrSmartCollectionGoesBackToLibraryOverview' 'selection unit regression'
 Assert-NW59Has $studioSafetyTest 'delayedNativeDialogIndicesNeverThrowOrChooseUnrelatedItems' 'dialog unit regression'
 Assert-NW59Has $studioSmoke 'repeat(2500)' 'reproducible bounded selection test'
-Write-Host 'NW74 cumulative NW53-NW74 source guard PASS. Gradle/JVM/device QA still mandatory.'
+# NW75: catch the impossible one-playlist 250-track NW71 JUnit test,
+# require reproducing core Kotlin policy tests, and preserve signer/build gates.
+# JUnit and Android compilation still run later; this is a source-only check.
+$finalSmoke = [IO.File]::ReadAllText($files['tools/NW75IntegrationSmoke.kt'])
+Assert-NW59Has $discoveryTests 'listOf(playlist.take(200), playlist.drop(200))' 'NW71 250 quota requires two 200-per-playlist sources'
+Assert-NW59Missing $discoveryTests 'listOf(playlist), { it }, { true })' 'impossible single playlist quota test'
+Assert-NW59Has $discoveryPool 'it.asSequence().take(200)' 'NW71 per-playlist scan remains bounded'
+Assert-NW59Has $finalSmoke 'SmartDiscoveryPoolPolicy.gather(' 'NW71 real production pool in final smoke'
+Assert-NW59Has $finalSmoke 'StudioUiStateSafetyPolicy.resolveCollection(' 'NW74 restored screen safety in final smoke'
+Assert-NW59Has $finalSmoke 'CloudAccountSessionPolicy.mayApply(' 'NW72 cloud account session fence in final smoke'
+Assert-NW59Has $finalSmoke 'CloudBackupFreshnessPolicy.Freshness.CURRENT_VERIFIED' 'NW73 actual receipt checking in smoke'
+Assert-NW59Has $finalSmoke 'repeat(3_000)' 'deterministic cross-phase randomized regression'
+Assert-NW59Has $finalSmoke 'NW75 integrated pure Kotlin source smoke PASS' 'test prints honest isolated result'
+Assert-NW59Has $activity 'CloudAccountSessionPolicy.same(' 'cloud restore still verifies account session'
+Assert-NW59Has $activity 'StudioUiStateSafetyPolicy.itemAt(options, which)' 'Drive selection still bounded'
+Write-Host 'NW75 cumulative NW53-NW75 source guard PASS. Gradle/JVM/device QA still mandatory.'
 exit 0
