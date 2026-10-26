@@ -1771,7 +1771,15 @@ class PlaybackService : MediaLibraryService() {
                     player?.currentMediaItem?.mediaId, player?.playerError != null)) {
                 // Already the first (or only) loaded track. A new network
                 // resolution is unnecessary and may interrupt good audio.
+                val ended = player?.playbackState == Player.STATE_ENDED
                 player?.seekTo(0L)
+                // An explicit Previous after the whole track finished is also
+                // a Replay request. Seeking a finished timeline may not on its
+                // own start audio again; do not leave the transport stuck.
+                if (ended) {
+                    player?.prepare()
+                    player?.play()
+                }
                 savedQueue.saveBookmark(selected.url, 0L,
                     player?.duration?.takeIf { it > 0L && it != C.TIME_UNSET } ?: 0L)
             } else {
