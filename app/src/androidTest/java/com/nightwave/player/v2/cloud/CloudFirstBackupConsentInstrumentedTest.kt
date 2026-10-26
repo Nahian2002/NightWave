@@ -66,4 +66,17 @@ class CloudFirstBackupConsentInstrumentedTest {
         assertTrue(store.successIfCurrent(consent, 98765L, created = false))
         assertEquals("Already backed up; library unchanged", store.read().lastResult)
     }
+
+    @Test fun invalidTimestampsCannotClaimACompletedBackup() = scenario { store ->
+        assertTrue(store.connect("temporary@example.com"))
+        val consent = store.read().consentSnapshot()
+        assertFalse(store.successIfCurrent(consent, 0L, created = true))
+        assertFalse(store.successIfCurrent(consent, -1L, created = false))
+        assertFalse(store.success("temporary@example.com", 0L))
+        assertFalse(store.success("temporary@example.com", -10L))
+        val after = store.read()
+        assertFalse(after.enabled)
+        assertEquals(0L, after.lastSuccessMs)
+        assertEquals("Account authorized; initial backup pending", after.lastResult)
+    }
 }
