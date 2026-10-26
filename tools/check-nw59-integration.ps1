@@ -98,6 +98,10 @@ $relative = @(
     'app/src/main/java/com/nightwave/player/v2/cloud/CloudConnectionHelpPolicy.kt',
     'app/src/main/java/com/nightwave/player/v2/cloud/CloudAccountSessionPolicy.kt',
     'app/src/main/java/com/nightwave/player/v2/cloud/CloudBackupFreshnessPolicy.kt',
+    'app/src/main/java/com/nightwave/player/v2/ui/StudioUiStateSafetyPolicy.kt',
+    'app/src/test/java/com/nightwave/player/v2/ui/StudioUiStateSafetyPolicyTest.kt',
+    'tools/NW74UiStateSmoke.kt',
+    'docs/NW74_UI_STATE_INTEGRATION_GUARDS.md',
     'app/src/main/java/com/nightwave/player/v2/cloud/CloudBackupState.kt',
     'app/src/main/java/com/nightwave/player/v2/cloud/CloudAccountPresentation.kt',
     'app/src/main/java/com/nightwave/player/v2/cloud/CloudConnectionHelpPolicy.kt',
@@ -516,5 +520,31 @@ Assert-NW59Has $freshTests 'previouslyVerifiedBackupIsNotCurrentAfterConsentChan
 Assert-NW59Has $presentationTests 'stageUsesActualVerifiedConsentRevisionRatherThanOnlyTimestamp' 'actual Account stage test'
 Assert-NW59Has $helpTests 'requestStageEightNeverClaimsThePickerAppeared' 'stage 8 guidance tests'
 Assert-NW59Has $smoke73 '0L..2_000L' 'reproducible receipt-revision stress'
-Write-Host 'NW73 cumulative NW53-NW73 source guard PASS. Gradle/JVM/device QA still mandatory.'
+# NW74: recover invalid Library selections and reject Android dialog indices
+# from stale snapshots. UI-only: do not mutate persisted library or media.
+$studioSafety = [IO.File]::ReadAllText($files['app/src/main/java/com/nightwave/player/v2/ui/StudioUiStateSafetyPolicy.kt'])
+$studioSafetyTest = [IO.File]::ReadAllText($files['app/src/test/java/com/nightwave/player/v2/ui/StudioUiStateSafetyPolicyTest.kt'])
+$studioSmoke = [IO.File]::ReadAllText($files['tools/NW74UiStateSmoke.kt'])
+Assert-NW59Has $studioSafety 'fun resolveCollection(' 'resolve deleted or renamed Library selection'
+Assert-NW59Has $studioSafety 'selected?.takeIf' 'never invent unavailable collection'
+Assert-NW59Has $studioSafety 'options.getOrNull(index)' 'native dialog indices are bounded'
+Assert-NW59Has $studioSafety 'fun createdPlaylistName(' 'find actual newly created playlist'
+Assert-NW59Has $studioSafety 'after.lastOrNull { it !in existing }' 'no empty-list last crash'
+Assert-NW59Has $activity 'val resolvedPlaylist = StudioUiStateSafetyPolicy.resolveCollection(' 'Library screen uses existing selection'
+Assert-NW59Has $activity 'LaunchedEffect(selectedPlaylist, resolvedPlaylist)' 'clear restored stale selection'
+Assert-NW59Has $activity 'selectedPlaylist = resolvedPlaylist,' 'no ghost detail screens'
+Assert-NW59Has $activity 'value = emptyList()' 'discard stale offline search index before background scan'
+Assert-NW59Has $activity 'StudioUiStateSafetyPolicy.itemAt(names, chosen)' 'copy playlist dialog bounds'
+Assert-NW59Has $activity 'StudioUiStateSafetyPolicy.itemAt(names, option)' 'save playlist dialog bounds'
+Assert-NW59Has $activity 'StudioUiStateSafetyPolicy.itemAt(playlists, selected)' 'folder playlist chooser bounds'
+Assert-NW59Has $activity 'StudioUiStateSafetyPolicy.itemAt(choices, index)' 'folder manager chooser bounds'
+Assert-NW59Has $activity 'StudioUiStateSafetyPolicy.itemAt(choices, chosen)' 'folder item chooser bounds'
+Assert-NW59Has $activity 'StudioUiStateSafetyPolicy.itemAt(options, which)' 'Drive snapshot chooser bounds'
+Assert-NW59Has $activity 'option !in choices.indices' 'invalid chooser cannot trigger create'
+Assert-NW59Has $activity 'StudioUiStateSafetyPolicy.createdPlaylistName(' 'safe shared playlist import result'
+Assert-NW59Missing $activity 'outcome.updated.playlists.last().first' 'no unchecked last() on mutable library'
+Assert-NW59Has $studioSafetyTest 'removedPlaylistOrSmartCollectionGoesBackToLibraryOverview' 'selection unit regression'
+Assert-NW59Has $studioSafetyTest 'delayedNativeDialogIndicesNeverThrowOrChooseUnrelatedItems' 'dialog unit regression'
+Assert-NW59Has $studioSmoke 'repeat(2500)' 'reproducible bounded selection test'
+Write-Host 'NW74 cumulative NW53-NW74 source guard PASS. Gradle/JVM/device QA still mandatory.'
 exit 0
