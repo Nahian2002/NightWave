@@ -30,6 +30,8 @@
 ## Evidence
 
 - New production `AudioDownloadNetworkPolicy.kt` matched its GitHub blob hash `cd32346f05e8d9fbc52cd640983af814e5a77b22` in a local file copy and compiled with available `kotlinc`; the standalone retry-classification smoke returned **NW79_NETWORK_POLICY_SMOKE_PASS**.
+- The existing NW16 source checker had an obsolete eight-minute literal timeout assertion, already incompatible with the newer code; it now checks the actual NW79 timeout policy, the retained 30-second read timeout and backoff classification instead.
+- A readback-only source consistency audit checked all three queues and workers, verifying-state UI, HTTP backoff, 30-second idle timeout and retained file-size/storage/MediaExtractor safety checks. Every sampled assertion passed. Exact GitHub blob SHAs of `NightWaveCloudAuthorization.kt`, `CloudBackupState.kt`, `MusicLibrary.kt`, `AndroidManifest.xml`, and `app/build.gradle.kts` matched the NW78 parent.
 - The full project's Gradle/JUnit/Android instrumentation, Windows preflight, signing, long permitted-source transfers and Samsung acceptance have **not** been run or claimed for this branch.
 - The previous reported approximately **35–37 KB/s** download rate is an observation, not a proven app throughput cap. Root cause cannot be established without a controlled same-source network test. NW79 prevents one premature timeout and improves retry semantics; it does not certify faster bytes per second.
 - The public-release rights issue flagged by NW77 remains **NO-GO**. These fixes do not approve YouTube-derived offline copies.
