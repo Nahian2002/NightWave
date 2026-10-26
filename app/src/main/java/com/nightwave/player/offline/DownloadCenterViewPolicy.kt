@@ -13,6 +13,10 @@ object DownloadCenterViewPolicy {
         else -> false
     }
 
+    /** Network bytes received is not the same as playable indexed audio. */
+    fun isVerifying(workState: String, verifyingFlag: Boolean): Boolean =
+        workState == "RUNNING" && verifyingFlag
+
     fun isReady(workState: String, availableFile: Boolean): Boolean =
         workState == "SUCCEEDED" && availableFile
 
