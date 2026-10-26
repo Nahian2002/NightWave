@@ -34,7 +34,7 @@ NightWave remains an original midnight-themed audio product with restrained teal
 | **NW87** | Downloads and Offline Library unified interface, statuses, artwork, storage and file recovery | Source update committed: dynamic transfer counts, accurate verification-pending states, manual background offline recheck, indexed-file recovery instructions and user-driven trusted import; no new download eligibility, Android/device QA deferred to NW90 |
 | **NW88** | Sound Studio EQ effect verification, gapless/crossfade/normalization, audio-route compatibility | Source update committed: same-session manual EQ band readback, device rounding/error truth, Sound Studio crossfade and offline normalization controls with persisted-setting receipts; narrow Kotlin policy smoke PASS, full Android/audio-route QA pending NW90 |
 | **NW89** | Lyrics, LRC refinement, accessibility, responsive typography, reduced motion, startup/scrolling/battery | Source work committed: stable same-time LRC order, Bangla-mark-safe import and exact tag review, binary-search cue progress, bounded lazy-list follow/editor jumps, TalkBack seek/current-line semantics and large-text headers; full performance profiling and Android/device acceptance pending NW90 |
-| **NW90** | Final quality certification: original 139-case device checklist, stress/background/offline/auth/restore QA, security, rights, privacy, release candidate |
+| **NW90** | Final quality certification: expanded 139-case device matrix, stress/background/offline/auth/restore QA, security, rights, privacy and release candidate | Certification infrastructure committed: CI branch and contracts, fail-closed report, 139-case unrun matrix, one-click Windows build gate; hosted Android and independent canary both failed before steps. Android/JUnit/device/signing/public rights gates **NOT VERIFIED / NO-GO**; completion requires actual test evidence |
 
 ## Score targets (not achieved-result claims)
 
@@ -52,6 +52,8 @@ NightWave remains an original midnight-themed audio product with restrained teal
 ## Owner's final-test instruction
 
 The owner has explicitly selected **batch development now, consolidated phone testing at the end**. Accordingly, do not request a new APK install, Samsung recording, or manual acceptance after each phase. Keep writing regression tests and run every **available** automated source/JVM/Android check during development; do not claim Gradle builds or phone tests that have not run. The original roadmap wanted full Windows builds at integration checkpoints; if inaccessible, mark these **pending**, not passed. No phase is called completely verified on source checks alone.
+
+**NW90 evidence:** [Integration and runner-blocker report](NW90_FINAL_INTEGRATION_EVIDENCE.md) · [139-case expanded matrix](NW90_EXPANDED_139_CASE_MATRIX.csv) · [Windows acceptance launcher](../run-nw90-final.cmd). All 139 cases are `NOT_RUN` until independently demonstrated. Feature-source implementation does not mean the owner has accepted or the app is publicly publishable.
 
 At NW90, conduct one comprehensive current-source clean Windows build, full JVM/Android testing, APK signing compatibility, device checks (including the 139-case checklist), Drive upload/readback/restore using disposable data, long playback, accessibility and source/legal reviews. Any failed gate must be fixed before release approval.
 
