@@ -602,7 +602,12 @@ class OfflineLibraryActivity : ComponentActivity() {
                             .setTitle(OfflineLibraryRecoveryGuide.title(health))
                             .setMessage(song.title + "\n\n" +
                                 OfflineLibraryRecoveryGuide.help(health) +
-                                "\n\nNightWave has not changed this entry or its file.")
+                                "\n\nNightWave has not changed this entry or its file. " +
+                                "Re-importing creates a separate, verified copy.")
+                            .setNeutralButton("Import trusted audio") { _, _ ->
+                                pick.launch(arrayOf("audio/*", "application/ogg",
+                                    "application/octet-stream"))
+                            }
                             .setPositiveButton("OK", null).show()
                     } else {
                         AlertDialog.Builder(this@OfflineLibraryActivity)
