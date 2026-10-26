@@ -2,13 +2,13 @@
 
 **Android audio-first music player · active development, private source · not yet public release-ready.**
 
-> **NW74 INTEGRATED SOURCE:** This cumulative development branch stacks NightWave NW43–NW74. NW74 hardens **Home/Search/Library and native dialog UI state**: deleted or regenerated Library collections can no longer remain as ghost detail selections; dialog actions validate captured row indexes; shared playlist imports identify the actual new name safely; and offline Search clears its old index while a new revision is being scanned. **The exact committed Kotlin safety policy compiled and passed 7,509/7,509 standalone JVM assertions. Full Android Gradle/JUnit, device runtime and Google error 8 remain UNVERIFIED. PUBLIC APK/PLAY: NO-GO.** See [NW74 UI state & test checklist](docs/NW74_UI_STATE_INTEGRATION_GUARDS.md) and [Release Readiness](RELEASE_READINESS.md).
+> **NW75 FINAL PLANNED FEATURE SOURCE:** This cumulative development branch stacks NightWave NW43–NW75. NW75 is the **source integration milestone**, NOT an APK release certificate. It repairs a genuine NW71 JUnit fixture inconsistency (one playlist cannot fill a 250-song quota when each playlist is capped at 200), adds a reproducible **27,016/27,016 passing exact-source Kotlin/JVM multi-policy integration smoke**, and expands the already-used zero-Python Windows source preflight plus GitHub's optional Kotlin smoke stage. No actual music or account data is changed. **Full Android compilation, complete JUnit, compatible APK signing, Samsung testing and Google OAuth error 8 remain UNVERIFIED. Public APK / Play release: NO-GO.** Read the [NW75 final integration and build handoff](docs/NW75_FINAL_INTEGRATION.md) and [Release Readiness](RELEASE_READINESS.md).
 
-### Current cumulative source
+### Build the complete cumulative source
 
-Download **Code → Download ZIP** from `feature/nightwave-nw74-ui-state-crash-guards`, extract it into a **clean Windows folder**, and run `build-windows.cmd` when ready for integrated Android compilation. After a complete successful build, run `check-google-oauth.cmd` and `check-device-update.cmd` before replacing your existing Samsung installation. **Never uninstall, clear app data or delete your downloaded music to work around OAuth or signing errors.**
+Download **Code → Download ZIP** from `feature/nightwave-nw75-final-integration-gates`, extract into a **fresh Windows folder**, and run `build-windows.cmd` to perform the complete Android test/build/signature gate. If unsuccessful, run `send-build-report.cmd` and share the resulting `dist` diagnostic evidence. On a successful fresh candidate, use `check-google-oauth.cmd` and `check-device-update.cmd` BEFORE updating NightWave on your Samsung. **Never uninstall NightWave, clear its data, or delete offline songs to overcome Google OAuth or signing errors.**
 
-Earlier NW43–NW73 phase notes are source-development history, not NW74 device verification.
+Previous NW43–NW74 entries document source development, not verified Android or device release testing.
 
 ---
 
