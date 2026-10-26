@@ -86,4 +86,57 @@ class MusicIdentityTest {
         assertEquals(listOf(song), SavedTrackSearch.match("love me like you do", listOf(song)))
         assertFalse(SavedTrackSearch.match("different artist", listOf(song)).isNotEmpty())
     }
+
+    @Test fun nw81RemovesOnlyExplicitTrailingVideoPackaging() {
+        assertEquals("Yellow", MusicIdentity.display(
+            "Coldplay - Yellow [Official Video]", "Other uploader").title
+            .substringAfter(" - "))
+        assertEquals("Song", MusicIdentity.display(
+            "Song [Official Audio] (Official Lyric Video) [Official Visualizer]",
+            "Original channel").title)
+        assertEquals("Song", MusicIdentity.display(
+            "Song - Official Visualiser", "Original channel").title)
+        assertEquals("Song", MusicIdentity.display(
+            "Song | [Official Video]", "Original channel").title)
+        assertEquals("Song", MusicIdentity.display(
+            "Song - [Official Video]", "Original channel").title)
+    }
+
+    @Test fun nw81NeverErasesMeaningfulRecordingOrFeaturedArtistNames() {
+        for (original in listOf(
+            "Song (Live)", "Song (Acoustic)", "Song (Remix)",
+            "Song (Cover)", "Song feat. Singer",
+            "Song (Radio Edit)", "Song (Live at Wembley)",
+            "The Official Story", "Official Video Game Soundtrack",
+            "Song [Instrumental]", "Song (Karaoke)"
+        )) assertEquals(original, MusicIdentity.display(original, "Uploader").title)
+    }
+
+    @Test fun nw81BanglaVowelsMustNotFalselyCorroborateArtist() {
+        assertEquals(MusicDisplayIdentity("গান", "মালা"),
+            MusicIdentity.display("মালা - গান (Official Audio)", "মালা - Topic"))
+        assertEquals(MusicDisplayIdentity("মালা - গান", "মেলা - Topic"),
+            MusicIdentity.display("মালা - গান (Official Audio)", "মেলা - Topic"))
+    }
+
+    @Test fun nw81VideoModeNeverPretendsProviderCaptionIsMusicMetadata() {
+        val raw = "Ed Sheeran - Shape of You [Official Video]"
+        assertEquals(MusicDisplayIdentity(raw, "Ed Sheeran"),
+            MusicIdentity.videoDisplay(raw, "Ed Sheeran"))
+        assertEquals("Shape of You", MusicIdentity.display(raw, "Ed Sheeran").title)
+        assertEquals("Untitled video", MusicIdentity.videoDisplay("", "").title)
+        assertEquals("Unknown creator", MusicIdentity.videoDisplay("", "").artistOrCreator)
+    }
+
+    @Test fun nw81PresentationNeverMutatesSongMetadataOrIdentity() {
+        val original = video(
+            "Ed Sheeran - Shape of You (Official Lyric Video)",
+            "Ed Sheeran - Topic", "abcdefghijk")
+        val shown = MusicIdentity.display(original.title, original.author)
+        assertEquals("Shape of You", shown.title)
+        assertEquals("Ed Sheeran", shown.artistOrCreator)
+        assertEquals("Ed Sheeran - Shape of You (Official Lyric Video)", original.title)
+        assertEquals("Ed Sheeran - Topic", original.author)
+        assertEquals("https://www.youtube.com/watch?v=abcdefghijk", original.url)
+    }
 }
