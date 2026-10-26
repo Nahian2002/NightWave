@@ -5,7 +5,9 @@ package com.nightwave.player.v2.cloud
  * No email address is used as a NightWave login credential.
  */
 object CloudAccountPresentation {
-    enum class BackupStage { LOCAL_ONLY, CONNECTED_NOT_BACKED_UP, VERIFIED_BACKUP }
+    enum class BackupStage {
+        LOCAL_ONLY, CONNECTED_NOT_BACKED_UP, PREVIOUS_BACKUP_NEEDS_REFRESH, VERIFIED_BACKUP
+    }
 
     fun stage(connected: Boolean, enabled: Boolean, lastSuccessMs: Long): BackupStage =
         when {
@@ -14,12 +16,22 @@ object CloudAccountPresentation {
             else -> BackupStage.CONNECTED_NOT_BACKED_UP
         }
 
-    fun stage(status: CloudBackupStatus): BackupStage =
-        stage(status.account.isNotBlank(), status.enabled, status.lastSuccessMs)
+    fun stage(status: CloudBackupStatus): BackupStage = when (
+        CloudBackupFreshnessPolicy.classify(
+            status.account.isNotBlank(), status.enabled, status.lastSuccessMs,
+            status.revision, status.lastVerifiedRevision)
+    ) {
+        CloudBackupFreshnessPolicy.Freshness.LOCAL_ONLY -> BackupStage.LOCAL_ONLY
+        CloudBackupFreshnessPolicy.Freshness.CONNECTED_PENDING -> BackupStage.CONNECTED_NOT_BACKED_UP
+        CloudBackupFreshnessPolicy.Freshness.PREVIOUSLY_VERIFIED ->
+            BackupStage.PREVIOUS_BACKUP_NEEDS_REFRESH
+        CloudBackupFreshnessPolicy.Freshness.CURRENT_VERIFIED -> BackupStage.VERIFIED_BACKUP
+    }
 
     fun title(stage: BackupStage): String = when (stage) {
         BackupStage.LOCAL_ONLY -> "Local guest library"
         BackupStage.CONNECTED_NOT_BACKED_UP -> "Drive connected · backup pending"
+        BackupStage.PREVIOUS_BACKUP_NEEDS_REFRESH -> "Backup needs refreshing"
         BackupStage.VERIFIED_BACKUP -> "Drive backup verified"
     }
 
@@ -28,6 +40,8 @@ object CloudAccountPresentation {
             "Your music and playlists stay on this device until you choose a backup."
         BackupStage.CONNECTED_NOT_BACKED_UP ->
             "Google Drive access is connected. Create and verify a backup before relying on recovery."
+        BackupStage.PREVIOUS_BACKUP_NEEDS_REFRESH ->
+            "A previous backup was verified, but it isn't confirmed for the current backup choices. Back up now to refresh it."
         BackupStage.VERIFIED_BACKUP ->
             "A library backup was verified. This is not continuous cross-device synchronization."
     }
