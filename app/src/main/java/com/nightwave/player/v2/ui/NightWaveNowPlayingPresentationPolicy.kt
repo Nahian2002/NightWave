@@ -57,6 +57,12 @@ object NightWaveNowPlayingPresentationPolicy {
     fun artworkGestureHint(canSwipe: Boolean): String? =
         if (canSwipe) "Swipe artwork to skip" else null
 
+    fun lyricsSubtitle(offline: Boolean, importedLyrics: Boolean): String = when {
+        !offline -> "Synchronized lyrics require local audio"
+        importedLyrics -> "Your synchronized lyrics · ready"
+        else -> "Import your own LRC lyrics"
+    }
+
     /** Lightweight visual hierarchy; large text uses more vertical room. */
     fun titleLines(fontScale: Float, widthDp: Float): Int =
         if ((fontScale.isFinite() && fontScale >= 1.3f) ||
