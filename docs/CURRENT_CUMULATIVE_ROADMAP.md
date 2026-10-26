@@ -10,8 +10,8 @@
 | --- | --- | --- |
 | **NW76** | Final build and regression reliability: Gradle, zero failing JVM tests, APK signing/fingerprint and crash evidence | Earlier source certification gate; owner reported a successful build/basic device test, not final acceptance |
 | **NW77** | Music-source architecture and public-release rights: separate authorized local/licensed audio from YouTube references; retain saved metadata/files | Source audit committed; public release NO-GO |
-| **NW78** | Google sign-in and backup: certificate/OAuth error 8, connect/disconnect, verified backup/readback, restore preview, account switching | **Current development phase**; Google connection owner-confirmed, backup/readback not owner-verified |
-| **NW79** | Download/offline reliability: real progress and speed, true pause/retry/cancel states, transfer history, low-storage, integrity, permitted offline playback | Planned |
+| **NW78** | Google sign-in and backup: certificate/OAuth error 8, connect/disconnect, verified backup/readback, restore preview, account switching | Source guards committed; Google connection owner-confirmed; complete backup/readback/restore device acceptance pending NW90 |
+| **NW79** | Download/offline reliability: accurate progress, pause/retry/cancel semantics, transfer history, low-storage, integrity, permitted offline playback | Source improvements committed: longer slow-transfer window, backoff for transient HTTP, separate verification status; full end-to-end phone acceptance pending NW90 |
 | **NW80** | Playback engine: shuffle/history, Play Next, repeat, gapless, background controls, queue restoration, interruption and rapid seek | Planned |
 
 ## Wave 2 — Premium music experience (NW81–NW85)
