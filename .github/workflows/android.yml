@@ -87,6 +87,7 @@ on:
       - feature/nightwave-nw71-smart-library-discovery
       - feature/nightwave-nw72-cloud-session-restore-safety
       - feature/nightwave-nw73-backup-freshness-error8-guidance
+      - feature/nightwave-nw74-ui-state-crash-guards
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
