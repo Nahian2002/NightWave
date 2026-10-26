@@ -39,14 +39,25 @@ class DirectAudioDownloadWorker(
             // Failed attempts leave no reusable partial bytes.
             setProgressAsync(Data.Builder()
                 .putLong(DirectAudioDownloadQueue.KEY_RECEIVED, 0L)
-                .putLong(DirectAudioDownloadQueue.KEY_TOTAL, -1L).build())
+                .putLong(DirectAudioDownloadQueue.KEY_TOTAL, -1L)
+                .putBoolean(DirectAudioDownloadQueue.KEY_VERIFYING, false).build())
             setForegroundAsync(foreground(source.fileName, 0L, null)).get()
             if (isStopped) return fail("Download cancelled")
             val downloader = PermittedAudioDownloader(applicationContext)
             transfer = downloader
             var lastProgress = -1L
             var lastTime = 0L
-            val saved = downloader.download(source) { received, total ->
+            var latestReceived = 0L
+            var latestTotal = -1L
+            val saved = downloader.download(source, onVerifying = {
+                setProgressAsync(Data.Builder()
+                    .putLong(DirectAudioDownloadQueue.KEY_RECEIVED, latestReceived)
+                    .putLong(DirectAudioDownloadQueue.KEY_TOTAL, latestTotal)
+                    .putBoolean(DirectAudioDownloadQueue.KEY_VERIFYING, true)
+                    .build())
+            }) { received, total ->
+                latestReceived = received
+                latestTotal = total ?: -1L
                 if (isStopped) {
                     downloader.cancel()
                     throw IOException("Download cancelled")
@@ -59,6 +70,7 @@ class DirectAudioDownloadWorker(
                     setProgressAsync(Data.Builder()
                         .putLong(DirectAudioDownloadQueue.KEY_RECEIVED, received)
                         .putLong(DirectAudioDownloadQueue.KEY_TOTAL, total ?: -1L)
+                        .putBoolean(DirectAudioDownloadQueue.KEY_VERIFYING, false)
                         .build())
                     setForegroundAsync(foreground(source.fileName, received, total))
                 }
@@ -75,10 +87,7 @@ class DirectAudioDownloadWorker(
         } catch (error: Exception) {
             if (isStopped) fail("Download cancelled")
             else if (error is IOException && runAttemptCount < 2) Result.retry()
-            else fail(
-                if (error is IOException) "Network interrupted; requeue the audio link."
-                else DownloadRecoveryPolicy.failedMessage(error.message)
-            )
+            else fail(DownloadRecoveryPolicy.failedMessage(error.message))
         } finally {
             transfer = null
         }
