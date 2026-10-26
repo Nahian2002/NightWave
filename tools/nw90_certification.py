@@ -130,6 +130,27 @@ def report(root: Path, junit_dir: Path | None, apk: Path | None) -> dict:
     checks["source_rights"] = gate(
         "BLOCKED", "NW77 YouTube standalone/background and offline extraction paths "
                    "need compliant redesign or applicable authorization and music rights.")
+    # Android phone apps submitted to Google Play from 31 Aug 2026
+    # generally need API 36+. Do not silently raise the target/compile SDK
+    # without migration and a successful Android 16/device regression run.
+    gradle = root / "app/build.gradle.kts"
+    if gradle.is_file():
+        build_text = gradle.read_text(encoding="utf-8")
+        match = re.search(r"(?m)^\s*targetSdk\s*=\s*(\d+)", build_text)
+        current_sdk = int(match.group(1)) if match else None
+        if current_sdk is None or current_sdk < 36:
+            checks["play_store_requirements"] = gate(
+                "BLOCKED", f"targetSdk={current_sdk!s}; Play phone app submission "
+                "requires API 36+ unless applicable Play Console extension. "
+                "Migrate and retest the entire app before publication.")
+        else:
+            checks["play_store_requirements"] = gate(
+                "NOT_VERIFIED", f"targetSdk={current_sdk}; Play target value "
+                "is present, but store compliance and Android 16 runtime not certified.")
+    else:
+        checks["play_store_requirements"] = gate(
+            "BLOCKED", "No app/build.gradle.kts available to inspect target API.")
+
     # A known risky code path and missing real-device evidence require NO_GO.
     try:
         commit = subprocess.check_output(
