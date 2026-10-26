@@ -101,7 +101,7 @@ class CloudBackupState(context: Context) {
 
     /** Interactive first backup: existing call site and contract are preserved. */
     fun success(account: String, whenMs: Long): Boolean = synchronized(guard) {
-        if (!readLocked().account.equals(account, ignoreCase = true)) {
+        if (whenMs <= 0L || !readLocked().account.equals(account, ignoreCase = true)) {
             return@synchronized false
         }
         prefs.edit().putBoolean("enabled", true)
@@ -115,7 +115,7 @@ class CloudBackupState(context: Context) {
     fun successIfCurrent(
         consent: CloudBackupConsent, whenMs: Long, created: Boolean
     ): Boolean = synchronized(guard) {
-        if (!CloudBackupConsentPolicy.same(consent, readLocked().consentSnapshot())) {
+        if (whenMs <= 0L || !CloudBackupConsentPolicy.same(consent, readLocked().consentSnapshot())) {
             return@synchronized false
         }
         prefs.edit().putBoolean("enabled", true)
