@@ -73,13 +73,20 @@ object SearchMusicIntentPolicy {
         val wanted = canonical(query)
         if (wanted.isBlank()) return 0
         val candidates = titleCandidates(track)
+        val wantedTerms = SearchRelevancePolicy.prepare(wanted).terms
         return candidates.maxOfOrNull { title ->
+            // A substring of one longer word is not a song title match.
+            // Otherwise "alo" wrongly scores "alone" as a strong title.
+            if (!SearchTokenMatchingPolicy.allCovered(
+                    wantedTerms, SearchTokenMatchingPolicy.tokens(title))) {
+                return@maxOfOrNull 0
+            }
             when {
                 title == wanted -> 190
                 title.startsWith("$wanted ") -> 115
                 title.endsWith(" $wanted") -> 90
                 title.contains(" $wanted ") -> 85
-                title.contains(wanted) -> 58
+                title.contains(wanted) && wanted.length >= 4 -> 58
                 else -> 0
             }
         } ?: 0
