@@ -1,3 +1,5 @@
+> **NW75 BUILD HOTFIX 2 (26 OCTOBER 2026):** The Phase 6P patch worked. The next Windows build stopped at an outdated **NW34 offline readiness preflight**, which still expected an old direct method call even though NW62 moved it into a stricter asynchronous file-health policy. This complete cumulative hotfix verifies the full delegated chain instead. **20/20 NW34 source requirements verified against committed GitHub files; full Windows Gradle, new APK and Samsung testing are still pending. Public release: NO-GO.** Download from `fix/nightwave-nw75-nw34-offline-gate`. [Cause and safe rebuild](docs/NW75_NW34_OFFLINE_GATE_HOTFIX.md).
+
 # NightWave
 
 **Android audio-first music player · active development, private source · not yet public release-ready.**
@@ -8,7 +10,7 @@
 
 ### Build the complete cumulative source
 
-Download **Code → Download ZIP** from `fix/nightwave-nw75-phase6p-preflight`, extract into a **fresh Windows folder**, and run `build-windows.cmd` to perform the complete Android test/build/signature gate. If unsuccessful, run `send-build-report.cmd` and share the resulting `dist` diagnostic evidence. On a successful fresh candidate, use `check-google-oauth.cmd` and `check-device-update.cmd` BEFORE updating NightWave on your Samsung. **Never uninstall NightWave, clear its data, or delete offline songs to overcome Google OAuth or signing errors.**
+Download **Code → Download ZIP** from `fix/nightwave-nw75-nw34-offline-gate`, extract into a **fresh Windows folder**, and run `build-windows.cmd` to perform the complete Android test/build/signature gate. If unsuccessful, run `send-build-report.cmd` and share the resulting `dist` diagnostic evidence. On a successful fresh candidate, use `check-google-oauth.cmd` and `check-device-update.cmd` BEFORE updating NightWave on your Samsung. **Never uninstall NightWave, clear its data, or delete offline songs to overcome Google OAuth or signing errors.**
 
 Previous NW43–NW74 entries document source development, not verified Android or device release testing.
 
