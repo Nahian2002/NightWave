@@ -12,7 +12,7 @@
 | **NW77** | Music-source architecture and public-release rights: separate authorized local/licensed audio from YouTube references; retain saved metadata/files | Source audit committed; public release NO-GO |
 | **NW78** | Google sign-in and backup: certificate/OAuth error 8, connect/disconnect, verified backup/readback, restore preview, account switching | Source guards committed; Google connection owner-confirmed; complete backup/readback/restore device acceptance pending NW90 |
 | **NW79** | Download/offline reliability: accurate progress, pause/retry/cancel semantics, transfer history, low-storage, integrity, permitted offline playback | Source improvements committed: longer slow-transfer window, backoff for transient HTTP, separate verification status; full end-to-end phone acceptance pending NW90 |
-| **NW80** | Playback engine: shuffle/history, Play Next, repeat, gapless, background controls, queue restoration, interruption and rapid seek | Planned |
+| **NW80** | Playback engine: shuffle/history, Play Next, repeat, gapless, background controls, queue restoration, interruption and rapid seek | Targeted fixes committed for shuffle history on Play Next reorder, media-identity-safe seeks, previous-button rewind and stale gapless handoffs; broad Bluetooth/background/stress acceptance pending NW90 |
 
 ## Wave 2 — Premium music experience (NW81–NW85)
 
