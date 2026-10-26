@@ -193,3 +193,109 @@ fun NightWaveRecentShelfTile(
         }
     }
 }
+
+
+/**
+ * NW84: a compact shelf of real liked/playlist-only videos which are
+ * absent from Recently Played. This does not create "recommended songs" or
+ * invent cover art: the URL and thumbnail are the saved source values.
+ */
+@Composable
+fun NightWaveNextListenTile(
+    song: VideoPreview,
+    provenance: String,
+    isPlaying: Boolean,
+    onPlay: () -> Unit,
+    onOptions: () -> Unit
+) {
+    val scheme = MaterialTheme.colorScheme
+    val identity = remember(song.title, song.author) {
+        MusicIdentity.display(song.title, song.author)
+    }
+    val preferred = remember(song.thumbnail) {
+        NightWaveArtworkPolicy.preferredArtwork(song.thumbnail)
+    }
+    var useOriginal by remember(song.thumbnail) { mutableStateOf(false) }
+    val thumbnail = if (useOriginal) song.thumbnail else preferred
+    Column(
+        modifier = Modifier.width(166.dp).testTag("nw84-next-listen-tile"),
+        verticalArrangement = Arrangement.spacedBy(3.dp)
+    ) {
+        Surface(
+            onClick = onPlay,
+            shape = RoundedCornerShape(NightWavePremiumDesignTokens.CARD_CORNER_DP.dp),
+            color = if (isPlaying) scheme.primary.copy(alpha = .12f)
+                else scheme.surface,
+            border = BorderStroke(1.dp,
+                if (isPlaying) scheme.primary.copy(alpha = .44f)
+                else scheme.outline.copy(alpha = .22f)),
+            modifier = Modifier.fillMaxWidth().testTag("nw84-next-listen-play")
+        ) {
+            Column {
+                Box(
+                    Modifier.fillMaxWidth().aspectRatio(1f)
+                        .clip(RoundedCornerShape(
+                            NightWavePremiumDesignTokens.CARD_CORNER_DP.dp))
+                        .background(Brush.linearGradient(listOf(
+                            NightWaveVisualLanguage.accent(song.url).copy(alpha = .32f),
+                            scheme.surfaceVariant, scheme.surface))),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("♫", style = MaterialTheme.typography.headlineLarge,
+                        color = scheme.onSurfaceVariant)
+                    if (thumbnail.isNotBlank()) {
+                        AsyncImage(model = thumbnail,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize(),
+                            onError = {
+                                if (!useOriginal && NightWaveArtworkPolicy.allowOriginalFallback(
+                                        song.thumbnail, preferred)) useOriginal = true
+                            })
+                    }
+                    if (isPlaying) {
+                        Surface(
+                            modifier = Modifier.align(Alignment.BottomStart).padding(8.dp),
+                            color = scheme.primary,
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text("PLAYING",
+                                modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = scheme.onPrimary)
+                        }
+                    }
+                }
+                Column(
+                    Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 9.dp),
+                    verticalArrangement = Arrangement.spacedBy(3.dp)
+                ) {
+                    Text(identity.title,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = scheme.onSurface, maxLines = 2,
+                        overflow = TextOverflow.Ellipsis)
+                    Text(identity.artistOrCreator,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = scheme.onSurfaceVariant, maxLines = 1,
+                        overflow = TextOverflow.Ellipsis)
+                }
+            }
+        }
+        Row(Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(provenance, style = MaterialTheme.typography.labelSmall,
+                color = scheme.onSurfaceVariant,
+                maxLines = 1, overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f).padding(start = 6.dp))
+            IconButton(onClick = onOptions,
+                modifier = Modifier.size(
+                    NightWavePremiumDesignTokens.MIN_TOUCH_TARGET_DP.dp)
+                    .testTag("nw84-next-listen-options")) {
+                Icon(Icons.Outlined.MoreVert,
+                    contentDescription = "Options for " + identity.title,
+                    tint = scheme.onSurfaceVariant)
+            }
+        }
+    }
+}
