@@ -1762,10 +1762,21 @@ class PlaybackService : MediaLibraryService() {
             }
             return
         }
-        queue.previous()?.let {
+        val originallySelected = queue.current?.url
+        queue.previous()?.let { selected ->
             pendingQueueRemoval = null
             savedQueue.save(queue)
-            resolveAndPlay(it)
+            if (PlaybackPreviousPolicy.canRestartLoaded(
+                    originallySelected, selected.url,
+                    player?.currentMediaItem?.mediaId, player?.playerError != null)) {
+                // Already the first (or only) loaded track. A new network
+                // resolution is unnecessary and may interrupt good audio.
+                player?.seekTo(0L)
+                savedQueue.saveBookmark(selected.url, 0L,
+                    player?.duration?.takeIf { it > 0L && it != C.TIME_UNSET } ?: 0L)
+            } else {
+                resolveAndPlay(selected)
+            }
         }
     }
 
