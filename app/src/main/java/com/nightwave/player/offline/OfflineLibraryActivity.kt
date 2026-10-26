@@ -118,6 +118,22 @@ class OfflineLibraryActivity : ComponentActivity() {
             contentDescription = "Offline music storage and device free space"
         }
         root.addView(storageSummary, LinearLayout.LayoutParams(-1, -2))
+        // If a user restores a backup or frees disk space while this screen
+        // stays open, let them recheck without deleting or rewriting metadata.
+        root.addView(label(OfflineLibraryRecoveryGuide.recheckActionLabel(),
+            13f, 0xFF91E2D7.toInt(), true).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            contentDescription = "Recheck saved local audio files and index"
+            setPadding(dp(12), 0, dp(12), 0)
+            background = cardBackground(0xFF1A303A.toInt())
+            setOnClickListener {
+                cachedReport = null
+                refresh()
+                status("Offline audio rechecked · No files or entries changed")
+            }
+        }, LinearLayout.LayoutParams(-1, dp(44)).apply {
+            bottomMargin = dp(7)
+        })
         val search = EditText(this).apply {
             hint = "Search saved songs"
             setSingleLine(true)
@@ -484,6 +500,26 @@ class OfflineLibraryActivity : ComponentActivity() {
         val pageSongs = visibleSongs.drop(page * OfflineLibraryCapacity.pageSize())
             .take(OfflineLibraryCapacity.pageSize())
         tracks.removeAllViews()
+        if (report.attentionCount > 0) {
+            tracks.addView(label(
+                OfflineLibraryRecoveryGuide.emptyIssuesMessage(report.attentionCount) +
+                    " · View issues",
+                13f, 0xFFFFC07D.toInt(), true
+            ).apply {
+                contentDescription = "View " + report.attentionCount +
+                    " offline entries needing recovery"
+                setPadding(dp(12), dp(9), dp(12), dp(9))
+                background = cardBackground(0xFF2E2B29.toInt())
+                setOnClickListener {
+                    availabilityFilter = OfflineLibraryViewPolicy.Filter.ATTENTION
+                    page = 0
+                    refresh()
+                    trackScroll.post { trackScroll.scrollTo(0, 0) }
+                }
+            }, LinearLayout.LayoutParams(-1, -2).apply {
+                bottomMargin = dp(8)
+            })
+        }
         if (visibleSongs.isEmpty()) tracks.addView(label(
             OfflineLibraryViewPolicy.emptyMessage(
                 availabilityFilter, all.isNotEmpty(), searchText.isNotBlank()),
@@ -542,15 +578,15 @@ class OfflineLibraryActivity : ComponentActivity() {
             }, LinearLayout.LayoutParams(dp(48), dp(48)))
             row.addView(label("⋮", 24f, 0xFFB9C9D6.toInt()).apply {
                 gravity = Gravity.CENTER
-                contentDescription = "Remove offline track " + song.title
+                contentDescription = if (available) "Remove offline track " + song.title
+                    else "Recovery options for " + song.title
                 setOnClickListener {
                     if (!available || library.fileFor(song) == null) {
                         AlertDialog.Builder(this@OfflineLibraryActivity)
-                            .setTitle("Offline audio needs attention")
-                            .setMessage(song.title + ": " + availability + ". " +
-                                "The entry and file (if present) remain untouched. " +
-                                "Re-import the original audio or seek manual recovery; " +
-                                "NightWave will not delete an unverified copy.")
+                            .setTitle(OfflineLibraryRecoveryGuide.title(health))
+                            .setMessage(song.title + "\n\n" +
+                                OfflineLibraryRecoveryGuide.help(health) +
+                                "\n\nNightWave has not changed this entry or its file.")
                             .setPositiveButton("OK", null).show()
                     } else {
                         AlertDialog.Builder(this@OfflineLibraryActivity)
