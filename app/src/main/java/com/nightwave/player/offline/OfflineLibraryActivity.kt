@@ -137,7 +137,11 @@ class OfflineLibraryActivity : ComponentActivity() {
                             if (checked.isSuccess) {
                                 cachedReport = checked.getOrNull()
                                 refresh()
-                                status("Offline audio rechecked · No files or entries changed")
+                                // Keep the unreadable-index warning prominent;
+                                // a successful scan is not a successful file repair.
+                                if (checked.getOrNull()?.indexReadable == true) {
+                                    status("Offline audio rechecked · No files or entries changed")
+                                }
                             } else {
                                 // Avoid redoing a failed storage scan synchronously
                                 // on the UI thread. Keep the previous snapshot.
