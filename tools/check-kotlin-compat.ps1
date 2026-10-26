@@ -43,6 +43,18 @@ function Test-QualifiedFilterEnum([string]$Body, [string]$PolicyType) {
         $Body.Contains(($PolicyType + '.Filter.')))
 }
 
+function Test-NW44SingleSongSearchTaps([string]$SearchContent) {
+    # NW82 extended NW44's original two public result sections to THREE:
+    # Best matches, Other versions and More results. All share the same
+    # single-song callback, so the old -ne 2 check was a false positive.
+    $savedPaths = $SearchContent.Split(@('onPlay(song, listOf(song))'),
+        [System.StringSplitOptions]::None).Length - 1
+    $singlePublic = $SearchContent.Contains('onPlay(selected, listOf(selected))')
+    $publicPathCount = $SearchContent.Split(@('playSinglePublic(song)'),
+        [System.StringSplitOptions]::None).Length - 1
+    return ($savedPaths -eq 3 -and $singlePublic -and $publicPathCount -eq 3)
+}
+
 function Test-CloudDriveHttpDiagnosticContract([string]$PolicySource, [string]$TestSource) {
     # The same numeric value is formatted differently for Drive HTTP vs Google
     # Sign-In. Do not change production messages to satisfy a stale JVM test.
@@ -118,6 +130,36 @@ if ($SelfTest) {
             'assertTrue(output.contains("(99)"))'))) {
         throw 'Stale Drive HTTP 99 assertion was not detected.'
     }
+    # NW110 Windows preflight correction: NW82 has three grouped public
+    # Search surfaces. Positive and negative fixtures protect single-song
+    # playback without incorrectly rejecting the third group.
+    $validSearch = @(
+        'onPlay(song, listOf(song))',
+        'onPlay(song, listOf(song))',
+        'onPlay(song, listOf(song))',
+        'onPlay(selected, listOf(selected))',
+        'playSinglePublic(song)',
+        'playSinglePublic(song)',
+        'playSinglePublic(song)'
+    ) -join [Environment]::NewLine
+    if (-not (Test-NW44SingleSongSearchTaps $validSearch)) {
+        throw 'NW44 three public single-song groups were incorrectly rejected.'
+    }
+    if (Test-NW44SingleSongSearchTaps (
+        $validSearch.Replace('playSinglePublic(song)', '').Trim())) {
+        throw 'NW44 accepted missing public Search tap handlers.'
+    }
+    if (Test-NW44SingleSongSearchTaps (
+        $validSearch.Replace('onPlay(selected, listOf(selected))',
+            'onPlay(selected, state.videos)'))) {
+        throw 'NW44 accepted bulk public Search playback.'
+    }
+    if (Test-NW44SingleSongSearchTaps (
+        $validSearch.Replace('onPlay(song, listOf(song))',
+            'onPlay(song, savedTracks)'))) {
+        throw 'NW44 accepted grouped local Search playback.'
+    }
+    Write-Host 'PASS: NW44 three public groups preserve single-song tap behavior.'
     Write-Host 'PASS: Drive verification HTTP status and credential safety source test.'
     Write-Host 'PASS: Filter enum references use the declaring Kotlin object type.'
     Write-Host 'PASS: Compose animation delegates require runtime.getValue when using by.'
@@ -312,12 +354,7 @@ if ((Test-Path -LiteralPath $studioPath -PathType Leaf) -and
                 $issues.Add(('NW43 Search must not autoqueue search results: ' + $bad))
             }
         }
-        $savedPaths = $searchContent.Split(@('onPlay(song, listOf(song))'),
-            [System.StringSplitOptions]::None).Length - 1
-        $singlePublic = $searchContent.Contains('onPlay(selected, listOf(selected))')
-        $publicPathCount = $searchContent.Split(@('playSinglePublic(song)'),
-            [System.StringSplitOptions]::None).Length - 1
-        if ($savedPaths -ne 3 -or -not $singlePublic -or $publicPathCount -ne 2) {
+        if (-not (Test-NW44SingleSongSearchTaps $searchContent)) {
             $issues.Add('NW44: all grouped Search taps must remain single-song.')
         }
     }
