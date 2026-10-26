@@ -67,28 +67,44 @@ fun NightWaveMaterialTheme(
     val palette = NightWaveDesign.palette(choice)
     val scheme = if (palette.isDark) darkColorScheme(
         primary = paletteColor(palette.accent), onPrimary = paletteColor(palette.contrastOnAccent()),
+        primaryContainer = paletteColor(palette.accentSoft),
+        onPrimaryContainer = paletteColor(palette.foreground),
         background = paletteColor(palette.background), onBackground = paletteColor(palette.foreground),
         surface = paletteColor(palette.surface), onSurface = paletteColor(palette.foreground),
         surfaceVariant = paletteColor(palette.raised), onSurfaceVariant = paletteColor(palette.secondary),
         secondary = paletteColor(palette.secondary), onSecondary = paletteColor(palette.background),
+        secondaryContainer = paletteColor(palette.raised),
+        onSecondaryContainer = paletteColor(palette.foreground),
         tertiary = paletteColor(palette.accent), onTertiary = paletteColor(palette.contrastOnAccent()),
+        tertiaryContainer = paletteColor(palette.accentSoft),
+        onTertiaryContainer = paletteColor(palette.foreground),
         surfaceTint = paletteColor(palette.accent),
         inverseSurface = paletteColor(palette.foreground),
         inverseOnSurface = paletteColor(palette.background),
         outline = paletteColor(palette.outline), outlineVariant = paletteColor(palette.outline).copy(alpha = .62f),
-        error = paletteColor(palette.danger)
+        error = paletteColor(palette.danger), onError = paletteColor(palette.background),
+        errorContainer = paletteColor(palette.raised),
+        onErrorContainer = paletteColor(palette.danger)
     ) else lightColorScheme(
         primary = paletteColor(palette.accent), onPrimary = paletteColor(palette.contrastOnAccent()),
+        primaryContainer = paletteColor(palette.accentSoft),
+        onPrimaryContainer = paletteColor(palette.foreground),
         background = paletteColor(palette.background), onBackground = paletteColor(palette.foreground),
         surface = paletteColor(palette.surface), onSurface = paletteColor(palette.foreground),
         surfaceVariant = paletteColor(palette.raised), onSurfaceVariant = paletteColor(palette.secondary),
         secondary = paletteColor(palette.secondary), onSecondary = paletteColor(palette.background),
+        secondaryContainer = paletteColor(palette.raised),
+        onSecondaryContainer = paletteColor(palette.foreground),
         tertiary = paletteColor(palette.accent), onTertiary = paletteColor(palette.contrastOnAccent()),
+        tertiaryContainer = paletteColor(palette.accentSoft),
+        onTertiaryContainer = paletteColor(palette.foreground),
         surfaceTint = paletteColor(palette.accent),
         inverseSurface = paletteColor(palette.foreground),
         inverseOnSurface = paletteColor(palette.background),
         outline = paletteColor(palette.outline), outlineVariant = paletteColor(palette.outline).copy(alpha = .62f),
-        error = paletteColor(palette.danger)
+        error = paletteColor(palette.danger), onError = paletteColor(palette.background),
+        errorContainer = paletteColor(palette.raised),
+        onErrorContainer = paletteColor(palette.danger)
     )
     CompositionLocalProvider(
         LocalNightWavePalette provides palette,
