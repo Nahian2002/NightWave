@@ -7,6 +7,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -87,8 +88,9 @@ fun NightWavePremiumNavigation(
             .padding(horizontal = 12.dp, vertical = 4.dp),
         color = colors.surface,
         tonalElevation = 1.dp,
-        shadowElevation = 8.dp,
-        shape = RoundedCornerShape(23.dp)
+        shadowElevation = 7.dp,
+        border = BorderStroke(1.dp, colors.outline.copy(alpha = .30f)),
+        shape = RoundedCornerShape(NightWavePremiumDesignTokens.NAV_CORNER_DP.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth()
@@ -157,7 +159,8 @@ fun NightWavePremiumNavigation(
                             contentDescription = null,
                             tint = if (active) colors.primary
                                 else colors.onSurfaceVariant,
-                            modifier = Modifier.size(if (extraLargeText) 24.dp else 23.dp)
+                            modifier = Modifier.size(
+                                (if (extraLargeText) 24 else NightWavePremiumDesignTokens.ICON_SIZE_DP).dp)
                                 .graphicsLayer {
                                     scaleX = iconScale
                                     scaleY = iconScale
@@ -203,7 +206,7 @@ fun NightWaveHomeHero(
     Box(
         modifier = modifier.fillMaxWidth()
             .height(heroHeight)
-            .clip(RoundedCornerShape(23.dp))
+            .clip(RoundedCornerShape(NightWavePremiumDesignTokens.HERO_CORNER_DP.dp))
             .background(
                 Brush.horizontalGradient(
                     listOf(
