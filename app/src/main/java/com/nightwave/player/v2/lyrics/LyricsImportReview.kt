@@ -49,7 +49,8 @@ object LyricsImportReviewPolicy {
         val declared = tagTitle?.let(::normalizedName).orEmpty()
         // Conflicting explicit [ti:] metadata is a warning, never a silent match.
         if (declared.isNotEmpty() && declared != target &&
-            !(target.length >= 5 && declared.contains(target))) {
+            !(target.length >= 5 &&
+                (" $declared ").contains(" $target "))) {
             return LyricsImportMatch.DIFFERENT
         }
         if (fileName == target || declared == target) return LyricsImportMatch.LIKELY
