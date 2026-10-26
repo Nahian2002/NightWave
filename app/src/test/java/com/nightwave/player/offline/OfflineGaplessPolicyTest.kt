@@ -59,4 +59,18 @@ class OfflineGaplessPolicyTest {
         assertNull(OfflineGaplessPolicy.transitionIndex(
             ids, 0, "offline:deleted.mp3", automatic = false))
     }
+
+    @Test fun lateAutomaticTransitionCannotAdoptMediaWithoutSelectedQueueSlot() {
+        val ids = listOf("a.mp3", "b.mp3", "c.mp3")
+        assertNull(OfflineGaplessPolicy.transitionIndex(
+            ids, -1, "offline:a.mp3", automatic = true))
+        assertNull(OfflineGaplessPolicy.transitionIndex(
+            ids, 3, "offline:c.mp3", automatic = true))
+        assertNull(OfflineGaplessPolicy.transitionIndex(
+            ids, 1, "offline:b.mp3", automatic = true, shuffled = true))
+        assertEquals(0, OfflineGaplessPolicy.transitionIndex(
+            ids, 2, "offline:a.mp3", automatic = true, repeatAll = true))
+        assertEquals(2, OfflineGaplessPolicy.transitionIndex(
+            ids, 1, "offline:c.mp3", automatic = true, shuffled = true))
+    }
 }
