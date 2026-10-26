@@ -101,12 +101,16 @@ object SearchRelevancePolicy {
             score += 75
             if (strength.any { it == 1 }) score += 55
         }
-        if (title == wanted) score += 140
-        else if (title.startsWith(wanted)) score += 100
-        else if (wanted in title) score += 72
-        if (artist == wanted) score += 85
-        else if (artist.startsWith(wanted)) score += 40
-        else if (wanted in artist) score += 26
+        // Exact/prefix song and artist boosts require full token coverage.
+        // Without this, "alo" earns a misleading 100-point boost on "alone".
+        if (covered == terms.size) {
+            if (title == wanted) score += 140
+            else if (title.startsWith(wanted)) score += 100
+            else if (wanted.length >= 4 && wanted in title) score += 72
+            if (artist == wanted) score += 85
+            else if (artist.startsWith(wanted)) score += 40
+            else if (wanted.length >= 4 && wanted in artist) score += 26
+        }
         if (SearchTokenMatchingPolicy.allCovered(
                 terms, SearchTokenMatchingPolicy.tokens(title))) score += 30
         if (track.durationSeconds in 90L..660L) score += 6
