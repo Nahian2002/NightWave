@@ -88,6 +88,7 @@ on:
       - feature/nightwave-nw72-cloud-session-restore-safety
       - feature/nightwave-nw73-backup-freshness-error8-guidance
       - feature/nightwave-nw74-ui-state-crash-guards
+      - feature/nightwave-nw75-final-integration-gates
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
@@ -374,6 +375,16 @@ jobs:
             python3 tools/nw26_reliability_smoke.py
             python3 tools/nw27_hardening_smoke.py
             python3 tools/nw27_state_smoke.py
+            # NW75: compile FIVE real Kotlin source policies together, then
+            # execute the exact cross-phase test harness; no Android SDK/data.
+            kotlinc \
+              app/src/main/java/com/nightwave/player/v2/library/SmartDiscoveryPoolPolicy.kt \
+              app/src/main/java/com/nightwave/player/v2/ui/StudioUiStateSafetyPolicy.kt \
+              app/src/main/java/com/nightwave/player/v2/cloud/CloudBackupFreshnessPolicy.kt \
+              app/src/main/java/com/nightwave/player/v2/cloud/CloudAccountSessionPolicy.kt \
+              app/src/main/java/com/nightwave/player/v2/cloud/CloudBackupConsentPolicy.kt \
+              tools/NW75IntegrationSmoke.kt -include-runtime -d /tmp/nightwave-nw75-policy.jar
+            java -jar /tmp/nightwave-nw75-policy.jar
           else
             echo "SKIP: standalone kotlinc not provisioned; Gradle Kotlin gate is required"
           fi
