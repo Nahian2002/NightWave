@@ -412,6 +412,25 @@ fun StudioNowPlayingOverlay(
                 maxWidth.value, maxHeight.value, fontScale)
             val contentPaddingDp = playerLayout.horizontalPaddingDp
             val art = playerLayout.artworkDp.dp
+            val playerIdentity = remember(state.title, state.artist) {
+                MusicIdentity.display(state.title, state.artist)
+            }
+            val queuePreview = remember(
+                state.queue, state.queueIndex, state.manualNextUrls, state.shuffle
+            ) {
+                NightWaveNowPlayingPresentationPolicy.queuePreview(
+                    urls = state.queue.map { it.url },
+                    titles = state.queue.map { it.title },
+                    currentIndex = state.queueIndex,
+                    manualNextUrls = state.manualNextUrls,
+                    shuffled = state.shuffle
+                )
+            }
+            val queuePreviewTitle = queuePreview.sourceSlot?.let { at ->
+                state.queue.getOrNull(at)?.let {
+                    MusicIdentity.display(it.title, it.author).title
+                }
+            } ?: queuePreview.subtitle
             val canSwipeArtwork = state.connected && !state.buffering && state.queue.size > 1
             var horizontalTravel by remember(state.videoUrl) { mutableStateOf(0f) }
             val playingArtworkScale by animateFloatAsState(
@@ -469,10 +488,10 @@ fun StudioNowPlayingOverlay(
                             Text("NIGHTWAVE LYRICS",
                                 style = MaterialTheme.typography.labelMedium,
                                 color = colors.primary)
-                            Text(state.title, maxLines = 1,
+                            Text(playerIdentity.title, maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 style = MaterialTheme.typography.titleMedium)
-                            Text(state.artist, maxLines = 1,
+                            Text(playerIdentity.artistOrCreator, maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = colors.onSurfaceVariant)
@@ -738,8 +757,9 @@ fun StudioNowPlayingOverlay(
                 // Don't advertise the source type as a prominent pill on
                 // every Now Playing screen. Keep only a useful gesture hint.
                 if (canSwipeArtwork) {
-                    Text("SWIPE COVER TO SKIP",
-                        modifier = Modifier.padding(top = 11.dp),
+                    Text(NightWaveNowPlayingPresentationPolicy.artworkGestureHint(
+                            canSwipeArtwork).orEmpty(),
+                        modifier = Modifier.padding(top = 9.dp),
                         style = MaterialTheme.typography.labelSmall,
                         color = colors.onSurfaceVariant.copy(alpha = .85f))
                 }
@@ -747,15 +767,19 @@ fun StudioNowPlayingOverlay(
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text(if (state.title.isBlank()) "Choose a track"
-                            else MusicIdentity.display(state.title, state.artist).title,
+                            else playerIdentity.title,
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.ExtraBold,
                             color = colors.onBackground,
-                            maxLines = 2, overflow = TextOverflow.Ellipsis)
+                            maxLines = NightWaveNowPlayingPresentationPolicy.titleLines(
+                                fontScale, maxWidth.value),
+                            overflow = TextOverflow.Ellipsis)
                         Spacer(Modifier.height(5.dp))
-                        Text(MusicIdentity.display(state.title, state.artist).artistOrCreator,
+                        Text(playerIdentity.artistOrCreator,
                             style = MaterialTheme.typography.bodyLarge,
-                            color = colors.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            color = colors.onSurfaceVariant,
+                            maxLines = NightWaveNowPlayingPresentationPolicy.artistLines(fontScale),
+                            overflow = TextOverflow.Ellipsis)
                     }
                     IconButton(onClick = onLike, enabled = !state.offline) {
                         Icon(if (liked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
@@ -842,9 +866,8 @@ fun StudioNowPlayingOverlay(
                     color = colors.surfaceVariant.copy(alpha = .74f)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
-                        Text(if (!state.hasTrack) "Choose a track first"
-                            else if (state.offline) "Open offline library"
-                            else "Save for offline listening",
+                        Text(NightWaveNowPlayingPresentationPolicy.offlineActionLabel(
+                            state.hasTrack, state.offline),
                             style = MaterialTheme.typography.labelLarge,
                             color = colors.onSurface)
                     }
@@ -861,11 +884,13 @@ fun StudioNowPlayingOverlay(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween) {
                         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            Text("Up next", style = MaterialTheme.typography.labelSmall,
+                            Text(queuePreview.heading,
+                                style = MaterialTheme.typography.labelSmall,
                                 color = colors.onSurfaceVariant)
-                            Text("Queue · " + state.queue.size + " " +
-                                if (state.queue.size == 1) "track" else "tracks",
-                                style = MaterialTheme.typography.titleMedium)
+                            Text(queuePreviewTitle,
+                                style = MaterialTheme.typography.titleMedium,
+                                maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                color = colors.onSurface)
                         }
                         Icon(Icons.AutoMirrored.Outlined.QueueMusic, contentDescription = "Open queue", tint = colors.primary)
                     }
