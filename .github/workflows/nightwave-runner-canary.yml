@@ -16,6 +16,7 @@ on:
       - feature/nightwave-nw94-playback-checkpoint-reliability
       - feature/nightwave-nw95-headset-media-focus-reliability
       - feature/nightwave-nw96-equalizer-session-restoration
+      - feature/nightwave-nw97-offline-shuffle-cycle-integrity
   workflow_dispatch:
 
 permissions: {}

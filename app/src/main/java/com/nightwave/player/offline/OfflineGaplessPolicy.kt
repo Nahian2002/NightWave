@@ -23,18 +23,16 @@ object OfflineGaplessPolicy {
         automatic: Boolean, shuffled: Boolean = false,
         repeatAll: Boolean = false
     ): Int? {
-        if (ids.size !in 2..MAX_PREPARED_ITEMS || mediaId == null ||
-            !mediaId.startsWith("offline:")) return null
+        if (currentIndex !in ids.indices || mediaId == null ||
+            !mediaId.startsWith("offline:") ||
+            selectedIndex(ids, ids[currentIndex]) == null) return null
         val id = mediaId.removePrefix("offline:")
         val target = ids.indexOf(id)
         if (target < 0) return null
         if (automatic) {
-            // A stale transition callback arriving before (or after) the
-            // offline queue selection cannot advance from index -1 to zero.
-            if (currentIndex !in ids.indices || target == currentIndex) return null
-            // Media3 owns the shuffled playlist order. Check that the selected
-            // target is a real member, and don't assume index+1 when shuffled.
-            if (shuffled && target == currentIndex) return null
+            // Only live, selected timeline items can auto-advance. Shuffle
+            // follows Media3's verified target; linear mode remains adjacent.
+            if (target == currentIndex) return null
             if (!shuffled && target != currentIndex + 1 &&
                 !(repeatAll && currentIndex == ids.lastIndex && target == 0)) return null
         }

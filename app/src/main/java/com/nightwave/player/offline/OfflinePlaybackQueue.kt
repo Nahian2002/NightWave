@@ -65,9 +65,8 @@ class OfflinePlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it)
         if (shuffle && ids.size == 1 && repeat == PlaybackQueue.Repeat.ALL)
             return current
         val target = if (shuffle) {
-            // The old offline fallback added departed songs back to unplayed
-            // on Previous but lost their order. Retrace exactly, then remove
-            // the returned song from random candidates to prevent duplication.
+            // A shuffled Previous builds an exact forward redo trail, not a
+            // fresh random candidate. Never reroll an already heard track.
             val forward = forwardVisits.lastOrNull()
                 ?.takeIf { it in ids.indices && it != index }
             if (forward != null) {
@@ -108,8 +107,10 @@ class OfflinePlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it)
                 forwardVisits.add(index)
                 if (forwardVisits.size > MAX_ITEMS) forwardVisits.removeFirst()
             }
+            // Both songs have already been played in this shuffle cycle.
+            // Forward may retrace the departed song, but Previous must never
+            // return it to random candidates after a different Jump branch.
             unplayed.remove(target)
-            if (index !in unplayed) unplayed.add(index)
         }
         index = target
         return current

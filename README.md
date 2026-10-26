@@ -4,9 +4,11 @@
 
 NightWave combines locally imported or otherwise authorized music, an offline library, optional Google Drive backup, song discovery, playlists, Sound Studio, queue control, and user-imported synchronized LRC lyrics. The original midnight/teal design is independent of Spotify.
 
-**Current development source:** `feature/nightwave-nw96-equalizer-session-restoration` (cumulative NW95 plus frequency-safe EQ preference restoration). The older default `main` does not represent this candidate.
+**Current development source:** `feature/nightwave-nw97-offline-shuffle-cycle-integrity` (cumulative NW96 with offline fallback shuffle-cycle and gapless transition validation). The older default `main` does not represent this candidate.
 
 **Release status:** **NO-GO**. The hosted GitHub Actions runner and empty canary both failed before executing steps; a current Windows debug build, Android/JUnit/139-case device validation, installed-signer continuity, production OAuth/backup, Google Play API 36 migration and NW77 YouTube-source rights review remain outstanding. Never install a new APK over a library-bearing app unless its signer matches.
+
+**NW97 shuffle and gapless transition milestone:** [NW97 regression evidence](docs/NW97_OFFLINE_TRANSITION_EVIDENCE.md). Offline fallback Previous no longer returns a heard song to random unplayed candidates; exact Forward retrace and Repeat One/All remain. Prepared gapless transitions reject stale selection indexes or corrupt queue IDs. **Android/phone acceptance remains outstanding.**
 
 **NW96 equalizer-session milestone:** [NW96 exact changes and test caveats](docs/NW96_EQUALIZER_SESSION_EVIDENCE.md). Explicit EQ preset/manual curve intent is saved atomically and restored on service startup, then enabled only on a compatible live Android effect session. Manual frequency centers must match: same band count alone is insufficient. **Android build and Bluetooth acoustic/device QA remain unverified.**
 
