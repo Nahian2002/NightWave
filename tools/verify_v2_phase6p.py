@@ -11,6 +11,8 @@ bridge = read(base + "v2/playback/StudioPlaybackBridge.kt")
 ui = read(base + "v2/ui/NightWaveStudioActivity.kt")
 quick = read(base + "v2/library/LibraryQuickPlayPolicy.kt")
 search = read(base + "net/SearchRelevancePolicy.kt")
+unicode = read(base + "net/SearchScriptNormalization.kt")
+saved = read(base + "net/SavedTrackSearch.kt")
 creators = read(base + "net/SavedCreatorBrowser.kt")
 library = read(base + "library/MusicLibrary.kt")
 gradle = read("app/build.gradle.kts")
@@ -45,7 +47,15 @@ assert ui.count("enabled = quickPlayableTracks.isNotEmpty()") == 2
 assert "onPlay(song, if (selectedPlaylist == null) tracks else orderedTracks)" in ui
 assert "MAX_QUEUE = 100" in quick and "ordered.take(MAX_QUEUE)" in quick
 assert "VideoLink.normalize(it.url) == it.url" in quick
-assert "Normalizer.Form.NFKD" in search
+# NW70 delegated Unicode keys to a separate script-aware policy. This
+# correctly folds Latin accents without stripping Bengali vowel marks.
+assert "SearchScriptNormalization.normalize(value)" in search
+assert "Normalizer.Form.NFKD" in unicode
+assert "Normalizer.Form.NFC" in unicode
+assert "latinDiacritic" in unicode
+assert "SearchRelevancePolicy.savedScore(prepared, track)" in saved
+assert ".distinctBy { it.first.url }" in saved
+assert "SavedTrackSearch.match(query, savedTracks)" in ui
 assert "VideoLink.normalize(video.url) != video.url" in creators
 assert "nightwave_library_v1" in library
 # Phase 6X2 adds a temporary offline decoder for crossfade. Keep
