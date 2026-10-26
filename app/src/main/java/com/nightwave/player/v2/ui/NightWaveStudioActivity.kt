@@ -222,6 +222,7 @@ import com.nightwave.player.v2.playback.SpotlightResumePolicy
 import com.nightwave.player.v2.playback.SpotlightAction
 import com.nightwave.player.v2.recommendation.PersonalMixEngine
 import com.nightwave.player.v2.recommendation.LocalDailyMixEngine
+import com.nightwave.player.v2.recommendation.NightWaveHomeCurationPolicy
 import com.nightwave.player.v2.recommendation.PersonalMix
 import com.nightwave.player.v2.social.PlaylistShareFormatter
 import com.nightwave.player.v2.social.PlaylistShareParser
@@ -3242,7 +3243,7 @@ private fun StudioHome(
     val dayNumber = java.time.LocalDate.now().toEpochDay()
     // Extend the existing personal mixes, rather than replacing them.
     // All inputs are already device-local saved/recent public video metadata.
-    val mixes = remember(favorites, recent, playlistTracks, dayNumber, memory) {
+    val homePlan = remember(favorites, recent, playlistTracks, dayNumber, memory) {
         val daily = LocalDailyMixEngine.make(favorites, recent, playlistTracks,
             dayNumber, memoryTracks = memory.recommendationTracks,
             memoryEnabled = memory.enabled)
@@ -3251,8 +3252,10 @@ private fun StudioHome(
             memoryEnabled = memory.enabled)
             // Daily Mix 1–3 supersede the earlier generic daily rotation card.
             .filterNot { it.key == "daily" }
-        daily + existing
+        NightWaveHomeCurationPolicy.curate(favorites, recent, playlistTracks,
+            daily, existing, dayNumber)
     }
+    val mixes = homePlan.mixes
     var chosenMixKey by rememberSaveable { mutableStateOf<String?>(null) }
     var showAllMixTracks by rememberSaveable { mutableStateOf(false) }
     var showAllRecent by rememberSaveable { mutableStateOf(false) }
@@ -3280,7 +3283,10 @@ private fun StudioHome(
             NightWaveHomeHero(
                 greeting = NightWaveChromePolicy.greeting(java.time.LocalTime.now().hour),
                 displayName = profile.displayName,
-                lastTrack = recent.firstOrNull()
+                lastTrack = recent.firstOrNull(),
+                onContinue = recent.firstOrNull()?.let { last ->
+                    { onResumeSpotlight(last, recent) }
+                }
             )
         }
         item(key = "nw47-home-quick-access") {
@@ -3301,9 +3307,34 @@ private fun StudioHome(
                     Icons.Outlined.Search, "nw47-home-search", openSearch)
             }
         }
-        // The hero already displays the last-played artwork and Continue
-        // is an explicit action above. A second 181dp ListeningSpotlight
-        // repeated the same song and pushed real music below the fold.
+        // Music from the actual saved library, excluding the visible recent
+        // shelf: no fabricated suggestions or duplicate "Continue" cards.
+        if (homePlan.nextListens.isNotEmpty()) {
+            item(key = "nw84-next-listens-heading") {
+                SectionHeading("For your next listen",
+                    "Liked and playlist tracks beyond your recent rotation")
+            }
+            item(key = "nw84-next-listens-shelf") {
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth()
+                        .testTag("nw84-next-listens-shelf"),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(homePlan.nextListens, key = { "next:" + it.url }) { song ->
+                        NightWaveNextListenTile(
+                            song = song,
+                            provenance = NightWaveHomeCurationPolicy.sourceLabel(
+                                song, favorites),
+                            isPlaying = playingUrl == song.url,
+                            onPlay = { onPlay(song, homePlan.nextListens) },
+                            onOptions = { onSongOptions(song) }
+                        )
+                    }
+                }
+            }
+        }
+        // One last-played hero plus one real recent rail. Never insert another
+        // oversized duplicate spotlight that buries the listening shelves.
         item(key = "recent-heading") {
             Row(Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -3354,7 +3385,7 @@ private fun StudioHome(
         if (mixes.isNotEmpty()) {
             item {
                 SectionHeading("Made for you",
-                    "Daily Mix 1–3 and personal picks · generated privately from saved music")
+                    "From your likes, playlists and recent music · on this device")
             }
             mixes.chunked(2).forEachIndexed { row, pair ->
                 item(key = "personal-mix-$row") {
