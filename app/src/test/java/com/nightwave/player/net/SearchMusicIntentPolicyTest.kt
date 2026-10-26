@@ -101,8 +101,10 @@ class SearchMusicIntentPolicyTest {
         )
         val result = SearchResultPresentationPolicy.groupMusic(
             "alone 2", SearchMode.SONGS, inputs)
-        assertEquals(inputs.toSet(), (result.bestMatches + result.moreResults).toSet())
-        assertEquals(inputs.size, result.bestMatches.size + result.moreResults.size)
+        assertEquals(inputs.toSet(),
+            (result.bestMatches + result.otherVersions + result.moreResults).toSet())
+        assertEquals(inputs.size,
+            result.bestMatches.size + result.otherVersions.size + result.moreResults.size)
         assertEquals(inputs[1].url, result.bestMatches.first().url)
     }
 
