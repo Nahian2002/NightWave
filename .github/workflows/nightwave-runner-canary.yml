@@ -22,6 +22,7 @@ on:
       - feature/nightwave-nw100-playback-audit-gates
       - feature/nightwave-nw101-build-attestation-recovery
       - feature/nightwave-nw102-jvm-test-source-compiler-gate
+      - feature/nightwave-nw103-build-receipt-final-gates
   workflow_dispatch:
 
 permissions: {}

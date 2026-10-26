@@ -106,6 +106,7 @@ on:
       - feature/nightwave-nw100-playback-audit-gates
       - feature/nightwave-nw101-build-attestation-recovery
       - feature/nightwave-nw102-jvm-test-source-compiler-gate
+      - feature/nightwave-nw103-build-receipt-final-gates
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
@@ -426,6 +427,8 @@ jobs:
           python3 tools/verify_nw101_attestation.py --self-test
           python3 tools/verify_nw101_attestation.py
           python3 tools/verify_nw102_compiler_matrix.py
+          python3 tools/nw103_receipt_selftest.py
+          python3 tools/verify_nw103_build_pipeline.py
           python3 tools/nw90_certification.py --project-root . --report build/NightWave-NW90-candidate-gates.json
 
       - name: NW101 PowerShell 5.1 attestation logic self-test
@@ -436,7 +439,19 @@ jobs:
         shell: bash
         run: |
           python3 tools/nw102_kotlin_junit_gate.py --self-test
+          python3 tools/nw103_receipt_selftest.py
           python3 tools/nw102_kotlin_junit_gate.py --report build/nightwave-nw102-jvm-source-tests.json
+
+      # Available even when a later Gradle step fails. A NOT_VERIFIED JSON
+      # status is never a passed compiler, JUnit or Android test run.
+      - name: Upload NW103 exact-source JVM receipt (no Android approval)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: NightWave-NW103-JVM-EVIDENCE-NOT-ANDROID-APPROVAL
+          path: build/nightwave-nw102-jvm-source-tests.json
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Standalone Kotlin compiler smoke (when compiler present)
         run: |

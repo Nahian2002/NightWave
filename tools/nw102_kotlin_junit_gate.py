@@ -168,12 +168,55 @@ def exact_sources() -> list[Path]:
             raise RuntimeError("NW102 missing/modified real JUnit cases: " + rel)
     return sources
 
+def source_fingerprints(sources: list[Path]) -> dict[str, str]:
+    return {
+        str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
+        for path in sources
+    }
+
+
+def ensure_unchanged(sources: list[Path], expected: dict[str, str]) -> None:
+    if source_fingerprints(sources) != expected:
+        raise RuntimeError("NW102 source changed during compiler/test execution")
+
+
+def write_atomic_receipt(path: Path, content: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    pending = path.with_name(path.name + ".writing")
+    pending.unlink(missing_ok=True)
+    try:
+        pending.write_text(json.dumps(content, indent=2, sort_keys=True) + "\n",
+                           encoding="utf-8")
+        os.replace(pending, path)
+    finally:
+        pending.unlink(missing_ok=True)
+
+
+def begin_attempt(path: Path) -> None:
+    # An old passing result must never survive a later failed/blocked attempt.
+    write_atomic_receipt(path, {
+        "status": "NOT_VERIFIED",
+        "executed_tests": 0,
+        "android_compilation": "NOT_VERIFIED",
+        "official_gradle_junit": "NOT_RUN",
+        "reason": "Current NW102 test attempt did not complete; no passing source receipt.",
+    })
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--self-test", action="store_true")
     parser.add_argument("--report", type=Path,
                         default=Path("build/nightwave-nw102-jvm-source-tests.json"))
     args = parser.parse_args()
+    target = args.report if args.report.is_absolute() else ROOT / args.report
+    if not args.self_test:
+        try:
+            begin_attempt(target)
+        except OSError as ex:
+            print("NW102_BLOCKED unable to invalidate previous receipt: " +
+                  type(ex).__name__, file=sys.stderr)
+            return 2
     if not shutil.which("javac") or not shutil.which("java"):
         print("NW102_BLOCKED missing JDK tools", file=sys.stderr)
         return 2
@@ -189,6 +232,7 @@ def main() -> int:
                 print("NW102_ASSERTION_BRIDGE_SELFTEST_PASS")
                 return 0
             source_files = exact_sources()
+            source_hashes = source_fingerprints(source_files)
             entries = ",\n".join(
                 '        Pair("' + class_name + '", ' + str(count) + ")"
                 for _, class_name, count in TESTS
@@ -204,23 +248,20 @@ def main() -> int:
                               "NW102TestSourceRunnerKt"], tmp)
             if not re.search(r"(?m)^NW102_REAL_TEST_SOURCES_PASS cases=53$", output):
                 raise RuntimeError("NW102 test completion marker missing")
+            # Do not attribute a successful execution to files edited during
+            # compilation or tests: the fingerprint must match BOTH endpoints.
+            ensure_unchanged(source_files, source_hashes)
             report = {
                 "status": "POLICY_JVM_TESTS_PASS_ONLY",
                 "executed_tests": TOTAL,
                 "test_classes": len(TESTS),
                 "source_file_count": len(source_files),
-                "source_sha256": {
-                    str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
-                    for path in source_files
-                },
+                "source_sha256": source_hashes,
                 "android_compilation": "NOT_VERIFIED",
                 "official_gradle_junit": "NOT_RUN",
                 "device_instrumentation": "NOT_RUN",
             }
-            target = args.report if args.report.is_absolute() else ROOT / args.report
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n",
-                              encoding="utf-8")
+            write_atomic_receipt(target, report)
             print(output.rstrip())
             print("NW102_SOURCE_HASH_REPORT " + str(target))
             return 0
