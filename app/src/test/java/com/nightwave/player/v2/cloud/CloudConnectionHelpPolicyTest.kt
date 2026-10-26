@@ -19,6 +19,16 @@ class CloudConnectionHelpPolicyTest {
         assertTrue(info.nextStep.contains("SHA-1"))
     }
 
+    @Test fun requestStageEightNeverClaimsThePickerAppeared() {
+        val before = policy.guidance(CloudAuthorizationFailurePolicy.Stage.REQUEST, 8)
+        val after = policy.guidance(picker, 8)
+        assertTrue(before.detail.contains("before a verified account selection"))
+        assertFalse(before.detail.contains("picker appeared"))
+        assertTrue(after.detail.contains("picker appeared"))
+        assertTrue(before.offerSingleRetry && after.offerSingleRetry)
+        assertTrue(before.needsSetupReport && after.needsSetupReport)
+    }
+
     @Test fun configurationTenDoesNotOfferBlindRetry() {
         val info = policy.guidance(picker, 10)
         assertFalse(info.offerSingleRetry)
