@@ -23,15 +23,39 @@ val LocalNightWavePalette = staticCompositionLocalOf { NightWaveDesign.palette(T
 val LocalNightWaveReduceMotion = staticCompositionLocalOf { false }
 
 private val premiumTypography = Typography(
-    displayLarge = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 44.sp, lineHeight = 50.sp, letterSpacing = (-1.3f).sp, fontWeight = FontWeight.ExtraBold),
-    headlineLarge = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 32.sp, lineHeight = 39.sp, letterSpacing = (-.65f).sp, fontWeight = FontWeight.Bold),
-    headlineSmall = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 24.sp, lineHeight = 30.sp, letterSpacing = (-.45f).sp, fontWeight = FontWeight.Bold),
-    titleLarge = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 20.sp, lineHeight = 27.sp, letterSpacing = (-.3f).sp, fontWeight = FontWeight.Bold),
-    titleMedium = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 16.sp, lineHeight = 22.sp, fontWeight = FontWeight.SemiBold),
-    bodyLarge = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 15.sp, lineHeight = 22.sp),
-    bodyMedium = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 14.sp, lineHeight = 21.sp),
-    labelLarge = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.SemiBold),
-    labelSmall = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 12.sp, lineHeight = 17.sp, fontWeight = FontWeight.Medium)
+    // One complete hierarchy, including the formerly default Material3
+    // styles. Otherwise labels, dialogs and cards silently fall back to
+    // mismatched Material typography and look like different applications.
+    displayLarge = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 44.sp,
+        lineHeight = 51.sp, letterSpacing = (-1.4f).sp, fontWeight = FontWeight.ExtraBold),
+    displayMedium = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 38.sp,
+        lineHeight = 44.sp, letterSpacing = (-1.0f).sp, fontWeight = FontWeight.Bold),
+    displaySmall = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 33.sp,
+        lineHeight = 39.sp, letterSpacing = (-.8f).sp, fontWeight = FontWeight.Bold),
+    headlineLarge = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 31.sp,
+        lineHeight = 38.sp, letterSpacing = (-.7f).sp, fontWeight = FontWeight.Bold),
+    headlineMedium = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 26.sp,
+        lineHeight = 33.sp, letterSpacing = (-.5f).sp, fontWeight = FontWeight.Bold),
+    headlineSmall = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 22.sp,
+        lineHeight = 29.sp, letterSpacing = (-.3f).sp, fontWeight = FontWeight.Bold),
+    titleLarge = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 20.sp,
+        lineHeight = 27.sp, letterSpacing = (-.4f).sp, fontWeight = FontWeight.Bold),
+    titleMedium = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 16.sp,
+        lineHeight = 23.sp, letterSpacing = (-.1f).sp, fontWeight = FontWeight.SemiBold),
+    titleSmall = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 14.sp,
+        lineHeight = 20.sp, fontWeight = FontWeight.SemiBold),
+    bodyLarge = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 16.sp,
+        lineHeight = 24.sp, fontWeight = FontWeight.Normal),
+    bodyMedium = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 14.sp,
+        lineHeight = 21.sp, fontWeight = FontWeight.Normal),
+    bodySmall = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 12.sp,
+        lineHeight = 18.sp, fontWeight = FontWeight.Normal),
+    labelLarge = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 14.sp,
+        lineHeight = 20.sp, fontWeight = FontWeight.SemiBold),
+    labelMedium = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 12.sp,
+        lineHeight = 17.sp, fontWeight = FontWeight.Medium),
+    labelSmall = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 11.sp,
+        lineHeight = 16.sp, letterSpacing = (.2f).sp, fontWeight = FontWeight.SemiBold)
 )
 
 @Composable
@@ -46,13 +70,25 @@ fun NightWaveMaterialTheme(
         background = paletteColor(palette.background), onBackground = paletteColor(palette.foreground),
         surface = paletteColor(palette.surface), onSurface = paletteColor(palette.foreground),
         surfaceVariant = paletteColor(palette.raised), onSurfaceVariant = paletteColor(palette.secondary),
-        outline = paletteColor(palette.outline), error = paletteColor(palette.danger)
+        secondary = paletteColor(palette.secondary), onSecondary = paletteColor(palette.background),
+        tertiary = paletteColor(palette.accent), onTertiary = paletteColor(palette.contrastOnAccent()),
+        surfaceTint = paletteColor(palette.accent),
+        inverseSurface = paletteColor(palette.foreground),
+        inverseOnSurface = paletteColor(palette.background),
+        outline = paletteColor(palette.outline), outlineVariant = paletteColor(palette.outline).copy(alpha = .62f),
+        error = paletteColor(palette.danger)
     ) else lightColorScheme(
         primary = paletteColor(palette.accent), onPrimary = paletteColor(palette.contrastOnAccent()),
         background = paletteColor(palette.background), onBackground = paletteColor(palette.foreground),
         surface = paletteColor(palette.surface), onSurface = paletteColor(palette.foreground),
         surfaceVariant = paletteColor(palette.raised), onSurfaceVariant = paletteColor(palette.secondary),
-        outline = paletteColor(palette.outline), error = paletteColor(palette.danger)
+        secondary = paletteColor(palette.secondary), onSecondary = paletteColor(palette.background),
+        tertiary = paletteColor(palette.accent), onTertiary = paletteColor(palette.contrastOnAccent()),
+        surfaceTint = paletteColor(palette.accent),
+        inverseSurface = paletteColor(palette.foreground),
+        inverseOnSurface = paletteColor(palette.background),
+        outline = paletteColor(palette.outline), outlineVariant = paletteColor(palette.outline).copy(alpha = .62f),
+        error = paletteColor(palette.danger)
     )
     CompositionLocalProvider(
         LocalNightWavePalette provides palette,
