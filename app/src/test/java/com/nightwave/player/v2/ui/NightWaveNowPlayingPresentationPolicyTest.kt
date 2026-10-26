@@ -71,7 +71,7 @@ class NightWaveNowPlayingPresentationPolicyTest {
     @Test fun honestLyricsAndOfflineDescriptionsNeverPromiseRestrictedDownloads() {
         assertEquals("Offline options", p.offlineActionLabel(true, false))
         assertEquals("Open offline library", p.offlineActionLabel(true, true))
-        assertEquals("Offline library", p.offlineActionLabel(false, false))
+        assertEquals("Choose a song", p.offlineActionLabel(false, false))
         assertEquals("Synchronized lyrics require local audio",
             p.lyricsSubtitle(false, false))
         assertEquals("Your synchronized lyrics · ready",
