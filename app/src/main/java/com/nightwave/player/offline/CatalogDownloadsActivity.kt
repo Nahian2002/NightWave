@@ -31,6 +31,9 @@ class CatalogDownloadsActivity : ComponentActivity() {
     private lateinit var overview: TextView
     private lateinit var historyToggle: TextView
     private lateinit var filterRow: LinearLayout
+    // Reuse labels on each WorkManager progress paint, rather than rebuilding
+    // four controls every time a byte counter changes.
+    private val filterLabels = HashMap<DownloadCenterViewPolicy.Filter, TextView>()
     private var currentFilter = DownloadCenterViewPolicy.Filter.ALL
     private var showHiddenJobs = false
     // Only one 60-row page of WorkManager history is inflated at a time.
@@ -234,6 +237,11 @@ class CatalogDownloadsActivity : ComponentActivity() {
         root.addView(overview, LinearLayout.LayoutParams(-1, -2).apply {
             bottomMargin = dp(4)
         })
+        root.addView(label(DownloadCenterDashboardPolicy.helpLine(), 12f,
+            0xFF94ADB8.toInt()).apply {
+            maxLines = 3
+            setPadding(0, dp(3), 0, dp(8))
+        })
         historyToggle = label("", 13f, 0xFF91E2D7.toInt(), true).apply {
             gravity = Gravity.CENTER_VERTICAL
             setOnClickListener {
@@ -322,8 +330,9 @@ class CatalogDownloadsActivity : ComponentActivity() {
         // byte-progress callback. Download cards remain state authoritative.
         if (displayedFilter != currentFilter) {
             filterRow.removeAllViews()
+            filterLabels.clear()
             DownloadCenterViewPolicy.Filter.entries.forEach { filter ->
-            filterRow.addView(label(DownloadCenterViewPolicy.label(filter), 13f,
+            val button = label(DownloadCenterViewPolicy.label(filter), 12f,
                 if (currentFilter == filter) 0xFF0C1B20.toInt()
                 else 0xFFB8D0DA.toInt(), currentFilter == filter).apply {
                 gravity = Gravity.CENTER
@@ -337,7 +346,9 @@ class CatalogDownloadsActivity : ComponentActivity() {
                     resetHistoryScroll = true
                     refreshJobs()
                 }
-            }, LinearLayout.LayoutParams(0, dp(48), 1f).apply {
+            }
+            filterLabels[filter] = button
+            filterRow.addView(button, LinearLayout.LayoutParams(0, dp(48), 1f).apply {
                 marginStart = dp(2)
                 marginEnd = dp(2)
             })
@@ -371,10 +382,28 @@ class CatalogDownloadsActivity : ComponentActivity() {
                 it.state.name, savedIdFromOutput(it), availableIds,
                 verifyingFiles, fileCheckFailed)
         }
-        overview.text = when {
-            verifyingFiles -> "Checking saved files · $active active"
-            fileCheckFailed -> "Could not verify saved files · Reopen Downloads to retry"
-            else -> "$active active · $ready ready offline · $attention need attention"
+        overview.text = DownloadCenterDashboardPolicy.overview(
+            active, ready, attention, historyJobs.size, verifyingFiles, fileCheckFailed)
+        // WorkManager progress changes update count strings in place without
+        // moving the user's current page or rebuilding the filter row.
+        DownloadCenterViewPolicy.Filter.entries.forEach { filter ->
+            val number = when (filter) {
+                DownloadCenterViewPolicy.Filter.ALL -> historyJobs.size
+                DownloadCenterViewPolicy.Filter.ACTIVE -> active
+                DownloadCenterViewPolicy.Filter.READY -> ready
+                DownloadCenterViewPolicy.Filter.ATTENTION -> attention
+            }
+            filterLabels[filter]?.apply {
+                text = DownloadCenterDashboardPolicy.tab(filter, number,
+                    verifyingFiles || fileCheckFailed)
+                contentDescription = DownloadCenterViewPolicy.label(filter) +
+                    " transfers" + if (verifyingFiles || fileCheckFailed) {
+                        if (filter == DownloadCenterViewPolicy.Filter.READY ||
+                            filter == DownloadCenterViewPolicy.Filter.ATTENTION)
+                            ", saved-file verification pending or unavailable"
+                        else ", $number"
+                    } else ", $number"
+            }
         }
         val filteredJobs = historyJobs.filter { info ->
             // SUCCEEDED work cannot become an Issues alert while its
