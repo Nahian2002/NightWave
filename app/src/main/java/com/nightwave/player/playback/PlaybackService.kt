@@ -184,7 +184,17 @@ class PlaybackService : MediaLibraryService() {
             }
             eqCapabilities.publish(candidate, sessionId)
             if (requestedEqPreset == 21) {
-                // Manual mode: range and band count come from this exact device/session.
+                // Manual mode must have an explicit value for *every* band.
+                // An empty/partial map could previously be reported active
+                // even though no settings (or only one band) were applied.
+                val bandCount = candidate.numberOfBands.toInt()
+                if (bandCount !in 1..32 || manualLevels.size != bandCount ||
+                    (0 until bandCount).any { it !in manualLevels }) {
+                    eqStatus.write(requestedEqPreset, false,
+                        "Manual EQ levels are incomplete for this audio session. " +
+                            "Refresh Sound Studio and apply all bands.")
+                    return
+                }
                 val range = candidate.bandLevelRange
                 for ((index, level) in manualLevels) {
                     if (index !in 0 until candidate.numberOfBands.toInt() ||
@@ -213,7 +223,7 @@ class PlaybackService : MediaLibraryService() {
             // A successful setBandLevel() call is not proof Android retained
             // the requested values. Verify on the same owned session before
             // showing "active". Some devices quantize band steps.
-            val readback = if (requestedEqPreset == 21 && manualLevels.isNotEmpty()) {
+            val readback = if (requestedEqPreset == 21) {
                 val ordered = manualLevels.toSortedMap()
                 val actual = ordered.keys.map { band ->
                     candidate.getBandLevel(band.toShort()).toInt()
@@ -1401,10 +1411,28 @@ class PlaybackService : MediaLibraryService() {
                     caps.audioSessionId == session &&
                     band in caps.centersHz.indices &&
                     supported != null && level in supported) {
-                    manualLevels[band] = level.toShort()
-                    requestedEqPreset = 21
-                    releaseEqualizer()
-                    applyEqualizer(session)
+                    // Older single-band intents must still apply a complete
+                    // current-session curve, not accidentally enable only the
+                    // one changed band. If no baseline exists, refuse safely.
+                    if (manualLevels.size != caps.centersHz.size ||
+                        (0 until caps.centersHz.size).any { it !in manualLevels }) {
+                        manualLevels.clear()
+                        if (caps.levelsMb.size == caps.centersHz.size &&
+                            caps.levelsMb.all { it in supported }) {
+                            caps.levelsMb.forEachIndexed { index, gain ->
+                                manualLevels[index] = gain.toShort()
+                            }
+                        }
+                    }
+                    if (manualLevels.size != caps.centersHz.size) {
+                        eqStatus.write(requestedEqPreset, false,
+                            "No complete EQ band snapshot. Refresh Sound Studio.")
+                    } else {
+                        manualLevels[band] = level.toShort()
+                        requestedEqPreset = 21
+                        releaseEqualizer()
+                        applyEqualizer(session)
+                    }
                 } else {
                     eqStatus.write(requestedEqPreset, activeEqualizer?.enabled == true,
                         "Rejected: unsupported band or stale audio session")
