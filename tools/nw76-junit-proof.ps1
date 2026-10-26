@@ -52,7 +52,7 @@ function Measure-JunitReceipt([string]$folder, [int]$minimum) {
         if ($f + $e + $k -gt $n) {
             throw 'Inconsistent JUnit counters (failure/error/skip > tests).'
         }
-        $cases = @($suite.GetElementsByTagName('testcase')).Count
+        $cases = $suite.GetElementsByTagName('testcase').Count
         if ($cases -ne $n) {
             throw 'JUnit testsuite count does not match the recorded testcases.'
         }
