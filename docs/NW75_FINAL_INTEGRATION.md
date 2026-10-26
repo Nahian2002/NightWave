@@ -30,7 +30,7 @@ Exact production Git blob SHA-1 values:
 - `CloudAccountSessionPolicy.kt`: `673c91e59030ccce1e86dac83284e1056ed4e9f4`
 - `CloudBackupConsentPolicy.kt`: `c4d71ab2ca51e10c4057346ea29e8eec74ebc30a`
 
-**Important:** These are genuine isolated JVM checks, **not** a complete Android Studio/Gradle build, execution of Android project JUnit suites, or real device proof. Previously failed hosted CI runs returned no executed-step diagnostics; their cause remains unknown.
+**Important:** These are genuine isolated JVM checks, **not** a complete Android Studio/Gradle build, execution of Android project JUnit suites, or real device proof. [NW75 hosted CI run 40279811067](https://github.com/Nahian2002/NightWave/actions/runs/40279811067) reported **failure** but the connected job returned **zero executed-step details**. It remains unknown whether a hosted runner launched or Android/Kotlin compilation began; this is **not** proof of an Android compiler failure, nor a successful build.
 
 ## Reproduce final pure Kotlin regression
 
