@@ -44,13 +44,16 @@ class CloudAccountPresentationTest {
 
     @Test fun compactYouBadgeHandlesEveryBackupStageWithoutClaimingStaleIsVerified() {
         val p = CloudAccountPresentation
-        val stage = CloudAccountPresentation.BackupStage
-        assertEquals("LOCAL", p.badge(stage.LOCAL_ONLY))
-        assertEquals("CONNECTED", p.badge(stage.CONNECTED_NOT_BACKED_UP))
-        assertEquals("REFRESH NEEDED", p.badge(stage.PREVIOUS_BACKUP_NEEDS_REFRESH))
-        assertEquals("BACKED UP", p.badge(stage.VERIFIED_BACKUP))
-        assertEquals(stage.values().size, stage.values().map { p.badge(it) }.toSet().size)
-        assertFalse(p.badge(stage.PREVIOUS_BACKUP_NEEDS_REFRESH) == p.badge(stage.VERIFIED_BACKUP))
+        assertEquals("LOCAL", p.badge(CloudAccountPresentation.BackupStage.LOCAL_ONLY))
+        assertEquals("CONNECTED", p.badge(
+            CloudAccountPresentation.BackupStage.CONNECTED_NOT_BACKED_UP))
+        assertEquals("REFRESH NEEDED", p.badge(
+            CloudAccountPresentation.BackupStage.PREVIOUS_BACKUP_NEEDS_REFRESH))
+        assertEquals("BACKED UP", p.badge(CloudAccountPresentation.BackupStage.VERIFIED_BACKUP))
+        val stages = CloudAccountPresentation.BackupStage.values()
+        assertEquals(stages.size, stages.map { p.badge(it) }.toSet().size)
+        assertFalse(p.badge(CloudAccountPresentation.BackupStage.PREVIOUS_BACKUP_NEEDS_REFRESH) ==
+            p.badge(CloudAccountPresentation.BackupStage.VERIFIED_BACKUP))
     }
 
     @Test fun masksOnlyDisplayAndKeepsDomain() {
