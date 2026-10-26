@@ -25,6 +25,10 @@ class CloudBackupFreshnessPolicyTest {
         assertFalse(p.changed(true, true))
         assertTrue(p.changed(false, true))
         assertTrue(p.changed(true, false))
+        assertTrue(p.preservesVerifiedSnapshot("wifi_only"))
+        assertFalse(p.preservesVerifiedSnapshot("history"))
+        assertFalse(p.preservesVerifiedSnapshot("lyrics"))
+        assertFalse(p.preservesVerifiedSnapshot("preferences"))
     }
 
     @Test fun verifiedRevisionOnlyBecomesCurrentAfterReadback() {
