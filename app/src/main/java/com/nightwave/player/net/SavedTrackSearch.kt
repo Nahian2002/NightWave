@@ -13,13 +13,21 @@ object SavedTrackSearch {
         // Compute the expensive Unicode identity score once per saved row,
         // then select the BEST entry for duplicated URLs rather than retaining
         // a weaker early placeholder title. Stable ties keep saved order.
-        return tracks.withIndex().mapNotNull { (index, track) ->
+        val strict = tracks.withIndex().mapNotNull { (index, track) ->
             val score = SearchRelevancePolicy.savedScore(prepared, track)
             if (score <= 0) null else Triple(track, score, index)
-        }.sortedWith(compareByDescending<Triple<VideoPreview, Int, Int>> { it.second }
-            .thenBy { it.third })
-            .distinctBy { it.first.url }
-            .take(limit.coerceAtMost(24))
-            .map { it.first }
+        }
+        // Typos are a last resort; never bury correct saved titles beneath
+        // approximate matches. Short names and Bangla vowels stay strict.
+        val candidates = if (strict.isNotEmpty()) strict else
+            tracks.withIndex().mapNotNull { (index, track) ->
+                val score = SearchRelevancePolicy.savedScore(prepared, track, allowTypo = true)
+                if (score <= 0) null else Triple(track, score, index)
+            }
+        return candidates.sortedWith(
+            compareByDescending<Triple<VideoPreview, Int, Int>> { it.second }
+                .thenBy { it.third }
+        ).distinctBy { it.first.url }
+            .take(limit.coerceAtMost(24)).map { it.first }
     }
 }
