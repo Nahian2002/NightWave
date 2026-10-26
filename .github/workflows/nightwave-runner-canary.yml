@@ -31,6 +31,7 @@ on:
       - feature/nightwave-nw109-android36-privacy-hardening
       - feature/nightwave-nw110-final-integration-certification
       - fix/nightwave-nw110-windows-nw44-search-preflight
+      - fix/nightwave-nw110-phase6v4-async-health-preflight
   workflow_dispatch:
 
 permissions: {}

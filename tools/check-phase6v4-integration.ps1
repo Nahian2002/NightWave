@@ -2,7 +2,7 @@
 # Windows PowerShell 5.1, no Python/Java/SDK/network/admin/phone needed.
 # A PASS is NOT a Kotlin compilation, emulator test or signed-APK approval.
 [CmdletBinding()]
-param()
+param([switch]$SelfTest)
 $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $errors = New-Object 'System.Collections.Generic.List[string]'
@@ -29,6 +29,57 @@ function RequireTests([string]$relative, [int]$minimum) {
     }
 }
 
+
+# NW110: offline file scans run on a background worker, not inside refresh().
+function Test-AsyncOfflineHealthUi([string]$Body) {
+    return ($Body.Contains('val report = cachedReport ?: run {') -and
+        $Body.Contains('val result = runCatching { library.healthReport() }') -and
+        $Body.Contains('worker.execute {') -and
+        $Body.Contains('requestHealthCheck()') -and
+        $Body.Contains('cachedReport = result.getOrNull()') -and
+        $Body.Contains('report.attentionCount') -and
+        -not $Body.Contains('val report = library.healthReport()'))
+}
+
+if ($SelfTest) {
+    $valid = @'
+private fun requestHealthCheck() {
+    worker.execute {
+        val result = runCatching { library.healthReport() }
+        cachedReport = result.getOrNull()
+    }
+}
+private fun refresh() {
+    val report = cachedReport ?: run {
+        requestHealthCheck()
+        return
+    }
+    display(report.attentionCount)
+}
+'@
+    if (-not (Test-AsyncOfflineHealthUi $valid)) {
+        throw 'Async offline health UI was incorrectly rejected.'
+    }
+    if (Test-AsyncOfflineHealthUi ($valid.Replace(
+        'val report = cachedReport ?: run {', 'val report = library.healthReport()'))) {
+        throw 'Synchronous offline health scan was incorrectly accepted.'
+    }
+    if (Test-AsyncOfflineHealthUi ($valid.Replace(
+        'worker.execute {', 'runOnUiThread {'))) {
+        throw 'Main-thread offline health scan was incorrectly accepted.'
+    }
+    if (Test-AsyncOfflineHealthUi ($valid.Replace(
+        'cachedReport = result.getOrNull()', 'cachedReport = null'))) {
+        throw 'Dropped health report was incorrectly accepted.'
+    }
+    if (Test-AsyncOfflineHealthUi ($valid.Replace(
+        'display(report.attentionCount)', 'display(0)'))) {
+        throw 'Invisible recovery count was incorrectly accepted.'
+    }
+    Write-Host 'PASS: Phase 6V4 async health check and four negative fixtures.' -ForegroundColor Green
+    exit 0
+}
+
 $queueStore = 'app/src/main/java/com/nightwave/player/playback/QueueStateStore.kt'
 $offlineLib = 'app/src/main/java/com/nightwave/player/offline/OfflineAudioLibrary.kt'
 $offlineUi = 'app/src/main/java/com/nightwave/player/offline/OfflineLibraryActivity.kt'
@@ -42,8 +93,10 @@ Require 'app/src/main/java/com/nightwave/player/playback/QueueRestorePolicy.kt' 
 Require $offlineLib 'fun healthReport(): OfflineLibraryHealthReport' 'read-only offline audit missing'
 Require $offlineLib 'inspectFile(song).first != OfflineFileHealth.AVAILABLE' 'unsafe delete must fail closed'
 Require $offlineLib 'Files.isSymbolicLink(' 'offline path inspection'
-Require $offlineUi 'val report = cachedReport ?: library.healthReport().also { cachedReport = it }' 'read-only cached or refreshed health report must appear in UI'
-Require $offlineUi 'report.attentionCount' 'unavailable file count shown'
+$offlineUiSource = Source $offlineUi
+if (-not (Test-AsyncOfflineHealthUi $offlineUiSource)) {
+    $errors.Add("$offlineUi : cached worker health report must feed the UI without a blocking read")
+}
 Require 'app/src/main/java/com/nightwave/player/offline/OfflineLibraryHealth.kt' 'SIZE_CHANGED' 'changed file size classification'
 Require $service 'PlaybackRecoveryPolicy.mayAutoRetry(' 'user-intent check before retry'
 Require $service 'PlaybackRecoveryPolicy.acceptsPostedRetry(' 'stale posted retry fence'

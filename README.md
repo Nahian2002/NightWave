@@ -4,9 +4,11 @@
 
 NightWave combines locally imported or otherwise authorized music, an offline library, optional Google Drive backup, song discovery, playlists, Sound Studio, queue control, and user-imported synchronized LRC lyrics. The original midnight/teal design is independent of Spotify.
 
-**Current development source:** `fix/nightwave-nw110-windows-nw44-search-preflight` (cumulative NW110 with Windows NW44 Search preflight correction). The older default `main` does not represent this candidate.
+**Current development source:** `fix/nightwave-nw110-phase6v4-async-health-preflight` (cumulative NW110 with NW44 and Phase 6V4 Windows preflight corrections). The older default `main` does not represent this candidate.
 
 **Release status:** **NO-GO**. The hosted GitHub Actions runner and empty canary both failed before executing steps; a current Windows debug build, Android/JUnit/139-case device validation, installed-signer continuity, production OAuth/backup, Android 16 behavior/device certification and NW77 YouTube-source rights review remain outstanding. Never install a new APK over a library-bearing app unless its signer matches.
+
+**NW110 Phase 6V4 build hotfix:** [Async offline library report check](docs/NW110_PHASE6V4_ASYNC_OFFLINE_HEALTH_HOTFIX.md). Updated Windows and Python 6V4 checks to recognize background health scans and cached UI reports; added negative regression fixtures. No Android sources changed. A new complete Windows Gradle build is required.
 
 **NW110 Windows build hotfix:** [NW44 grouped Search preflight correction](docs/NW110_WINDOWS_NW44_PREFLIGHT_HOTFIX.md). The Windows Kotlin source checker wrongly demanded two public Search single-song click handlers, although the current UI and both NW43/NW44 independent Python checks require three (Best matches, Other versions and More results). The corrected Windows check includes positive/negative fixtures and changes no Android player source. User's reported build never started Gradle; a complete new Windows build is still required.
 

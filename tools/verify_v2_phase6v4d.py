@@ -34,7 +34,10 @@ REQUIRED: dict[str, tuple[str, ...]] = {
         "return OfflineLibraryHealthReport(false, emptyList())",
     ),
     "app/src/main/java/com/nightwave/player/offline/OfflineLibraryActivity.kt": (
-        "val report = library.healthReport()", "report.attentionCount",
+        "val report = cachedReport ?: run {", "report.attentionCount",
+        "val result = runCatching { library.healthReport() }",
+        "cachedReport = result.getOrNull()", "requestHealthCheck()",
+        "worker.execute {",
         "No files or entries changed", "Entry retained",
         "it.id in playableIds", "library.fileFor(song)",
     ),
@@ -115,6 +118,17 @@ def audit(root: Path) -> list[str]:
         for token in tokens:
             if token not in body:
                 errors.append(f"{rel}: absent source contract {token!r}")
+    # UI health report must be read on a worker, not synchronously by refresh.
+    ui_file = root / "app/src/main/java/com/nightwave/player/offline/OfflineLibraryActivity.kt"
+    if ui_file.is_file():
+        ui_source = ui_file.read_text(encoding="utf-8")
+        if "val report = library.healthReport()" in ui_source:
+            errors.append("Offline UI synchronously scans health on the main thread")
+        if ("val report = cachedReport ?: run {" not in ui_source or
+                "val result = runCatching { library.healthReport() }" not in ui_source or
+                "cachedReport = result.getOrNull()" not in ui_source or
+                "report.attentionCount" not in ui_source):
+            errors.append("Offline UI no longer displays the cached worker health report")
     for rel, (minimum, names) in TEST_FILES.items():
         path = root / rel
         if not path.is_file():
@@ -153,6 +167,12 @@ def self_test() -> None:
         target = root / "app/src/test/java/com/nightwave/player/playback/PlaybackRecoveryPolicyTest.kt"
         target.write_text("", encoding="utf-8")
         assert any("only 0 tests" in issue for issue in audit(root))
+        # Negative: a stale synchronous report must always fail.
+        offline_ui = root / "app/src/main/java/com/nightwave/player/offline/OfflineLibraryActivity.kt"
+        offline_ui.write_text(offline_ui.read_text(encoding="utf-8").replace(
+            "val report = cachedReport ?: run {",
+            "val report = library.healthReport()"), encoding="utf-8")
+        assert any("synchronously scans health" in issue for issue in audit(root))
     print("PASS: synthetic good project accepted; missing runtime hook and tests rejected")
 
 
