@@ -20,6 +20,7 @@ on:
       - feature/nightwave-nw98-background-playback-intent
       - feature/nightwave-nw99-notification-session-commands
       - feature/nightwave-nw100-playback-audit-gates
+      - feature/nightwave-nw101-build-attestation-recovery
   workflow_dispatch:
 
 permissions: {}

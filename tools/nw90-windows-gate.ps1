@@ -59,6 +59,14 @@ try {
     Require-File 'tools\nw90_certification.py' | Out-Null
     Require-File 'tools\nw77_public_release_audit.py' | Out-Null
     Require-File 'app\build.gradle.kts' | Out-Null
+    # Check our new source attestation on synthetic positive and negative
+    # fixtures before Gradle, then revalidate real source after the build.
+    $nw101Verifier = Require-File 'tools\nw101-source-attestation.ps1'
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $nw101Verifier -SelfTest
+    if ($LASTEXITCODE -ne 0) {
+        throw 'NW101 source attestation negative/positive self-test failed.'
+    }
+    Record 'NW101 source attestation fixture tests: PASS (not build certification)'
     Record 'NW81-NW89 source-contract files: PRESENT (not executed by this PowerShell check)'
     if ($AfterBuild) {
         $statusPath = Require-File 'dist\NightWave-build-status.txt'
@@ -91,6 +99,14 @@ try {
         if ($actualFingerprint -ne $fingerprint.Groups[1].Value) {
             throw 'Build status source fingerprint and manifest content disagree.'
         }
+        # Critical NW101 check: a matching manifest file digest alone does not
+        # prove that the current source still matches its recorded file hashes.
+        # Re-enumerate all tracked app/test/build inputs and hash every file.
+        & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $nw101Verifier -ProjectRoot $root -ManifestPath $manifest
+        if ($LASTEXITCODE -ne 0) {
+            throw 'NW101 source files differ from this APK build fingerprint. No certification.'
+        }
+        Record 'NW101 current source file contents/inventory: EXACT BUILD SNAPSHOT'
         Record 'Local Windows Gradle/JVM/APK evidence: PASS (developer/debug only)'
         Record "APK SHA256: $digest"
         Record 'IMPORTANT: APK is NOT cleared to install over existing app until signer check.'

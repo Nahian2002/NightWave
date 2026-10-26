@@ -4,9 +4,11 @@
 
 NightWave combines locally imported or otherwise authorized music, an offline library, optional Google Drive backup, song discovery, playlists, Sound Studio, queue control, and user-imported synchronized LRC lyrics. The original midnight/teal design is independent of Spotify.
 
-**Current development source:** `feature/nightwave-nw100-playback-audit-gates` (cumulative NW99 with truthful Next command acknowledgements and playback regression gates). The older default `main` does not represent this candidate.
+**Current development source:** `feature/nightwave-nw101-build-attestation-recovery` (cumulative NW100 with real post-build source re-attestation for Windows evidence). The older default `main` does not represent this candidate.
 
 **Release status:** **NO-GO**. The hosted GitHub Actions runner and empty canary both failed before executing steps; a current Windows debug build, Android/JUnit/139-case device validation, installed-signer continuity, production OAuth/backup, Google Play API 36 migration and NW77 YouTube-source rights review remain outstanding. Never install a new APK over a library-bearing app unless its signer matches.
+
+**NW101 Windows build-evidence integrity milestone:** [NW101 evidence, tests and unresolved hosted runner blocker](docs/NW101_BUILD_ATTESTATION.md). The Windows post-build gate now verifies the **actual current source inventory and every source file SHA256** against the APK build-time fingerprint, rather than only checking the manifest-file checksum. Source edits, additions, deletions, and stale receipts are rejected. Offline negative fixtures are wired into CI. **This does not repair runner allocation and does not certify Android compilation or device behavior.**
 
 **NW100 cumulative playback audit milestone:** [NW100 exact evidence and unresolved release blockers](docs/NW100_PLAYBACK_AUDIT.md). Notification Next now probes the real public/offline queue without mutating shuffle, priorities or history and rejects Repeat Off end-of-queue no-ops. Media3 prepared offline timelines are checked against the player's actual next item. Cumulative policy/source smoke is added to CI. **No full Android/device certification yet.**
 
