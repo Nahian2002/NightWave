@@ -864,28 +864,67 @@ fun StudioNowPlayingOverlay(
                                 colors.onSurfaceVariant else colors.primary)
                     }
                 }
-                Spacer(Modifier.height(10.dp))
-                Surface(
-                    onClick = onSaveOffline,
-                    enabled = state.hasTrack,
-                    modifier = Modifier.fillMaxWidth().height(52.dp)
-                        .testTag("nightwave-now-playing-offline-action"),
-                    shape = RoundedCornerShape(18.dp),
-                    color = colors.surfaceVariant.copy(alpha = .74f)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(NightWaveNowPlayingPresentationPolicy.offlineActionLabel(
-                            state.hasTrack, state.offline),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = colors.onSurface)
+                // NW85 music-first quick actions: one accessible toolbar
+                // instead of three tall full-width button rows that forced
+                // lyrics and queue far below the transport on short screens.
+                Spacer(Modifier.height(12.dp))
+                Row(Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.Top) {
+                    Surface(
+                        onClick = onSaveOffline,
+                        enabled = state.hasTrack,
+                        modifier = Modifier.weight(1f).heightIn(min = 64.dp)
+                            .testTag("nightwave-now-playing-offline-action"),
+                        shape = RoundedCornerShape(
+                            NightWavePremiumDesignTokens.CARD_CORNER_DP.dp),
+                        color = colors.surfaceVariant.copy(alpha = .74f)
+                    ) {
+                        Box(Modifier.fillMaxWidth().padding(
+                            horizontal = 8.dp, vertical = 15.dp),
+                            contentAlignment = Alignment.Center) {
+                            Text(
+                                NightWaveNowPlayingPresentationPolicy.offlineActionLabel(
+                                    state.hasTrack, state.offline),
+                                style = MaterialTheme.typography.labelLarge,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                maxLines = 2, overflow = TextOverflow.Ellipsis,
+                                color = colors.onSurface)
+                        }
+                    }
+                    Surface(
+                        onClick = { lyricsOpen = !lyricsOpen },
+                        modifier = Modifier.weight(1f).heightIn(min = 64.dp)
+                            .testTag("nightwave-now-playing-lyrics-action"),
+                        shape = RoundedCornerShape(
+                            NightWavePremiumDesignTokens.CARD_CORNER_DP.dp),
+                        color = if (lyricsOpen) colors.primaryContainer else colors.surface,
+                        tonalElevation = 1.dp
+                    ) {
+                        Column(Modifier.fillMaxWidth().padding(
+                            horizontal = 12.dp, vertical = 9.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(if (lyricsOpen) "Hide lyrics" else "Lyrics",
+                                style = MaterialTheme.typography.titleSmall,
+                                maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                color = colors.onSurface)
+                            Text(NightWaveNowPlayingPresentationPolicy.lyricsSubtitle(
+                                state.offline, lyrics != null),
+                                style = MaterialTheme.typography.labelSmall,
+                                maxLines = 2, overflow = TextOverflow.Ellipsis,
+                                color = colors.onSurfaceVariant,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                        }
                     }
                 }
-                Spacer(Modifier.height(9.dp))
+                Spacer(Modifier.height(10.dp))
                 Surface(
                     onClick = onOpenQueue,
                     modifier = Modifier.fillMaxWidth().heightIn(min = 60.dp)
                         .testTag("nightwave-now-playing-queue-action"),
-                    shape = RoundedCornerShape(NightWavePremiumDesignTokens.CARD_CORNER_DP.dp),
+                    shape = RoundedCornerShape(
+                        NightWavePremiumDesignTokens.CARD_CORNER_DP.dp),
                     color = colors.surface,
                     tonalElevation = 2.dp
                 ) {
@@ -900,9 +939,8 @@ fun StudioNowPlayingOverlay(
                                 color = colors.onSurfaceVariant)
                             Crossfade(
                                 targetState = queuePreviewTitle,
-                                animationSpec = tween(
-                                    NightWaveMotionPolicy.duration(
-                                        reduceMotion, NightWaveMotionPolicy.FEEDBACK_MS)),
+                                animationSpec = tween(NightWaveMotionPolicy.duration(
+                                    reduceMotion, NightWaveMotionPolicy.FEEDBACK_MS)),
                                 label = "Next queued song"
                             ) { title ->
                                 Text(title, style = MaterialTheme.typography.titleMedium,
@@ -910,34 +948,8 @@ fun StudioNowPlayingOverlay(
                                     color = colors.onSurface)
                             }
                         }
-                        Icon(Icons.AutoMirrored.Outlined.QueueMusic, contentDescription = "Open queue", tint = colors.primary)
-                    }
-                }
-                Spacer(Modifier.height(12.dp))
-                Surface(
-                    onClick = { lyricsOpen = !lyricsOpen },
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 60.dp)
-                        .testTag("nightwave-now-playing-lyrics-action"),
-                    shape = RoundedCornerShape(NightWavePremiumDesignTokens.CARD_CORNER_DP.dp),
-                    color = colors.surface,
-                    tonalElevation = 1.dp
-                ) {
-                    Row(Modifier.fillMaxWidth().padding(
-                        horizontal = 17.dp, vertical = 9.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween) {
-                        Column(Modifier.weight(1f),
-                            verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            Text("Lyrics", style = MaterialTheme.typography.titleMedium)
-                            Text(NightWaveNowPlayingPresentationPolicy.lyricsSubtitle(
-                                state.offline, lyrics != null),
-                                style = MaterialTheme.typography.labelSmall,
-                                maxLines = 2, overflow = TextOverflow.Ellipsis,
-                                color = colors.onSurfaceVariant)
-                        }
-                        Text(if (lyricsOpen) "Hide" else "View",
-                            style = MaterialTheme.typography.labelLarge,
-                            color = colors.primary)
+                        Icon(Icons.AutoMirrored.Outlined.QueueMusic,
+                            contentDescription = "Open queue", tint = colors.primary)
                     }
                 }
                 if (lyricsOpen) {
