@@ -42,6 +42,17 @@ class CloudAccountPresentationTest {
             .contains("current backup choices"))
     }
 
+    @Test fun compactYouBadgeHandlesEveryBackupStageWithoutClaimingStaleIsVerified() {
+        val p = CloudAccountPresentation
+        val stage = CloudAccountPresentation.BackupStage
+        assertEquals("LOCAL", p.badge(stage.LOCAL_ONLY))
+        assertEquals("CONNECTED", p.badge(stage.CONNECTED_NOT_BACKED_UP))
+        assertEquals("REFRESH NEEDED", p.badge(stage.PREVIOUS_BACKUP_NEEDS_REFRESH))
+        assertEquals("BACKED UP", p.badge(stage.VERIFIED_BACKUP))
+        assertEquals(stage.values().size, stage.values().map { p.badge(it) }.toSet().size)
+        assertFalse(p.badge(stage.PREVIOUS_BACKUP_NEEDS_REFRESH) == p.badge(stage.VERIFIED_BACKUP))
+    }
+
     @Test fun masksOnlyDisplayAndKeepsDomain() {
         assertEquals("j•••@gmail.com",
             CloudAccountPresentation.maskedAccount("jayed@gmail.com"))
