@@ -31,6 +31,7 @@ object CatalogDownloadQueue {
     const val KEY_ERROR = "download_error"
     const val KEY_RECEIVED = "downloaded_bytes"
     const val KEY_TOTAL = "total_bytes"
+    const val KEY_VERIFYING = "nw79_transfer_verifying"
 
     fun identifier(url: String, sha1: String): String =
         CatalogWorkIdentity.uniqueName(url, sha1)
