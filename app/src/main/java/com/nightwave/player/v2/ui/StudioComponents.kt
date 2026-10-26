@@ -101,12 +101,13 @@ fun NightWaveWordmark(modifier: Modifier = Modifier) {
 @Composable
 fun SectionHeading(title: String, hint: String? = null) {
     Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-        Text(title, style = MaterialTheme.typography.headlineSmall.copy(
-            fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.onBackground)
+        Text(title, style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onBackground,
+            maxLines = 2, overflow = TextOverflow.Ellipsis)
         if (!hint.isNullOrBlank()) Text(hint,
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant)
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 3, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -271,22 +272,29 @@ fun MusicTrackTile(
     val identity = if (rawVideoCaption)
         MusicIdentity.videoDisplay(video.title, video.author)
         else MusicIdentity.display(video.title, video.author)
-    val largeText = LocalDensity.current.fontScale >= 1.3f
-    val shape = RoundedCornerShape(if (surface == NightWaveTrackSurface.SEARCH) 14.dp else 18.dp)
+    val fontScale = LocalDensity.current.fontScale
+    val availableWidthDp = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.toFloat()
+    val titleLines = NightWavePremiumDesignTokens.titleLines(fontScale, availableWidthDp)
+    val shape = RoundedCornerShape(
+        (if (surface == NightWaveTrackSurface.SEARCH)
+            NightWavePremiumDesignTokens.SEARCH_CARD_CORNER_DP
+         else NightWavePremiumDesignTokens.CARD_CORNER_DP).dp)
     val reducedMotion = LocalNightWaveReduceMotion.current
     val tintDuration = NightWaveMotionPolicy.duration(
         reducedMotion, NightWaveMotionPolicy.SURFACE_MS)
     val background by animateColorAsState(
-        targetValue = if (isPlaying) scheme.primary.copy(alpha = .13f)
+        targetValue = if (isPlaying)
+                scheme.primary.copy(alpha = NightWavePremiumDesignTokens.selectedFillAlpha(true))
             else if (surface == NightWaveTrackSurface.SEARCH)
-                scheme.surfaceVariant.copy(alpha = .25f)
-            else scheme.surface.copy(alpha = .76f),
+                scheme.surfaceVariant.copy(alpha = .34f)
+            else scheme.surface.copy(alpha = .92f),
         animationSpec = tween(durationMillis = tintDuration),
         label = "Song selection surface"
     )
     val stroke by animateColorAsState(
-        targetValue = if (isPlaying) scheme.primary.copy(alpha = .53f)
-            else scheme.outline.copy(alpha = .18f),
+        targetValue = if (isPlaying)
+                scheme.primary.copy(alpha = NightWavePremiumDesignTokens.rowBorderAlpha(true))
+            else scheme.outline.copy(alpha = NightWavePremiumDesignTokens.rowBorderAlpha(false)),
         animationSpec = tween(durationMillis = tintDuration),
         label = "Song selection outline"
     )
@@ -298,16 +306,19 @@ fun MusicTrackTile(
     )
     Row(
         modifier = modifier.fillMaxWidth()
-            .heightIn(min = NightWaveCollectionChrome.TRACK_MIN_HEIGHT_DP.dp).clip(shape)
+            .heightIn(min = NightWavePremiumDesignTokens.rowMinHeightDp(fontScale).dp).clip(shape)
             .background(background)
             .border(1.dp, stroke, shape)
             .testTag("nightwave-track-" + surface.name.lowercase())
             .clickable(onClick = onClick)
-            .padding(vertical = 7.dp, horizontal = 10.dp),
+            .padding(
+                vertical = NightWavePremiumDesignTokens.ROW_VERTICAL_INSET_DP.dp,
+                horizontal = NightWavePremiumDesignTokens.ROW_HORIZONTAL_INSET_DP.dp
+            ),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(NightWavePremiumDesignTokens.ROW_GAP_DP.dp)
     ) {
-        TrackArtwork(video, Modifier.size(NightWaveCollectionChrome.TRACK_ARTWORK_DP.dp)
+        TrackArtwork(video, Modifier.size(NightWavePremiumDesignTokens.ROW_ARTWORK_DP.dp)
             .graphicsLayer {
                 scaleX = artScale
                 scaleY = artScale
@@ -315,8 +326,8 @@ fun MusicTrackTile(
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
             Text(identity.title, style = MaterialTheme.typography.titleMedium,
                 color = if (isPlaying) scheme.primary else scheme.onSurface,
-                maxLines = if (largeText) 2 else 1, overflow = TextOverflow.Ellipsis)
-            Text(if (isPlaying) "●  Playing · " + identity.artistOrCreator
+                maxLines = titleLines, overflow = TextOverflow.Ellipsis)
+            Text(if (isPlaying) identity.artistOrCreator + " · Playing"
                 else identity.artistOrCreator,
                 style = MaterialTheme.typography.bodyMedium,
                 color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -351,8 +362,9 @@ fun MusicCollectionTile(
         onClick = onClick, modifier = Modifier.fillMaxWidth()
             .heightIn(min = NightWaveCollectionChrome.COLLECTION_MIN_HEIGHT_DP.dp)
             .testTag("nightwave-library-collection"),
-        shape = RoundedCornerShape(18.dp),
-        border = BorderStroke(1.dp, colors.outline.copy(alpha = .22f)),
+        shape = RoundedCornerShape(NightWavePremiumDesignTokens.CARD_CORNER_DP.dp),
+        border = BorderStroke(1.dp, colors.outline.copy(alpha =
+            NightWavePremiumDesignTokens.rowBorderAlpha(false))),
         colors = CardDefaults.cardColors(containerColor = colors.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
