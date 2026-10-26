@@ -42,9 +42,13 @@ import com.nightwave.player.v2.recommendation.PersonalMix
  * third-party metadata, sensor data or an expensive thumbnail bitmap decode.
  */
 object NightWaveVisualLanguage {
+    // NW83: a cool, coherent ambient spectrum around NightWave's teal
+    // identity. Per-track variation stays subtle; loud orange/pink accents
+    // no longer make Home, queue and music cards look like separate apps.
+    // These tones are decorative only, never status/text contrast tokens.
     private val tones = listOf(
-        Color(0xFF76CFCE), Color(0xFFA7A1F6), Color(0xFFFAAD86),
-        Color(0xFFA1C992), Color(0xFFCF97CD), Color(0xFF96BDE9)
+        Color(0xFF83D9D5), Color(0xFF7FBAD3), Color(0xFF8DAFD2),
+        Color(0xFFA6A7DB), Color(0xFF90C8BD), Color(0xFFA9C5DD)
     )
 
     fun accent(identity: String): Color {
