@@ -37,4 +37,41 @@ class SearchResultPresentationPolicyTest {
         val song = VideoPreview("Music", "Artist", "https://example.com", "", 200L)
         assertEquals("", SearchResultPresentationPolicy.emptyHint(listOf(song)))
     }
+
+    @Test fun nw82AlternateVersionsAreGroupedButNeverHiddenOrPlayedAutomatically() {
+        val exact = VideoPreview("Moonlight (Official Audio)", "Singer",
+            "https://www.youtube.com/watch?v=abc12345678", "", 215L)
+        val remix = VideoPreview("Moonlight Remix", "DJ",
+            "https://www.youtube.com/watch?v=abc12345679", "", 225L)
+        val live = VideoPreview("Moonlight (Live)", "Singer",
+            "https://www.youtube.com/watch?v=abc12345670", "", 240L)
+        val unrelated = VideoPreview("A Landscape Tour", "Uploader",
+            "https://www.youtube.com/watch?v=abc12345671", "", 205L)
+        val originals = listOf(unrelated, remix, live, exact)
+        val grouped = SearchResultPresentationPolicy.groupMusic(
+            "moonlight", SearchMode.SONGS, originals)
+        assertEquals(exact, grouped.bestMatches.first())
+        assertEquals(setOf(remix, live), grouped.otherVersions.toSet())
+        val visible = grouped.bestMatches + grouped.otherVersions + grouped.moreResults
+        assertEquals(originals.size, visible.size)
+        assertEquals(originals.toSet(), visible.toSet())
+        assertTrue(grouped.moreResults.contains(unrelated))
+        // Videos mode never guesses versions and never changes provider order.
+        val videoMode = SearchResultPresentationPolicy.groupMusic(
+            "moonlight", SearchMode.VIDEOS, originals)
+        assertTrue(videoMode.bestMatches.isEmpty())
+        assertTrue(videoMode.otherVersions.isEmpty())
+        assertEquals(originals, videoMode.moreResults)
+    }
+
+    @Test fun nw82RequestedRemixRemainsPrimaryRatherThanAnUnrequestedVariant() {
+        val remix = VideoPreview("Moonlight Remix", "DJ",
+            "https://www.youtube.com/watch?v=abc12345678", "", 220L)
+        val original = VideoPreview("Moonlight (Official Audio)", "Singer",
+            "https://www.youtube.com/watch?v=abc12345679", "", 220L)
+        val result = SearchResultPresentationPolicy.groupMusic(
+            "moonlight remix", SearchMode.SONGS, listOf(original, remix))
+        assertEquals(remix, result.bestMatches.first())
+        assertFalse(result.otherVersions.contains(remix))
+    }
 }
