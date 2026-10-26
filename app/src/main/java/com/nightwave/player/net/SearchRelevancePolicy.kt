@@ -33,7 +33,10 @@ object SearchRelevancePolicy {
         val artist = normalize(display.artistOrCreator)
         // Unmodified uploader and raw titles remain searchable even when
         // conservative display cleanup removes only promotional suffixes.
-        val all = listOf(title, artist, normalize(track.title), normalize(track.author))
+        // One raw title and one uploader: do not concatenate cleaned and
+        // original copies of the same words. Repeated queries such as
+        // "Alo Alo" require two genuine occurrences, not one duplicated field.
+        val all = listOf(normalize(track.title), normalize(track.author))
             .joinToString(" ")
         return Identity(title, artist, all)
     }
@@ -50,9 +53,8 @@ object SearchRelevancePolicy {
         if (!query.valid) return 0
         val id = identity(track)
         val allWords = SearchTokenMatchingPolicy.tokens(id.searchable)
-        val strengths = query.terms.map {
-            SearchTokenMatchingPolicy.evidence(it, allWords, allowTypo)
-        }
+        val strengths = SearchTokenMatchingPolicy.evidenceForTerms(
+            query.terms, allWords, allowTypo)
         if (strengths.any { it == 0 }) return 0
         val exactTitle = id.title == query.text
         val exactArtist = id.artist == query.text
@@ -90,10 +92,12 @@ object SearchRelevancePolicy {
         val allWords = SearchTokenMatchingPolicy.tokens(searchable)
         // Do not treat "alo" as contained in "alone"; only long Latin
         // tokens can use single-edit typo evidence. Digits match exactly.
-        val strength = terms.map { term ->
-            if (term.all(Char::isDigit)) {
-                if (term in allWords) 3 else 0
-            } else SearchTokenMatchingPolicy.evidence(term, allWords, allowTypo = true)
+        val strength = SearchTokenMatchingPolicy.evidenceForTerms(
+            terms, allWords, allowTypo = true).mapIndexed { index, value ->
+            // "Alone 2" must never match "Alone 2024" on a numeric prefix
+            // or inferred substitution. Only exact numeric tokens count.
+            if (terms[index].all(Char::isDigit) && terms[index] !in allWords) 0
+            else value
         }
         val covered = strength.count { it > 0 }
         var score = strength.sum() * 9
