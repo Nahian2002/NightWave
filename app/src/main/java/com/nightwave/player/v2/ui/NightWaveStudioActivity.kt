@@ -3376,9 +3376,34 @@ private fun StudioHome(
                 }
             }
             if (showAllRecent) item(key = "clear-listening-history") {
-                OutlinedButton(onClick = onClearRecent,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
-                    Text("Clear Recently Played")
+                OutlinedButton(onClick = { confirmClearHistory = true },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                        .testTag("nw86-clear-recent-request")) {
+                    Text("Clear listening history")
+                }
+                if (confirmClearHistory) {
+                    androidx.compose.material3.AlertDialog(
+                        onDismissRequest = { confirmClearHistory = false },
+                        title = { Text("Clear Recently Played?") },
+                        text = {
+                            Text("This removes history entries only. Liked songs, " +
+                                "playlists and downloaded music stay saved.")
+                        },
+                        confirmButton = {
+                            androidx.compose.material3.TextButton(onClick = {
+                                confirmClearHistory = false
+                                onClearRecent()
+                            }, modifier = Modifier.testTag("nw86-clear-recent-confirm")) {
+                                Text("Clear history")
+                            }
+                        },
+                        dismissButton = {
+                            androidx.compose.material3.TextButton(
+                                onClick = { confirmClearHistory = false }) {
+                                Text("Cancel")
+                            }
+                        }
+                    )
                 }
             }
         }
@@ -4075,6 +4100,7 @@ private fun StudioLibrary(
     var playlistFilter by rememberSaveable { mutableStateOf("") }
     var playlistSort by rememberSaveable { mutableStateOf(LibraryBrowsePolicy.SORT_SAVED) }
     var showFilledOnly by rememberSaveable { mutableStateOf(false) }
+    var confirmClearHistory by rememberSaveable { mutableStateOf(false) }
     var playlistToolsOpen by rememberSaveable { mutableStateOf(false) }
     var selectedFolder by rememberSaveable { mutableStateOf<String?>(null) }
     val validFolder = selectedFolder?.takeIf { folder ->
@@ -4117,7 +4143,12 @@ private fun StudioLibrary(
         // Drop stale checkboxes after another device surface edits this playlist.
         selectedTrackUrls = selectedTrackUrls.intersect(tracks.map { it.url }.toSet())
     }
-    val selectedTracks = LibraryBulkSelectionPolicy.selected(orderedTracks, selectedTrackUrls)
+    // A selection remains valid across sorting and filtering. Bulk edits
+    // show the full explicitly selected set, including temporarily hidden
+    // items, instead of silently dropping them from the submitted edit.
+    val selectedTracks = LibraryBulkSelectionPolicy.selected(tracks, selectedTrackUrls)
+    val hiddenSelectedCount = LibraryBulkSelectionPolicy.hiddenSelectionCount(
+        selectedTrackUrls, orderedTracks)
     val quickPlayableTracks = remember(orderedTracks) {
         LibraryQuickPlayPolicy.plan(orderedTracks, shuffle = false, seed = 0L).songs
     }
@@ -4443,7 +4474,8 @@ private fun StudioLibrary(
                                 playlistFilter = ""
                                 playlistSort = LibraryBrowsePolicy.SORT_SAVED
                                 showFilledOnly = false
-                            }) { Text("Clear playlist filters") }
+                                selectedFolder = null
+                            }) { Text("Show all playlists") }
                         }
                     }
                 } else {
@@ -4513,13 +4545,13 @@ private fun StudioLibrary(
                         } else {
                             OutlinedButton(
                                 onClick = {
-                                    selectedTrackUrls = LibraryBulkSelectionPolicy
-                                        .selectVisible(orderedTracks)
+                                    selectedTrackUrls = LibraryBulkSelectionPolicy.toggleVisible(
+                                        selectedTrackUrls, orderedTracks, tracks)
                                 },
-                                modifier = Modifier.weight(1f).heightIn(min = 48.dp)) {
-                                Text("Select first " +
-                                    minOf(orderedTracks.size,
-                                        LibraryBulkSelectionPolicy.MAX_SELECTED))
+                                modifier = Modifier.weight(1f).heightIn(min = 48.dp)
+                                    .testTag("nw86-select-visible")) {
+                                Text(LibraryBulkSelectionPolicy.visibleActionLabel(
+                                    selectedTrackUrls, orderedTracks))
                             }
                         }
                     }
@@ -4527,11 +4559,24 @@ private fun StudioLibrary(
                 if (selectingTracks) {
                     item(key = "playlist-bulk-actions") {
                         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Text("${selectedTracks.size} of " +
-                                LibraryBulkSelectionPolicy.MAX_SELECTED +
-                                " selected · playlist edits or public links",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Row(Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text("${selectedTracks.size} / " +
+                                    LibraryBulkSelectionPolicy.MAX_SELECTED +
+                                    " selected" +
+                                    (if (hiddenSelectedCount > 0)
+                                        " · $hiddenSelectedCount hidden by filter" else ""),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.weight(1f))
+                                TextButton(onClick = {
+                                    selectedTrackUrls = emptySet()
+                                }, enabled = selectedTrackUrls.isNotEmpty(),
+                                    modifier = Modifier.testTag("nw86-clear-selection")) {
+                                    Text("Clear")
+                                }
+                            }
                             Row(Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 OutlinedButton(
