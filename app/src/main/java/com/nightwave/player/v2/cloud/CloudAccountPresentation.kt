@@ -28,6 +28,18 @@ object CloudAccountPresentation {
         CloudBackupFreshnessPolicy.Freshness.CURRENT_VERIFIED -> BackupStage.VERIFIED_BACKUP
     }
 
+    /**
+     * Compact You-header badge. Keeping the exhaustive stage mapping here
+     * prevents UI screens from showing BACKED UP for outdated snapshots.
+     * Kotlin compilation fails if a future BackupStage is not handled.
+     */
+    fun badge(stage: BackupStage): String = when (stage) {
+        BackupStage.LOCAL_ONLY -> "LOCAL"
+        BackupStage.CONNECTED_NOT_BACKED_UP -> "CONNECTED"
+        BackupStage.PREVIOUS_BACKUP_NEEDS_REFRESH -> "REFRESH NEEDED"
+        BackupStage.VERIFIED_BACKUP -> "BACKED UP"
+    }
+
     fun title(stage: BackupStage): String = when (stage) {
         BackupStage.LOCAL_ONLY -> "Local guest library"
         BackupStage.CONNECTED_NOT_BACKED_UP -> "Drive connected · backup pending"
