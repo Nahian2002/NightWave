@@ -78,7 +78,10 @@ class CloudBackupState(context: Context) {
         val previous = prefs.getBoolean(key, key == "wifi_only")
         if (!CloudBackupFreshnessPolicy.changed(previous, value)) return@synchronized true
         prefs.edit().putBoolean(key, value)
-            .putLong(REVISION_KEY, nextRevision()).commit()
+            .putLong(REVISION_KEY, nextRevision())
+            .putString("last_result",
+                "Backup settings changed; back up now to verify the current choices.")
+            .commit()
     }
 
     fun setHistory(value: Boolean) = setChoice("history", value)
