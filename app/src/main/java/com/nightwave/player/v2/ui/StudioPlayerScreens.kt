@@ -36,6 +36,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -1359,6 +1360,9 @@ private fun SwipeUpcomingRow(
     val display = remember(title, subtitle) {
         MusicIdentity.display(title, subtitle)
     }
+    val fontScale = LocalDensity.current.fontScale
+    val titleLines = NightWavePremiumDesignTokens.titleLines(fontScale,
+        androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.toFloat())
     var travel by remember(title, number) { mutableStateOf(0f) }
     val animatedTravel by animateFloatAsState(
         targetValue = travel,
@@ -1366,7 +1370,7 @@ private fun SwipeUpcomingRow(
             reduceMotion, NightWaveMotionPolicy.FEEDBACK_MS)),
         label = "Upcoming track swipe"
     )
-    Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp))) {
+    Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(NightWavePremiumDesignTokens.SEARCH_CARD_CORNER_DP.dp))) {
         if (canRemove) {
             Row(
                 Modifier.matchParentSize().background(MaterialTheme.colorScheme.errorContainer)
@@ -1383,8 +1387,9 @@ private fun SwipeUpcomingRow(
         }
         Row(
             modifier = Modifier.fillMaxWidth()
+                .heightIn(min = NightWavePremiumDesignTokens.rowMinHeightDp(fontScale).dp)
                 .graphicsLayer { translationX = animatedTravel }
-                .clip(RoundedCornerShape(14.dp))
+                .clip(RoundedCornerShape(NightWavePremiumDesignTokens.SEARCH_CARD_CORNER_DP.dp))
                 .background(if (isPlaying) MaterialTheme.colorScheme.surfaceVariant
                     else MaterialTheme.colorScheme.surface)
                 .then(if (canRemove) Modifier.pointerInput(title, number, canRemove) {
@@ -1413,9 +1418,10 @@ private fun SwipeUpcomingRow(
                 style = MaterialTheme.typography.labelMedium)
             CoverArt(artwork, Modifier.size(45.dp), 10)
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(display.title, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                Text(display.title, maxLines = titleLines, overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.titleSmall)
-                Text(display.artistOrCreator, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                Text(display.artistOrCreator, maxLines = if (fontScale >= 1.8f) 2 else 1,
+                    overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
