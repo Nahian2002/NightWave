@@ -243,6 +243,27 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
         return true
     }
 
+    /**
+     * NW100: side-effect-free manual Next availability for MediaSession command
+     * receipts. Must NOT consume Play Next priority, shuffle forward history,
+     * random picks or the seen cycle. Actual navigation remains in next().
+     */
+    fun hasNext(): Boolean {
+        if (current == null) return false
+        if (priorityNextUrls().isNotEmpty()) return true
+        if (shuffle) {
+            val forward = forwardVisits.lastOrNull()
+            if (forward != null && forward in entries.indices && forward != index)
+                return true
+            if (entries.size > 1) {
+                if (entries.indices.any { it != index && it !in shuffledSeen }) return true
+                return repeat == Repeat.ALL
+            }
+            return repeat == Repeat.ALL
+        }
+        return index < entries.lastIndex || repeat == Repeat.ALL
+    }
+
     fun next(automatic: Boolean = false): QueueEntry? {
         if (entries.isEmpty()) return null
         if (automatic && repeat == Repeat.ONE) return current

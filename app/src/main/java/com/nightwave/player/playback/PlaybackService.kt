@@ -1179,6 +1179,15 @@ class PlaybackService : MediaLibraryService() {
                         return Futures.immediateFuture(
                             SessionResult(SessionResult.RESULT_ERROR_NOT_SUPPORTED))
                     }
+                    // A selected track alone doesn't imply a NEXT target:
+                    // at Repeat Off queue end, next() is a no-op. Do not
+                    // acknowledge that no-op as successful notification action.
+                    // The guard is read-only and cannot consume shuffle state.
+                    if (action == NightWaveWidgetController.COMMAND_NEXT &&
+                        !hasManualNext()) {
+                        return Futures.immediateFuture(
+                            SessionResult(SessionResult.RESULT_ERROR_NOT_SUPPORTED))
+                    }
                     // Both widget and notification routes call the SAME
                     // queue-aware methods used by headset buttons. No duplicate
                     // MediaSession, resolver or direct signed-URL seek is created.
@@ -1904,6 +1913,18 @@ class PlaybackService : MediaLibraryService() {
             if (playOfflineId(id, localLibrary)) return true
         }
         return false
+    }
+
+    /** Non-mutating current-mode manual Next eligibility for custom commands. */
+    private fun hasManualNext(): Boolean {
+        if (!offlinePlaying) return queue.hasNext()
+        if (!offlineGaplessActive) return offlineQueue.hasNext()
+        // Prepared Media3 timeline is the only shuffle/repeat order authority.
+        val player = exoPlayer ?: return false
+        val next = player.nextMediaItemIndex
+        val id = offlineQueue.snapshot().getOrNull(next) ?: return false
+        return next in 0 until player.mediaItemCount &&
+            player.getMediaItemAt(next).mediaId == "offline:$id"
     }
 
     private fun playNext(automatic: Boolean) {

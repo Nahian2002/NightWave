@@ -56,6 +56,21 @@ class OfflinePlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it)
         if (shuffle) unplayed.addAll(ids.indices.filter { it != index })
     }
 
+    /**
+     * NW100: read-only availability probe for media notification command
+     * receipts. Previous/Forward history and the unplayed pool are untouched.
+     */
+    fun hasNext(): Boolean {
+        if (current == null) return false
+        if (!shuffle) return index < ids.lastIndex ||
+            repeat == PlaybackQueue.Repeat.ALL
+        if (ids.size == 1) return repeat == PlaybackQueue.Repeat.ALL
+        if (forwardVisits.lastOrNull()?.let { it in ids.indices && it != index } == true)
+            return true
+        return unplayed.any { it in ids.indices && it != index } ||
+            repeat == PlaybackQueue.Repeat.ALL
+    }
+
     /** Automatic Repeat One replays this ID; manual Next advances normally. */
     fun next(automatic: Boolean = true): String? {
         if (index < 0) return null

@@ -4,9 +4,11 @@
 
 NightWave combines locally imported or otherwise authorized music, an offline library, optional Google Drive backup, song discovery, playlists, Sound Studio, queue control, and user-imported synchronized LRC lyrics. The original midnight/teal design is independent of Spotify.
 
-**Current development source:** `feature/nightwave-nw99-notification-session-commands` (cumulative NW98 with queue-aware notification buttons and session command authorization). The older default `main` does not represent this candidate.
+**Current development source:** `feature/nightwave-nw100-playback-audit-gates` (cumulative NW99 with truthful Next command acknowledgements and playback regression gates). The older default `main` does not represent this candidate.
 
 **Release status:** **NO-GO**. The hosted GitHub Actions runner and empty canary both failed before executing steps; a current Windows debug build, Android/JUnit/139-case device validation, installed-signer continuity, production OAuth/backup, Google Play API 36 migration and NW77 YouTube-source rights review remain outstanding. Never install a new APK over a library-bearing app unless its signer matches.
+
+**NW100 cumulative playback audit milestone:** [NW100 exact evidence and unresolved release blockers](docs/NW100_PLAYBACK_AUDIT.md). Notification Next now probes the real public/offline queue without mutating shuffle, priorities or history and rejects Repeat Off end-of-queue no-ops. Media3 prepared offline timelines are checked against the player's actual next item. Cumulative policy/source smoke is added to CI. **No full Android/device certification yet.**
 
 **NW99 media notification / session milestone:** [NW99 evidence](docs/NW99_MEDIA_SESSION_EVIDENCE.md). Media3 notification Previous/Next use the existing NightWave queue-aware custom commands, including one-item streaming timelines. Only NightWave controllers and the identified notification controller receive those custom commands; an empty queue no longer returns false transport success. Actual notification display and Android build QA are still pending.
 

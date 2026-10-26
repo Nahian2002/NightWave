@@ -103,6 +103,7 @@ on:
       - feature/nightwave-nw97-offline-shuffle-cycle-integrity
       - feature/nightwave-nw98-background-playback-intent
       - feature/nightwave-nw99-notification-session-commands
+      - feature/nightwave-nw100-playback-audit-gates
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
@@ -419,6 +420,7 @@ jobs:
           python3 tools/verify_nw97_offline_transitions.py
           python3 tools/verify_nw98_background_intent.py
           python3 tools/verify_nw99_media_session.py
+          python3 tools/verify_nw100_playback_audit.py
           python3 tools/nw90_certification.py --project-root . --report build/NightWave-NW90-candidate-gates.json
 
       - name: Standalone Kotlin compiler smoke (when compiler present)
@@ -477,6 +479,14 @@ jobs:
               tools/NW99MediaSessionQueueSmoke.kt -include-runtime \
               -d /tmp/nightwave-nw99-session.jar
             java -jar /tmp/nightwave-nw99-session.jar
+            # NW100: compile the real public/offline queues plus the NW99 policy.
+            kotlinc app/src/main/java/com/nightwave/player/playback/ShuffleRecoveryPolicy.kt \
+              app/src/main/java/com/nightwave/player/playback/PlaybackQueue.kt \
+              app/src/main/java/com/nightwave/player/offline/OfflinePlaybackQueue.kt \
+              app/src/main/java/com/nightwave/player/playback/MediaSessionQueueControlPolicy.kt \
+              tools/NW100QueueAvailabilitySmoke.kt -include-runtime \
+              -d /tmp/nightwave-nw100-playback.jar
+            java -jar /tmp/nightwave-nw100-playback.jar
             # NW75: compile FIVE real Kotlin source policies together, then
             # execute the exact cross-phase test harness; no Android SDK/data.
             kotlinc \
