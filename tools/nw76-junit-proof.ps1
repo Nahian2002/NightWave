@@ -56,6 +56,14 @@ function Measure-JunitReceipt([string]$folder, [int]$minimum) {
         if ($cases -ne $n) {
             throw 'JUnit testsuite count does not match the recorded testcases.'
         }
+        # Report counters must agree with actual testcase nodes. An XML
+        # writer that reports zero failures while containing <failure>
+        # cannot certify the APK.
+        if ($suite.GetElementsByTagName('failure').Count -ne $f -or
+            $suite.GetElementsByTagName('error').Count -ne $e -or
+            $suite.GetElementsByTagName('skipped').Count -ne $k) {
+            throw 'JUnit result counters contradict failure/error/skip nodes.'
+        }
         $total += $n
         $failed += $f
         $errors += $e
