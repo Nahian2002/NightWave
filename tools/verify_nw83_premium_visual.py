@@ -25,8 +25,11 @@ for role in ("displayLarge", "displayMedium", "displaySmall",
              "bodyLarge", "bodyMedium", "bodySmall",
              "labelLarge", "labelMedium", "labelSmall"):
     assert role + " = TextStyle(" in theme, role
-for role in ("secondary", "onSecondary", "tertiary", "onTertiary",
-             "surfaceTint", "outlineVariant", "inverseSurface", "inverseOnSurface"):
+for role in ("primaryContainer", "onPrimaryContainer",
+             "secondary", "onSecondary", "secondaryContainer", "onSecondaryContainer",
+             "tertiary", "onTertiary", "tertiaryContainer", "onTertiaryContainer",
+             "surfaceTint", "outlineVariant", "inverseSurface", "inverseOnSurface",
+             "onError", "errorContainer", "onErrorContainer"):
     assert theme.count(role + " = ") == 2, role
 
 # Shared sizing is actually consumed by all main pages, not only declared.
@@ -40,6 +43,9 @@ assert "NightWavePremiumDesignTokens.NAV_CORNER_DP.dp" in home
 assert "NightWavePremiumDesignTokens.HERO_CORNER_DP.dp" in home
 assert "NightWavePremiumDesignTokens.SEARCH_CARD_CORNER_DP.dp" in search
 assert "NightWavePremiumDesignTokens.rowMinHeightDp(fontScale)" in player
+assert "val miniShape = RoundedCornerShape(" in player
+assert ".shadow(7.dp, miniShape)" in player
+assert ".border(1.dp, colors.outline.copy(alpha = .26f), miniShape)" in player
 assert "NightWavePremiumDesignTokens.titleLines(fontScale" in player
 
 # Decorative accents remain in the cool NightWave spectrum; stored song IDs
