@@ -14,6 +14,9 @@ class SearchTokenMatchingPolicyTest {
         assertFalse(p.allCovered(listOf("alo", "alo"), words, allowTypo = true))
         assertTrue(p.allCovered(listOf("alone"), words))
         assertEquals(3, p.evidence("alo", p.tokens("alo"), allowTypo = true))
+        assertFalse(p.allCovered(listOf("alo", "alo"), p.tokens("alo")))
+        assertTrue(p.allCovered(listOf("alo", "alo"), p.tokens("alo alo")))
+        assertTrue(p.allCovered(listOf("night", "moon"), p.tokens("moon night")))
     }
 
     @Test fun matchingHasStrictEvidenceBeforeTypoCandidates() {
