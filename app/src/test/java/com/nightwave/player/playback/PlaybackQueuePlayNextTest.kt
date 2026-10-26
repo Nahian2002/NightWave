@@ -173,4 +173,43 @@ class PlaybackQueuePlayNextTest {
         assertNotNull(q.removeUpcoming(at, song(9).url))
         assertEquals(song(2), q.next())
     }
+
+    @Test fun movingAlreadyHeardSongToPlayNextKeepsRealShufflePreviousHistory() {
+        val q = PlaybackQueue(pick = { 0 })
+        q.replace((1..4).map(::song), 0)
+        q.shuffle = true
+        assertEquals(song(3), q.jump(2)) // Earlier heard song 1 is in Previous.
+        assertTrue(q.insertNext(song(1).copy(title = "Stale search result")))
+        assertEquals(listOf(song(2), song(3), song(1), song(4)), q.snapshot())
+        assertEquals(song(3), q.current)
+        assertEquals(song(1), q.previous())
+        assertEquals(song(3), q.next()) // True shuffle redo of departed song.
+        assertEquals(song(1), q.next()) // Explicit Play Next still takes priority.
+        assertEquals(song(3), q.previous())
+        assertEquals(song(1), q.previous()) // Old visit was not lost in the move.
+    }
+
+    @Test fun movingAnUpcomingSongMustKeepShuffleHistoryAndCurrentIdentity() {
+        val q = PlaybackQueue(pick = { 0 })
+        q.replace((1..5).map(::song), 0)
+        q.shuffle = true
+        assertEquals(song(4), q.jump(3))
+        assertTrue(q.insertNext(song(5)))
+        assertEquals(song(4), q.current)
+        assertEquals(song(5), q.next())
+        assertEquals(song(4), q.previous())
+        assertEquals(song(1), q.previous())
+    }
+
+    @Test fun movingCurrentHistoryTrackDoesNotDuplicateItInQueue() {
+        val q = PlaybackQueue(pick = { 0 })
+        q.replace((1..4).map(::song), 0)
+        q.shuffle = true
+        q.jump(2)
+        assertTrue(q.insertNext(song(1)))
+        assertEquals(4, q.size)
+        assertEquals(4, q.snapshot().map { it.url }.distinct().size)
+        assertEquals(song(3), q.current)
+        assertEquals(listOf(song(2), song(3), song(1), song(4)), q.snapshot())
+    }
 }
