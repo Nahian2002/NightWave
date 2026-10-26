@@ -115,4 +115,24 @@ class LyricsImportReviewPolicyTest {
         val report = inspect(text = "[00:01.00]SECRET-WORDS")
         assertFalse(report.warnings.joinToString(" ").contains("SECRET-WORDS"))
     }
+
+    @Test fun nw89BanglaVowelsAreNotRemovedFromSongIdentityHints() {
+        val mala = LyricsImportReviewPolicy.normalizedName("মালা")
+        val mela = LyricsImportReviewPolicy.normalizedName("মেলা")
+        assertNotEquals(mala, mela)
+        assertEquals(LyricsImportMatch.LIKELY,
+            LyricsImportReviewPolicy.compare("মালা.lrc", "মালা", "মালা"))
+        assertEquals(LyricsImportMatch.DIFFERENT,
+            LyricsImportReviewPolicy.compare("মেলা.lrc", "মালা", "মেলা"))
+    }
+
+    @Test fun nw89ExplicitTitleTagMustNotPassBecauseOfPartialWord() {
+        assertEquals(LyricsImportMatch.DIFFERENT,
+            LyricsImportReviewPolicy.compare("Moonlight.lrc", "Moonlight", "Moonlighter"))
+        assertEquals(LyricsImportMatch.POSSIBLE,
+            LyricsImportReviewPolicy.compare("Artist - Moonlight.lrc",
+                "Moonlight", "Moonlight (Acoustic)"))
+        assertEquals(LyricsImportMatch.DIFFERENT,
+            LyricsImportReviewPolicy.compare("Alone.lrc", "Alo Alo", "Alone"))
+    }
 }
