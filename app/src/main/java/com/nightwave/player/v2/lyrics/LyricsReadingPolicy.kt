@@ -23,7 +23,9 @@ object LyricsReadingPolicy {
         val totalSeconds = target / 1000L
         val minutes = totalSeconds / 60L
         val seconds = totalSeconds % 60L
-        return "Seek to $minutes minutes $seconds seconds. " +
+        val minuteUnit = if (minutes == 1L) "minute" else "minutes"
+        val secondUnit = if (seconds == 1L) "second" else "seconds"
+        return "Seek to $minutes $minuteUnit $seconds $secondUnit. " +
             cue.text.trim().replace(Regex("""\s+"""), " ").take(220)
     }
 
