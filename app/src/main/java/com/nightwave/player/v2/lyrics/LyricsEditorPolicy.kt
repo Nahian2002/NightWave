@@ -12,7 +12,9 @@ object LyricsEditorPolicy {
     const val NUDGE_MS = 250L
     const val FINE_NUDGE_MS = 50L
     private val timeCode = Regex("""^(\d{1,2}):([0-5]\d)\.(\d{1,3})$""")
-    private val order = compareBy<LyricCue> { it.timeMs }.thenBy { it.text }
+    // Stable tie ordering agrees with TimedLyricsCodec: simultaneous lines
+    // retain the user's authored order rather than alphabetical order.
+    private val order = compareBy<LyricCue> { it.timeMs }
 
     fun begin(lyrics: TimedLyrics): LyricsEditorDraft =
         checked(lyrics.cues)
