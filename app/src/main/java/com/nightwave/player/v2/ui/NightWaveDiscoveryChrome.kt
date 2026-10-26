@@ -63,9 +63,9 @@ fun NightWaveDiscoveryHeader(searchQuery: String = "") {
                     .putExtra(FreeAudioCatalogActivity.EXTRA_QUERY,
                         searchQuery.trim().take(100)))
             },
-            modifier = Modifier.heightIn(min = 48.dp)
+            modifier = Modifier.heightIn(min = NightWavePremiumDesignTokens.MIN_TOUCH_TARGET_DP.dp)
                 .testTag("nightwave-save-offline-search"),
-            shape = RoundedCornerShape(15.dp),
+            shape = RoundedCornerShape(NightWavePremiumDesignTokens.SEARCH_CARD_CORNER_DP.dp),
             color = palette.primary.copy(alpha = .11f),
             border = BorderStroke(1.dp, palette.primary.copy(alpha = .27f))
         ) {
@@ -92,7 +92,7 @@ fun NightWaveCollectionHeader(
     val colors = MaterialTheme.colorScheme
     Surface(modifier = modifier.fillMaxWidth()
         .testTag("nightwave-collection-header"),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(NightWavePremiumDesignTokens.CARD_CORNER_DP.dp),
         color = colors.surfaceVariant.copy(alpha = .60f)) {
         Row(Modifier.padding(horizontal = 14.dp, vertical = 13.dp),
             horizontalArrangement = Arrangement.spacedBy(11.dp),
