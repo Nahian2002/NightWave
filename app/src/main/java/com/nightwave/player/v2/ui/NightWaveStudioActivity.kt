@@ -3922,8 +3922,21 @@ private fun StudioSearch(
                         onClick = { playSinglePublic(song) })
                 }
             }
+            if (publicGroups.otherVersions.isNotEmpty()) {
+                item(key = "nw82-alternate-recordings-heading") {
+                    SectionHeading("Other versions",
+                        "Remixes, live and alternate recordings · choose the one you want")
+                }
+                items(publicGroups.otherVersions, key = { "alternate:" + it.url }) { song ->
+                    MusicTrackTile(song, isPlaying = playingUrl == song.url,
+                        surface = NightWaveTrackSurface.SEARCH,
+                        onOptions = { onSongOptions(song) },
+                        onClick = { playSinglePublic(song) })
+                }
+            }
             if (publicGroups.moreResults.isNotEmpty()) {
-                if (publicGroups.bestMatches.isNotEmpty()) {
+                if (publicGroups.bestMatches.isNotEmpty() ||
+                    publicGroups.otherVersions.isNotEmpty()) {
                     item(key = "public-more-heading") {
                         SectionHeading("More results",
                             SearchConsumerCopyPolicy.moreResultsSubtitle())
