@@ -54,8 +54,8 @@ private val premiumTypography = Typography(
         lineHeight = 20.sp, fontWeight = FontWeight.SemiBold),
     labelMedium = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 12.sp,
         lineHeight = 17.sp, fontWeight = FontWeight.Medium),
-    labelSmall = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 11.sp,
-        lineHeight = 16.sp, letterSpacing = (.2f).sp, fontWeight = FontWeight.SemiBold)
+    labelSmall = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 12.sp,
+        lineHeight = 17.sp, letterSpacing = (.15f).sp, fontWeight = FontWeight.SemiBold)
 )
 
 @Composable
@@ -83,7 +83,9 @@ fun NightWaveMaterialTheme(
         inverseOnSurface = paletteColor(palette.background),
         outline = paletteColor(palette.outline), outlineVariant = paletteColor(palette.outline).copy(alpha = .62f),
         error = paletteColor(palette.danger), onError = paletteColor(palette.background),
-        errorContainer = paletteColor(palette.raised),
+        // Pearl's raised background only offers ~4.02:1 against danger.
+        // Normal surface exceeds 4.5:1 in all four palettes.
+        errorContainer = paletteColor(palette.surface),
         onErrorContainer = paletteColor(palette.danger)
     ) else lightColorScheme(
         primary = paletteColor(palette.accent), onPrimary = paletteColor(palette.contrastOnAccent()),
@@ -103,7 +105,9 @@ fun NightWaveMaterialTheme(
         inverseOnSurface = paletteColor(palette.background),
         outline = paletteColor(palette.outline), outlineVariant = paletteColor(palette.outline).copy(alpha = .62f),
         error = paletteColor(palette.danger), onError = paletteColor(palette.background),
-        errorContainer = paletteColor(palette.raised),
+        // Pearl's raised background only offers ~4.02:1 against danger.
+        // Normal surface exceeds 4.5:1 in all four palettes.
+        errorContainer = paletteColor(palette.surface),
         onErrorContainer = paletteColor(palette.danger)
     )
     CompositionLocalProvider(
