@@ -3260,6 +3260,9 @@ private fun StudioHome(
     var showAllMixTracks by rememberSaveable { mutableStateOf(false) }
     var showAllRecent by rememberSaveable { mutableStateOf(false) }
     val chosenMix = mixes.firstOrNull { it.key == chosenMixKey }
+    val mixesPerRow = NightWaveHomeLayoutPolicy.mixColumns(
+        androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.toFloat(),
+        androidx.compose.ui.platform.LocalDensity.current.fontScale)
     val palettes = listOf(
         listOf(Color(0xFF423163), Color(0xFF242B57)),
         listOf(Color(0xFF164F58), Color(0xFF19334D)),
@@ -3379,15 +3382,13 @@ private fun StudioHome(
                 }
             }
         }
-        item(key = "nw47-home-library-stats") {
-            NightWaveLibraryNumbers(favorites.size, recent.size, onLibrary = openLibrary)
-        }
+        // Lead with actual music before accounting-style counters.
         if (mixes.isNotEmpty()) {
             item {
                 SectionHeading("Made for you",
                     "From your likes, playlists and recent music · on this device")
             }
-            mixes.chunked(2).forEachIndexed { row, pair ->
+            mixes.chunked(mixesPerRow).forEachIndexed { row, pair ->
                 item(key = "personal-mix-$row") {
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         pair.forEach { mix ->
@@ -3395,7 +3396,7 @@ private fun StudioHome(
                                 mix = mix, selected = chosenMixKey == mix.key,
                                 modifier = if (pair.size == 1) Modifier.fillMaxWidth()
                                     else Modifier.weight(1f),
-                                compact = pair.size == 1,
+                                compact = NightWaveHomeLayoutPolicy.mixCardCompact(mixesPerRow),
                                 onClick = {
                                     chosenMixKey = if (chosenMixKey == mix.key) null else mix.key
                                     showAllMixTracks = false
@@ -3439,6 +3440,9 @@ private fun StudioHome(
                     }
                 }
             }
+        }
+        item(key = "nw47-home-library-stats") {
+            NightWaveLibraryNumbers(favorites.size, recent.size, onLibrary = openLibrary)
         }
         item { SectionHeading("Explore a new mood", "Swipe across six ways to listen") }
         // One horizontally scrollable shelf instead of three oversized rows.
