@@ -35,6 +35,12 @@ fun main() {
         "noop switches preserve verified receipt")
     checkCase(p.changed(true, false) && p.changed(false, true),
         "real setting changes rotate consent revision")
+    checkCase(p.preservesVerifiedSnapshot("wifi_only"),
+        "network-only change can keep already verified payload")
+    checkCase(!p.preservesVerifiedSnapshot("history") &&
+        !p.preservesVerifiedSnapshot("lyrics") &&
+        !p.preservesVerifiedSnapshot("preferences"),
+        "opted-in private content changes need a new readback")
     val before = CloudConnectionHelpPolicy.guidance(request, 8)
     val after = CloudConnectionHelpPolicy.guidance(picker, 8)
     checkCase(!before.detail.contains("picker appeared"), "request error no false picker")
