@@ -58,18 +58,20 @@ function Assert-NW59Home([string]$Body) {
     if ($start -lt 0 -or $finish -lt $start) {
         throw 'NW59 cannot isolate Compose Home from source'
     }
-    $home = $Body.Substring($start, $finish - $start)
-    Assert-NW59Order $home @(
+    # $HOME is PowerShell's read-only automatic environment variable,
+    # and PowerShell variable names are case-insensitive. Never assign $home.
+    $homeSource = $Body.Substring($start, $finish - $start)
+    Assert-NW59Order $homeSource @(
         'nightwave-premium-home-header',
         'nw47-home-quick-access',
         'recent-heading',
         'nw47-recent-shelf',
         'nw47-home-library-stats'
     )
-    Assert-NW59Missing $home 'ListeningSpotlight(' 'repeated last-played Home hero'
-    Assert-NW59Has $home 'onResumeSpotlight(it, recent)' 'Home Continue command'
-    Assert-NW59Has $home 'onRemoveRecent(song)' 'Recently Played removal'
-    Assert-NW59Has $home '"Discover music", openSearch' 'empty Home Search navigation'
+    Assert-NW59Missing $homeSource 'ListeningSpotlight(' 'repeated last-played Home hero'
+    Assert-NW59Has $homeSource 'onResumeSpotlight(it, recent)' 'Home Continue command'
+    Assert-NW59Has $homeSource 'onRemoveRecent(song)' 'Recently Played removal'
+    Assert-NW59Has $homeSource '"Discover music", openSearch' 'empty Home Search navigation'
 }
 if ($SelfTest) {
     Assert-NW59Has 'before after' 'after' 'positive fixture'
