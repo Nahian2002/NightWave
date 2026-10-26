@@ -4,9 +4,11 @@
 
 NightWave combines locally imported or otherwise authorized music, an offline library, optional Google Drive backup, song discovery, playlists, Sound Studio, queue control, and user-imported synchronized LRC lyrics. The original midnight/teal design is independent of Spotify.
 
-**Current development source:** `feature/nightwave-nw109-android36-privacy-hardening` (cumulative NW108 with Android 16/API 36 build configuration and explicit device-transfer privacy rules). The older default `main` does not represent this candidate.
+**Current development source:** `feature/nightwave-nw110-final-integration-certification` (cumulative NW109 with executed Kotlin regression proof and fail-closed final release evidence). The older default `main` does not represent this candidate.
 
 **Release status:** **NO-GO**. The hosted GitHub Actions runner and empty canary both failed before executing steps; a current Windows debug build, Android/JUnit/139-case device validation, installed-signer continuity, production OAuth/backup, Android 16 behavior/device certification and NW77 YouTube-source rights review remain outstanding. Never install a new APK over a library-bearing app unless its signer matches.
+
+**NW110 final integration and certification milestone:** [NW110 exact-source JVM and outstanding release gates](docs/NW110_FINAL_CERTIFICATION_EVIDENCE.md). Eight real NW95–NW100 JUnit test classes (53/53 methods) compiled and executed together against the exact 17 GitHub-blob-matched source files; 32,400 randomized queue assertions passed. The source-only JVM result is not an Android build or release approval. The new fail-closed certification script rejects stale/altered JVM receipts and explicitly leaves public distribution **NO-GO** pending real Android Gradle, signer, 139-device-case, Google Drive, privacy, source-rights and Google Play verification.
 
 **NW109 Android 16/privacy milestone:** [NW109 audit, source changes and Android test boundaries](docs/NW109_ANDROID16_PRIVACY_EVIDENCE.md). Upgraded compile/target API 36 using AGP 8.10.1 and existing Gradle 8.11.1, updated both Windows and CI SDK installers, and added explicit opt-out rules for cloud and device-to-device copying of private files. No changes to package ID, minSdk, version code/name, app signer, Google Drive backup, local music, or playlists. Synthetic negative checks guard SDK/permissions/exported surfaces/privacy rules. Android build/device proof and distribution rights remain pending.
 

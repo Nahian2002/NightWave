@@ -113,6 +113,7 @@ on:
       - feature/nightwave-nw107-lyrics-follow-accessibility
       - feature/nightwave-nw108-cloud-playlist-identity
       - feature/nightwave-nw109-android36-privacy-hardening
+      - feature/nightwave-nw110-final-integration-certification
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
@@ -443,6 +444,7 @@ jobs:
           python3 tools/verify_nw108_playlist_identity.py
           python3 tools/verify_nw109_android36_privacy.py --self-test
           python3 tools/verify_nw109_android36_privacy.py --project-root .
+          python3 tools/nw110_final_certification.py --self-test
           python3 tools/nw90_certification.py --project-root . --report build/NightWave-NW90-candidate-gates.json
 
       - name: NW101 PowerShell 5.1 attestation logic self-test
@@ -513,12 +515,39 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
 
+      - name: NW110 public queue 32,400 randomized source assertions
+        shell: bash
+        run: |
+          kotlinc app/src/main/java/com/nightwave/player/playback/ShuffleRecoveryPolicy.kt \
+            app/src/main/java/com/nightwave/player/playback/PlaybackQueue.kt \
+            tools/NW110PublicQueueStress.kt -include-runtime -d /tmp/nightwave-nw110-stress.jar
+          java -jar /tmp/nightwave-nw110-stress.jar
+
       - name: NW102 compile and run original Kotlin JUnit source tests
         shell: bash
         run: |
           python3 tools/nw102_kotlin_junit_gate.py --self-test
           python3 tools/nw103_receipt_selftest.py
           python3 tools/nw102_kotlin_junit_gate.py --report build/nightwave-nw102-jvm-source-tests.json
+
+      # Final report always says NO_GO until external signer/device/rights gates
+      # are independently verified; a fresh 53-method receipt is JVM-only.
+      - name: NW110 fail-closed final certification status (not a release approval)
+        if: always()
+        shell: bash
+        run: |
+          python3 tools/nw110_final_certification.py --project-root . \
+            --policy-receipt build/nightwave-nw102-jvm-source-tests.json \
+            --report build/nightwave-nw110-final-certification.json
+
+      - name: Upload NW110 final release NO-GO evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: NightWave-NW110-FINAL-CERTIFICATION-NO-GO
+          path: build/nightwave-nw110-final-certification.json
+          if-no-files-found: warn
+          retention-days: 7
 
       # Available even when a later Gradle step fails. A NOT_VERIFIED JSON
       # status is never a passed compiler, JUnit or Android test run.
