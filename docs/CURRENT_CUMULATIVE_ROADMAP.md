@@ -20,7 +20,7 @@
 | --- | --- |
 | **NW81** | Music title intelligence, remove display clutter without losing source metadata | Source improvements committed: safe title badges, verified-uploader artist split, Bangla vowel matching, raw Videos captions and consistent Up Next presentation; Android/JUnit/device acceptance pending NW90 |
 | **NW82** | Search precision: exact artist/title, Bangla/multilingual, typo tolerance, remix/live/cover, duplicate groups, local priority; fix 'Alo alo' vs 'Alone' | Targeted source fixes committed: short-word boundaries, repeated tokens, limited Latin typo fallback, Bangla distinction, local/offline precision and separate selectable alternate versions; full search/provider/device acceptance pending NW90 |
-| **NW83** | Unified premium visual system: typography, spacing, components, icons, contrasts, animation, responsiveness |
+| **NW83** | Unified premium visual system: typography, spacing, components, icons, contrasts, animation, responsiveness | Cumulative source update committed: all Material3 type/color roles, shared design tokens, cohesive Home/Search/Library/You gutters, track/queue/mini-player geometry, restrained teal ambient tones; targeted Kotlin token smoke passed, full visual/Android QA pending NW90 |
 | **NW84** | Music-first Home redesign with history-driven mixes, hierarchy, real artwork, listening continuation |
 | **NW85** | Now Playing redesign: artwork, player transport, mini-player, Up Next, lyrics, gestures, transitions |
 
