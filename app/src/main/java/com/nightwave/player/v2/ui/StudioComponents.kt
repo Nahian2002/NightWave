@@ -262,10 +262,15 @@ fun MusicTrackTile(
     onRemove: (() -> Unit)? = null,
     isPlaying: Boolean = false,
     surface: NightWaveTrackSurface = NightWaveTrackSurface.HOME,
+    rawVideoCaption: Boolean = false,
     onClick: () -> Unit
 ) {
     val scheme = MaterialTheme.colorScheme
-    val identity = MusicIdentity.display(video.title, video.author)
+    // Songs are music-first; Videos must retain the provider's actual
+    // description rather than pretending an unverified recording title.
+    val identity = if (rawVideoCaption)
+        MusicIdentity.videoDisplay(video.title, video.author)
+        else MusicIdentity.display(video.title, video.author)
     val largeText = LocalDensity.current.fontScale >= 1.3f
     val shape = RoundedCornerShape(if (surface == NightWaveTrackSurface.SEARCH) 14.dp else 18.dp)
     val reducedMotion = LocalNightWaveReduceMotion.current
