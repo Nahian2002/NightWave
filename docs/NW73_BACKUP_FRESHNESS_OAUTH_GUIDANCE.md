@@ -25,6 +25,7 @@
 - The exact committed `CloudBackupFreshnessPolicy.kt` was independently copied, compared by `git hash-object` to its GitHub blob SHA-1 `34e113b1f7a0527d25d5c42b61b72a610eccb50a`, compiled with local Kotlin/JVM 1.9, and passed **8,014/8,014** standalone freshness/toggle/revision assertions. The first test harness had an enum-reference compile issue; the harness was corrected and rerun successfully. Production policy code was not changed to fix the harness.
 - Added `CloudBackupFreshnessPolicyTest.kt`, enhanced `CloudAccountPresentationTest.kt` and `CloudConnectionHelpPolicyTest.kt`, and committed a reproducible `tools/NW73CloudStatusSmoke.kt` source.
 - **Not established:** Android compilation, all project JUnit tests, Android UI rendering, true Google error-8 resolution, actual Drive consent/upload/readback, correctness of external Google Cloud client registration, or on-device recovery. Source guards and isolated Kotlin assertions are not a complete app build.
+- [GitHub Android workflow 40276680630](https://github.com/Nahian2002/NightWave/actions/runs/40276680630) concluded **failure**, but the connected job API returned **no executed-step details**. Its cause is unknown and cannot be reported as a confirmed Android compiler failure or a successful build.
 
 ## Later Samsung acceptance and OAuth setup
 
