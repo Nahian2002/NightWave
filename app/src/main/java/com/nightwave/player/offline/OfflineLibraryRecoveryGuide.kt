@@ -38,7 +38,7 @@ internal object OfflineLibraryRecoveryGuide {
     fun emptyIssuesMessage(issues: Int): String =
         if (issues > 0)
             "$issues indexed audio " + (if (issues == 1) "entry needs" else "entries need") +
-                " attention. Tap an affected track to see safe recovery guidance."
+                " attention. Use the options button beside an affected track for recovery guidance."
         else "No indexed audio issues. All currently checked files appear available."
 
     fun recheckActionLabel() = "Recheck saved files"
