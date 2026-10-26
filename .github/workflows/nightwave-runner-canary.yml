@@ -21,6 +21,7 @@ on:
       - feature/nightwave-nw99-notification-session-commands
       - feature/nightwave-nw100-playback-audit-gates
       - feature/nightwave-nw101-build-attestation-recovery
+      - feature/nightwave-nw102-jvm-test-source-compiler-gate
   workflow_dispatch:
 
 permissions: {}

@@ -4,9 +4,11 @@
 
 NightWave combines locally imported or otherwise authorized music, an offline library, optional Google Drive backup, song discovery, playlists, Sound Studio, queue control, and user-imported synchronized LRC lyrics. The original midnight/teal design is independent of Spotify.
 
-**Current development source:** `feature/nightwave-nw101-build-attestation-recovery` (cumulative NW100 with real post-build source re-attestation for Windows evidence). The older default `main` does not represent this candidate.
+**Current development source:** `feature/nightwave-nw102-jvm-test-source-compiler-gate` (cumulative NW101 with standalone Kotlin compiler coverage of actual JUnit test source). The older default `main` does not represent this candidate.
 
 **Release status:** **NO-GO**. The hosted GitHub Actions runner and empty canary both failed before executing steps; a current Windows debug build, Android/JUnit/139-case device validation, installed-signer continuity, production OAuth/backup, Google Play API 36 migration and NW77 YouTube-source rights review remain outstanding. Never install a new APK over a library-bearing app unless its signer matches.
+
+**NW102 original-JUnit-source compiler milestone:** [NW102 test matrix](docs/NW102_COMPILER_TEST_MATRIX.md). The standalone JVM gate compiles 9 actual policy Kotlin files and the 8 real JUnit-source test classes added or modified in NW95–NW100 (53 methods) with a temporary JUnit API bridge, then executes them and records exact source hashes. **Android Gradle/JUnit and phone acceptance still require independent verification.**
 
 **NW101 Windows build-evidence integrity milestone:** [NW101 evidence, tests and unresolved hosted runner blocker](docs/NW101_BUILD_ATTESTATION.md). The Windows post-build gate now verifies the **actual current source inventory and every source file SHA256** against the APK build-time fingerprint, rather than only checking the manifest-file checksum. Source edits, additions, deletions, and stale receipts are rejected. Offline negative fixtures are wired into CI. **This does not repair runner allocation and does not certify Android compilation or device behavior.**
 
