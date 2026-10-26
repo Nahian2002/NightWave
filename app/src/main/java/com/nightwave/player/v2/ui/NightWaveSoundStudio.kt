@@ -105,7 +105,7 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
     }
 
     fun discover() {
-        if (pendingCommand != null || loading) return
+        if (pendingCommand != null || loading || transitionBusy) return
         loading = true
         scope.launch {
             val sent = runCatching {
@@ -125,7 +125,7 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
     }
 
     fun issueCommand(action: String, configure: (Intent) -> Unit) {
-        if (pendingCommand != null) return
+        if (pendingCommand != null || transitionBusy) return
         val requestId = UUID.randomUUID().toString()
         pendingCommand = requestId
         notice = ""
@@ -262,7 +262,7 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
         SoundStudioPolicy.validLevels(
             draftLevels, capabilities.centersHz.size,
             manualRange.first, manualRange.last)
-    val busy = loading || pendingCommand != null
+    val busy = loading || pendingCommand != null || transitionBusy
     val draftEdited = capabilities.sessionReady &&
         SoundStudioTuningPolicy.hasChanged(draftLevels, capabilities.levelsMb)
     val tuningStatus = SoundStudioTuningPolicy.statusLabel(
