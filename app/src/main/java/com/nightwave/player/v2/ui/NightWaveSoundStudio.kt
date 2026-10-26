@@ -313,7 +313,7 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                                 Row(verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(9.dp)) {
                                     Text(if (!capabilities.sessionReady) "WAITING FOR AUDIO"
-                                        else if (status.active) "EFFECT ACTIVE"
+                                        else if (status.active) "ANDROID SESSION EQ"
                                         else "EFFECT OFF",
                                         color = if (status.active) primary else muted,
                                         style = MaterialTheme.typography.labelMedium,
@@ -364,7 +364,7 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                                             selected = selectedCrossfade == seconds,
                                             enabled = !transitionBusy && !busy,
                                             onClick = { setCrossfadeDuration(seconds) },
-                                            label = { Text(if (seconds == 0) "Gapless"
+                                            label = { Text(if (seconds == 0) "Off"
                                                 else "${seconds}s") }
                                         )
                                     }
