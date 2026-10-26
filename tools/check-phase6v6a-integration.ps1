@@ -1,7 +1,7 @@
 # NightWave 6V6A lyrics source gate. Read-only PowerShell 5.1.
 # Not an Android compiler, live Google lyrics lookup or device test.
 [CmdletBinding()]
-param()
+param([switch]$SelfTest)
 $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $issues = New-Object 'System.Collections.Generic.List[string]'
@@ -23,8 +23,55 @@ function TestMethods([string]$path, [int]$minimum) {
         $script:issues.Add("$path has $count tests; expected at least $minimum")
     }
 }
+
+# NW89/NW107: reduced motion is handled by the bounded lyrics policy.
+function Test-LyricsReducedMotion([string]$screen, [string]$policy) {
+    return ($screen.Contains('if (LyricsReadingPolicy.shouldAnimateScroll(') -and
+        $screen.Contains('lyricListState.animateScrollToItem(target)') -and
+        $screen.Contains('else lyricListState.scrollToItem(target)') -and
+        $screen.Contains('reduceMotion))') -and
+        $policy.Contains('fun shouldAnimateScroll(') -and
+        $policy.Contains('!reduceMotion') -and
+        $policy.Contains('MAX_ANIMATED_SCROLL_ROWS'))
+}
+if ($SelfTest) {
+    $validScreen = @'
+if (LyricsReadingPolicy.shouldAnimateScroll(
+        lyricListState.firstVisibleItemIndex, target, reduceMotion))
+    lyricListState.animateScrollToItem(target)
+else lyricListState.scrollToItem(target)
+'@
+    $validPolicy = @'
+const val MAX_ANIMATED_SCROLL_ROWS = 12
+fun shouldAnimateScroll(a: Int, b: Int, reduceMotion: Boolean): Boolean =
+    !reduceMotion && a >= 0 && b >= 0
+'@
+    if (-not (Test-LyricsReducedMotion $validScreen $validPolicy)) {
+        throw 'Valid reduced-motion lyric follow rejected.'
+    }
+    if (Test-LyricsReducedMotion ($validScreen.Replace(
+            'if (LyricsReadingPolicy.shouldAnimateScroll(', 'if (true ||')) $validPolicy) {
+        throw 'Unconditional animated follow accepted.'
+    }
+    if (Test-LyricsReducedMotion ($validScreen.Replace(
+            'else lyricListState.scrollToItem(target)', '')) $validPolicy) {
+        throw 'Missing instant-scroll fallback accepted.'
+    }
+    if (Test-LyricsReducedMotion $validScreen ($validPolicy.Replace(
+            '!reduceMotion', 'true'))) {
+        throw 'Reduced-motion setting ignored by policy.'
+    }
+    if (Test-LyricsReducedMotion $validScreen ($validPolicy.Replace(
+            'MAX_ANIMATED_SCROLL_ROWS', 'NO_SCROLL_CAP'))) {
+        throw 'Unbounded scroll policy accepted.'
+    }
+    Write-Host 'PASS: reduced-motion lyrics policy and four negative fixtures.' -ForegroundColor Green
+    exit 0
+}
+
 $p = 'app/src/main/java/com/nightwave/player/v2/'
 $sync = FileText ($p + 'lyrics/LyricsSyncPolicy.kt')
+$readingPolicy = FileText ($p + 'lyrics/LyricsReadingPolicy.kt')
 $offset = FileText ($p + 'lyrics/PrivateLyricsOffsetStore.kt')
 $code = FileText ($p + 'lyrics/TimedLyrics.kt')
 $store = FileText ($p + 'lyrics/PrivateLyricsStore.kt')
@@ -48,7 +95,9 @@ Need $ui 'rememberLazyListState()' 'Lyric line scroll state missing'
 Need $ui 'LyricsSyncPolicy.activeIndex(' 'Active line does not include offset'
 Need $ui 'LyricsSyncPolicy.seekPosition(' 'Tap-to-seek does not include offset'
 Need $ui 'onLyricsOffsetChange(' 'Lyric timing controls missing'
-Need $ui 'if (reduceMotion) lyricListState.scrollToItem' 'Reduced-motion accessibility missing'
+if (-not (Test-LyricsReducedMotion $ui $readingPolicy)) {
+    $issues.Add('Reduced-motion lyric follow must use bounded policy with instant-scroll fallback')
+}
 Need $activity 'lyricsOffsetStore.read(id)' 'Saved lyric offset not loaded'
 Need $activity 'lyricsOffsetStore.save(id, desiredOffset)' 'Adjusted lyric offset not saved'
 Need $activity 'playback.state.videoUrl == current' 'Old track callback fence missing'
