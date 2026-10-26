@@ -158,4 +158,15 @@ class LyricsEditorPolicyTest {
         assertEquals(LyricsEditorPolicy.MAX_TIME_MS, last.cues.last().timeMs)
     }
 
+
+    @Test fun nw89EditorDoesNotAlphabetizeSimultaneousLyricCues() {
+        val base = TimedLyrics(listOf(
+            LyricCue(1000L, "Zebra"), LyricCue(1000L, "Apple"),
+            LyricCue(2000L, "Next")
+        ))
+        val draft = LyricsEditorPolicy.begin(base)
+        assertEquals(listOf("Zebra", "Apple", "Next"), draft.cues.map { it.text })
+        val saved = TimedLyricsCodec.parse(LyricsEditorPolicy.serialize(draft))
+        assertEquals(base.cues, saved.cues)
+    }
 }
