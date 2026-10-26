@@ -27,8 +27,14 @@ object OfflineSearchRanking {
         if (queryTerms.isEmpty()) return -1
         val title = normalized(originalTitle)
         val ext = normalized(extension)
-        val joined = "$title $ext"
-        if (!queryTerms.all { term -> term in joined }) return -1
+        val words = (title + " " + ext).split(' ').filter(String::isNotBlank)
+        // Align offline search with NW82's token boundaries. Short "alo"
+        // cannot match "alone" just because its letters are a substring.
+        if (!queryTerms.all { term ->
+                words.any { word ->
+                    word == term || (term.length >= 4 && word.startsWith(term))
+                }
+            }) return -1
         val query = queryTerms.joinToString(" ")
         return when {
             title == query -> 1000
