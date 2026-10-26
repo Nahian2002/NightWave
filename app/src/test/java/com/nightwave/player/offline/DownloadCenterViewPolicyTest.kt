@@ -49,4 +49,17 @@ class DownloadCenterViewPolicyTest {
         assertTrue(p.emptyMessage(DownloadCenterViewPolicy.Filter.READY).contains("No verified"))
         assertTrue(p.emptyMessage(DownloadCenterViewPolicy.Filter.ATTENTION).contains("No failed"))
     }
+
+    @Test fun downloadedBytesAloneCannotClaimPlayableOfflineAudio() {
+        val p = DownloadCenterViewPolicy
+        assertTrue(p.isVerifying("RUNNING", true))
+        assertFalse(p.isVerifying("RUNNING", false))
+        for (state in listOf("ENQUEUED", "SUCCEEDED", "FAILED", "CANCELLED")) {
+            assertFalse(p.isVerifying(state, true))
+        }
+        assertFalse(p.isReady("RUNNING", true))
+        assertFalse(p.isReady("SUCCEEDED", false))
+        assertTrue(p.isReady("SUCCEEDED", true))
+        assertTrue(p.isActive("RUNNING"))
+    }
 }
