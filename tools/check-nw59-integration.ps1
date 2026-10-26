@@ -96,6 +96,11 @@ $relative = @(
     'app/src/main/java/com/nightwave/player/v2/ui/NightWaveStudioActivity.kt',
     'app/src/main/java/com/nightwave/player/v2/ui/StudioPlayerScreens.kt',
     'app/src/main/java/com/nightwave/player/v2/cloud/CloudConnectionHelpPolicy.kt',
+    'app/src/main/java/com/nightwave/player/v2/cloud/CloudAccountSessionPolicy.kt',
+    'app/src/main/java/com/nightwave/player/v2/cloud/CloudBackupConsentPolicy.kt',
+    'app/src/test/java/com/nightwave/player/v2/cloud/CloudAccountSessionPolicyTest.kt',
+    'tools/NW72CloudSessionSmoke.kt',
+    'docs/NW72_GOOGLE_SESSION_RECOVERY.md',
     'app/src/main/java/com/nightwave/player/v2/ui/SearchConsumerCopyPolicy.kt',
     'app/src/main/java/com/nightwave/player/offline/OfflineLibraryActivity.kt',
     'app/src/main/java/com/nightwave/player/offline/CatalogDownloadsActivity.kt',
@@ -450,5 +455,26 @@ Assert-NW59Has $discoveryTests 'hugeFavoritesAndRecentDoNotHidePlaylistOnlyTrack
 Assert-NW59Has $smartTests 'rediscoverExcludesRecentAndRetainsOnlyLikedSongs' 'smart recent exclusion test'
 Assert-NW59Has $browseTests 'songTermsMustMatchOneSongNotAcrossDifferentPlaylistTracks' 'bounded semantic playlist matching'
 Assert-NW59Has $smoke 'repeat(2_000)' 'randomized JVM checks recorded'
-Write-Host 'NW71 cumulative NW53-NW71 source guard PASS. Gradle/JVM/device QA still mandatory.'
+# NW72: preserve local recovery safety across disconnect/reconnect of the
+# same Google account. Drive previews must be fenced by exact revision, not
+# just the account email. No credentials ever enter persisted test receipts.
+$cloudSession = [IO.File]::ReadAllText($files['app/src/main/java/com/nightwave/player/v2/cloud/CloudAccountSessionPolicy.kt'])
+$cloudConsent = [IO.File]::ReadAllText($files['app/src/main/java/com/nightwave/player/v2/cloud/CloudBackupConsentPolicy.kt'])
+$cloudSessionTests = [IO.File]::ReadAllText($files['app/src/test/java/com/nightwave/player/v2/cloud/CloudAccountSessionPolicyTest.kt'])
+$cloudSmoke = [IO.File]::ReadAllText($files['tools/NW72CloudSessionSmoke.kt'])
+Assert-NW59Has $cloudSession 'expected.revision == current.revision' 'same email is insufficient after reconnect'
+Assert-NW59Has $cloudSession 'expected.account.equals(current.account, ignoreCase = true)' 'same authorized account'
+Assert-NW59Has $cloudSession 'fun mayApply(' 'no restore during concurrent cloud work'
+Assert-NW59Has $cloudConsent 'val revision: Long = 0L' 'session revision source'
+Assert-NW59Has $activity 'expectedSession = operationConsent' 'capture exact session after Drive verification'
+Assert-NW59Has $activity 'CloudAccountSessionPolicy.mayApply(' 'picker and confirmation reject changed session'
+Assert-NW59Has $activity 'CloudAccountSessionPolicy.same(' 'worker rechecks account receipt before data write'
+Assert-NW59Has $activity 'showCloudMergePreview(plan, expectedSession)' 'merge preview carries exact receipt'
+Assert-NW59Has $activity 'showCloudRestorePreview(remote, comparison, expectedSession)' 'restore preview carries exact receipt'
+Assert-NW59Has $activity 'restoreCloudAfterConfirmation(preview, report, false, expectedSession)' 'restore confirmed under original account'
+Assert-NW59Has $activity 'restoreCloudAfterConfirmation(preview, report, true, expectedSession)' 'history restore session fenced'
+Assert-NW59Has $activity 'showCloudOptionalRestorePrompt(preview, expectedSession)' 'optional prefs/lyrics cannot escape session'
+Assert-NW59Has $cloudSessionTests 'sameEmailAfterDisconnectReconnectInvalidatesOldPreview' 'regression for same account reconnect'
+Assert-NW59Has $cloudSmoke '0L..2_000L' 'reproducible revision stress'
+Write-Host 'NW72 cumulative NW53-NW72 source guard PASS. Gradle/JVM/device QA still mandatory.'
 exit 0
