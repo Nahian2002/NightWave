@@ -23,6 +23,7 @@ on:
       - feature/nightwave-nw101-build-attestation-recovery
       - feature/nightwave-nw102-jvm-test-source-compiler-gate
       - feature/nightwave-nw103-build-receipt-final-gates
+      - feature/nightwave-nw104-kotlin-junit-compiler-fixes
   workflow_dispatch:
 
 permissions: {}

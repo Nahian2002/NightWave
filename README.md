@@ -4,9 +4,11 @@
 
 NightWave combines locally imported or otherwise authorized music, an offline library, optional Google Drive backup, song discovery, playlists, Sound Studio, queue control, and user-imported synchronized LRC lyrics. The original midnight/teal design is independent of Spotify.
 
-**Current development source:** `feature/nightwave-nw103-build-receipt-final-gates` (cumulative NW102 with fail-closed compiler-test evidence, immutable source snapshots and CI receipt upload). The older default `main` does not represent this candidate.
+**Current development source:** `feature/nightwave-nw104-kotlin-junit-compiler-fixes` (cumulative NW103 with verified Kotlin JUnit test-source compiler repairs). The older default `main` does not represent this candidate.
 
 **Release status:** **NO-GO**. The hosted GitHub Actions runner and empty canary both failed before executing steps; a current Windows debug build, Android/JUnit/139-case device validation, installed-signer continuity, production OAuth/backup, Google Play API 36 migration and NW77 YouTube-source rights review remain outstanding. Never install a new APK over a library-bearing app unless its signer matches.
+
+**NW104 Kotlin compiler-test repair milestone:** [NW104 compiler evidence](docs/NW104_KOTLIN_JUNIT_COMPILER_FIXES.md). Repaired invalid instance references to Kotlin nested enums in two NW95/NW98 JUnit test classes. The exact underlying Kotlin source compiled on the local JVM and **33/33 real @Test methods passed** across five test classes. The full 53-test matrix, Android Gradle, signing and device tests are still unverified.
 
 **NW103 build pipeline evidence milestone:** [NW103 audit and one-click local build handoff](docs/NW103_BUILD_PIPELINE_EVIDENCE.md). The NW102 runner now invalidates stale PASS receipts at the beginning of each non-self-test run, rejects in-flight source edits and atomically promotes results only after all 53 real Kotlin tests finish. CI uploads this scoped evidence even if a later Gradle step fails. GitHub Actions already supports manual workflow dispatch, but runner allocation and Android certification remain unresolved.
 

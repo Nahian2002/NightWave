@@ -107,6 +107,7 @@ on:
       - feature/nightwave-nw101-build-attestation-recovery
       - feature/nightwave-nw102-jvm-test-source-compiler-gate
       - feature/nightwave-nw103-build-receipt-final-gates
+      - feature/nightwave-nw104-kotlin-junit-compiler-fixes
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
@@ -429,6 +430,8 @@ jobs:
           python3 tools/verify_nw102_compiler_matrix.py
           python3 tools/nw103_receipt_selftest.py
           python3 tools/verify_nw103_build_pipeline.py
+          python3 tools/verify_nw104_nested_enum_test_sources.py --self-test
+          python3 tools/verify_nw104_nested_enum_test_sources.py
           python3 tools/nw90_certification.py --project-root . --report build/NightWave-NW90-candidate-gates.json
 
       - name: NW101 PowerShell 5.1 attestation logic self-test
