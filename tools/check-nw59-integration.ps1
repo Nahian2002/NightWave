@@ -528,6 +528,13 @@ Assert-NW59Has $cloudState 'if (stillVerified) editor.putLong(VERIFIED_REVISION_
 Assert-NW59Has $cloudState 'Backup settings changed; back up now to verify the current choices.' 'privacy change explained to user'
 Assert-NW59Has $cloudPresentation 'BackupStage.PREVIOUS_BACKUP_NEEDS_REFRESH' 'not falsely badge stale snapshot'
 Assert-NW59Has $cloudPresentation 'CloudBackupFreshnessPolicy.classify(' 'presentation uses current consent status'
+# NW75 compiler hotfix: the NW73 fourth BackupStage must have an
+# exhaustive compact You-header label too. No generic 'else' masks additions.
+Assert-NW59Has $cloudPresentation 'fun badge(stage: BackupStage): String = when (stage)' 'badge exhaustively maps backup state'
+Assert-NW59Has $cloudPresentation 'BackupStage.PREVIOUS_BACKUP_NEEDS_REFRESH -> "REFRESH NEEDED"' 'stale backup never labelled backed up'
+Assert-NW59Has $activity 'Text(CloudAccountPresentation.badge(' 'You screen uses exhaustive badge mapper'
+Assert-NW59Missing $activity 'Text(when (CloudAccountPresentation.stage(cloud))' 'prevent duplicated nonexhaustive You-stage when'
+Assert-NW59Has $presentationTests 'compactYouBadgeHandlesEveryBackupStageWithoutClaimingStaleIsVerified' 'regression test covers each compact badge'
 Assert-NW59Has $hub 'Previous verified backup' 'honest earlier snapshot timestamp'
 Assert-NW59Has $hub "New privacy or backup settings aren't verified" 'UI explains stale snapshot'
 Assert-NW59Has $cloudHelp 'if (stage == CloudAuthorizationFailurePolicy.Stage.REQUEST)' 'request stage error 8 copy'
