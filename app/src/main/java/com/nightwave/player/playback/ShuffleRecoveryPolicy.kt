@@ -1,7 +1,7 @@
 package com.nightwave.player.playback
 
 /** Public-ID-only history, never a resolved media URL or playback token. */
-internal data class ShuffleRecoverySnapshot(
+data class ShuffleRecoverySnapshot(
     val visited: List<String> = emptyList(),
     val forward: List<String> = emptyList(),
     val seen: List<String> = emptyList()
