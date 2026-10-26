@@ -16,6 +16,7 @@ activity = read(BASE + "NightWaveStudioActivity.kt")
 player = read(BASE + "StudioPlayerScreens.kt")
 ambient = read(BASE + "NightWaveVisualLanguage.kt")
 tests = read("app/src/test/java/com/nightwave/player/v2/ui/NightWavePremiumDesignTokensTest.kt")
+contrast_tests = read("app/src/test/java/com/nightwave/player/v2/model/NightWaveContrastPolicyTest.kt")
 smoke = read("tools/NW83VisualTokensSmoke.kt")
 
 # Every Material3 typography role is explicit: no default text styles bleed in.
@@ -56,6 +57,9 @@ assert "const val MIN_TOUCH_TARGET_DP = 48" in tokens
 assert "fun controlTouchTargetDp(fontScale: Float)" in tokens
 assert "rowMinHeightDp(1.8f)" in tests
 assert "NW83_PREMIUM_VISUAL_TOKENS_SMOKE_PASS" in smoke
+assert theme.count("errorContainer = paletteColor(palette.surface)") == 2
+assert "nw83MaterialContainerRolesMeetNormalTextContrastInAllPalettes" in contrast_tests
+assert "ratio(p.danger, p.surface) >= 4.5" in contrast_tests
 assert "Palette" not in tokens and "VideoPreview" not in tokens
 print("NW83_PREMIUM_VISUAL_SOURCE_CONTRACT_PASS")
 print("UNVERIFIED: Android compilation, rendered screenshots, font clipping and real-device UX")
