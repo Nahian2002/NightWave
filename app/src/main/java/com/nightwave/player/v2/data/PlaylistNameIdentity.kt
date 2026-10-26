@@ -1,19 +1,20 @@
 package com.nightwave.player.v2.data
 
-import java.util.Locale
-
 /**
- * Canonical identity for names stored in NightWave archive and Drive backups.
- * Device language must not change what counts as the same playlist. Existing
- * ambiguous legacy archives must fail validation rather than lose a playlist.
+ * Archive/Drive playlist identity must match the existing local transaction
+ * engine's case-insensitive comparisons, regardless of device language.
+ * Bounded collections contain at most 50 names; pairwise validation avoids
+ * lossy Unicode folding keys that disagree with String.equals(ignoreCase).
  */
 object PlaylistNameIdentity {
-    fun key(name: String): String = name.lowercase(Locale.ROOT)
+    fun same(first: String, second: String): Boolean =
+        first.equals(second, ignoreCase = true)
 
-    fun same(first: String, second: String): Boolean = key(first) == key(second)
+    fun contains(names: Iterable<String>, candidate: String): Boolean =
+        names.any { same(it, candidate) }
 
-    fun allDistinct(names: List<String>): Boolean {
-        val seen = HashSet<String>(names.size)
-        return names.all { seen.add(key(it)) }
-    }
+    fun allDistinct(names: List<String>): Boolean =
+        names.indices.all { i ->
+            (0 until i).none { j -> same(names[i], names[j]) }
+        }
 }

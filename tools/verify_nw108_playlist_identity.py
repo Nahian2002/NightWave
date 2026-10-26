@@ -9,17 +9,19 @@ merger=read("app/src/main/java/com/nightwave/player/v2/cloud/CloudLibraryMerger.
 recovery=read("app/src/main/java/com/nightwave/player/v2/cloud/CloudRecoveryPolicy.kt")
 test=read("app/src/test/java/com/nightwave/player/v2/data/PlaylistNameIdentityTest.kt")
 ci=read(".github/workflows/android.yml")
-assert "name.lowercase(Locale.ROOT)" in policy
+assert "first.equals(second, ignoreCase = true)" in policy
+assert "fun contains(names: Iterable<String>, candidate: String)" in policy
 assert "fun same(first: String, second: String)" in policy
 assert "fun allDistinct(names: List<String>)" in policy
 assert codec.count("PlaylistNameIdentity.allDistinct(")==2
 assert not codec.count("it.first.lowercase()")
-assert merger.count("PlaylistNameIdentity.key(")>=3
+assert merger.count("PlaylistNameIdentity.contains(")>=2
 assert merger.count("PlaylistNameIdentity.same(")>=2
-assert "val names = local.playlists.map { PlaylistNameIdentity.key(it.first) }" in merger
-assert "PlaylistNameIdentity.key(name)" in recovery
-assert "PlaylistNameIdentity.key(it.first)" in recovery
+assert "val names = local.playlists.map { it.first }.toMutableList()" in merger
+assert "PlaylistNameIdentity.same(it.first, name)" in recovery
+assert "remotePlaylists.firstOrNull" in recovery
 assert "lowercase(Locale.ROOT)" not in recovery
+assert "PlaylistNameIdentity.key(" not in merger
 assert test.count("@Test fun ")==6
 assert "tools/NW108PlaylistNameSmoke.kt" in ci
 assert "python3 tools/nw108_name_junit_gate.py" in ci

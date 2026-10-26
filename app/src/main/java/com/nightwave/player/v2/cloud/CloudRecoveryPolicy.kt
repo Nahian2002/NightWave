@@ -28,14 +28,16 @@ object CloudRecoveryPolicy {
         // Fail closed on unexpected programmatic callers, not just API decoder.
         val cloud = LibraryBackupCodec.decode(LibraryBackupCodec.encode(remote.archive))
         val remoteLikes = cloud.favorites.map { it.url }.toHashSet()
-        val remotePlaylists = cloud.playlists.associateBy {
-            PlaylistNameIdentity.key(it.first)
-        }
+        // Match the same case-insensitive identity the local mutation lane
+        // enforces; ROOT lowercase keys differ on some Unicode characters.
+        val remotePlaylists = cloud.playlists
         val lostLists = local.playlists.count { (name, _) ->
-            PlaylistNameIdentity.key(name) !in remotePlaylists
+            remotePlaylists.none { PlaylistNameIdentity.same(it.first, name) }
         }
         val changedLists = local.playlists.count { (name, songs) ->
-            val replacement = remotePlaylists[PlaylistNameIdentity.key(name)]
+            val replacement = remotePlaylists.firstOrNull {
+                PlaylistNameIdentity.same(it.first, name)
+            }
             replacement != null && (
                 replacement.first != name ||
                 replacement.second != songs

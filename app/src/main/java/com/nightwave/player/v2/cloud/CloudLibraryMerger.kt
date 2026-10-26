@@ -35,7 +35,7 @@ object CloudLibraryMerger {
             "Too many favorites to merge safely (500 maximum). Nothing changed."
         }
 
-        val names = local.playlists.map { PlaylistNameIdentity.key(it.first) }.toMutableSet()
+        val names = local.playlists.map { it.first }.toMutableList()
         val mergedPlaylists = local.playlists.toMutableList()
         val conflicts = mutableListOf<String>()
         var appendedReferences = 0
@@ -64,9 +64,10 @@ object CloudLibraryMerger {
                     availableImportedName(remoteName, names)
                 }
             // Every imported playlist is an intact copy; never change existing order.
-            require(names.add(PlaylistNameIdentity.key(importedName))) {
+            require(!PlaylistNameIdentity.contains(names, importedName)) {
                 "Duplicate playlist during merge"
             }
+            names.add(importedName)
             mergedPlaylists.add(importedName to remoteTracks)
             appendedReferences += remoteTracks.size
             require(mergedPlaylists.size <= 50) {
@@ -100,10 +101,10 @@ object CloudLibraryMerger {
         return name.take(60 - marker.length).trimEnd() + marker
     }
 
-    private fun availableImportedName(name: String, used: Set<String>): String {
+    private fun availableImportedName(name: String, used: Collection<String>): String {
         for (suffix in 1..51) {
             val candidate = importedName(name, suffix)
-            if (PlaylistNameIdentity.key(candidate) !in used) return candidate
+            if (!PlaylistNameIdentity.contains(used, candidate)) return candidate
         }
         error("Could not allocate a safe imported playlist name")
     }
