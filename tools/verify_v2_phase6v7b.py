@@ -21,10 +21,13 @@ REQUIRED = {
         "BorderStroke(1.dp, palette.primary.copy(alpha = .27f))",
         "Icons.Outlined.LibraryMusic",
     ],
+    PREFIX+"NightWavePremiumDesignTokens.kt": [
+        "const val ROW_ARTWORK_DP = 52",
+    ],
     PREFIX+"StudioComponents.kt": [
         "surface: NightWaveTrackSurface = NightWaveTrackSurface.HOME",
         '"nightwave-track-" + surface.name.lowercase()',
-        "NightWaveCollectionChrome.TRACK_ARTWORK_DP.dp",
+        "TrackArtwork(video, Modifier.size(NightWavePremiumDesignTokens.ROW_ARTWORK_DP.dp)",
         "NightWaveCollectionChrome.COLLECTION_ARTWORK_DP.dp",
         '"nightwave-library-collection"',
         "AsyncImage(model = video.thumbnail",
@@ -102,6 +105,12 @@ def self_test():
             'testTag("offline-action-regression")'
         ),encoding="utf-8")
         assert any("nightwave-save-offline-search" in e for e in audit(root))
+        card = root/(PREFIX+"StudioComponents.kt")
+        card.write_text(card.read_text(encoding="utf-8").replace(
+            "NightWavePremiumDesignTokens.ROW_ARTWORK_DP.dp", "28.dp"
+        ), encoding="utf-8")
+        assert any("NightWavePremiumDesignTokens.ROW_ARTWORK_DP.dp" in e
+                   for e in audit(root))
     print("PASS: 6V7B synthetic audit catches loss of existing library sorting")
 
 def main():
