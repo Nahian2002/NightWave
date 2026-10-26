@@ -94,6 +94,7 @@ on:
       - feature/nightwave-nw77-source-safety-release-gate
       # NW90 verifies the complete cumulative NW76–NW89 source, never older branches.
       - feature/nightwave-nw90-final-integration-certification
+      - feature/nightwave-nw91-build-recovery-reliability
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
@@ -401,6 +402,7 @@ jobs:
           python3 tools/verify_nw89_lyrics.py
           python3 tools/verify_nw90_final_audit.py
           python3 tools/nw90_certification.py --self-test
+          python3 tools/verify_nw91_certification.py
           python3 tools/nw90_certification.py --project-root . --report build/NightWave-NW90-candidate-gates.json
 
       - name: Standalone Kotlin compiler smoke (when compiler present)
@@ -439,8 +441,11 @@ jobs:
       - name: Compile debug app, JVM tests and Android instrumentation sources
         run: |
           mkdir -p build
+          # An old, green report must never cross into the current attempt.
+          rm -rf app/build/test-results/testDebugUnitTest
+          touch build/NightWave-NW91-attempt-start.txt
           set -o pipefail
-          gradle --no-daemon --stacktrace --console=plain :app:testDebugUnitTest :app:assembleDebug :app:compileDebugAndroidTestKotlin 2>&1 | tee build/nightwave-gradle.log
+          gradle --no-daemon --rerun-tasks --no-build-cache --stacktrace --console=plain :app:testDebugUnitTest :app:assembleDebug :app:compileDebugAndroidTestKotlin 2>&1 | tee build/nightwave-gradle.log
       - name: NW76 certify current JVM report before APK validation
         shell: pwsh
         run: |
@@ -451,6 +456,7 @@ jobs:
           python3 tools/nw90_certification.py --project-root . \
             --junit-dir app/build/test-results/testDebugUnitTest \
             --build-log build/nightwave-gradle.log \
+            --attempt-marker build/NightWave-NW91-attempt-start.txt \
             --apk app/build/outputs/apk/debug/app-debug.apk \
             --report build/NightWave-NW90-after-build-gates.json
       - name: Upload NW90 no-public-release evidence receipts

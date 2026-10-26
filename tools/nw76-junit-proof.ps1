@@ -69,8 +69,9 @@ function Measure-JunitReceipt([string]$folder, [int]$minimum) {
         $errors += $e
         $skipped += $k
     }
-    if ($total -lt $minimum) {
-        throw "Only $total JVM tests reported; expected at least $minimum. Do not publish."
+    $executed = $total - $skipped
+    if ($executed -lt $minimum) {
+        throw "Only $executed JVM tests executed ($skipped skipped); expected at least $minimum. Do not publish."
     }
     if ($failed -ne 0 -or $errors -ne 0) {
         throw "JVM tests failed: $failed failures, $errors errors."
@@ -115,6 +116,10 @@ function Invoke-SelfTest {
         $rejected = $false
         try { $null = Measure-JunitReceipt $fixture 5 } catch { $rejected = $true }
         if (-not $rejected) { throw 'JUnit undercount was not rejected.' }
+
+        $rejected = $false
+        try { $null = Measure-JunitReceipt $fixture 4 } catch { $rejected = $true }
+        if (-not $rejected) { throw 'Skipped tests incorrectly satisfied the executed-test floor.' }
 
         [IO.File]::WriteAllText($first, $a.Replace('failures="0"', 'failures="1"'))
         $rejected = $false

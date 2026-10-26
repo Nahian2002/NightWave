@@ -80,6 +80,17 @@ try {
         if ($status -notmatch [regex]::Escape($digest)) {
             throw 'APK SHA256 does not match local build certification report.'
         }
+        # The status receipt must match the actual on-disk source manifest,
+        # not only a previously built APK and a possibly stale status file.
+        $manifest = Require-File 'dist\NightWave-source-fingerprint.txt'
+        $fingerprint = [regex]::Match($status, '(?m)^Source fingerprint SHA256:\s*([a-fA-F0-9]{64})\s*$')
+        if (-not $fingerprint.Success) {
+            throw 'Build status has no valid source fingerprint digest.'
+        }
+        $actualFingerprint = (Get-FileHash -LiteralPath $manifest -Algorithm SHA256).Hash
+        if ($actualFingerprint -ne $fingerprint.Groups[1].Value) {
+            throw 'Build status source fingerprint and manifest content disagree.'
+        }
         Record 'Local Windows Gradle/JVM/APK evidence: PASS (developer/debug only)'
         Record "APK SHA256: $digest"
         Record 'IMPORTANT: APK is NOT cleared to install over existing app until signer check.'

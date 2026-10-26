@@ -12,6 +12,7 @@ Examples:
     python3 tools/nw90_certification.py --project-root . \
       --junit-dir app/build/test-results/testDebugUnitTest \
       --build-log build/nightwave-gradle.log \
+      --attempt-marker build/NightWave-NW91-attempt-start.txt \
       --apk app/build/outputs/apk/debug/app-debug.apk \
       --report build/NightWave-NW90-after-build.json
 """
@@ -83,8 +84,11 @@ def evidence_junit(path: Path, minimum: int = 1000) -> tuple[dict, dict]:
                         return gate("FAIL", "JUnit suite counter mismatch: " + field), counts
     except (ET.ParseError, ValueError, OSError):
         return gate("FAIL", "JUnit XML could not be safely validated."), {}
-    if counts["tests"] < minimum:
-        return gate("FAIL", f"Only {counts['tests']} JUnit tests; need >= {minimum}."), counts
+    # Skipped tests do not demonstrate behavior. The floor is for tests
+    # actually executed, not merely enumerated in JUnit XML.
+    executed = counts["tests"] - counts["skipped"]
+    if executed < minimum:
+        return gate("FAIL", f"Only {executed} executed JUnit tests; need >= {minimum}."), counts
     if counts["failures"] or counts["errors"]:
         return gate("FAIL", "JUnit recorded failures or errors."), counts
     return gate("PASS", "Fresh JUnit XML counters valid (skips are reported)."), counts
@@ -92,17 +96,24 @@ def evidence_junit(path: Path, minimum: int = 1000) -> tuple[dict, dict]:
 def matrix_status(path: Path) -> tuple[dict, dict]:
     if not path.is_file():
         return gate("FAIL", "Expanded 139-case matrix missing."), {}
-    with path.open(encoding="utf-8", newline="") as stream:
-        data = list(csv.DictReader(stream))
-    ids = [r["case_id"] for r in data]
+    expected_header = ["case_id", "area", "scenario", "expected",
+                       "severity", "status", "evidence"]
+    try:
+        with path.open(encoding="utf-8", newline="") as stream:
+            reader = csv.DictReader(stream, strict=True)
+            if reader.fieldnames != expected_header:
+                return gate("FAIL", "Matrix CSV header/schema differs from the 139-case contract."), {}
+            data = list(reader)
+    except (OSError, UnicodeError, csv.Error):
+        return gate("FAIL", "Matrix CSV could not be safely parsed."), {}
+    ids = [r.get("case_id") for r in data]
     statuses = ("NOT_RUN", "PASS", "FAIL", "BLOCKED")
-    if len(data) != 139 or len(set(ids)) != 139 or any(
-        not re.fullmatch(r"NW90-[0-9]{3}", id) for id in ids
-    ) or any(
-        r.get("status") not in statuses or not r.get("area") or
+    expected_ids = {f"NW90-{n:03}" for n in range(1, 140)}
+    if len(data) != 139 or set(ids) != expected_ids or any(
+        None in r or r.get("status") not in statuses or not r.get("area") or
         not r.get("scenario") or not r.get("expected") or
         r.get("severity") not in ("P0", "P1", "P2") or
-        (r["status"] == "PASS" and not r.get("evidence", "").strip())
+        (r["status"] == "PASS" and not (r.get("evidence") or "").strip())
         for r in data
     ):
         return gate("FAIL", "Matrix must contain 139 unique valid cases with truthful evidence."), {}
@@ -114,7 +125,7 @@ def matrix_status(path: Path) -> tuple[dict, dict]:
 
 def report(
     root: Path, junit_dir: Path | None, apk: Path | None,
-    build_log: Path | None = None
+    build_log: Path | None = None, attempt_marker: Path | None = None
 ) -> dict:
     matrix_gate, counts = matrix_status(root / MATRIX)
     checks = {name: gate("NOT_VERIFIED", "No current-source execution evidence.")
@@ -123,18 +134,27 @@ def report(
     junit_summary = {}
     if junit_dir is not None:
         xml_gate, junit_summary = evidence_junit(junit_dir)
-        # XML files can survive from an earlier commit/build. A counters-only
-        # check is not fresh-current-source evidence without successful build
-        # output for this attempt, or the separate NW76 Windows receipt.
+        # A successful log alone can be reused with stale XML. CI creates a
+        # fresh attempt marker immediately before Gradle (after deleting old
+        # XML). Do not certify when that marker/log/XML relationship is absent.
         log_ok = False
-        if build_log is not None and build_log.is_file():
+        if (build_log is not None and build_log.is_file() and
+                attempt_marker is not None and attempt_marker.is_file() and
+                junit_dir is not None and junit_dir.is_dir()):
+            started_ns = attempt_marker.stat().st_mtime_ns
             log_text = build_log.read_text(encoding="utf-8", errors="replace")
-            log_ok = bool(re.search(r"(?m)^BUILD SUCCESSFUL\b", log_text))
+            terminals = re.findall(r"(?m)^BUILD (?:SUCCESSFUL|FAILED)\b", log_text)
+            reports = list(junit_dir.glob("**/TEST-*.xml"))
+            log_ok = bool(
+                terminals and terminals[-1] == "BUILD SUCCESSFUL" and
+                build_log.stat().st_mtime_ns >= started_ns and
+                reports and all(p.stat().st_mtime_ns >= started_ns for p in reports)
+            )
         if xml_gate["status"] == "PASS" and not log_ok:
             checks["jvm_unit_tests"] = gate(
                 "NOT_VERIFIED",
-                "JUnit XML counters are valid but no successful current-build "
-                "Gradle log was supplied; results could be stale.")
+                "JUnit XML counters valid, but this Gradle attempt lacks a "
+                "successful terminal log or fresh marker-bound XML evidence.")
         else:
             checks["jvm_unit_tests"] = xml_gate
     if apk is not None and apk.is_file() and apk.stat().st_size > 100_000:
@@ -208,14 +228,23 @@ def self_test() -> None:
         with matrix.open("a", encoding="utf-8") as stream:
             stream.write('NW90-001,Smoke,duplicate,invalid,P0,PASS,\n')
         assert matrix_status(matrix)[0]["status"] == "FAIL"
+        matrix.write_text(matrix.read_text(encoding="utf-8").splitlines()[0] + "\n", encoding="utf-8")
+        with matrix.open("a", encoding="utf-8", newline="") as stream:
+            w = csv.writer(stream)
+            for i in range(1, 140):
+                w.writerow((f"NW90-{999 if i == 139 else i:03}", "Smoke", f"Case {i}",
+                            "Tested behavior", "P0", "NOT_RUN", ""))
+        assert matrix_status(matrix)[0]["status"] == "FAIL"  # unique but wrong ID
         suite = r / "junit"
         suite.mkdir()
         (suite / "TEST-a.xml").write_text(
             '<testsuite tests="2" failures="0" errors="0" skipped="1">'
             '<testcase name="good"/><testcase name="skip"><skipped/></testcase></testsuite>'
         )
-        state, results = evidence_junit(suite, minimum=2)
+        state, results = evidence_junit(suite, minimum=1)
         assert state["status"] == "PASS" and results["skipped"] == 1
+        state, _ = evidence_junit(suite, minimum=2)
+        assert state["status"] == "FAIL"  # skipped test cannot satisfy the floor
         state, _ = evidence_junit(suite, minimum=1000)
         assert state["status"] == "FAIL"
         (suite / "TEST-a.xml").write_text(
@@ -230,6 +259,7 @@ def main() -> int:
     parser.add_argument("--report", default="build/NightWave-NW90-candidate-gates.json")
     parser.add_argument("--junit-dir")
     parser.add_argument("--build-log")
+    parser.add_argument("--attempt-marker", help="File touched before this Gradle invocation")
     parser.add_argument("--apk")
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
@@ -243,7 +273,7 @@ def main() -> int:
         p = Path(path)
         return p if p.is_absolute() else root / p
     result = report(root, in_root(args.junit_dir), in_root(args.apk),
-                    in_root(args.build_log))
+                    in_root(args.build_log), in_root(args.attempt_marker))
     dest = in_root(args.report)
     assert dest is not None
     dest.parent.mkdir(parents=True, exist_ok=True)

@@ -4,11 +4,13 @@
 
 NightWave combines locally imported or otherwise authorized music, an offline library, optional Google Drive backup, song discovery, playlists, Sound Studio, queue control, and user-imported synchronized LRC lyrics. The original midnight/teal design is independent of Spotify.
 
-**Current development source:** `feature/nightwave-nw90-final-integration-certification` (cumulative NW76–NW89 upgrades). The older default `main` does not represent this candidate.
+**Current development source:** `feature/nightwave-nw91-build-recovery-reliability` (cumulative NW90 with certification regression fixes). The older default `main` does not represent this candidate.
 
 **Release status:** **NO-GO**. The hosted GitHub Actions runner and empty canary both failed before executing steps; a current Windows debug build, Android/JUnit/139-case device validation, installed-signer continuity, production OAuth/backup, Google Play API 36 migration and NW77 YouTube-source rights review remain outstanding. Never install a new APK over a library-bearing app unless its signer matches.
 
-**Start here:** [NW90 evidence and blockers](docs/NW90_FINAL_INTEGRATION_EVIDENCE.md) · [Expanded 139-case acceptance matrix](docs/NW90_EXPANDED_139_CASE_MATRIX.csv) · [Windows one-click private QA](run-nw90-final.cmd) · [Cumulative phase roadmap](docs/CURRENT_CUMULATIVE_ROADMAP.md) · [Historic phase announcements](docs/NW90_ARCHIVED_PHASE_BANNERS.md).
+**NW91 build-recovery milestone:** [NW91 evidence and safe Windows verification](docs/NW91_BUILD_RECOVERY_EVIDENCE.md). The 1,000-test acceptance threshold now counts executed tests, not skips; CI and Windows checks reject more stale or inconsistent proof. **Android compilation/device certification is still pending.** On a freshly extracted NW91 ZIP, run `run-nw91-final.cmd` on Windows and use `check-device-update.cmd` before installing any update.
+
+**Historical NW90 start:** [NW90 evidence and blockers](docs/NW90_FINAL_INTEGRATION_EVIDENCE.md) · [Expanded 139-case acceptance matrix](docs/NW90_EXPANDED_139_CASE_MATRIX.csv) · [Windows one-click private QA](run-nw90-final.cmd) · [Cumulative phase roadmap](docs/CURRENT_CUMULATIVE_ROADMAP.md) · [Historic phase announcements](docs/NW90_ARCHIVED_PHASE_BANNERS.md).
 
 ---
 

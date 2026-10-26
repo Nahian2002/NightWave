@@ -10,6 +10,7 @@ on:
       - fix/nightwave-v2-nw27-final-hardening
       - feature/nightwave-nw52-final-integration-release-gates
       - feature/nightwave-nw90-final-integration-certification
+      - feature/nightwave-nw91-build-recovery-reliability
   workflow_dispatch:
 
 permissions: {}
