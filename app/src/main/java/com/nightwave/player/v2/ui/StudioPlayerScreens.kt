@@ -1356,6 +1356,9 @@ private fun SwipeUpcomingRow(
     onSelect: () -> Unit,
     onRemove: () -> Unit
 ) {
+    val display = remember(title, subtitle) {
+        MusicIdentity.display(title, subtitle)
+    }
     var travel by remember(title, number) { mutableStateOf(0f) }
     val animatedTravel by animateFloatAsState(
         targetValue = travel,
@@ -1410,9 +1413,9 @@ private fun SwipeUpcomingRow(
                 style = MaterialTheme.typography.labelMedium)
             CoverArt(artwork, Modifier.size(45.dp), 10)
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                Text(display.title, maxLines = 1, overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.titleSmall)
-                Text(subtitle, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                Text(display.artistOrCreator, maxLines = 1, overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
