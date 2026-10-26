@@ -76,6 +76,7 @@ $output = Join-Path $outDir 'NightWave-debug.apk'
 $previousApk = Join-Path $outDir 'NightWave-debug-previous.apk'
 $sourceManifest = Join-Path $outDir 'NightWave-source-fingerprint.txt'
 $junitSummary = Join-Path $outDir 'NightWave-jvm-failure-summary.txt'
+$junitProofOutput = Join-Path $outDir 'NightWave-jvm-test-proof.txt'
 $testXmlDirectory = Join-Path $project 'app\build\test-results\testDebugUnitTest'
 $sourceManifestHash = ''
 $stage = 'Preflight'
@@ -84,6 +85,8 @@ if (Test-Path -LiteralPath $errorReport) { Remove-Item -LiteralPath $errorReport
 # Never reuse a fingerprint from a previous, different ZIP.
 if (Test-Path -LiteralPath $sourceManifest) { Remove-Item -LiteralPath $sourceManifest -Force }
 if (Test-Path -LiteralPath $junitSummary) { Remove-Item -LiteralPath $junitSummary -Force }
+# Fail closed: don't allow yesterday's JUnit receipt to be reused.
+if (Test-Path -LiteralPath $junitProofOutput) { Remove-Item -LiteralPath $junitProofOutput -Force }
 # Archive the prior log; a preflight failure must not reuse yesterday's compiler errors.
 if (Test-Path -LiteralPath $buildLog) {
     Copy-Item -LiteralPath $buildLog -Destination $previousLog -Force
@@ -408,6 +411,14 @@ try {
         throw 'NW59 NW53-NW58 source integration failed; Gradle not started.'
     }
     Say 'NW59 cumulative upgrade source preflight PASS (Android Gradle/JUnit still required).'
+    $stage = 'NW76 JUnit parser self-test'
+    $junitProof = Join-Path $PSScriptRoot 'nw76-junit-proof.ps1'
+    if (-not (Test-Path -LiteralPath $junitProof -PathType Leaf)) {
+        throw 'NW76 JUnit proof checker missing from extracted ZIP.'
+    }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $junitProof -SelfTest
+    if ($LASTEXITCODE -ne 0) { throw 'NW76 JUnit parser self-test failed before Gradle.' }
+    Say 'NW76 JUnit XML proof self-test PASS; real Gradle tests still required.'
 
     # NW-08: fingerprint all app source/resources/tests and source-build tooling,
     # not only ten representative files. The helper is run again after Gradle,
@@ -558,6 +569,16 @@ try {
         Pop-Location
     }
 
+    # Test XML was deleted before this Gradle run. Require fresh, credible
+    # pass/fail counts before publishing a source-fingerprinted APK.
+    $stage = 'NW76 JUnit result certification'
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $junitProof `
+        -ResultsDirectory $testXmlDirectory -OutputFile $junitProofOutput -MinimumTests 1000
+    if ($LASTEXITCODE -ne 0 -or
+        -not (Test-Path -LiteralPath $junitProofOutput -PathType Leaf)) {
+        throw 'NW76 current-attempt JVM reports were missing, incomplete or failing; no APK published.'
+    }
+    Say 'NW76 current-attempt JUnit result receipt PASS; proceeding to APK validation.'
     $stage = 'APK verification'
     $apk = Join-Path $project 'app\build\outputs\apk\debug\app-debug.apk'
     if (-not (Test-Path -LiteralPath $apk)) {
@@ -618,6 +639,11 @@ try {
         throw 'Source fingerprint manifest changed during build.'
     }
     # The verified candidate alone is promoted to the downloadable result.
+    $junitReceiptLine = ((Get-Content -LiteralPath $junitProofOutput |
+        Where-Object { $_ -match '^(Total JVM tests|Passed|Failures|Errors|Skipped):' }) -join ' | ')
+    if ([string]::IsNullOrWhiteSpace($junitReceiptLine)) {
+        throw 'NW76 JUnit receipt counters missing before APK promotion.'
+    }
     Copy-Item -LiteralPath $apk -Destination $output -Force
     $hash = (Get-FileHash -LiteralPath $output -Algorithm SHA256).Hash
     @(
@@ -631,6 +657,8 @@ try {
         "Source fingerprint SHA256: $sourceManifestHash",
         "Source file count: $($inputs.Count)",
         "Source fingerprint file: dist\\NightWave-source-fingerprint.txt",
+        "JUnit receipt: dist\\NightWave-jvm-test-proof.txt",
+        "JUnit results: $junitReceiptLine",
         "APK: $output",
         'Installed-device signer compatibility is not assured unless compared separately.'
     ) | Set-Content -LiteralPath $statusFile -Encoding UTF8
