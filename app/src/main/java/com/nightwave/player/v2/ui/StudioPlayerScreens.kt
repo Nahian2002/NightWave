@@ -97,6 +97,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
@@ -120,6 +123,7 @@ import com.nightwave.player.net.MusicIdentity
 import com.nightwave.player.v2.lyrics.TimedLyrics
 import com.nightwave.player.v2.lyrics.LyricsSyncPolicy
 import com.nightwave.player.v2.lyrics.LyricsPresentationPolicy
+import com.nightwave.player.v2.lyrics.LyricsReadingPolicy
 import com.nightwave.player.playback.PlaybackQueue
 import com.nightwave.player.playback.SleepTimerPolicy
 import com.nightwave.player.playback.CrossfadePolicy
@@ -470,8 +474,12 @@ fun StudioNowPlayingOverlay(
                 LaunchedEffect(activeCue, lyricsAutoFollow, state.videoUrl, reduceMotion) {
                     if (lyricsAutoFollow && activeCue >= 0) {
                         val target = LyricsPresentationPolicy.scrollTarget(activeCue)
-                        if (reduceMotion) lyricListState.scrollToItem(target)
-                        else lyricListState.animateScrollToItem(target)
+                        // Large seek/skip jumps should not animate through up
+                        // to 1,200 lazy-list rows and stall low-end devices.
+                        if (LyricsReadingPolicy.shouldAnimateScroll(
+                                lyricListState.firstVisibleItemIndex, target, reduceMotion))
+                            lyricListState.animateScrollToItem(target)
+                        else lyricListState.scrollToItem(target)
                     }
                 }
                 Column(
@@ -515,15 +523,17 @@ fun StudioNowPlayingOverlay(
                     Row(Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(if (lyricsAutoFollow)
-                                "Your imported LRC · Tap a line to seek"
-                            else "Browsing lyrics · Tap Follow to resume",
+                        Text(LyricsReadingPolicy.followHint(lyricsAutoFollow),
                             modifier = Modifier.weight(1f).padding(vertical = 8.dp),
                             color = colors.onSurfaceVariant,
                             style = MaterialTheme.typography.labelSmall)
                         OutlinedButton(onClick = { lyricsAutoFollow = true },
                             enabled = !lyricsAutoFollow,
-                            modifier = Modifier.testTag("lyrics-follow-toggle")) {
+                            modifier = Modifier.testTag("lyrics-follow-toggle")
+                                .semantics {
+                                    contentDescription =
+                                        "Follow synchronized lyrics during playback"
+                                }) {
                             Text("Follow")
                         }
                         Spacer(Modifier.width(7.dp))
@@ -553,7 +563,13 @@ fun StudioNowPlayingOverlay(
                                 enabled = state.connected && state.hasTrack &&
                                     cueOriginTrack.isNotBlank(),
                                 modifier = Modifier.fillMaxWidth()
-                                    .testTag("lyrics-cue-$index"),
+                                    .testTag("lyrics-cue-$index")
+                                    .semantics(mergeDescendants = true) {
+                                        contentDescription = LyricsReadingPolicy.cueDescription(
+                                            cue, lyricsOffsetMs, state.durationMs)
+                                        stateDescription =
+                                            LyricsReadingPolicy.currentLineState(current)
+                                    },
                                 shape = RoundedCornerShape(14.dp),
                                 color = if (current) colors.primaryContainer
                                     else Color.Transparent
