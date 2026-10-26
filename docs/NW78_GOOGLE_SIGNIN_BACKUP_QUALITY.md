@@ -16,7 +16,10 @@
 
 1. In `CloudBackupState.success()` and `successIfCurrent()`, refuse timestamps <= 0; this ensures no invalid completion timestamp can set `enabled=true` or `lastVerifiedRevision`.
 2. Add sandboxed Android instrumentation cases for zero/negative timestamps, switching authorized accounts after a successful snapshot, and reconnecting the same account while an older worker receipt exists.
-3. Restore the user's original **NW76–NW90** phase order and quality-score benchmarks as the controlling roadmap. The earlier incorrectly summarized NW62–NW77 roadmap was replaced on this branch.
+3. When the asynchronous Drive snapshot-list operation returns, verify that its original account session and consent revision are still current **before showing the restore/merge picker**.
+4. For failed asynchronous Drive operations, replace unconditional status writes with `CloudBackupState.statusIfCurrent()`. A delayed failure from an old account or changed privacy preferences can no longer overwrite the new account's status.
+5. Add two sandboxed Android instrumentation regressions for stale failures after an account switch and a privacy change (five new cases in this phase).
+6. Restore the user's original **NW76–NW90** phase order and quality-score benchmarks as the controlling roadmap. The earlier incorrectly summarized NW62–NW77 roadmap was replaced on this branch.
 
 ## Deferred final-device acceptance (not yet a passing result)
 
@@ -29,7 +32,7 @@
 
 ## Evidence
 
-**Exact GitHub source readback:** both guards, all three regression cases and all fifteen phases were found on the NW78 branch; braces of the edited regression file were balanced. This is a narrow textual consistency check, not a Kotlin compiler run.  
+**Exact GitHub source readback:** both timestamp guards, the UI's guarded snapshot-picker and conditional status update, all five new Android regression cases, and all fifteen roadmap phases were found on the NW78 branch. Braces in both edited Kotlin files were balanced. These are narrow textual consistency checks, **not Kotlin compiler or Android-device evidence**.  
 **Not executed:** Gradle, Android instrumentation, Google backup/upload/readback on device, signing compatibility, full long-session QA. The owner has chosen one comprehensive manual acceptance session at NW90.
 
 No public-release claim is made. NW77's YouTube source-rights issues remain independently blocking.
