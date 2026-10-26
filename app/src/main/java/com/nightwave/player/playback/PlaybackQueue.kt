@@ -122,6 +122,27 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
     }
 
     /**
+     * Moving an existing queued item is not deletion. In Shuffle, it may be a
+     * song the listener heard earlier. Preserve that identity in Previous and
+     * in the seen cycle rather than losing its old index during removeAt().
+     *
+     * [from] is the original slot and [to] is the final inserted slot.
+     */
+    private fun remapForMove(from: Int, to: Int) {
+        fun remap(old: Int): Int {
+            if (old == from) return to
+            val afterRemoval = if (old > from) old - 1 else old
+            return if (afterRemoval >= to) afterRemoval + 1 else afterRemoval
+        }
+        val history = visited.toList()
+        visited.clear()
+        history.forEach { visited.add(remap(it)) }
+        val seen = shuffledSeen.toList()
+        shuffledSeen.clear()
+        seen.forEach { shuffledSeen.add(remap(it)) }
+    }
+
+    /**
      * Play Next differs from Add to Queue: it moves an already queued URL or
      * inserts a valid new item directly after the current song.
      * For shuffle, manual priority is consumed by next() before random picks.
@@ -139,7 +160,6 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
         forwardVisits.clear()
         val toInsert = if (prior >= 0) {
             val existing = entries.removeAt(prior)
-            remapForRemoval(prior)
             // Moving a song from earlier in the visible queue shifts the
             // current slot left; preserve the exact song that is still playing.
             if (prior < index) index--
@@ -147,7 +167,8 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
         } else entry
         val target = (index + 1).coerceAtMost(entries.size)
         entries.add(target, toInsert)
-        remapForInsertion(target)
+        if (prior >= 0) remapForMove(prior, target)
+        else remapForInsertion(target)
         // Only queue contents and order are persisted, never a private stream URL.
         manualNext.remove(entry.url)
         manualNext.add(0, entry.url)
