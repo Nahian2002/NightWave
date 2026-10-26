@@ -25,6 +25,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -45,6 +46,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.nightwave.player.playback.AudioTransitionUiPolicy
+import com.nightwave.player.playback.CrossfadePolicy
+import com.nightwave.player.playback.CrossfadeSettingsStore
+import com.nightwave.player.playback.OfflineNormalizationStore
 import com.nightwave.player.playback.EqualizerCapabilities
 import com.nightwave.player.playback.EqualizerStatusStore
 import com.nightwave.player.playback.PlaybackService
@@ -65,6 +70,8 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
     val scope = rememberCoroutineScope()
     val capabilityStore = remember(context) { EqualizerCapabilities(context) }
     val statusStore = remember(context) { EqualizerStatusStore(context) }
+    val crossfadeStore = remember(context) { CrossfadeSettingsStore(context) }
+    val normalizationStore = remember(context) { OfflineNormalizationStore(context) }
 
     var capabilities by remember { mutableStateOf(capabilityStore.read()) }
     var status by remember { mutableStateOf(statusStore.read()) }
@@ -73,6 +80,10 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
     var notice by remember { mutableStateOf("") }
     var draftLevels by remember { mutableStateOf(emptyList<Int>()) }
     var selectedShape by remember { mutableStateOf<SoundStudioTuningPolicy.Shape?>(null) }
+    var selectedCrossfade by remember { mutableStateOf(crossfadeStore.read()) }
+    var balanceEnabled by remember { mutableStateOf(normalizationStore.enabled()) }
+    var transitionBusy by remember { mutableStateOf(false) }
+    var transitionNotice by remember { mutableStateOf("") }
 
     fun applySnapshot(resetDraft: Boolean) {
         val latest = capabilityStore.read()
@@ -149,7 +160,8 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                     }
                     // Preset changes should show device-reported gains,
                     // whereas manual edits keep the just-applied draft.
-                    applySnapshot(resetDraft = action == PlaybackService.ACTION_EQ_PRESET_SET)
+                    applySnapshot(resetDraft = action == PlaybackService.ACTION_EQ_PRESET_SET ||
+                        action == PlaybackService.ACTION_EQ_BANDS_APPLY)
                     pendingCommand = null
                     notice = latest.message
                     return@launch
@@ -160,6 +172,70 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                 applySnapshot(resetDraft = false)
                 notice = "No reply from the audio engine. Playback may have stopped."
             }
+        }
+    }
+
+    fun setCrossfadeDuration(seconds: Int) {
+        if (transitionBusy || !CrossfadePolicy.accepts(seconds)) return
+        transitionBusy = true
+        transitionNotice = "Applying crossfade preference…"
+        val sent = runCatching {
+            context.startService(Intent(context, PlaybackService::class.java).apply {
+                action = PlaybackService.ACTION_CROSSFADE_SET
+                putExtra(PlaybackService.EXTRA_CROSSFADE_SECONDS, seconds)
+            })
+        }.isSuccess
+        if (!sent) {
+            transitionBusy = false
+            transitionNotice = "Couldn't reach playback. Preference was not confirmed."
+            return
+        }
+        scope.launch {
+            var confirmed = false
+            for (attempt in 0 until 12) {
+                delay(150L)
+                selectedCrossfade = crossfadeStore.read()
+                if (selectedCrossfade == seconds) {
+                    confirmed = true
+                    break
+                }
+            }
+            transitionBusy = false
+            transitionNotice = if (confirmed)
+                "Crossfade preference saved for eligible offline tracks."
+            else "Playback did not confirm crossfade. Reopen Sound Studio to verify."
+        }
+    }
+
+    fun setOfflineBalancing(enabled: Boolean) {
+        if (transitionBusy) return
+        transitionBusy = true
+        transitionNotice = "Updating offline volume balancing…"
+        val sent = runCatching {
+            context.startService(Intent(context, PlaybackService::class.java).apply {
+                action = PlaybackService.ACTION_NORMALIZATION_SET
+                putExtra(PlaybackService.EXTRA_NORMALIZATION_ENABLED, enabled)
+            })
+        }.isSuccess
+        if (!sent) {
+            transitionBusy = false
+            transitionNotice = "Couldn't reach playback. Preference was not confirmed."
+            return
+        }
+        scope.launch {
+            var confirmed = false
+            for (attempt in 0 until 12) {
+                delay(150L)
+                balanceEnabled = normalizationStore.enabled()
+                if (balanceEnabled == enabled) {
+                    confirmed = true
+                    break
+                }
+            }
+            transitionBusy = false
+            transitionNotice = if (confirmed)
+                "Offline volume balancing preference saved."
+            else "Playback did not confirm balancing. Check settings after playback starts."
         }
     }
 
@@ -260,6 +336,61 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                                     else "Play a song, then refresh to inspect what Android supports.",
                                     color = muted, style = MaterialTheme.typography.bodySmall
                                 )
+                            }
+                        }
+                    }
+
+                    item(key = "nw88-local-audio-transitions") {
+                        Surface(color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(18.dp)) {
+                            Column(Modifier.fillMaxWidth().padding(15.dp),
+                                verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                                Text("Local playback quality",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.SemiBold)
+                                Text("Gapless is preferred when crossfade is off. " +
+                                    "Crossfade uses verified local tracks only; " +
+                                    "it pauses for Shuffle, Repeat One or non-1× speed. " +
+                                    "Streaming sources are not reprocessed.",
+                                    style = MaterialTheme.typography.bodySmall, color = muted)
+                                Text("Crossfade · " +
+                                    AudioTransitionUiPolicy.dialogDetail(selectedCrossfade),
+                                    style = MaterialTheme.typography.titleSmall)
+                                Row(Modifier.fillMaxWidth()
+                                        .horizontalScroll(rememberScrollState()),
+                                    horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                                    listOf(0, 2, 4, 6, 8, 10).forEach { seconds ->
+                                        FilterChip(
+                                            selected = selectedCrossfade == seconds,
+                                            enabled = !transitionBusy && !busy,
+                                            onClick = { setCrossfadeDuration(seconds) },
+                                            label = { Text(if (seconds == 0) "Gapless"
+                                                else "${seconds}s") }
+                                        )
+                                    }
+                                }
+                                Row(Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically) {
+                                    Column(Modifier.weight(1f)) {
+                                        Text("Offline volume balancing",
+                                            style = MaterialTheme.typography.titleSmall)
+                                        Text("Optional 12-second PCM sample. " +
+                                            "Attenuates louder local tracks only; " +
+                                            "not ReplayGain or streaming normalization.",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = muted)
+                                    }
+                                    Switch(
+                                        checked = balanceEnabled,
+                                        enabled = !transitionBusy && !busy,
+                                        onCheckedChange = { setOfflineBalancing(it) }
+                                    )
+                                }
+                                if (transitionNotice.isNotBlank())
+                                    Text(transitionNotice,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = muted)
                             }
                         }
                     }
