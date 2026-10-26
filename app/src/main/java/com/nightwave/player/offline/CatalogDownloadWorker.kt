@@ -56,7 +56,8 @@ class CatalogDownloadWorker(
             // Never carry a previous attempt's progress into a new transfer.
             setProgressAsync(Data.Builder()
                 .putLong(CatalogDownloadQueue.KEY_RECEIVED, 0L)
-                .putLong(CatalogDownloadQueue.KEY_TOTAL, -1L).build())
+                .putLong(CatalogDownloadQueue.KEY_TOTAL, -1L)
+                .putBoolean(CatalogDownloadQueue.KEY_VERIFYING, false).build())
             setForegroundAsync(foreground(candidate.title, 0, null)).get()
             if (isStopped) return failed("Download cancelled")
             val source = PermittedAudioDownloadPolicy.prepare(
@@ -65,9 +66,20 @@ class CatalogDownloadWorker(
             currentDownload = transfer
             var lastUi = 0L
             var lastBytes = -1L
+            var latestReceived = 0L
+            var latestTotal = -1L
             val saved = transfer.download(
-                source, candidate.sha1Base36, candidate.bytes
+                source, candidate.sha1Base36, candidate.bytes,
+                onVerifying = {
+                    setProgressAsync(Data.Builder()
+                        .putLong(CatalogDownloadQueue.KEY_RECEIVED, latestReceived)
+                        .putLong(CatalogDownloadQueue.KEY_TOTAL, latestTotal)
+                        .putBoolean(CatalogDownloadQueue.KEY_VERIFYING, true)
+                        .build())
+                }
             ) { received, total ->
+                latestReceived = received
+                latestTotal = total ?: -1L
                 if (isStopped) {
                     transfer.cancel()
                     throw IOException("Download cancelled")
@@ -80,6 +92,7 @@ class CatalogDownloadWorker(
                     setProgressAsync(Data.Builder()
                         .putLong(CatalogDownloadQueue.KEY_RECEIVED, received)
                         .putLong(CatalogDownloadQueue.KEY_TOTAL, total ?: -1L)
+                        .putBoolean(CatalogDownloadQueue.KEY_VERIFYING, false)
                         .build())
                     setForegroundAsync(foreground(candidate.title, received, total))
                 }
@@ -97,10 +110,7 @@ class CatalogDownloadWorker(
         } catch (error: Exception) {
             if (isStopped) failed("Download cancelled")
             else if (error is IOException && runAttemptCount < 2) Result.retry()
-            else failed(
-                if (error is IOException) "Network transfer failed; retry from the catalog"
-                else DownloadRecoveryPolicy.failedMessage(error.message)
-            )
+            else failed(DownloadRecoveryPolicy.failedMessage(error.message))
         } finally {
             currentDownload = null
         }
