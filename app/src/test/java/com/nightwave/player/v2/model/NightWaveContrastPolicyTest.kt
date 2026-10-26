@@ -34,4 +34,23 @@ class NightWaveContrastPolicyTest {
         assertTrue(NightWaveContrastPolicy.ratio(p.secondary, p.raised) >= 4.5)
         assertTrue(NightWaveContrastPolicy.ratio(p.contrastOnAccent(), p.accent) >= 4.5)
     }
+
+    @Test fun nw83MaterialContainerRolesMeetNormalTextContrastInAllPalettes() {
+        for (theme in NightWaveTheme.entries) {
+            val p = NightWaveDesign.palette(theme)
+            val ratio = NightWaveContrastPolicy::ratio
+            assertTrue("$theme onPrimary/tertiaryContainer",
+                ratio(p.foreground, p.accentSoft) >= 4.5)
+            assertTrue("$theme onSecondaryContainer",
+                ratio(p.foreground, p.raised) >= 4.5)
+            assertTrue("$theme onSecondary",
+                ratio(p.background, p.secondary) >= 4.5)
+            assertTrue("$theme onError",
+                ratio(p.background, p.danger) >= 4.5)
+            // Error container uses surface, not raised: Pearl would
+            // otherwise fall below the 4.5:1 small-text threshold.
+            assertTrue("$theme onErrorContainer",
+                ratio(p.danger, p.surface) >= 4.5)
+        }
+    }
 }
