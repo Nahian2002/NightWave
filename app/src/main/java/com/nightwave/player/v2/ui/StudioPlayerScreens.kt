@@ -238,7 +238,7 @@ fun StudioMiniPlayer(
                             .graphicsLayer {
                                 scaleX = miniScale
                                 scaleY = miniScale
-                            }, 11)
+                            }, 11, "Artwork for " + identity.title)
                     }
                     Column(Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -246,7 +246,8 @@ fun StudioMiniPlayer(
                             else identity.title,
                             style = MaterialTheme.typography.titleSmall.copy(
                                 fontWeight = FontWeight.SemiBold),
-                            color = colors.onSurface, maxLines = 1,
+                            color = colors.onSurface,
+                            maxLines = if (fontScale >= 1.3f) 2 else 1,
                             overflow = TextOverflow.Ellipsis)
                         Text(
                             if (health.phase == PlaybackPhase.LOOKING_UP ||
@@ -306,7 +307,10 @@ fun StudioMiniPlayer(
 }
 
 @Composable
-private fun CoverArt(url: String, modifier: Modifier = Modifier, radius: Int = 24) {
+private fun CoverArt(
+    url: String, modifier: Modifier = Modifier, radius: Int = 24,
+    description: String = "Song artwork"
+) {
     val preferredArtwork = remember(url) { NightWaveArtworkPolicy.preferredArtwork(url) }
     var useOriginal by remember(url) { mutableStateOf(false) }
     val displayUrl = if (useOriginal) url else preferredArtwork
@@ -326,7 +330,7 @@ private fun CoverArt(url: String, modifier: Modifier = Modifier, radius: Int = 2
         if (displayUrl.isNotBlank()) {
             AsyncImage(
                 model = displayUrl,
-                contentDescription = "Album artwork",
+                contentDescription = description,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,
                 onError = {
@@ -739,7 +743,8 @@ fun StudioNowPlayingOverlay(
                         label = "Player artwork"
                     ) { thumbnail ->
                         CoverArt(thumbnail, Modifier.fillMaxSize(),
-                            playerLayout.artworkCornerDp)
+                            playerLayout.artworkCornerDp,
+                            "Artwork for " + playerIdentity.title)
                     }
                     if (state.buffering) {
                         Box(
@@ -890,10 +895,17 @@ fun StudioNowPlayingOverlay(
                             Text(queuePreview.heading,
                                 style = MaterialTheme.typography.labelSmall,
                                 color = colors.onSurfaceVariant)
-                            Text(queuePreviewTitle,
-                                style = MaterialTheme.typography.titleMedium,
-                                maxLines = 1, overflow = TextOverflow.Ellipsis,
-                                color = colors.onSurface)
+                            Crossfade(
+                                targetState = queuePreviewTitle,
+                                animationSpec = tween(
+                                    NightWaveMotionPolicy.duration(
+                                        reduceMotion, NightWaveMotionPolicy.FEEDBACK_MS)),
+                                label = "Next queued song"
+                            ) { title ->
+                                Text(title, style = MaterialTheme.typography.titleMedium,
+                                    maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                    color = colors.onSurface)
+                            }
                         }
                         Icon(Icons.AutoMirrored.Outlined.QueueMusic, contentDescription = "Open queue", tint = colors.primary)
                     }
