@@ -110,4 +110,26 @@ class CloudFirstBackupConsentInstrumentedTest {
         assertEquals(CloudAccountPresentation.BackupStage.CONNECTED_NOT_BACKED_UP,
             CloudAccountPresentation.stage(store.read()))
     }
+
+    @Test fun delayedFailureCannotOverwriteStatusAfterAccountSwitch() = scenario { store ->
+        assertTrue(store.connect("first@example.com"))
+        val oldConsent = store.read().consentSnapshot()
+        assertTrue(store.connect("second@example.com"))
+        val newMessage = store.read().lastResult
+        assertFalse(store.statusIfCurrent(oldConsent, "Stale Drive failure"))
+        assertEquals(newMessage, store.read().lastResult)
+        assertEquals("second@example.com", store.read().account)
+    }
+
+    @Test fun delayedFailureCannotOverwriteStatusAfterPrivacyChange() = scenario { store ->
+        assertTrue(store.connect("first@example.com"))
+        val consent = store.read().consentSnapshot()
+        assertTrue(store.setHistory(true))
+        val newerStatus = store.read().lastResult
+        assertFalse(store.statusIfCurrent(consent, "Stale Drive failure"))
+        assertEquals(newerStatus, store.read().lastResult)
+        assertTrue(store.statusIfCurrent(store.read().consentSnapshot(),
+            "Drive temporarily unavailable"))
+        assertEquals("Drive temporarily unavailable", store.read().lastResult)
+    }
 }
