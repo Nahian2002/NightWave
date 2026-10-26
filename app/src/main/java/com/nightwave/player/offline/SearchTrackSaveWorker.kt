@@ -46,7 +46,8 @@ class SearchTrackSaveWorker(
             // Resolve and restart cleanly on WorkManager retries.
             setProgressAsync(Data.Builder()
                 .putLong(SearchTrackSaveQueue.KEY_RECEIVED, 0L)
-                .putLong(SearchTrackSaveQueue.KEY_TOTAL, -1L).build())
+                .putLong(SearchTrackSaveQueue.KEY_TOTAL, -1L)
+                .putBoolean(SearchTrackSaveQueue.KEY_VERIFYING, false).build())
             setForegroundAsync(foreground(title, 0L, null)).get()
             if (isStopped) return fail("Cancelled")
             // Resolve at execution time. Signed streaming addresses expire and
@@ -57,9 +58,20 @@ class SearchTrackSaveWorker(
             transfer = downloader
             var lastRefresh = 0L
             var lastReported = -1L
+            var latestReceived = 0L
+            var latestTotal = -1L
             val saved = downloader.downloadResolvedSearchAudio(
-                stream.audioUrl, stream.video.title.ifBlank { title }
+                stream.audioUrl, stream.video.title.ifBlank { title },
+                onVerifying = {
+                    setProgressAsync(Data.Builder()
+                        .putLong(SearchTrackSaveQueue.KEY_RECEIVED, latestReceived)
+                        .putLong(SearchTrackSaveQueue.KEY_TOTAL, latestTotal)
+                        .putBoolean(SearchTrackSaveQueue.KEY_VERIFYING, true)
+                        .build())
+                }
             ) { received, total ->
+                latestReceived = received
+                latestTotal = total ?: -1L
                 if (isStopped) {
                     downloader.cancel()
                     throw IOException("Cancelled")
@@ -71,7 +83,9 @@ class SearchTrackSaveWorker(
                     lastReported = received
                     setProgressAsync(Data.Builder()
                         .putLong(SearchTrackSaveQueue.KEY_RECEIVED, received)
-                        .putLong(SearchTrackSaveQueue.KEY_TOTAL, total ?: -1L).build())
+                        .putLong(SearchTrackSaveQueue.KEY_TOTAL, total ?: -1L)
+                        .putBoolean(SearchTrackSaveQueue.KEY_VERIFYING, false)
+                        .build())
                     setForegroundAsync(foreground(title, received, total))
                 }
             }
