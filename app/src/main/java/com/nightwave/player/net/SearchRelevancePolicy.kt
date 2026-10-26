@@ -38,30 +38,37 @@ object SearchRelevancePolicy {
         return Identity(title, artist, all)
     }
 
-    fun savedMatches(query: Query, track: VideoPreview): Boolean {
-        if (!query.valid) return false
-        val all = identity(track).searchable
-        return query.terms.all { it in all }
-    }
+    fun savedMatches(query: Query, track: VideoPreview): Boolean =
+        savedScore(query, track) > 0
 
-    /** Deterministic evidence-based ordering, with no model-generated artist IDs. */
-    fun savedScore(query: Query, track: VideoPreview): Int {
+    /**
+     * Prefer full words and real long-prefix matches. A typo candidate is
+     * available only as a separate fallback when no strict saved hits exist.
+     * Neither mode merges Bangla vowel spellings or matches short substrings.
+     */
+    fun savedScore(query: Query, track: VideoPreview, allowTypo: Boolean = false): Int {
         if (!query.valid) return 0
         val id = identity(track)
-        if (!query.terms.all { it in id.searchable }) return 0
+        val allWords = SearchTokenMatchingPolicy.tokens(id.searchable)
+        val strengths = query.terms.map {
+            SearchTokenMatchingPolicy.evidence(it, allWords, allowTypo)
+        }
+        if (strengths.any { it == 0 }) return 0
         val exactTitle = id.title == query.text
         val exactArtist = id.artist == query.text
-        return when {
+        val base = when {
             exactTitle -> 250
             exactArtist -> 205
             id.title.startsWith(query.text) -> 180
             id.artist.startsWith(query.text) -> 155
-            query.text in id.title -> 125
-            query.text in id.artist -> 115
-            query.terms.all { it in id.title } -> 95
-            query.terms.all { it in id.artist } -> 85
+            SearchTokenMatchingPolicy.allCovered(
+                query.terms, SearchTokenMatchingPolicy.tokens(id.title)) -> 125
+            SearchTokenMatchingPolicy.allCovered(
+                query.terms, SearchTokenMatchingPolicy.tokens(id.artist)) -> 115
             else -> 65
         }
+        // Typo-only fallbacks must never outrank a genuine title/artist match.
+        return if (strengths.any { it == 1 }) minOf(base, 70) else base
     }
 
     /**
@@ -80,20 +87,28 @@ object SearchRelevancePolicy {
         val searchable = SearchMusicIntentPolicy.canonical(id.searchable)
         val terms = prepare(wanted).terms
         if (terms.isEmpty()) return 0
-        val covered = terms.count { term ->
-            if (term.all(Char::isDigit))
-                searchable.split(' ').any { it == term }
-            else term in searchable
+        val allWords = SearchTokenMatchingPolicy.tokens(searchable)
+        // Do not treat "alo" as contained in "alone"; only long Latin
+        // tokens can use single-edit typo evidence. Digits match exactly.
+        val strength = terms.map { term ->
+            if (term.all(Char::isDigit)) {
+                if (term in allWords) 3 else 0
+            } else SearchTokenMatchingPolicy.evidence(term, allWords, allowTypo = true)
         }
-        var score = covered * 13
-        if (covered == terms.size) score += 75
+        val covered = strength.count { it > 0 }
+        var score = strength.sum() * 9
+        if (covered == terms.size) {
+            score += 75
+            if (strength.any { it == 1 }) score += 55
+        }
         if (title == wanted) score += 140
         else if (title.startsWith(wanted)) score += 100
         else if (wanted in title) score += 72
         if (artist == wanted) score += 85
         else if (artist.startsWith(wanted)) score += 40
         else if (wanted in artist) score += 26
-        if (terms.all { it in title }) score += 30
+        if (SearchTokenMatchingPolicy.allCovered(
+                terms, SearchTokenMatchingPolicy.tokens(title))) score += 30
         if (track.durationSeconds in 90L..660L) score += 6
         val original = normalize(track.title)
         if ("official audio" in original || "official music video" in original) score += 8
