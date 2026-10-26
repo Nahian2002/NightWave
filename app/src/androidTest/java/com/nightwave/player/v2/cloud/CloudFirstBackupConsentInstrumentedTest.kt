@@ -66,4 +66,48 @@ class CloudFirstBackupConsentInstrumentedTest {
         assertTrue(store.successIfCurrent(consent, 98765L, created = false))
         assertEquals("Already backed up; library unchanged", store.read().lastResult)
     }
+
+    @Test fun invalidCompletionTimeCannotPretendBackupWasReadBack() = scenario { store ->
+        assertTrue(store.connect("first@example.com"))
+        val consent = store.read().consentSnapshot()
+        assertFalse(store.successIfCurrent(consent, 0L, created = true))
+        assertFalse(store.successIfCurrent(consent, -1L, created = false))
+        assertFalse(store.success("first@example.com", 0L))
+        assertFalse(store.success("first@example.com", -1L))
+        val state = store.read()
+        assertFalse(state.enabled)
+        assertEquals(0L, state.lastSuccessMs)
+        assertEquals(-1L, state.lastVerifiedRevision)
+        assertEquals(CloudAccountPresentation.BackupStage.CONNECTED_NOT_BACKED_UP,
+            CloudAccountPresentation.stage(state))
+    }
+
+    @Test fun differentAccountCannotInheritAnyPreviousVerifiedSnapshot() = scenario { store ->
+        assertTrue(store.connect("first@example.com"))
+        val old = store.read().consentSnapshot()
+        assertTrue(store.successIfCurrent(old, 1000L, created = true))
+        assertEquals(CloudAccountPresentation.BackupStage.VERIFIED_BACKUP,
+            CloudAccountPresentation.stage(store.read()))
+        assertTrue(store.connect("second@example.com"))
+        val switched = store.read()
+        assertFalse(switched.enabled)
+        assertEquals(0L, switched.lastSuccessMs)
+        assertEquals(-1L, switched.lastVerifiedRevision)
+        assertFalse(store.successIfCurrent(old, 2000L, created = true))
+        assertFalse(store.success("first@example.com", 2000L))
+        assertEquals(CloudAccountPresentation.BackupStage.CONNECTED_NOT_BACKED_UP,
+            CloudAccountPresentation.stage(store.read()))
+    }
+
+    @Test fun reconnectingSameAccountInvalidatesOldWorkerReceipt() = scenario { store ->
+        assertTrue(store.connect("first@example.com"))
+        val old = store.read().consentSnapshot()
+        assertTrue(store.successIfCurrent(old, 1000L, created = true))
+        assertTrue(store.disconnect())
+        assertTrue(store.connect("first@example.com"))
+        assertFalse(store.successIfCurrent(old, 2000L, created = true))
+        assertEquals(0L, store.read().lastSuccessMs)
+        assertEquals(CloudAccountPresentation.BackupStage.CONNECTED_NOT_BACKED_UP,
+            CloudAccountPresentation.stage(store.read()))
+    }
 }
