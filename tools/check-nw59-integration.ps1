@@ -423,7 +423,7 @@ Assert-NW59Order $legacyJumpBlock @(
     'assertEquals("c", queue.next())',
     'assertNull(queue.next())',
     'assertEquals("b", queue.previous())',
-    'assertEquals("c", queue.next())'
+    'assertEquals("c", queue.next()) // retrace the latest Previous'
 ) 'NW75 offline shuffle redo before unplayed random tracks'
 
 $publicPriorityTests = [IO.File]::ReadAllText($files['app/src/test/java/com/nightwave/player/playback/PublicQueuePastPriorityTest.kt'])
