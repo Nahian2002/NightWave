@@ -3265,11 +3265,14 @@ private fun StudioHome(
         listOf(Color(0xFF705031), Color(0xFF4F334B)),
         listOf(Color(0xFF3B5867), Color(0xFF344066))
     )
+    val nw83PageGutter = NightWavePremiumDesignTokens.pageGutterDp(
+        androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.toFloat()).dp
     LazyColumn(
-        modifier = modifier.fillMaxWidth().widthIn(max = 740.dp).fillMaxHeight(),
+        modifier = modifier.fillMaxWidth().widthIn(max =
+            NightWavePremiumDesignTokens.MAX_CONTENT_WIDTH_DP.dp).fillMaxHeight(),
         // Scaffold already reserves the mini-player and navigation height;
         // only add breathing room, not an artificial 150dp blank spacer.
-        contentPadding = PaddingValues(start = 19.dp, end = 19.dp,
+        contentPadding = PaddingValues(start = nw83PageGutter, end = nw83PageGutter,
             top = 18.dp, bottom = 36.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -3529,9 +3532,12 @@ private fun StudioSearch(
     val playSinglePublic = { selected: VideoPreview ->
         onPlay(selected, listOf(selected))
     }
+    val nw83PageGutter = NightWavePremiumDesignTokens.pageGutterDp(
+        androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.toFloat()).dp
     LazyColumn(
-        modifier.fillMaxWidth().widthIn(max = 740.dp).fillMaxHeight(),
-        contentPadding = PaddingValues(start = 19.dp, end = 19.dp,
+        modifier.fillMaxWidth().widthIn(max =
+            NightWavePremiumDesignTokens.MAX_CONTENT_WIDTH_DP.dp).fillMaxHeight(),
+        contentPadding = PaddingValues(start = nw83PageGutter, end = nw83PageGutter,
             top = 16.dp, bottom = 34.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -4080,8 +4086,11 @@ private fun StudioLibrary(
     val quickPlayableTracks = remember(orderedTracks) {
         LibraryQuickPlayPolicy.plan(orderedTracks, shuffle = false, seed = 0L).songs
     }
-    LazyColumn(modifier.fillMaxWidth().widthIn(max = 740.dp).fillMaxHeight(),
-        contentPadding = PaddingValues(start = 19.dp, end = 19.dp,
+    val nw83PageGutter = NightWavePremiumDesignTokens.pageGutterDp(
+        androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.toFloat()).dp
+    LazyColumn(modifier.fillMaxWidth().widthIn(max =
+        NightWavePremiumDesignTokens.MAX_CONTENT_WIDTH_DP.dp).fillMaxHeight(),
+        contentPadding = PaddingValues(start = nw83PageGutter, end = nw83PageGutter,
             top = 19.dp, bottom = 40.dp),
         verticalArrangement = Arrangement.spacedBy(13.dp)) {
         if (playlistUndo != null) {
@@ -4735,9 +4744,12 @@ private fun StudioProfile(
     var showPlaybackHealth by rememberSaveable { mutableStateOf(false) }
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
 
+    val nw83PageGutter = NightWavePremiumDesignTokens.pageGutterDp(
+        androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.toFloat()).dp
     LazyColumn(
-        modifier = modifier.widthIn(max = 720.dp).fillMaxHeight(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp,
+        modifier = modifier.widthIn(max =
+            NightWavePremiumDesignTokens.MAX_CONTENT_WIDTH_DP.dp).fillMaxHeight(),
+        contentPadding = PaddingValues(start = nw83PageGutter, end = nw83PageGutter,
             top = 12.dp, bottom = 52.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
