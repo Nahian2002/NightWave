@@ -22,4 +22,7 @@ object CloudBackupFreshnessPolicy {
 
     /** No-op preference taps must not invalidate an actually verified upload. */
     fun changed(previous: Boolean, requested: Boolean): Boolean = previous != requested
+
+    /** A network constraint is not part of the backed-up library contents. */
+    fun preservesVerifiedSnapshot(key: String): Boolean = key == "wifi_only"
 }
