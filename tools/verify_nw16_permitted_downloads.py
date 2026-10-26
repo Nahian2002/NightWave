@@ -34,7 +34,13 @@ assert tests.count("@Test") >= 12
 assert ".followRedirects(false)" in engine
 assert ".followSslRedirects(false)" in engine
 assert "resolved.all(::isPublicAddress)" in engine
-assert "callTimeout(8, TimeUnit.MINUTES)" in engine
+# NW79 replaces NW16's original eight-minute whole-transfer cutoff with a
+# bounded long-running transfer policy for slow but progressing sources.
+network_policy = text("app/src/main/java/com/nightwave/player/offline/AudioDownloadNetworkPolicy.kt")
+assert "callTimeout(AudioDownloadNetworkPolicy.MAX_TRANSFER_MINUTES, TimeUnit.MINUTES)" in engine
+assert "readTimeout(30, TimeUnit.SECONDS)" in engine
+assert "MAX_TRANSFER_MINUTES = 180L" in network_policy
+assert "shouldBackOff(statusCode: Int)" in network_policy
 assert "AtomicBoolean(false)" in engine
 assert "currentCall?.cancel()" in engine
 assert "received <= PermittedAudioDownloadPolicy.MAX_BYTES" in engine
