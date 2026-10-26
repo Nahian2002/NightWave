@@ -55,4 +55,23 @@ class TimedLyricsCodecTest {
         val input = (1..TimedLyricsCodec.MAX_LINES+1).joinToString("\n") { "[00:01.00] line $it" }
         assertThrows(IllegalArgumentException::class.java) { parse(input) }
     }
+
+    @Test fun nw89SimultaneousCuesPreserveTheUsersWrittenOrder() {
+        val lyrics = parse("[00:01.00]Zebra\n[00:01.00]Apple\n[00:02.00]Next")
+        assertEquals(listOf("Zebra", "Apple", "Next"),
+            lyrics.cues.map { it.text })
+        assertEquals(1, lyrics.activeIndex(1_000L))
+        assertEquals(1, lyrics.activeIndex(1_999L))
+    }
+
+    @Test fun nw89LargeBoundedMultilingualLrcKeepsStableOrder() {
+        val input = (0 until 1100).joinToString("\n") { i ->
+            "[%02d:%02d.00]বাংলা লাইন %d".format(
+                java.util.Locale.ROOT, i / 60, i % 60, i)
+        }
+        val lyrics = parse(input)
+        assertEquals(1100, lyrics.cues.size)
+        assertEquals("বাংলা লাইন 1099", lyrics.cues.last().text)
+        assertEquals(500, lyrics.activeIndex(500_500L))
+    }
 }
