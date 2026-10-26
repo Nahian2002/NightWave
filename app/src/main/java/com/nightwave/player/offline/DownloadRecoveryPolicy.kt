@@ -31,6 +31,12 @@ internal object DownloadRecoveryPolicy {
             "http 429" in text || "rate-limit" in text ||
                 "too many requests" in text ->
                 "Audio source is rate-limited. Retry later."
+            "http 500" in text || "http 502" in text ||
+                "http 503" in text || "http 504" in text ||
+                "source is temporarily unavailable" in text ->
+                "Audio source is temporarily unavailable. Retry later."
+            "http 408" in text || "http 425" in text ->
+                "Connection interrupted. Check internet and retry."
             "http 401" in text || "http 403" in text ||
                 "access denied" in text || "denied access" in text ||
                 "unauthorized" in text || "forbidden" in text ->
