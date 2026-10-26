@@ -4,9 +4,11 @@
 
 NightWave combines locally imported or otherwise authorized music, an offline library, optional Google Drive backup, song discovery, playlists, Sound Studio, queue control, and user-imported synchronized LRC lyrics. The original midnight/teal design is independent of Spotify.
 
-**Current development source:** `feature/nightwave-nw110-final-integration-certification` (cumulative NW109 with executed Kotlin regression proof and fail-closed final release evidence). The older default `main` does not represent this candidate.
+**Current development source:** `fix/nightwave-nw110-windows-nw44-search-preflight` (cumulative NW110 with Windows NW44 Search preflight correction). The older default `main` does not represent this candidate.
 
 **Release status:** **NO-GO**. The hosted GitHub Actions runner and empty canary both failed before executing steps; a current Windows debug build, Android/JUnit/139-case device validation, installed-signer continuity, production OAuth/backup, Android 16 behavior/device certification and NW77 YouTube-source rights review remain outstanding. Never install a new APK over a library-bearing app unless its signer matches.
+
+**NW110 Windows build hotfix:** [NW44 grouped Search preflight correction](docs/NW110_WINDOWS_NW44_PREFLIGHT_HOTFIX.md). The Windows Kotlin source checker wrongly demanded two public Search single-song click handlers, although the current UI and both NW43/NW44 independent Python checks require three (Best matches, Other versions and More results). The corrected Windows check includes positive/negative fixtures and changes no Android player source. User's reported build never started Gradle; a complete new Windows build is still required.
 
 **NW110 final integration and certification milestone:** [NW110 exact-source JVM and outstanding release gates](docs/NW110_FINAL_CERTIFICATION_EVIDENCE.md). Eight real NW95–NW100 JUnit test classes (53/53 methods) compiled and executed together against the exact 17 GitHub-blob-matched source files; 32,400 randomized queue assertions passed. The source-only JVM result is not an Android build or release approval. The new fail-closed certification script rejects stale/altered JVM receipts and explicitly leaves public distribution **NO-GO** pending real Android Gradle, signer, 139-device-case, Google Drive, privacy, source-rights and Google Play verification.
 
