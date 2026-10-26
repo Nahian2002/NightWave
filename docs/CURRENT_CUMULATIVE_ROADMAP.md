@@ -18,7 +18,7 @@
 
 | Phase | Scope |
 | --- | --- |
-| **NW81** | Music title intelligence, remove display clutter without losing source metadata |
+| **NW81** | Music title intelligence, remove display clutter without losing source metadata | Source improvements committed: safe title badges, verified-uploader artist split, Bangla vowel matching, raw Videos captions and consistent Up Next presentation; Android/JUnit/device acceptance pending NW90 |
 | **NW82** | Search precision: exact artist/title, Bangla/multilingual, typo tolerance, remix/live/cover, duplicate groups, local priority; fix 'Alo alo' vs 'Alone' |
 | **NW83** | Unified premium visual system: typography, spacing, components, icons, contrasts, animation, responsiveness |
 | **NW84** | Music-first Home redesign with history-driven mixes, hierarchy, real artwork, listening continuation |
