@@ -1,6 +1,6 @@
 # Read-only 6V7B Search & Library UI preflight, PowerShell 5.1.
 [CmdletBinding()]
-param()
+param([switch]$SelfTest)
 $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $issues = New-Object 'System.Collections.Generic.List[string]'
@@ -15,11 +15,26 @@ function File([string]$rel) {
 function Need([string]$src,[string]$match,[string]$reason) {
     if (-not $src.Contains($match)) { $script:issues.Add($reason) }
 }
+
+if ($SelfTest) {
+    $safe = 'TrackArtwork(video, Modifier.size(NightWavePremiumDesignTokens.ROW_ARTWORK_DP.dp)'
+    if (-not $safe.Contains('NightWavePremiumDesignTokens.ROW_ARTWORK_DP.dp')) {
+        throw 'Valid premium artwork binding rejected.'
+    }
+    if (($safe.Replace('NightWavePremiumDesignTokens.ROW_ARTWORK_DP.dp',
+            '28.dp')).Contains('NightWavePremiumDesignTokens.ROW_ARTWORK_DP.dp')) {
+        throw 'Hardcoded artwork size was accepted.'
+    }
+    Write-Host 'PASS: 6V7B premium artwork binding regression fixtures.' -ForegroundColor Green
+    exit 0
+}
 function Tests([string]$rel,[int]$minimum) {
     $count = ([regex]::Matches((File $rel), '@Test\s+fun\s+')).Count
     if ($count -lt $minimum) { $script:issues.Add(("{0}: only {1} tests" -f $rel,$count)) }
 }
 $p='app/src/main/java/com/nightwave/player/v2/ui/'
+# NW25+ premium row artwork tokens supersede the original collection token.
+$tokens=File ($p+'NightWavePremiumDesignTokens.kt')
 $chrome=File ($p+'NightWaveCollectionChrome.kt')
 $headers=File ($p+'NightWaveDiscoveryChrome.kt')
 $tiles=File ($p+'StudioComponents.kt')
@@ -33,7 +48,8 @@ Need $headers 'NightWaveCollectionHeader(' 'Premium Library header absent'
 Need $headers 'testTag("nightwave-save-offline-search")' 'Offline entry action lost its accessibility test tag'
 Need $headers 'FreeAudioCatalogActivity::class.java' 'Offline audio catalog shortcut no longer opens'
 Need $screen 'NightWaveDiscoveryHeader(searchQuery = query)' 'Search header not receiving current query'
-Need $tiles 'NightWaveCollectionChrome.TRACK_ARTWORK_DP.dp' 'Track artwork sizing not wired'
+Need $tokens 'const val ROW_ARTWORK_DP = 52' 'Premium row artwork size missing'
+Need $tiles 'TrackArtwork(video, Modifier.size(NightWavePremiumDesignTokens.ROW_ARTWORK_DP.dp)' 'Premium song-card artwork sizing not wired'
 Need $tiles '"nightwave-library-collection"' 'Collection test tag missing'
 Need $tiles 'IconButton(onClick = onOptions' 'Track option action removed'
 Need $screen 'surface = NightWaveTrackSurface.SEARCH' 'Search result cards not wired'
