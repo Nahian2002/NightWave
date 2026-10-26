@@ -62,7 +62,7 @@ object NightWaveNowPlayingPresentationPolicy {
     }
 
     fun offlineActionLabel(hasTrack: Boolean, offline: Boolean): String = when {
-        !hasTrack -> "Offline library"
+        !hasTrack -> "Choose a song"
         offline -> "Open offline library"
         else -> "Offline options"
     }
