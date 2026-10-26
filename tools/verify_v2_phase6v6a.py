@@ -47,8 +47,16 @@ REQ = {
         "LyricsSyncPolicy.seekPosition(",
         "actions.seekTo(",
         "onLyricsOffsetChange(", "Open full-screen synchronized lyrics",
-        "Your imported LRC", "if (reduceMotion) lyricListState.scrollToItem",
+        "Your imported LRC",
+        "if (LyricsReadingPolicy.shouldAnimateScroll(",
+        "lyricListState.animateScrollToItem(target)",
+        "else lyricListState.scrollToItem(target)",
+        "reduceMotion))",
         "onImportLyrics", "onRemoveLyrics",
+    ],
+    P + "lyrics/LyricsReadingPolicy.kt": [
+        "fun shouldAnimateScroll(", "!reduceMotion",
+        "MAX_ANIMATED_SCROLL_ROWS",
     ],
     P + "ui/NightWaveStudioActivity.kt": [
         "lyricsOffsetStore = PrivateLyricsOffsetStore(this)",
@@ -137,6 +145,15 @@ def self_test() -> None:
         target.write_text(target.read_text(encoding="utf-8").replace(
             "offline.find(id) != null", "true"), encoding="utf-8")
         assert any("offline.find(id)" in e for e in audit(root))
+        screen = root / (P + "ui/StudioPlayerScreens.kt")
+        screen.write_text(screen.read_text(encoding="utf-8").replace(
+            "if (LyricsReadingPolicy.shouldAnimateScroll(", "if (true ||"),
+            encoding="utf-8")
+        assert any("LyricsReadingPolicy.shouldAnimateScroll" in e for e in audit(root))
+        reading = root / (P + "lyrics/LyricsReadingPolicy.kt")
+        reading.write_text(reading.read_text(encoding="utf-8").replace(
+            "!reduceMotion", "true"), encoding="utf-8")
+        assert any("!reduceMotion" in e for e in audit(root))
     print("PASS: 6V6A synthetic checker rejects unsafe seek and unbound lyric offsets")
 
 
