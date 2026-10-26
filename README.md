@@ -4,9 +4,11 @@
 
 NightWave combines locally imported or otherwise authorized music, an offline library, optional Google Drive backup, song discovery, playlists, Sound Studio, queue control, and user-imported synchronized LRC lyrics. The original midnight/teal design is independent of Spotify.
 
-**Current development source:** `feature/nightwave-nw97-offline-shuffle-cycle-integrity` (cumulative NW96 with offline fallback shuffle-cycle and gapless transition validation). The older default `main` does not represent this candidate.
+**Current development source:** `feature/nightwave-nw98-background-playback-intent` (cumulative NW97 with reliable pending Play and buffering-safe widget controls). The older default `main` does not represent this candidate.
 
 **Release status:** **NO-GO**. The hosted GitHub Actions runner and empty canary both failed before executing steps; a current Windows debug build, Android/JUnit/139-case device validation, installed-signer continuity, production OAuth/backup, Google Play API 36 migration and NW77 YouTube-source rights review remain outstanding. Never install a new APK over a library-bearing app unless its signer matches.
+
+**NW98 playback-intent milestone:** [NW98 source and regression evidence](docs/NW98_BACKGROUND_PLAYBACK_EVIDENCE.md). Same-song Play reasserts a paused pending public lookup without another extraction, and launcher widget Pause now cancels buffered Play intent. Widget action/icon updates on Media3 playWhenReady changes. **Android/device acceptance remains unverified.**
 
 **NW97 shuffle and gapless transition milestone:** [NW97 regression evidence](docs/NW97_OFFLINE_TRANSITION_EVIDENCE.md). Offline fallback Previous no longer returns a heard song to random unplayed candidates; exact Forward retrace and Repeat One/All remain. Prepared gapless transitions reject stale selection indexes or corrupt queue IDs. **Android/phone acceptance remains outstanding.**
 
