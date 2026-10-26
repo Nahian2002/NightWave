@@ -2,6 +2,7 @@ package com.nightwave.player.v2.library
 
 import com.nightwave.player.net.MusicIdentity
 import com.nightwave.player.net.SearchRelevancePolicy
+import com.nightwave.player.net.SearchTokenMatchingPolicy
 import com.nightwave.player.net.VideoPreview
 
 /** UI-only collection snapshot. No source index, playlist order or URL is modified. */
@@ -35,7 +36,9 @@ object LibraryBrowsePolicy {
             if (withTracksOnly && playlist.size == 0) return@filter false
             if (!search.valid) return@filter true
             val name = SearchRelevancePolicy.normalize(playlist.name)
-            if (search.terms.all { it in name }) return@filter true
+            if (SearchTokenMatchingPolicy.allCovered(
+                    search.terms, SearchTokenMatchingPolicy.tokens(name)
+                )) return@filter true
             // Optional NW71 playlist discovery: find the containing playlist
             // by one song's title/creator, not by joining unrelated songs.
             // Bounded scan, view-only, no change to playlist membership/order.
