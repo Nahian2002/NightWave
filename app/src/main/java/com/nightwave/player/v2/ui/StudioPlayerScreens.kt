@@ -875,15 +875,18 @@ fun StudioNowPlayingOverlay(
                 Spacer(Modifier.height(9.dp))
                 Surface(
                     onClick = onOpenQueue,
-                    modifier = Modifier.fillMaxWidth().height(54.dp)
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 60.dp)
                         .testTag("nightwave-now-playing-queue-action"),
-                    shape = RoundedCornerShape(18.dp), color = colors.surface,
+                    shape = RoundedCornerShape(NightWavePremiumDesignTokens.CARD_CORNER_DP.dp),
+                    color = colors.surface,
                     tonalElevation = 2.dp
                 ) {
-                    Row(Modifier.fillMaxSize().padding(horizontal = 17.dp),
+                    Row(Modifier.fillMaxWidth().padding(
+                        horizontal = 17.dp, vertical = 9.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween) {
-                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Column(Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             Text(queuePreview.heading,
                                 style = MaterialTheme.typography.labelSmall,
                                 color = colors.onSurfaceVariant)
@@ -898,15 +901,25 @@ fun StudioNowPlayingOverlay(
                 Spacer(Modifier.height(12.dp))
                 Surface(
                     onClick = { lyricsOpen = !lyricsOpen },
-                    modifier = Modifier.fillMaxWidth().height(54.dp),
-                    shape = RoundedCornerShape(17.dp),
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 60.dp)
+                        .testTag("nightwave-now-playing-lyrics-action"),
+                    shape = RoundedCornerShape(NightWavePremiumDesignTokens.CARD_CORNER_DP.dp),
                     color = colors.surface,
                     tonalElevation = 1.dp
                 ) {
-                    Row(Modifier.fillMaxSize().padding(horizontal = 17.dp),
+                    Row(Modifier.fillMaxWidth().padding(
+                        horizontal = 17.dp, vertical = 9.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("Lyrics", style = MaterialTheme.typography.titleMedium)
+                        Column(Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text("Lyrics", style = MaterialTheme.typography.titleMedium)
+                            Text(NightWaveNowPlayingPresentationPolicy.lyricsSubtitle(
+                                state.offline, lyrics != null),
+                                style = MaterialTheme.typography.labelSmall,
+                                maxLines = 2, overflow = TextOverflow.Ellipsis,
+                                color = colors.onSurfaceVariant)
+                        }
                         Text(if (lyricsOpen) "Hide" else "View",
                             style = MaterialTheme.typography.labelLarge,
                             color = colors.primary)
