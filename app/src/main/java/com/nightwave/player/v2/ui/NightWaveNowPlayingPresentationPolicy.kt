@@ -21,14 +21,23 @@ object NightWaveNowPlayingPresentationPolicy {
         titles: List<String>,
         currentIndex: Int,
         manualNextUrls: List<String>,
-        shuffled: Boolean
+        shuffled: Boolean,
+        repeatOne: Boolean = false,
+        repeatAll: Boolean = false
     ): QueuePreview {
-        if (urls.isEmpty() || currentIndex !in urls.indices)
+        if (urls.isEmpty())
             return QueuePreview("Up next", "Queue is empty", null)
+        if (currentIndex !in urls.indices)
+            return QueuePreview("Up next", "Waiting for queue selection", null)
+        // Automatic transitions respect Repeat One even when manual Play Next
+        // selections are queued; the user can still skip with Next.
+        if (repeatOne)
+            return QueuePreview("Repeat one", "Current song will replay", null)
 
         for (requested in manualNextUrls) {
             val at = urls.indices.firstOrNull {
-                it != currentIndex && urls[it] == requested
+                it != currentIndex && (shuffled || it > currentIndex) &&
+                    urls[it] == requested
             } ?: continue
             return QueuePreview("Play next", titles.getOrNull(at)
                 ?.takeIf { it.isNotBlank() } ?: "Queued song", at)
@@ -43,9 +52,13 @@ object NightWaveNowPlayingPresentationPolicy {
         }
 
         val next = currentIndex + 1
-        return if (next in urls.indices) QueuePreview("Up next",
-            titles.getOrNull(next)?.takeIf(String::isNotBlank) ?: "Queued song", next)
-        else QueuePreview("Up next", "End of current queue", null)
+        return when {
+            next in urls.indices -> QueuePreview("Up next",
+                titles.getOrNull(next)?.takeIf(String::isNotBlank) ?: "Queued song", next)
+            repeatAll && urls.isNotEmpty() -> QueuePreview("Repeat all",
+                titles.firstOrNull()?.takeIf(String::isNotBlank) ?: "First queued song", 0)
+            else -> QueuePreview("Up next", "End of current queue", null)
+        }
     }
 
     fun offlineActionLabel(hasTrack: Boolean, offline: Boolean): String = when {
