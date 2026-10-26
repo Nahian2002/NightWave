@@ -52,6 +52,9 @@ class OfflineLibraryActivity : ComponentActivity() {
     private var visibleSongs: List<OfflineSong> = emptyList()
     private var cachedReport: OfflineLibraryHealthReport? = null
     private var playableIds: Set<String> = emptySet()
+    // NW90: disk/index verification must never block the Activity's UI thread.
+    private var healthCheckPending = false
+    private var healthCheckGeneration = 0L
     private val sortLabels = arrayOf("Recently imported", "Title A–Z", "Smallest first", "Largest first")
     private val worker = Executors.newSingleThreadExecutor()
     private val pick = registerForActivityResult(
@@ -127,29 +130,10 @@ class OfflineLibraryActivity : ComponentActivity() {
             setPadding(dp(12), 0, dp(12), 0)
             background = cardBackground(0xFF1A303A.toInt())
             setOnClickListener {
-                status("Checking local audio without changing any files…")
-                // Use the existing bounded import worker; a large library
-                // must not do file I/O on the UI thread during manual repair.
-                worker.execute {
-                    val checked = runCatching { library.healthReport() }
-                    runOnUiThread {
-                        if (!isFinishing && !isDestroyed) {
-                            if (checked.isSuccess) {
-                                cachedReport = checked.getOrNull()
-                                refresh()
-                                // Keep the unreadable-index warning prominent;
-                                // a successful scan is not a successful file repair.
-                                if (checked.getOrNull()?.indexReadable == true) {
-                                    status("Offline audio rechecked · No files or entries changed")
-                                }
-                            } else {
-                                // Avoid redoing a failed storage scan synchronously
-                                // on the UI thread. Keep the previous snapshot.
-                                status("Recheck unavailable · No files or entries changed")
-                            }
-                        }
-                    }
-                }
+                // Explicitly request a fresh read. While one is pending,
+                // coalesce repeated taps rather than stacking full scans.
+                cachedReport = null
+                requestHealthCheck("Offline audio rechecked · No files or entries changed")
             }
         }, LinearLayout.LayoutParams(-1, dp(44)).apply {
             bottomMargin = dp(7)
@@ -419,7 +403,7 @@ class OfflineLibraryActivity : ComponentActivity() {
             Gravity.TOP or Gravity.CENTER_HORIZONTAL))
         setContentView(frame)
         NightWaveSafeInsets.bind(frame)
-        // onResume performs the initial and every subsequent fresh disk health check.
+        // onResume schedules a fresh health scan on the existing worker.
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -430,11 +414,44 @@ class OfflineLibraryActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         cachedReport = null
-        if (::tracks.isInitialized) refresh()
+        requestHealthCheck()
+    }
+
+    /** Read-only scan. No file I/O occurs on the main thread. */
+    private fun requestHealthCheck(successMessage: String? = null) {
+        if (!::tracks.isInitialized || !::library.isInitialized ||
+            isFinishing || isDestroyed) return
+        if (healthCheckPending) return // Coalesce rapid resume/taps/search edits.
+        healthCheckPending = true
+        val generation = ++healthCheckGeneration
+        status("Checking saved offline audio…")
+        worker.execute {
+            val result = runCatching { library.healthReport() }
+            runOnUiThread {
+                if (generation != healthCheckGeneration || isFinishing || isDestroyed)
+                    return@runOnUiThread
+                healthCheckPending = false
+                if (result.isSuccess) {
+                    cachedReport = result.getOrNull()
+                    refresh()
+                    // Unreadable storage is still an error, not "repaired".
+                    if (cachedReport?.indexReadable == true && successMessage != null)
+                        status(successMessage)
+                } else {
+                    status("Offline index verification unavailable · " +
+                        "No files or entries changed")
+                }
+            }
+        }
     }
 
     private fun refresh() {
-        val report = cachedReport ?: library.healthReport().also { cachedReport = it }
+        // Search, sorting, import and deletion may invalidate the cache.
+        // Never force a synchronous file-health check from those UI events.
+        val report = cachedReport ?: run {
+            requestHealthCheck()
+            return
+        }
         if (!report.indexReadable) {
             storageSummary.text = "Storage totals unavailable · offline index needs attention"
             tracks.removeAllViews()
