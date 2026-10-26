@@ -121,7 +121,10 @@ class PlaybackService : MediaLibraryService() {
         val item = player?.currentMediaItem
         NightWaveWidgetProvider.publish(this, WidgetPlaybackSnapshot(
             hasTrack = item != null,
-            isPlaying = player?.isPlaying == true,
+            // The widget icon describes the next available transport action.
+            // While buffering playWhenReady may be true even if no audio is audible.
+            isPlaying = com.nightwave.player.widget.WidgetPlaybackIntentPolicy
+                .showsPauseIcon(item != null, player?.playWhenReady == true),
             title = item?.mediaMetadata?.title?.toString().orEmpty(),
             artist = item?.mediaMetadata?.artist?.toString().orEmpty()
         ))
@@ -743,6 +746,11 @@ class PlaybackService : MediaLibraryService() {
             publishWidgetState()
         }
 
+        override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+            // An intent change during buffering need not change isPlaying.
+            publishWidgetState()
+        }
+
         override fun onPlaybackStateChanged(state: Int) {
             sampleListening()
             publishWidgetState()
@@ -1285,6 +1293,15 @@ class PlaybackService : MediaLibraryService() {
                         if (playbackState == Player.STATE_ENDED ||
                             playbackState == Player.STATE_IDLE) prepare()
                         play()
+                    } else if (PlaybackResolutionPolicy.shouldResumePendingExplicitPlay(
+                            explicitPlay = intent.action == ACTION_PLAY_QUEUE,
+                            sameSelection = sameQueue, loaded = loaded,
+                            pendingMatching = resolving,
+                            alreadyWantsPlayback = exoPlayer?.playWhenReady == true
+                        )) {
+                        // Explicitly reselecting a paused pending song restores
+                        // Play intent without starting another stream extraction.
+                        exoPlayer?.play()
                     }
                 } else {
                     // Flush outgoing progress while its public identity is

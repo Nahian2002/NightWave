@@ -69,10 +69,15 @@ object NightWaveWidgetController {
                         ACTION_TOGGLE -> {
                             // A widget must not silently resurrect a saved queue.
                             // When no media item is active, the launcher opens NightWave.
-                            if (connected.currentMediaItem != null) {
-                                if (connected.isPlaying) connected.pause()
-                                else if (connected.isCommandAvailable(Player.COMMAND_PLAY_PAUSE))
-                                    connected.play()
+                            when (WidgetPlaybackIntentPolicy.command(
+                                hasLoadedMedia = connected.currentMediaItem != null,
+                                playWhenReady = connected.playWhenReady,
+                                canPlayPause = connected.isCommandAvailable(
+                                    Player.COMMAND_PLAY_PAUSE)
+                            )) {
+                                WidgetPlaybackIntentPolicy.Command.PAUSE -> connected.pause()
+                                WidgetPlaybackIntentPolicy.Command.PLAY -> connected.play()
+                                WidgetPlaybackIntentPolicy.Command.NONE -> Unit
                             }
                             // Let the just-sent transport command reach the session
                             // before disconnecting the short-lived widget controller.

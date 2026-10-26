@@ -16,6 +16,19 @@ internal object PlaybackResolutionPolicy {
         desiredId: String?, pendingId: String?
     ): Boolean = desiredId != null && desiredId == pendingId
 
+    /**
+     * Reassert Play only for an explicit same-selection request during an
+     * already pending extraction. Queue-only actions must not auto-resume.
+     */
+    fun shouldResumePendingExplicitPlay(
+        explicitPlay: Boolean,
+        sameSelection: Boolean,
+        loaded: Boolean,
+        pendingMatching: Boolean,
+        alreadyWantsPlayback: Boolean
+    ): Boolean = explicitPlay && sameSelection && !loaded &&
+        pendingMatching && !alreadyWantsPlayback
+
     fun acceptsResult(
         requestGeneration: Int, currentGeneration: Int,
         expectedUrl: String, selectedUrl: String?,

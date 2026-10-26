@@ -23,6 +23,27 @@ class PlaybackResolutionPolicyTest {
         assertFalse(PlaybackResolutionPolicy.awaitsSameResolution(a, null))
     }
 
+    @Test fun explicitSameQueuePlayResumesPausedLookup() {
+        assertTrue(PlaybackResolutionPolicy.shouldResumePendingExplicitPlay(
+            true, true, false, true, false))
+    }
+
+    @Test fun queueOnlyAndStaleSelectionMustNeverResumeLookup() {
+        assertFalse(PlaybackResolutionPolicy.shouldResumePendingExplicitPlay(
+            false, true, false, true, false))
+        assertFalse(PlaybackResolutionPolicy.shouldResumePendingExplicitPlay(
+            true, false, false, true, false))
+    }
+
+    @Test fun loadedOrAlreadyIntendedPlaybackSkipsRedundantPlay() {
+        assertFalse(PlaybackResolutionPolicy.shouldResumePendingExplicitPlay(
+            true, true, true, true, false))
+        assertFalse(PlaybackResolutionPolicy.shouldResumePendingExplicitPlay(
+            true, true, false, true, true))
+        assertFalse(PlaybackResolutionPolicy.shouldResumePendingExplicitPlay(
+            true, true, false, false, false))
+    }
+
     @Test fun staleGenerationCannotInstallAnotherTrack() {
         assertTrue(PlaybackResolutionPolicy.acceptsResult(11, 11, a, a, false))
         assertFalse(PlaybackResolutionPolicy.acceptsResult(10, 11, a, a, false))
