@@ -72,4 +72,52 @@ class NightWaveEverydaySurfacesInstrumentedTest {
             assertEquals(1, removals)
         }
     }
+
+    @Test fun nw84RealLastPlayedHeroIsAnIndependentContinueAction() {
+        val last = VideoPreview(
+            "Alo Alo (Official Audio)", "A singer",
+            "https://www.youtube.com/watch?v=abcdefghijk", "", 210L
+        )
+        var continues = 0
+        compose.setContent {
+            MaterialTheme {
+                Box(Modifier.width(320.dp)) {
+                    NightWaveHomeHero(
+                        greeting = "Good evening",
+                        displayName = "Guest",
+                        lastTrack = last,
+                        onContinue = { continues++ }
+                    )
+                }
+            }
+        }
+        compose.onNodeWithTag("nightwave-home-hero").assertExists().performClick()
+        compose.onNodeWithText("Alo Alo", useUnmergedTree = true).assertExists()
+        compose.runOnIdle { assertEquals(1, continues) }
+    }
+
+    @Test fun nw84NextListenTileHasSeparatePlayAndOptionsActions() {
+        val saved = VideoPreview(
+            "Moonlight (Official Audio)", "Singer",
+            "https://www.youtube.com/watch?v=abcdefghijk", "", 210L
+        )
+        var plays = 0
+        var options = 0
+        compose.setContent {
+            MaterialTheme {
+                Box(Modifier.width(320.dp)) {
+                    NightWaveNextListenTile(saved, "Liked song", false,
+                        onPlay = { plays++ }, onOptions = { options++ })
+                }
+            }
+        }
+        compose.onNodeWithText("Moonlight", useUnmergedTree = true).assertExists()
+        compose.onNodeWithText("Liked song", useUnmergedTree = true).assertExists()
+        compose.onNodeWithTag("nw84-next-listen-play").assertExists().performClick()
+        compose.onNodeWithTag("nw84-next-listen-options").assertExists().performClick()
+        compose.runOnIdle {
+            assertEquals(1, plays)
+            assertEquals(1, options)
+        }
+    }
 }
