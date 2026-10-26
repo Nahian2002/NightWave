@@ -48,6 +48,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
 import com.nightwave.player.net.VideoPreview
+import com.nightwave.player.net.MusicIdentity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
@@ -195,7 +196,8 @@ fun NightWaveHomeHero(
     greeting: String,
     displayName: String,
     modifier: Modifier = Modifier,
-    lastTrack: VideoPreview? = null
+    lastTrack: VideoPreview? = null,
+    onContinue: (() -> Unit)? = null
 ) {
     val colors = MaterialTheme.colorScheme
     val accent = colors.primary
@@ -203,8 +205,12 @@ fun NightWaveHomeHero(
     val fontScale = LocalDensity.current.fontScale
     val largeText = fontScale >= 1.3f
     val heroHeight = NightWaveAdaptiveChromePolicy.homeHeroHeightDp(fontScale).dp
+    val identity = lastTrack?.let { MusicIdentity.display(it.title, it.author) }
+    val clickableHero = if (lastTrack != null && onContinue != null) {
+        modifier.clickable(role = Role.Button, onClick = onContinue)
+    } else modifier
     Box(
-        modifier = modifier.fillMaxWidth()
+        modifier = clickableHero.fillMaxWidth()
             .height(heroHeight)
             .clip(RoundedCornerShape(NightWavePremiumDesignTokens.HERO_CORNER_DP.dp))
             .background(
@@ -259,10 +265,12 @@ fun NightWaveHomeHero(
                 .padding(horizontal = 17.dp, vertical = 14.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            NightWaveMicroLabel("Your listening space")
+            NightWaveMicroLabel(
+                if (identity == null) "Your listening space" else "Continue listening"
+            )
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
-                    greeting,
+                    if (identity == null) greeting else identity.title,
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     color = colors.onSurface,
@@ -270,7 +278,8 @@ fun NightWaveHomeHero(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    "Welcome, " + firstName + " · Your music, your pace",
+                    if (identity == null) "Welcome, " + firstName + " · Your music, your pace"
+                    else identity.artistOrCreator + " · Tap to continue",
                     style = MaterialTheme.typography.bodyMedium,
                     color = colors.onSurfaceVariant,
                     maxLines = if (fontScale >= 1.6f) 3 else 2,
