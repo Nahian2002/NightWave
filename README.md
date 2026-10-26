@@ -4,9 +4,11 @@
 
 NightWave combines locally imported or otherwise authorized music, an offline library, optional Google Drive backup, song discovery, playlists, Sound Studio, queue control, and user-imported synchronized LRC lyrics. The original midnight/teal design is independent of Spotify.
 
-**Current development source:** `feature/nightwave-nw107-lyrics-follow-accessibility` (cumulative NW106 with accessible, reversible synchronized-lyrics auto-follow). The older default `main` does not represent this candidate.
+**Current development source:** `feature/nightwave-nw108-cloud-playlist-identity` (cumulative NW107 with deterministic cross-device backup, restore and playlist merge identity). The older default `main` does not represent this candidate.
 
 **Release status:** **NO-GO**. The hosted GitHub Actions runner and empty canary both failed before executing steps; a current Windows debug build, Android/JUnit/139-case device validation, installed-signer continuity, production OAuth/backup, Google Play API 36 migration and NW77 YouTube-source rights review remain outstanding. Never install a new APK over a library-bearing app unless its signer matches.
+
+**NW108 Google Drive backup/recovery hardening milestone:** [NW108 privacy-safe name-identity evidence](docs/NW108_DRIVE_BACKUP_RECOVERY_EVIDENCE.md). Removed device-locale-dependent playlist comparison from library backup validation and Drive merge. A single Locale.ROOT identity key now also governs restore-loss previews, preventing ambiguous cross-device collisions and silent playlist replacement. The public/offline audio, OAuth scope, Drive API client, sign-in sessions and on-device data remain unchanged. Six original policy JUnit cases and locale smoke checks passed independently; complete Android/Drive restore still unverified.
 
 **NW107 synchronized lyrics/accessibility milestone:** [NW107 evidence and TalkBack QA boundaries](docs/NW107_LYRICS_ACCESSIBILITY_EVIDENCE.md). Immersive lyrics has a real Pause/Follow control available to TalkBack users in either state, with clear action/state descriptions; finger swipe and tap-to-seek remain unchanged. Eight original lyrics JUnit-source methods are covered by an independent JVM runner, and policy smoke tests are wired into CI. Full Android/TalkBack device verification remains mandatory.
 

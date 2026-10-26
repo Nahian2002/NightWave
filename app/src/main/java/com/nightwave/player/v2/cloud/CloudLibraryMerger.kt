@@ -3,6 +3,7 @@ package com.nightwave.player.v2.cloud
 import com.nightwave.player.net.VideoPreview
 import com.nightwave.player.v2.data.LibraryArchive
 import com.nightwave.player.v2.data.LibraryBackupCodec
+import com.nightwave.player.v2.data.PlaylistNameIdentity
 
 /**
  * Manual cross-device collection merge. Always preserves local profile, recent
@@ -34,14 +35,14 @@ object CloudLibraryMerger {
             "Too many favorites to merge safely (500 maximum). Nothing changed."
         }
 
-        val names = local.playlists.map { it.first.lowercase() }.toMutableSet()
+        val names = local.playlists.map { PlaylistNameIdentity.key(it.first) }.toMutableSet()
         val mergedPlaylists = local.playlists.toMutableList()
         val conflicts = mutableListOf<String>()
         var appendedReferences = 0
 
         for ((remoteName, remoteTracks) in cleanRemote.playlists) {
             val existing = mergedPlaylists.firstOrNull {
-                it.first.equals(remoteName, ignoreCase = true)
+                PlaylistNameIdentity.same(it.first, remoteName)
             }
             val remoteUrls = remoteTracks.map { it.url }
             if (existing != null && existing.second.map { it.url } == remoteUrls) {
@@ -52,7 +53,7 @@ object CloudLibraryMerger {
                 // must not create "Drive 2", "Drive 3" copies forever.
                 val alreadyImported = mergedPlaylists.any { (storedName, storedTracks) ->
                     (1..51).any { suffix ->
-                        storedName.equals(importedName(remoteName, suffix), ignoreCase = true)
+                        PlaylistNameIdentity.same(storedName, importedName(remoteName, suffix))
                     } && storedTracks.map { it.url } == remoteUrls
                 }
                 if (alreadyImported) continue
@@ -63,7 +64,9 @@ object CloudLibraryMerger {
                     availableImportedName(remoteName, names)
                 }
             // Every imported playlist is an intact copy; never change existing order.
-            require(names.add(importedName.lowercase())) { "Duplicate playlist during merge" }
+            require(names.add(PlaylistNameIdentity.key(importedName))) {
+                "Duplicate playlist during merge"
+            }
             mergedPlaylists.add(importedName to remoteTracks)
             appendedReferences += remoteTracks.size
             require(mergedPlaylists.size <= 50) {
@@ -100,7 +103,7 @@ object CloudLibraryMerger {
     private fun availableImportedName(name: String, used: Set<String>): String {
         for (suffix in 1..51) {
             val candidate = importedName(name, suffix)
-            if (candidate.lowercase() !in used) return candidate
+            if (PlaylistNameIdentity.key(candidate) !in used) return candidate
         }
         error("Could not allocate a safe imported playlist name")
     }

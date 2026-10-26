@@ -3,6 +3,7 @@ package com.nightwave.player.v2.cloud
 import com.nightwave.player.net.VideoPreview
 import com.nightwave.player.v2.data.LibraryArchive
 import com.nightwave.player.v2.data.LibraryBackupCodec
+import java.util.Locale
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
@@ -144,6 +145,19 @@ class CloudRecoveryPolicyTest {
         val after = CloudRecoveryPolicy.inspect(local(original), remote(cloud))
         assertEquals(listOf("A", "B"), original.playlists.map { it.first })
         assertEquals(1, after.localPlaylistsNotInCloud)
+    }
+
+    @Test fun restorePreviewCannotSilentlyDropAmbiguousLegacyPlaylistNames() {
+        val original = Locale.getDefault()
+        try {
+            Locale.setDefault(Locale.forLanguageTag("tr-TR"))
+            val ambiguous = archive(playlists = listOf(
+                "I" to listOf(a), "i" to listOf(b)))
+            assertThrows(IllegalArgumentException::class.java) {
+                CloudRecoveryPolicy.inspect(local(archive()),
+                    CloudBackupPreview(ambiguous, emptyList(), false))
+            }
+        } finally { Locale.setDefault(original) }
     }
 
     @Test fun reportCountsEveryMissingPlaylistWithoutModifyingInputs() {

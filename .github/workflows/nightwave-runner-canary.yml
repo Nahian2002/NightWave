@@ -27,6 +27,7 @@ on:
       - feature/nightwave-nw105-offline-junit-execution
       - feature/nightwave-nw106-seek-timeline-reliability
       - feature/nightwave-nw107-lyrics-follow-accessibility
+      - feature/nightwave-nw108-cloud-playlist-identity
   workflow_dispatch:
 
 permissions: {}

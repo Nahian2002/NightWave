@@ -111,6 +111,7 @@ on:
       - feature/nightwave-nw105-offline-junit-execution
       - feature/nightwave-nw106-seek-timeline-reliability
       - feature/nightwave-nw107-lyrics-follow-accessibility
+      - feature/nightwave-nw108-cloud-playlist-identity
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
@@ -438,6 +439,7 @@ jobs:
           python3 tools/verify_nw105_offline_junit.py
           python3 tools/verify_nw106_seek_timeline.py
           python3 tools/verify_nw107_lyrics_follow.py
+          python3 tools/verify_nw108_playlist_identity.py
           python3 tools/nw90_certification.py --project-root . --report build/NightWave-NW90-candidate-gates.json
 
       - name: NW101 PowerShell 5.1 attestation logic self-test
@@ -446,6 +448,25 @@ jobs:
 
       # Independently execute NW97/NW100 original offline-policy JUnit methods.
       # Uses an enum adapter only for the unused public-queue implementation.
+      - name: NW108 deterministic cloud playlist identity and real policy JUnit
+        shell: bash
+        run: |
+          kotlinc app/src/main/java/com/nightwave/player/v2/data/PlaylistNameIdentity.kt \
+            tools/NW108PlaylistNameSmoke.kt -include-runtime \
+            -d /tmp/nightwave-nw108-playlists.jar
+          java -jar /tmp/nightwave-nw108-playlists.jar
+          python3 tools/nw108_name_junit_gate.py --report \
+            build/nightwave-nw108-playlist-locale-junit.json
+
+      - name: NW108 playlist-name JVM evidence (not cloud or Android approval)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: NightWave-NW108-PLAYLIST-JVM-ONLY-NO-ANDROID-APPROVAL
+          path: build/nightwave-nw108-playlist-locale-junit.json
+          if-no-files-found: warn
+          retention-days: 7
+
       - name: NW107 accessible lyric-follow Kotlin and original JUnit tests
         shell: bash
         run: |

@@ -3,6 +3,7 @@ package com.nightwave.player.v2.cloud
 import com.nightwave.player.net.VideoPreview
 import com.nightwave.player.v2.data.LibraryArchive
 import com.nightwave.player.v2.data.LibraryBackupCodec
+import java.util.Locale
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
@@ -99,6 +100,22 @@ class CloudLibraryMergerTest {
         val local = archive(playlists = (1..50).map { "List $it" to listOf(track(it)) })
         val remote = archive(playlists = listOf("Additional" to listOf(track(51))))
         assertThrows(IllegalArgumentException::class.java) { preview(local, remote) }
+    }
+
+    @Test fun mergeConflictAndSecondPreviewStayStableAcrossLanguageChanges() {
+        val original = Locale.getDefault()
+        try {
+            Locale.setDefault(Locale.forLanguageTag("tr-TR"))
+            val first = preview(archive(playlists = listOf("I" to listOf(track(1)))),
+                archive(playlists = listOf("i" to listOf(track(2)))))
+            assertEquals(1, first.addedPlaylistCount)
+            assertEquals("i (Drive)", first.mergedArchive.playlists.last().first)
+            Locale.setDefault(Locale.US)
+            val second = preview(first.mergedArchive,
+                archive(playlists = listOf("i" to listOf(track(2)))))
+            assertFalse(second.hasChanges)
+            assertEquals(first.mergedArchive.playlists, second.mergedArchive.playlists)
+        } finally { Locale.setDefault(original) }
     }
 
     @Test fun rejectsInvalidRemoteVideoBeforeAnyMerge() {

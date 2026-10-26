@@ -1,7 +1,7 @@
 package com.nightwave.player.v2.cloud
 
 import com.nightwave.player.v2.data.LibraryBackupCodec
-import java.util.Locale
+import com.nightwave.player.v2.data.PlaylistNameIdentity
 
 /**
  * Read-only summary of precisely what a confirmed cloud restore would replace.
@@ -29,13 +29,13 @@ object CloudRecoveryPolicy {
         val cloud = LibraryBackupCodec.decode(LibraryBackupCodec.encode(remote.archive))
         val remoteLikes = cloud.favorites.map { it.url }.toHashSet()
         val remotePlaylists = cloud.playlists.associateBy {
-            it.first.lowercase(Locale.ROOT)
+            PlaylistNameIdentity.key(it.first)
         }
         val lostLists = local.playlists.count { (name, _) ->
-            name.lowercase(Locale.ROOT) !in remotePlaylists
+            PlaylistNameIdentity.key(name) !in remotePlaylists
         }
         val changedLists = local.playlists.count { (name, songs) ->
-            val replacement = remotePlaylists[name.lowercase(Locale.ROOT)]
+            val replacement = remotePlaylists[PlaylistNameIdentity.key(name)]
             replacement != null && (
                 replacement.first != name ||
                 replacement.second != songs

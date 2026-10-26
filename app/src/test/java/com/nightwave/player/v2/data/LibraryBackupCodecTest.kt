@@ -1,6 +1,7 @@
 package com.nightwave.player.v2.data
 
 import com.nightwave.player.net.VideoPreview
+import java.util.Locale
 import org.json.JSONObject
 import org.junit.Assert.*
 import org.junit.Test
@@ -85,6 +86,22 @@ class LibraryBackupCodecTest {
             LibraryBackupCodec.encode(archive().copy(playlists =
                 listOf("Focus" to emptyList(), "focus" to listOf(song))))
         }
+    }
+
+    @Test fun turkishLocaleCannotAdmitArchiveNamesThatCollideOnOtherDevices() {
+        val original = Locale.getDefault()
+        try {
+            Locale.setDefault(Locale.forLanguageTag("tr-TR"))
+            assertThrows(IllegalArgumentException::class.java) {
+                LibraryBackupCodec.encode(archive().copy(playlists = listOf(
+                    "I" to listOf(song), "i" to emptyList())))
+            }
+            // Valid backups still survive locale changes without changing names.
+            val valid = LibraryBackupCodec.encode(archive().copy(
+                playlists = listOf("I" to listOf(song))))
+            Locale.setDefault(Locale.US)
+            assertEquals("I", LibraryBackupCodec.decode(valid).playlists.single().first)
+        } finally { Locale.setDefault(original) }
     }
 
     @Test fun rejectsOversizedBackupsBeforeJsonParsing() {

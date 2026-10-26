@@ -67,7 +67,7 @@ object LibraryBackupCodec {
 
     fun encode(archive: LibraryArchive): ByteArray {
         require(archive.playlists.size <= MAX_PLAYLISTS)
-        require(archive.playlists.map { it.first.lowercase() }.distinct().size == archive.playlists.size)
+        require(PlaylistNameIdentity.allDistinct(archive.playlists.map { it.first }))
         require(archive.playlists.all { it.first.isNotBlank() && it.first.length <= 60 })
         val data = JSONObject()
             .put("format", VERSION)
@@ -118,7 +118,7 @@ object LibraryBackupCodec {
             require(name.isNotBlank() && name.length <= 60) { "Invalid playlist name" }
             name to parseTracks(item.getJSONArray("tracks"), MAX_PER_PLAYLIST)
         }
-        require(playlists.map { it.first.lowercase() }.distinct().size == playlists.size) {
+        require(PlaylistNameIdentity.allDistinct(playlists.map { it.first })) {
             "Duplicate playlist names"
         }
         val theme = p.getString("theme")
