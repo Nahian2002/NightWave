@@ -33,6 +33,8 @@ import com.nightwave.player.v2.cloud.CloudAuthorizationDiagnosticPolicy
 import com.nightwave.player.v2.cloud.CloudAuthorizationFailurePolicy
 import com.nightwave.player.v2.cloud.CloudAuthorizationFailureStore
 import com.nightwave.player.v2.cloud.CloudBackupStatus
+import com.nightwave.player.v2.cloud.CloudAccountSessionPolicy
+import com.nightwave.player.v2.cloud.CloudBackupConsent
 import com.nightwave.player.v2.cloud.CloudBackupConsentPolicy
 import com.nightwave.player.v2.cloud.consentSnapshot
 import com.nightwave.player.v2.cloud.DriveHttpFailure
@@ -1441,7 +1443,8 @@ class NightWaveStudioActivity : ComponentActivity() {
                     }
                     is CloudActionResult.Snapshots -> {
                         showCloudSnapshotPicker(outcome.items, token,
-                            forMerge = action == "merge", expectedAccount = expectedAccount)
+                            forMerge = action == "merge",
+                            expectedSession = operationConsent)
                     }
                 }
             }.onFailure { error ->
@@ -1461,7 +1464,7 @@ class NightWaveStudioActivity : ComponentActivity() {
 
     private fun showCloudSnapshotPicker(
         snapshots: List<DriveSnapshot>, token: String,
-        forMerge: Boolean, expectedAccount: String
+        forMerge: Boolean, expectedSession: CloudBackupConsent
     ) {
         val options = snapshots.take(50)
         val labels = options.mapIndexed { index, snapshot ->
@@ -1479,13 +1482,19 @@ class NightWaveStudioActivity : ComponentActivity() {
             .setTitle(if (forMerge) "Compare backups (${options.size} of ${snapshots.size})"
                 else "Choose a cloud backup (${options.size} of ${snapshots.size})")
             .setItems(labels) { _, which ->
+                if (!CloudAccountSessionPolicy.mayApply(
+                        expectedSession, cloudStore.read().consentSnapshot(), cloudBusy)) {
+                    showMessage("Google account session changed. Reconnect and preview again.")
+                    return@setItems
+                }
                 val chosen = options[which]
                 cloudBusy = true
                 lifecycleScope.launch {
                     val outcome = withContext(Dispatchers.IO) {
                         runCatching {
-                            check(cloudStore.read().account.equals(expectedAccount, true)) {
-                                "Google account changed"
+                            check(CloudAccountSessionPolicy.same(
+                                expectedSession, cloudStore.read().consentSnapshot())) {
+                                "Google account session changed during cloud preview"
                             }
                             val remote = CloudBackupCodec.decode(
                                 NightWaveDriveClient(token).download(chosen.id))
@@ -1499,11 +1508,12 @@ class NightWaveStudioActivity : ComponentActivity() {
                     }
                     cloudBusy = false
                     outcome.onSuccess { (remote, plan, comparison) ->
-                        if (!cloudStore.read().account.equals(expectedAccount, true)) {
-                            showMessage("Google account changed; compare again.")
-                        } else if (plan != null) showCloudMergePreview(plan, expectedAccount)
+                        if (!CloudAccountSessionPolicy.same(
+                                expectedSession, cloudStore.read().consentSnapshot())) {
+                            showMessage("Google account session changed; preview again.")
+                        } else if (plan != null) showCloudMergePreview(plan, expectedSession)
                         else if (comparison != null) {
-                            showCloudRestorePreview(remote, comparison, expectedAccount)
+                            showCloudRestorePreview(remote, comparison, expectedSession)
                         }
                     }
                         .onFailure {
@@ -1522,7 +1532,9 @@ class NightWaveStudioActivity : ComponentActivity() {
      * checkpoint; neither a late playlist edit nor a different Google account
      * may be overwritten by the merge.
      */
-    private fun showCloudMergePreview(plan: CloudMergePlan, account: String) {
+    private fun showCloudMergePreview(
+        plan: CloudMergePlan, expectedSession: CloudBackupConsent
+    ) {
         val conflicts = if (plan.conflictingPlaylistNames.isEmpty()) ""
             else "\n\nPlaylist name conflicts: " +
                 plan.conflictingPlaylistNames.take(5).joinToString(", ") +
@@ -1538,15 +1550,19 @@ class NightWaveStudioActivity : ComponentActivity() {
             .setNegativeButton("Close", null)
         if (plan.hasChanges) {
             dialog.setPositiveButton("Merge into this device") { _, _ ->
-                if (cloudBusy || !cloudStore.read().account.equals(account, ignoreCase = true)) {
-                    showMessage("Google account changed or busy; compare again.")
+                if (!CloudAccountSessionPolicy.mayApply(
+                        expectedSession, cloudStore.read().consentSnapshot(), cloudBusy)) {
+                    showMessage("Google account session changed or busy; compare again.")
                     return@setPositiveButton
                 }
                 cloudBusy = true
                 lifecycleScope.launch {
                     val result = withContext(Dispatchers.IO) {
-                        runCatching { archiveManager.mergeIfUnchanged(plan) }
-                            .getOrDefault(CloudMergeApplyResult.FAILED)
+                        runCatching {
+                            check(CloudAccountSessionPolicy.same(
+                                expectedSession, cloudStore.read().consentSnapshot()))
+                            archiveManager.mergeIfUnchanged(plan)
+                        }.getOrDefault(CloudMergeApplyResult.FAILED)
                     }
                     cloudBusy = false
                     when (result) {
@@ -1569,7 +1585,8 @@ class NightWaveStudioActivity : ComponentActivity() {
     }
 
     private fun showCloudRestorePreview(
-        preview: CloudBackupPreview, report: CloudRecoveryReport, account: String
+        preview: CloudBackupPreview, report: CloudRecoveryReport,
+        expectedSession: CloudBackupConsent
     ) {
         val message = buildString {
             append("IN GOOGLE DRIVE\n")
@@ -1601,11 +1618,11 @@ class NightWaveStudioActivity : ComponentActivity() {
             .setMessage(message)
             .setNegativeButton("Cancel", null)
             .setPositiveButton("Restore library") { _, _ ->
-                restoreCloudAfterConfirmation(preview, report, false, account)
+                restoreCloudAfterConfirmation(preview, report, false, expectedSession)
             }
         if (preview.includesHistory && preview.history.isNotEmpty()) {
             dialog.setNeutralButton("Restore + history") { _, _ ->
-                restoreCloudAfterConfirmation(preview, report, true, account)
+                restoreCloudAfterConfirmation(preview, report, true, expectedSession)
             }
         }
         dialog.show()
@@ -1613,10 +1630,11 @@ class NightWaveStudioActivity : ComponentActivity() {
 
     private fun restoreCloudAfterConfirmation(
         preview: CloudBackupPreview, report: CloudRecoveryReport,
-        withHistory: Boolean, account: String
+        withHistory: Boolean, expectedSession: CloudBackupConsent
     ) {
-        if (cloudBusy || !cloudStore.read().account.equals(account, ignoreCase = true)) {
-            showMessage("Google account changed or backup is busy; review again.")
+        if (!CloudAccountSessionPolicy.mayApply(
+                expectedSession, cloudStore.read().consentSnapshot(), cloudBusy)) {
+            showMessage("Google account session changed or backup is busy; review again.")
             return
         }
         cloudBusy = true
@@ -1624,6 +1642,8 @@ class NightWaveStudioActivity : ComponentActivity() {
         lifecycleScope.launch {
             val outcome = withContext(Dispatchers.IO) {
                 runCatching {
+                    check(CloudAccountSessionPolicy.same(
+                        expectedSession, cloudStore.read().consentSnapshot()))
                     archiveManager.restoreCloudIfUnchanged(
                         report.expectedLocalBackup, preview.archive, history)
                 }.getOrDefault(CloudRestoreApplyResult.FAILED)
@@ -1635,7 +1655,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                     refresh()
                     showMessage("Cloud library restored. Automatic backup remains unchanged.")
                     if (preview.preferences != null || preview.lyrics.isNotEmpty()) {
-                        showCloudOptionalRestorePrompt(preview, account)
+                        showCloudOptionalRestorePrompt(preview, expectedSession)
                     }
                 }
                 CloudRestoreApplyResult.STALE_PREVIEW ->
@@ -1647,7 +1667,7 @@ class NightWaveStudioActivity : ComponentActivity() {
     }
 
     private fun showCloudOptionalRestorePrompt(
-        backup: CloudBackupPreview, account: String
+        backup: CloudBackupPreview, expectedSession: CloudBackupConsent
     ) {
         val options = buildString {
             append("This cloud backup also contains ")
@@ -1665,14 +1685,17 @@ class NightWaveStudioActivity : ComponentActivity() {
             .setMessage(options)
             .setNegativeButton("Keep local options", null)
             .setPositiveButton("Apply optional data") { _, _ ->
-                if (cloudBusy || !cloudStore.read().account.equals(account, true)) {
-                    showMessage("Google account changed or backup is busy. Open backup again.")
+                if (!CloudAccountSessionPolicy.mayApply(
+                        expectedSession, cloudStore.read().consentSnapshot(), cloudBusy)) {
+                    showMessage("Google account session changed or busy. Open backup again.")
                     return@setPositiveButton
                 }
                 cloudBusy = true
                 lifecycleScope.launch {
                     val outcome = withContext(Dispatchers.IO) {
                         runCatching {
+                            check(CloudAccountSessionPolicy.same(
+                                expectedSession, cloudStore.read().consentSnapshot()))
                             val restoredLyrics = if (backup.includesLyrics)
                                 lyricsStore.restoreCloudMissing(backup.lyrics) else 0
                             val changedPreferences = backup.preferences?.let { restored ->
