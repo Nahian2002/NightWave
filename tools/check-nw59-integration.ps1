@@ -97,6 +97,15 @@ $relative = @(
     'app/src/main/java/com/nightwave/player/v2/ui/StudioPlayerScreens.kt',
     'app/src/main/java/com/nightwave/player/v2/cloud/CloudConnectionHelpPolicy.kt',
     'app/src/main/java/com/nightwave/player/v2/cloud/CloudAccountSessionPolicy.kt',
+    'app/src/main/java/com/nightwave/player/v2/cloud/CloudBackupFreshnessPolicy.kt',
+    'app/src/main/java/com/nightwave/player/v2/cloud/CloudBackupState.kt',
+    'app/src/main/java/com/nightwave/player/v2/cloud/CloudAccountPresentation.kt',
+    'app/src/main/java/com/nightwave/player/v2/cloud/CloudConnectionHelpPolicy.kt',
+    'app/src/test/java/com/nightwave/player/v2/cloud/CloudBackupFreshnessPolicyTest.kt',
+    'app/src/test/java/com/nightwave/player/v2/cloud/CloudAccountPresentationTest.kt',
+    'app/src/test/java/com/nightwave/player/v2/cloud/CloudConnectionHelpPolicyTest.kt',
+    'tools/NW73CloudStatusSmoke.kt',
+    'docs/NW73_BACKUP_FRESHNESS_OAUTH_GUIDANCE.md',
     'app/src/main/java/com/nightwave/player/v2/cloud/CloudBackupConsentPolicy.kt',
     'app/src/test/java/com/nightwave/player/v2/cloud/CloudAccountSessionPolicyTest.kt',
     'tools/NW72CloudSessionSmoke.kt',
@@ -476,5 +485,33 @@ Assert-NW59Has $activity 'restoreCloudAfterConfirmation(preview, report, true, e
 Assert-NW59Has $activity 'showCloudOptionalRestorePrompt(preview, expectedSession)' 'optional prefs/lyrics cannot escape session'
 Assert-NW59Has $cloudSessionTests 'sameEmailAfterDisconnectReconnectInvalidatesOldPreview' 'regression for same account reconnect'
 Assert-NW59Has $cloudSmoke '0L..2_000L' 'reproducible revision stress'
-Write-Host 'NW72 cumulative NW53-NW72 source guard PASS. Gradle/JVM/device QA still mandatory.'
+# NW73: a historically verified backup MUST NOT be represented as
+# current after consent/privacy choices change; error 8 guidance is staged.
+$freshness = [IO.File]::ReadAllText($files['app/src/main/java/com/nightwave/player/v2/cloud/CloudBackupFreshnessPolicy.kt'])
+$cloudState = [IO.File]::ReadAllText($files['app/src/main/java/com/nightwave/player/v2/cloud/CloudBackupState.kt'])
+$cloudPresentation = [IO.File]::ReadAllText($files['app/src/main/java/com/nightwave/player/v2/cloud/CloudAccountPresentation.kt'])
+$cloudHelp = [IO.File]::ReadAllText($files['app/src/main/java/com/nightwave/player/v2/cloud/CloudConnectionHelpPolicy.kt'])
+$freshTests = [IO.File]::ReadAllText($files['app/src/test/java/com/nightwave/player/v2/cloud/CloudBackupFreshnessPolicyTest.kt'])
+$presentationTests = [IO.File]::ReadAllText($files['app/src/test/java/com/nightwave/player/v2/cloud/CloudAccountPresentationTest.kt'])
+$helpTests = [IO.File]::ReadAllText($files['app/src/test/java/com/nightwave/player/v2/cloud/CloudConnectionHelpPolicyTest.kt'])
+$smoke73 = [IO.File]::ReadAllText($files['tools/NW73CloudStatusSmoke.kt'])
+Assert-NW59Has $freshness 'currentConsentRevision != lastVerifiedRevision' 'current consent revision determines freshness'
+Assert-NW59Has $freshness '!automaticEnabled || lastSuccessMs <= 0L' 'no unverified backup success'
+Assert-NW59Has $cloudState 'lastVerifiedRevision: Long = -1L' 'legacy backup receipt conservatively unknown'
+Assert-NW59Has $cloudState 'last_verified_consent_revision' 'persist last verified consent revision'
+Assert-NW59Has $cloudState '.putLong(VERIFIED_REVISION_KEY, consent.revision)' 'only verified upload updates receipt'
+Assert-NW59Has $cloudState 'CloudBackupFreshnessPolicy.changed(previous, value)' 'unchanged options preserve backup verification'
+Assert-NW59Has $cloudState 'Backup settings changed; back up now to verify the current choices.' 'privacy change explained to user'
+Assert-NW59Has $cloudPresentation 'BackupStage.PREVIOUS_BACKUP_NEEDS_REFRESH' 'not falsely badge stale snapshot'
+Assert-NW59Has $cloudPresentation 'CloudBackupFreshnessPolicy.classify(' 'presentation uses current consent status'
+Assert-NW59Has $hub 'Previous verified backup' 'honest earlier snapshot timestamp'
+Assert-NW59Has $hub "New privacy or backup settings aren't verified" 'UI explains stale snapshot'
+Assert-NW59Has $cloudHelp 'if (stage == CloudAuthorizationFailurePolicy.Stage.REQUEST)' 'request stage error 8 copy'
+Assert-NW59Has $cloudHelp 'before a verified account selection' 'request error before chooser'
+Assert-NW59Has $cloudHelp 'The account picker appeared' 'picker-stage error distinguished'
+Assert-NW59Has $freshTests 'previouslyVerifiedBackupIsNotCurrentAfterConsentChanges' 'freshness regression tests'
+Assert-NW59Has $presentationTests 'stageUsesActualVerifiedConsentRevisionRatherThanOnlyTimestamp' 'actual Account stage test'
+Assert-NW59Has $helpTests 'requestStageEightNeverClaimsThePickerAppeared' 'stage 8 guidance tests'
+Assert-NW59Has $smoke73 '0L..2_000L' 'reproducible receipt-revision stress'
+Write-Host 'NW73 cumulative NW53-NW73 source guard PASS. Gradle/JVM/device QA still mandatory.'
 exit 0
