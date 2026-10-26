@@ -3917,6 +3917,7 @@ private fun StudioSearch(
                 items(publicGroups.bestMatches, key = { "public:" + it.url }) { song ->
                     MusicTrackTile(song, isPlaying = playingUrl == song.url,
                         surface = NightWaveTrackSurface.SEARCH,
+                        rawVideoCaption = mode == SearchMode.VIDEOS,
                         onOptions = { onSongOptions(song) },
                         onClick = { playSinglePublic(song) })
                 }
@@ -3931,6 +3932,7 @@ private fun StudioSearch(
                 items(publicGroups.moreResults, key = { "public:" + it.url }) { song ->
                     MusicTrackTile(song, isPlaying = playingUrl == song.url,
                         surface = NightWaveTrackSurface.SEARCH,
+                        rawVideoCaption = mode == SearchMode.VIDEOS,
                         onOptions = { onSongOptions(song) },
                         onClick = { playSinglePublic(song) })
                 }
