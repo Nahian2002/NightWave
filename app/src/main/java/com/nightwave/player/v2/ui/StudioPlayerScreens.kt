@@ -420,14 +420,17 @@ fun StudioNowPlayingOverlay(
                 MusicIdentity.display(state.title, state.artist)
             }
             val queuePreview = remember(
-                state.queue, state.queueIndex, state.manualNextUrls, state.shuffle
+                state.queue, state.queueIndex, state.manualNextUrls,
+                state.shuffle, state.repeat
             ) {
                 NightWaveNowPlayingPresentationPolicy.queuePreview(
                     urls = state.queue.map { it.url },
                     titles = state.queue.map { it.title },
                     currentIndex = state.queueIndex,
                     manualNextUrls = state.manualNextUrls,
-                    shuffled = state.shuffle
+                    shuffled = state.shuffle,
+                    repeatOne = state.repeat == PlaybackQueue.Repeat.ONE,
+                    repeatAll = state.repeat == PlaybackQueue.Repeat.ALL
                 )
             }
             val queuePreviewTitle = queuePreview.sourceSlot?.let { at ->
