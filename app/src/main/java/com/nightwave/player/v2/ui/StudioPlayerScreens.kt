@@ -529,7 +529,8 @@ fun StudioNowPlayingOverlay(
                             style = MaterialTheme.typography.labelSmall)
                         OutlinedButton(onClick = { lyricsAutoFollow = true },
                             enabled = !lyricsAutoFollow,
-                            modifier = Modifier.testTag("lyrics-follow-toggle")
+                            modifier = Modifier.heightIn(min = 48.dp)
+                                .testTag("lyrics-follow-toggle")
                                 .semantics {
                                     contentDescription =
                                         "Follow synchronized lyrics during playback"
@@ -537,7 +538,8 @@ fun StudioNowPlayingOverlay(
                             Text("Follow")
                         }
                         Spacer(Modifier.width(7.dp))
-                        OutlinedButton(onClick = onEditLyrics) {
+                        OutlinedButton(onClick = onEditLyrics,
+                            modifier = Modifier.heightIn(min = 48.dp)) {
                             Text("Edit")
                         }
                     }
@@ -563,6 +565,7 @@ fun StudioNowPlayingOverlay(
                                 enabled = state.connected && state.hasTrack &&
                                     cueOriginTrack.isNotBlank(),
                                 modifier = Modifier.fillMaxWidth()
+                                    .heightIn(min = 56.dp)
                                     .testTag("lyrics-cue-$index")
                                     .semantics(mergeDescendants = true) {
                                         contentDescription = LyricsReadingPolicy.cueDescription(
