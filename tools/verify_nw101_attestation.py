@@ -57,7 +57,7 @@ def self_test() -> None:
         one.write_bytes(b"package example\n")
         assert not validate_manifest(root, records, tracked + ["tools/new.kt"])
         assert not validate_manifest(root, records, tracked[:1])
-        assert not validate_manifest(root, records[::-1])
+        assert not validate_manifest(root, records, tracked[::-1])
         assert not validate_manifest(root, [records[0], records[0]], tracked)
         two.unlink()
         assert not validate_manifest(root, records, tracked), "removed source rejected"
