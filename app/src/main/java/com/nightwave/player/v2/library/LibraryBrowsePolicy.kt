@@ -23,6 +23,7 @@ object LibraryBrowsePolicy {
     const val SORT_TITLE = "title"
     const val SORT_TITLE_DESC = "title_desc"
     const val SORT_CREATOR = "artist"
+    const val SORT_OLDEST = "oldest" // read-only, for newest-first Recently Played
 
     fun playlists(
         source: List<LibraryPlaylistPreview>,
@@ -74,6 +75,7 @@ object LibraryBrowsePolicy {
             !search.valid || SearchRelevancePolicy.savedMatches(search, song)
         }
         val ordered = when (sort) {
+            SORT_OLDEST -> matched.reversed()
             SORT_TITLE, SORT_TITLE_DESC -> {
                 val compare = compareBy<IndexedValue<VideoPreview>> {
                     SearchRelevancePolicy.normalize(
