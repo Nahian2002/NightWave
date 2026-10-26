@@ -26,8 +26,33 @@ internal object SearchTokenMatchingPolicy {
         return 0
     }
 
+    /**
+     * Each query word needs its own candidate occurrence. "Alo Alo" should
+     * not be satisfied by one "Alo" token, even though both spellings match.
+     * Prefer exact matches to safe prefixes, then to optional typo evidence.
+     */
+    fun evidenceForTerms(
+        terms: List<String>, words: List<String>, allowTypo: Boolean = false
+    ): List<Int> {
+        val used = BooleanArray(words.size)
+        return terms.map { term ->
+            var chosen = 0
+            for (grade in 3 downTo 1) {
+                val position = words.indices.firstOrNull { at ->
+                    !used[at] && evidence(term, listOf(words[at]), allowTypo) == grade
+                }
+                if (position != null) {
+                    used[position] = true
+                    chosen = grade
+                    break
+                }
+            }
+            chosen
+        }
+    }
+
     fun allCovered(terms: List<String>, words: List<String>, allowTypo: Boolean = false): Boolean =
-        terms.isNotEmpty() && terms.all { evidence(it, words, allowTypo) > 0 }
+        terms.isNotEmpty() && evidenceForTerms(terms, words, allowTypo).all { it > 0 }
 
     /** Strictly one insertion, deletion, replacement or adjacent transposition. */
     private fun oneEditApart(a: String, b: String): Boolean {
