@@ -1,44 +1,58 @@
-# NightWave — current cumulative roadmap and final-test policy
+# NightWave — NW76–NW90 quality roadmap (authoritative)
 
-**Updated:** 26 October 2026  
-**Source of truth:** `feature/nightwave-nw77-source-safety-release-gate`  
-**Not the cumulative source:** default `main` (historical v0.8), standalone `feature/nightwave-nw62-backup-verification-guard`.
+**Source of truth:** Owner-supplied *NightWave — Roadmap to a 9.5–10/10 Experience*.
+**Baseline rating:** 7.2/10 based on the prior phone video; **target:** 9.5+/10, subject to real-device proof.  
+**Development lineage:** NW77 cumulative source, then NW78 onward. Default `main` is an obsolete v0.8 branch. The standalone NW62 backup experiment is not a substitute for NW77 cumulative source.
 
-## Intended product
-A distinct, polished, Android-first, offline-capable, audio-focused app with reliable listening, Spotify-level interaction quality, and no required NightWave backend or paid infrastructure. Preserve installed app identity, signing compatibility, library history, likes, playlists, offline audio and working Google sign-in. Do not promise that every internet song can legally or technically be downloaded.
+## Wave 1 — Make every major feature dependable (NW76–NW80)
 
-## Roadmap implemented in cumulative source (runtime acceptance is separate)
+| Phase | Scope and acceptance intent | State |
+| --- | --- | --- |
+| **NW76** | Final build and regression reliability: Gradle, zero failing JVM tests, APK signing/fingerprint and crash evidence | Earlier source certification gate; owner reported a successful build/basic device test, not final acceptance |
+| **NW77** | Music-source architecture and public-release rights: separate authorized local/licensed audio from YouTube references; retain saved metadata/files | Source audit committed; public release NO-GO |
+| **NW78** | Google sign-in and backup: certificate/OAuth error 8, connect/disconnect, verified backup/readback, restore preview, account switching | **Current development phase**; Google connection owner-confirmed, backup/readback not owner-verified |
+| **NW79** | Download/offline reliability: real progress and speed, true pause/retry/cancel states, transfer history, low-storage, integrity, permitted offline playback | Planned |
+| **NW80** | Playback engine: shuffle/history, Play Next, repeat, gapless, background controls, queue restoration, interruption and rapid seek | Planned |
 
-| Phases | Product focus |
+## Wave 2 — Premium music experience (NW81–NW85)
+
+| Phase | Scope |
 | --- | --- |
-| NW43–NW52 | Correct single-song search queue, search relevance, Google recovery, Now Playing, Home/Library/You, downloads, sound/lyrics, premium motion, reliability and integration |
-| NW53–NW63 | Recovery/clarity and downloads history UX |
-| NW64–NW66 | Download performance/status, transfer recovery and offline file health |
-| NW67–NW69 | Playback transitions, audio-session/crossfade protections and queue/shuffle consistency |
-| NW70–NW71 | Unicode/local search and smart library discovery |
-| NW72–NW73 | Safe cloud restore and truthful Google Drive backup status |
-| NW74–NW75 | UI-state reliability and cumulative feature integration/hotfixes |
-| NW76 | Build/JUnit certification gates |
-| NW77 | Read-only music-source rights and public-release safety audit |
+| **NW81** | Music title intelligence, remove display clutter without losing source metadata |
+| **NW82** | Search precision: exact artist/title, Bangla/multilingual, typo tolerance, remix/live/cover, duplicate groups, local priority; fix 'Alo alo' vs 'Alone' |
+| **NW83** | Unified premium visual system: typography, spacing, components, icons, contrasts, animation, responsiveness |
+| **NW84** | Music-first Home redesign with history-driven mixes, hierarchy, real artwork, listening continuation |
+| **NW85** | Now Playing redesign: artwork, player transport, mini-player, Up Next, lyrics, gestures, transitions |
 
-**Integration rule:** New work must branch from the latest reviewed cumulative source, preserving the NW75 fixes, NW76 certification gate and NW77 source audit. Do not branch new product updates from historical v0.8/main or the isolated NW62 backup timestamp experiment. Future code edits should follow the existing numbered feature lineage without rewriting already-delivered phases.
+NightWave remains an original midnight-themed audio product with restrained teal accents; Spotify-level polish is an interaction-quality benchmark, not a directive to copy branding or UI.
 
-## Remaining work after NW77, in priority order
+## Wave 3 — Complete product and prove its quality (NW86–NW90)
 
-1. **Authorized-audio download responsiveness and diagnostics:** investigate the reported 35–37 KB/s transfer observation using measured transfer timing, source/connection separation and privacy-safe reporting. Do not claim an app speed cap or a speed fix without evidence. Preserve cancellation, staging safety, DNS/redirect/MIME protections and atomic verified library import.
-2. **Search metadata and library continuity:** clearer song/artist metadata and playable-source indicators; preserve search relevance and avoid unsolicited queue entries.
-3. **Cloud verification transparency:** continue to distinguish Google *connected* from a verified backup and readable restore snapshot, without redoing a working OAuth setup or overwriting local data.
-4. **Premium usability and stability:** polish unfinished interactions (downloads, offline browsing, queue, Now Playing, navigation and accessibility); avoid visual polish that destabilizes playback.
-5. **Single consolidated final acceptance phase:** integrated build and source/JUnit/Android suites, compatible signing and update checks, Samsung real-device session, offline/online media controls, backup readback, visual QA, privacy/security/rights and publication decisions.
+| Phase | Scope |
+| --- | --- |
+| **NW86** | Library, playlist folders/organization/sorting, multi-select, Recently Played and compact You |
+| **NW87** | Downloads and Offline Library unified interface, statuses, artwork, storage and file recovery |
+| **NW88** | Sound Studio EQ effect verification, gapless/crossfade/normalization, audio-route compatibility |
+| **NW89** | Lyrics, LRC refinement, accessibility, responsive typography, reduced motion, startup/scrolling/battery |
+| **NW90** | Final quality certification: original 139-case device checklist, stress/background/offline/auth/restore QA, security, rights, privacy, release candidate |
 
-These five workstreams are the next priorities; they are not represented as already implemented or assigned invented NW numbers.
+## Score targets (not achieved-result claims)
 
-## User testing preference
+| Category | Baseline | Target |
+| --- | ---: | ---: |
+| Home | 7.6 | 9.5 |
+| Search | 7.1 | 9.5 |
+| Now Playing | 7.4 | 9.7 |
+| Library | 7.4 | 9.5 |
+| Downloads UX | 6.6 | 9.4 |
+| Sound Studio UX | 7.1 | 9.4 |
+| Google account UX | 4.5 | 9.5 |
+| Typography and polish | 6.4 | 9.7 |
 
-**No per-batch phone APK installation, recording requests or manual test checklist.** Stack the development changes in the agreed order, and ask for **one integrated build and device acceptance process at the end**. During development, source review and non-device checks may be used where available to avoid accumulating obvious faults. Any automated checks not run must be explicitly reported; **source committed** does not mean **full Android build passed**.
+## Owner's final-test instruction
 
-The owner reported NW76's installed APK built and basic device tests succeeded, and separately that Google sign-in connected after the OAuth client was configured. This does not prove Google Drive backup upload/readback, full device regression, public OAuth verification or release authorization.
+The owner has explicitly selected **batch development now, consolidated phone testing at the end**. Accordingly, do not request a new APK install, Samsung recording, or manual acceptance after each phase. Keep writing regression tests and run every **available** automated source/JVM/Android check during development; do not claim Gradle builds or phone tests that have not run. The original roadmap wanted full Windows builds at integration checkpoints; if inaccessible, mark these **pending**, not passed. No phase is called completely verified on source checks alone.
 
-## Release decision
+At NW90, conduct one comprehensive current-source clean Windows build, full JVM/Android testing, APK signing compatibility, device checks (including the 139-case checklist), Drive upload/readback/restore using disposable data, long playback, accessibility and source/legal reviews. Any failed gate must be fixed before release approval.
 
-Public APK / Play remains **NO-GO** pending source/media authorization or compliant redesign, API target/signing and privacy obligations, authenticated Drive backup proof, the final current build, and physical-device acceptance. NW77's audit flags YouTube-derived background/offline paths; do not bypass or disguise that blocker.
+**Invariants:** No required NightWave backend, no billing dependency, preserve account connection, application ID, library and offline recordings; never promise unrestricted offline copies of every YouTube song. Public release requires appropriate music-source rights and Android/Play compliance.
