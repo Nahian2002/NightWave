@@ -134,11 +134,15 @@ class OfflineLibraryActivity : ComponentActivity() {
                     val checked = runCatching { library.healthReport() }
                     runOnUiThread {
                         if (!isFinishing && !isDestroyed) {
-                            cachedReport = checked.getOrNull()
-                            refresh()
-                            status(if (checked.isSuccess)
-                                "Offline audio rechecked · No files or entries changed"
-                            else "Recheck unavailable · No files or entries changed")
+                            if (checked.isSuccess) {
+                                cachedReport = checked.getOrNull()
+                                refresh()
+                                status("Offline audio rechecked · No files or entries changed")
+                            } else {
+                                // Avoid redoing a failed storage scan synchronously
+                                // on the UI thread. Keep the previous snapshot.
+                                status("Recheck unavailable · No files or entries changed")
+                            }
                         }
                     }
                 }
