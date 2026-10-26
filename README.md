@@ -2,13 +2,13 @@
 
 **Android audio-first music player · active development, private source · not yet public release-ready.**
 
-> **NW71 INTEGRATED SOURCE:** This cumulative branch stacks NightWave NW43–NW71. NW71 improves **Smart Library recommendations without invented content**: Favorites, Recent and playlist tracks receive fair bounded representation, `Rediscover your likes` excludes recent listening, and dynamic shelves reject invalid/noncanonical public links without modifying originals. Library playlist search can now find a containing playlist by an actual saved song or creator. **12,010/12,010 exact-source Kotlin/JVM Smart Library policy assertions PASS; full Android Gradle/JUnit build, on-device UX and Google OAuth error 8 remain UNVERIFIED. Public APK/Play: NO-GO.** See [NW71 details and testing](docs/NW71_SMART_LIBRARY_DISCOVERY.md) and [Release Readiness](RELEASE_READINESS.md).
+> **NW72 INTEGRATED SOURCE:** This branch stacks NightWave NW43–NW72. NW72 strengthens **Google Drive backup/restore safety**: a restore/merge/optional-data preview carries its original authorized **account + consent revision**, so disconnecting and reconnecting the same account or changing privacy settings invalidates old prompts. No extra OAuth scopes, server, audio changes, or account tokens in saved settings. **6,013/6,013 exact-source standalone Kotlin/JVM session assertions PASS; full Android compilation, Samsung Drive round-trip and Google OAuth status 8 remain UNVERIFIED. Public APK/Play: NO-GO.** See [NW72 OAuth/restore recovery and test steps](docs/NW72_GOOGLE_SESSION_RECOVERY.md) and [Release Readiness](RELEASE_READINESS.md).
 
 ### Current cumulative source
 
-Download **Code → Download ZIP** from `feature/nightwave-nw71-smart-library-discovery`, extract into a **clean Windows folder** and run `build-windows.cmd` when ready for complete Android testing. A standalone Kotlin source PASS is not a successful Android build. After the build succeeds, run `check-google-oauth.cmd` and `check-device-update.cmd` before installing an update over the existing Samsung app. **Do not uninstall NightWave, clear app data, or delete offline music to fix signing/OAuth errors.**
+Download **Code → Download ZIP** from `feature/nightwave-nw72-cloud-session-restore-safety`, extract to a **new clean Windows folder**, and run `build-windows.cmd` when ready for full Android testing. After SUCCESS run `check-google-oauth.cmd` to verify the *actual candidate APK's signer*, and `check-device-update.cmd` before installing over the existing Samsung version. **Never uninstall NightWave, clear app data, or delete your offline music to fix signing or OAuth error 8.**
 
-Earlier NW43–NW70 phase notes document source progress, not NW71 device verification.
+Earlier NW43–NW71 notes are source-development history, not verification of NW72 on a phone.
 
 ---
 
