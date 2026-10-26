@@ -32,7 +32,9 @@ object LyricsImportReviewPolicy {
     private val likelyTimedRow = Regex("""^\[\d""")
     private val declaredTitle = Regex("""(?im)^\s*\[ti:([^\]\r\n]{1,150})\]\s*$""")
     private val nameClean = Regex("""(?iu)\s*(?:[\[(]\s*(?:official\s+)?(?:sync(?:ed|hronized)?\s+)?lyrics?\s*[\])])\s*""")
-    private val separators = Regex("""[^\p{L}\p{N}]+""")
+    // Keep dependent vowel signs and combining marks in Bangla and other scripts.
+    // Dropping them would make মেলা and মালা indistinguishable in import review.
+    private val separators = Regex("""[^\p{L}\p{M}\p{N}]+""")
 
     fun normalizedName(value: String): String =
         separators.replace(nameClean.replace(value, " "), " ")
@@ -51,8 +53,14 @@ object LyricsImportReviewPolicy {
             return LyricsImportMatch.DIFFERENT
         }
         if (fileName == target || declared == target) return LyricsImportMatch.LIKELY
-        if (target.length >= 5 && (fileName.contains(target) ||
-                declared.contains(target))) return LyricsImportMatch.POSSIBLE
+        // Whole normalized word-sequence boundaries avoid accidental
+        // subword matches (e.g. "alo" should not match "alone").
+        val targetPhrase = " $target "
+        if (target.length >= 5 &&
+            ((" $fileName ").contains(targetPhrase) ||
+                (" $declared ").contains(targetPhrase))) {
+            return LyricsImportMatch.POSSIBLE
+        }
         return if (fileName.isEmpty() && declared.isEmpty()) LyricsImportMatch.UNKNOWN
         else LyricsImportMatch.DIFFERENT
     }
