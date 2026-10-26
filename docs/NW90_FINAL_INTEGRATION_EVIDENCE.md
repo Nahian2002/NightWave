@@ -13,7 +13,17 @@
 - Added `tools/nw90-windows-gate.ps1` and `run-nw90-final.cmd`: one-click Windows source/matrix preflight → existing current-attempt official debug builder → independent post-build JUnit/APK SHA check. The scripts **do not install/uninstall**, clear app storage or connect to Google. The separate `check-device-update.cmd` remains mandatory before updating the installed Samsung app.
 - Added `docs/NW90_EXPANDED_139_CASE_MATRIX.csv`: **139 newly enumerated** specific cases across startup, audio playback, queues, offline storage, transfers, Search, playlists, Drive, EQ, lyrics, visual accessibility and public release. **All 139 are `NOT_RUN`**, with no invented ratings or screenshots. This expands the 31-case checklist found in `docs/NIGHTWAVE_FINAL_ACCEPTANCE_20261019.md`; it is not falsely identified as a previously executed original 139-case report.
 - Repaired the README's unusably long phase front matter (including literal `\\n` escapes); the historical announcements were moved to `docs/NW90_ARCHIVED_PHASE_BANNERS.md`. The main README now leads with the actual current source, source-rights restrictions, evidence path and Windows verification.
-- Compared **ten protected NW89-parent blob hashes** after integration: playback queue/service, permitted download engine, private offline library, Google backup data, search ranking, Android manifest, Gradle file and both large UI screens remain **byte-for-byte unchanged**. This phase does not mutate installed music or signing.
+- The initial NW90 handoff compared ten production files with NW89 and found them identical. A subsequent internal defect audit deliberately changed **two production files**: `OfflineLibraryActivity.kt` (file-health scans off the UI thread) and `PlaybackService.kt` (Manual EQ needs a complete band curve). The remaining eight protected files remain unchanged; no installed music, saved library schema, OAuth credentials, signing or media-source permissions were altered.
+
+## Final internal defect sweep
+
+Three concrete code issues were addressed after the initial NW90 source handoff:
+
+1. **Offline Library UI responsiveness:** On Resume previously cleared the cached report and directly called a `refresh()` that synchronously ran the full `library.healthReport()` scan. Import, delete and filtered redraws could do the same. The existing background worker now performs health checks; repeated requests coalesce and rendered results are generation-guarded. Real 1,000-file phone responsiveness remains unmeasured.
+2. **Manual EQ false active receipt:** `PlaybackService.applyEqualizer()` previously accepted manual mode with an incomplete or empty set of band levels, and could mark it active without a complete device curve. It now rejects missing band indices. Legacy single-band commands seed untouched bands from the validated current-session snapshot, or reject safely.
+3. **Stale JVM test pass evidence:** `tools/nw90_certification.py` previously treated valid JUnit XML counters as PASS without a successful current Gradle build log. It now demands `--build-log`; otherwise the counters-only evidence is `NOT_VERIFIED`. CI passes the current build log.
+
+Added `tools/verify_nw90_final_audit.py` to CI. Connected GitHub source readback verified the new bindings and braces. **A full current-branch Android/JUnit build and on-phone runtime testing remain unexecuted.**
 
 ## Actual hosted runner evidence
 
@@ -64,6 +74,25 @@ The original NW77 source audit identifies YouTube-derived standalone audio/backg
 4. Exercise all P0 and relevant P1 cases in `docs/NW90_EXPANDED_139_CASE_MATRIX.csv`, entering the actual observed status and a non-sensitive evidence reference. Use disposable backups/audio before any destructive restore.
 5. Complete Drive account/backup/readback/preview, background audio, search, app lifecycle, EQ on each available audio route, accessibility, crash and battery evidence. Only then measure UI/music quality against the 9.5+/10 goal.
 6. For public distribution separately address API 36, production AAB/signing, privacy/security/license and NW77 source authorization. No debug APK should be advertised as a certified public release.
+
+## Internal product rating — provisional, source-informed
+
+**7.7/10 estimated overall product experience**, based on implemented source features and previous UI evidence. This is not a measured NW90 APK review or a guarantee of correctness.
+
+| Dimension | Estimate /10 | Main remaining uncertainty |
+| --- | ---: | --- |
+| UI and visual design | 8.2 | Current Samsung screenshots and accessibility at large fonts |
+| Search and music discovery | 8.0 | Provider coverage and real-world multilingual result quality |
+| Playback and queue | 8.0 | Actual Bluetooth, interruptions, shuffle/seek stress |
+| Offline library/transfers | 7.7 | Large indexed libraries, permitted downloads and recovery |
+| Playlists, collections and You | 8.3 | Bulk edits, retention and process-restart persistence |
+| Sound Studio and audio fidelity | 7.3 | Audible device-route EQ, transition quality, normalization |
+| Lyrics and accessibility | 7.6 | User-imported LRC only; real TalkBack and long-session profiling |
+| Google backup and recovery | 7.4 | Connected account but backup/readback/restore not fully certified |
+| Build stability and engineering assurance | 6.5 | No fresh complete Android/JUnit/device test run |
+| Public-release readiness | 2.5 | Source rights, API 36 migration, privacy/AAB and acceptance |
+
+Scores are **subjective estimates**; no new phone/video or final completed 139-case data are available. NightWave's 9.5+/10 target remains unverified.
 
 ## Final engineering disposition
 
