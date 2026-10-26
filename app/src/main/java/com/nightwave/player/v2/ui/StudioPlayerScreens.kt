@@ -503,10 +503,12 @@ fun StudioNowPlayingOverlay(
                             Text("NIGHTWAVE LYRICS",
                                 style = MaterialTheme.typography.labelMedium,
                                 color = colors.primary)
-                            Text(playerIdentity.title, maxLines = 1,
+                            Text(playerIdentity.title,
+                                maxLines = if (fontScale >= 1.3f) 2 else 1,
                                 overflow = TextOverflow.Ellipsis,
                                 style = MaterialTheme.typography.titleMedium)
-                            Text(playerIdentity.artistOrCreator, maxLines = 1,
+                            Text(playerIdentity.artistOrCreator,
+                                maxLines = if (fontScale >= 1.8f) 2 else 1,
                                 overflow = TextOverflow.Ellipsis,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = colors.onSurfaceVariant)
