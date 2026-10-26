@@ -82,4 +82,20 @@ class DownloadRecoveryPolicyTest {
         assertEquals("Retry saving this song", p.retryLabel("FAILED", true))
         assertEquals("Retry saving this song", p.retryLabel("CANCELLED", false))
     }
+
+    @Test fun transientHttpErrorsGiveSafeActionableGuidance() {
+        for (status in listOf(500, 502, 503, 504)) {
+            val first = p.failedMessage("HTTP $status from https://private.example/?token=secret")
+            assertEquals("Audio source is temporarily unavailable. Retry later.", first)
+            assertEquals(first, p.failedMessage(first))
+            assertFalse(first.contains("token="))
+        }
+        for (status in listOf(408, 425)) {
+            val first = p.failedMessage("HTTP $status")
+            assertEquals("Connection interrupted. Check internet and retry.", first)
+            assertEquals(first, p.failedMessage(first))
+        }
+        assertEquals("Audio source is rate-limited. Retry later.",
+            p.failedMessage("HTTP 429"))
+    }
 }
