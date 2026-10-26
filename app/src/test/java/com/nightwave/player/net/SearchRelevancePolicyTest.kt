@@ -132,4 +132,51 @@ class SearchRelevancePolicyTest {
         val other = track(a, "The Sunny Day", "Uploader")
         assertFalse(SearchRelevancePolicy.savedMatches(query, other))
     }
+
+    @Test fun nw82AloAloNeverMisranksAloneOverExactMusic() {
+        val wrong = track(a, "Alan Walker - Alone (Official Audio)", "Alan Walker")
+        val right = track(b, "Alo Alo (Official Audio)", "Alo Bangla")
+        val ranked = SearchRelevancePolicy.rankPublic("Alo Alo", listOf(wrong, right))
+        assertEquals(right, ranked.first())
+        assertTrue(SearchRelevancePolicy.publicScore(
+            SearchRelevancePolicy.prepare("alo alo"), right) >
+            SearchRelevancePolicy.publicScore(
+                SearchRelevancePolicy.prepare("alo alo"), wrong))
+        assertTrue(SavedTrackSearch.match("alo alo", listOf(wrong)).isEmpty())
+        assertEquals(listOf(right), SavedTrackSearch.match("alo alo", listOf(wrong, right)))
+    }
+
+    @Test fun nw82ExactSongBeatsPrefixAndTypoAndUnrequestedVersions() {
+        val remix = track(a, "Moonlight Remix", "Creator")
+        val typo = track(b, "Moonlights", "Creator")
+        val exact = track(c, "Moonlight (Official Audio)", "Creator")
+        assertEquals(exact, SearchRelevancePolicy.rankPublic(
+            "moonlight", listOf(remix, typo, exact)).first())
+        assertEquals(remix, SearchRelevancePolicy.rankPublic(
+            "moonlight remix", listOf(exact, remix)).first())
+        assertTrue(SearchRelevancePolicy.publicScore(
+            SearchRelevancePolicy.prepare("moonligt"), exact) >
+            SearchRelevancePolicy.publicScore(
+                SearchRelevancePolicy.prepare("moonligt"), track(b, "Sunny Afternoon")))
+    }
+
+    @Test fun nw82BanglaVowelSpellingsStayDistinctAndEnglishTyposAreLimited() {
+        val right = track(a, "মালা", "সঙ্গীত")
+        val wrong = track(b, "মেলা", "সঙ্গীত")
+        assertEquals(listOf(right), SavedTrackSearch.match("মালা", listOf(wrong, right)))
+        assertEquals(listOf(wrong), SavedTrackSearch.match("মেলা", listOf(right, wrong)))
+        val correctEnglish = track(c, "Midnight Drive", "Artist")
+        assertEquals(listOf(correctEnglish),
+            SavedTrackSearch.match("midnigth", listOf(correctEnglish)))
+        assertTrue(SavedTrackSearch.match("mal", listOf(wrong, right)).isEmpty())
+    }
+
+    @Test fun nw82ExactSavedHitsPreventBroadFuzzyMatches() {
+        val exact = track(a, "Moonlight", "Musician")
+        val approx = track(b, "Moonlights", "Elsewhere")
+        val results = SavedTrackSearch.match("moonlight", listOf(approx, exact))
+        assertEquals(listOf(exact, approx), results)
+        assertEquals(listOf(exact), SavedTrackSearch.match("moonligt", listOf(exact)))
+        assertEquals(listOf(approx), SavedTrackSearch.match("moonlights", listOf(exact, approx)))
+    }
 }
