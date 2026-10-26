@@ -529,15 +529,26 @@ fun StudioNowPlayingOverlay(
                             modifier = Modifier.weight(1f).padding(vertical = 8.dp),
                             color = colors.onSurfaceVariant,
                             style = MaterialTheme.typography.labelSmall)
-                        OutlinedButton(onClick = { lyricsAutoFollow = true },
-                            enabled = !lyricsAutoFollow,
+                        // NW107: TalkBack users can deliberately pause automatic
+                        // scrolling instead of having to swipe to disable it.
+                        // Rejoin uses the existing active-cue LaunchedEffect.
+                        OutlinedButton(
+                            onClick = {
+                                lyricsAutoFollow =
+                                    LyricsReadingPolicy.toggledFollow(lyricsAutoFollow)
+                            },
                             modifier = Modifier.heightIn(min = 48.dp)
                                 .testTag("lyrics-follow-toggle")
                                 .semantics {
                                     contentDescription =
-                                        "Follow synchronized lyrics during playback"
-                                }) {
-                            Text("Follow")
+                                        LyricsReadingPolicy.followActionDescription(
+                                            lyricsAutoFollow)
+                                    stateDescription =
+                                        LyricsReadingPolicy.followStateDescription(
+                                            lyricsAutoFollow)
+                                }
+                        ) {
+                            Text(LyricsReadingPolicy.followActionLabel(lyricsAutoFollow))
                         }
                         Spacer(Modifier.width(7.dp))
                         OutlinedButton(onClick = onEditLyrics,

@@ -26,6 +26,7 @@ on:
       - feature/nightwave-nw104-kotlin-junit-compiler-fixes
       - feature/nightwave-nw105-offline-junit-execution
       - feature/nightwave-nw106-seek-timeline-reliability
+      - feature/nightwave-nw107-lyrics-follow-accessibility
   workflow_dispatch:
 
 permissions: {}

@@ -35,4 +35,22 @@ object LyricsReadingPolicy {
     fun followHint(enabled: Boolean): String =
         if (enabled) "Following imported lyrics. Swipe to browse lines."
         else "Browsing lyrics. Select Follow to rejoin playback."
+
+    /**
+     * NW107: Follow is a real, reversible accessibility control. Leaving a
+     * button disabled while follow was ON blocked TalkBack users from pausing
+     * automatic scrolling without a touch gesture.
+     */
+    fun followActionLabel(following: Boolean): String =
+        if (following) "Pause" else "Follow"
+
+    fun followActionDescription(following: Boolean): String =
+        if (following) "Pause automatic lyric scrolling"
+        else "Resume automatic lyric scrolling"
+
+    fun followStateDescription(following: Boolean): String =
+        if (following) "Automatic lyric follow on"
+        else "Automatic lyric follow off"
+
+    fun toggledFollow(following: Boolean): Boolean = !following
 }

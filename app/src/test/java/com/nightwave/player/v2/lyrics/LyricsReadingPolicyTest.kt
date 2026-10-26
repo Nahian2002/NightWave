@@ -41,4 +41,40 @@ class LyricsReadingPolicyTest {
         assertTrue(policy.followHint(false).contains("Select Follow"))
         assertTrue(policy.followHint(true).contains("Following imported lyrics"))
     }
+
+    @Test fun nw107FollowButtonCanPauseWithoutSwiping() {
+        assertEquals("Pause", policy.followActionLabel(true))
+        assertEquals("Pause automatic lyric scrolling",
+            policy.followActionDescription(true))
+        assertEquals("Automatic lyric follow on",
+            policy.followStateDescription(true))
+        assertFalse(policy.toggledFollow(true))
+    }
+
+    @Test fun nw107PausedLyricsCanRejoinAutomaticallyWithoutRestartingPlayer() {
+        assertEquals("Follow", policy.followActionLabel(false))
+        assertEquals("Resume automatic lyric scrolling",
+            policy.followActionDescription(false))
+        assertEquals("Automatic lyric follow off",
+            policy.followStateDescription(false))
+        assertTrue(policy.toggledFollow(false))
+    }
+
+    @Test fun nw107ControlActionAndSpokenStateAlwaysAgree() {
+        for (following in listOf(true, false)) {
+            val action = policy.followActionLabel(following)
+            val hint = policy.followHint(following)
+            assertEquals(following, action == "Pause")
+            assertEquals(following, hint.startsWith("Following"))
+            assertEquals(following, policy.followStateDescription(following)
+                .endsWith("on"))
+            assertEquals(!following, policy.toggledFollow(following))
+        }
+    }
+
+    @Test fun nw107LongBanglaCueDescriptionStillIncludesSeekTime() {
+        val description = policy.cueDescription(
+            LyricCue(61_000L, "  আমার    গান  "), 250, 90_000)
+        assertEquals("Seek to 1 minute 1 second. আমার গান", description)
+    }
 }

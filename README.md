@@ -4,9 +4,11 @@
 
 NightWave combines locally imported or otherwise authorized music, an offline library, optional Google Drive backup, song discovery, playlists, Sound Studio, queue control, and user-imported synchronized LRC lyrics. The original midnight/teal design is independent of Spotify.
 
-**Current development source:** `feature/nightwave-nw106-seek-timeline-reliability` (cumulative NW105 with safer now-playing seek and accessibility controls). The older default `main` does not represent this candidate.
+**Current development source:** `feature/nightwave-nw107-lyrics-follow-accessibility` (cumulative NW106 with accessible, reversible synchronized-lyrics auto-follow). The older default `main` does not represent this candidate.
 
 **Release status:** **NO-GO**. The hosted GitHub Actions runner and empty canary both failed before executing steps; a current Windows debug build, Android/JUnit/139-case device validation, installed-signer continuity, production OAuth/backup, Google Play API 36 migration and NW77 YouTube-source rights review remain outstanding. Never install a new APK over a library-bearing app unless its signer matches.
+
+**NW107 synchronized lyrics/accessibility milestone:** [NW107 evidence and TalkBack QA boundaries](docs/NW107_LYRICS_ACCESSIBILITY_EVIDENCE.md). Immersive lyrics has a real Pause/Follow control available to TalkBack users in either state, with clear action/state descriptions; finger swipe and tap-to-seek remain unchanged. Eight original lyrics JUnit-source methods are covered by an independent JVM runner, and policy smoke tests are wired into CI. Full Android/TalkBack device verification remains mandatory.
 
 **NW106 now-playing seek UI milestone:** [NW106 test report](docs/NW106_SEEK_TIMELINE_EVIDENCE.md). Seek timeline taps and drags now reject collapsed/non-finite geometry rather than silently seeking to 0%; the visual thumb and inverse mapping are consistent. Accessibility progress actions reject non-finite requests rather than reporting false success. Standalone Kotlin and nine original/new JUnit tests cover the pure policy. Android UI/runtime verification remains pending.
 
