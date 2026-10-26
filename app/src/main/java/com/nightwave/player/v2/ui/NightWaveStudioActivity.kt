@@ -4726,11 +4726,8 @@ private fun StudioProfile(
                 }
                 Surface(shape = RoundedCornerShape(12.dp),
                     color = MaterialTheme.colorScheme.primary.copy(alpha = .13f)) {
-                    Text(when (CloudAccountPresentation.stage(cloud)) {
-                        CloudAccountPresentation.BackupStage.LOCAL_ONLY -> "LOCAL"
-                        CloudAccountPresentation.BackupStage.CONNECTED_NOT_BACKED_UP -> "CONNECTED"
-                        CloudAccountPresentation.BackupStage.VERIFIED_BACKUP -> "BACKED UP"
-                    },
+                    Text(CloudAccountPresentation.badge(
+                            CloudAccountPresentation.stage(cloud)),
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary)
