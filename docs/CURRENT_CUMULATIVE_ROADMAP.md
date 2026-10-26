@@ -31,7 +31,7 @@ NightWave remains an original midnight-themed audio product with restrained teal
 | Phase | Scope |
 | --- | --- |
 | **NW86** | Library, playlist folders/organization/sorting, multi-select, Recently Played and compact You | Source updated: precise playlist-name search, select/deselect visible with hidden-selection accounting, history sort/clear confirmation, filter reset and compact You backup status; exact-source Kotlin selection smoke PASS, full Android/device acceptance pending NW90 |
-| **NW87** | Downloads and Offline Library unified interface, statuses, artwork, storage and file recovery |
+| **NW87** | Downloads and Offline Library unified interface, statuses, artwork, storage and file recovery | Source update committed: dynamic transfer counts, accurate verification-pending states, manual background offline recheck, indexed-file recovery instructions and user-driven trusted import; no new download eligibility, Android/device QA deferred to NW90 |
 | **NW88** | Sound Studio EQ effect verification, gapless/crossfade/normalization, audio-route compatibility |
 | **NW89** | Lyrics, LRC refinement, accessibility, responsive typography, reduced motion, startup/scrolling/battery |
 | **NW90** | Final quality certification: original 139-case device checklist, stress/background/offline/auth/restore QA, security, rights, privacy, release candidate |
