@@ -445,6 +445,22 @@ jobs:
         run: |
           ./tools/nw76-junit-proof.ps1 -SelfTest
           ./tools/nw76-junit-proof.ps1 -ResultsDirectory app/build/test-results/testDebugUnitTest -OutputFile build/NightWave-jvm-test-proof.txt -MinimumTests 1000
+      - name: NW90 preserve exact current-build JUnit and APK evidence
+        run: |
+          python3 tools/nw90_certification.py --project-root . \
+            --junit-dir app/build/test-results/testDebugUnitTest \
+            --apk app/build/outputs/apk/debug/app-debug.apk \
+            --report build/NightWave-NW90-after-build-gates.json
+      - name: Upload NW90 no-public-release evidence receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: NightWave-NW90-evidence-NO-PUBLIC-APPROVAL
+          path: |
+            build/NightWave-NW90-candidate-gates.json
+            build/NightWave-NW90-after-build-gates.json
+          if-no-files-found: warn
+          retention-days: 7
       # This cannot run without an allocated runner; absence of the summary
       # then means infrastructure did not reach the compiler stage.
       - name: Summarize build failure without raw tokens or private paths
