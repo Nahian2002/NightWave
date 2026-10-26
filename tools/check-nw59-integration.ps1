@@ -117,6 +117,9 @@ $relative = @(
     'tools/NW74UiStateSmoke.kt',
     'docs/NW74_UI_STATE_INTEGRATION_GUARDS.md',
     'tools/NW75IntegrationSmoke.kt',
+    'tools/nw76-junit-proof.ps1',
+    'tools/build-windows.ps1',
+    'docs/NW76_BUILD_CERTIFICATION.md',
     'docs/NW75_FINAL_INTEGRATION.md',
     'app/src/main/java/com/nightwave/player/v2/cloud/CloudBackupState.kt',
     'app/src/main/java/com/nightwave/player/v2/cloud/CloudAccountPresentation.kt',
@@ -603,5 +606,27 @@ Assert-NW59Has $finalSmoke 'repeat(3_000)' 'deterministic cross-phase randomized
 Assert-NW59Has $finalSmoke 'NW75 integrated pure Kotlin source smoke PASS' 'test prints honest isolated result'
 Assert-NW59Has $activity 'CloudAccountSessionPolicy.same(' 'cloud restore still verifies account session'
 Assert-NW59Has $activity 'StudioUiStateSafetyPolicy.itemAt(options, which)' 'Drive selection still bounded'
-Write-Host 'NW75 cumulative NW53-NW75 source guard PASS. Gradle/JVM/device QA still mandatory.'
+# NW76 build-certification guard: source checks validate that the real
+# Windows builder invokes an independent current-attempt JUnit XML receipt
+# BEFORE promotion of any debug APK. Static contracts are not proof of execution.
+$nw76Proof = [IO.File]::ReadAllText($files['tools/nw76-junit-proof.ps1'])
+$nw76Builder = [IO.File]::ReadAllText($files['tools/build-windows.ps1'])
+Assert-NW59Has $nw76Proof 'function Measure-JunitReceipt(' 'unit test receipt evaluator present'
+Assert-NW59Has $nw76Proof "Filter 'TEST-*.xml'" 'actual Gradle JUnit XML required'
+Assert-NW59Has $nw76Proof 'DtdProcessing]::Prohibit' 'XML DTD prohibited'
+Assert-NW59Has $nw76Proof '$cases -ne $n' 'reject forged/inconsistent testcase count'
+Assert-NW59Has $nw76Proof '$total -lt $minimum' 'minimum count not silently skipped'
+Assert-NW59Has $nw76Proof '$failed -ne 0 -or $errors -ne 0' 'fail if any JVM tests fail'
+Assert-NW59Has $nw76Proof 'function Invoke-SelfTest' 'parser self-test fixture'
+Assert-NW59Has $nw76Builder "if (Test-Path -LiteralPath $junitProofOutput) { Remove-Item" 'remove stale test receipt at start'
+Assert-NW59Has $nw76Builder "'NW76 JUnit result certification'" 'real proof is a separate gated stage'
+Assert-NW59Has $nw76Builder '-MinimumTests 1000' 'enforce broad JVM regression count'
+Assert-NW59Has $nw76Builder 'JUnit receipt: dist\\NightWave-jvm-test-proof.txt' 'saved status points to fresh test receipt'
+Assert-NW59Has $nw76Builder 'Copy-Item -LiteralPath $apk -Destination $output -Force' 'original verified APK promotion intact'
+$certifyAt = $nw76Builder.IndexOf("    $stage = 'NW76 JUnit result certification'")
+$publishAt = $nw76Builder.IndexOf('Copy-Item -LiteralPath $apk -Destination $output -Force')
+if ($certifyAt -lt 0 -or $publishAt -le $certifyAt) {
+    throw 'NW76 regression: JUnit certification must precede APK promotion.'
+}
+Write-Host 'NW76 cumulative NW53-NW76 source guard PASS. Gradle/JVM/device QA still mandatory.'
 exit 0
