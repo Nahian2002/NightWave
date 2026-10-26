@@ -141,6 +141,8 @@ class PlaybackService : MediaLibraryService() {
     // 6W1: explicit, session-scoped and OFF by default. No volume amplification or file changes.
     private var requestedEqPreset = 0
     private val manualLevels = mutableMapOf<Int, Short>()
+    private var manualCentersHz = emptyList<Int>()
+    private val eqSelectionStore by lazy { EqualizerSelectionStore(this) }
     private val eqStatus by lazy { EqualizerStatusStore(this) }
     private val eqCapabilities by lazy { EqualizerCapabilities(this) }
     private var activeEqualizer: Equalizer? = null
@@ -188,10 +190,17 @@ class PlaybackService : MediaLibraryService() {
                 // An empty/partial map could previously be reported active
                 // even though no settings (or only one band) were applied.
                 val bandCount = candidate.numberOfBands.toInt()
+                val liveCenters = if (bandCount in 1..32)
+                    (0 until bandCount).map {
+                        candidate.getCenterFreq(it.toShort()) / 1000
+                    } else emptyList()
+                val savedCurve = EqualizerSelection(21, manualCentersHz,
+                    (0 until bandCount.coerceIn(0, 32)).map { manualLevels[it]?.toInt() ?: 0 })
                 if (bandCount !in 1..32 || manualLevels.size != bandCount ||
-                    (0 until bandCount).any { it !in manualLevels }) {
+                    (0 until bandCount).any { it !in manualLevels } ||
+                    !EqualizerSelectionPolicy.matchesSession(savedCurve, liveCenters)) {
                     eqStatus.write(requestedEqPreset, false,
-                        "Manual EQ levels are incomplete for this audio session. " +
+                        "Manual EQ curve does not match this audio session. " +
                             "Refresh Sound Studio and apply all bands.")
                     return
                 }
@@ -950,7 +959,16 @@ class PlaybackService : MediaLibraryService() {
         // Playback itself also requires an explicit user resume after restart.
         clearSleepTimer()
         eqCapabilities.clear()
-        eqStatus.write(0, false, "Off")
+        // Restore the last explicit user EQ choice as INTENT, never as proof
+        // that an Android audio effect survived process death.
+        val savedEq = eqSelectionStore.read()
+        requestedEqPreset = savedEq?.preset ?: 0
+        manualCentersHz = savedEq?.centersHz ?: emptyList()
+        manualLevels.clear()
+        savedEq?.levelsMb?.forEachIndexed { i, mb -> manualLevels[i] = mb.toShort() }
+        eqStatus.write(requestedEqPreset, false,
+            if (requestedEqPreset == 0) "Off"
+            else "Waiting for a compatible playback audio session.")
         savedQueue.clearLookup() // process restart must not leave a ghost spinner
         offlineSession = OfflineSessionStore(this)
         offlineControls = OfflinePlaybackPreferencesStore(this)
@@ -1393,11 +1411,17 @@ class PlaybackService : MediaLibraryService() {
                 // Off is always permitted. All other values must correspond
                 // to a preset advertised by this exact active audio session.
                 if (preset == 0 || (preset in 1..availablePresets && sessionId > 0)) {
-                    requestedEqPreset = preset
-                    // Applying a different preset to an unchanged audio session
-                    // previously returned early and silently kept the old effect.
-                    releaseEqualizer()
-                    applyEqualizer(sessionId)
+                    // An explicit selection is only accepted once its durable
+                    // intent is committed. Hardware may still report NOT ACTIVE.
+                    if (eqSelectionStore.save(EqualizerSelection(preset))) {
+                        requestedEqPreset = preset
+                        manualLevels.clear()
+                        manualCentersHz = emptyList()
+                        releaseEqualizer()
+                        applyEqualizer(sessionId)
+                    } else eqStatus.write(requestedEqPreset,
+                        activeEqualizer?.enabled == true,
+                        "Could not save EQ choice; previous effect preserved.")
                 } else eqStatus.write(requestedEqPreset, activeEqualizer?.enabled == true,
                     "Rejected: start playback and refresh supported presets.")
             }
@@ -1441,11 +1465,20 @@ class PlaybackService : MediaLibraryService() {
                     val caps = eqCapabilities.read()
                     if (session > 0 && caps.sessionReady && caps.audioSessionId == session && values.size == caps.centersHz.size &&
                         values.all { it in caps.minimumMb..caps.maximumMb }) {
-                        manualLevels.clear()
-                        values.forEachIndexed { index, level -> manualLevels[index] = level.toShort() }
-                        requestedEqPreset = 21
-                        releaseEqualizer()
-                        applyEqualizer(session)
+                        val choice = EqualizerSelection(
+                            21, caps.centersHz, values.toList())
+                        if (eqSelectionStore.save(choice)) {
+                            manualLevels.clear()
+                            values.forEachIndexed { index, level ->
+                                manualLevels[index] = level.toShort()
+                            }
+                            manualCentersHz = caps.centersHz.toList()
+                            requestedEqPreset = 21
+                            releaseEqualizer()
+                            applyEqualizer(session)
+                        } else eqStatus.write(requestedEqPreset,
+                            activeEqualizer?.enabled == true,
+                            "Could not save EQ curve; previous effect preserved.")
                     } else eqStatus.write(requestedEqPreset, activeEqualizer?.enabled == true, "Rejected: stale session or unsupported bands")
                 } else eqStatus.write(requestedEqPreset, activeEqualizer?.enabled == true, "Rejected: invalid band input")
             }
@@ -1462,27 +1495,39 @@ class PlaybackService : MediaLibraryService() {
                     caps.audioSessionId == session &&
                     band in caps.centersHz.indices &&
                     supported != null && level in supported) {
-                    // Older single-band intents must still apply a complete
-                    // current-session curve, not accidentally enable only the
-                    // one changed band. If no baseline exists, refuse safely.
-                    if (manualLevels.size != caps.centersHz.size ||
-                        (0 until caps.centersHz.size).any { it !in manualLevels }) {
-                        manualLevels.clear()
-                        if (caps.levelsMb.size == caps.centersHz.size &&
-                            caps.levelsMb.all { it in supported }) {
-                            caps.levelsMb.forEachIndexed { index, gain ->
-                                manualLevels[index] = gain.toShort()
-                            }
-                        }
+                    // A previous output may expose the SAME count but use
+                    // different frequencies. Do not seed the new curve with
+                    // a stale prior-session manual map.
+                    val count = caps.centersHz.size
+                    val baseline = when {
+                        manualCentersHz == caps.centersHz &&
+                            manualLevels.size == count &&
+                            (0 until count).all { it in manualLevels } ->
+                            (0 until count).map { manualLevels.getValue(it).toInt() }
+                        caps.levelsMb.size == count &&
+                            caps.levelsMb.all { it in supported } ->
+                            caps.levelsMb
+                        else -> null
                     }
-                    if (manualLevels.size != caps.centersHz.size) {
+                    if (baseline == null) {
                         eqStatus.write(requestedEqPreset, false,
                             "No complete EQ band snapshot. Refresh Sound Studio.")
                     } else {
-                        manualLevels[band] = level.toShort()
-                        requestedEqPreset = 21
-                        releaseEqualizer()
-                        applyEqualizer(session)
+                        val updated = baseline.toMutableList().apply { this[band] = level }
+                        val choice = EqualizerSelection(
+                            21, caps.centersHz.toList(), updated)
+                        if (eqSelectionStore.save(choice)) {
+                            manualLevels.clear()
+                            updated.forEachIndexed { index, gain ->
+                                manualLevels[index] = gain.toShort()
+                            }
+                            manualCentersHz = caps.centersHz.toList()
+                            requestedEqPreset = 21
+                            releaseEqualizer()
+                            applyEqualizer(session)
+                        } else eqStatus.write(requestedEqPreset,
+                            activeEqualizer?.enabled == true,
+                            "Could not save EQ band; previous effect preserved.")
                     }
                 } else {
                     eqStatus.write(requestedEqPreset, activeEqualizer?.enabled == true,

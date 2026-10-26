@@ -4,9 +4,11 @@
 
 NightWave combines locally imported or otherwise authorized music, an offline library, optional Google Drive backup, song discovery, playlists, Sound Studio, queue control, and user-imported synchronized LRC lyrics. The original midnight/teal design is independent of Spotify.
 
-**Current development source:** `feature/nightwave-nw95-headset-media-focus-reliability` (cumulative NW94 with explicit paused-lookup headset transport semantics). The older default `main` does not represent this candidate.
+**Current development source:** `feature/nightwave-nw96-equalizer-session-restoration` (cumulative NW95 plus frequency-safe EQ preference restoration). The older default `main` does not represent this candidate.
 
 **Release status:** **NO-GO**. The hosted GitHub Actions runner and empty canary both failed before executing steps; a current Windows debug build, Android/JUnit/139-case device validation, installed-signer continuity, production OAuth/backup, Google Play API 36 migration and NW77 YouTube-source rights review remain outstanding. Never install a new APK over a library-bearing app unless its signer matches.
+
+**NW96 equalizer-session milestone:** [NW96 exact changes and test caveats](docs/NW96_EQUALIZER_SESSION_EVIDENCE.md). Explicit EQ preset/manual curve intent is saved atomically and restored on service startup, then enabled only on a compatible live Android effect session. Manual frequency centers must match: same band count alone is insufficient. **Android build and Bluetooth acoustic/device QA remain unverified.**
 
 **NW95 audio-focus/headset transport milestone:** [NW95 focused patch, tests and limitations](docs/NW95_AUDIO_ROUTE_EVIDENCE.md). A headset Play/Pause press while a public track is resolving now pauses the pending playback intent instead of restarting it; explicit Play and headset Toggle are distinguished. Loaded/offline playback remains under Media3 Android audio-focus and becoming-noisy handling. **Actual Bluetooth/headset route tests remain pending.**
 

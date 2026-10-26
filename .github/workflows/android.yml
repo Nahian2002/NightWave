@@ -99,6 +99,7 @@ on:
       - feature/nightwave-nw93-queue-recovery
       - feature/nightwave-nw94-playback-checkpoint-reliability
       - feature/nightwave-nw95-headset-media-focus-reliability
+      - feature/nightwave-nw96-equalizer-session-restoration
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
@@ -411,6 +412,7 @@ jobs:
           python3 tools/verify_nw93_queue_recovery.py
           python3 tools/verify_nw94_playback.py
           python3 tools/verify_nw95_audio_route.py
+          python3 tools/verify_nw96_equalizer.py
           python3 tools/nw90_certification.py --project-root . --report build/NightWave-NW90-candidate-gates.json
 
       - name: Standalone Kotlin compiler smoke (when compiler present)
@@ -450,6 +452,11 @@ jobs:
               tools/NW95AudioRouteTransportSmoke.kt -include-runtime \
               -d /tmp/nightwave-nw95-audio-route.jar
             java -jar /tmp/nightwave-nw95-audio-route.jar
+            # NW96: actual pure-Kotlin EQ session guard and ten safety fixtures.
+            kotlinc app/src/main/java/com/nightwave/player/playback/EqualizerSelectionPolicy.kt \
+              tools/NW96EqualizerSessionSmoke.kt -include-runtime \
+              -d /tmp/nightwave-nw96-equalizer.jar
+            java -jar /tmp/nightwave-nw96-equalizer.jar
             # NW75: compile FIVE real Kotlin source policies together, then
             # execute the exact cross-phase test harness; no Android SDK/data.
             kotlinc \
