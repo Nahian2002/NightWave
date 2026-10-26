@@ -182,11 +182,11 @@ class PlaybackQueuePlayNextTest {
         assertTrue(q.insertNext(song(1).copy(title = "Stale search result")))
         assertEquals(listOf(song(2), song(3), song(1), song(4)), q.snapshot())
         assertEquals(song(3), q.current)
-        assertEquals(song(1), q.previous())
-        assertEquals(song(3), q.next()) // True shuffle redo of departed song.
-        assertEquals(song(1), q.next()) // Explicit Play Next still takes priority.
+        assertEquals(song(1), q.next()) // Explicit Play Next priority.
         assertEquals(song(3), q.previous())
-        assertEquals(song(1), q.previous()) // Old visit was not lost in the move.
+        assertEquals(song(1), q.previous()) // Earlier visit retained after moving.
+        assertEquals(song(3), q.next()) // Exact shuffle forward redo.
+        assertEquals(song(1), q.next()) // Redo the previously departed song.
     }
 
     @Test fun movingAnUpcomingSongMustKeepShuffleHistoryAndCurrentIdentity() {
