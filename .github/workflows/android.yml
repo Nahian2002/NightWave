@@ -91,6 +91,7 @@ on:
       - feature/nightwave-nw75-final-integration-gates
       - fix/nightwave-nw75-offline-shuffle-junit
       - feature/nightwave-nw76-build-certification
+      - feature/nightwave-nw77-source-safety-release-gate
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
@@ -349,6 +350,27 @@ jobs:
           python3 tools/verify_v2_phase6v7b.py --self-test
           python3 tools/verify_v2_phase6v7b.py
           python3 tools/ci_compile_summary.py --self-test
+      # NW77 audit is informational for PRIVATE debug builds. It deliberately
+      # returns exit 2 for real public-release blockers and never approves a
+      # public APK from a green build alone.
+      - name: NW77 public music-source release audit (expected NO-GO for development)
+        shell: bash
+        run: |
+          python3 tools/nw77_public_release_audit.py --self-test
+          mkdir -p build
+          set +e
+          python3 tools/nw77_public_release_audit.py --project-root . --report build/NightWave-NW77-public-release-audit.json
+          status=$?
+          set -e
+          if [ "$status" -ne 2 ] && [ "$status" -ne 3 ]; then
+            echo "NW77 release auditor failed unexpectedly; do not infer readiness."
+            exit 1
+          fi
+          echo "NW77 public release remains blocked or pending manual review. Debug CI continues."
+      - name: Windows public release checker synthetic fixture
+        shell: pwsh
+        run: |
+          ./tools/nw77-release-check.ps1 -SelfTest
       - name: Windows source guard cross-check on hosted PowerShell
         shell: pwsh
         run: |
@@ -417,6 +439,14 @@ jobs:
         with:
           name: NightWave-6H-build-diagnostic-NO-APK
           path: dist/nightwave-ci-build-summary.txt
+          if-no-files-found: warn
+          retention-days: 5
+      - name: Upload NW77 release-source report (not an APK approval)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: NightWave-NW77-public-release-NO-GO
+          path: build/NightWave-NW77-public-release-audit.json
           if-no-files-found: warn
           retention-days: 5
       - name: Verify APK identity from compiled artifact
