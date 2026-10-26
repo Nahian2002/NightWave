@@ -68,6 +68,8 @@ class SearchTrackSaveWorker(
                         .putLong(SearchTrackSaveQueue.KEY_TOTAL, latestTotal)
                         .putBoolean(SearchTrackSaveQueue.KEY_VERIFYING, true)
                         .build())
+                    setForegroundAsync(foreground(title,
+                        latestReceived, latestTotal.takeIf { it > 0L }, verifying = true))
                 }
             ) { received, total ->
                 latestReceived = received
@@ -130,7 +132,7 @@ class SearchTrackSaveWorker(
         }
     }
 
-    private fun foreground(title: String, received: Long, total: Long?): ForegroundInfo {
+    private fun foreground(title: String, received: Long, total: Long?, verifying: Boolean = false): ForegroundInfo {
         val open = PendingIntent.getActivity(applicationContext, notificationId,
             Intent(applicationContext, CatalogDownloadsActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP),
@@ -141,11 +143,11 @@ class SearchTrackSaveWorker(
             applicationContext, channel
         ).setSmallIcon(android.R.drawable.stat_sys_download)
             .setContentTitle("NightWave - Saving offline")
-            .setContentText(title.take(64))
+            .setContentText(if (verifying) "Checking audio before saving" else title.take(64))
             .setContentIntent(open)
             .setOnlyAlertOnce(true)
             .setOngoing(true)
-            .setProgress(100, percent, total == null || total <= 0)
+            .setProgress(100, percent, verifying || total == null || total <= 0)
             .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Cancel",
                 WorkManager.getInstance(applicationContext).createCancelPendingIntent(id))
             .build()
