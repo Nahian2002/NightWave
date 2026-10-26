@@ -42,7 +42,9 @@ class NightWaveHomeCurationPolicyTest {
         assertTrue(output.size <= NightWaveHomeCurationPolicy.MAX_QUICK_PICKS)
         assertTrue(output.all { it.url in candidates && it.url !in recent.map { r -> r.url } })
         assertEquals(output.size, output.map { it.url }.distinct().size)
-        assertEquals("Track 5", output.first { it.url == song(5).url }.title)
+        assertTrue(output.all { candidate ->
+            (favorites + playlists).any { original -> original == candidate }
+        })
         assertEquals("Liked song", NightWaveHomeCurationPolicy.sourceLabel(song(5), favorites))
         assertEquals("From your playlists",
             NightWaveHomeCurationPolicy.sourceLabel(song(8), favorites))
