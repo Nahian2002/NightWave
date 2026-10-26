@@ -11,8 +11,11 @@ class SmartDiscoveryPoolPolicyTest {
     @Test fun hugeFavoritesAndRecentDoNotHidePlaylistOnlyTracks() {
         val favorites = (0 until 600).map { "favorite-$it" }
         val recent = (0 until 500).map { "recent-$it" }
+        // The production scan caps EACH playlist at 200 tracks. Two distinct
+        // playlists are required to fill the 250-track playlist category quota.
         val playlist = (0 until 400).map { "playlist-$it" }
-        val pool = p.gather(favorites, recent, listOf(playlist), { it }, { true })
+        val pool = p.gather(favorites, recent,
+            listOf(playlist.take(200), playlist.drop(200)), { it }, { true })
         assertEquals(600, pool.size)
         assertEquals(200, pool.count { it.startsWith("favorite-") })
         assertEquals(150, pool.count { it.startsWith("recent-") })
