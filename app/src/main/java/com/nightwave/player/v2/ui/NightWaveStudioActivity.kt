@@ -1910,6 +1910,10 @@ class NightWaveStudioActivity : ComponentActivity() {
         val choices = names + "＋ Create playlist"
         AlertDialog.Builder(this).setTitle("Save to playlist")
             .setItems(choices.toTypedArray()) { _, option ->
+                if (option !in choices.indices) {
+                    showMessage("Playlist selection changed. Open Save again.")
+                    return@setItems
+                }
                 if (option < names.size) {
                     val chosen = StudioUiStateSafetyPolicy.itemAt(names, option)
                     if (chosen == null || chosen !in library.playlistNames()) {
