@@ -21,29 +21,54 @@ object MusicIdentity {
     // Only explicitly labeled *trailing* wrappers. Do not strip live,
     // acoustic, remix, cover, karaoke, or other important song distinctions.
     private val bracketedPromotion = Regex(
-        """\s*[\[(]\s*(?:official\s+(?:music\s+)?video|official\s+audio|lyric\s+video|lyrics?)\s*[\])]\s*$""",
+        """\s*[\[(]\s*(?:official\s+(?:music\s+)?video|official\s+audio|(?:official\s+)?lyric(?:s)?\s+video|lyrics?|(?:official\s+)?visuali[sz]er)\s*[\])]\s*$""",
         RegexOption.IGNORE_CASE
     )
     private val plainPromotion = Regex(
-        """\s+[-|]\s+(?:official\s+(?:music\s+)?video|official\s+audio)\s*$""",
+        """\s+[-–—|]\s+(?:official\s+(?:music\s+)?video|official\s+audio|(?:official\s+)?lyric(?:s)?\s+video|lyrics?|(?:official\s+)?visuali[sz]er)\s*$""",
         RegexOption.IGNORE_CASE
     )
+    // A separator immediately before a stripped bracketed badge is part of
+    // the badge, not the song name: "Artist - Song | [Official Video]".
+    private val orphanedBadgeSeparator = Regex("""\s+[-–—|]\s*$""")
     private val creditedTitle = Regex("""^(.{2,72}?)\s+[-–—]\s+(.{2,180})$""")
-    private val creatorSuffix = Regex("""(?i)(?:\s*-\s*topic|\s*vevo)$""")
+    private val creatorSuffix = Regex("""(?i)(?:\s*[-–—]\s*topic|\s*vevo)$""")
     private val genericCreators = setOf(
         "youtube creator", "unknown creator", "unknown artist", "various artists"
     )
 
     private fun key(value: String): String =
-        value.lowercase(Locale.ROOT).filter { it.isLetterOrDigit() }
+        value.lowercase(Locale.ROOT).filter { char ->
+            // Kotlin isLetterOrDigit alone removes Bangla dependent vowels.
+            // Retain Unicode combining marks or two different artist names
+            // could falsely corroborate each other.
+            val category = Character.getType(char)
+            char.isLetterOrDigit() ||
+                category == Character.NON_SPACING_MARK.toInt() ||
+                category == Character.COMBINING_SPACING_MARK.toInt() ||
+                category == Character.ENCLOSING_MARK.toInt()
+        }
+
+    private fun safeLabel(value: String, fallback: String): String =
+        value.replace('\u00A0', ' ').trim().ifEmpty { fallback }
+
+    /** Videos-mode search retains the original provider caption, not a song guess. */
+    fun videoDisplay(title: String, uploader: String): MusicDisplayIdentity =
+        MusicDisplayIdentity(safeLabel(title, "Untitled video"),
+            safeLabel(uploader, "Unknown creator"))
 
     fun display(title: String, uploader: String): MusicDisplayIdentity {
-        val original = title.trim().ifEmpty { "Untitled video" }
-        val source = uploader.trim().ifEmpty { "Unknown creator" }
+        val original = safeLabel(title, "Untitled video")
+        val source = safeLabel(uploader, "Unknown creator")
         var clean = original
-        // Repeated suffixes sometimes appear; no broad keyword stripping.
-        repeat(2) {
-            val next = clean.replace(bracketedPromotion, "").replace(plainPromotion, "").trim()
+        // Several independent video-only labels may trail the same caption.
+        // Bounded repetitions prevent stripping genuine Live, Remix, Covers,
+        // featured artists, album names or arbitrary title text.
+        repeat(4) {
+            val withoutBadges = clean.replace(bracketedPromotion, "")
+                .replace(plainPromotion, "").trim()
+            val next = if (withoutBadges != clean)
+                withoutBadges.replace(orphanedBadgeSeparator, "").trim() else clean
             if (next.isNotBlank()) clean = next
         }
 
