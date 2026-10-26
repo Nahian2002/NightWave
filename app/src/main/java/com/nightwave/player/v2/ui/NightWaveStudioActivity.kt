@@ -4637,7 +4637,14 @@ private fun StudioLibrary(
                     FilterChip(
                         selected = sortMode == LibraryBrowsePolicy.SORT_SAVED,
                         onClick = { sortMode = LibraryBrowsePolicy.SORT_SAVED },
-                        label = { Text("Saved order") })
+                        label = { Text(if (selectedPlaylist == RECENT_COLLECTION)
+                            "Newest first" else "Saved order") })
+                    if (selectedPlaylist == RECENT_COLLECTION) {
+                        FilterChip(
+                            selected = sortMode == LibraryBrowsePolicy.SORT_OLDEST,
+                            onClick = { sortMode = LibraryBrowsePolicy.SORT_OLDEST },
+                            label = { Text("Oldest first") })
+                    }
                     FilterChip(
                         selected = sortMode == LibraryBrowsePolicy.SORT_TITLE,
                         onClick = { sortMode = LibraryBrowsePolicy.SORT_TITLE },
