@@ -40,11 +40,11 @@ assert "safe.size >= MAX_SELECTED" in selection
 library_ui = ui.split("private fun StudioLibrary(", 1)[1].split(
     "@Composable\nprivate fun StudioProfile(", 1)[0]
 assert "confirmClearHistory by rememberSaveable(selectedPlaylist)" in library_ui
-assert 'testTag("nw86-clear-recent-request")' in library_ui
-assert 'testTag("nw86-clear-recent-confirm")' in library_ui
+assert 'testTag("nw86-library-clear-recent-request")' in library_ui
+assert 'testTag("nw86-library-clear-recent-confirm")' in library_ui
 assert "onDismissRequest = { confirmClearHistory = false }" in library_ui
 assert "onClearRecent()" in library_ui
-assert "Liked songs" in library_ui and "downloaded music stay saved" in library_ui
+assert "Liked songs" in library_ui and "offline audio stay saved" in library_ui
 assert "onRemove = if (selectedPlaylist == RECENT_COLLECTION)" in library_ui
 assert "selectedTracks = LibraryBulkSelectionPolicy.selected(tracks, selectedTrackUrls)" in library_ui
 assert "LibraryBulkSelectionPolicy.hiddenSelectionCount(" in library_ui
@@ -55,6 +55,14 @@ assert "selectedTrackUrls = emptySet()" in library_ui
 assert '"Oldest first"' in library_ui and '"Newest first"' in library_ui
 assert "selectedFolder = null" in library_ui
 assert '"Show all playlists"' in library_ui
+
+
+home = ui.split("private fun StudioHome(", 1)[1].split(
+    "@Composable\\nprivate fun MoodTile(", 1)[0]
+assert "var confirmClearHistory by rememberSaveable" in home
+assert 'testTag("nw86-clear-recent-request")' in home
+assert 'testTag("nw86-clear-recent-confirm")' in home
+assert 'onClearRecent()' in home
 
 # Folder/pin management remains metadata-only and playlist order is untouched.
 assert "PlaylistFolderPolicy.assign(" in folders
@@ -76,7 +84,7 @@ assert 'StudioProfileRow("Manage backups"' in you
 assert 'StudioProfileRow("Back up now"' in you
 assert 'StudioProfileRow("Preview cloud restore"' in you
 assert 'StudioProfileRow("Manage Recently Played"' in you
-assert 'StudioProfileRow("Sound Studio"' in you
+assert '"Sound Studio", "Equalizer' in you
 
 for case in (
     "nw86SelectVisibleAddsToOtherFilterSelectionsWithoutLosingThem",
