@@ -4850,7 +4850,7 @@ private fun StudioProfile(
                     NightWaveMicroLabel("Personalize NightWave")
                     Text("You", style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.ExtraBold))
-                    Text("Your music, settings and privacy",
+                    Text("Library · Sound · Backup",
                         style = MaterialTheme.typography.bodySmall, color = muted)
                 }
                 Surface(shape = RoundedCornerShape(12.dp),
@@ -4940,37 +4940,28 @@ private fun StudioProfile(
             }
         }
 
-        item {
-            // Drive authorization is optional and does not convert a guest
-            // profile into a cloud identity. Keep it visible without requiring
-            // the user to discover the collapsed Manage backups section.
+        item(key = "nw86-you-drive-status") {
+            // Keep Google connection transparent but not a second oversized
+            // account dashboard. The quick action above and Manage backups
+            // below both retain every existing authorization/recovery control.
             StudioProfileGroup("Google Drive · optional") {
                 StudioProfileRow(
-                    "Account & backup",
-                    when {
-                        cloudBusy -> "Google Drive authorization or backup in progress"
-                        else -> CloudAccountPresentation.title(CloudAccountPresentation.stage(cloud))
-                    },
-                    Icons.Outlined.Cloud,
-                    onOpenAccount,
+                    "Backup connection",
+                    if (cloudBusy) "Backup or authorization in progress"
+                    else CloudAccountPresentation.title(
+                        CloudAccountPresentation.stage(cloud)),
+                    Icons.Outlined.Cloud, onOpenAccount,
                     trailing = {
-                        Text(
-                            if (cloudBusy) "Wait" else "Open",
-                            color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.labelMedium
-                        )
+                        Text(if (cloudBusy) "Busy" else "Manage",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary)
                     }
                 )
-                if (cloud.account.isNotBlank()) {
-                    Text("Manage backups below to back up, preview or restore. " +
-                        "Google Drive is not automatic live account sync.",
-                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
-                        color = muted, style = MaterialTheme.typography.bodySmall)
-                } else if (cloud.lastResult.isNotBlank() &&
-                    cloud.lastResult != "Not connected") {
-                    Text(cloud.lastResult, modifier = Modifier.padding(
-                        horizontal = 14.dp, vertical = 6.dp),
-                        color = muted, style = MaterialTheme.typography.bodySmall)
+                if (cloud.lastResult.isNotBlank() &&
+                    cloud.lastResult != "Not connected" && cloud.account.isBlank()) {
+                    Text(cloud.lastResult,
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 5.dp),
+                        style = MaterialTheme.typography.bodySmall, color = muted)
                 }
             }
         }
