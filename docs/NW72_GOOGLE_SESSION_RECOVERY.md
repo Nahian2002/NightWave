@@ -23,6 +23,7 @@ Existing CloudBackupState already increments a persisted **consent revision** af
 - Added JUnit source `CloudAccountSessionPolicyTest.kt`; Android Gradle/JUnit execution **not verified**.
 - Updated the cumulative Windows PowerShell source gate to require NW72 session protection while retaining prior NW53–NW71 safeguards. Source text matches are not full Android integration tests.
 - **Not performed:** Google Cloud client inspection, OAuth status-8 resolution, live Drive backup/restore, instrumentation, full APK build or signer-compatible Samsung app installation.
+- [GitHub Android workflow 40275175006](https://github.com/Nahian2002/NightWave/actions/runs/40275175006) concluded **failure**, but returned no executed-step details through the connected workflow log API. It cannot establish whether Android/Kotlin compilation began or which gate failed. Full APK build still **UNVERIFIED**.
 
 ## Google error 8 — what actually needs verifying
 
