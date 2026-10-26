@@ -32,6 +32,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.stateDescription
@@ -72,6 +73,7 @@ fun NightWaveLyricsEditorDialog(
     onDiscard: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
+    val fontScale = LocalDensity.current.fontScale
     val listState = rememberLazyListState()
     var selected by rememberSaveable(songId) { mutableStateOf(0) }
     var searchQuery by rememberSaveable(songId) { mutableStateOf("") }
@@ -127,7 +129,8 @@ fun NightWaveLyricsEditorDialog(
                         Text("NIGHTWAVE · LYRICS EDITOR",
                             style = MaterialTheme.typography.labelMedium,
                             color = colors.primary)
-                        Text(songTitle, maxLines = 1,
+                        Text(songTitle,
+                            maxLines = if (fontScale >= 1.3f) 2 else 1,
                             overflow = TextOverflow.Ellipsis,
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold)
