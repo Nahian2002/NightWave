@@ -48,6 +48,41 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
     val current: QueueEntry? get() = entries.getOrNull(index)
     fun snapshot(): List<QueueEntry> = entries.toList()
 
+    /**
+     * Save actual shuffled listening history as public IDs, not volatile list
+     * offsets. QueueStateStore serializes this alongside the selected track.
+     * This never includes signed stream URLs, private audio, or timestamps.
+     */
+    fun shuffleRecoveryState(): ShuffleRecoverySnapshot {
+        if (!shuffle || current == null) return ShuffleRecoverySnapshot()
+        fun names(offsets: Iterable<Int>): List<String> =
+            offsets.mapNotNull { entries.getOrNull(it)?.url }.take(100)
+        return ShuffleRecoverySnapshot(
+            visited = names(visited),
+            forward = names(forwardVisits),
+            seen = names(shuffledSeen.sorted())
+        )
+    }
+
+    /**
+     * Restore history only against the already-validated current queue.
+     * Invalid/legacy history loses Previous/Forward state but cannot replace
+     * the selected song, shift queue indices or prevent normal playback.
+     */
+    fun restoreShuffleRecovery(state: ShuffleRecoverySnapshot?) {
+        visited.clear()
+        forwardVisits.clear()
+        shuffledSeen.clear()
+        if (!shuffle || current == null) return
+        val safe = ShuffleRecoveryPolicy.validated(
+            state, entries.map { it.url }.toSet(), current?.url
+        ) ?: return
+        val positions = entries.mapIndexed { at, song -> song.url to at }.toMap()
+        safe.visited.forEach { visited.add(positions.getValue(it)) }
+        safe.forward.forEach { forwardVisits.add(positions.getValue(it)) }
+        safe.seen.forEach { shuffledSeen.add(positions.getValue(it)) }
+    }
+
     fun replace(items: List<QueueEntry>, selected: Int): QueueEntry? {
         // Resolve the requested identity before deduplicating URLs. Otherwise,
         // duplicate rows earlier in the list shift the selected track index.

@@ -15,7 +15,9 @@ class QueueStateStore(context: Context) {
         val shuffle: Boolean,
         val repeat: PlaybackQueue.Repeat,
         /** Explicit user Play Next items, public watch URLs only. */
-        val manualNextUrls: List<String> = emptyList()
+        val manualNextUrls: List<String> = emptyList(),
+        /** Optional NW93 shuffle visit/retrace history; legacy queues omit it. */
+        val shuffleRecovery: ShuffleRecoverySnapshot? = null
     )
 
     data class Bookmark(val url: String, val positionMs: Long, val durationMs: Long)
@@ -121,10 +123,34 @@ class QueueStateStore(context: Context) {
             .put("selected_url", selectedUrl.orEmpty())
             .put("shuffle", queue.shuffle).put("repeat", queue.repeat.name)
             .put("manual_next", priority)
+        if (queue.shuffle && selectedUrl != null) {
+            val recovered = queue.shuffleRecoveryState()
+            state.put("shuffle_history", JSONObject()
+                .put("visited", JSONArray(recovered.visited))
+                .put("forward", JSONArray(recovered.forward))
+                .put("seen", JSONArray(recovered.seen)))
+        }
         // Queue changes happen on explicit selections / transitions, not the
         // 2.5-second playhead ticker. Flush them so a process kill cannot
         // silently revert the selected track to a stale persisted index.
         prefs.edit().putString("snapshot", state.toString()).commit()
+    }
+
+    /** Only string IDs from bounded arrays; malformed history is ignored alone. */
+    private fun recoveryArray(raw: JSONObject, name: String): List<String>? {
+        val array = raw.optJSONArray(name) ?: return null
+        if (array.length() > ShuffleRecoveryPolicy.MAX_HISTORY) return null
+        return (0 until array.length()).map { i ->
+            (array.opt(i) as? String) ?: return null
+        }
+    }
+
+    private fun readShuffleRecovery(raw: JSONObject?): ShuffleRecoverySnapshot? {
+        raw ?: return null
+        val visited = recoveryArray(raw, "visited") ?: return null
+        val forward = recoveryArray(raw, "forward") ?: return null
+        val seen = recoveryArray(raw, "seen") ?: return null
+        return ShuffleRecoverySnapshot(visited, forward, seen)
     }
 
     fun read(): Snapshot = try {
@@ -161,8 +187,15 @@ class QueueStateStore(context: Context) {
                 .mapNotNull { i ->
                     storedPriority.optString(i).takeIf { it in upcomingUrls }
                 }.distinct()
-            Snapshot(tracks, restoredIndex, state.optBoolean("shuffle", false),
-                repeat, priorityUrls)
+            val shuffled = state.optBoolean("shuffle", false)
+            val recovery = if (shuffled) {
+                ShuffleRecoveryPolicy.validated(
+                    readShuffleRecovery(state.optJSONObject("shuffle_history")),
+                    tracks.map { it.url }.toSet(), tracks[restoredIndex].url
+                )
+            } else null
+            Snapshot(tracks, restoredIndex, shuffled,
+                repeat, priorityUrls, recovery)
         }
     } catch (_: Exception) {
         // Preserve raw preferences for explicit user-controlled recovery.
@@ -174,8 +207,9 @@ class QueueStateStore(context: Context) {
         queue.replace(snapshot.tracks, snapshot.index)
         queue.shuffle = snapshot.shuffle
         queue.repeat = snapshot.repeat
-        // Shuffle setter resets transient history; explicit user choices are
-        // restored last, keeping Play Next deterministic after process death.
+        // Shuffle setter resets transient state. Rehydrate only the validated
+        // public-ID history for this exact selected queue before priorities.
+        queue.restoreShuffleRecovery(snapshot.shuffleRecovery)
         queue.restoreNextPriorities(snapshot.manualNextUrls)
     }
 }
