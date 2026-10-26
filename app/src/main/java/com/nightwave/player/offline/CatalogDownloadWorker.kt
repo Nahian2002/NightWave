@@ -76,6 +76,8 @@ class CatalogDownloadWorker(
                         .putLong(CatalogDownloadQueue.KEY_TOTAL, latestTotal)
                         .putBoolean(CatalogDownloadQueue.KEY_VERIFYING, true)
                         .build())
+                    setForegroundAsync(foreground(candidate.title,
+                        latestReceived, latestTotal.takeIf { it > 0L }, verifying = true))
                 }
             ) { received, total ->
                 latestReceived = received
@@ -139,7 +141,7 @@ class CatalogDownloadWorker(
         }
     }
 
-    private fun foreground(title: String, downloaded: Long, total: Long?): ForegroundInfo {
+    private fun foreground(title: String, downloaded: Long, total: Long?, verifying: Boolean = false): ForegroundInfo {
         val safeTitle = title.take(65).ifBlank { "Audio file" }
         val manager = WorkManager.getInstance(applicationContext)
         val click = Intent(applicationContext, CatalogDownloadsActivity::class.java)
@@ -156,11 +158,11 @@ class CatalogDownloadWorker(
         )
             .setSmallIcon(android.R.drawable.stat_sys_download)
             .setContentTitle("NightWave · Offline download")
-            .setContentText(safeTitle)
+            .setContentText(if (verifying) "Checking audio before saving" else safeTitle)
             .setContentIntent(open)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
-            .setProgress(100, percent, !hasTotal)
+            .setProgress(100, percent, verifying || !hasTotal)
             .addAction(android.R.drawable.ic_menu_close_clear_cancel,
                 "Cancel", manager.createCancelPendingIntent(id))
             .build()
