@@ -417,8 +417,8 @@ class NightWaveLockerActivity : ComponentActivity() {
                         checkpoints.discard()
                         imported
                     } catch (error: Exception) {
-                        // If import moved the staging file but index commit
-                        // failed, its old checkpoint must not be replayed.
+                        // NW92 preserves staging on an index failure for retry.
+                        // If staging independently vanished, don't replay it.
                         if (!staging.exists()) checkpoints.discard()
                         throw error
                     }

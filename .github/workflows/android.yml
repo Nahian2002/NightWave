@@ -95,6 +95,7 @@ on:
       # NW90 verifies the complete cumulative NW76–NW89 source, never older branches.
       - feature/nightwave-nw90-final-integration-certification
       - feature/nightwave-nw91-build-recovery-reliability
+      - feature/nightwave-nw92-data-integrity-recovery
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
@@ -403,6 +404,7 @@ jobs:
           python3 tools/verify_nw90_final_audit.py
           python3 tools/nw90_certification.py --self-test
           python3 tools/verify_nw91_certification.py
+          python3 tools/verify_nw92_storage.py
           python3 tools/nw90_certification.py --project-root . --report build/NightWave-NW90-candidate-gates.json
 
       - name: Standalone Kotlin compiler smoke (when compiler present)
@@ -419,6 +421,11 @@ jobs:
             python3 tools/nw26_reliability_smoke.py
             python3 tools/nw27_hardening_smoke.py
             python3 tools/nw27_state_smoke.py
+            # NW92 exact-source JVM verification with disposable private files.
+            kotlinc app/src/main/java/com/nightwave/player/offline/OfflineFileRegistration.kt \
+              tools/NW92OfflineFileRegistrationSmoke.kt -include-runtime \
+              -d /tmp/nightwave-nw92-storage.jar
+            java -jar /tmp/nightwave-nw92-storage.jar
             # NW75: compile FIVE real Kotlin source policies together, then
             # execute the exact cross-phase test harness; no Android SDK/data.
             kotlinc \

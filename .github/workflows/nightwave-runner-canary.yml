@@ -11,6 +11,7 @@ on:
       - feature/nightwave-nw52-final-integration-release-gates
       - feature/nightwave-nw90-final-integration-certification
       - feature/nightwave-nw91-build-recovery-reliability
+      - feature/nightwave-nw92-data-integrity-recovery
   workflow_dispatch:
 
 permissions: {}

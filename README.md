@@ -4,9 +4,11 @@
 
 NightWave combines locally imported or otherwise authorized music, an offline library, optional Google Drive backup, song discovery, playlists, Sound Studio, queue control, and user-imported synchronized LRC lyrics. The original midnight/teal design is independent of Spotify.
 
-**Current development source:** `feature/nightwave-nw91-build-recovery-reliability` (cumulative NW90 with certification regression fixes). The older default `main` does not represent this candidate.
+**Current development source:** `feature/nightwave-nw92-data-integrity-recovery` (cumulative NW91 with loss-resistant cloud audio restoration). The older default `main` does not represent this candidate.
 
 **Release status:** **NO-GO**. The hosted GitHub Actions runner and empty canary both failed before executing steps; a current Windows debug build, Android/JUnit/139-case device validation, installed-signer continuity, production OAuth/backup, Google Play API 36 migration and NW77 YouTube-source rights review remain outstanding. Never install a new APK over a library-bearing app unless its signer matches.
+
+**NW92 data-integrity milestone:** [NW92 storage safety and verification report](docs/NW92_DATA_INTEGRITY_EVIDENCE.md). Verified cloud audio no longer destroys its downloaded staging/checkpoint copy when registration fails; the new copy is fsynced and SHA-256/MD5 verified first. The existing `run-nw91-final.cmd` in the latest ZIP still runs the cumulative Windows build. **No Android/device certification yet.**
 
 **NW91 build-recovery milestone:** [NW91 evidence and safe Windows verification](docs/NW91_BUILD_RECOVERY_EVIDENCE.md). The 1,000-test acceptance threshold now counts executed tests, not skips; CI and Windows checks reject more stale or inconsistent proof. **Android compilation/device certification is still pending.** On a freshly extracted NW91 ZIP, run `run-nw91-final.cmd` on Windows and use `check-device-update.cmd` before installing any update.
 

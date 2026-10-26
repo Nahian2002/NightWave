@@ -364,21 +364,25 @@ class OfflineAudioLibrary(private val context: Context) {
             songId, LockerAudioPolicy.safeTitle(remote.name), remote.mimeType, remote.bytes
         )
         require(root.isDirectory || root.mkdirs()) { "Offline storage unavailable" }
-        val finalFile = File(root, songId)
-        require(!finalFile.exists()) { "Offline filename already exists" }
-        // Both directories live under app filesDir, so Files.move is local.
-        // With no REPLACE_EXISTING option, an existing destination is not replaced.
-        Files.move(file.toPath(), finalFile.toPath())
-        try {
-            check(prefs.edit().putString("items", encode(previous + saved)).commit()) {
-                "Could not register the downloaded audio"
-            }
-        } catch (error: Exception) {
-            // No persisted library entry means the new file must not remain as
-            // a hidden, unindexed download. Older tracks remain untouched.
-            finalFile.delete()
-            throw error
+        // NW92: keep the verified checkpoint staged until registration succeeds.
+        // Failure must not destroy the only recoverable downloaded copy.
+        require(OfflineLibraryCapacity.canStage(root.usableSpace, remote.bytes)) {
+            "Not enough storage for safe cloud-audio registration"
         }
+        val finalFile = File(root, songId)
+        OfflineFileRegistration.copyVerifiedAndRegister(
+            staged = file,
+            destination = finalFile,
+            verifyCopiedFile = { candidate ->
+                candidate.length() == remote.bytes &&
+                    LockerAudioPolicy.hashes(candidate).let { (copiedSha, copiedMd5) ->
+                        copiedSha == remote.sha256 && copiedMd5.equals(remote.md5, true)
+                    }
+            },
+            registerIndex = {
+                prefs.edit().putString("items", encode(previous + saved)).commit()
+            }
+        )
         return CloudOfflineImportResult(saved, created = true,
             originalIdPreserved = saved.id == remote.sourceLocalId)
     }
