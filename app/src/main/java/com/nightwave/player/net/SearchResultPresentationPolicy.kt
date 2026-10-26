@@ -16,7 +16,9 @@ object SearchResultPresentationPolicy {
 
     data class Groups(
         val bestMatches: List<VideoPreview>,
-        val moreResults: List<VideoPreview>
+        val moreResults: List<VideoPreview>,
+        // All alternatives remain separately playable with their own URLs.
+        val otherVersions: List<VideoPreview> = emptyList()
     )
 
     /**
@@ -36,7 +38,10 @@ object SearchResultPresentationPolicy {
             SearchRelevancePolicy.publicScore(prepared, candidate) >=
                 maxOf(160, strongest - 55)
         }
-        return Groups(best, ranked.drop(best.size))
+        val (versions, remaining) = ranked.drop(best.size).partition { track ->
+            SearchVersionGroupingPolicy.isOtherVersion(query, track)
+        }
+        return Groups(best, remaining, versions)
     }
 
     fun emptyHint(videos: List<VideoPreview>): String =
