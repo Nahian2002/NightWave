@@ -29,9 +29,10 @@ class PermittedAudioDownloader(private val context: Context) {
     private val client = OkHttpClient.Builder()
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
-        // Slow but valid sources should not be cut off by an 8-minute
-        // whole-transfer timer. Read timeout and the 250 MiB cap still apply.
-        .callTimeout(25, TimeUnit.MINUTES)
+        // NW79: a slow valid 250 MiB transfer may take more than 25 min.
+        // Idle reads still time out after 30 s; bytes, safety and user cancel
+        // stay bounded while WorkManager keeps foreground progress.
+        .callTimeout(AudioDownloadNetworkPolicy.MAX_TRANSFER_MINUTES, TimeUnit.MINUTES)
         .followRedirects(false)
         .followSslRedirects(false)
         .dns(object : Dns {
@@ -58,6 +59,7 @@ class PermittedAudioDownloader(private val context: Context) {
         source: PermittedAudioSource,
         expectedSourceSha1: String? = null,
         expectedSourceBytes: Long? = null,
+        onVerifying: () -> Unit = {},
         progress: (downloaded: Long, total: Long?) -> Unit
     ): OfflineSong {
         check(!cancelled.get()) { "Download was cancelled" }
@@ -76,11 +78,15 @@ class PermittedAudioDownloader(private val context: Context) {
                 val fileName = try {
                     transferOnce(source, pending, progress)
                 } catch (network: IOException) {
-                    if (cancelled.get() || attempt == 2) throw network
+                    // Retry-After is source-controlled and must not be copied
+                    // blindly. WorkManager applies its own persisted backoff.
+                    if (network is RetryableAudioSourceResponse ||
+                        cancelled.get() || attempt == 2) throw network
                     progress(0, null)
                     return@repeat
                 }
                 check(!cancelled.get()) { "Download cancelled" }
+                onVerifying() // Network bytes != verified playable offline audio.
                 if (expectedSourceBytes != null) {
                     require(expectedSourceBytes in 1..PermittedAudioDownloadPolicy.MAX_BYTES &&
                         pending.length() == expectedSourceBytes) {
@@ -115,6 +121,7 @@ class PermittedAudioDownloader(private val context: Context) {
      */
     fun downloadResolvedSearchAudio(
         sourceUrl: String, title: String,
+        onVerifying: () -> Unit = {},
         progress: (downloaded: Long, total: Long?) -> Unit
     ): OfflineSong {
         require(SearchTrackSavePolicy.safeAudioEndpoint(sourceUrl)) {
@@ -135,11 +142,13 @@ class PermittedAudioDownloader(private val context: Context) {
                 val filename = try {
                     transferOnce(spec, pending, progress, searchAudioOnly = true)
                 } catch (network: IOException) {
-                    if (cancelled.get() || attempt == 1) throw network
+                    if (network is RetryableAudioSourceResponse ||
+                        cancelled.get() || attempt == 1) throw network
                     progress(0L, null)
                     return@repeat
                 }
                 check(!cancelled.get()) { "Download cancelled" }
+                onVerifying() // Still not offline-ready until import and index check.
                 inspectAudioOnly(pending)
                 check(!cancelled.get()) { "Download cancelled" }
                 return OfflineAudioLibrary(context).importPermittedStagedAudio(pending, filename)
@@ -194,6 +203,11 @@ class PermittedAudioDownloader(private val context: Context) {
                 return@repeat
             }
             response.use {
+                // Transient server/rate-limit failures must not be hot-looped.
+                // WorkManager's exponential 30-second backoff handles these.
+                if (AudioDownloadNetworkPolicy.shouldBackOff(response.code)) {
+                    throw RetryableAudioSourceResponse(response.code)
+                }
                 require(response.code == 200) {
                     "Audio server returned HTTP " + response.code + "."
                 }
