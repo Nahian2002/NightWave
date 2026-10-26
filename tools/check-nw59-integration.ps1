@@ -85,6 +85,18 @@ if ($SelfTest) {
     $rejected = $false
     try { Assert-NW59Order 'first then second third' @('second', 'first') } catch { $rejected = $true }
     if (-not $rejected) { throw 'NW59 bad screen order test did not fail' }
+    # Real exercise of the Home isolation function: this previously failed
+    # because assigning $home also tries to overwrite read-only $HOME.
+    $homeFixture = 'private fun StudioHome(' + ' nightwave-premium-home-header' +
+        ' nw47-home-quick-access recent-heading nw47-recent-shelf' +
+        ' nw47-home-library-stats onResumeSpotlight(it, recent)' +
+        ' onRemoveRecent(song) "Discover music", openSearch private fun MoodTile('
+    Assert-NW59Home $homeFixture
+    $rejected = $false
+    try {
+        Assert-NW59Home ($homeFixture.Replace('nw47-home-library-stats', 'missing-stats'))
+    } catch { $rejected = $true }
+    if (-not $rejected) { throw 'NW59 Home broken fixture was not rejected' }
     Write-Host 'NW59 invariant self-test PASS. Android compilation not attempted.'
     exit 0
 }
@@ -281,7 +293,8 @@ $pagesTest = [IO.File]::ReadAllText($files['app/src/test/java/com/nightwave/play
 Assert-NW59Has $downloads 'val historyJobs = displayInfos.sortedWith(' 'retry dedup before paging'
 Assert-NW59Has $downloads 'val filteredJobs = historyJobs.filter' 'filter before paging'
 Assert-NW59Has $downloads 'DownloadHistoryPagePolicy.normalizedPage(' 'clamp old page after deletions'
-Assert-NW59Has $downloads 'DownloadHistoryPagePolicy.offset(historyPage, filteredJobs.size)' 'all filtered history remains reachable'
+Assert-NW59Has $downloads 'val pageStart = DownloadHistoryPagePolicy.offset(' 'all filtered history remains reachable'
+Assert-NW59Has $downloads 'historyPage, filteredJobs.size)' 'pagination uses filtered count'
 Assert-NW59Has $downloads 'filteredJobs.subList(pageStart, pageEnd)' 'memory-light page view'
 Assert-NW59Has $downloads 'val pageEnd = pageStart + minOf(DownloadHistoryPagePolicy.PAGE_SIZE,' 'bounded overflow-safe page view'
 Assert-NW59Has $downloads 'DownloadHistoryPagePolicy.summary(' 'honest page caption'
