@@ -444,9 +444,18 @@ class CatalogDownloadsActivity : ComponentActivity() {
                     isDirect -> DirectAudioDownloadQueue.KEY_TOTAL
                     else -> CatalogDownloadQueue.KEY_TOTAL
                 }, -1L)
-            val progress = DownloadCenterViewPolicy.percent(received, total)
-                ?.let { " · $it%" }
-                ?: if (received > 0L) " · " + (received / 1024L) + " KB" else ""
+            val verificationFlag = info.progress.getBoolean(
+                when {
+                    isSearch -> SearchTrackSaveQueue.KEY_VERIFYING
+                    isDirect -> DirectAudioDownloadQueue.KEY_VERIFYING
+                    else -> CatalogDownloadQueue.KEY_VERIFYING
+                }, false)
+            val verifyingTransfer = DownloadCenterViewPolicy.isVerifying(
+                info.state.name, verificationFlag)
+            val progress = if (verifyingTransfer) "" else
+                DownloadCenterViewPolicy.percent(received, total)
+                    ?.let { " · $it%" }
+                    ?: if (received > 0L) " · " + (received / 1024L) + " KB" else ""
             val markedPause = isSearch &&
                 SearchOfflinePauseState.isMarked(this, info.id)
             // A requested pause is only confirmed after WorkManager
@@ -457,7 +466,10 @@ class CatalogDownloadsActivity : ComponentActivity() {
                 info.state.name, markedPause)
             val now = SystemClock.elapsedRealtime()
             val previousSample = progressSamples[info.id]
-            if (info.state == WorkInfo.State.RUNNING) {
+            if (verifyingTransfer) {
+                progressSamples.remove(info.id)
+                observedSpeed.remove(info.id)
+            } else if (info.state == WorkInfo.State.RUNNING) {
                 if (previousSample == null || received < previousSample.first) {
                     progressSamples[info.id] = received to now
                     observedSpeed.remove(info.id)
@@ -477,11 +489,12 @@ class CatalogDownloadsActivity : ComponentActivity() {
                 progressSamples.remove(info.id)
                 observedSpeed.remove(info.id)
             }
-            val rate = if (info.state == WorkInfo.State.RUNNING)
+            val rate = if (info.state == WorkInfo.State.RUNNING && !verifyingTransfer)
                 DownloadCenterViewPolicy.recentRate(observedSpeed[info.id],
                     progressSamples[info.id]?.second, now)
                 else null
-            val rateText = if (received > 0L && info.state == WorkInfo.State.RUNNING) {
+            val rateText = if (received > 0L && info.state == WorkInfo.State.RUNNING &&
+                !verifyingTransfer) {
                 " · " + (if (rate == null && previousSample != null &&
                     now - previousSample.second > 8_000L)
                     "No new bytes · Waiting for source"
@@ -495,8 +508,10 @@ class CatalogDownloadsActivity : ComponentActivity() {
                 WorkInfo.State.ENQUEUED -> if (pausePending)
                     "Pausing · Waiting for worker to stop" else "Queued · Waiting for network"
                 WorkInfo.State.RUNNING -> if (pausePending)
-                    "Pausing · Cancelling current transfer" else
-                    "Downloading" + progress + rateText
+                    "Pausing · Cancelling current transfer"
+                    else if (verifyingTransfer)
+                    "Checking audio · Saving to Offline Library (not ready yet)"
+                    else "Downloading" + progress + rateText
                 WorkInfo.State.SUCCEEDED -> when {
                     verifyingFiles -> "Checking saved audio file…"
                     fileCheckFailed -> "Could not verify saved audio · Reopen Downloads"
@@ -557,7 +572,8 @@ class CatalogDownloadsActivity : ComponentActivity() {
             })
             if (info.state == WorkInfo.State.RUNNING || info.state == WorkInfo.State.ENQUEUED) {
                 val bar = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
-                    val pct = DownloadCenterViewPolicy.percent(received, total)
+                    val pct = if (verifyingTransfer) null
+                        else DownloadCenterViewPolicy.percent(received, total)
                     isIndeterminate = pct == null
                     if (pct != null) {
                         max = 1000
