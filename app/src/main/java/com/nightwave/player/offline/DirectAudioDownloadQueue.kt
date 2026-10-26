@@ -27,6 +27,7 @@ object DirectAudioDownloadQueue {
     const val KEY_ERROR = "authorized_download_failure"
     const val KEY_RECEIVED = "authorized_download_received"
     const val KEY_TOTAL = "authorized_download_total"
+    const val KEY_VERIFYING = "nw79_transfer_verifying"
 
     fun enqueue(context: Context, source: PermittedAudioSource): Operation {
         // Independently revalidate even if callers already checked.
