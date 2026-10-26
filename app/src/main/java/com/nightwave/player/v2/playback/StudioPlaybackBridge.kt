@@ -772,21 +772,31 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
     }
 
     override fun seekToForTrack(expectedMediaId: String, positionMs: Long) {
-        val loadedId = runCatching { controller?.currentMediaItem?.mediaId }.getOrNull()
-        if (PlaybackSeekIdentityPolicy.accepts(
-                expectedMediaId, state.videoUrl, loadedId)) {
-            seekTo(positionMs)
+        try {
+            // Do not check one controller and then seek via a second lookup:
+            // rapid Next/Jump can swap the loaded item between those calls.
+            val player = controller ?: return
+            val target = PlaybackSeekIdentityPolicy.target(
+                expectedMediaId, state.videoUrl, player.currentMediaItem?.mediaId,
+                player.duration, positionMs, player.playerError != null
+            ) ?: return
+            player.seekTo(target)
+        } catch (error: RuntimeException) {
+            handleControlFailure("seek", error)
         }
     }
 
     override fun seekTo(positionMs: Long) {
         try {
-            controller?.let { player ->
-                val duration = player.duration
-                if (duration > 0 && duration != C.TIME_UNSET) {
-                    player.seekTo(positionMs.coerceIn(0L, duration))
-                }
-            }
+            val player = controller ?: return
+            // Legacy/notification seek requests have no explicit gesture ID.
+            // Refuse to move a stale unrelated MediaItem after queue changes.
+            val selected = selectedMediaId()
+            val target = PlaybackSeekIdentityPolicy.target(
+                selected, selected, player.currentMediaItem?.mediaId,
+                player.duration, positionMs, player.playerError != null
+            ) ?: return
+            player.seekTo(target)
         } catch (error: RuntimeException) {
             handleControlFailure("seek", error)
         }
