@@ -957,7 +957,11 @@ class NightWaveStudioActivity : ComponentActivity() {
                         else if (names.isEmpty()) showMessage("Create another playlist before copying.")
                         else AlertDialog.Builder(this).setTitle("Copy selected songs to…")
                             .setItems(names.toTypedArray()) { _, chosen ->
-                                val destination = names[chosen]
+                                val destination = StudioUiStateSafetyPolicy.itemAt(names, chosen)
+                                if (destination == null) {
+                                    showMessage("Playlist selection changed. Open Copy again.")
+                                    return@setItems
+                                }
                                 val latestSource = library.playlist(fromName)
                                 if (fromName !in library.playlistNames() ||
                                     latestSource != source) {
@@ -1487,7 +1491,11 @@ class NightWaveStudioActivity : ComponentActivity() {
                     showMessage("Google account session changed. Reconnect and preview again.")
                     return@setItems
                 }
-                val chosen = options[which]
+                val chosen = StudioUiStateSafetyPolicy.itemAt(options, which)
+                if (chosen == null) {
+                    showMessage("Drive snapshot list changed. Preview again.")
+                    return@setItems
+                }
                 cloudBusy = true
                 lifecycleScope.launch {
                     val outcome = withContext(Dispatchers.IO) {
@@ -1903,7 +1911,10 @@ class NightWaveStudioActivity : ComponentActivity() {
         AlertDialog.Builder(this).setTitle("Save to playlist")
             .setItems(choices.toTypedArray()) { _, option ->
                 if (option < names.size) {
-                    if (library.addToPlaylist(names[option], video)) refresh()
+                    val chosen = StudioUiStateSafetyPolicy.itemAt(names, option)
+                    if (chosen == null || chosen !in library.playlistNames()) {
+                        showMessage("Playlist changed. Open Save to playlist again.")
+                    } else if (library.addToPlaylist(chosen, video)) refresh()
                     else showMessage("Already saved or the playlist is full.")
                 } else promptPlaylistName { created ->
                     if (library.createPlaylist(created)) {
@@ -2227,15 +2238,18 @@ class NightWaveStudioActivity : ComponentActivity() {
             )
             .setNegativeButton("Cancel", null)
             .setPositiveButton("Import") { _, _ ->
+                val beforeNames = library.playlistNames()
                 val outcome = library.importSharedPlaylist(incoming.name, incoming.tracks)
                 when {
                     !outcome.accepted ->
                         showMessage("Import failed; library unchanged. Check collection limits.")
                     !outcome.changed -> showMessage("This playlist is already saved.")
                     else -> {
-                        val savedName = outcome.updated.playlists.last().first
+                        val savedName = StudioUiStateSafetyPolicy.createdPlaylistName(
+                            beforeNames, outcome.updated.playlists.map { it.first })
                         refresh()
-                        showMessage("Imported playlist: " + savedName)
+                        showMessage(if (savedName != null) "Imported playlist: $savedName"
+                            else "Playlist imported. Check Library for the new collection.")
                     }
                 }
             }.show()
@@ -2403,7 +2417,13 @@ class NightWaveStudioActivity : ComponentActivity() {
         AlertDialog.Builder(this).setTitle("Move “$name” to folder")
             .setSingleChoiceItems(choices.toTypedArray(),
                 snapshot.folderOf(name)?.let { choices.indexOf(it) } ?: 0) { dialog, chosen ->
-                val folder = if (chosen == 0) null else choices[chosen]
+                if (chosen !in choices.indices) {
+                    showMessage("Folder selection changed. Open folders again.")
+                    dialog.dismiss()
+                    return@setSingleChoiceItems
+                }
+                val folder = if (chosen == 0) null
+                    else StudioUiStateSafetyPolicy.itemAt(choices, chosen)
                 if (folderStore.assign(name, folder, current)) {
                     refreshFolders()
                     showMessage(if (folder == null) "Moved out of folder." else "Added to $folder.")
@@ -2429,11 +2449,14 @@ class NightWaveStudioActivity : ComponentActivity() {
                         if (playlists.isEmpty()) showMessage("Create a playlist first.")
                         else AlertDialog.Builder(this).setTitle("Choose playlist")
                             .setItems(playlists.toTypedArray()) { _, selected ->
-                                choosePlaylistFolder(playlists[selected])
+                                val chosen = StudioUiStateSafetyPolicy.itemAt(playlists, selected)
+                                if (chosen != null) choosePlaylistFolder(chosen)
+                                else showMessage("Playlist list changed. Open folders again.")
                             }.setNegativeButton("Cancel", null).show()
                     }
                     else -> {
-                        val name = choices[index]
+                        val name = StudioUiStateSafetyPolicy.itemAt(choices, index)
+                            ?: return@setItems
                         AlertDialog.Builder(this).setTitle(name)
                             .setItems(arrayOf("Rename folder", "Delete folder")) { _, action ->
                                 if (action == 0) promptFolderName(name) { updated ->
@@ -2817,6 +2840,14 @@ private fun StudioRoot(
             playlistNames.take(60).map(getPlaylist))
     }
     var selectedPlaylist by rememberSaveable { mutableStateOf<String?>(null) }
+    val resolvedPlaylist = StudioUiStateSafetyPolicy.resolveCollection(
+        selectedPlaylist, playlistNames, smartCollections.map { it.id },
+        LIKED_COLLECTION, RECENT_COLLECTION)
+    LaunchedEffect(selectedPlaylist, resolvedPlaylist) {
+        // Deleted/renamed playlists and regenerated Smart collections
+        // cannot survive as ghost detail screens after Activity recreation.
+        if (selectedPlaylist != resolvedPlaylist) selectedPlaylist = resolvedPlaylist
+    }
     var expanded by rememberSaveable { mutableStateOf(false) }
     var showQueue by rememberSaveable { mutableStateOf(false) }
     var showSoundStudio by rememberSaveable { mutableStateOf(false) }
@@ -2846,11 +2877,11 @@ private fun StudioRoot(
         if (searchNavigationToken > 0) pagerState.scrollToPage(StudioTab.SEARCH.ordinal)
     }
     BackHandler(enabled = showQueue || expanded ||
-        (tab == StudioTab.LIBRARY && selectedPlaylist != null) || tab != StudioTab.HOME) {
+        (tab == StudioTab.LIBRARY && resolvedPlaylist != null) || tab != StudioTab.HOME) {
         when {
             showQueue -> showQueue = false
             expanded -> expanded = false
-            tab == StudioTab.LIBRARY && selectedPlaylist != null -> selectedPlaylist = null
+            tab == StudioTab.LIBRARY && resolvedPlaylist != null -> selectedPlaylist = null
             tab != StudioTab.HOME -> navigateToTab(StudioTab.HOME)
         }
     }
@@ -2985,6 +3016,9 @@ private fun StudioRoot(
                             initialValue = emptyList<com.nightwave.player.offline.OfflineSong>(),
                             libraryRevision
                         ) {
+                            // A library revision can invalidate the old
+                            // file index while an asynchronous read is pending.
+                            value = emptyList()
                             // The old remember(...) block parsed the offline
                             // index on the Compose UI thread on Search entry.
                             value = withContext(Dispatchers.IO) {
@@ -3045,7 +3079,7 @@ private fun StudioRoot(
                         pinnedPlaylistNames = pinnedPlaylistNames,
                         onTogglePinPlaylist = onTogglePinPlaylist,
                         playingUrl = playerState.videoUrl.takeIf { playerState.playing }.orEmpty(),
-                        selectedPlaylist = selectedPlaylist,
+                        selectedPlaylist = resolvedPlaylist,
                         onSelectPlaylist = { selectedPlaylist = it },
                         getPlaylist = getPlaylist, onPlay = onPlay,
                         onQuickPlay = onLibraryQuickPlay,
