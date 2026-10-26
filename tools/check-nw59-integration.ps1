@@ -618,12 +618,12 @@ Assert-NW59Has $nw76Proof '$cases -ne $n' 'reject forged/inconsistent testcase c
 Assert-NW59Has $nw76Proof '$total -lt $minimum' 'minimum count not silently skipped'
 Assert-NW59Has $nw76Proof '$failed -ne 0 -or $errors -ne 0' 'fail if any JVM tests fail'
 Assert-NW59Has $nw76Proof 'function Invoke-SelfTest' 'parser self-test fixture'
-Assert-NW59Has $nw76Builder "if (Test-Path -LiteralPath $junitProofOutput) { Remove-Item" 'remove stale test receipt at start'
-Assert-NW59Has $nw76Builder "'NW76 JUnit result certification'" 'real proof is a separate gated stage'
+Assert-NW59Has $nw76Builder 'if (Test-Path -LiteralPath $junitProofOutput) { Remove-Item' 'remove stale test receipt at start'
+Assert-NW59Has $nw76Builder 'NW76 JUnit result certification' 'real proof is a separate gated stage'
 Assert-NW59Has $nw76Builder '-MinimumTests 1000' 'enforce broad JVM regression count'
 Assert-NW59Has $nw76Builder 'JUnit receipt: dist\\NightWave-jvm-test-proof.txt' 'saved status points to fresh test receipt'
 Assert-NW59Has $nw76Builder 'Copy-Item -LiteralPath $apk -Destination $output -Force' 'original verified APK promotion intact'
-$certifyAt = $nw76Builder.IndexOf("    $stage = 'NW76 JUnit result certification'")
+$certifyAt = $nw76Builder.IndexOf('    $stage = ''NW76 JUnit result certification''')
 $publishAt = $nw76Builder.IndexOf('Copy-Item -LiteralPath $apk -Destination $output -Force')
 if ($certifyAt -lt 0 -or $publishAt -le $certifyAt) {
     throw 'NW76 regression: JUnit certification must precede APK promotion.'
