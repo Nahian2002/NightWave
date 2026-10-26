@@ -449,6 +449,7 @@ jobs:
         run: |
           python3 tools/nw90_certification.py --project-root . \
             --junit-dir app/build/test-results/testDebugUnitTest \
+            --build-log build/nightwave-gradle.log \
             --apk app/build/outputs/apk/debug/app-debug.apk \
             --report build/NightWave-NW90-after-build-gates.json
       - name: Upload NW90 no-public-release evidence receipts
