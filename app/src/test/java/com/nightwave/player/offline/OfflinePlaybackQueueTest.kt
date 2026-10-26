@@ -89,7 +89,16 @@ class OfflinePlaybackQueueTest {
         assertNull(queue.jump(-1))
         assertNull(queue.jump(99))
         assertEquals("a", queue.previous())
+        // NW69 intentionally retraces forward history after Previous.
+        // An invalid jump must not destroy the redo trail or skip b.
+        assertNull(queue.jump(-1))
+        assertNull(queue.jump(99))
+        assertEquals("b", queue.next())
+        // The unplayed song remains c after the forward redo to b.
         assertEquals("c", queue.next())
+        assertNull(queue.next()) // Repeat OFF: don't replay heard tracks
+        assertEquals("b", queue.previous())
+        assertEquals("c", queue.next()) // retrace the latest Previous
         assertEquals(listOf("a", "b", "c"), queue.snapshot())
     }
 
