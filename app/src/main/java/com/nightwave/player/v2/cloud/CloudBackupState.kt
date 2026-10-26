@@ -77,11 +77,21 @@ class CloudBackupState(context: Context) {
         // receipt and don't falsely label a verified snapshot outdated.
         val previous = prefs.getBoolean(key, key == "wifi_only")
         if (!CloudBackupFreshnessPolicy.changed(previous, value)) return@synchronized true
-        prefs.edit().putBoolean(key, value)
-            .putLong(REVISION_KEY, nextRevision())
-            .putString("last_result",
-                "Backup settings changed; back up now to verify the current choices.")
-            .commit()
+        val current = readLocked()
+        val newRevision = nextRevision()
+        // Switching Wi-Fi/mobile data changes scheduling, not what the
+        // previously uploaded snapshot contains. Keep verified status ONLY
+        // if the old snapshot was already verified for its consent revision.
+        val stillVerified = CloudBackupFreshnessPolicy.preservesVerifiedSnapshot(key) &&
+            current.enabled && current.lastSuccessMs > 0L &&
+            current.lastVerifiedRevision == current.revision
+        val editor = prefs.edit().putBoolean(key, value)
+            .putLong(REVISION_KEY, newRevision)
+            .putString("last_result", if (stillVerified)
+                "Backup network choice updated; previously verified data is unchanged."
+                else "Backup settings changed; back up now to verify the current choices.")
+        if (stillVerified) editor.putLong(VERIFIED_REVISION_KEY, newRevision)
+        editor.commit()
     }
 
     fun setHistory(value: Boolean) = setChoice("history", value)
