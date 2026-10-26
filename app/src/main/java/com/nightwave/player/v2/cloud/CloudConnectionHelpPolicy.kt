@@ -38,8 +38,10 @@ object CloudConnectionHelpPolicy {
         return when (code) {
             8 -> Guidance(
                 "Google account connection interrupted",
-                "Google Play services returned internal error 8. The account picker appeared, but that does not mean Drive connected.",
-                "Try once more. If it repeats, compare the installed APK signing SHA-1, package name and OAuth test-user setup.",
+                if (stage == CloudAuthorizationFailurePolicy.Stage.REQUEST)
+                    "Google Play services returned internal error 8 before a verified account selection. Drive is not confirmed connected."
+                else "Google Play services returned internal error 8 after account selection. Seeing the picker does not mean Drive connected.",
+                "Retry manually once. If it repeats, compare the installed APK signing SHA-1, package name, Google Play services and OAuth test-user setup.",
                 true, true)
             10 -> Guidance(
                 "Google setup requires correction",
