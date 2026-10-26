@@ -28,7 +28,7 @@ class LyricsReadingPolicyTest {
     @Test fun nw89ScreenReaderUsesRealLineAndOffsetAdjustedSeekTime() {
         val description = policy.cueDescription(
             LyricCue(62_000, "  আলো   জ্বলে  "), 500, 90_000L)
-        assertEquals("Seek to 1 minutes 2 seconds. আলো জ্বলে", description)
+        assertEquals("Seek to 1 minute 2 seconds. আলো জ্বলে", description)
         assertEquals("Seek to 0 minutes 9 seconds. Last line",
             policy.cueDescription(LyricCue(25_000, "Last line"), 0, 9_000L))
         assertEquals("Seek to 0 minutes 0 seconds. First",
