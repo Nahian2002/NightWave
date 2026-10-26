@@ -7,18 +7,17 @@ import org.junit.Test
 
 class CloudBackupFreshnessPolicyTest {
     private val p = CloudBackupFreshnessPolicy
-    private val F = CloudBackupFreshnessPolicy.Freshness
 
     @Test fun previouslyVerifiedBackupIsNotCurrentAfterConsentChanges() {
-        assertEquals(F.CURRENT_VERIFIED, p.classify(true, true, 1000L, 12, 12))
-        assertEquals(F.PREVIOUSLY_VERIFIED, p.classify(true, true, 1000L, 13, 12))
-        assertEquals(F.PREVIOUSLY_VERIFIED, p.classify(true, true, 1000L, 13, -1))
+        assertEquals(CloudBackupFreshnessPolicy.Freshness.CURRENT_VERIFIED, p.classify(true, true, 1000L, 12, 12))
+        assertEquals(CloudBackupFreshnessPolicy.Freshness.PREVIOUSLY_VERIFIED, p.classify(true, true, 1000L, 13, 12))
+        assertEquals(CloudBackupFreshnessPolicy.Freshness.PREVIOUSLY_VERIFIED, p.classify(true, true, 1000L, 13, -1))
     }
 
     @Test fun unconnectedAndBeforeFirstVerifiedUploadAreNotReportedAsReady() {
-        assertEquals(F.LOCAL_ONLY, p.classify(false, true, 1000L, 1, 1))
-        assertEquals(F.CONNECTED_PENDING, p.classify(true, false, 1000L, 1, 1))
-        assertEquals(F.CONNECTED_PENDING, p.classify(true, true, 0L, 1, 1))
+        assertEquals(CloudBackupFreshnessPolicy.Freshness.LOCAL_ONLY, p.classify(false, true, 1000L, 1, 1))
+        assertEquals(CloudBackupFreshnessPolicy.Freshness.CONNECTED_PENDING, p.classify(true, false, 1000L, 1, 1))
+        assertEquals(CloudBackupFreshnessPolicy.Freshness.CONNECTED_PENDING, p.classify(true, true, 0L, 1, 1))
     }
 
     @Test fun repeatedSettingsChoiceDoesNotArtificiallyInvalidateBackup() {
@@ -29,7 +28,7 @@ class CloudBackupFreshnessPolicyTest {
     }
 
     @Test fun verifiedRevisionOnlyBecomesCurrentAfterReadback() {
-        assertEquals(F.PREVIOUSLY_VERIFIED, p.classify(true, true, 800L, 99, 98))
-        assertEquals(F.CURRENT_VERIFIED, p.classify(true, true, 900L, 99, 99))
+        assertEquals(CloudBackupFreshnessPolicy.Freshness.PREVIOUSLY_VERIFIED, p.classify(true, true, 800L, 99, 98))
+        assertEquals(CloudBackupFreshnessPolicy.Freshness.CURRENT_VERIFIED, p.classify(true, true, 900L, 99, 99))
     }
 }
