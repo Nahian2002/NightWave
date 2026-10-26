@@ -4100,7 +4100,9 @@ private fun StudioLibrary(
     var playlistFilter by rememberSaveable { mutableStateOf("") }
     var playlistSort by rememberSaveable { mutableStateOf(LibraryBrowsePolicy.SORT_SAVED) }
     var showFilledOnly by rememberSaveable { mutableStateOf(false) }
-    var confirmClearHistory by rememberSaveable { mutableStateOf(false) }
+    var confirmClearHistory by rememberSaveable(selectedPlaylist) {
+        mutableStateOf(false)
+    }
     var playlistToolsOpen by rememberSaveable { mutableStateOf(false) }
     var selectedFolder by rememberSaveable { mutableStateOf<String?>(null) }
     val validFolder = selectedFolder?.takeIf { folder ->
