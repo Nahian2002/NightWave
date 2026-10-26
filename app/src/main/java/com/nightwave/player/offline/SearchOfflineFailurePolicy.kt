@@ -15,6 +15,11 @@ object SearchOfflineFailurePolicy {
                 "Audio source denied access. This recording was not saved."
             "http 429" in detail ->
                 "Audio source is busy or rate-limited. Retry later."
+            "http 500" in detail || "http 502" in detail ||
+                "http 503" in detail || "http 504" in detail ->
+                "Audio source is temporarily unavailable. Retry later."
+            "http 408" in detail || "http 425" in detail ->
+                "Connection interrupted before audio was saved. Retry when online."
             "no independent audio-only stream" in detail ||
                 "no supported public audio stream" in detail ->
                 "No supported standalone audio recording is available."
