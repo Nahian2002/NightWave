@@ -53,7 +53,9 @@ object TimedLyricsCodec {
             }
         }
         require(cues.isNotEmpty()) { "No synchronized LRC timestamps were found" }
-        return TimedLyrics(cues.distinct().sortedWith(compareBy<LyricCue> { it.timeMs }
-            .thenBy { it.text }))
+        // Stable timestamp ordering preserves user-authored sequence when
+        // simultaneous cues have different text. Never alphabetize lyrics:
+        // that changes the visible line and tap-to-seek ordering.
+        return TimedLyrics(cues.distinct().sortedBy { it.timeMs })
     }
 }
