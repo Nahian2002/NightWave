@@ -55,6 +55,8 @@ class DirectAudioDownloadWorker(
                     .putLong(DirectAudioDownloadQueue.KEY_TOTAL, latestTotal)
                     .putBoolean(DirectAudioDownloadQueue.KEY_VERIFYING, true)
                     .build())
+                    setForegroundAsync(foreground(source.fileName,
+                        latestReceived, latestTotal.takeIf { it > 0L }, verifying = true))
             }) { received, total ->
                 latestReceived = received
                 latestTotal = total ?: -1L
@@ -114,7 +116,7 @@ class DirectAudioDownloadWorker(
         }
     }
 
-    private fun foreground(name: String, received: Long, total: Long?): ForegroundInfo {
+    private fun foreground(name: String, received: Long, total: Long?, verifying: Boolean = false): ForegroundInfo {
         val target = Intent(applicationContext, CatalogDownloadsActivity::class.java)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
         val intent = PendingIntent.getActivity(applicationContext, notificationId, target,
@@ -127,11 +129,11 @@ class DirectAudioDownloadWorker(
             applicationContext, channelId
         ).setSmallIcon(android.R.drawable.stat_sys_download)
             .setContentTitle("NightWave - Offline audio")
-            .setContentText(name.take(64))
+            .setContentText(if (verifying) "Checking audio before saving" else name.take(64))
             .setContentIntent(intent)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
-            .setProgress(100, percent, !hasTotal)
+            .setProgress(100, percent, verifying || !hasTotal)
             .addAction(android.R.drawable.ic_menu_close_clear_cancel,
                 "Cancel", androidx.work.WorkManager.getInstance(applicationContext)
                     .createCancelPendingIntent(id))
