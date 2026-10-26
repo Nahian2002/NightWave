@@ -399,6 +399,7 @@ jobs:
           python3 tools/verify_nw87_transfer_offline.py
           python3 tools/verify_nw88_sound_studio.py
           python3 tools/verify_nw89_lyrics.py
+          python3 tools/verify_nw90_final_audit.py
           python3 tools/nw90_certification.py --self-test
           python3 tools/nw90_certification.py --project-root . --report build/NightWave-NW90-candidate-gates.json
 
