@@ -116,6 +116,7 @@ on:
       - feature/nightwave-nw110-final-integration-certification
       - fix/nightwave-nw110-windows-nw44-search-preflight
       - fix/nightwave-nw110-phase6v4-async-health-preflight
+      - fix/nightwave-nw110-phase6v6a-reduced-motion-preflight
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
@@ -358,6 +359,8 @@ jobs:
           python3 tools/verify_v2_phase6v5c.py
           python3 tools/verify_v2_phase6v6a.py --self-test
           python3 tools/verify_v2_phase6v6a.py
+          pwsh -NoProfile -File tools/check-phase6v6a-integration.ps1 -SelfTest
+          pwsh -NoProfile -File tools/check-phase6v6a-integration.ps1
           python3 tools/verify_v2_phase6v6b.py --self-test
           python3 tools/verify_v2_phase6v6b.py
           python3 tools/verify_v2_phase6v6c.py --self-test
@@ -375,6 +378,8 @@ jobs:
           python3 tools/verify_v2_phase6v7a.py
           python3 tools/verify_v2_phase6v7b.py --self-test
           python3 tools/verify_v2_phase6v7b.py
+          pwsh -NoProfile -File tools/check-phase6v7b-integration.ps1 -SelfTest
+          pwsh -NoProfile -File tools/check-phase6v7b-integration.ps1
           python3 tools/ci_compile_summary.py --self-test
       # NW77 audit is informational for PRIVATE debug builds. It deliberately
       # returns exit 2 for real public-release blockers and never approves a

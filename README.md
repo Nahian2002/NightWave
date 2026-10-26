@@ -4,9 +4,11 @@
 
 NightWave combines locally imported or otherwise authorized music, an offline library, optional Google Drive backup, song discovery, playlists, Sound Studio, queue control, and user-imported synchronized LRC lyrics. The original midnight/teal design is independent of Spotify.
 
-**Current development source:** `fix/nightwave-nw110-phase6v4-async-health-preflight` (cumulative NW110 with NW44 and Phase 6V4 Windows preflight corrections). The older default `main` does not represent this candidate.
+**Current development source:** `fix/nightwave-nw110-phase6v6a-reduced-motion-preflight` (cumulative NW110 with NW44, 6V4, 6V6A and 6V7B Windows preflight corrections). The older default `main` does not represent this candidate.
 
 **Release status:** **NO-GO**. The hosted GitHub Actions runner and empty canary both failed before executing steps; a current Windows debug build, Android/JUnit/139-case device validation, installed-signer continuity, production OAuth/backup, Android 16 behavior/device certification and NW77 YouTube-source rights review remain outstanding. Never install a new APK over a library-bearing app unless its signer matches.
+
+**NW110 6V6A and proactive 6V7B source gate hotfix:** [Reduced-motion and artwork preflight report](docs/NW110_LYRICS_AND_ARTWORK_PREFLIGHT_HOTFIX.md). Confirmed that lyrics follow uses a reduced-motion-aware policy and fallback; updated stale Windows/Python checks. Also repaired obsolete premium artwork sizing checks in 6V7B before reaching that build phase. No production app source or user data changed; real Gradle/Android build remains pending.
 
 **NW110 Phase 6V4 build hotfix:** [Async offline library report check](docs/NW110_PHASE6V4_ASYNC_OFFLINE_HEALTH_HOTFIX.md). Updated Windows and Python 6V4 checks to recognize background health scans and cached UI reports; added negative regression fixtures. No Android sources changed. A new complete Windows Gradle build is required.
 
