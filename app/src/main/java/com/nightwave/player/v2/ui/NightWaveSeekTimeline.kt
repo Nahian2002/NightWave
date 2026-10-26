@@ -51,25 +51,45 @@ internal fun NightWaveSeekTimeline(
         .pointerInput(enabled, trackIdentity) {
             val edge = 8.dp.toPx()
             detectTapGestures { pos ->
-                commitCallback(trackIdentity, NightWaveSeekGesturePolicy.touchFraction(
-                    pos.x, size.width.toFloat(), edge))
+                NightWaveSeekGesturePolicy.touchFractionOrNull(
+                    pos.x, size.width.toFloat(), edge
+                )?.let { commitCallback(trackIdentity, it) }
             }
         }
         .pointerInput(enabled, trackIdentity) {
             val edge = 8.dp.toPx()
+            // Pointer-input state is scoped to this trackIdentity. No drag
+            // from an old song or unusably narrow timeline may seek another.
+            var validDrag = false
             detectDragGestures(
                 onDragStart = { pos ->
-                    dragged = NightWaveSeekGesturePolicy.touchFraction(
+                    val mapped = NightWaveSeekGesturePolicy.touchFractionOrNull(
                         pos.x, size.width.toFloat(), edge)
-                    previewCallback(dragged)
+                    validDrag = mapped != null
+                    if (mapped != null) {
+                        dragged = mapped
+                        previewCallback(mapped)
+                    }
                 },
-                onDragEnd = { commitCallback(trackIdentity, dragged) },
-                onDragCancel = { cancelCallback() }
+                onDragEnd = {
+                    if (validDrag) commitCallback(trackIdentity, dragged)
+                    else cancelCallback()
+                    validDrag = false
+                },
+                onDragCancel = {
+                    validDrag = false
+                    cancelCallback()
+                }
             ) { change, _ ->
                 change.consume()
-                dragged = NightWaveSeekGesturePolicy.touchFraction(
+                val mapped = NightWaveSeekGesturePolicy.touchFractionOrNull(
                     change.position.x, size.width.toFloat(), edge)
-                previewCallback(dragged)
+                if (mapped != null && validDrag) {
+                    dragged = mapped
+                    previewCallback(mapped)
+                } else {
+                    validDrag = false
+                }
             }
         }
 
@@ -80,8 +100,12 @@ internal fun NightWaveSeekTimeline(
                 contentDescription = "Seek playback"
                 progressBarRangeInfo = ProgressBarRangeInfo(shown, 0f..1f)
                 if (enabled) setProgress { requested ->
-                    commitCallback(trackIdentity, requested.coerceIn(0f, 1f))
-                    true
+                    val mapped = NightWaveSeekGesturePolicy
+                        .accessibilityFractionOrNull(requested)
+                    if (mapped != null) {
+                        commitCallback(trackIdentity, mapped)
+                        true
+                    } else false
                 }
             }
             .then(tapDragModifier)

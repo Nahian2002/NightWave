@@ -25,6 +25,7 @@ on:
       - feature/nightwave-nw103-build-receipt-final-gates
       - feature/nightwave-nw104-kotlin-junit-compiler-fixes
       - feature/nightwave-nw105-offline-junit-execution
+      - feature/nightwave-nw106-seek-timeline-reliability
   workflow_dispatch:
 
 permissions: {}

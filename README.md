@@ -4,9 +4,11 @@
 
 NightWave combines locally imported or otherwise authorized music, an offline library, optional Google Drive backup, song discovery, playlists, Sound Studio, queue control, and user-imported synchronized LRC lyrics. The original midnight/teal design is independent of Spotify.
 
-**Current development source:** `feature/nightwave-nw105-offline-junit-execution` (cumulative NW104 with real offline JUnit method execution and explicit source evidence). The older default `main` does not represent this candidate.
+**Current development source:** `feature/nightwave-nw106-seek-timeline-reliability` (cumulative NW105 with safer now-playing seek and accessibility controls). The older default `main` does not represent this candidate.
 
 **Release status:** **NO-GO**. The hosted GitHub Actions runner and empty canary both failed before executing steps; a current Windows debug build, Android/JUnit/139-case device validation, installed-signer continuity, production OAuth/backup, Google Play API 36 migration and NW77 YouTube-source rights review remain outstanding. Never install a new APK over a library-bearing app unless its signer matches.
+
+**NW106 now-playing seek UI milestone:** [NW106 test report](docs/NW106_SEEK_TIMELINE_EVIDENCE.md). Seek timeline taps and drags now reject collapsed/non-finite geometry rather than silently seeking to 0%; the visual thumb and inverse mapping are consistent. Accessibility progress actions reject non-finite requests rather than reporting false success. Standalone Kotlin and nine original/new JUnit tests cover the pure policy. Android UI/runtime verification remains pending.
 
 **NW105 offline JUnit execution milestone:** [NW105 exact-source evidence and limitations](docs/NW105_OFFLINE_JUNIT_EVIDENCE.md). Both real offline policies and the original two offline JUnit classes were compiled locally with a minimal standalone public Repeat enum type; **14/14 methods passed**. Together with NW104, **47/53** distinct JUnit methods have independent JVM evidence. Six public-queue JUnit methods and full Android/Gradle/device tests are outstanding. The NW102 full 53-method runner remains mandatory.
 
