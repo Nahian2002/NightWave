@@ -161,4 +161,43 @@ class LibraryBrowsePolicyTest {
         assertTrue(LibraryBrowsePolicy.songs(listOf(offline), "other", "saved").isEmpty())
         assertFalse(offline.url.startsWith("https://www.youtube.com/watch"))
     }
+
+    @Test fun nw86ShortPlaylistQueryNeverMatchesLongerUnrelatedWord() {
+        val original = listOf(playlist("Alone at Night"), playlist("Alo Alo"),
+            playlist("Moonlight"))
+        val matches = LibraryBrowsePolicy.playlists(
+            original, "alo", LibraryBrowsePolicy.SORT_SAVED, false)
+        assertEquals(listOf("Alo Alo"), matches.map { it.name })
+        assertEquals(original, LibraryBrowsePolicy.playlists(
+            original, "", LibraryBrowsePolicy.SORT_SAVED, false))
+    }
+
+    @Test fun nw86PlaylistQueryRequiresEachRepeatedWord() {
+        val input = listOf(playlist("Alo"), playlist("Alo Alo"),
+            playlist("Alo and Moonlight"))
+        assertEquals(listOf("Alo Alo"), LibraryBrowsePolicy.playlists(
+            input, "alo alo", LibraryBrowsePolicy.SORT_SAVED, false).map { it.name })
+    }
+
+    @Test fun nw86BanglaVowelMarksStayDistinctInPlaylistNames() {
+        val input = listOf(playlist("মালা"), playlist("মেলা"))
+        assertEquals(listOf("মালা"), LibraryBrowsePolicy.playlists(
+            input, "মালা", LibraryBrowsePolicy.SORT_SAVED, false).map { it.name })
+        assertEquals(listOf("মেলা"), LibraryBrowsePolicy.playlists(
+            input, "মেলা", LibraryBrowsePolicy.SORT_SAVED, false).map { it.name })
+    }
+
+    @Test fun nw86RecentlyPlayedOldestViewOnlyReversesVisibleReadOrder() {
+        val newest = video("Now", "Singer", "abc12345678")
+        val middle = video("Earlier", "Artist", "abc12345679")
+        val oldest = video("Oldest", "Creator", "abc12345670")
+        val source = listOf(newest, middle, oldest)
+        assertEquals(listOf(oldest, middle, newest),
+            LibraryBrowsePolicy.songs(source, "", LibraryBrowsePolicy.SORT_OLDEST))
+        assertEquals(source,
+            LibraryBrowsePolicy.songs(source, "", LibraryBrowsePolicy.SORT_SAVED))
+        assertEquals(source, listOf(newest, middle, oldest))
+        assertEquals(listOf(oldest, middle), LibraryBrowsePolicy.songs(
+            source, "", LibraryBrowsePolicy.SORT_OLDEST).take(2))
+    }
 }
