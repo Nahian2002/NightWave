@@ -85,7 +85,7 @@ try {
     Check-Marker $hub 'CloudAccountPresentation.stage(cloud)' 'NW03 guest backup status'
     Check-Marker $ui 'NightWaveAccountHubDialog(' 'NW03 account hub'
     Check-Marker $timeline 'trackIdentity: String' 'NW04/NW05 scrub identity'
-    Check-Marker $bridge 'PlaybackSeekIdentityPolicy.accepts(' 'NW05 Media3 song identity'
+    Check-Marker $bridge 'PlaybackSeekIdentityPolicy.target(' 'NW05 Media3 song identity'
     Check-Marker $player 'NightWaveSeekTimeline(' 'NW04 seek UI'
     Check-Marker $studio 'SoundStudioPolicy.safeManualRange(' 'NW05 safe EQ limits'
     Check-Marker $service 'PublicQueueSelectionPolicy.selectedIndex(' 'NW05 queue identity'
