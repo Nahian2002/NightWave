@@ -12,6 +12,8 @@
     <application
         android:name=".NightWaveApp"
         android:allowBackup="false"
+        android:fullBackupContent="false"
+        android:dataExtractionRules="@xml/nightwave_data_extraction_rules"
         android:label="NightWave"
         android:theme="@style/Theme.NightWave"
         android:usesCleartextTraffic="false"

@@ -28,6 +28,7 @@ on:
       - feature/nightwave-nw106-seek-timeline-reliability
       - feature/nightwave-nw107-lyrics-follow-accessibility
       - feature/nightwave-nw108-cloud-playlist-identity
+      - feature/nightwave-nw109-android36-privacy-hardening
   workflow_dispatch:
 
 permissions: {}

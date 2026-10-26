@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- NightWave intentionally excludes all app-owned private music, databases,
+     cacheable source metadata and account preferences from system cloud and
+     device-to-device transfer. The separate, opt-in Google Drive appDataFolder
+     flow remains available; it does not use this Android backup mechanism. -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" path="." />
+        <exclude domain="device_root" path="." />
+        <exclude domain="file" path="." />
+        <exclude domain="device_file" path="." />
+        <exclude domain="database" path="." />
+        <exclude domain="device_database" path="." />
+        <exclude domain="sharedpref" path="." />
+        <exclude domain="device_sharedpref" path="." />
+        <exclude domain="external" path="." />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="root" path="." />
+        <exclude domain="device_root" path="." />
+        <exclude domain="file" path="." />
+        <exclude domain="device_file" path="." />
+        <exclude domain="database" path="." />
+        <exclude domain="device_database" path="." />
+        <exclude domain="sharedpref" path="." />
+        <exclude domain="device_sharedpref" path="." />
+        <exclude domain="external" path="." />
+    </device-transfer>
+</data-extraction-rules>

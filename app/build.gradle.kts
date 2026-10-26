@@ -7,12 +7,12 @@ plugins {
 
 android {
     namespace = "com.nightwave.player"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.nightwave.player"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 35
         versionName = "2.0.0-alpha5s"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
