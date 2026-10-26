@@ -33,6 +33,7 @@ NW76 does NOT modify the Android playback engine or user data. It strengthens th
 - Source changes were read back from GitHub and inspected. A passing static audit or parser fixture does **not** certify Android compilation.
 - This assistant does not have the user's installed Windows SDK/Gradle environment, and Windows PowerShell is not installed here. The newly committed PowerShell scripts must be **executed by `build-windows.cmd`** to confirm syntax/runtime compatibility.
 - No Gradle JVM/Android test suite was executed for this branch in the assistant environment. The historical 1,116/1,117 run predates NW76 and Hotfix 5's corrected expectation; it is **not a current pass**.
+- [Latest hosted Android workflow 40296645208](https://github.com/Nahian2002/NightWave/actions/runs/40296645208) concluded **failure**, but its connected job API provided **no executed-step details**. Its root cause is unknown and cannot be described as a JUnit, PowerShell, or Kotlin compiler failure. A fresh local Windows build remains required.
 - No new public build, Google login success, full catalog/offline authorization, audio effects, performance score or phone QA is implied.
 
 ## Single-source Windows acceptance
