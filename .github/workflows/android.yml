@@ -98,6 +98,7 @@ on:
       - feature/nightwave-nw92-data-integrity-recovery
       - feature/nightwave-nw93-queue-recovery
       - feature/nightwave-nw94-playback-checkpoint-reliability
+      - feature/nightwave-nw95-headset-media-focus-reliability
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
@@ -409,6 +410,7 @@ jobs:
           python3 tools/verify_nw92_storage.py
           python3 tools/verify_nw93_queue_recovery.py
           python3 tools/verify_nw94_playback.py
+          python3 tools/verify_nw95_audio_route.py
           python3 tools/nw90_certification.py --project-root . --report build/NightWave-NW90-candidate-gates.json
 
       - name: Standalone Kotlin compiler smoke (when compiler present)
@@ -443,6 +445,11 @@ jobs:
               app/src/main/java/com/nightwave/player/playback/PublicBookmarkCheckpointPolicy.kt \
               tools/NW94PublicBookmarkSmoke.kt -include-runtime -d /tmp/nightwave-nw94-bookmark.jar
             java -jar /tmp/nightwave-nw94-bookmark.jar
+            # NW95: exact-source headset command policy and failure fixtures.
+            kotlinc app/src/main/java/com/nightwave/player/playback/AudioRouteTransportPolicy.kt \
+              tools/NW95AudioRouteTransportSmoke.kt -include-runtime \
+              -d /tmp/nightwave-nw95-audio-route.jar
+            java -jar /tmp/nightwave-nw95-audio-route.jar
             # NW75: compile FIVE real Kotlin source policies together, then
             # execute the exact cross-phase test harness; no Android SDK/data.
             kotlinc \

@@ -1152,16 +1152,54 @@ class PlaybackService : MediaLibraryService() {
                 ): Boolean {
                     @Suppress("DEPRECATION")
                     val event = intent.getParcelableExtra<KeyEvent>(Intent.EXTRA_KEY_EVENT)
-                    if (event?.action != KeyEvent.ACTION_DOWN) return false
+                    if (event?.action != KeyEvent.ACTION_DOWN || event.repeatCount > 0) {
+                        // Never turn a long-press repeat into many Next/Previous
+                        // commands; leave long-press semantics with the platform.
+                        return false
+                    }
                     return when (event.keyCode) {
                         KeyEvent.KEYCODE_MEDIA_NEXT -> { playNext(false); true }
                         KeyEvent.KEYCODE_MEDIA_PREVIOUS -> { playPrevious(); true }
-                        KeyEvent.KEYCODE_MEDIA_PLAY, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
+                        KeyEvent.KEYCODE_MEDIA_PLAY,
+                        KeyEvent.KEYCODE_MEDIA_PAUSE,
+                        KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
                         KeyEvent.KEYCODE_HEADSETHOOK -> {
-                            if (exoPlayer?.currentMediaItem == null && !offlinePlaying && queue.current != null) {
-                                resumeSavedQueue()
-                                true
-                            } else false // Media3 handles ordinary play/pause.
+                            // Only intercept transport while no MediaItem has
+                            // been loaded for a saved public queue. Loaded and
+                            // offline audio remain owned by Media3, including
+                            // Android focus and becoming-noisy route handling.
+                            val player = exoPlayer ?: return false
+                            val key = when (event.keyCode) {
+                                KeyEvent.KEYCODE_MEDIA_PLAY ->
+                                    AudioRouteTransportPolicy.Key.PLAY
+                                KeyEvent.KEYCODE_MEDIA_PAUSE ->
+                                    AudioRouteTransportPolicy.Key.PAUSE
+                                else -> AudioRouteTransportPolicy.Key.TOGGLE
+                            }
+                            when (AudioRouteTransportPolicy.decide(
+                                key = key,
+                                selectedCanonicalPublicSong = queue.current?.url?.let {
+                                    QueueRestorePolicy.isCanonicalPublicWatchUrl(it)
+                                } == true,
+                                mediaItemLoaded = player.currentMediaItem != null,
+                                offlinePlaying = offlinePlaying,
+                                playWhenReady = player.playWhenReady
+                            )) {
+                                AudioRouteTransportPolicy.Action.PAUSE_PENDING -> {
+                                    // Resolver success reads playWhenReady again:
+                                    // a headset Pause during lookup cannot later
+                                    // autoplay through an unexpected audio route.
+                                    player.pause()
+                                    true
+                                }
+                                AudioRouteTransportPolicy.Action.RESUME_SAVED -> {
+                                    // A real user Play/Toggle may resume the
+                                    // existing request or explicitly resolve it.
+                                    resumeSavedQueue()
+                                    true
+                                }
+                                AudioRouteTransportPolicy.Action.DELEGATE -> false
+                            }
                         }
                         else -> false
                     }

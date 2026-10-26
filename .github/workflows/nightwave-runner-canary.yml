@@ -14,6 +14,7 @@ on:
       - feature/nightwave-nw92-data-integrity-recovery
       - feature/nightwave-nw93-queue-recovery
       - feature/nightwave-nw94-playback-checkpoint-reliability
+      - feature/nightwave-nw95-headset-media-focus-reliability
   workflow_dispatch:
 
 permissions: {}
