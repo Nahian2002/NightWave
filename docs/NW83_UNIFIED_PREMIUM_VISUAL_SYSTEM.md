@@ -15,7 +15,8 @@
 
 ### 2. Typography and complete Material3 color roles
 - Explicitly define **all 15 Material3 typography roles** in `NightWaveTheme.kt`: display/headline/title/body/label, large/medium/small. This prevents some dialogs, sections and support surfaces from falling back to inconsistent stock text styles.
-- Extend all four palette Material3 schemes with explicit secondary/onSecondary, tertiary/onTertiary, surfaceTint, outlineVariant and inverse surface colors. Previously unspecified defaults could inject purple-tinted material accents into NightWave's custom midnight theme.
+- Extend all four palette Material3 schemes with explicit primary/secondary/tertiary container and text roles, surfaceTint, outlineVariant, inverse surface and error action colors. Previously unspecified defaults could inject mismatched Material tones into NightWave's custom themes.
+- **Contrast correction found in review:** Pearl danger text against raised color was only ~4.02:1; error containers now use the theme's normal surface, yielding **~4.68:1** in Pearl and at least 4.5:1 across the other built-in palettes. Keep the 12sp small-label role readable rather than shrinking it to 11sp.
 - Preserve saved theme choice including AMOLED, Aurora and Pearl. Preserve existing contrast requirements and Android's SP accessibility scaling. No remote fonts or billing.
 
 ### 3. Shared card, navigation and page geometry
@@ -33,6 +34,7 @@
 ## Regression and evidence
 
 - Added `NightWavePremiumDesignTokensTest.kt` with five pure unit tests covering responsive gutters, row sizing, multiline titles, 48dp+ touch targets and restrained selection states.
+- Extended `NightWaveContrastPolicyTest.kt` with a Material3 container/text-role contrast matrix for Midnight, Aurora, Pearl and AMOLED, including explicit checks for error containers and readable controls. Checked those concrete ARGB pairs with a standalone WCAG luminance calculation.
 - Added `tools/NW83VisualTokensSmoke.kt` — full exact-source pure-Kotlin smoke entrypoint against `NightWaveChromePolicy`, `NightWaveAdaptiveChromePolicy`, `NightWavePremiumDesignTokens` and `NightWaveMotionPolicy`. It is available for the NW90/integration build, **not claimed executed here**.
 - Added `tools/verify_nw83_premium_visual.py` source-only contract for all 15 typography roles, Material color coverage, Home/Search/Library/You gutter wiring, track/queue token use, navigation and touch sizing.
 - **Executed targeted Kotlin compilation and run:** `NightWavePremiumDesignTokens.kt` plus a test-only stub for its prior `NightWaveAdaptiveChromePolicy.horizontalPaddingDp` dependency, and direct policy cases, returned `NW83_PREMIUM_DESIGN_TOKENS_TARGETED_SMOKE_PASS`. The exact local tokens file Git blob matched GitHub source SHA `1ec81eb0ab944bd812efe730b830ab7df648de1f`. **This does not prove the full standalone smoke or Android app compiled.**
