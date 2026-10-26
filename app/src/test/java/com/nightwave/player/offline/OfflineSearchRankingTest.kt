@@ -35,4 +35,20 @@ class OfflineSearchRankingTest {
             OfflineSearchRanking.terms("unrelated"), "My Track", "mp3"))
         assertFalse(OfflineSearchRanking.terms("!!!").isNotEmpty())
     }
+
+    @Test fun nw82OfflineAloDoesNotMatchAloneAndExactStillWorks() {
+        val alo = OfflineSearchRanking.terms("alo alo")
+        assertEquals(-1, OfflineSearchRanking.score(alo, "Alone", "mp3"))
+        assertTrue(OfflineSearchRanking.score(alo, "Alo Alo", "flac") > 0)
+        assertEquals(-1, OfflineSearchRanking.score(
+            OfflineSearchRanking.terms("alo"), "Alone", "mp3"))
+        assertTrue(OfflineSearchRanking.score(
+            OfflineSearchRanking.terms("aloo"), "Aloooo", "mp3") > 0)
+    }
+
+    @Test fun nw82OfflineBanglaVowelsRemainMeaningful() {
+        val wanted = OfflineSearchRanking.terms("মালা")
+        assertTrue(OfflineSearchRanking.score(wanted, "মালা", "mp3") > 0)
+        assertEquals(-1, OfflineSearchRanking.score(wanted, "মেলা", "mp3"))
+    }
 }
