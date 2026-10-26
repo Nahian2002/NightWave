@@ -24,6 +24,7 @@ import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.session.MediaSession
+import androidx.media3.session.CommandButton
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaLibraryService.MediaLibrarySession
 import androidx.media3.session.MediaLibraryService.LibraryParams
@@ -1132,11 +1133,16 @@ class PlaybackService : MediaLibraryService() {
                     session: MediaSession,
                     controller: MediaSession.ControllerInfo
                 ): MediaSession.ConnectionResult {
-                    // Existing car, headset and notification controllers retain
-                    // the default permitted commands. Custom queue commands are
-                    // available only to NightWave's own widget controller.
-                    if (controller.packageName != packageName)
-                        return super.onConnect(session, controller)
+                    // Preserve Media3's defaults for arbitrary car/Bluetooth
+                    // clients. Only the app and Media3's own notification
+                    // controller receive NightWave's queue-level commands.
+                    // Public playback has one loaded MediaItem, so a generic
+                    // nextMediaItem command cannot traverse the public queue.
+                    val mayNavigate = MediaSessionQueueControlPolicy.trustedController(
+                        sameAppPackage = controller.packageName == packageName,
+                        mediaNotification = session.isMediaNotificationController(controller)
+                    )
+                    if (!mayNavigate) return super.onConnect(session, controller)
                     val commands = MediaSession.ConnectionResult.DEFAULT_SESSION_COMMANDS
                         .buildUpon()
                         .add(SessionCommand(NightWaveWidgetController.COMMAND_NEXT, Bundle.EMPTY))
@@ -1153,22 +1159,35 @@ class PlaybackService : MediaLibraryService() {
                     customCommand: SessionCommand,
                     args: Bundle
                 ): ListenableFuture<SessionResult> {
-                    if (controller.packageName != packageName) {
+                    if (!MediaSessionQueueControlPolicy.trustedController(
+                            sameAppPackage = controller.packageName == packageName,
+                            mediaNotification = session.isMediaNotificationController(controller)
+                        )) {
                         return Futures.immediateFuture(
                             SessionResult(SessionResult.RESULT_ERROR_PERMISSION_DENIED))
                     }
-                    val result = when (customCommand.customAction) {
-                        NightWaveWidgetController.COMMAND_NEXT -> {
-                            playNext(false)
-                            SessionResult.RESULT_SUCCESS
-                        }
-                        NightWaveWidgetController.COMMAND_PREVIOUS -> {
-                            playPrevious()
-                            SessionResult.RESULT_SUCCESS
-                        }
-                        else -> SessionResult.RESULT_ERROR_NOT_SUPPORTED
+                    val action = customCommand.customAction
+                    if (!MediaSessionQueueControlPolicy.knownAction(
+                            action,
+                            NightWaveWidgetController.COMMAND_NEXT,
+                            NightWaveWidgetController.COMMAND_PREVIOUS
+                        ) || !MediaSessionQueueControlPolicy.canNavigate(
+                            offlinePlaying = offlinePlaying,
+                            offlineSelected = offlineQueue.current != null,
+                            publicSelected = queue.current != null
+                        )) {
+                        return Futures.immediateFuture(
+                            SessionResult(SessionResult.RESULT_ERROR_NOT_SUPPORTED))
                     }
-                    return Futures.immediateFuture(SessionResult(result))
+                    // Both widget and notification routes call the SAME
+                    // queue-aware methods used by headset buttons. No duplicate
+                    // MediaSession, resolver or direct signed-URL seek is created.
+                    when (action) {
+                        NightWaveWidgetController.COMMAND_NEXT -> playNext(false)
+                        NightWaveWidgetController.COMMAND_PREVIOUS -> playPrevious()
+                    }
+                    return Futures.immediateFuture(
+                        SessionResult(SessionResult.RESULT_SUCCESS))
                 }
 
                 override fun onMediaButtonEvent(
@@ -1230,7 +1249,23 @@ class PlaybackService : MediaLibraryService() {
                         else -> false
                     }
                 }
-            }).setSessionActivity(openApp).build()
+            })
+            // Media3 1.6.1: custom session buttons occupy the notification's
+            // Back/Forward slots even for the single-item public player.
+            // Other controller packages retain default command permissions.
+            .setMediaButtonPreferences(listOf(
+                CommandButton.Builder(CommandButton.ICON_PREVIOUS)
+                    .setDisplayName("Previous song")
+                    .setSessionCommand(SessionCommand(
+                        NightWaveWidgetController.COMMAND_PREVIOUS, Bundle.EMPTY))
+                    .build(),
+                CommandButton.Builder(CommandButton.ICON_NEXT)
+                    .setDisplayName("Next song")
+                    .setSessionCommand(SessionCommand(
+                        NightWaveWidgetController.COMMAND_NEXT, Bundle.EMPTY))
+                    .build()
+            ))
+            .setSessionActivity(openApp).build()
         // The saved queue, artwork and bookmark are available immediately from
         // QueueStateStore. Do NOT issue a network request on service creation.
         // A MediaController may bind repeatedly while Android recovers an app.

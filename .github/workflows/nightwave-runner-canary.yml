@@ -18,6 +18,7 @@ on:
       - feature/nightwave-nw96-equalizer-session-restoration
       - feature/nightwave-nw97-offline-shuffle-cycle-integrity
       - feature/nightwave-nw98-background-playback-intent
+      - feature/nightwave-nw99-notification-session-commands
   workflow_dispatch:
 
 permissions: {}

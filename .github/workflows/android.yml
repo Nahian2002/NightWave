@@ -102,6 +102,7 @@ on:
       - feature/nightwave-nw96-equalizer-session-restoration
       - feature/nightwave-nw97-offline-shuffle-cycle-integrity
       - feature/nightwave-nw98-background-playback-intent
+      - feature/nightwave-nw99-notification-session-commands
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
@@ -417,6 +418,7 @@ jobs:
           python3 tools/verify_nw96_equalizer.py
           python3 tools/verify_nw97_offline_transitions.py
           python3 tools/verify_nw98_background_intent.py
+          python3 tools/verify_nw99_media_session.py
           python3 tools/nw90_certification.py --project-root . --report build/NightWave-NW90-candidate-gates.json
 
       - name: Standalone Kotlin compiler smoke (when compiler present)
@@ -470,6 +472,11 @@ jobs:
               tools/NW98BackgroundIntentSmoke.kt -include-runtime \
               -d /tmp/nightwave-nw98-background-intent.jar
             java -jar /tmp/nightwave-nw98-background-intent.jar
+            # NW99: source-equivalent session authorization/queue routing cases.
+            kotlinc app/src/main/java/com/nightwave/player/playback/MediaSessionQueueControlPolicy.kt \
+              tools/NW99MediaSessionQueueSmoke.kt -include-runtime \
+              -d /tmp/nightwave-nw99-session.jar
+            java -jar /tmp/nightwave-nw99-session.jar
             # NW75: compile FIVE real Kotlin source policies together, then
             # execute the exact cross-phase test harness; no Android SDK/data.
             kotlinc \
