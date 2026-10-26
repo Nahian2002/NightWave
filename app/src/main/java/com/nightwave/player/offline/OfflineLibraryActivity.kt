@@ -127,9 +127,21 @@ class OfflineLibraryActivity : ComponentActivity() {
             setPadding(dp(12), 0, dp(12), 0)
             background = cardBackground(0xFF1A303A.toInt())
             setOnClickListener {
-                cachedReport = null
-                refresh()
-                status("Offline audio rechecked · No files or entries changed")
+                status("Checking local audio without changing any files…")
+                // Use the existing bounded import worker; a large library
+                // must not do file I/O on the UI thread during manual repair.
+                worker.execute {
+                    val checked = runCatching { library.healthReport() }
+                    runOnUiThread {
+                        if (!isFinishing && !isDestroyed) {
+                            cachedReport = checked.getOrNull()
+                            refresh()
+                            status(if (checked.isSuccess)
+                                "Offline audio rechecked · No files or entries changed"
+                            else "Recheck unavailable · No files or entries changed")
+                        }
+                    }
+                }
             }
         }, LinearLayout.LayoutParams(-1, dp(44)).apply {
             bottomMargin = dp(7)
