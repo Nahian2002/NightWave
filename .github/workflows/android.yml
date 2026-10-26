@@ -92,6 +92,8 @@ on:
       - fix/nightwave-nw75-offline-shuffle-junit
       - feature/nightwave-nw76-build-certification
       - feature/nightwave-nw77-source-safety-release-gate
+      # NW90 verifies the complete cumulative NW76–NW89 source, never older branches.
+      - feature/nightwave-nw90-final-integration-certification
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
@@ -385,6 +387,21 @@ jobs:
       # Compiles and executes production Kotlin without an Android runtime.
       # Ubuntu toolchains differ: absence of standalone kotlinc is labeled
       # SKIP, not PASS; full Gradle Kotlin compile is still mandatory below.
+      - name: NW90 cumulative NW81–NW89 source contracts
+        run: |
+          set -euo pipefail
+          python3 tools/verify_nw81_titles.py
+          python3 tools/verify_nw82_search.py
+          python3 tools/verify_nw83_premium_visual.py
+          python3 tools/verify_nw84_home.py
+          python3 tools/verify_nw85_now_playing.py
+          python3 tools/verify_nw86_library.py
+          python3 tools/verify_nw87_transfer_offline.py
+          python3 tools/verify_nw88_sound_studio.py
+          python3 tools/verify_nw89_lyrics.py
+          python3 tools/nw90_certification.py --self-test
+          python3 tools/nw90_certification.py --project-root . --report build/NightWave-NW90-candidate-gates.json
+
       - name: Standalone Kotlin compiler smoke (when compiler present)
         run: |
           if command -v kotlinc >/dev/null 2>&1; then
