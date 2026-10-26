@@ -4,9 +4,11 @@
 
 NightWave combines locally imported or otherwise authorized music, an offline library, optional Google Drive backup, song discovery, playlists, Sound Studio, queue control, and user-imported synchronized LRC lyrics. The original midnight/teal design is independent of Spotify.
 
-**Current development source:** `feature/nightwave-nw104-kotlin-junit-compiler-fixes` (cumulative NW103 with verified Kotlin JUnit test-source compiler repairs). The older default `main` does not represent this candidate.
+**Current development source:** `feature/nightwave-nw105-offline-junit-execution` (cumulative NW104 with real offline JUnit method execution and explicit source evidence). The older default `main` does not represent this candidate.
 
 **Release status:** **NO-GO**. The hosted GitHub Actions runner and empty canary both failed before executing steps; a current Windows debug build, Android/JUnit/139-case device validation, installed-signer continuity, production OAuth/backup, Google Play API 36 migration and NW77 YouTube-source rights review remain outstanding. Never install a new APK over a library-bearing app unless its signer matches.
+
+**NW105 offline JUnit execution milestone:** [NW105 exact-source evidence and limitations](docs/NW105_OFFLINE_JUNIT_EVIDENCE.md). Both real offline policies and the original two offline JUnit classes were compiled locally with a minimal standalone public Repeat enum type; **14/14 methods passed**. Together with NW104, **47/53** distinct JUnit methods have independent JVM evidence. Six public-queue JUnit methods and full Android/Gradle/device tests are outstanding. The NW102 full 53-method runner remains mandatory.
 
 **NW104 Kotlin compiler-test repair milestone:** [NW104 compiler evidence](docs/NW104_KOTLIN_JUNIT_COMPILER_FIXES.md). Repaired invalid instance references to Kotlin nested enums in two NW95/NW98 JUnit test classes. The exact underlying Kotlin source compiled on the local JVM and **33/33 real @Test methods passed** across five test classes. The full 53-test matrix, Android Gradle, signing and device tests are still unverified.
 

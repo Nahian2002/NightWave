@@ -108,6 +108,7 @@ on:
       - feature/nightwave-nw102-jvm-test-source-compiler-gate
       - feature/nightwave-nw103-build-receipt-final-gates
       - feature/nightwave-nw104-kotlin-junit-compiler-fixes
+      - feature/nightwave-nw105-offline-junit-execution
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
@@ -432,11 +433,29 @@ jobs:
           python3 tools/verify_nw103_build_pipeline.py
           python3 tools/verify_nw104_nested_enum_test_sources.py --self-test
           python3 tools/verify_nw104_nested_enum_test_sources.py
+          python3 tools/verify_nw105_offline_junit.py
           python3 tools/nw90_certification.py --project-root . --report build/NightWave-NW90-candidate-gates.json
 
       - name: NW101 PowerShell 5.1 attestation logic self-test
         shell: pwsh
         run: ./tools/nw101-source-attestation.ps1 -SelfTest
+
+      # Independently execute NW97/NW100 original offline-policy JUnit methods.
+      # Uses an enum adapter only for the unused public-queue implementation.
+      - name: NW105 compile and run real offline JUnit test source
+        shell: bash
+        run: |
+          python3 tools/nw105_offline_junit_gate.py --self-test
+          python3 tools/nw105_offline_junit_gate.py --report build/nightwave-nw105-offline-junit.json
+
+      - name: NW105 offline JVM evidence (not public queue or Android)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: NightWave-NW105-OFFLINE-JVM-ONLY-NO-ANDROID-APPROVAL
+          path: build/nightwave-nw105-offline-junit.json
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: NW102 compile and run original Kotlin JUnit source tests
         shell: bash
