@@ -52,7 +52,7 @@ REQUIRED = {
     ],
     "queue": [
         "search.count(\"onPlay(selected, listOf(selected))\") != 1",
-        "search.count(\"playSinglePublic(song)\") != 2",
+        "search.count(\"playSinglePublic(song)\") != 3",
     ],
     "tests": [
         "assertEquals(40, cases.size)",
@@ -85,8 +85,8 @@ def audit(files):
         issues.append("Three local/creator Search tap paths must remain single song")
     if search.count("onPlay(selected, listOf(selected))") != 1:
         issues.append("Public Search must use one single-song playback callback")
-    if search.count("playSinglePublic(song)") != 2:
-        issues.append("Both public groups must use the same single-song callback")
+    if search.count("playSinglePublic(song)") != 3:
+        issues.append("All three public groups must use the same single-song callback")
     if "quickOptionsExpanded" in search:
         issues.append("Old duplicate advanced search controls returned")
     if files.get("tests", "").count("Triple(") < 40:
@@ -104,7 +104,7 @@ def main():
             "private fun StudioSearch(\n" +
             "onPlay(song, listOf(song))\n" * 3 +
             "onPlay(selected, listOf(selected))\n" +
-            "playSinglePublic(song)\n" * 2 +
+            "playSinglePublic(song)\n" * 3 +
             "\nprivate fun StudioLibrary(\n" + fake["ui"]
         )
         fake["tests"] += "\nTriple(\"q\", \"a\", \"b\")" * 40
