@@ -89,6 +89,8 @@ on:
       - feature/nightwave-nw73-backup-freshness-error8-guidance
       - feature/nightwave-nw74-ui-state-crash-guards
       - feature/nightwave-nw75-final-integration-gates
+      - fix/nightwave-nw75-offline-shuffle-junit
+      - feature/nightwave-nw76-build-certification
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
@@ -399,6 +401,11 @@ jobs:
           mkdir -p build
           set -o pipefail
           gradle --no-daemon --stacktrace --console=plain :app:testDebugUnitTest :app:assembleDebug :app:compileDebugAndroidTestKotlin 2>&1 | tee build/nightwave-gradle.log
+      - name: NW76 certify current JVM report before APK validation
+        shell: pwsh
+        run: |
+          ./tools/nw76-junit-proof.ps1 -SelfTest
+          ./tools/nw76-junit-proof.ps1 -ResultsDirectory app/build/test-results/testDebugUnitTest -OutputFile build/NightWave-jvm-test-proof.txt -MinimumTests 1000
       # This cannot run without an allocated runner; absence of the summary
       # then means infrastructure did not reach the compiler stage.
       - name: Summarize build failure without raw tokens or private paths
@@ -423,6 +430,8 @@ jobs:
         if: success()
         with:
           name: NightWave-NW52-dev-debug-NEEDS-SIGNER-DEVICE-QA
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: |
+            app/build/outputs/apk/debug/app-debug.apk
+            build/NightWave-jvm-test-proof.txt
           if-no-files-found: error
           retention-days: 5
