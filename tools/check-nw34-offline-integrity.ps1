@@ -42,8 +42,18 @@ $checks = @(
         'SearchOfflineFailurePolicy.message('),
     @('app\src\main\java\com\nightwave\player\offline\OfflineSaveRetryPolicy.kt',
         'fun retryUrl(tags: Set<String>): String?'),
+    # NW62/NW64: readiness moved behind a generation-fenced asynchronous
+    # private-file inspection. Keep BOTH levels, not the old direct UI call.
     @('app\src\main\java\com\nightwave\player\offline\CatalogDownloadsActivity.kt',
+        'DownloadFileVerificationPolicy.ready('),
+    @('app\src\main\java\com\nightwave\player\offline\CatalogDownloadsActivity.kt',
+        'OfflineAudioLibrary(applicationContext).availableIds(ids)'),
+    @('app\src\main\java\com\nightwave\player\offline\DownloadFileVerificationPolicy.kt',
         'OfflineDownloadStatusPolicy.isReady('),
+    @('app\src\main\java\com\nightwave\player\offline\DownloadFileVerificationPolicy.kt',
+        '!checking && !verificationFailed'),
+    @('app\src\main\java\com\nightwave\player\offline\OfflineDownloadStatusPolicy.kt',
+        'savedId in currentlyAvailableIds'),
     @('app\src\main\java\com\nightwave\player\v2\ui\NightWaveStudioActivity.kt',
         'playSearchedOfflineFirst(video, collection)'),
     @('app\src\main\java\com\nightwave\player\offline\OfflineAudioLibrary.kt',
@@ -76,6 +86,6 @@ if ($failures -gt 0) {
     Write-Host ('FAIL: NW34 offline contract preflight: ' + $failures + ' error(s).') -ForegroundColor Red
     exit 1
 }
-Write-Host 'PASS: NW34 offline source contracts (16 checks).' -ForegroundColor Green
+Write-Host 'PASS: NW34 offline source contracts (20 checks; NW62 async-ready delegation).' -ForegroundColor Green
 Write-Host 'LIMIT: Android Gradle compilation, actual network transfers and playback still require testing.'
 exit 0
