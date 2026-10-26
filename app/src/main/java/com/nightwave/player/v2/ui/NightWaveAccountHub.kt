@@ -195,10 +195,20 @@ internal fun NightWaveAccountHubDialog(
                                         style = MaterialTheme.typography.bodyMedium)
                                 }
                                 if (cloud.lastSuccessMs > 0L &&
-                                    stage == CloudAccountPresentation.BackupStage.VERIFIED_BACKUP) {
-                                    Text("Last verified backup · " +
+                                    stage in setOf(
+                                        CloudAccountPresentation.BackupStage.VERIFIED_BACKUP,
+                                        CloudAccountPresentation.BackupStage.PREVIOUS_BACKUP_NEEDS_REFRESH)) {
+                                    val prior = stage ==
+                                        CloudAccountPresentation.BackupStage.PREVIOUS_BACKUP_NEEDS_REFRESH
+                                    Text((if (prior) "Previous verified backup · "
+                                        else "Last verified backup · ") +
                                         DateFormat.getDateTimeInstance().format(
                                             Date(cloud.lastSuccessMs)),
+                                        color = muted,
+                                        style = MaterialTheme.typography.bodySmall)
+                                    if (prior) Text(
+                                        "New privacy or backup settings aren't verified in that snapshot. " +
+                                            "Choose Back up library now to refresh it.",
                                         color = muted,
                                         style = MaterialTheme.typography.bodySmall)
                                 }
