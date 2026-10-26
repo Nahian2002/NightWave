@@ -27,6 +27,21 @@ class CloudAccountPresentationTest {
             CloudAccountPresentation.BackupStage.VERIFIED_BACKUP))
     }
 
+    @Test fun stageUsesActualVerifiedConsentRevisionRatherThanOnlyTimestamp() {
+        val old = CloudBackupStatus(
+            account = "demo@example.com", enabled = true,
+            lastSuccessMs = 1_000L, revision = 5L, lastVerifiedRevision = 4L)
+        assertEquals(CloudAccountPresentation.BackupStage.PREVIOUS_BACKUP_NEEDS_REFRESH,
+            CloudAccountPresentation.stage(old))
+        assertEquals(CloudAccountPresentation.BackupStage.VERIFIED_BACKUP,
+            CloudAccountPresentation.stage(old.copy(lastVerifiedRevision = 5L)))
+        assertEquals(CloudAccountPresentation.BackupStage.PREVIOUS_BACKUP_NEEDS_REFRESH,
+            CloudAccountPresentation.stage(old.copy(lastVerifiedRevision = -1L)))
+        assertTrue(CloudAccountPresentation.details(
+            CloudAccountPresentation.BackupStage.PREVIOUS_BACKUP_NEEDS_REFRESH)
+            .contains("current backup choices"))
+    }
+
     @Test fun masksOnlyDisplayAndKeepsDomain() {
         assertEquals("j•••@gmail.com",
             CloudAccountPresentation.maskedAccount("jayed@gmail.com"))
