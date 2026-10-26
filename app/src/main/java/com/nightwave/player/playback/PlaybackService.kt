@@ -642,11 +642,18 @@ class PlaybackService : MediaLibraryService() {
             }
             return
         }
-        if (!::savedQueue.isInitialized || !url.startsWith("https://www.youtube.com/watch?v=")) return
+        if (!::savedQueue.isInitialized ||
+            !PublicBookmarkCheckpointPolicy.shouldPersist(
+                url, queue.current?.url, offlinePlaying)) return
         val duration = player.duration.takeIf { it != C.TIME_UNSET && it > 0L } ?: 0L
-        // A corrupt preference must never terminate the background playback service.
+        // A delayed pause/timer callback from a previously loaded MediaItem
+        // must not replace the new selection's bookmark.
         runCatching {
-            savedQueue.saveBookmark(url, player.currentPosition.coerceAtLeast(0L), duration)
+            val committed = savedQueue.saveBookmark(
+                url, player.currentPosition.coerceAtLeast(0L), duration, flush)
+            if (flush && !committed) {
+                Log.w("NightWavePlayback", "Current public bookmark flush failed")
+            }
         }
     }
 
@@ -1224,6 +1231,12 @@ class PlaybackService : MediaLibraryService() {
                         play()
                     }
                 } else {
+                    // Flush outgoing progress while its public identity is
+                    // still selected. Otherwise a late pause callback could
+                    // write the departed song over the replacement bookmark.
+                    if (!offlinePlaying && queue.current?.url != selectedEntry?.url) {
+                        persistProgress(flush = true)
+                    }
                     queue.replace(entries, selected)
                     if (explicitDisplayOrder) queue.useExplicitDisplayOrder()
                     generation++ // invalidate unresolved previous track jobs
@@ -1510,9 +1523,10 @@ class PlaybackService : MediaLibraryService() {
                     queue.shuffle, explicit,
                     intent.getBooleanExtra(EXTRA_SHUFFLE_ENABLED, false))
                 queue.shuffle = enabled
-                savedQueue.save(queue)
+                val persisted = savedQueue.save(queue)
                 val requestId = intent.getStringExtra(EXTRA_SHUFFLE_REQUEST_ID).orEmpty()
-                if (requestId.isNotBlank() && savedQueue.read().shuffle == enabled) {
+                if (persisted && requestId.isNotBlank() &&
+                    savedQueue.read().shuffle == enabled) {
                     ShuffleModeReceiptStore(this).acknowledge(requestId, enabled)
                 }
             }
@@ -1534,11 +1548,12 @@ class PlaybackService : MediaLibraryService() {
                     queue.repeat, explicit, intent?.getStringExtra(EXTRA_REPEAT_MODE))
                 if (mode != null) {
                     queue.repeat = mode
-                    savedQueue.save(queue)
+                    val persisted = savedQueue.save(queue)
                     val requestId = intent?.getStringExtra(EXTRA_REPEAT_REQUEST_ID)
-                    // Acknowledge only a mode that is actually present in the
-                    // persisted queue snapshot. Old legacy toggle calls have no ID.
-                    if (!requestId.isNullOrEmpty() && savedQueue.read().repeat == mode) {
+                    // Do not acknowledge a failed disk write just because an
+                    // older snapshot happened to report the requested mode.
+                    if (persisted && !requestId.isNullOrEmpty() &&
+                        savedQueue.read().repeat == mode) {
                         RepeatModeReceiptStore(this).acknowledge(requestId, mode)
                     }
                 }

@@ -97,6 +97,7 @@ on:
       - feature/nightwave-nw91-build-recovery-reliability
       - feature/nightwave-nw92-data-integrity-recovery
       - feature/nightwave-nw93-queue-recovery
+      - feature/nightwave-nw94-playback-checkpoint-reliability
   pull_request:
     branches:
       - feature/nightwave-v2-nw17-drive-identity-local-search
@@ -407,6 +408,7 @@ jobs:
           python3 tools/verify_nw91_certification.py
           python3 tools/verify_nw92_storage.py
           python3 tools/verify_nw93_queue_recovery.py
+          python3 tools/verify_nw94_playback.py
           python3 tools/nw90_certification.py --project-root . --report build/NightWave-NW90-candidate-gates.json
 
       - name: Standalone Kotlin compiler smoke (when compiler present)
@@ -433,6 +435,14 @@ jobs:
               tools/NW93ShuffleRecoverySmoke.kt -include-runtime \
               -d /tmp/nightwave-nw93-history.jar
             java -jar /tmp/nightwave-nw93-history.jar
+            # NW94 exact-source public bookmark identity failure scenarios.
+            kotlinc app/src/main/java/com/nightwave/player/core/VideoLink.kt \
+              app/src/main/java/com/nightwave/player/playback/ShuffleRecoveryPolicy.kt \
+              app/src/main/java/com/nightwave/player/playback/PlaybackQueue.kt \
+              app/src/main/java/com/nightwave/player/playback/QueueRestorePolicy.kt \
+              app/src/main/java/com/nightwave/player/playback/PublicBookmarkCheckpointPolicy.kt \
+              tools/NW94PublicBookmarkSmoke.kt -include-runtime -d /tmp/nightwave-nw94-bookmark.jar
+            java -jar /tmp/nightwave-nw94-bookmark.jar
             # NW75: compile FIVE real Kotlin source policies together, then
             # execute the exact cross-phase test harness; no Android SDK/data.
             kotlinc \

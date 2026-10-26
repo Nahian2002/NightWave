@@ -4,9 +4,11 @@
 
 NightWave combines locally imported or otherwise authorized music, an offline library, optional Google Drive backup, song discovery, playlists, Sound Studio, queue control, and user-imported synchronized LRC lyrics. The original midnight/teal design is independent of Spotify.
 
-**Current development source:** `feature/nightwave-nw93-queue-recovery` (cumulative NW92 with bounded shuffle Previous/Forward history persistence). The older default `main` does not represent this candidate.
+**Current development source:** `feature/nightwave-nw94-playback-checkpoint-reliability` (cumulative NW93 plus guarded public playback bookmarks and durable pause checkpoints). The older default `main` does not represent this candidate.
 
 **Release status:** **NO-GO**. The hosted GitHub Actions runner and empty canary both failed before executing steps; a current Windows debug build, Android/JUnit/139-case device validation, installed-signer continuity, production OAuth/backup, Google Play API 36 migration and NW77 YouTube-source rights review remain outstanding. Never install a new APK over a library-bearing app unless its signer matches.
+
+**NW94 playback-checkpoint milestone:** [NW94 source patch, JVM fixtures and unresolved tests](docs/NW94_PLAYBACK_CHECKPOINT_EVIDENCE.md). Public bookmarks now reject callbacks for a no-longer-selected MediaItem; requested pause/shutdown flush uses synchronous preference commit. Public queue mode acknowledgements require a successful persistence result. **Full Android/device certification remains outstanding.**
 
 **NW93 queue-recovery milestone:** [NW93 evidence and restart regression tests](docs/NW93_QUEUE_RECOVERY_EVIDENCE.md). Shuffle Previous/Forward trails and the seen-cycle now persist as validated public track IDs, preserving the exact selected song and legacy queue format compatibility. A damaged history is discarded without erasing the valid queue. **Android Gradle/device QA is not certified.** The cumulative Windows build remains `run-nw91-final.cmd`.
 

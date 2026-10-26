@@ -23,13 +23,19 @@ class QueueStateStore(context: Context) {
     data class Bookmark(val url: String, val positionMs: Long, val durationMs: Long)
 
     /** Signed audio URLs are never persisted. This records only public IDs and position. */
-    fun saveBookmark(url: String, positionMs: Long, durationMs: Long) {
-        if (!QueueRestorePolicy.isCanonicalPublicWatchUrl(url)) return
-        prefs.edit()
-            .putString("bookmark_url", url)
-            .putLong("bookmark_position_ms", positionMs.coerceIn(0L, 86_400_000L))
-            .putLong("bookmark_duration_ms", durationMs.coerceIn(0L, 86_400_000L))
-            .apply()
+    fun saveBookmark(
+        url: String, positionMs: Long, durationMs: Long, flush: Boolean = false
+    ): Boolean {
+        if (!QueueRestorePolicy.isCanonicalPublicWatchUrl(url)) return false
+        return runCatching {
+            val editor = prefs.edit()
+                .putString("bookmark_url", url)
+                .putLong("bookmark_position_ms", positionMs.coerceIn(0L, 86_400_000L))
+                .putLong("bookmark_duration_ms", durationMs.coerceIn(0L, 86_400_000L))
+            // The 2.5-second ticker remains asynchronous. Pause/onDestroy
+            // must instead synchronously flush this same atomic preference edit.
+            if (flush) editor.commit() else { editor.apply(); true }
+        }.getOrDefault(false)
     }
 
     fun bookmark(expectedUrl: String?): Bookmark? {
@@ -96,9 +102,9 @@ class QueueStateStore(context: Context) {
         prefs.edit().remove("last_failure_url").remove("last_failure_label").apply()
     }
 
-    fun save(queue: PlaybackQueue) {
+    fun save(queue: PlaybackQueue): Boolean {
         val selectedUrl = queue.current?.url
-        if (selectedUrl != null && !QueueRestorePolicy.isCanonicalPublicWatchUrl(selectedUrl)) return
+        if (selectedUrl != null && !QueueRestorePolicy.isCanonicalPublicWatchUrl(selectedUrl)) return false
         // Only public, canonical IDs may be persisted, including upcoming rows.
         // A service command must never save signed audio URLs or arbitrary URIs.
         val entries = queue.snapshot().filter {
@@ -106,7 +112,7 @@ class QueueStateStore(context: Context) {
         }.distinctBy { it.url }.take(100)
         val selectedIndex = if (selectedUrl == null) -1
             else entries.indexOfFirst { it.url == selectedUrl }
-        if (selectedUrl != null && selectedIndex < 0) return
+        if (selectedUrl != null && selectedIndex < 0) return false
         val tracks = JSONArray()
         entries.forEach {
             tracks.put(JSONObject().put("url", it.url)
@@ -133,7 +139,7 @@ class QueueStateStore(context: Context) {
         // Queue changes happen on explicit selections / transitions, not the
         // 2.5-second playhead ticker. Flush them so a process kill cannot
         // silently revert the selected track to a stale persisted index.
-        prefs.edit().putString("snapshot", state.toString()).commit()
+        return prefs.edit().putString("snapshot", state.toString()).commit()
     }
 
     /** Only string IDs from bounded arrays; malformed history is ignored alone. */

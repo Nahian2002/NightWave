@@ -13,6 +13,7 @@ on:
       - feature/nightwave-nw91-build-recovery-reliability
       - feature/nightwave-nw92-data-integrity-recovery
       - feature/nightwave-nw93-queue-recovery
+      - feature/nightwave-nw94-playback-checkpoint-reliability
   workflow_dispatch:
 
 permissions: {}
