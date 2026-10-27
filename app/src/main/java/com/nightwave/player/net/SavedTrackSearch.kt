@@ -17,13 +17,29 @@ object SavedTrackSearch {
             val score = SearchRelevancePolicy.savedScore(prepared, track)
             if (score <= 0) null else Triple(track, score, index)
         }
-        // Typos are a last resort; never bury correct saved titles beneath
-        // approximate matches. Short names and Bangla vowels stay strict.
-        val candidates = if (strict.isNotEmpty()) strict else
+        // A curated Romanized/Bangla spelling is a fallback ONLY if there
+        // are no direct saved hits. This prevents approximate transliterations
+        // burying an exact song title, while preserving every original URL.
+        val aliasQueries = if (strict.isEmpty()) {
+            SearchMultilingualAliasPolicy.alternatives(prepared.text)
+                .map(SearchRelevancePolicy::prepare)
+        } else emptyList()
+        val aliasHits = if (aliasQueries.isEmpty()) emptyList() else
             tracks.withIndex().mapNotNull { (index, track) ->
+                val best = aliasQueries.maxOf { SearchRelevancePolicy.savedScore(it, track) }
+                val score = (best - 25).coerceAtLeast(0)
+                if (score <= 0) null else Triple(track, score, index)
+            }
+        // Typos remain a LAST resort. Uncurated spelling and Bangla vowel
+        // differences cannot become broad fuzzy library matches.
+        val candidates = when {
+            strict.isNotEmpty() -> strict
+            aliasHits.isNotEmpty() -> aliasHits
+            else -> tracks.withIndex().mapNotNull { (index, track) ->
                 val score = SearchRelevancePolicy.savedScore(prepared, track, allowTypo = true)
                 if (score <= 0) null else Triple(track, score, index)
             }
+        }
         return candidates.sortedWith(
             compareByDescending<Triple<VideoPreview, Int, Int>> { it.second }
                 .thenBy { it.third }
