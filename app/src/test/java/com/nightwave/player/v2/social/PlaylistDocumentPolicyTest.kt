@@ -19,6 +19,7 @@ class PlaylistDocumentPolicyTest {
         val second = song.copy(title = "Second", url = "https://www.youtube.com/watch?v=9bZkp7q19f0")
         val prepared = PlaylistDocumentPolicy.prepare("বাংলা favourites", listOf(song, second))!!
         assertTrue(prepared.fileName.endsWith(".nightwave.txt"))
+        assertTrue(prepared.fileName.startsWith("বাংলা"))
         val parsed = PlaylistDocumentPolicy.read(ByteArrayInputStream(prepared.bytes))!!
         assertEquals("বাংলা favourites", parsed.name)
         assertEquals(listOf(song.url, second.url), parsed.tracks.map { it.url })
@@ -52,6 +53,14 @@ class PlaylistDocumentPolicyTest {
         assertNull(PlaylistDocumentPolicy.read(
             ByteArrayInputStream(valid.copyOf(valid.size - 20))))
         assertNotNull(PlaylistDocumentPolicy.read(ByteArrayInputStream(valid)))
+    }
+
+    @Test fun brokenDocumentProviderZeroByteReadIsBounded() {
+        val broken = object : java.io.InputStream() {
+            override fun read(): Int = 0
+            override fun read(buffer: ByteArray, offset: Int, length: Int): Int = 0
+        }
+        assertNull(PlaylistDocumentPolicy.read(broken))
     }
 
     @Test fun exportedPayloadMatchesExistingStrictSharedTextFormat() {
