@@ -541,7 +541,8 @@ class CatalogDownloadsActivity : ComponentActivity() {
             } else ""
             val state = when (info.state) {
                 WorkInfo.State.ENQUEUED -> if (pausePending)
-                    "Pausing · Waiting for worker to stop" else "Queued · Waiting for network"
+                    "Pausing · Waiting for worker to stop"
+                    else DownloadRecoveryPolicy.queuedLabel(info.runAttemptCount)
                 WorkInfo.State.RUNNING -> if (pausePending)
                     "Pausing · Cancelling current transfer"
                     else if (verifyingTransfer)
