@@ -21,6 +21,15 @@ object NightWaveHomeCurationPolicy {
         val mixes: List<PersonalMix>
     )
 
+    /**
+     * Home is a song shelf, not a record of repeated playback events.
+     * Keep the newest (first) instance of each actual history URL to avoid
+     * duplicate Compose LazyRow keys without rewriting the saved history.
+     * Maintain original metadata and chronological order.
+     */
+    fun distinctRecent(recent: List<VideoPreview>): List<VideoPreview> =
+        recent.distinctBy { it.url }
+
     fun curate(
         favorites: List<VideoPreview>,
         recent: List<VideoPreview>,
@@ -53,7 +62,10 @@ object NightWaveHomeCurationPolicy {
                 .map { it.url }
                 .filter { VideoLink.normalize(it) == it }
                 .toSet()
-            if (ids.isEmpty() || mix.key.isBlank() || !usedKeys.add(mix.key)) continue
+            // Do not reserve a key for a card that might be rejected as a
+            // duplicate. A later genuinely different card with the same key
+            // must remain eligible for display.
+            if (ids.isEmpty() || mix.key.isBlank() || mix.key in usedKeys) continue
             // A small Replay mix can be wholly contained in a larger Daily Mix.
             // Both remain accessible through their source library/history, but
             // rendering near-clones together makes Home feel repetitive.
@@ -62,6 +74,7 @@ object NightWaveHomeCurationPolicy {
                 overlap * 5 >= minOf(ids.size, other.size) * 4
             }
             if (duplicated) continue
+            usedKeys.add(mix.key)
             signatures.add(ids)
             chosen.add(mix)
         }
