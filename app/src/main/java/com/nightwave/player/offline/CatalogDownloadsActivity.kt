@@ -68,6 +68,7 @@ class CatalogDownloadsActivity : ComponentActivity() {
     )
     private var requestedSavedIds: Set<String>? = null
     private var verifiedAvailableIds: Set<String> = emptySet()
+    private var verifiedFileHealth: Map<String, OfflineFileHealth> = emptyMap()
     private var verificationGeneration = 0
     private var verifyingFiles = false
     private var fileCheckFailed = false
@@ -90,21 +91,26 @@ class CatalogDownloadsActivity : ComponentActivity() {
         if (!DownloadFileVerificationPolicy.needsRead(ids, requestedSavedIds)) return
         requestedSavedIds = ids
         verifiedAvailableIds = emptySet()
+        verifiedFileHealth = emptyMap()
         fileCheckFailed = false
         verifyingFiles = ids.isNotEmpty()
         val ticket = ++verificationGeneration
         if (ids.isEmpty()) return
         fileVerifier.execute {
             val answer = runCatching {
-                OfflineAudioLibrary(applicationContext).availableIds(ids)
+                OfflineAudioLibrary(applicationContext).availabilitySnapshot(ids)
             }
             uiHandler.post {
                 if (!DownloadFileVerificationPolicy.canPublish(
                         ticket, verificationGeneration, isFinishing, isDestroyed))
                     return@post
                 verifyingFiles = false
-                fileCheckFailed = answer.isFailure
-                verifiedAvailableIds = answer.getOrDefault(emptySet())
+                val snapshot = answer.getOrNull()
+                // An unreadable index means UNKNOWN, not a collection of
+                // missing files. Show verification failure without data writes.
+                fileCheckFailed = snapshot?.indexReadable != true
+                verifiedAvailableIds = snapshot?.availableIds ?: emptySet()
+                verifiedFileHealth = snapshot?.healthById ?: emptyMap()
                 render(catalogJobs + directJobs + searchedJobs)
             }
         }
@@ -544,7 +550,8 @@ class CatalogDownloadsActivity : ComponentActivity() {
                 WorkInfo.State.SUCCEEDED -> when {
                     verifyingFiles -> "Checking saved audio file…"
                     fileCheckFailed -> "Could not verify saved audio · Reopen Downloads"
-                    else -> OfflineDownloadStatusPolicy.statusForCompleted(actuallySaved)
+                    else -> OfflineDownloadStatusPolicy.statusForCompleted(
+                        actuallySaved, verifiedFileHealth[savedId(info)])
                 }
                 WorkInfo.State.FAILED -> "Failed · " +
                     DownloadRecoveryPolicy.failedMessage(info.outputData.getString(

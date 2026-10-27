@@ -148,14 +148,24 @@ class OfflineAudioLibrary(private val context: Context) {
      * A missing, changed, unreadable or malformed entry is never returned.
      * PlaybackService still revalidates its own media item before playback.
      */
-    fun availableIds(requested: Set<String>): Set<String> {
-        if (requested.isEmpty()) return emptySet()
-        val snapshot = runCatching { songs() }.getOrNull() ?: return emptySet()
-        return snapshot.asSequence()
+    /**
+     * One index parse + file metadata inspection per requested matching row.
+     * Return an explicit unreadable-index outcome rather than an empty list
+     * that incorrectly suggests all of the user's files went missing.
+     * Always read only: NO repair, deletion, checksum claim or index writes.
+     */
+    fun availabilitySnapshot(requested: Set<String>): OfflineAvailabilitySnapshot {
+        if (requested.isEmpty()) return OfflineAvailabilitySnapshot(true, emptyMap())
+        val indexed = runCatching { songs() }.getOrNull()
+            ?: return OfflineAvailabilitySnapshot(false, emptyMap())
+        val health = indexed.asSequence()
             .filter { it.id in requested }
-            .filter { inspectFile(it).first == OfflineFileHealth.AVAILABLE }
-            .map { it.id }
-            .toSet()
+            .associate { song -> song.id to inspectFile(song).first }
+        return OfflineAvailabilitySnapshot(true, health)
+    }
+
+    fun availableIds(requested: Set<String>): Set<String> {
+        return availabilitySnapshot(requested).availableIds
     }
 
     fun find(id: String): OfflineSong? = songs().firstOrNull { it.id == id }

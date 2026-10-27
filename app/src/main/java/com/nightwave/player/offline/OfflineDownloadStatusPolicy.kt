@@ -13,7 +13,24 @@ object OfflineDownloadStatusPolicy {
     ): Boolean = workSucceeded && !savedId.isNullOrBlank() &&
         savedId in currentlyAvailableIds
 
-    fun statusForCompleted(ready: Boolean): String =
-        if (ready) "Ready offline · Verified local file"
-        else "Saved previously · Local audio is missing or unavailable"
+    /**
+     * NW113: a quick read-only file/length check is NOT SHA-256 or an actual
+     * decoder playback test. Keep completed-work and file health distinct.
+     * A stale WorkManager SUCCESS must not conceal missing/corrupt-indexed
+     * audio, and no UI status may trigger index deletion or silent repair.
+     */
+    fun statusForCompleted(
+        ready: Boolean, health: OfflineFileHealth? = null
+    ): String = when {
+        ready -> "Ready offline · Local file present (size checked)"
+        health == OfflineFileHealth.MISSING ->
+            "Saved previously · Audio file missing (index retained)"
+        health == OfflineFileHealth.SIZE_CHANGED ->
+            "Saved previously · File size changed (not ready)"
+        health == OfflineFileHealth.UNREADABLE ->
+            "Saved previously · File unreadable (not ready)"
+        health == OfflineFileHealth.UNSAFE_METADATA ->
+            "Saved previously · Unsafe file metadata (not ready)"
+        else -> "Saved previously · No available indexed audio"
+    }
 }

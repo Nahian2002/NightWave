@@ -65,7 +65,8 @@ Status vocabulary: PLANNED / IN_PROGRESS / CODE_COMPLETE_UNVERIFIED / GRADLE_VER
 | NW110 Windows build recovery | CODE_COMPLETE_UNVERIFIED | 1 of 1,283 tests failed on former commit; follow-up test fix unverified on Windows |
 | NW111 Music-first search | CODE_COMPLETE_UNVERIFIED | Bounded nonmusic context demotion committed; 5 new JUnit tests; Windows Gradle/JVM/device tests pending |
 | NW112 Multilingual search | CODE_COMPLETE_UNVERIFIED | Curated 3-group Romanized/Bangla fallback and 135 JUnit query/title fixtures; Android/JVM test build pending |
-| NW113–NW125 | PLANNED | No new work executed; status does not imply functionality |
+| NW113 Offline truth/eligibility | CODE_COMPLETE_UNVERIFIED | Index-unreadable is not treated as deleted files; read-only per-file health and truthful file-size labels; 6 new JVM tests; full Gradle/device pending |
+| NW114–NW125 | PLANNED | No new work executed; status does not imply functionality |
 
 After every wave update this ledger with commit, automated receipts, remaining blockers, actual device acceptance and next planned wave. Avoid recalculating a "Spotify score" based on static code checks.
 
@@ -98,3 +99,15 @@ The roadmap defines future turns and test requirements; it does not schedule aut
 - Independent Kotlin CLI policy smoke: Kotlin 1.9.0/JDK21 compiled the new bounded-alias algorithm with the existing token-splitting contract and exercised 33 assertions PASS. This is a local focused policy smoke, **NOT** Gradle, Android, the entire scorer, or the 135 new JUnit cases.
 - Remaining: no complete NW112 Gradle/JVM execution, signed APK, physical-device search benchmark or 40-query measured precision receipt. NW112 source is CODE_COMPLETE_UNVERIFIED and public release remains NO-GO pending rights and all real acceptance checks.
 - Next phase: NW113 offline truth/eligibility, only for owned/licensed/authorized sources. Do not infer blanket YouTube offline rights.
+
+## NW113 implementation ledger — 2026-10-27
+
+- Protected parent: NW112 commit 180ff5cdca091c9e3bf927198ed028b32dc556d2; isolated NW113 branch retains NW110, NW111 and NW112 history.
+- Discovered defect: the existing OfflineAudioLibrary.availableIds() caught index parsing failures and returned an empty Set. Download Center then treated a failed index read as if every completed recording was deleted. That is misleading, even though the UI correctly did not delete files.
+- New read-only OfflineAvailabilitySnapshot(indexReadable, healthById) separates UNKNOWN-index-failure from MISSING, SIZE_CHANGED, UNREADABLE, UNSAFE_METADATA and AVAILABLE file states. Does not rewrite any index or file. Existing availableIds(requested) public API and its fail-closed semantics remain intact.
+- Download Center now queries OfflineAudioLibrary.availabilitySnapshot() on the existing single off-UI-thread executor, keeps the generation check, refuses to claim Ready if index parsing fails, and renders individual file-condition hints for completed transfers.
+- Honesty improvement: 'file present / size checked' replaces the former claim 'verified local file'. The status and the Offline Library availability row explicitly avoid asserting SHA or decoder proof from a size-only read. New in-app statuses retain the indexed entry on failure; no automatic repair/deletion.
+- Tests added: 3 DownloadStatus + 3 OfflineLibraryHealth tests, including corrupted/unreadable index, missing file, stale file size, unreadable file, unsafe metadata and false availability after previous WorkManager success. All preexisting tests preserved.
+- Static checks: 12/12 source contract invariants verified including original availableIds signature, path/symlink safety, UI off-thread checks, generation guard and old tests.
+- **NOT EXECUTED:** full Android Gradle/JUnit suites on this commit, complete phone offline playback, read/write low-storage or same-size corruption proof. Size equality is NOT a cryptographic hash or successful Media3 decode. Public music-source rights remain NO-GO until verified.
+- Next: NW114 Transfers & Resumability — true retry state and byte-range continuation only when an authorized source supports it, otherwise truthful restart semantics.
