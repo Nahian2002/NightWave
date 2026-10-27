@@ -15,6 +15,30 @@ object NightWaveHomeLayoutPolicy {
     fun mixCardCompact(columnCount: Int): Boolean = columnCount == 1
 
     /**
+     * NW117 Home rail expands only its bounded recent window (up to 100).
+     * Do not call that button "See all" if more history exists. A separate
+     * full-history action navigates to the existing Recently Played collection,
+     * where removal, clearing, sorting, and the stored record already live.
+     */
+    data class RecentBrowseActions(
+        val showExpansion: Boolean,
+        val expansionLabel: String?,
+        val showFullHistory: Boolean
+    )
+
+    fun recentBrowseActions(
+        visibleUniqueCount: Int, hasMore: Boolean, expanded: Boolean
+    ): RecentBrowseActions {
+        val count = visibleUniqueCount.coerceAtLeast(0)
+        val canExpand = count > 6
+        val label = if (!canExpand) null
+            else if (expanded) "Show less"
+            else if (hasMore) "See first $count"
+            else "See all"
+        return RecentBrowseActions(canExpand, label, hasMore)
+    }
+
+    /**
      * NW117: an empty listening shelf isn't an empty library. Suggest one
      * action grounded only in real saved references, with no inferred taste,
      * fabricated recommendation, autoplay or listening-history mutation.

@@ -251,4 +251,27 @@ class NightWaveHomeCurationPolicyTest {
         assertTrue(plan(favorites = listOf(song(11), song(12)), recent = repeated)
             .nextListens.all { it.url != song(11).url })
     }
+
+    @Test fun libraryRecentHistoryIsNotLimitedByHomeHundredTrackWindow() {
+        val saved = (1..250).map(::song)
+        val home = NightWaveHomeCurationPolicy.recentWindow(saved)
+        val library = NightWaveHomeCurationPolicy.distinctRecent(saved)
+        assertEquals(100, home.tracks.size)
+        assertTrue(home.hasMore)
+        assertEquals(250, library.size)
+        assertEquals(saved, library)
+        assertEquals(song(250), library.last())
+    }
+
+    @Test fun restoredHistoryKeepsFirstSongMetadataWithStableLibraryKeys() {
+        val current = song(1).copy(title = "Most recent original title")
+        val older = song(1).copy(title = "Older duplicate title")
+        val stored = listOf(current, song(2), older, song(3), song(2))
+        val snapshot = stored.toList()
+        val visibleLibrary = NightWaveHomeCurationPolicy.distinctRecent(stored)
+        assertEquals(listOf(current, song(2), song(3)), visibleLibrary)
+        assertTrue(visibleLibrary.first() === current)
+        assertEquals(visibleLibrary.size, visibleLibrary.map { it.url }.toSet().size)
+        assertEquals(snapshot, stored)
+    }
 }
