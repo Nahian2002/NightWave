@@ -33,7 +33,10 @@ Need $headers 'NightWaveCollectionHeader(' 'Premium Library header absent'
 Need $headers 'testTag("nightwave-save-offline-search")' 'Offline entry action lost its accessibility test tag'
 Need $headers 'FreeAudioCatalogActivity::class.java' 'Offline audio catalog shortcut no longer opens'
 Need $screen 'NightWaveDiscoveryHeader(searchQuery = query)' 'Search header not receiving current query'
-Need $tiles 'NightWaveCollectionChrome.TRACK_ARTWORK_DP.dp' 'Track artwork sizing not wired'
+# NW83 unifies row sizing under premium design tokens; require the current binding
+# and the token definition rather than the retired collection chrome constant.
+Need $tiles 'NightWavePremiumDesignTokens.ROW_ARTWORK_DP.dp' 'Track artwork sizing not wired'
+Need (File ($p+'NightWavePremiumDesignTokens.kt')) 'const val ROW_ARTWORK_DP = 52' 'Premium row artwork sizing definition missing'
 Need $tiles '"nightwave-library-collection"' 'Collection test tag missing'
 Need $tiles 'IconButton(onClick = onOptions' 'Track option action removed'
 Need $screen 'surface = NightWaveTrackSurface.SEARCH' 'Search result cards not wired'
