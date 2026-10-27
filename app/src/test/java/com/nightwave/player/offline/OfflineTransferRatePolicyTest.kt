@@ -34,9 +34,9 @@ class OfflineTransferRatePolicyTest {
     }
 
     @Test fun nonzeroRemainingTimeRoundsUpRatherThanDisappearing() {
-        assertEquals(1L, OfflineTransferRatePolicy.etaSeconds(99L, 100L, 10L))
-        assertEquals(2L, OfflineTransferRatePolicy.etaSeconds(97L, 100L, 2L))
-        assertEquals(9L, OfflineTransferRatePolicy.etaSeconds(10L, 100L, 10L))
+        assertEquals(1L, OfflineTransferRatePolicy.etaSeconds(99L, 100L, 10L) ?: -1L)
+        assertEquals(2L, OfflineTransferRatePolicy.etaSeconds(97L, 100L, 2L) ?: -1L)
+        assertEquals(9L, OfflineTransferRatePolicy.etaSeconds(10L, 100L, 10L) ?: -1L)
         assertNull(OfflineTransferRatePolicy.etaSeconds(101L, 100L, 100L))
         assertNull(OfflineTransferRatePolicy.etaSeconds(0L, -1L, 10L))
     }
