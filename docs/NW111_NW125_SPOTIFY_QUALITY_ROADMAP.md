@@ -67,7 +67,7 @@ Status vocabulary: PLANNED / IN_PROGRESS / CODE_COMPLETE_UNVERIFIED / GRADLE_VER
 | NW112 Multilingual search | CODE_COMPLETE_UNVERIFIED | Curated 3-group Romanized/Bangla fallback and 135 JUnit query/title fixtures; Android/JVM test build pending |
 | NW113 Offline truth/eligibility | CODE_COMPLETE_UNVERIFIED | Index-unreadable is not treated as deleted files; read-only per-file health and truthful file-size labels; 6 new JVM tests; full Gradle/device pending |
 | NW114 Transfers | IN_PROGRESS | Partial HTTP 206/contradictory Content-Range fail-closed, honest byte/s and ETA, transparent queued retries; 6 new JVM tests. Safe persistent Range resume NOT implemented; full Gradle and device checks pending |
-| NW115 Playback/queue fidelity | IN_PROGRESS | Explicit Shuffle jumps now retire departed track from unseen cycle; 7 targeted JUnit regressions added; full JVM/Android and media-session tests pending |
+| NW115 Playback/queue fidelity | IN_PROGRESS | Shuffle jump seen-cycle + safe same-loaded-track queue replay (no repeat extractor); 14 new JVM tests across two batches; full JVM/Android and MediaSession/device tests pending |
 | NW116–NW125 | PLANNED | Not started; status does not imply functionality |
 
 After every wave update this ledger with commit, automated receipts, remaining blockers, actual device acceptance and next planned wave. Avoid recalculating a "Spotify score" based on static code checks.
@@ -136,3 +136,14 @@ The roadmap defines future turns and test requirements; it does not schedule aut
 - Verification: code and regression assertions inspected against actual PlaybackQueue.next()/jump()/restoreShuffleRecovery()/hasNext(). GitHub source-only check, NOT JVM or Android tests. The owner must run the full Gradle/JUnit suite, MediaSession, screen-off and queue persistence phone tests to accept this wave.
 - Remaining NW115 scope: end-to-end exact search→single-song queue, Media3 Session commands, lockscreen/headset, previous threshold, Repeat One, failure recoveries and device stress. **State remains IN_PROGRESS**, not fully certified.
 - NW114 remains IN_PROGRESS for safe persistent byte-range resume, pending a source-authorized resumable protocol and end-to-end validator/checkpoint QA. No pseudo-resume claims, no unverified online source extraction or offline-rights promises. NW125 release remains NO-GO.
+
+## NW115 second implementation batch — 2026-10-27
+
+- Parent first NW115 batch: 7e79a62a9f792eb3598194b6bee5995b14acbf4f. Isolated cumulative branch: feature/nightwave-nw115-loaded-jump-replay, preserving NW110–NW114 and the NW115 Shuffle jump fix.
+- Concrete UI latency defect: PlaybackService ACTION_JUMP always called resolveAndPlay() after any valid public-queue jump, including the current selected song already loaded in Media3. This unconditionally stopped and cleared healthy playback to trigger another public-stream extraction, delaying replay and risking an otherwise avoidable network error.
+- New pure PlaybackQueueJumpPolicy.canRestartLoaded() requires a canonical public selected URL, equality between the **old selected**, the **requested** and the **loaded Media3 mediaId**, plus no player error and a non-IDLE player. It cannot authorize replay of signed media URLs or an unrelated loaded item.
+- Service behavior: for an explicit same-song tap with a healthy loaded item, preserve saved queue, cancel any crossfade, seek the current loaded Media3 item to zero, prepare only if it had ended, call Play, save the zero bookmark and publish widgets. New/different/unloaded/errored selections retain the existing resolveAndPlay() path and security checks. No playlist, queue dedup, Play Next, Shuffle, Repeat, downloads, offline files or OAuth changed.
+- Added PlaybackQueueJumpPolicyTest.kt with **7 new JUnit methods and 27 assertion calls**: accepted exact loaded replay, different jump, stale loaded item, idle/player error, null/noncanonical/signed identity, same-row Shuffle and Play Next preservation, and a distinct-track queue jump.
+- Cumulative NW115 new test count: 7 previous Shuffle jump regression methods + 7 loaded-replay regression methods = **14 new JUnit test methods**. None of the older tests removed or modified.
+- Static review: 13/13 source integration checks found the new guard wired into ACTION_JUMP, original navigation/MediaSession/auth checks intact, queue persistence and bookmark retained, and the fallback resolver preserved. No Android Gradle/JVM or device execution of the new tests has occurred.
+- Still IN_PROGRESS: real MediaSession/controller notification, car/headset lockscreen, stream resolution/race testing, full clean signed Android build, NW114 byte-range resume feasibility, and legal music-source permissions. NW125 GO remains blocked.
