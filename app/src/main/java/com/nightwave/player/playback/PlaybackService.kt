@@ -1647,7 +1647,32 @@ class PlaybackService : MediaLibraryService() {
             }
             ACTION_NEXT -> playNext(false)
             ACTION_PREVIOUS -> playPrevious()
-            ACTION_JUMP -> if (!offlinePlaying) queue.jump(intent.getIntExtra(EXTRA_INDEX, -1))?.let { savedQueue.save(queue); resolveAndPlay(it) }
+            ACTION_JUMP -> if (!offlinePlaying) {
+                val oldSelectedUrl = queue.current?.url
+                queue.jump(intent.getIntExtra(EXTRA_INDEX, -1))?.let { selected ->
+                    savedQueue.save(queue)
+                    val player = exoPlayer
+                    if (PlaybackQueueJumpPolicy.canRestartLoaded(
+                            oldSelectedUrl, selected.url, player?.currentMediaItem?.mediaId,
+                            player?.playerError != null,
+                            player?.playbackState == Player.STATE_IDLE)) {
+                        // An intentional tap on the SAME loaded public song
+                        // restarts it without a second network extraction.
+                        // A new selection, idle player or errored stream still
+                        // goes through normal identity-checked resolution.
+                        cancelCrossfade()
+                        val ended = player?.playbackState == Player.STATE_ENDED
+                        player?.seekTo(0L)
+                        if (ended) player?.prepare()
+                        player?.play()
+                        savedQueue.saveBookmark(selected.url, 0L,
+                            player?.duration?.takeIf { it > 0L && it != C.TIME_UNSET } ?: 0L)
+                        publishWidgetState()
+                    } else {
+                        resolveAndPlay(selected)
+                    }
+                }
+            }
             ACTION_SHUFFLE -> if (offlinePlaying) {
                 val explicit = intent.hasExtra(EXTRA_SHUFFLE_ENABLED)
                 val enabled = if (explicit)
