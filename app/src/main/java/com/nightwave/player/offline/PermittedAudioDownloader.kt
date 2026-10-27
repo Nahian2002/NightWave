@@ -208,8 +208,11 @@ class PermittedAudioDownloader(private val context: Context) {
                 if (AudioDownloadNetworkPolicy.shouldBackOff(response.code)) {
                     throw RetryableAudioSourceResponse(response.code)
                 }
-                require(response.code == 200) {
-                    "Audio server returned HTTP " + response.code + "."
+                require(AudioDownloadNetworkPolicy.isFullStartResponse(
+                        response.code, response.header("Content-Range"))) {
+                    if (response.code == 206 || !response.header("Content-Range").isNullOrBlank())
+                        "Partial audio response; no trusted resume checkpoint exists."
+                    else "Audio server returned HTTP " + response.code + "."
                 }
                 val body = requireNotNull(response.body) { "Empty download response" }
                 val length = body.contentLength()
