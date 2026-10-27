@@ -1184,7 +1184,11 @@ class PlaybackService : MediaLibraryService() {
                     // acknowledge that no-op as successful notification action.
                     // The guard is read-only and cannot consume shuffle state.
                     if (action == NightWaveWidgetController.COMMAND_NEXT &&
-                        !hasManualNext()) {
+                        !MediaSessionQueueControlPolicy.canAcknowledgeNext(
+                            offlinePlaying = offlinePlaying,
+                            offlineSelected = offlineQueue.current != null,
+                            publicSelected = queue.current != null,
+                            hasNext = hasManualNext())) {
                         return Futures.immediateFuture(
                             SessionResult(SessionResult.RESULT_ERROR_NOT_SUPPORTED))
                     }
@@ -1212,8 +1216,25 @@ class PlaybackService : MediaLibraryService() {
                         return false
                     }
                     return when (event.keyCode) {
-                        KeyEvent.KEYCODE_MEDIA_NEXT -> { playNext(false); true }
-                        KeyEvent.KEYCODE_MEDIA_PREVIOUS -> { playPrevious(); true }
+                        KeyEvent.KEYCODE_MEDIA_NEXT -> {
+                            if (MediaSessionQueueControlPolicy.canAcknowledgeNext(
+                                    offlinePlaying = offlinePlaying,
+                                    offlineSelected = offlineQueue.current != null,
+                                    publicSelected = queue.current != null,
+                                    hasNext = hasManualNext())) {
+                                playNext(false)
+                                true
+                            } else false
+                        }
+                        KeyEvent.KEYCODE_MEDIA_PREVIOUS -> {
+                            if (MediaSessionQueueControlPolicy.canNavigate(
+                                    offlinePlaying = offlinePlaying,
+                                    offlineSelected = offlineQueue.current != null,
+                                    publicSelected = queue.current != null)) {
+                                playPrevious()
+                                true
+                            } else false
+                        }
                         KeyEvent.KEYCODE_MEDIA_PLAY,
                         KeyEvent.KEYCODE_MEDIA_PAUSE,
                         KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
