@@ -856,8 +856,11 @@ fun StudioNowPlayingOverlay(
                         color = colors.onSurfaceVariant)
                 }
                 Spacer(Modifier.height(9.dp))
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween) {
+                // NW116: retain the familiar five-control bar on regular
+                // phones, but move Shuffle/Repeat to a secondary row when
+                // split-screen width or large text would crowd the 48dp taps.
+                // Both layouts call the SAME actions and retain accessibility.
+                val shuffleControl: @Composable () -> Unit = {
                     IconButton(onClick = actions::toggleShuffle,
                         modifier = Modifier.size(48.dp)) {
                         Icon(Icons.Outlined.Shuffle,
@@ -865,6 +868,26 @@ fun StudioNowPlayingOverlay(
                             modifier = Modifier.size(25.dp),
                             tint = if (state.shuffle) colors.primary else colors.onSurfaceVariant)
                     }
+                }
+                val repeatControl: @Composable () -> Unit = {
+                    IconButton(onClick = actions::cycleRepeat,
+                        modifier = Modifier.size(48.dp)) {
+                        Icon(if (state.repeat == PlaybackQueue.Repeat.ONE) Icons.Outlined.RepeatOne
+                            else Icons.Outlined.Repeat,
+                            modifier = Modifier.size(25.dp),
+                            contentDescription = "Repeat mode: " + when (state.repeat) {
+                                PlaybackQueue.Repeat.OFF -> "Off"
+                                PlaybackQueue.Repeat.ALL -> "All songs"
+                                PlaybackQueue.Repeat.ONE -> "Current song"
+                            },
+                            tint = if (state.repeat == PlaybackQueue.Repeat.OFF)
+                                colors.onSurfaceVariant else colors.primary)
+                    }
+                }
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = if (playerLayout.splitTransportControls)
+                        Arrangement.SpaceEvenly else Arrangement.SpaceBetween) {
+                    if (!playerLayout.splitTransportControls) shuffleControl()
                     IconButton(onClick = actions::previous, modifier = Modifier.size(48.dp)) {
                         Icon(Icons.Outlined.SkipPrevious, contentDescription = "Previous track",
                             modifier = Modifier.size(34.dp), tint = colors.onBackground)
@@ -885,18 +908,16 @@ fun StudioNowPlayingOverlay(
                         Icon(Icons.Outlined.SkipNext, contentDescription = "Next track",
                             modifier = Modifier.size(34.dp), tint = colors.onBackground)
                     }
-                    IconButton(onClick = actions::cycleRepeat,
-                        modifier = Modifier.size(48.dp)) {
-                        Icon(if (state.repeat == PlaybackQueue.Repeat.ONE) Icons.Outlined.RepeatOne
-                            else Icons.Outlined.Repeat,
-                            modifier = Modifier.size(25.dp),
-                            contentDescription = "Repeat mode: " + when (state.repeat) {
-                                PlaybackQueue.Repeat.OFF -> "Off"
-                                PlaybackQueue.Repeat.ALL -> "All songs"
-                                PlaybackQueue.Repeat.ONE -> "Current song"
-                            },
-                            tint = if (state.repeat == PlaybackQueue.Repeat.OFF)
-                                colors.onSurfaceVariant else colors.primary)
+                    if (!playerLayout.splitTransportControls) repeatControl()
+                }
+                if (playerLayout.splitTransportControls) {
+                    // Secondary actions remain 48dp touch targets and are never
+                    // hidden merely because the window is narrow.
+                    Row(Modifier.fillMaxWidth().padding(top = 3.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceEvenly) {
+                        shuffleControl()
+                        repeatControl()
                     }
                 }
                 // NW85 music-first quick actions: one accessible toolbar
