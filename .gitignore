@@ -42,3 +42,34 @@ play-service-account*.json
 *.hprof
 *.stackdump
 *.log
+
+# Local diagnostics, accidental archives, editor swaps, Python caches.
+# Keep deliberate source fixtures, app/src/test, Room schemas and evidence docs.
+*.tmp
+*.temp
+*.bak
+*.old
+*.orig
+*.rej
+*.swp
+*.swo
+*~
+*.zip
+*.7z
+*.rar
+*.tgz
+*.tar.gz
+*.heapdump
+*.trace
+*.dump
+*.crash
+*.pyc
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.kotlin/
+.cxx/
+.externalNativeBuild/
+captures/
+local-reports/

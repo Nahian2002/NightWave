@@ -9,11 +9,24 @@ object LibraryBulkSelectionPolicy {
     fun selected(tracks: List<VideoPreview>, urls: Set<String>): List<VideoPreview> =
         tracks.filter { it.url in urls }.distinctBy { it.url }.take(MAX_SELECTED)
 
+    /**
+     * Safely restore ephemeral UI selections after playlist edits, filters or
+     * process recreation. Ignore vanished song IDs and never exceed the same
+     * 20-item guard used by atomic playlist actions. Keep existing selection
+     * identity order where it remains valid; do not modify any library data.
+     */
+    fun sanitize(current: Set<String>, source: List<VideoPreview>): Set<String> {
+        val allowed = source.asSequence().map { it.url }.toHashSet()
+        return current.asSequence().filter { it in allowed }
+            .take(MAX_SELECTED).toCollection(linkedSetOf())
+    }
+
     fun toggle(urls: Set<String>, url: String, tracks: List<VideoPreview>): Set<String> {
-        if (tracks.none { it.url == url }) return urls
-        if (url in urls) return urls - url
-        if (urls.size >= MAX_SELECTED) return urls
-        return urls + url
+        val safe = sanitize(urls, tracks)
+        if (tracks.none { it.url == url }) return safe
+        if (url in safe) return safe - url
+        if (safe.size >= MAX_SELECTED) return safe
+        return safe + url
     }
 
     fun selectVisible(tracks: List<VideoPreview>): Set<String> =
@@ -28,8 +41,8 @@ object LibraryBulkSelectionPolicy {
     fun toggleVisible(
         current: Set<String>, visible: List<VideoPreview>, source: List<VideoPreview>
     ): Set<String> {
-        val allowed = source.map { it.url }.toSet()
-        val safe = current.filterTo(linkedSetOf()) { it in allowed }
+        val allowed = source.asSequence().map { it.url }.toHashSet()
+        val safe = sanitize(current, source).toMutableSet()
         val visibleUrls = visible.asSequence().map { it.url }
             .filter { it in allowed }.distinct().toList()
         if (visibleUrls.isEmpty()) return safe

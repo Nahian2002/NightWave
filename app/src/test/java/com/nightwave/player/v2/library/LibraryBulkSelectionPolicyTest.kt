@@ -92,4 +92,90 @@ class LibraryBulkSelectionPolicyTest {
         assertEquals("Select visible",
             LibraryBulkSelectionPolicy.visibleActionLabel(selected, tracks))
     }
+
+    @Test fun restoredOversizedSelectionIsTrimmedToTwentyBeforeToggling() {
+        val tracks = (1..35).map { song(it.toString().padStart(11, '0')) }
+        val oversized = tracks.take(29).mapTo(linkedSetOf()) { it.url }
+        val safe = LibraryBulkSelectionPolicy.sanitize(oversized, tracks)
+        assertEquals(20, safe.size)
+        assertEquals(tracks.take(20).map { it.url }.toSet(), safe)
+        assertEquals(safe, LibraryBulkSelectionPolicy.toggle(oversized, tracks[32].url, tracks))
+        assertEquals(29, oversized.size)
+    }
+
+    @Test fun vanishedSelectionsDoNotBlockNewVisibleTrack() {
+        val tracks = listOf(song("aaa111bbb22"), song("ccc333ddd44"))
+        val vanished = (1..25).map { "offline:removed-$it" }.toSet()
+        val added = LibraryBulkSelectionPolicy.toggle(vanished, tracks[0].url, tracks)
+        assertEquals(setOf(tracks[0].url), added)
+        assertTrue(vanished.all { it !in added })
+        assertEquals(25, vanished.size)
+    }
+
+    @Test fun togglingUnknownRowStillClearsGhostSelectionSafely() {
+        val tracks = listOf(song("aaa111bbb22"), song("ccc333ddd44"))
+        val ghost = "offline:gone"
+        assertEquals(setOf(tracks[0].url), LibraryBulkSelectionPolicy.toggle(
+            setOf(tracks[0].url, ghost), ghost, tracks))
+    }
+
+    @Test fun toggleVisibleNeverReturnsMoreThanTwentyAfterCorruptRestore() {
+        val tracks = (1..60).map { song(it.toString().padStart(11, '0')) }
+        val oversized = tracks.take(42).mapTo(linkedSetOf()) { it.url }
+        val result = LibraryBulkSelectionPolicy.toggleVisible(
+            oversized, tracks.drop(42).take(10), tracks)
+        assertEquals(20, result.size)
+        assertEquals(tracks.take(20).map { it.url }.toSet(), result)
+        assertEquals(42, oversized.size)
+    }
+
+    @Test fun selectionSanitizeIsStableAndDoesNotChangePlaylistOrder() {
+        val tracks = listOf(song("aaa111bbb22"), song("ccc333ddd44"),
+            song("eee555fff66"))
+        val selected = linkedSetOf(tracks[2].url, "deleted-song", tracks[0].url)
+        val snapshot = tracks.toList()
+        val safe = LibraryBulkSelectionPolicy.sanitize(selected, tracks)
+        assertEquals(linkedSetOf(tracks[2].url, tracks[0].url), safe)
+        assertEquals(safe, LibraryBulkSelectionPolicy.sanitize(safe, tracks))
+        assertEquals(listOf(tracks[0], tracks[2]),
+            LibraryBulkSelectionPolicy.selected(tracks, safe))
+        assertEquals(snapshot, tracks)
+    }
+
+    @Test fun emptySourceResetsEphemeralSelectionOnly() {
+        val selected = setOf("stale", "offline:saved")
+        assertTrue(LibraryBulkSelectionPolicy.sanitize(selected, emptyList()).isEmpty())
+        assertTrue(LibraryBulkSelectionPolicy.toggleVisible(
+            selected, emptyList(), emptyList()).isEmpty())
+        assertTrue(LibraryBulkSelectionPolicy.toggle(
+            selected, "offline:saved", emptyList()).isEmpty())
+        assertEquals(2, selected.size)
+    }
+
+    @Test fun filteredRowToggleRetainsOtherHiddenPlaylistSelections() {
+        val tracks = listOf(song("aaa111bbb22"), song("ccc333ddd44"),
+            song("eee555fff66"))
+        val original = linkedSetOf(tracks[0].url, tracks[1].url)
+        // Filtering only changes which row is visible; the call site must
+        // provide the full playlist as source, not its filtered display.
+        val after = LibraryBulkSelectionPolicy.toggle(
+            original, tracks[2].url, tracks)
+        assertEquals(setOf(tracks[0].url, tracks[1].url, tracks[2].url), after)
+        val undone = LibraryBulkSelectionPolicy.toggle(after, tracks[2].url, tracks)
+        assertEquals(original, undone)
+        assertEquals(2, LibraryBulkSelectionPolicy.hiddenSelectionCount(
+            undone, listOf(tracks[2])))
+    }
+
+    @Test fun selectedListRemainsAtomicAndBoundedAfterSanitization() {
+        val tracks = (1..50).map { song(it.toString().padStart(11, '0')) }
+        val stale = tracks.take(45).mapTo(linkedSetOf()) { it.url } +
+            setOf("offline:missing")
+        val safe = LibraryBulkSelectionPolicy.sanitize(stale, tracks)
+        val selectedTracks = LibraryBulkSelectionPolicy.selected(tracks, safe)
+        assertEquals(20, safe.size)
+        assertEquals(20, selectedTracks.size)
+        assertEquals(tracks.take(20), selectedTracks)
+        assertEquals(46, stale.size)
+    }
 }
