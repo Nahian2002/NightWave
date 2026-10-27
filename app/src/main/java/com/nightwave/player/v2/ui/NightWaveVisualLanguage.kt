@@ -103,7 +103,8 @@ fun NightWaveMicroLabel(value: String) {
 fun NightWaveLibraryNumbers(
     favoriteCount: Int,
     recentCount: Int,
-    onLibrary: () -> Unit
+    onLibrary: () -> Unit,
+    recentHasMore: Boolean = false
 ) {
     val colors = MaterialTheme.colorScheme
     // One intentional library overview instead of multiple competing cards.
@@ -134,7 +135,9 @@ fun NightWaveLibraryNumbers(
                     color = colors.onSurfaceVariant)
             }
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(recentCount.toString(),
+                // Home intentionally renders at most 100 unique songs.
+                // Never display a hard 100 when the real recent list has more.
+                Text(if (recentHasMore) "${recentCount}+" else recentCount.toString(),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold, color = colors.onSurface)
                 Text("Recent", style = MaterialTheme.typography.labelSmall,
