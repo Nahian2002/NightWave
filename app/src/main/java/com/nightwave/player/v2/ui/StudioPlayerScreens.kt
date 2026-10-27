@@ -920,17 +920,14 @@ fun StudioNowPlayingOverlay(
                         repeatControl()
                     }
                 }
-                // NW85 music-first quick actions: one accessible toolbar
-                // instead of three tall full-width button rows that forced
-                // lyrics and queue far below the transport on short screens.
-                Spacer(Modifier.height(12.dp))
-                Row(Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.Top) {
+                // NW116: compact split windows and large system fonts give
+                // each action the full width rather than clipping its caption.
+                // The default phone still uses the original two-card toolbar.
+                val offlineAction: @Composable (Modifier) -> Unit = { buttonModifier ->
                     Surface(
                         onClick = onSaveOffline,
                         enabled = state.hasTrack,
-                        modifier = Modifier.weight(1f).heightIn(min = 64.dp)
+                        modifier = buttonModifier.heightIn(min = 64.dp)
                             .testTag("nightwave-now-playing-offline-action"),
                         shape = RoundedCornerShape(
                             NightWavePremiumDesignTokens.CARD_CORNER_DP.dp),
@@ -948,9 +945,11 @@ fun StudioNowPlayingOverlay(
                                 color = colors.onSurface)
                         }
                     }
+                }
+                val lyricsAction: @Composable (Modifier) -> Unit = { buttonModifier ->
                     Surface(
                         onClick = { lyricsOpen = !lyricsOpen },
-                        modifier = Modifier.weight(1f).heightIn(min = 64.dp)
+                        modifier = buttonModifier.heightIn(min = 64.dp)
                             .testTag("nightwave-now-playing-lyrics-action"),
                         shape = RoundedCornerShape(
                             NightWavePremiumDesignTokens.CARD_CORNER_DP.dp),
@@ -972,6 +971,21 @@ fun StudioNowPlayingOverlay(
                                 color = colors.onSurfaceVariant,
                                 textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                         }
+                    }
+                }
+                Spacer(Modifier.height(12.dp))
+                if (playerLayout.stackQuickActions) {
+                    Column(Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        offlineAction(Modifier.fillMaxWidth())
+                        lyricsAction(Modifier.fillMaxWidth())
+                    }
+                } else {
+                    Row(Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalAlignment = Alignment.Top) {
+                        offlineAction(Modifier.weight(1f))
+                        lyricsAction(Modifier.weight(1f))
                     }
                 }
                 Spacer(Modifier.height(10.dp))
