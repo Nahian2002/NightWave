@@ -4,6 +4,25 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class LyricsImportReviewPolicyTest {
+    @Test fun nw119ReviewAndParserAgreeOnRejectedAmbiguousRows() {
+        val text = "[ti:Song [00:59.00] title]\n" +
+            "[00:78.00][00:04.00]bad\n[00:01.00]words [00:02.00]extra\n" +
+            "[00:03.00]বাংলা গান\n[00:03.00]বাংলা গান"
+        val report = inspect(text = text, durationMs = Long.MAX_VALUE)
+        assertEquals(1, report.cueCount)
+        assertEquals(2, report.ignoredTimestampRows)
+        assertEquals(1, report.repeatedCues)
+        assertEquals(0, report.outOfOrderCues)
+        assertFalse(report.durationWarning)
+    }
+
+    @Test fun nw119OversizedLineHasSafeActionableFeedback() {
+        val failure = assertThrows(IllegalArgumentException::class.java) {
+            inspect(text = "[00:01.00]" + "x".repeat(221))
+        }
+        assertTrue(LyricsImportReviewPolicy.failureHint(failure).contains("220 characters"))
+    }
+
     private fun inspect(
         text: String = "[ti:Blue Skies]\n[00:02.00]First\n[00:04.50]Second",
         filename: String = "Blue Skies.lrc",

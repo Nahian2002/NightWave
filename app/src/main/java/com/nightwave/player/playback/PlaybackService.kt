@@ -1178,7 +1178,7 @@ class PlaybackService : MediaLibraryService() {
                             mediaNotification = session.isMediaNotificationController(controller)
                         )) {
                         return Futures.immediateFuture(
-                            SessionResult(SessionResult.RESULT_ERROR_PERMISSION_DENIED))
+                            SessionResult(SessionError.ERROR_PERMISSION_DENIED))
                     }
                     val action = customCommand.customAction
                     if (!MediaSessionQueueControlPolicy.knownAction(
@@ -1191,7 +1191,7 @@ class PlaybackService : MediaLibraryService() {
                             publicSelected = queue.current != null
                         )) {
                         return Futures.immediateFuture(
-                            SessionResult(SessionResult.RESULT_ERROR_NOT_SUPPORTED))
+                            SessionResult(SessionError.ERROR_NOT_SUPPORTED))
                     }
                     // A selected track alone doesn't imply a NEXT target:
                     // at Repeat Off queue end, next() is a no-op. Do not
@@ -1204,7 +1204,7 @@ class PlaybackService : MediaLibraryService() {
                             publicSelected = queue.current != null,
                             hasNext = hasManualNext())) {
                         return Futures.immediateFuture(
-                            SessionResult(SessionResult.RESULT_ERROR_NOT_SUPPORTED))
+                            SessionResult(SessionError.ERROR_NOT_SUPPORTED))
                     }
                     // Both widget and notification routes call the SAME
                     // queue-aware methods used by headset buttons. No duplicate

@@ -24,7 +24,7 @@ def inspect(root: Path) -> list[str]:
     app = read("app/build.gradle.kts")
     build = read("build.gradle.kts")
     win = read("tools/build-windows.ps1")
-    ci = read(".github/workflows/android.yml")
+    ci = read(".github/workflows/current-android.yml")
     manifest = read("app/src/main/AndroidManifest.xml")
     extraction = read("app/src/main/res/xml/nightwave_data_extraction_rules.xml")
     styles = read("app/src/main/res/values/styles.xml")
@@ -112,7 +112,7 @@ def self_test() -> None:
             "tools/build-windows.ps1": (
                 "gradle-8.11.1-bin.zip 'platforms;android-36' "
                 "'build-tools;35.0.0' :app:testDebugUnitTest"),
-            ".github/workflows/android.yml": (
+            ".github/workflows/current-android.yml": (
                 "gradle-version: '8.11.1'\n'platforms;android-36' "
                 "'build-tools;35.0.0'\n:app:compileDebugAndroidTestKotlin"),
             "app/src/main/res/values/styles.xml": "<resources/>",

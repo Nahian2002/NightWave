@@ -28,7 +28,6 @@ data class LyricsImportReview(
  * imported lyrics from an advisory filename match.
  */
 object LyricsImportReviewPolicy {
-    private val stamp = Regex("""\[(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?\]""")
     private val likelyTimedRow = Regex("""^\[\d""")
     private val declaredTitle = Regex("""(?im)^\s*\[ti:([^\]\r\n]{1,150})\]\s*$""")
     private val nameClean = Regex("""(?iu)\s*(?:[\[(]\s*(?:official\s+)?(?:sync(?:ed|hronized)?\s+)?lyrics?\s*[\])])\s*""")
@@ -74,6 +73,8 @@ object LyricsImportReviewPolicy {
             "The selected lyrics exceed 64 KB. Choose a smaller timestamped LRC."
         error.message?.contains("too many timed lines") == true ->
             "This LRC contains more than 1,200 timestamped lines."
+        error.message?.contains("1–220 characters") == true ->
+            "A lyric line exceeds 220 characters. Shorten it before importing; no text was saved."
         error.message?.contains("No synchronized LRC timestamps") == true ->
             "No valid timestamps were found. Use [mm:ss.xx] before each lyric."
         else ->
@@ -105,33 +106,18 @@ object LyricsImportReviewPolicy {
         for (raw in text.lineSequence()) {
             val line = raw.trim()
             if (!likelyTimedRow.containsMatchIn(line)) continue
-            val matches = stamp.findAll(line).toList()
-            val words = stamp.replace(line, "").trim().take(220)
-            val acceptable = matches.filter { it.groupValues[2].toInt() <= 59 }
-            if (acceptable.isEmpty() || words.isBlank() ||
-                acceptable.size != matches.size) {
-                invalid++
-            }
-            for (match in acceptable) {
-                if (words.isBlank()) continue
-                val min = match.groupValues[1].toLong()
-                val second = match.groupValues[2].toLong()
-                val part = match.groupValues[3]
-                val fraction = when (part.length) {
-                    1 -> part.toLong() * 100L
-                    2 -> part.toLong() * 10L
-                    3 -> part.toLong()
-                    else -> 0L
-                }
-                val ms = (min * 60L + second) * 1000L + fraction
+            val accepted = TimedLyricsCodec.rowCues(line)
+            if (accepted.isEmpty()) invalid++
+            for (cue in accepted) {
+                val ms = cue.timeMs
                 if (priorMs > ms) unordered++
                 priorMs = ms
-                if (!observed.add(ms to words)) repeats++
+                if (!observed.add(ms to cue.text)) repeats++
             }
         }
         val matchGrade = compare(name, targetTitle, tag)
         val durationWarning = trackDurationMs > 0L &&
-            lyrics.cues.last().timeMs > trackDurationMs + 5_000L
+            lyrics.cues.last().timeMs - trackDurationMs > 5_000L
         val warnings = buildList {
             when (matchGrade) {
                 LyricsImportMatch.DIFFERENT ->

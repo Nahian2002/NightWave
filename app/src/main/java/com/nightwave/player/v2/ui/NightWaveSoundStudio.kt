@@ -64,6 +64,8 @@ import java.util.UUID
  * Each action is acknowledged by the Media3-owning playback service.
  * Capability and band limits are always read from the actual audio session.
  */
+// This component intentionally uses the pinned Media3 unstable API.
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @Composable
 internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
     val context = LocalContext.current

@@ -9,7 +9,10 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- Android Auto / Automotive OS may browse the same service; not a second player. -->
     <uses-feature android:name="android.hardware.type.automotive" android:required="false" />
+    <!-- Android Auto browsing/search is supported; voice-initiated playback
+         has no handler yet. Do not advertise MEDIA_PLAY_FROM_SEARCH. -->
     <application
+        tools:ignore="MissingIntentFilterForMediaSearch"
         android:name=".NightWaveApp"
         android:allowBackup="false"
         android:fullBackupContent="false"

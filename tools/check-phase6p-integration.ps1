@@ -84,7 +84,7 @@ Require-Token $a.library 'nightwave_library_v1' 'existing library file'
 Require-Token $a.windows ':app:testDebugUnitTest :app:assembleDebug :app:compileDebugAndroidTestKotlin' 'Gradle tests/compile'
 Require-Token $a.windows 'verify-apk-signature.ps1' 'signer gate'
 Require-Token $a.ci 'python3 tools/verify_v2_phase6p.py' '6P CI preflight'
-Require-Token $a.ci 'feature/nightwave-v2-phase6o4-library-quick-actions' 'new phase CI target'
+Require-Token ([IO.File]::ReadAllText((Join-Path $root '.github/workflows/current-android.yml'))) 'python tools/verify_current.py' 'current cumulative CI target'
 # 6X2 added a second, temporary ExoPlayer for real local crossfade.
 # Keep exactly one primary and one bounded secondary decoder builder,
 # and require the session handoff, release and failure cleanup paths.

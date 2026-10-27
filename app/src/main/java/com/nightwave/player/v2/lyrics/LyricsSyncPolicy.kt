@@ -12,10 +12,12 @@ object LyricsSyncPolicy {
     fun validOffset(ms: Int): Boolean =
         ms in -MAX_OFFSET_MS..MAX_OFFSET_MS && ms % FINE_STEP_MS == 0
 
-    fun adjust(ms: Int, steps: Int): Int =
-        (ms.toLong() + steps.toLong() * STEP_MS)
+    fun adjust(ms: Int, steps: Int): Int {
+        require(validOffset(ms)) { "Unsupported lyric offset" }
+        return (ms.toLong() + steps.toLong() * STEP_MS)
             .coerceIn(-MAX_OFFSET_MS.toLong(), MAX_OFFSET_MS.toLong())
             .toInt()
+    }
 
     /** Fine calibration leaves the regular 250 ms controls unchanged. */
     fun fineAdjust(ms: Int, steps: Int): Int {
@@ -34,7 +36,9 @@ object LyricsSyncPolicy {
 
     fun seekPosition(cue: LyricCue, offsetMs: Int, durationMs: Long): Long {
         require(validOffset(offsetMs)) { "Unsupported lyric offset" }
-        val candidate = (cue.timeMs + offsetMs.toLong()).coerceAtLeast(0L)
+        require(cue.timeMs >= 0L) { "Invalid lyric timestamp" }
+        val candidate = if (offsetMs > 0 && cue.timeMs > Long.MAX_VALUE - offsetMs)
+            Long.MAX_VALUE else (cue.timeMs + offsetMs.toLong()).coerceAtLeast(0L)
         return if (durationMs > 0L) candidate.coerceAtMost(durationMs) else candidate
     }
 

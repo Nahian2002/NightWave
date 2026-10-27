@@ -4,6 +4,24 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class LyricsSyncPolicyTest {
+    @Test fun nw119ExtremeCueSeekSaturatesInsteadOfWrappingToStart() {
+        val cue = LyricCue(Long.MAX_VALUE, "last")
+        assertEquals(Long.MAX_VALUE, LyricsSyncPolicy.seekPosition(cue, 10000, 0))
+        assertEquals(5000L, LyricsSyncPolicy.seekPosition(cue, 10000, 5000))
+        assertEquals(Long.MAX_VALUE - 50, LyricsSyncPolicy.seekPosition(cue, -50, 0))
+    }
+
+    @Test fun nw119CoarseAdjustmentRejectsCorruptSavedOffsetLikeFineAdjustment() {
+        for (offset in listOf(51, -51, Int.MAX_VALUE, Int.MIN_VALUE)) {
+            assertThrows(IllegalArgumentException::class.java) {
+                LyricsSyncPolicy.adjust(offset, 1)
+            }
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            LyricsSyncPolicy.seekPosition(LyricCue(-1L, "bad"), 0, 0)
+        }
+    }
+
     private val lrc = TimedLyricsCodec.parse(
         "[00:00.000]intro\n[00:01.000]line one\n[00:02.500]line two"
             .toByteArray(Charsets.UTF_8)

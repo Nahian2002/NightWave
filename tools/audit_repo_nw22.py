@@ -23,7 +23,7 @@ EXCLUDE_PARTS = {".git", ".gradle", ".idea", "build", "dist", "__pycache__",
                  ".venv", "node_modules", ".nightwave", "cache"}
 MAX_SOURCE_BYTES = 3_000_000
 MAX_FINDINGS = 100
-PRIVATE_MARKERS = ("BEGIN PRIVATE KEY", "BEGIN RSA PRIVATE KEY")
+PRIVATE_MARKERS = ("-----BEGIN " + "PRIVATE KEY-----", "-----BEGIN RSA " + "PRIVATE KEY-----")
 
 def inventory(root: Path) -> tuple[dict[str, int], list[str], list[str]]:
     counts: dict[str, int] = collections.Counter()
@@ -108,6 +108,13 @@ def self_test() -> None:
             encoding="utf-8")
         counts, findings, warnings = inventory(root)
         assert any("Broken.kt" in finding and "unterminated" in finding
+                   for finding in findings), findings
+        (root / "private.pem").write_text(PRIVATE_MARKERS[0], encoding="utf-8")
+        # Inspect key headers in text files, without mistaking this scanner's
+        # own marker declarations or explanatory prose for a private key.
+        (root / "private.properties").write_text(PRIVATE_MARKERS[0], encoding="utf-8")
+        _, findings, _ = inventory(root)
+        assert any("private.properties" in finding and "private signing/key" in finding
                    for finding in findings), findings
     print("PASS: NW22 full-tree static audit positive and negative fixtures")
 

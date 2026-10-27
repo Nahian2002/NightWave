@@ -39,6 +39,10 @@ CHECKS = {
     MAIN + "NightWaveAdaptiveChromePolicy.kt": (
         "if (reducedMotion) 0 else regularMs.coerceIn(0, 600)",
     ),
+    MAIN + "NightWaveMiniPlayerLayoutPolicy.kt": (
+        "NightWaveChromePolicy.showMiniNext(queueCount, width)",
+        "!(scale >= 1.8f && width < 460f)",
+    ),
     MAIN + "NightWaveMotionPolicy.kt": (
         "object NightWaveMotionPolicy",
         "if (reduceMotion) 0 else requested.coerceIn(0, MAX_MS)",
@@ -66,7 +70,9 @@ CHECKS = {
     MAIN + "StudioPlayerScreens.kt": (
         "fun StudioMiniPlayer(",
         'testTag("nightwave-mini-player")',
-        "NightWaveChromePolicy.showMiniNext(",
+        "NightWaveMiniPlayerLayoutPolicy.resolve(",
+        "val showNext = miniLayout.showNext",
+        "if (showNext)",
         "queueCount = state.queue.size",
         "actions.playPause()",
         "actions.next()",
@@ -178,6 +184,18 @@ def self_test() -> None:
                 [f"fun {name}() {{}}" for name in methods]),
                 encoding="utf-8")
         assert not audit(root), audit(root)
+        for path, token in (
+            (MAIN + "StudioPlayerScreens.kt", "NightWaveMiniPlayerLayoutPolicy.resolve("),
+            (MAIN + "StudioPlayerScreens.kt", "val showNext = miniLayout.showNext"),
+            (MAIN + "StudioPlayerScreens.kt", "if (showNext)"),
+            (MAIN + "NightWaveMiniPlayerLayoutPolicy.kt", "NightWaveChromePolicy.showMiniNext(queueCount, width)"),
+            (MAIN + "NightWaveMiniPlayerLayoutPolicy.kt", "!(scale >= 1.8f && width < 460f)"),
+        ):
+            target = root / path
+            original = target.read_text(encoding="utf-8")
+            target.write_text(original.replace(token, "REMOVED"), encoding="utf-8")
+            assert any(token in problem for problem in audit(root)), token
+            target.write_text(original, encoding="utf-8")
         root_nav = root / (MAIN + "NightWaveStudioActivity.kt")
         root_nav.write_text(root_nav.read_text(encoding="utf-8").replace(
             "userScrollEnabled = !expanded && !showQueue",

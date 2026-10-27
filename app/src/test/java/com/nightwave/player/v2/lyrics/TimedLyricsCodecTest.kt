@@ -8,6 +8,38 @@ import org.junit.Test
 class TimedLyricsCodecTest {
     private fun parse(text: String) = TimedLyricsCodec.parse(text.toByteArray(Charsets.UTF_8))
 
+    @Test fun nw119MetadataAndProseCannotCreatePhantomCues() {
+        val lyrics = parse("[ti:Song [00:59.00] title]\n" +
+            "Notes [00:58.00] are not lyrics\n[00:01.00]বাংলা লাইন")
+        assertEquals(listOf(LyricCue(1000L, "বাংলা লাইন")), lyrics.cues)
+    }
+
+    @Test fun nw119MalformedPrefixCannotBorrowALaterValidTime() {
+        val lyrics = parse("[00:78.00][00:03.00]bad\n" +
+            "[00:invalid][00:04.00]bad\n[00:01.00]good")
+        assertEquals(listOf(LyricCue(1000L, "good")), lyrics.cues)
+    }
+
+    @Test fun nw119EmbeddedTimestampDoesNotSilentlyRewriteWords() {
+        val lyrics = parse("[00:01.00]words [00:02.00]extra\n[00:03.00]good")
+        assertEquals(listOf(LyricCue(3000L, "good")), lyrics.cues)
+    }
+
+    @Test fun nw119LongUnicodeLineFailsInsteadOfTruncatingASurrogatePair() {
+        assertThrows(IllegalArgumentException::class.java) {
+            parse("[00:01.00]" + "a".repeat(219) + "🎵")
+        }
+        val valid = "a".repeat(218) + "🎵"
+        assertEquals(valid, parse("[00:01.00]$valid").cues.single().text)
+    }
+
+    @Test fun nw119BomFractionPrecisionAndRepeatedBanglaLinesRoundTrip() {
+        val parsed = parse("\uFEFF[00:01.1][00:02.12][00:03.123]বাংলা গান")
+        assertEquals(listOf(1100L, 2120L, 3123L), parsed.cues.map { it.timeMs })
+        val bytes = LyricsEditorPolicy.serialize(LyricsEditorPolicy.begin(parsed))
+        assertEquals(parsed.cues, TimedLyricsCodec.parse(bytes).cues)
+    }
+
     @Test fun importsTimestampedLinesInTimeOrder() {
         val lyrics = parse("[00:08.50] Second line\n[00:01.25] First line")
         assertEquals(listOf("First line", "Second line"), lyrics.cues.map { it.text })

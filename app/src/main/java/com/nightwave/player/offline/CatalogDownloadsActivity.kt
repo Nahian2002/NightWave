@@ -26,6 +26,8 @@ import androidx.work.WorkManager
 import com.nightwave.player.net.VideoPreview
 
 /** WorkManager queue remains accessible even if the Compose player cannot open. */
+// This component intentionally uses the pinned Media3 unstable API.
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 class CatalogDownloadsActivity : ComponentActivity() {
     private lateinit var entries: LinearLayout
     private lateinit var overview: TextView

@@ -78,6 +78,8 @@ interface StudioPlayerActions {
  * signed stream URL or background service. A loss of connection leaves the user
  * in the UI with a reconnectable service instead of a pretend playing state.
  */
+// This component intentionally uses the pinned Media3 unstable API.
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
     var state by mutableStateOf(StudioPlayerState())
         private set

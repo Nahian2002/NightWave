@@ -1,13 +1,19 @@
 # NightWave tools — current use and historical checks
 
-**Current source baseline:** NW118 cumulative branch. These scripts have different evidence strength; do not treat an old smoke PASS as a current Android build.
+**Current source baseline:** NW119 update, on cumulative NW118. These scripts have different evidence strength; do not treat an old smoke PASS as a current Android build.
 
 ## Recommended entrypoints
 
 - **Windows build/diagnostics:** root `build-windows.cmd`, `diagnose-nightwave-build.cmd`; corresponding `tools/build-windows.ps1`, `tools/diagnose-build.ps1`.
 - **Release preflight:** root `check-public-release.cmd`, `tools/public_release_preflight.py`, and source-rights/privacy checks. They only prove the gates they actually execute.
 - **Device/signing:** root `check-device-update.cmd`, `capture-nightwave-crash.cmd`, `check-google-oauth.cmd`, and `tools/verify-apk-signature.ps1`.
-- **Android CI:** `.github/workflows/android.yml` and any other workflows in that directory; review their trigger/status on the exact current SHA.
+- **Android CI:** `.github/workflows/current-android.yml` (required build); `android.yml` (manual historical diagnostics); review their trigger/status on the exact current SHA.
+
+## Current structural checks
+
+Run `python tools/verify_current.py`. It runs current structural/negative checks and Windows source preflights, invalidates older receipts, records exit codes and fails on any required check failure. The full Gradle JVM suite, APK assembly, instrumentation-source compilation and signature checks run separately. The Windows builder and current CI require at least 1,400 executed passing tests.
+
+The [historical CI inventory](../docs/HISTORICAL_CI_SOURCE_CHECKS_20261027.md) records all 188 old commands and their baseline results. Those source-text diagnostics remain available; they are not all compatible with current refactored source. No failing diagnostic is claimed repaired merely by moving its workflow to manual execution.
 
 ## Historical smoke suites
 

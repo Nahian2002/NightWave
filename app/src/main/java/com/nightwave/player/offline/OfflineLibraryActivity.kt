@@ -26,6 +26,8 @@ import com.nightwave.player.v2.lyrics.PrivateLyricsStore
 import java.util.concurrent.Executors
 
 /** Native offline UI: safe to open even if the new Compose preview crashes. */
+// This component intentionally uses the pinned Media3 unstable API.
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 class OfflineLibraryActivity : ComponentActivity() {
     companion object {
         const val EXTRA_SEARCH_QUERY = "com.nightwave.player.offline.SEARCH_QUERY"

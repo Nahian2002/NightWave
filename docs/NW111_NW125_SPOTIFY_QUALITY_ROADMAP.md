@@ -71,7 +71,8 @@ Status vocabulary: PLANNED / IN_PROGRESS / CODE_COMPLETE_UNVERIFIED / GRADLE_VER
 | NW116 Premium player | SOURCE_IMPLEMENTED_QA_PENDING | Responsive controls, mini-player, metadata and artwork plus ultra-narrow 204/132dp control overflow fix; 34 new JUnit declarations across five batches; final Compose/JVM/device sign-off pending |
 | NW117 Authentic Home | SOURCE_IMPLEMENTED_QA_PENDING | Correct mix and saved-music discovery, unique bounded Home history/Continue, truthful capped expansion and Browse full history into Library with duplicate-safe row keys; 28 new JUnit methods across four batches; Android/Compose/device QA pending |
 | NW118 Library polish | IN_PROGRESS | Repository inventory/index/ignore hygiene and read-only multiselect sanitization for stale/oversized selections without losing filtered hidden items; 8 new JUnit declarations, Gradle/device QA pending |
-| NW119–NW125 | PLANNED | Not started; status does not imply functionality |
+| NW119 Lyrics | GRADLE_VERIFIED_DEVICE_PENDING | Strict leading LRC timestamps, shared import/review parsing, lossless length rejection and overflow-safe seek; nine new regressions; cumulative 1,421 JVM tests pass; Bangla/TalkBack/device timing QA pending |
+| NW120–NW125 | PLANNED | Next ordered wave is NW120 Audio/EQ; final acceptance and release gates remain open |
 
 After every wave update this ledger with commit, automated receipts, remaining blockers, actual device acceptance and next planned wave. Avoid recalculating a "Spotify score" based on static code checks.
 
@@ -288,3 +289,13 @@ The roadmap defines future turns and test requirements; it does not schedule aut
 - Critical cross-file behavior preserved: the three StudioLibrary individual toggle callbacks must pass the **full `tracks` playlist** (not the filtered `orderedTracks`) so hidden-but-valid selections remain selected across text filtering/sorting. The stale playlist update LaunchedEffect now uses the same pure sanitization. Bulk actions still enforce 20 source identities and existing undo protections; no change to persisted favorites, queues, offline items or Room schema.
 - Added **8 JUnit methods** (six stale/oversized selection cases plus two filtered-hidden and bounded-atomic cases) to `LibraryBulkSelectionPolicyTest.kt`, preserving all 7 original methods, now 15 in the suite. No Gradle/JUnit or Samsung runtime execution yet.
 - NW118 **IN_PROGRESS**. Required next upgrades include careful library browser/sorting QA, large playlist performance, safe track removal/undo, artwork/offline badges and real device validation. Full source integration checks may validate wiring but cannot certify all repository bugs fixed. NW114 authorized resumption, NW115 media-session, NW116/117 QA, and NW125 signer/OAuth/rights/privacy/source release gates remain **NO-GO**.
+
+## NW119 implementation ledger — 27 October 2026
+
+- Parent: `64160f1388b6dcef6439f384602d1a7c9a6c63d8` (NW118); review branch `update/nightwave-cleanup-nw119-lyrics`.
+- Fixed missing `assertTrue` import in the NW113 file-health test, which stopped real JVM compilation. Repaired stale Windows preflight expectations for current mini-player layout, NW113 availability snapshots, NW117 Home routing, and CI targeting.
+- LRC imports now require leading timestamps; metadata, prose and malformed mixed rows cannot manufacture cues or silently remove embedded timestamps. Import review shares the production row parser. Overlong lines fail with an actionable message instead of truncating Unicode. Coarse offsets validate the saved base; extreme seek and duration arithmetic no longer wraps.
+- Nine new regression methods preserve existing timestamp/UTF-8/byte/line limits, repeated cues, Bangla vowels, safe import confirmation, editor/exports and track-bound seeking. Full local Android app + Android instrumentation-source compilation, debug assembly and all **1,421/1,421 JVM tests** pass with zero skips. See [NW119 evidence](NW119_CLEANUP_AND_LYRICS_EVIDENCE.md).
+- Repository organization: concise current README/build guide, archived announcements, explicit current vs historical CI, schema v1 retained for migration evidence, and complete source/rollback checkpoints. Historical source-check findings remain recorded, not relabeled passed.
+- Pending: physical-device lyric latency/follow/TalkBack, remaining NW118 large-library/undo acceptance, earlier waves' unfinished runtime work, installed signer, real Drive restoration, rights and release certification.
+- Next ordered feature wave: **NW120 Audio/EQ**. NW125 cannot certify release until all outstanding critical gates pass.

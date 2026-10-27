@@ -1,278 +1,49 @@
 # NightWave
 
-**Android audio-first music player · development source · release candidate NOT certified.**
+An independent Android music player with an original midnight design, local music, playlists, background playback, imported synchronized lyrics, Sound Studio and optional Google Drive backup.
 
-NightWave combines locally imported or otherwise authorized music, an offline library, optional Google Drive backup, song discovery, playlists, Sound Studio, queue control, and user-imported synchronized LRC lyrics. The original midnight/teal design is independent of Spotify.
+**Current cumulative source:** [`update/nightwave-cleanup-nw119-lyrics`](https://github.com/Nahian2002/NightWave/tree/update/nightwave-cleanup-nw119-lyrics), based on NW118 commit `64160f1388b6dcef6439f384602d1a7c9a6c63d8`. The default `main` still contains the old v0.8 app.
 
-**Current cumulative development source:** `feature/nightwave-nw118-repo-hygiene-library-selection` (NW118 in progress, built on all protected NW110–NW117 branches). The older default `main` is **not** the current cumulative candidate. See [active NW111–NW125 roadmap](docs/NW111_NW125_SPOTIFY_QUALITY_ROADMAP.md), [repository navigation](docs/REPOSITORY_INDEX.md), and [repository hygiene audit](docs/NW118_REPOSITORY_HYGIENE_AUDIT.md) before building or merging.
+**27 October 2026 validation:** Android app and instrumentation sources compile, the debug APK assembles, and **1,421 JVM tests pass with zero failures or skips**. See the [current test report](TEST_REPORT.md) and [update evidence](docs/NW119_CLEANUP_AND_LYRICS_EVIDENCE.md) for scope and receipts.
 
-**Release status:** **NO-GO**. The hosted GitHub Actions runner and empty canary both failed before executing steps; a current Windows debug build, Android/JUnit/139-case device validation, installed-signer continuity, production OAuth/backup, Android 16 behavior/device certification and NW77 YouTube-source rights review remain outstanding. Never install a new APK over a library-bearing app unless its signer matches.
+**Public release: NO-GO.** Installed-phone signer continuity, Samsung acceptance, production OAuth/Drive restore and source-rights review remain separate gates. A successful build does not authorize distribution or certify phone behavior.
 
-**Important about current test evidence:** Source reviews and targeted Kotlin smoke checks from incremental NW111–NW118 PRs are not a successful latest Android/Compose build or full release verification. Keep release status NO-GO until a current exact-commit Windows Gradle/JVM, device, signing, Drive backup, privacy and rights matrix is executed. Preserve historic evidence documents; consult the new repository index for current vs archived entries.
+## Start here
 
-**NW110 final integration and certification milestone:** [NW110 exact-source JVM and outstanding release gates](docs/NW110_FINAL_CERTIFICATION_EVIDENCE.md). Eight real NW95–NW100 JUnit test classes (53/53 methods) compiled and executed together against the exact 17 GitHub-blob-matched source files; 32,400 randomized queue assertions passed. The source-only JVM result is not an Android build or release approval. The new fail-closed certification script rejects stale/altered JVM receipts and explicitly leaves public distribution **NO-GO** pending real Android Gradle, signer, 139-device-case, Google Drive, privacy, source-rights and Google Play verification.
+- [Active NW111–NW125 roadmap](docs/NW111_NW125_SPOTIFY_QUALITY_ROADMAP.md)
+- [Build and safe update instructions](docs/BUILD_AND_RELEASE.md)
+- [Repository navigation](docs/REPOSITORY_INDEX.md)
+- [Current checks and historical tooling](tools/README.md)
+- [Release readiness](RELEASE_READINESS.md), [security](SECURITY.md), [privacy draft](PRIVACY_POLICY_DRAFT.md)
 
-**NW109 Android 16/privacy milestone:** [NW109 audit, source changes and Android test boundaries](docs/NW109_ANDROID16_PRIVACY_EVIDENCE.md). Upgraded compile/target API 36 using AGP 8.10.1 and existing Gradle 8.11.1, updated both Windows and CI SDK installers, and added explicit opt-out rules for cloud and device-to-device copying of private files. No changes to package ID, minSdk, version code/name, app signer, Google Drive backup, local music, or playlists. Synthetic negative checks guard SDK/permissions/exported surfaces/privacy rules. Android build/device proof and distribution rights remain pending.
+## Features
 
-**NW108 Google Drive backup/recovery hardening milestone:** [NW108 privacy-safe name-identity evidence](docs/NW108_DRIVE_BACKUP_RECOVERY_EVIDENCE.md). Removed device-locale-dependent playlist comparison from library backup validation and Drive merge. A single locale-independent case-insensitive identity rule matching local playlist mutations now also governs restore-loss previews, preventing ambiguous cross-device collisions and silent playlist replacement. The public/offline audio, OAuth scope, Drive API client, sign-in sessions and on-device data remain unchanged. Six policy JUnit cases and 30 cross-locale smoke checks passed independently; complete Android/Drive restore still unverified.
-
-**NW107 synchronized lyrics/accessibility milestone:** [NW107 evidence and TalkBack QA boundaries](docs/NW107_LYRICS_ACCESSIBILITY_EVIDENCE.md). Immersive lyrics has a real Pause/Follow control available to TalkBack users in either state, with clear action/state descriptions; finger swipe and tap-to-seek remain unchanged. Eight original lyrics JUnit-source methods are covered by an independent JVM runner, and policy smoke tests are wired into CI. Full Android/TalkBack device verification remains mandatory.
-
-**NW106 now-playing seek UI milestone:** [NW106 test report](docs/NW106_SEEK_TIMELINE_EVIDENCE.md). Seek timeline taps and drags now reject collapsed/non-finite geometry rather than silently seeking to 0%; the visual thumb and inverse mapping are consistent. Accessibility progress actions reject non-finite requests rather than reporting false success. Standalone Kotlin and nine original/new JUnit tests cover the pure policy. Android UI/runtime verification remains pending.
-
-**NW105 offline JUnit execution milestone:** [NW105 exact-source evidence and limitations](docs/NW105_OFFLINE_JUNIT_EVIDENCE.md). Both real offline policies and the original two offline JUnit classes were compiled locally with a minimal standalone public Repeat enum type; **14/14 methods passed**. Together with NW104, **47/53** distinct JUnit methods have independent JVM evidence. Six public-queue JUnit methods and full Android/Gradle/device tests are outstanding. The NW102 full 53-method runner remains mandatory.
-
-**NW104 Kotlin compiler-test repair milestone:** [NW104 compiler evidence](docs/NW104_KOTLIN_JUNIT_COMPILER_FIXES.md). Repaired invalid instance references to Kotlin nested enums in two NW95/NW98 JUnit test classes. The exact underlying Kotlin source compiled on the local JVM and **33/33 real @Test methods passed** across five test classes. The full 53-test matrix, Android Gradle, signing and device tests are still unverified.
-
-**NW103 build pipeline evidence milestone:** [NW103 audit and one-click local build handoff](docs/NW103_BUILD_PIPELINE_EVIDENCE.md). The NW102 runner now invalidates stale PASS receipts at the beginning of each non-self-test run, rejects in-flight source edits and atomically promotes results only after all 53 real Kotlin tests finish. CI uploads this scoped evidence even if a later Gradle step fails. GitHub Actions already supports manual workflow dispatch, but runner allocation and Android certification remain unresolved.
-
-**NW102 original-JUnit-source compiler milestone:** [NW102 test matrix](docs/NW102_COMPILER_TEST_MATRIX.md). The standalone JVM gate compiles 9 actual policy Kotlin files and the 8 real JUnit-source test classes added or modified in NW95–NW100 (53 methods) with a temporary JUnit API bridge, then executes them and records exact source hashes. **Android Gradle/JUnit and phone acceptance still require independent verification.**
-
-**NW101 Windows build-evidence integrity milestone:** [NW101 evidence, tests and unresolved hosted runner blocker](docs/NW101_BUILD_ATTESTATION.md). The Windows post-build gate now verifies the **actual current source inventory and every source file SHA256** against the APK build-time fingerprint, rather than only checking the manifest-file checksum. Source edits, additions, deletions, and stale receipts are rejected. Offline negative fixtures are wired into CI. **This does not repair runner allocation and does not certify Android compilation or device behavior.**
-
-**NW100 cumulative playback audit milestone:** [NW100 exact evidence and unresolved release blockers](docs/NW100_PLAYBACK_AUDIT.md). Notification Next now probes the real public/offline queue without mutating shuffle, priorities or history and rejects Repeat Off end-of-queue no-ops. Media3 prepared offline timelines are checked against the player's actual next item. Cumulative policy/source smoke is added to CI. **No full Android/device certification yet.**
-
-**NW99 media notification / session milestone:** [NW99 evidence](docs/NW99_MEDIA_SESSION_EVIDENCE.md). Media3 notification Previous/Next use the existing NightWave queue-aware custom commands, including one-item streaming timelines. Only NightWave controllers and the identified notification controller receive those custom commands; an empty queue no longer returns false transport success. Actual notification display and Android build QA are still pending.
-
-**NW98 playback-intent milestone:** [NW98 source and regression evidence](docs/NW98_BACKGROUND_PLAYBACK_EVIDENCE.md). Same-song Play reasserts a paused pending public lookup without another extraction, and launcher widget Pause now cancels buffered Play intent. Widget action/icon updates on Media3 playWhenReady changes. **Android/device acceptance remains unverified.**
-
-**NW97 shuffle and gapless transition milestone:** [NW97 regression evidence](docs/NW97_OFFLINE_TRANSITION_EVIDENCE.md). Offline fallback Previous no longer returns a heard song to random unplayed candidates; exact Forward retrace and Repeat One/All remain. Prepared gapless transitions reject stale selection indexes or corrupt queue IDs. **Android/phone acceptance remains outstanding.**
-
-**NW96 equalizer-session milestone:** [NW96 exact changes and test caveats](docs/NW96_EQUALIZER_SESSION_EVIDENCE.md). Explicit EQ preset/manual curve intent is saved atomically and restored on service startup, then enabled only on a compatible live Android effect session. Manual frequency centers must match: same band count alone is insufficient. **Android build and Bluetooth acoustic/device QA remain unverified.**
-
-**NW95 audio-focus/headset transport milestone:** [NW95 focused patch, tests and limitations](docs/NW95_AUDIO_ROUTE_EVIDENCE.md). A headset Play/Pause press while a public track is resolving now pauses the pending playback intent instead of restarting it; explicit Play and headset Toggle are distinguished. Loaded/offline playback remains under Media3 Android audio-focus and becoming-noisy handling. **Actual Bluetooth/headset route tests remain pending.**
-
-**NW94 playback-checkpoint milestone:** [NW94 source patch, JVM fixtures and unresolved tests](docs/NW94_PLAYBACK_CHECKPOINT_EVIDENCE.md). Public bookmarks now reject callbacks for a no-longer-selected MediaItem; requested pause/shutdown flush uses synchronous preference commit. Public queue mode acknowledgements require a successful persistence result. **Full Android/device certification remains outstanding.**
-
-**NW93 queue-recovery milestone:** [NW93 evidence and restart regression tests](docs/NW93_QUEUE_RECOVERY_EVIDENCE.md). Shuffle Previous/Forward trails and the seen-cycle now persist as validated public track IDs, preserving the exact selected song and legacy queue format compatibility. A damaged history is discarded without erasing the valid queue. **Android Gradle/device QA is not certified.** The cumulative Windows build remains `run-nw91-final.cmd`.
-
-**NW92 data-integrity milestone:** [NW92 storage safety and verification report](docs/NW92_DATA_INTEGRITY_EVIDENCE.md). Verified cloud audio no longer destroys its downloaded staging/checkpoint copy when registration fails; the new copy is fsynced and SHA-256/MD5 verified first. The existing `run-nw91-final.cmd` in the latest ZIP still runs the cumulative Windows build. **No Android/device certification yet.**
-
-**NW91 build-recovery milestone:** [NW91 evidence and safe Windows verification](docs/NW91_BUILD_RECOVERY_EVIDENCE.md). The 1,000-test acceptance threshold now counts executed tests, not skips; CI and Windows checks reject more stale or inconsistent proof. **Android compilation/device certification is still pending.** On a freshly extracted NW91 ZIP, run `run-nw91-final.cmd` on Windows and use `check-device-update.cmd` before installing any update.
-
-**Historical NW90 start:** [NW90 evidence and blockers](docs/NW90_FINAL_INTEGRATION_EVIDENCE.md) · [Expanded 139-case acceptance matrix](docs/NW90_EXPANDED_139_CASE_MATRIX.csv) · [Windows one-click private QA](run-nw90-final.cmd) · [Cumulative phase roadmap](docs/CURRENT_CUMULATIVE_ROADMAP.md) · [Historic phase announcements](docs/NW90_ARCHIVED_PHASE_BANNERS.md).
-
----
-
-
-**Android audio-first music player · active development, private source · not yet public release-ready.**
-
-> **NW75 WINDOWS BUILD HOTFIX (26 OCTOBER 2026):** The user's Windows build stopped **before Gradle** because an old Phase 6P preflight still expected the *pre-NW70* search implementation (`Normalizer.Form.NFKD` inside `SearchRelevancePolicy`, and `savedMatches` inside `SavedTrackSearch`). The current NW70 implementation was present. This hotfix updates the **PowerShell and Python gate expectations** to verify the current Unicode normalizer, `savedScore()` and Search UI. **No production app/Google/music changes; full Android compilation remains UNVERIFIED, public release NO-GO.** [Read the precise fix and safe rebuild instructions](docs/NW75_PHASE6P_PREFLIGHT_HOTFIX.md). Download the latest cumulative ZIP from `fix/nightwave-nw75-phase6p-preflight`, not the previous NW75 feature branch.
-
-> **NW75 FINAL PLANNED FEATURE SOURCE:** This cumulative development branch stacks NightWave NW43–NW75. NW75 is the **source integration milestone**, NOT an APK release certificate. It repairs a genuine NW71 JUnit fixture inconsistency (one playlist cannot fill a 250-song quota when each playlist is capped at 200), adds a reproducible **27,016/27,016 passing exact-source Kotlin/JVM multi-policy integration smoke**, and expands the already-used zero-Python Windows source preflight plus GitHub's optional Kotlin smoke stage. No actual music or account data is changed. **Full Android compilation, complete JUnit, compatible APK signing, Samsung testing and Google OAuth error 8 remain UNVERIFIED. Public APK / Play release: NO-GO.** Read the [NW75 final integration and build handoff](docs/NW75_FINAL_INTEGRATION.md) and [Release Readiness](RELEASE_READINESS.md).
-
-### Build the complete cumulative source
-
-Download **Code → Download ZIP** from `feature/nightwave-nw77-source-safety-release-gate`, extract into a **fresh Windows folder**, and run `build-windows.cmd` to perform the complete Android test/build/signature gate. If unsuccessful, run `send-build-report.cmd` and share the resulting `dist` diagnostic evidence. On a successful fresh candidate, use `check-google-oauth.cmd` and `check-device-update.cmd` BEFORE updating NightWave on your Samsung. **Never uninstall NightWave, clear its data, or delete offline songs to overcome Google OAuth or signing errors.**
-
-Previous NW43–NW74 entries document source development, not verified Android or device release testing.
-
----
-
-> **NW45 — GOOGLE DRIVE AUTH RECOVERY (SOURCE ONLY; ACCOUNT CONNECTION UNVERIFIED).** Distinguishes error 8 (internal/possibly transient) from error 10 (configuration), records only a bounded public status/stage, exposes the installed APK signer SHA-1 and Play Services status in a safe copyable setup report, and atomically validates privacy revisions before marking manual backups verified. Background workers stop retrying permanent OAuth failures. **The external Google Cloud Android OAuth client, Drive API and phone consent still require live verification; no Google connection has been demonstrated yet.** [NW45 diagnosis, safety and test plan](docs/NW45_GOOGLE_AUTH_BACKUP_RECOVERY.md).
-
-
-> **NW44 — SMART SEARCH 2.0 (SOURCE IMPLEMENTED; ANDROID BUILD DEFERRED).** Improves Songs-mode relevance with conservative `Pt. II`/number aliases, contextual cover/remix/trailer demotion, 40 synthetic ranking fixtures, and a cleaner Search experience with direct Songs/Videos filters and grouped likely matches. Video mode/provider order, original URLs and titles, NW43 single-song playback, saved library and offline data are preserved. **20/20 source checks passed; Kotlin/JUnit/Android/device tests have not been run on the final build.** Google authorization remains a separate NW45 blocker. [NW44 scope and verification](docs/NW44_SMART_SEARCH_V2.md).
-
-
-> **NW43 — Queue Correctness (SOURCE IMPLEMENTATION, NOT YET ANDROID-BUILT).** Tapping Search results now selects one track instead of silently queuing every result. Named playlists/mixes still play as collections. Song menus add explicit **Play Next** versus **Add to Queue**, with manually selected next tracks prioritized above Shuffle and stored as public IDs for restart recovery. Queue UI separates Playing Now, Play Next, true Up Next, and Shuffle Pool. **15 JVM + 6 Android regression tests written, not run; 18/18 source-wiring checks passed.** Google authorization 8, downloads and UI polishing are separate future batches. [NW43 details and acceptance](docs/NW43_QUEUE_CORRECTNESS.md).
-
-
-> **NW42 — EXPRESSIVE PREMIUM MOTION & ARTWORK-LED REDESIGN (SOURCE-ONLY, 25 October 2026).** Based on the latest 5.6-minute phone recording, this branch upgrades Home/mixtape visuals to genuine saved-song art, consolidates repetitive stat cards, makes Search more compact, presents You settings as an editorial list, and animates tab/player/current-song state with reduced-motion support. **12/12 source wiring checks and 13/13 exact-source standalone Kotlin policy assertions passed; full Android build/device polish NOT verified.** Google status 8 still requires checking OAuth Android client registration against the installed APK signing SHA-1; it has **not** been automatically fixed. [NW42 implementation and QA](docs/NW42_EXPRESSIVE_PREMIUM_DESIGN.md).
-
-
-> **NW41 — Recorded-device premium polish + Google OAuth diagnostic (SOURCE PREVIEW; Android build pending, 25 October 2026).** Based on two real phone recordings, this development branch improves the typography, bottom navigation, music cards, Search header, native action dialogs and Downloads layout/progress. It also adds **You > Account & backup > Copy Google setup report** with the installed APK signer SHA-1 to diagnose ongoing Google Drive error 8. This feature **does not itself fix Google's authorization or increase permitted download sources**. Compile/device QA is mandatory before updating your installed app. [Scope and review](docs/NW41_VIDEO_REVIEW_PREMIUM_PASS.md).
-
-
-> **NW40 verification continuation, 25 October 2026:** Windows `build-windows.cmd` now runs a PowerShell-only NW40 integrity preflight before Gradle (no Python needed). GitHub Actions also includes PowerShell and reproducible standalone Kotlin gates. Exact committed Kotlin sources passed **26 local smoke assertions** (13 pure policy + 13 SearchHistoryStore with isolated Android/JSON test doubles). These are **NOT** a full Android build. GitHub's runner did not start, and Android SDK/Gradle are unavailable in the current execution environment. See [NW40 evidence and safe local build path](docs/NW40_STABILITY_INTEGRATION_AND_BUILD_GATE.md).
-
-
-> **NW40 — STABILITY INTEGRATION (SOURCE-ONLY CHECKS PASS, FULL ANDROID BUILD BLOCKED, 25 October 2026).** [NW40 source](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-nw40-stability-integration): strict search-history corruption preservation, safer legacy pin refresh, crash-guarded song options, fresh-source checks before bulk copy, test-isolated search-history instrumentation, and `tools/verify_nw40_stability.py` (17/17 source checks). **Android/JVM Gradle build and physical-device QA are still unverified** because [the CI job](https://github.com/Nahian2002/NightWave/actions/runs/40177499450) ended without a runner or executed steps. Do not install over existing music data without build/signing verification. [Read NW40 test plan](docs/NW40_STABILITY_INTEGRATION_AND_BUILD_GATE.md).
-
-
-> **NW39 — ATOMIC PLAYLIST EDITS, DRAG-TO-REORDER & UNDO (SOURCE PATCH; DEVICE QA PENDING, 25 October 2026).** [NW39 branch](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-nw39-atomic-playlist-edits) adds guarded multi-song Copy/Remove, saved-order drag handle and accessible move buttons, plus one-level conflict-safe Undo for playlist edits. Writes use the existing single-writer recovery-protected transaction, without deleting favorites/offline audio or changing the serverless architecture. **Standalone drag-policy Kotlin compile + 10 assertions passed; Android/JVM Gradle suites not executed and full app build NOT VERIFIED (runner unavailable).** [NW39 QA and scope](docs/NW39_ATOMIC_PLAYLIST_EDITS_AND_UNDO.md).
-
-
-> **NW38 — LIBRARY MICRO-POLISH: PINS, BULK LINK ACTIONS & STORAGE (SOURCE PATCH; DEVICE BUILD PENDING, 25 October 2026).** [NW38 branch](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-nw38-library-pins-storage) adds one-tap pinned playlists with stable sorting, isolated preferences and rename/delete cleanup; safe 20-song playlist selection for Copy/Share public links; and health-aware imported audio storage/free-space status. **Standalone Kotlin policy smoke passed; Android build/device testing is not yet verified**, and `main` is unchanged. [Details and acceptance checklist](docs/NW38_PINNED_PLAYLISTS_BULK_STORAGE.md).
-
-
-> **NW37 — SEARCH HISTORY & SONG ACTION MICRO-POLISH (SOURCE PATCH; DEVICE BUILD PENDING, 25 October 2026).** [NW37 branch](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-nw37-search-and-song-actions) adds private 12-entry explicit search history with per-row ×, confirmed clear, guarded Undo, one-tap re-search, Share Song and Copy Song Link, plus more accessible search controls. No audio, playlist or account data is changed. **Local Kotlin policy smoke passed; full Android build is NOT verified** because the first GitHub Actions run failed before allocating a runner. [NW37 details and acceptance tests](docs/NW37_SEARCH_AND_SONG_ACTIONS.md).
-
-
-> **NW36 — UX & Navigation Polish (SOURCE PATCH; DEVICE BUILD PENDING, 25 October 2026).** [NW36 branch](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-nw36-navigation-history-polish) improves screen placement across Home, Search, Library, Profile, Downloads and Offline Music: top-priority Recently Played with **× Remove**, See all and confirmed Clear; an editable Recently Played library collection; **Remove from this playlist** with confirmation; non-destructive **Hide/Restore** for completed download cards; search-first, compact Offline Music controls; and a Profile history shortcut. All earlier app files, library keys, media files and package identity remain preserved. **Full NW36 Android build/device tests not yet run.** [Screen-by-screen placement and QA](docs/NW36_UX_POLISH_AND_INFORMATION_ARCHITECTURE.md).
-
-> **NW35 — Google Connection Diagnostics + Offline Playback & Download Controls (SOURCE REVISION; DEVICE QA PENDING, 25 October 2026).** [NW35 branch](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-nw35-google-download-controls) improves Google OAuth error-8 guidance, adds **Pause / Resume (restart from zero)** for searched-song jobs, measured speed/ETA, a larger transfer buffer and longer bounded timeout, and offline-library Shuffle All + Previous / Play-Pause / Next. All prior songs and app identity are retained. A real Google OAuth connection also requires the registered Android client package and exact APK signer SHA-1; it cannot be repaired from app code alone. NW35 Android build and phone tests are still pending. Experimental YouTube offline storage is not public-release approved. [NW35 changes/testing](docs/NW35_GOOGLE_DOWNLOAD_OFFLINE_CONTROLS.md).
-
-> **PUBLIC RELEASE PREPARATION — REPOSITORY-ONLY BASELINE (25 October 2026; PRE-NW35).** NightWave remains a **private development project**, and **no Android app files or installed-app data were changed** for this work. [Release Readiness](RELEASE_READINESS.md) · [Audit Findings](docs/PUBLIC_RELEASE_READINESS_AUDIT_20261025.md) · [Security](SECURITY.md) · [Privacy Draft](PRIVACY_POLICY_DRAFT.md). **No public APK or Google Play release is approved:** YouTube/offline music rights, API 36, real Gradle/device tests, secure production signing and a verified public privacy contact are outstanding. Historical phase notes below describe development, not certified release status.
-
-> **NW34 — Offline Storage Safety & Windows Source Gate (SOURCE REVISION / FULL BUILD PENDING, 25 October 2026).** [NW34 branch](https://github.com/Nahian2002/NightWave/tree/local/nightwave-nw34-offline-build-guard) adds free-storage checks during searched-audio transfers, including unknown-length streams, and a 16-contract Windows source preflight executed before Gradle. The new failure status explains storage exhaustion. Existing NW28-NW33 sources, library, Google backup and playback are preserved. Isolated pure Kotlin storage/failure policy smoke: 15/15 pass; **full Android compilation, Windows PowerShell run and phone testing remain unverified.** This does not extend YouTube catalog coverage or authorize offline copying without platform/recording rights. [NW34 changes and testing](docs/NW34_OFFLINE_TRANSFER_BUILD_GATE.md).
-
-> **NW33 — Offline Save Retry & Clearer Status (LOCAL SOURCE; DEVICE QA PENDING, 25 October 2026).** [Full NW33 source](https://github.com/Nahian2002/NightWave/tree/local/nightwave-nw33-offline-retry) adds a permission-confirmed **Retry saving this song** option for eligible failed jobs, **Save this song again** after file deletion, latest-first Downloads ordering, deduplicated searched-song job history, and privacy-safe HTTP/network/format/storage error descriptions. All previous source files, local library IDs, playlists, Google backup and player code are preserved. Isolated Kotlin policy smoke **20/20 PASS**; full Android compilation and device tests not yet run. The search-stream pilot is **not** a guarantee of every YouTube song or approval for public distribution. [NW33 changes and test checklist](docs/NW33_OFFLINE_RETRY_AND_STATUS.md).
-
-> **NW32 — Offline Readiness & Integrity (LOCAL SOURCE; ANDROID DEVICE QA PENDING, 25 October 2026).** [Full NW32 source](https://github.com/Nahian2002/NightWave/tree/local/nightwave-nw32-offline-reliability) prevents old completed download jobs from being mislabelled as playable after the user deletes their audio, rechecks file health when returning to Downloads, and batches verified local-ID lookups for saved search queues. Original audio, playlists, searches, cloud features and package identity are preserved; no data migration or deletion. Focused Kotlin status smoke 8/8; Android instrumentation and full APK build pending. **This does not guarantee saving the entire YouTube catalog, and the offline source pilot requires applicable distribution approvals.** [NW32 QA and limitations](docs/NW32_OFFLINE_INTEGRITY.md).
-
-> **NW31 — Offline-First Search Playback (SOURCE PILOT / DEVICE QA PENDING, 25 October 2026).** [Full NW31 source](https://github.com/Nahian2002/NightWave/tree/local/nightwave-nw31-offline-first-playback) prioritizes verified on-device recordings when playing a saved song from Search or song options, builds a bounded local-only playback queue for other saved tracks in that collection, and checks storage headroom before downloading a searched audio-only file. **Zero previous files deleted; online YouTube search/playback remains a fallback.** Pure Kotlin queue/disk policy smoke: 10/10. Android APK build/device tests have not yet run; YouTube offline copying requires applicable permissions and platform approval before distribution. [NW31 testing notes](docs/NW31_OFFLINE_FIRST_PLAYBACK.md).
-
-> **NW30 — Searched-Track Offline Source Pilot (DEVICE QA PENDING; NOT DISTRIBUTION APPROVED, 24 October 2026).** [Full NW30 source](https://github.com/Nahian2002/NightWave/tree/local/nightwave-nw30-saved-audio) adds one-tap search-to-offline jobs for accessible audio-only streams, strict URL/media validation, cancel/progress and real saved-file readiness checks, while retaining NW29's licensed discovery and NW28's Google diagnostics. **It cannot guarantee all songs; DRM, access restrictions, Android decoding and platform permissions remain blockers.** YouTube's API developer policies prohibit offline copying without prior written approval: user consent in a dialog is not that approval. **Full Windows Gradle build, APK verification and phone tests have not been run for NW30.** [NW30 details and approval blockers](docs/NW30_SEARCH_TRACK_OFFLINE.md).
-
-> **NW29 — Integrated Save Offline UX (LOCAL SOURCE / DEVICE QA PENDING, 24 October 2026).** [Full NW29 source](https://github.com/Nahian2002/NightWave/tree/local/nightwave-nw29-offline-experience) adds a Save Offline entry in Now Playing and song options, searches for independently licensed candidate recordings using title/creator with bounded fallback, and provides shortcuts to the existing personal-audio import and authorized direct-link downloader. It never pretends a YouTube bookmark is an offline file or substitutes an unrelated recording automatically. **Zero previous source files removed.** An isolated Kotlin search-policy smoke passed; Android build, APK verification and phone QA are still required. **Universal YouTube offline caching is not included.** [NW29 limitations and Windows tests](docs/NW29_SAVE_OFFLINE.md).
-
-> **NW27 — Final Source Hardening (DRAFT / RELEASE NO-GO, 24 October 2026).** [Current NW27 source](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw27-final-hardening) protects offline startup from extractor binary linkage failures, prevents cancelled/stale Google Drive workers from retrying or overwriting account status (including same-account reconnect ABA races), bounds Drive response streams, redacts potentially personal crash thread names, and adds a Windows-native release preflight. **33/33 production Kotlin safety assertions passed against exact GitHub file hashes; the exact CloudBackupState source compiled and passed a committed, reproducible in-memory Android-stub reconnect/privacy-race test (also wired to CI).** The independent one-step GitHub Actions canary also failed before any steps (runner provisioning blocked). **No Android APK, Google account connection or device release has been certified.** [NW27 evidence and all release blockers](docs/NIGHTWAVE_NW27_RELEASE_READINESS.md).
-
-> **NW26 — Google Drive, Local Search & Lyrics Reliability (DRAFT, 24 October 2026).** [Integrated source](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-v2-nw26-google-search-lyrics) differentiates Google Drive OAuth/API errors from retryable outages, prevents stale account/privacy settings from being marked as a current verified backup, improves Bangla/Latin-accent offline search, expands saved suggestions beyond the first 400 items, and shows imported LRC badges. **32/32 exact-production Kotlin policy assertions passed; Google authorization, real Drive transfers and Android compilation remain UNVERIFIED.** No server, unrestricted YouTube downloader or automatic live lyric extraction was added. [NW26 evidence, scope and Google Cloud setup](docs/NIGHTWAVE_NW26_GOOGLE_SEARCH_LYRICS.md).
-
-> **NW25 — Adaptive Premium UI (DRAFT, 24 October 2026).** [Integrated NW25 source](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-v2-nw25-adaptive-premium-ui) improves Home, Search, Now Playing, mini-player, 4-tab navigation, Profile, Library and download layouts for phone/tablet, split-screen and accessibility text scaling. Artwork sizes are clamped, buttons remain reachable, oversized text can reflow, and direct-download progress cannot divide by zero. **28/28 exact GitHub Kotlin UI-policy assertions passed in a standalone compiler test; complete Android build, visual QA and phone behavior remain UNVERIFIED.** All existing playback, audio storage, search catalog and Google account sources are preserved. [NW25 details](docs/NIGHTWAVE_NW25_ADAPTIVE_UI.md).
-
-> **NW24 — Scalable Offline Library (DRAFT, 23 October 2026).** [NW24 source](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-v2-nw24-scalable-offline-library) expands the backward-compatible library to **5,000 tracks / 32 GiB indexed**, adds SHA-256 duplicate detection for manual file imports, fewer repeated disk scans, 60-row paging, debounced local search and playback from later pages. **24/24 exact-source Kotlin capacity assertions passed locally; full Android Gradle and device testing remain unverified.** Existing private song IDs, playlists and offline index storage are unchanged; do not uninstall or clear app data. [Detailed scope and QA](docs/NIGHTWAVE_NW24_SCALABLE_OFFLINE_LIBRARY.md).
-
-> **NW23 — Persistent Licensed-Audio Downloads (DRAFT, 23 October 2026).** [Integrated source](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-v2-nw23-persistent-download-queue) adds WorkManager background queueing, progress notifications, cancel, network constraints and bounded clean-start retries for the independent Commons CC0/public-domain catalog; the existing foreground file downloader remains available. Downloads now have a native queue screen in Offline Library and catalog search, with storage headroom and source/copy integrity checks. **No universal YouTube-to-MP3, genuine byte-range pause/resume or full Android build/device validation.** Do not replace an installed APK until signing and build QA pass. [NW23 scope and tests](docs/NIGHTWAVE_NW23_PERSISTENT_DOWNLOAD_QUEUE.md).
-
-> **NW22 Build Recovery — 23 October 2026 (DRAFT / release NO-GO).** [Current integrated source](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw22-build-stability) retains all NW21 music/UI functionality and adds an **executed exact-source Kotlin compiler test (24/24 assertions passed)**, a fail-closed CI/build source gate, and an optional Windows APK signing-certificate comparison with the user's trusted installed-app signer. GitHub hosted Actions still stops before any job step, so full Android Gradle, APK signing/install compatibility and Samsung device tests remain **UNVERIFIED**. [NW22 evidence and Windows steps](docs/NIGHTWAVE_NW22_BUILD_STABILITY.md).
-
-> **NW21 — in-app licensed downloads, byte-exact verification and polished layouts (DRAFT, 23 October 2026).** [Source branch](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-v2-nw21-download-ux-polish): Search tab, song options and Offline Library now open the internal CC0/public-domain catalog; users can search, save and play eligible files without external imports. Catalog transfers additionally verify original-source byte size and MediaWiki SHA-1 **before** indexing, retaining NW19 SHA-256 copy integrity. Navigation/home font scaling, download screen touch targets, gradients, animations, landscape width and Android cutout/keyboard insets received focused UI improvements. **This is not a universal YouTube ripper or an APK certified to install.** Local Kotlin checksum checks 13/13; Android Gradle, signing, network and Samsung tests pending. [NW21 scope and QA](docs/NIGHTWAVE_NW21_DOWNLOAD_UX_INTEGRITY.md).
-
-> **NW-19 Audio Accuracy & Integrity — 23 October 2026 (DRAFT):** The [current integrated development branch](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-v2-nw19-audio-integrity) fixes a reproducible MP3-without-ID3 versus AAC ADTS detection error in NW18. It adds SHA-256 validation of the complete copied download before Offline Library indexing, deduplicates identical verified audio, and retains direct HTTPS authorized downloads, local song search, Google Drive identity and current playback. **Real FFmpeg MP3/AAC samples and 6/6 JVM checks passed. Full Android Gradle, APK signing and Samsung device acceptance are NOT verified: do not replace an installed app yet.** It is **not** a universal YouTube-to-MP3 converter. [NW19 QA and limits](docs/NIGHTWAVE_NW19_AUDIO_INTEGRITY.md).
-
-> **NW-18 Reliable Offline Audio Downloads — 23 October 2026 (DRAFT):** The [current full-source branch](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-v2-nw18-reliable-audio-downloads) improves NW-16’s permissioned direct-HTTPS downloader. It recognizes **extensionless direct audio URLs**, checks MIME/signatures and Android-parsed **audio-only** tracks, validates up to four safe HTTPS redirect hops, retries transient network errors with clean partial-file resets, and preserves the original MP3/M4A/FLAC/OGG/OPUS/WebM format. Existing NW17 Google identity and imported-song search changes are retained. **It does not download arbitrary YouTube songs or transcode other formats to MP3. No complete Android build or Galaxy device test is verified yet — NO-GO for replacing your installed app.** Read [NW-18 QA](docs/NIGHTWAVE_NW18_RELIABLE_AUDIO_DOWNLOADS.md).
-
-> **NW-17 Drive Identity & Offline Search — 22 October 2026 (DRAFT):** [Current development branch](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-v2-nw17-drive-identity-local-search) builds on the NW-16 direct-audio downloader. It fixes the Google Drive chooser-return logic by resolving account identity with token-bound Drive `about.get`, without requesting a new scope; and shows matching **imported/downloaded** tracks inside NightWave's main Search, opening the Offline Library with the chosen title prefilled. Local searches are Unicode-aware and work without internet. **No signed Android APK, Windows Gradle build or Samsung acceptance test has passed for NW-17. Do not merge to stable `main` or replace a working phone installation yet.** See [NW-17 QA and remaining gates](docs/NIGHTWAVE_NW17_DRIVE_IDENTITY_LOCAL_SEARCH.md).
-
-> **NW-16 Offline Audio Downloader — 22 October 2026:** The newest [integrated development branch](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-v2-nw16-authorized-offline-downloads) adds a user-initiated **direct HTTPS audio-file downloader** from Offline Library for content the user has permission to save. Files stream with progress/cancel, are validated, and are imported into the existing offline library for local playback; no server or Google sign-in is required. It **does not** download arbitrary YouTube tracks or transcode YouTube video to MP3. Sixteen prior phases of source improvements remain integrated. The direct-audio policy's exact GitHub source passed **10/10 local JVM assertions**, while the full Android build and Samsung downloader remain **UNVERIFIED / NO-GO**. See [NW-16 full downloader report](docs/NIGHTWAVE_NW16_AUTHORIZED_DOWNLOADS.md).
-
-
-> **NW-15D Windows NW07 Import Gate Hotfix — 22 October 2026:** The newest [integrated NightWave development branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw15d-nw07-exact-imports) fixes the second **user-confirmed case-insensitive Kotlin import check**. After NW-15C repaired the first Kotlin preflight, NW-07's `Sort-Object -Unique` still treated `ProgressBarRangeInfo` (class) and `progressBarRangeInfo` (property) as duplicates. The NW-07 gate now compares imports with ordinal, case-sensitive equality and includes positive/negative self-tests. **Download the full NW-15D ZIP into a new folder and run `build-windows.cmd`**. No complete Gradle build or new APK is verified yet. See [NW-15D root cause and rebuild](docs/NIGHTWAVE_NW15D_NW07_CASE_SENSITIVE_IMPORTS.md).
-
-
-> **NW-15C Windows Kotlin Import Preflight Hotfix — 22 October 2026:** The newest [integrated NightWave development branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw15c-case-sensitive-import-preflight) fixes the user-confirmed false-positive Kotlin preflight failure for `ProgressBarRangeInfo` versus `progressBarRangeInfo`. PowerShell's default case-insensitive `Group-Object` mistakenly treated these two valid Compose imports as duplicates. The checker now compares import strings using Kotlin-compatible ordinal case-sensitive equality, with a self-test and a full Kotlin-source duplicate-import check. **Extract a fresh ZIP and rerun `build-windows.cmd`; Android Gradle/APK success is not yet verified.** See the [NW-15C analysis and rebuild steps](docs/NIGHTWAVE_NW15C_KOTLIN_IMPORT_PREFLIGHT.md).
-
-
-> **NW-15B Windows PowerShell Build Hotfix — 22 October 2026:** The latest [integrated NightWave source](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw15b-windows-powershell-hotfix) fixes the confirmed Windows `nw11-junit-report.ps1` syntax error shown before Gradle started. Unsafe Unicode punctuation was replaced with ASCII, and `check-builder-syntax.ps1` now prevents future Windows PowerShell 5.1 encoding failures by checking all 26 source scripts. NW-01–NW-15 app features remain intact. **Download a fresh complete ZIP and extract into an empty directory**, then run `build-windows.cmd`. The APK is **not yet verified**. See [NW-15B hotfix instructions](docs/NIGHTWAVE_NW15B_WINDOWS_POWERSHELL_HOTFIX.md).
-
-
-> **NW-15 Service Queue Selection Safety — 22 October 2026:** The latest [NightWave integrated development branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw15-queue-intent-identity) corrects a service-side bug where filtering malformed links could shift the selected-song index and silently choose another track. Public queue and enqueue Intents now require canonical watch URLs, preserve the originally tapped song by identity and reject invalid selections. Six new JUnit regression cases are included; NW-01 through NW-14 remain integrated. **A complete Android Gradle build, APK signing continuity and device testing are still unverified, so release is NO-GO.** See the [NW-15 verification report](docs/NIGHTWAVE_NW15_SERVICE_QUEUE_IDENTITY.md).
-
-
-> **NW-14 Long-Queue Continuity — 22 October 2026:** The [latest integrated NightWave development branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw14-large-queue-window) fixes a public playlist continuity issue: selecting a song beyond the 100-track service limit previously moved it to the beginning and separated it from adjacent tracks. NW-14 keeps a **contiguous, bounded playlist window** so Next and Previous follow the real surrounding songs. Six new JUnit tests were added (11 total in the selection suite), while NW-01–NW-13 changes remain. **Full Android compilation and signer-safe phone acceptance are not yet verified; release NO-GO.** See the [NW-14 report](docs/NIGHTWAVE_NW14_LARGE_QUEUE_CONTINUITY.md).
-
-
-> **NW-13 Public Queue Navigation — 22 October 2026:** The latest [integrated development branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw13-public-queue-previous) corrects an actual public playback bug: with Shuffle off, **Previous follows the displayed song order even after tapping/jumping between tracks**. Shuffle-on Previous retraces real playback history; changing Shuffle mode clears stale history. Nine regression tests were added and older tests updated. All NW-01–NW-12 work is retained. **No full passing Android build, signer-safe APK or phone acceptance is verified; release remains NO-GO.** See [NW-13 report](docs/NIGHTWAVE_NW13_PUBLIC_QUEUE_RECOVERY.md).
-
-
-> **NW-12 Compiler Proof & JUnit Parser Repair — 22 October 2026:** The latest [integrated development branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw12-test-failure-parser) fixes a JUnit parser that could miss consecutive failing cases, expands source fingerprinting to nested Kotlin build checks, and preserves an **executed local compiler test of six exact GitHub source blobs with 28/28 passing assertions**. All NW-01–NW-11 work remains. **Full Android Gradle compilation, APK signing compatibility and phone acceptance are still unverified; release NO-GO.** Read the [NW-12 evidence report](docs/NIGHTWAVE_NW12_COMPILER_AND_JUNIT_QA.md).
-
-
-> **NW-11 JVM Failure Evidence — 22 October 2026:** The newest [integrated development branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw11-offline-compiler-proof) adds a bounded, privacy-reduced report of the **actual current Windows Gradle run's failing JVM tests**. Older generated test reports are cleared before compilation, so a compiler failure cannot be mistaken for a previous run's failed test. All NW-01–NW-10 features remain. **GitHub hosted runners still have not executed build steps; full Android compilation and a signer-safe APK remain unverified. Release NO-GO.** See [NW-11 evidence and deferred tests](docs/NIGHTWAVE_NW11_JVM_TEST_EVIDENCE.md).
-
-
-> **NW-10 Build Recovery — 22 October 2026:** The newest [integrated development branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw10-compiler-recovery) adds a genuine standalone Kotlin compiler smoke test and an isolated hosted-runner canary. Both the trivial canary and Android job **failed before executing any steps** in GitHub Actions, showing an unresolved runner/account-level blocker rather than a Kotlin error log. Four hash-matched production Kotlin policies were independently compiled and passed 10 assertions locally, but a **full Android build and signer-safe release remain NO-GO**. See [NW-10 compiler and runner evidence](docs/NIGHTWAVE_NW10_COMPILER_RECOVERY.md).
-
-
-> **NW-09 Device Reliability Recovery — 22 October 2026:** The latest [integrated development branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw09-device-reliability-diagnostics) includes NW-01–NW-08 and repairs Google Drive consent lifecycle handling (rotation/recreation, missing Play services and hung authorization requests) plus stale Equalizer status after audio session loss. Previous Shuffle/Now Playing/Search changes remain included. **No full successful Android compile or real Samsung Google/EQ acceptance has been established; release remains NO-GO.** See [NW-09 QA report](docs/NIGHTWAVE_NW09_DEVICE_RELIABILITY.md).
-
-
-> **NW-08 Full-Source Build Attestation — 22 October 2026:** The [newest integrated NightWave branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw08-full-source-build-attestation) expands NW-07's ten-file fingerprint to cover all app source/resources, unit and instrumentation test files, key Gradle configuration and build-tool scripts. A build is rejected if any enumerated file changes, appears or disappears during compilation. Earlier NW-01–NW-07 work remains included. **Full Android compilation and real-phone acceptance have NOT passed; release remains NO-GO.** See [NW-08 report](docs/NIGHTWAVE_NW08_RELEASE_HARDENING.md).
-
-
-> **NW-07 Build & Release Gate — 22 October 2026:** The newest [integrated development branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw07-build-release-gate) includes NW-01–NW-06 plus a Windows no-false-success source preflight, per-build source fingerprinting, refusal to publish an APK when tracked source changes during Gradle, and an updated GitHub CI gate. **No full passing Android build or Samsung device acceptance has been demonstrated yet; release is NO-GO.** See [NW-07 release evidence and safe test plan](docs/NIGHTWAVE_NW07_RELEASE_READINESS.md). Use `build-windows.cmd` only with the complete current source ZIP and keep the installed app until a signer-compatible candidate passes.
-
-
-> **NW-06 Music Discovery & Search — 19 October 2026, development branch:** The [latest source](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-v2-nw06-discovery-search) builds on NW-01–NW-05 with private suggestions from your saved songs and creators, a prominent in-app public-video search action, clear official YouTube fallback, and query/mode-safe result states. Public search still depends on independent providers; **a complete Android build and real-network device acceptance are not yet verified**. See [NW-06 QA and limits](docs/NIGHTWAVE_NW06_DISCOVERY_SEARCH_QA.md).
-
-
-> **NW-05 Integration Stabilization — development source (19 October 2026):** The latest [NW-05 branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw05-integration-stability) keeps NW-01 Shuffle, NW-02 Sound Studio, NW-03 Account & Backup, and NW-04 Premium Player, while fixing cross-feature queue-selection drift, stale song seeking and manual-EQ bounds. [Read NW-05 verification and acceptance](docs/NIGHTWAVE_NW05_INTEGRATION_QA.md). **No successful complete Android Gradle build or real-device verification of NW-05 is confirmed yet.** Do not replace an installed APK without a passing build and compatible signing certificate.
-
-
-> **NW-04 Premium Player — development source:** The [latest integrated branch](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-v2-nw04-premium-player) improves the Now Playing timeline, reduces oversized player and navigation chrome, cautiously requests higher-quality public YouTube thumbnails, and makes advanced audio settings collapsible. NW-01 Shuffle, NW-02 Sound Studio and NW-03 Account & Backup Hub remain included. **Android compilation and phone acceptance are still pending.** Read the [NW-04 test scope](docs/NIGHTWAVE_NW04_PREMIUM_PLAYER_QA.md) before considering a device update.
-
-
-> **NW-03 Account & Backup Hub — development source:** The latest [account experience branch](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-v2-nw03-account-backup-hub) adds a dedicated You-page account/backup screen, explicit local-vs-Drive backup status, masked account display, safe disconnect/switch confirmations and backup/restore controls. The NW-01 Shuffle and NW-02 Sound Studio changes remain included. **Google Drive consent is not a full Google sign-in identity; fresh Android compilation and device verification remain pending.** See [NW-03 QA](docs/NIGHTWAVE_NW03_ACCOUNT_HUB_QA.md).
-
-
-> **NW-02 Sound Studio development — 19 October 2026:** The next [Spotify-style refinement branch](https://github.com/Nahian2002/NightWave/tree/feature/nightwave-v2-nw02-sound-studio) replaces the old equalizer dialogs with an in-app Compose Sound Studio. It adds device-reported frequency response, manual bands, audio-session diagnostics and fixes ignored preset changes on existing sessions. [NW-02 scope and acceptance](docs/NIGHTWAVE_NW02_SOUND_STUDIO_QA.md). The previous NW-01 Shuffle and Google Drive changes remain included. **Full Android compilation and device testing of NW-02 remain pending; this is development source, not a validated APK.**
-
-
-> **NW-01 field-recovery candidate — 19 October 2026:** Following real-device reports of delayed public-video Shuffle, non-working/unavailable EQ, and no visible Google authorization, a separate [NW-01 repair branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-nw01-shuffle-eq-google-recovery) adds immediate acknowledged Shuffle requests, detailed EQ diagnostics, and a visible optional Google Drive connection entry. **This is not a verified APK**: the Android build and on-device recheck remain pending. Review [exact test instructions](docs/NIGHTWAVE_NW01_FIELD_FAILURES_QA.md). The earlier `6960dc5` archive remains unchanged.
-
-
-**A personal Android music player focused on private libraries, expressive playback controls and a clean, Spotify-inspired interface.**
-
-NightWave brings together user-imported offline audio, saved references to public videos, playlists, local listening tools, synchronized lyrics and optional Google Drive integration—without requiring a dedicated NightWave-hosted server.
-
-> **Release status · 19 October 2026:** This is a development branch, **not a verified production release**. In the most recent user-supplied Windows build, Android debug compilation and instrumentation-test source compilation completed, but **1 of 771 JVM tests failed** (`OfflinePlaybackQueueTest.jumpHandlesBoundsWithoutDamagingSelection`). The queue implementation and regression tests have since been corrected in source. **A fresh complete build and device acceptance are still pending.** Do not treat an existing/CI APK as verified for installation.
-
-## At a glance
-
-| Project detail | Value |
+| Area | Development source |
 | --- | --- |
-| Platform | Android 8.0+ (API 26); target SDK 35 |
-| Current development build | `2.0.0-alpha5s` · version code `35` |
+| Library | Owned/authorized local audio, liked songs, recent history, playlists, folders, sorting and bounded multiselect |
+| Player | Media3 background playback, queue, shuffle/repeat, seeking, mini-player and expanded Now Playing |
+| Lyrics | Explicit local LRC import/review/edit/export, full-screen follow, fine timing and accessible controls |
+| Audio | Sound Studio, session-aware EQ and offline transition controls |
+| Optional Drive | Consented backup, preview/restore and personal audio locker workflows |
+| Discovery | Saved-music search and experimental public-video discovery |
+
+Public video references and playable offline files are separate. Saving a URL does not download audio or grant storage rights. Unsupported or restricted streams can fail. There is no required NightWave server, paid account or subscription.
+
+## Build on Windows
+
+Use a fresh clone or full ZIP of the current branch, then run `build-windows.cmd`. Require a fresh success in `dist/NightWave-build-status.txt`. Before installing, run `check-device-update.cmd` and verify the signer matches the existing app. Preserve playlists, music and settings; never uninstall or clear storage to force an upgrade.
+
+Developers can run `python tools/verify_current.py` for structural and Windows preflight checks. The current automated workflow is `.github/workflows/current-android.yml`; `android.yml` is a manually invoked historical diagnostic workflow. Real JVM and Android compilation remain mandatory.
+
+| Build identity | Value |
+| --- | --- |
 | Application ID | `com.nightwave.player` |
-| UI and application | Kotlin, Jetpack Compose, Android Jetpack |
-| Playback | AndroidX Media3 / ExoPlayer media service |
-| Local data | App-private storage, Room/DataStore and existing legacy library |
-| Optional integrations | NewPipe Extractor/public search endpoints; Google Drive via Google services |
-| Backend | No dedicated NightWave-hosted backend |
-| Branch for the latest audited source | [6X8C4 build-recovery branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-phase6x8c4-daily-mix-unit-test-compile) |
+| Version | `2.0.0-alpha5s`, code `35` |
+| Android | API 26 minimum, compile/target API 36 |
+| Toolchain | AGP 8.10.1, Gradle 8.11.1, Kotlin 2.0.21, Java 17 target |
 
-**Branch note:** The repository's default `main` branch is not the current integrated development snapshot. Select the linked development branch before downloading or reviewing its source.
+## History and license
 
-## Implemented in the development source
+Previous milestone announcements are preserved in [README history](docs/README_HISTORY_20261027.md); they are not current build instructions. Historical tests, migrations and evidence remain available.
 
-These features have source implementations and varying degrees of automated test coverage. Their presence here is **not** a promise that every Android device scenario has passed.
-
-| Area | Current scope | Important limitations |
-| --- | --- | --- |
-| Music library | Import personally owned local audio, favorites, recent tracks, playlists and private library organization | Offline files must exist locally; saving a web link does not download audio |
-| Playback | Media3 media session, background/lock-screen controls, queue navigation, repeat/shuffle, resuming checkpoints, Sleep Timer | Audio focus, Bluetooth and process-recovery scenarios need device testing |
-| Advanced audio | Local gapless-capable timeline, bounded crossfade, optional non-boosting normalization, listening controls and EQ | Results vary with device/audio routes; controls are not yet release-qualified |
-| Discovery | Search public-video references and browse existing saved tracks and creators | Public endpoints can fail; no licensed commercial music catalog |
-| Recommendations | On-device Daily Mix 1–3 from saved/recent tracks, with optional consented listening-memory signals | No fabricated artist catalog, streaming recommendation backend or inferred music rights |
-| Lyrics | Import, review, edit, follow and export user-supplied synchronized LRC, with timing adjustment | No guaranteed online real-time lyrics retrieval |
-| Optional cloud | Google sign-in/Drive library backup and personal audio locker workflows with preview/recovery safeguards | Uses Google's services and account authorization; test sign-in, quotas and restoration before relying on backups |
-| System integration | Home-screen playback widget, Media3 notification/transport controls, development-stage Android Auto browsing | Android Auto host/device acceptance still pending |
-
-### Outside the present scope
-
-NightWave is not Spotify, is not affiliated with Spotify/Google/YouTube/NewPipe, does not supply a licensed subscription catalog, and does not guarantee that a public video remains playable. It does **not** offer an unrestricted YouTube-to-MP3 downloader. User-imported local audio and saved online references are intentionally separate.
-
-## Build and verify on Windows
-
-1. Choose **Code → Download ZIP** while viewing the [current build-recovery branch](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-v2-phase6x8c4-daily-mix-unit-test-compile), and extract the complete archive to a new, short directory.
-2. Run `build-windows.cmd` from that directory. The local builder performs source checks, then executes `:app:testDebugUnitTest`, `:app:assembleDebug` and `:app:compileDebugAndroidTestKotlin`.
-3. Require a **fresh** `BUILD SUCCESSFUL` and inspect `dist/NightWave-build-status.txt`. On failure, retain the `dist/NightWave-build-errors.txt`, `dist/NightWave-build-diagnostic.txt` and `dist/NightWave-build-full.log` outputs.
-4. Compare the new APK's signing identity with your currently installed NightWave before attempting an in-place update. **Never uninstall or clear app data to work around a certificate mismatch.**
-5. Complete the on-device acceptance tests in [Build & Release](docs/BUILD_AND_RELEASE.md) before treating the update as validated.
-
-An assembled APK does not by itself mean the overall build passed. GitHub Actions artifacts may have different debug signing certificates and must not be installed over an existing data-bearing app without compatibility checks.
-
-## Verification and security principles
-
-- **Verified evidence is separated from implemented code.** The latest supplied test output failed one queue test; the corrective source has been committed, but a fresh complete result has not been supplied.
-- **User data takes priority.** Imported music, playlists, app-private lyrics and recovery checkpoints should not be erased by an APK update or build troubleshooting.
-- **No silent backup restore.** Cloud recovery needs explicit user initiation, validation and preview.
-- **No bypass claims.** Public-stream extraction is best effort; unsupported, restricted or DRM-protected sources are not promised to work.
-- **Privacy by design.** Saved lyrics, on-device listening analysis and imported audio are not described as a NightWave-hosted cloud catalog.
-
-See the [Verification Matrix](docs/VERIFICATION_MATRIX.md) for tested, source-reviewed and outstanding areas.
-
-## Repository guide
-
-| Location | Purpose |
-| --- | --- |
-| `app/src/main/java/com/nightwave/player/playback/` | Media3 service, remote transport and online queue |
-| `app/src/main/java/com/nightwave/player/offline/` | Imported audio, offline queue and continuity |
-| `app/src/main/java/com/nightwave/player/v2/` | Compose interface, local mixes, lyrics, cloud, library and optional integrations |
-| `app/src/test/` | JVM policy/regression tests |
-| `app/src/androidTest/` | Android instrumentation tests (compiled by the build; not automatically run on a phone) |
-| `tools/` | Windows builder and source/CI verification utilities |
-| `docs/` | Release instructions, test evidence and phase-specific QA notes |
-
-**Project documents:** [About](ABOUT.md) · [Changelog](CHANGELOG.md) · [Build & Release](docs/BUILD_AND_RELEASE.md) · [Verification Matrix](docs/VERIFICATION_MATRIX.md) · [Final Source Audit](docs/FINAL_SOURCE_AUDIT_20261019.md) · [Android Acceptance Checklist](docs/NIGHTWAVE_FINAL_ACCEPTANCE_20261019.md) · [Historical development notes](docs/README_LEGACY_PHASE_NOTES.md).
-
-## Licensing and upstream projects
-
-Refer to [LICENSE](LICENSE) and [NOTICE](NOTICE) for licensing and upstream acknowledgements, including NewPipeExtractor and its redistribution obligations. Distribution requires the maintainer to review dependency and license compliance; an experimental build is not a release declaration.
-
----
-
-*NightWave is an independent personal project in active development.*
+See [LICENSE](LICENSE) and [NOTICE](NOTICE). NightWave is independent of Spotify, Google, YouTube and NewPipe. Public distribution requires separate dependency, privacy and media-rights approval.

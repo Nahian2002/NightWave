@@ -293,6 +293,8 @@ internal class LyricsEditorRetainedState : ViewModel() {
     var pendingExport: PendingLyricsExport? = null
 }
 
+// This component intentionally uses the pinned Media3 unstable API.
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 class NightWaveStudioActivity : ComponentActivity() {
     private lateinit var profiles: GuestProfileStore
     private lateinit var library: MusicLibrary

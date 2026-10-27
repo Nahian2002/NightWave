@@ -56,6 +56,8 @@ import com.nightwave.player.playback.PlaybackService
 import com.nightwave.player.playback.QueueStateStore
 import java.util.concurrent.Executors
 
+// This component intentionally uses the pinned Media3 unstable API.
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 class MainActivity : Activity() {
     private lateinit var binding: ActivityMainBinding
     private var miniHidden = false
@@ -109,7 +111,8 @@ class MainActivity : Activity() {
         binding.miniPlayerRestore.setOnClickListener { restoreCompactPlayer() }
         binding.currentTitle.setOnClickListener { openNowPlayingDialog() }
         binding.currentCreator.setOnClickListener { openNowPlayingDialog() }
-        binding.playerArtwork.setOnTouchListener { _, event ->
+        binding.playerArtwork.setOnClickListener { openNowPlayingDialog() }
+        binding.playerArtwork.setOnTouchListener { view, event ->
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
                     playerTouchStartY = event.rawY
@@ -117,7 +120,7 @@ class MainActivity : Activity() {
                 }
                 MotionEvent.ACTION_UP -> {
                     if (event.rawY - playerTouchStartY > dp(48)) hideCompactPlayer()
-                    else openNowPlayingDialog()
+                    else view.performClick()
                     true
                 }
                 else -> true

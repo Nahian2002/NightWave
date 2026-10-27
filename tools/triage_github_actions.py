@@ -91,7 +91,7 @@ def self_test() -> None:
         "status"] == "RUNNER_STARTED"
     assert classify({"jobs": [job(0, [{"name": "Checkout", "conclusion": "failure"}])]})[
         "status"] == "RUNNER_STARTED"
-    assert classify({"jobs": [job(0, [], "queued", None)])["status"] == "PENDING_OR_UNKNOWN"
+    assert classify({"jobs": [job(0, [], "queued", None)]})["status"] == "PENDING_OR_UNKNOWN"
     assert classify({"jobs": []})["status"] == "NO_JOBS"
     assert classify({})["status"] == "INVALID"
     with tempfile.TemporaryDirectory(prefix="nw-ci-triage-") as folder:
