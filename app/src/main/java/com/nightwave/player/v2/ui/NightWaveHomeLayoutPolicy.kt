@@ -13,4 +13,42 @@ object NightWaveHomeLayoutPolicy {
     }
 
     fun mixCardCompact(columnCount: Int): Boolean = columnCount == 1
+
+    /**
+     * NW117: an empty listening shelf isn't an empty library. Suggest one
+     * action grounded only in real saved references, with no inferred taste,
+     * fabricated recommendation, autoplay or listening-history mutation.
+     */
+    enum class EmptyRecentDestination { SEARCH, LIKED_SONGS, LIBRARY }
+
+    data class EmptyRecentState(
+        val title: String,
+        val detail: String,
+        val actionLabel: String,
+        val destination: EmptyRecentDestination
+    )
+
+    fun recentEmptyState(
+        favoriteCount: Int,
+        playlistTrackCount: Int
+    ): EmptyRecentState = when {
+        favoriteCount > 0 -> EmptyRecentState(
+            title = "No recent songs to show",
+            detail = "Your liked songs are ready whenever you want to listen.",
+            actionLabel = "Open Liked Songs",
+            destination = EmptyRecentDestination.LIKED_SONGS
+        )
+        playlistTrackCount > 0 -> EmptyRecentState(
+            title = "No recent songs to show",
+            detail = "Your saved playlists are a good place to start.",
+            actionLabel = "Open Library",
+            destination = EmptyRecentDestination.LIBRARY
+        )
+        else -> EmptyRecentState(
+            title = "Your soundtrack starts here",
+            detail = "Search for music to discover your next listen.",
+            actionLabel = "Find music",
+            destination = EmptyRecentDestination.SEARCH
+        )
+    }
 }

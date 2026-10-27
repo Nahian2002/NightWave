@@ -3360,10 +3360,27 @@ private fun StudioHome(
                 }
             }
         }
-        if (recentShelf.isEmpty()) item {
-            EmptyMusicCard("Your soundtrack starts here",
-                "Songs you play will appear here, ready for another listen.",
-                "Discover music", openSearch)
+        if (recentShelf.isEmpty()) item(key = "nw117-recent-empty-state") {
+            // The listener can have saved songs even without visible history.
+            // The empty action should lead to that real music, not always search.
+            val emptyRecent = NightWaveHomeLayoutPolicy.recentEmptyState(
+                favoriteCount = favorites.size,
+                playlistTrackCount = playlistTracks.size
+            )
+            Box(Modifier.fillMaxWidth().testTag("nw117-recent-empty-state")) {
+                EmptyMusicCard(
+                    emptyRecent.title, emptyRecent.detail, emptyRecent.actionLabel
+                ) {
+                    when (emptyRecent.destination) {
+                        NightWaveHomeLayoutPolicy.EmptyRecentDestination.LIKED_SONGS ->
+                            openLikedSongs()
+                        NightWaveHomeLayoutPolicy.EmptyRecentDestination.LIBRARY ->
+                            openLibrary()
+                        NightWaveHomeLayoutPolicy.EmptyRecentDestination.SEARCH ->
+                            openSearch()
+                    }
+                }
+            }
         } else {
             item(key = "nw47-recent-shelf") {
                 LazyRow(
