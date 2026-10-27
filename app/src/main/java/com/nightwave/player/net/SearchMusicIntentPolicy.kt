@@ -69,6 +69,35 @@ object SearchMusicIntentPolicy {
         }.coerceAtLeast(-230)
     }
 
+    /**
+     * NW111: Songs-only advisory penalty for incidental *non-music* subjects.
+     * Video titles and uploader strings are unverified. This must never hide a
+     * provider result or alter the Videos tab, which preserves provider order.
+     *
+     * If the listener actually asks for this subject, do not demote it.
+     * Explicit music labeling merely reduces the penalty; uploader metadata
+     * alone is not evidence that a recording is licensed or "official".
+     */
+    private val incidentalNonMusicTopics = setOf(
+        "cultivation", "farming", "agriculture", "harvesting",
+        "gardening", "recipe", "cooking", "gameplay", "walkthrough", "unboxing"
+    )
+    private val explicitMusicCues = listOf(
+        "official music video", "music video", "official audio",
+        "lyric video", "lyrics", "official song"
+    )
+
+    fun incidentalNonMusicPenalty(query: String, track: VideoPreview): Int {
+        val asked = SearchTokenMatchingPolicy.tokens(canonical(query)).toSet()
+        val title = canonical(track.title)
+        val titleTokens = SearchTokenMatchingPolicy.tokens(title).toSet()
+        if (incidentalNonMusicTopics.none { it in titleTokens && it !in asked }) return 0
+        // A music-tagged candidate stays discoverable and is only weakly
+        // demoted. An unrelated farming/tutorial result should not appear
+        // as the first "Best match" for a song title like Jhum.
+        return if (explicitMusicCues.any { hasPhrase(title, it) }) -55 else -230
+    }
+
     fun titleSignal(query: String, track: VideoPreview): Int {
         val wanted = canonical(query)
         if (wanted.isBlank()) return 0
