@@ -14,7 +14,10 @@ data class CloudBackupStatus(
     val lastResult: String = "Cloud backup is off",
     val revision: Long = 0L,
     /** Last Drive read-back actually verified for this exact consent revision. */
-    val lastVerifiedRevision: Long = -1L
+    val lastVerifiedRevision: Long = -1L,
+    val accessState: CloudAccessState = CloudAccessState.UNKNOWN,
+    val lastAccessCheckMs: Long = 0L,
+    val accessRevision: Long = 0L
 )
 
 /** A revision prevents disconnect/reconnect of the same account from matching old work. */
@@ -45,13 +48,36 @@ class CloudBackupState(context: Context) {
         lastSuccessMs = prefs.getLong("last_success_ms", 0L),
         lastResult = prefs.getString("last_result", "Cloud backup is off").orEmpty(),
         revision = prefs.getLong(REVISION_KEY, 0L),
-        lastVerifiedRevision = prefs.getLong(VERIFIED_REVISION_KEY, -1L)
+        lastVerifiedRevision = prefs.getLong(VERIFIED_REVISION_KEY, -1L),
+        accessState = CloudAccessState.entries.firstOrNull {
+            it.name == prefs.getString("access_state", "")
+        } ?: CloudAccessState.UNKNOWN,
+        lastAccessCheckMs = prefs.getLong("access_checked_ms", 0L).coerceAtLeast(0L),
+        accessRevision = prefs.getLong("access_revision", 0L)
     )
 
     fun read(): CloudBackupStatus = synchronized(guard) { readLocked() }
 
+    /** A foreground screen can observe worker results without polling/network access. */
+    fun observe(onChange: (CloudBackupStatus) -> Unit): AutoCloseable {
+        val active = java.util.concurrent.atomic.AtomicBoolean(true)
+        val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
+            if (active.get()) onChange(read())
+        }
+        prefs.registerOnSharedPreferenceChangeListener(listener)
+        onChange(read())
+        return AutoCloseable {
+            if (active.getAndSet(false)) prefs.unregisterOnSharedPreferenceChangeListener(listener)
+        }
+    }
+
     private fun nextRevision(): Long {
         val current = prefs.getLong(REVISION_KEY, 0L)
+        return if (current == Long.MAX_VALUE) 1L else current + 1L
+    }
+
+    private fun nextAccessRevision(): Long {
+        val current = prefs.getLong("access_revision", 0L)
         return if (current == Long.MAX_VALUE) 1L else current + 1L
     }
 
@@ -64,6 +90,9 @@ class CloudBackupState(context: Context) {
         prefs.edit()
             .putString("account", account)
             .putBoolean("enabled", false)
+            .putString("access_state", CloudAccessState.CHECKED.name)
+            .putLong("access_checked_ms", System.currentTimeMillis())
+            .putLong("access_revision", nextAccessRevision())
             .putLong("last_success_ms", if (switched) 0 else previous.lastSuccessMs)
             .putLong(VERIFIED_REVISION_KEY,
                 if (switched) -1L else previous.lastVerifiedRevision)
@@ -99,12 +128,33 @@ class CloudBackupState(context: Context) {
     fun setPreferences(value: Boolean) = setChoice("preferences", value)
     fun setWifiOnly(value: Boolean) = setChoice("wifi_only", value)
 
+    /** No account, token or permission is inferred from a cached backup timestamp. */
+    fun accessIfCurrent(consent: CloudBackupConsent, state: CloudAccessState,
+        whenMs: Long = System.currentTimeMillis()): Boolean =
+        recordAccessIfCurrent(consent, state, whenMs) != null
+
+    /** Return the exact new receipt atomically; a later failure can compare-and-set it. */
+    fun recordAccessIfCurrent(consent: CloudBackupConsent, state: CloudAccessState,
+        whenMs: Long = System.currentTimeMillis(), expectedAccessRevision: Long? = null): Long? = synchronized(guard) {
+        val current = readLocked()
+        if (!CloudBackupConsentPolicy.same(consent, current.consentSnapshot()) ||
+            (expectedAccessRevision != null && expectedAccessRevision != current.accessRevision) ||
+            (state == CloudAccessState.CHECKED && whenMs <= 0L)) return@synchronized null
+        val revision = nextAccessRevision()
+        val editor = prefs.edit().putString("access_state", state.name).putLong("access_revision", revision)
+        if (state == CloudAccessState.CHECKED) editor.putLong("access_checked_ms", whenMs)
+        if (editor.commit()) revision else null
+    }
+
     /** Interactive first backup: existing call site and contract are preserved. */
     fun success(account: String, whenMs: Long): Boolean = synchronized(guard) {
         if (whenMs <= 0L || !readLocked().account.equals(account, ignoreCase = true)) {
             return@synchronized false
         }
         prefs.edit().putBoolean("enabled", true)
+            .putString("access_state", CloudAccessState.CHECKED.name)
+            .putLong("access_checked_ms", whenMs)
+            .putLong("access_revision", nextAccessRevision())
             .putLong("last_success_ms", whenMs)
             .putLong(VERIFIED_REVISION_KEY, readLocked().revision)
             .putString("last_result", "Backup verified")
@@ -119,6 +169,9 @@ class CloudBackupState(context: Context) {
             return@synchronized false
         }
         prefs.edit().putBoolean("enabled", true)
+            .putString("access_state", CloudAccessState.CHECKED.name)
+            .putLong("access_checked_ms", whenMs)
+            .putLong("access_revision", nextAccessRevision())
             .putLong("last_success_ms", whenMs)
             .putLong(VERIFIED_REVISION_KEY, consent.revision)
             .putString("last_result",
@@ -142,6 +195,8 @@ class CloudBackupState(context: Context) {
     fun disconnect(): Boolean = synchronized(guard) {
         prefs.edit()
             .remove("account").putBoolean("enabled", false)
+            .remove("access_state").remove("access_checked_ms")
+            .putLong("access_revision", nextAccessRevision())
             .putLong(VERIFIED_REVISION_KEY, -1L)
             .putLong(REVISION_KEY, nextRevision())
             .putString("last_result", "Disconnected on this device; Drive snapshots remain")

@@ -73,7 +73,8 @@ Status vocabulary: PLANNED / IN_PROGRESS / CODE_COMPLETE_UNVERIFIED / GRADLE_VER
 | NW118 Library polish | IN_PROGRESS | Repository inventory/index/ignore hygiene and read-only multiselect sanitization for stale/oversized selections without losing filtered hidden items; 8 new JUnit declarations, Gradle/device QA pending |
 | NW119 Lyrics | GRADLE_VERIFIED_DEVICE_PENDING | Strict leading LRC timestamps, shared import/review parsing, lossless length rejection and overflow-safe seek; nine new regressions; cumulative 1,421 JVM tests pass; Bangla/TalkBack/device timing QA pending |
 | NW120 Audio/EQ | GRADLE_VERIFIED_DEVICE_PENDING | Reviewed-session command identity, fresh discovery acknowledgements, effect-control/enabled callbacks, preset readback and shared-session crossfade; 12 new JVM methods, cumulative 1,433 tests pass; audible/route acceptance pending |
-| NW121–NW125 | PLANNED | Next ordered wave is NW121 Drive/guest backup; final release acceptance remains open |
+| NW121 Drive/guest backup | GRADLE_VERIFIED_DEVICE_PENDING | Premium responsive account hub, explicit access proof, same-account worker freshness fencing, wrapped-error handling and real-client isolated roundtrip; 20 new JVM methods; 1,453 tests pass; four new Android store cases compile only, live Google/phone QA pending |
+| NW122–NW125 | PLANNED | Next ordered wave is NW122 measured performance; final release acceptance remains open |
 
 After every wave update this ledger with commit, automated receipts, remaining blockers, actual device acceptance and next planned wave. Avoid recalculating a "Spotify score" based on static code checks.
 
@@ -311,3 +312,14 @@ The roadmap defines future turns and test requirements; it does not schedule aut
 - Twelve new policy JUnit methods cover stale/invalid identities, same-count and range/preset changes, delimiter/Unicode identity, preset mismatch/bounds and crossfade EQ session compatibility. Complete Gradle/JVM and Android compilation pass; final artifact/signature/lint receipts are recorded in [NW120 evidence](NW120_AUDIO_SESSION_EVIDENCE.md).
 - Android hardware callbacks, audible A/B and speaker/Bluetooth/headphone routes still need the consolidated physical-device acceptance cycle. No acoustic quality claim or public release approval follows from framework readback.
 - Next ordered wave: **NW121 Drive/guest backup**. Earlier unfinished device/data/rights gates remain open.
+
+## NW121 implementation ledger — 27 October 2026
+
+- Parent: verified NW120 `eb2722002fdd047bc9f0bff0a1d0e8be83eb167e`; branch `update/nightwave-nw121-premium-account-recovery`.
+- Account & backup now has an original NightWave gradient profile/recovery hierarchy, one contextual primary action, full-width recovery actions, a bounded 600dp dialog, compact/large-font spacing, grouped accessible preference switches and collapsed technical details. This is implemented Compose UI, not a screenshot mockup; physical render/TalkBack QA is pending.
+- Saved account, last checked access and historical backup verification are separate states. Permanent access/configuration issues expose connection help even with an account saved. Unknown/failed access cannot paint the You badge as connected/backed up. Foreground observation updates worker results and detaches on stop/destroy.
+- Access receipts have their own monotonic revision; older same-account worker failures cannot overwrite a newer checked grant even if timestamps match. Consent/account/reconnect/privacy guards and reviewed restore gates remain. User cancellation preserves prior access; transient failures do not invent a revoked grant.
+- Background task exceptions are unwrapped through a bounded, cycle-safe cause walk, retaining actual typed Google/Drive status without logging private messages. Verified uploads whose local receipt fails are not reported as successful jobs; disconnect reports whether saving succeeded. Default Drive calls have a 60-second overall limit.
+- Twenty new JUnit methods execute access/error/layout policies and real Drive client/codecs through an isolated HTTP interceptor. The disposable guest archive upload/readback/decode roundtrip, unchanged-copy reuse, corrupt/denied readback and network/invalid-input failure paths pass without a real account or network. Four new Android store cases compile but were NOT executed.
+- Final Windows builder, all **1,453 JVM tests**, 49 source checks, Android instrumentation-source compile, APK identity and local NW120 signer comparison pass. Lint has zero errors; see [NW121 evidence](NW121_PREMIUM_ACCOUNT_RECOVERY_EVIDENCE.md) for warnings/hashes and limits.
+- Next ordered wave: **NW122 measured performance**. Live Google OAuth/restore, physical layouts, installed-phone signer and earlier acceptance/release gates remain open; no Spotify parity score or public release approval is claimed.
