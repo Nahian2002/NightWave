@@ -3256,11 +3256,13 @@ private fun StudioHome(
             daily, existing, dayNumber)
     }
     val mixes = homePlan.mixes
-    // Home displays one tile per song ID; repeated play events may remain
-    // in the saved history, but must not duplicate LazyRow keys or playback.
-    val recentShelf = remember(recent) {
-        NightWaveHomeCurationPolicy.distinctRecent(recent)
+    // The rail displays at most 100 unique recent songs; never create a huge
+    // Home tap-to-play queue just because saved history grew to 5k entries.
+    // The complete history remains untouched in Room/preferences/library.
+    val recentWindow = remember(recent) {
+        NightWaveHomeCurationPolicy.recentWindow(recent)
     }
+    val recentShelf = recentWindow.tracks
     var chosenMixKey by rememberSaveable { mutableStateOf<String?>(null) }
     var showAllMixTracks by rememberSaveable { mutableStateOf(false) }
     var showAllRecent by rememberSaveable { mutableStateOf(false) }
@@ -3351,7 +3353,9 @@ private fun StudioHome(
                 Column(Modifier.weight(1f)) {
                     SectionHeading("Recently played",
                         if (recentShelf.isEmpty()) "Your listening history appears here"
-                        else "${recentShelf.size} tracks · Private to this device")
+                        else (if (recentWindow.hasMore)
+                            "${recentShelf.size}+ tracks · Private to this device"
+                        else "${recentShelf.size} tracks · Private to this device"))
                 }
                 if (recentShelf.size > 6) {
                     TextButton(onClick = { showAllRecent = !showAllRecent }) {
@@ -3490,7 +3494,8 @@ private fun StudioHome(
             }
         }
         item(key = "nw47-home-library-stats") {
-            NightWaveLibraryNumbers(favorites.size, recentShelf.size, onLibrary = openLibrary)
+            NightWaveLibraryNumbers(favorites.size, recentShelf.size,
+                onLibrary = openLibrary, recentHasMore = recentWindow.hasMore)
         }
         item { SectionHeading("Explore a new mood", "Swipe across six ways to listen") }
         // One horizontally scrollable shelf instead of three oversized rows.
