@@ -34,6 +34,9 @@ import com.nightwave.player.v2.cloud.CloudAuthorizationFailurePolicy
 import com.nightwave.player.v2.cloud.CloudAuthorizationFailureStore
 import com.nightwave.player.v2.cloud.CloudBackupStatus
 import com.nightwave.player.v2.cloud.CloudAccountSessionPolicy
+import com.nightwave.player.v2.cloud.CloudAccessState
+import com.nightwave.player.v2.cloud.CloudAccessPolicy
+import com.nightwave.player.v2.cloud.CloudFailureCausePolicy
 import com.nightwave.player.v2.cloud.CloudBackupConsent
 import com.nightwave.player.v2.cloud.CloudBackupConsentPolicy
 import com.nightwave.player.v2.cloud.consentSnapshot
@@ -344,6 +347,7 @@ class NightWaveStudioActivity : ComponentActivity() {
     private lateinit var cloudStore: CloudBackupState
     private val cloudFailureStore by lazy { CloudAuthorizationFailureStore(this) }
     private var cloudInfo by mutableStateOf(CloudBackupStatus())
+    private var cloudStatusSubscription: AutoCloseable? = null
     private var cloudBusy by mutableStateOf(false)
     private var cloudPendingAction = ""
     private var cloudAwaitingResolution = false
@@ -413,7 +417,8 @@ class NightWaveStudioActivity : ComponentActivity() {
                 .onFailure { error ->
                     cloudBusy = false
                     cloudPendingAction = ""
-                    val code = (error as? com.google.android.gms.common.api.ApiException)?.statusCode
+                    val code = CloudFailureCausePolicy.find(error,
+                        com.google.android.gms.common.api.ApiException::class.java)?.statusCode
                     cloudAuthorizationFailed(
                         CloudAuthorizationFailurePolicy.Stage.ACCOUNT_PICKER, code)
                 }
@@ -1229,6 +1234,9 @@ class NightWaveStudioActivity : ComponentActivity() {
     ) {
         cloudFailureStore.record(stage, code)
         val message = CloudAuthorizationFailurePolicy.shortMessage(code, stage)
+        val current = cloudStore.read()
+        cloudStore.accessIfCurrent(current.consentSnapshot(),
+            CloudAccessPolicy.afterFailure(current.accessState, stage, code))
         cloudStore.status(message)
         refreshCloud()
         showMessage(message)
@@ -1318,7 +1326,8 @@ class NightWaveStudioActivity : ComponentActivity() {
                 // Numeric Play-services status is safe diagnostic evidence.
                 // Do not log OAuth tokens, email addresses or exception text.
                 val statusCode =
-                    (error as? com.google.android.gms.common.api.ApiException)?.statusCode
+                    CloudFailureCausePolicy.find(error,
+                        com.google.android.gms.common.api.ApiException::class.java)?.statusCode
                 cloudAuthorizationFailed(
                     CloudAuthorizationFailurePolicy.Stage.REQUEST, statusCode)
             }
@@ -1362,6 +1371,9 @@ class NightWaveStudioActivity : ComponentActivity() {
                     CloudAuthorizationFailurePolicy.Stage.DRIVE_CHECK, code)
                 val message = if (code != null) DriveHttpFailurePolicy.message(code)
                     else "Google permitted access, but Drive account verification failed. Retry later."
+                val current = cloudStore.read()
+                cloudStore.accessIfCurrent(current.consentSnapshot(), CloudAccessPolicy.afterFailure(
+                    current.accessState, CloudAuthorizationFailurePolicy.Stage.DRIVE_CHECK, code))
                 cloudStore.status(message)
                 refreshCloud()
                 showMessage(message)
@@ -1390,6 +1402,9 @@ class NightWaveStudioActivity : ComponentActivity() {
             return
         }
         val operationConsent = cloudStore.read().consentSnapshot()
+        cloudStore.accessIfCurrent(operationConsent, CloudAccessState.CHECKED)
+        cloudFailureStore.clear()
+        refreshCloud()
         lifecycleScope.launch {
             val resultTask = withContext(Dispatchers.IO) {
                 runCatching {
@@ -1444,8 +1459,10 @@ class NightWaveStudioActivity : ComponentActivity() {
                                 else "Cloud backup already current; nothing uploaded.")
                         } else {
                             refreshCloud()
-                            showMessage("Backup finished, but your privacy choices or Google account " +
-                                "changed. Reconnect or back up again to verify the new settings.")
+                            showMessage(if (CloudAccountSessionPolicy.same(operationConsent,
+                                    cloudStore.read().consentSnapshot()))
+                                "Drive copy verified; local status was not updated. Back up again to confirm."
+                                else "Backup finished, but your privacy choices or Google account changed. Review again.")
                         }
                     }
                     is CloudActionResult.Snapshots -> {
@@ -1472,6 +1489,13 @@ class NightWaveStudioActivity : ComponentActivity() {
                     error.message == "No NightWave cloud backup found" ->
                         "No cloud backups found in this Google account"
                     else -> "Drive operation unsuccessful; local library unchanged"
+                }
+                if (error is DriveHttpFailure) {
+                    val current = cloudStore.read()
+                    cloudStore.accessIfCurrent(operationConsent, CloudAccessPolicy.afterFailure(
+                        current.accessState, CloudAuthorizationFailurePolicy.Stage.DRIVE_CHECK, error.statusCode))
+                    if (DriveHttpFailurePolicy.needsAccountAttention(error.statusCode))
+                        cloudFailureStore.record(CloudAuthorizationFailurePolicy.Stage.DRIVE_CHECK, error.statusCode)
                 }
                 if (cloudStore.statusIfCurrent(operationConsent, message)) {
                     refreshCloud()
@@ -1756,10 +1780,11 @@ class NightWaveStudioActivity : ComponentActivity() {
             showMessage("Wait for the current backup operation to finish.")
             return
         }
-        cloudStore.disconnect()
+        val saved = cloudStore.disconnect()
         runCatching { NightWaveCloudSchedule.stop(this) }
         refreshCloud()
-        showMessage("Disconnected locally. Existing cloud snapshots were not deleted.")
+        showMessage(if (saved) "Disconnected locally. Existing cloud snapshots were not deleted."
+            else "Automatic backup stopped, but disconnection could not be saved. Please retry.")
     }
 
     private fun nativeSearch(query: String, mode: SearchMode) {
@@ -1818,10 +1843,16 @@ class NightWaveStudioActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
+        if (::cloudStore.isInitialized) {
+            cloudStatusSubscription?.close()
+            cloudStatusSubscription = cloudStore.observe { cloudInfo = it }
+        }
         if (::playback.isInitialized) playback.resumeUiUpdates()
     }
 
     override fun onStop() {
+        cloudStatusSubscription?.close()
+        cloudStatusSubscription = null
         offlineResumeReadJob?.cancel()
         offlineResumeReadGeneration++
         recentRefreshJob?.cancel()
@@ -1847,6 +1878,8 @@ class NightWaveStudioActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        cloudStatusSubscription?.close()
+        cloudStatusSubscription = null
         cloudRequestGeneration++
         nativeSearchJob?.cancel()
         nativeSearchGeneration++
@@ -4935,8 +4968,8 @@ private fun StudioProfile(
                 }
                 Surface(shape = RoundedCornerShape(12.dp),
                     color = MaterialTheme.colorScheme.primary.copy(alpha = .13f)) {
-                    Text(CloudAccountPresentation.badge(
-                            CloudAccountPresentation.stage(cloud)),
+                    Text(CloudAccessPolicy.compactBadge(cloud.account.isNotBlank(), cloud.accessState,
+                            CloudAccountPresentation.badge(CloudAccountPresentation.stage(cloud))),
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary)
@@ -5028,8 +5061,9 @@ private fun StudioProfile(
                 StudioProfileRow(
                     "Backup connection",
                     if (cloudBusy) "Backup or authorization in progress"
-                    else CloudAccountPresentation.title(
-                        CloudAccountPresentation.stage(cloud)),
+                    else if (cloud.account.isNotBlank() && cloud.accessState != CloudAccessState.CHECKED)
+                        CloudAccessPolicy.label(true, cloud.accessState, cloud.lastAccessCheckMs)
+                    else CloudAccountPresentation.title(CloudAccountPresentation.stage(cloud)),
                     Icons.Outlined.Cloud, onOpenAccount,
                     trailing = {
                         Text(if (cloudBusy) "Busy" else "Manage",

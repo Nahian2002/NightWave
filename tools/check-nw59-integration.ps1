@@ -554,7 +554,8 @@ Assert-NW59Has $cloudPresentation 'CloudBackupFreshnessPolicy.classify(' 'presen
 # exhaustive compact You-header label too. No generic 'else' masks additions.
 Assert-NW59Has $cloudPresentation 'fun badge(stage: BackupStage): String = when (stage)' 'badge exhaustively maps backup state'
 Assert-NW59Has $cloudPresentation 'BackupStage.PREVIOUS_BACKUP_NEEDS_REFRESH -> "REFRESH NEEDED"' 'stale backup never labelled backed up'
-Assert-NW59Has $activity 'Text(CloudAccountPresentation.badge(' 'You screen uses exhaustive badge mapper'
+Assert-NW59Has $activity 'CloudAccountPresentation.badge(' 'You screen retains exhaustive backup badge mapper'
+Assert-NW59Has $activity 'CloudAccessPolicy.compactBadge(' 'You screen must not call failed or unknown access connected'
 Assert-NW59Missing $activity 'Text(when (CloudAccountPresentation.stage(cloud))' 'prevent duplicated nonexhaustive You-stage when'
 Assert-NW59Has $presentationTests 'compactYouBadgeHandlesEveryBackupStageWithoutClaimingStaleIsVerified' 'regression test covers each compact badge'
 Assert-NW59Has $hub 'Previous verified backup' 'honest earlier snapshot timestamp'

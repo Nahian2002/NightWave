@@ -82,6 +82,52 @@ class CloudFirstBackupConsentInstrumentedTest {
             CloudAccountPresentation.stage(state))
     }
 
+    @Test fun checkedAccountIsNotAFirstBackupAndDisconnectClearsOnlyAccessProof() = scenario { store ->
+        assertTrue(store.connect("disposable@example.test"))
+        assertEquals(CloudAccessState.CHECKED, store.read().accessState)
+        assertTrue(store.read().lastAccessCheckMs > 0L)
+        assertFalse(store.read().enabled)
+        assertEquals(0L, store.read().lastSuccessMs)
+        assertTrue(store.disconnect())
+        assertEquals(CloudAccessState.UNKNOWN, store.read().accessState)
+        assertEquals(0L, store.read().lastAccessCheckMs)
+    }
+
+    @Test fun oldAccountOrPrivacyRevisionCannotOverwriteAccessState() = scenario { store ->
+        assertTrue(store.connect("disposable@example.test"))
+        val old = store.read().consentSnapshot()
+        assertTrue(store.setHistory(true))
+        assertFalse(store.accessIfCurrent(old, CloudAccessState.NEEDS_REVIEW))
+        assertFalse(store.accessIfCurrent(old, CloudAccessState.CHECKED, 1234L))
+        assertEquals(CloudAccessState.CHECKED, store.read().accessState)
+    }
+
+    @Test fun accessFailurePreservesTheVerifiedBackupAndPrivacyChoices() = scenario { store ->
+        assertTrue(store.connect("disposable@example.test"))
+        assertTrue(store.successIfCurrent(store.read().consentSnapshot(), 1234L, true))
+        val before = store.read()
+        assertTrue(store.accessIfCurrent(before.consentSnapshot(), CloudAccessState.NEEDS_REVIEW))
+        val after = store.read()
+        assertEquals(CloudAccessState.NEEDS_REVIEW, after.accessState)
+        assertEquals(before.consentSnapshot(), after.consentSnapshot())
+        assertEquals(before.lastVerifiedRevision, after.lastVerifiedRevision)
+        assertEquals(before.lastSuccessMs, after.lastSuccessMs)
+    }
+
+    @Test fun olderFailureCannotReplaceNewAccessProofEvenInTheSameMillisecond() = scenario { store ->
+        assertTrue(store.connect("disposable@example.test"))
+        val consent = store.read().consentSnapshot()
+        val older = store.recordAccessIfCurrent(consent, CloudAccessState.CHECKED, 1000L)!!
+        val newer = store.recordAccessIfCurrent(consent, CloudAccessState.CHECKED, 1000L)!!
+        assertTrue(older != newer)
+        assertEquals(null, store.recordAccessIfCurrent(consent, CloudAccessState.NEEDS_REVIEW,
+            expectedAccessRevision = older))
+        assertEquals(CloudAccessState.CHECKED, store.read().accessState)
+        assertEquals(newer, store.read().accessRevision)
+        assertTrue(store.recordAccessIfCurrent(consent, CloudAccessState.NEEDS_REVIEW,
+            expectedAccessRevision = newer) != null)
+    }
+
     @Test fun differentAccountCannotInheritAnyPreviousVerifiedSnapshot() = scenario { store ->
         assertTrue(store.connect("first@example.com"))
         val old = store.read().consentSnapshot()

@@ -21,14 +21,20 @@ data class DriveBackupOutcome(val snapshot: DriveSnapshot, val created: Boolean)
  * snapshot; never overwrites/deletes existing remote data. OAuth tokens are
  * request-local and are never persisted.
  */
-class NightWaveDriveClient(private val accessToken: String) {
+class NightWaveDriveClient internal constructor(
+    private val accessToken: String, private val http: OkHttpClient
+) {
+    constructor(accessToken: String) : this(accessToken, defaultHttp())
     init { require(accessToken.isNotBlank()) }
-    private val http = OkHttpClient.Builder()
-        .connectTimeout(15, TimeUnit.SECONDS)
-        .readTimeout(25, TimeUnit.SECONDS)
-        .writeTimeout(25, TimeUnit.SECONDS)
-        .followRedirects(false)
-        .build()
+    companion object {
+        private fun defaultHttp() = OkHttpClient.Builder()
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(25, TimeUnit.SECONDS)
+            .writeTimeout(25, TimeUnit.SECONDS)
+            .callTimeout(60, TimeUnit.SECONDS)
+            .followRedirects(false)
+            .build()
+    }
     private val prefix = "nightwave-cloud-v2-"
     private val expectedName = Regex("^nightwave-cloud-v2-[0-9]{13}-[a-f0-9]{8}\\.json$")
 

@@ -1,26 +1,27 @@
-# Current verification — NW120 Audio/EQ
+# Current verification — NW121 premium account/recovery
 
-27 October 2026. Branch: `update/nightwave-nw120-audio-session-truth`. Parent: verified NW119 `ccbaae441fecea1bc3ca5b018fde33bb17ced554`.
+27 October 2026. Branch: `update/nightwave-nw121-premium-account-recovery`. Parent: verified NW120 `eb2722002fdd047bc9f0bff0a1d0e8be83eb167e`.
 
 ## Executed locally
 
 - Complete one-click Windows builder: **BUILD SUCCESS**.
-- Android production Kotlin/Compose and instrumentation-source compilation: **PASS**. No device instrumentation was executed.
-- JVM regression suite: **1,433 tests in 179 suites; zero failures, errors or skips**. Twelve new policy test methods cover reviewed-device identity, preset readback and crossfade EQ sessions.
-- Debug APK assembly and package/version/signature validation: **PASS**.
-- Certificate comparison against the separately saved NW119 APK: **MATCH**. Installed-phone signer continuity is still untested.
-- Current structural/negative and Windows source preflights: **49/49 PASS**.
-- Android lint: **PASS**, zero errors, 313 warnings and 17 hints. See [NW120 evidence](docs/NW120_AUDIO_SESSION_EVIDENCE.md). Remaining maintenance warnings are retained; no lint baseline or new broad suppression was introduced.
-- Source attestation: **785 current build-affecting files match the compiled snapshot**.
+- JVM regression suite: **1,453 tests in 183 suites, zero failures/errors/skips**. Twenty new methods execute account access, wrapped-error, presentation and isolated Drive roundtrip cases.
+- Android production Kotlin/Compose and instrumentation-source compilation: **PASS**. Four new Android store tests were compiled; no Android/device tests were executed.
+- Debug APK assembly and package/version/signature validation: **PASS**. Independent signer comparison against saved NW120: **MATCH**; installed phone remains untested.
+- Current structural/negative and Windows preflights: **49/49 PASS**.
+- Android lint: **PASS**, zero errors, 313 warnings and 17 hints. No new suppression or warning baseline was added.
+- Source attestation: **792 build-affecting files match the compiled working-tree snapshot**.
 
-## What the tests establish
+## What the roundtrip proves
 
-The new tests execute actual pure Kotlin policies for session/frequency/range/preset identity, invalid/unbound commands, same-count frequency swaps, Unicode/delimiter distinctions, preset mismatch/bounds and shared-session crossfade eligibility. Existing audio ownership, saved EQ intent, gapless, normalization, queue and route-command tests remain green. Android-specific callback wiring and live playback are compiled, not hardware-tested.
+The real `NightWaveDriveClient`, multipart upload, remote listing/readback and cloud/guest codecs execute through an in-memory HTTP interceptor. A disposable synthetic guest archive is uploaded, downloaded and decoded unchanged; identical verified copies are reused, while corrupt/denied readback and network or invalid input fail safely. Tests assert appDataFolder scope and no overwrite/delete requests. No Google account, OAuth token, internet request, real audio or on-device library was used.
 
-Sound Studio now requires a fresh discovery acknowledgement before presenting cached status as current. Its visible-screen poll runs every two seconds plus reply latency; a framework status update is not an acoustic measurement. Android can still bypass effects on an output route.
+This does **not** execute live Google OAuth, installed-signer setup, Android account switching or the real local-library restore transaction on a phone. Existing restore preview, same-account revision and local-change guards remain compiled and covered by their existing policy tests.
 
-## Pending acceptance
+## Visual and device boundary
 
-The [NW120 consolidated device checklist](docs/NW120_AUDIO_SESSION_EVIDENCE.md) covers speaker/headphone/Bluetooth audible A/B, output switches, external effect control, stale/delayed Apply, EQ during crossfade, background/resume and safe EQ Off. Physical Samsung validation, installed-phone signer, production OAuth/Drive restoration and rights/privacy approval remain open. Public release is **NO-GO**.
+The redesigned hub is real Compose source compiled into the APK. Pure layout/action tests cover compact width and 2x font decisions; no device/emulator screenshot, pixel comparison or TalkBack run was performed. See the [NW121 acceptance checklist](docs/NW121_PREMIUM_ACCOUNT_RECOVERY_EVIDENCE.md) for live account, layout, cancellation, observer, low-storage and restore acceptance.
 
-Historical NW119 results remain in [its evidence](docs/NW119_CLEANUP_AND_LYRICS_EVIDENCE.md); [v0.8 results](docs/TEST_REPORT_V08_ARCHIVE.md) and [historical CI diagnostics](docs/HISTORICAL_CI_SOURCE_CHECKS_20261027.md) are preserved. They do not substitute for this current run. Next ordered feature wave: **NW121 Drive/guest backup**.
+Physical Samsung validation, installed-phone signer, production Google restore/readback and rights/privacy approval remain open. Public release remains **NO-GO**. Next ordered wave: **NW122 measured performance**.
+
+Earlier results remain in [NW120 evidence](docs/NW120_AUDIO_SESSION_EVIDENCE.md), [NW119 evidence](docs/NW119_CLEANUP_AND_LYRICS_EVIDENCE.md), and the [historical diagnostic inventory](docs/HISTORICAL_CI_SOURCE_CHECKS_20261027.md).

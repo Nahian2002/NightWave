@@ -8,6 +8,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -35,6 +41,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import android.content.Context
 import android.content.ClipboardManager
@@ -52,6 +67,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.nightwave.player.v2.cloud.CloudAccountPresentation
 import com.nightwave.player.v2.cloud.CloudBackupStatus
+import com.nightwave.player.v2.cloud.CloudAccessPolicy
+import com.nightwave.player.v2.cloud.CloudAccessState
 import com.nightwave.player.v2.model.ProfileSettings
 import java.text.DateFormat
 import java.util.Date
@@ -76,6 +93,7 @@ internal fun NightWaveAccountHubDialog(
 ) {
     var confirmDisconnect by remember { mutableStateOf(false) }
     var confirmChangeAccount by remember { mutableStateOf(false) }
+    var showSetupDetails by remember { mutableStateOf(false) }
     // File pickers and native restore previews must not stack beneath a
     // second persistent dialog window; close this hub before opening them.
     fun openExternalFlow(callback: () -> Unit) {
@@ -84,7 +102,10 @@ internal fun NightWaveAccountHubDialog(
     }
     val stage = CloudAccountPresentation.stage(cloud)
     val connected = cloud.account.isNotBlank()
-    val canBackUp = CloudAccountPresentation.canBackUp(cloud, busy)
+    val needsReview = cloud.accessState == CloudAccessState.NEEDS_REVIEW
+    val canBackUp = CloudAccountPresentation.canBackUp(cloud, busy) && !needsReview
+    val layout = AccountRecoveryPresentationPolicy.layout(
+        LocalConfiguration.current.screenWidthDp * .96f, LocalDensity.current.fontScale)
     val primary = MaterialTheme.colorScheme.primary
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
     val appContext = LocalContext.current
@@ -102,7 +123,8 @@ internal fun NightWaveAccountHubDialog(
     Dialog(onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Surface(
-            modifier = Modifier.fillMaxWidth(.94f).fillMaxHeight(.87f),
+            modifier = Modifier.widthIn(max = 600.dp).fillMaxWidth(.96f).fillMaxHeight(.92f)
+                .testTag("account-backup-hub"),
             shape = RoundedCornerShape(26.dp),
             color = MaterialTheme.colorScheme.surface,
             tonalElevation = 5.dp
@@ -125,38 +147,49 @@ internal fun NightWaveAccountHubDialog(
                 LazyColumn(
                     modifier = Modifier.weight(1f).fillMaxWidth(),
                     contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                        horizontal = 16.dp, vertical = 15.dp),
+                        horizontal = layout.paddingDp.dp, vertical = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(13.dp)
                 ) {
-                    item {
+                    item(key = "account-local-profile") {
                         Card(
                             shape = RoundedCornerShape(20.dp),
                             colors = CardDefaults.cardColors(
                                 containerColor = MaterialTheme.colorScheme.surfaceVariant)
                         ) {
                             Column(
-                                Modifier.fillMaxWidth().padding(16.dp),
+                                Modifier.fillMaxWidth().background(Brush.linearGradient(listOf(
+                                    primary.copy(alpha = .16f),
+                                    MaterialTheme.colorScheme.surfaceVariant))).padding(layout.paddingDp.dp),
                                 verticalArrangement = Arrangement.spacedBy(9.dp)
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                                    Icon(Icons.Outlined.PersonOutline,
-                                        contentDescription = null, tint = primary,
-                                        modifier = Modifier.size(25.dp))
-                                    Column {
+                                    Surface(shape = CircleShape,
+                                        color = primary.copy(alpha = .13f),
+                                        border = BorderStroke(1.dp, primary.copy(alpha = .22f))) {
+                                        Icon(Icons.Outlined.PersonOutline,
+                                            contentDescription = null, tint = primary,
+                                            modifier = Modifier.size(layout.avatarDp.dp).padding(10.dp))
+                                    }
+                                    Column(Modifier.weight(1f)) {
                                         Text(profile.displayName,
                                             style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.SemiBold)
-                                        Text("Guest profile · stored on this device",
+                                            fontWeight = FontWeight.SemiBold,
+                                            maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                        Text("Your listening profile · on this device",
                                             color = muted,
                                             style = MaterialTheme.typography.bodySmall)
                                     }
                                 }
-                                Text("This is your local NightWave listening profile. " +
-                                    "Connecting Drive never signs you out or replaces your library.",
+                                Text("Your music. Your library.",
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    fontWeight = FontWeight.Bold)
+                                Text("Favorites, playlists and your profile stay on this device. " +
+                                    "Add an optional recovery copy whenever you're ready.",
                                     color = muted,
                                     style = MaterialTheme.typography.bodySmall)
                                 OutlinedButton(enabled = !busy,
+                                    modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
                                     onClick = { openExternalFlow(onExportLocal) }) {
                                     Icon(Icons.Outlined.LibraryMusic, contentDescription = null,
                                         modifier = Modifier.size(17.dp))
@@ -166,7 +199,7 @@ internal fun NightWaveAccountHubDialog(
                             }
                         }
                     }
-                    item {
+                    item(key = "account-drive-recovery") {
                         Card(shape = RoundedCornerShape(20.dp),
                             colors = CardDefaults.cardColors(
                                 containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
@@ -179,7 +212,9 @@ internal fun NightWaveAccountHubDialog(
                                         contentDescription = null, tint = primary,
                                         modifier = Modifier.size(24.dp))
                                     Column(Modifier.weight(1f)) {
-                                        Text(CloudAccountPresentation.title(stage),
+                                        Text(AccountRecoveryPresentationPolicy.protectionTitle(
+                                            connected, needsReview, cloud.lastSuccessMs > 0L,
+                                            stage == CloudAccountPresentation.BackupStage.PREVIOUS_BACKUP_NEEDS_REFRESH),
                                             style = MaterialTheme.typography.titleMedium,
                                             fontWeight = FontWeight.SemiBold)
                                         Text(CloudAccountPresentation.details(stage),
@@ -190,9 +225,22 @@ internal fun NightWaveAccountHubDialog(
                                         modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
                                 }
                                 if (connected) {
-                                    Text("Authorized Drive account: " +
+                                    Surface(shape = RoundedCornerShape(10.dp),
+                                        color = if (needsReview) MaterialTheme.colorScheme.errorContainer
+                                            else primary.copy(alpha = .10f)) {
+                                        Text(CloudAccessPolicy.label(connected, cloud.accessState, cloud.lastAccessCheckMs),
+                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp)
+                                                .semantics { liveRegion = LiveRegionMode.Polite },
+                                            color = if (needsReview) MaterialTheme.colorScheme.onErrorContainer else primary,
+                                            style = MaterialTheme.typography.labelMedium)
+                                    }
+                                    Text("Saved Google account: " +
                                         CloudAccountPresentation.maskedAccount(cloud.account),
                                         style = MaterialTheme.typography.bodyMedium)
+                                    if (cloud.lastAccessCheckMs > 0L) Text(
+                                        "Last account check · " + DateFormat.getDateTimeInstance().format(
+                                            Date(cloud.lastAccessCheckMs)),
+                                        color = muted, style = MaterialTheme.typography.bodySmall)
                                 }
                                 if (cloud.lastSuccessMs > 0L &&
                                     stage in setOf(
@@ -217,21 +265,17 @@ internal fun NightWaveAccountHubDialog(
                                     color = muted)
                                 Button(
                                     onClick = {
-                                        if (connected) confirmChangeAccount = true
+                                        if (connected && !needsReview) openExternalFlow(onBackUp)
                                         else openExternalFlow(onConnect)
                                     },
-                                    modifier = Modifier.fillMaxWidth(),
+                                    modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp),
                                     enabled = !busy
                                 ) {
-                                    Text(if (connected) "Change Drive account"
-                                        else "Connect Google Drive")
+                                    Text(if (busy) "Please wait…" else
+                                        AccountRecoveryPresentationPolicy.primaryAction(
+                                            connected, needsReview, cloud.lastSuccessMs > 0L))
                                 }
                                 if (connected) {
-                                    Button(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        onClick = { openExternalFlow(onBackUp) },
-                                        enabled = canBackUp
-                                    ) { Text("Back up library now") }
                                     OutlinedButton(
                                         modifier = Modifier.fillMaxWidth(),
                                         onClick = { openExternalFlow(onPreviewRestore) },
@@ -242,6 +286,11 @@ internal fun NightWaveAccountHubDialog(
                                         onClick = { openExternalFlow(onCompare) },
                                         enabled = canBackUp
                                     ) { Text("Compare & merge libraries") }
+                                    if (needsReview) Text("Reconnect to use Drive recovery. Your local library is ready.",
+                                        style = MaterialTheme.typography.bodySmall, color = muted)
+                                    TextButton(enabled = !busy,
+                                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                                        onClick = { confirmChangeAccount = true }) { Text("Change Drive account") }
                                     TextButton(
                                         enabled = !busy,
                                         onClick = { confirmDisconnect = true }
@@ -275,25 +324,25 @@ internal fun NightWaveAccountHubDialog(
                             cloud.wifiOnly, connected && !busy, onWifiOnly)
                     }
                     item {
-                        Text("Google Drive authorization is only for NightWave backup. " +
-                            "It is not a Spotify account, Google account sign-in, or " +
-                            "instant multi-device sync. Offline songs are not " +
-                            "included in library metadata backups.",
+                        Text("This backup contains library metadata and the options you choose. " +
+                            "Audio files are not included. Every restore starts with a review.",
                             color = muted,
                             style = MaterialTheme.typography.bodySmall)
                     }
-                    if (!connected) {
+                    if (CloudAccessPolicy.needsHelp(connected, cloud.accessState, lastGoogleFailure != null)) {
                         item(key = "google-connection-help") {
                             Card(shape = RoundedCornerShape(18.dp),
                                 colors = CardDefaults.cardColors(
                                     containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
                                 Column(Modifier.fillMaxWidth().padding(15.dp),
                                     verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                                    Text(if (lastGoogleFailure == null)
+                                    Text(if (lastGoogleFailure == null && !connected)
                                         "Set up Google Drive backup" else "Google connection help",
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.SemiBold)
-                                    Text(if (lastGoogleFailure == null)
+                                    Text(if (lastGoogleFailure == null && connected)
+                                        "Your saved Drive account needs an access check. Reconnect or review connection details."
+                                    else if (lastGoogleFailure == null)
                                         "Connect your Google account to back up library metadata. " +
                                             "Your local music stays available without Google."
                                     else CloudAuthorizationFailurePolicy.shortMessage(
@@ -325,43 +374,49 @@ internal fun NightWaveAccountHubDialog(
                                             }
                                         }
                                     }
-                                    Text("Installed APK signing SHA-1",
-                                        style = MaterialTheme.typography.labelLarge)
-                                    Text(apkFingerprint?.chunked(29)?.joinToString("\n")
-                                            ?: "Not available on this device",
-                                        style = MaterialTheme.typography.bodySmall.copy(
-                                            fontFamily = FontFamily.Monospace),
-                                        color = primary)
-                                    Text("If the error repeats, compare this APK's package and " +
-                                        "SHA-1 with the Android OAuth client. Check Drive API, " +
-                                        "Google Play services and OAuth test users.",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = muted)
-                                    OutlinedButton(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        onClick = {
-                                            oauthCopied = runCatching {
-                                                val clip = appContext.getSystemService(
-                                                    Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                                clip.setPrimaryClip(ClipData.newPlainText(
-                                                    "NightWave OAuth setup",
-                                                    InstalledApkOAuthIdentity.report(appContext)))
-                                            }.isSuccess
-                                        }) {
-                                        Text(if (oauthCopied)
-                                            "Setup report copied" else "Copy Google setup report")
+                                    TextButton(onClick = { showSetupDetails = !showSetupDetails },
+                                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                                        Text(if (showSetupDetails) "Hide connection details" else "Connection details")
                                     }
-                                    TextButton(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        onClick = {
-                                            runCatching {
-                                                appContext.startActivity(
-                                                    Intent(Intent.ACTION_VIEW,
-                                                        Uri.parse("https://console.cloud.google.com/auth/clients"))
-                                                )
-                                            }
-                                        }) {
-                                        Text("Open Google OAuth settings")
+                                    if (showSetupDetails) {
+                                        Text("Installed APK signing SHA-1",
+                                            style = MaterialTheme.typography.labelLarge)
+                                        Text(apkFingerprint?.chunked(29)?.joinToString("\n")
+                                                ?: "Not available on this device",
+                                            style = MaterialTheme.typography.bodySmall.copy(
+                                                fontFamily = FontFamily.Monospace),
+                                            color = primary)
+                                        Text("If the error repeats, compare this APK's package and " +
+                                            "SHA-1 with the Android OAuth client. Check Drive API, " +
+                                            "Google Play services and OAuth test users.",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = muted)
+                                        OutlinedButton(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            onClick = {
+                                                oauthCopied = runCatching {
+                                                    val clip = appContext.getSystemService(
+                                                        Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                                    clip.setPrimaryClip(ClipData.newPlainText(
+                                                        "NightWave OAuth setup",
+                                                        InstalledApkOAuthIdentity.report(appContext)))
+                                                }.isSuccess
+                                            }) {
+                                            Text(if (oauthCopied)
+                                                "Setup report copied" else "Copy Google setup report")
+                                        }
+                                        TextButton(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            onClick = {
+                                                runCatching {
+                                                    appContext.startActivity(
+                                                        Intent(Intent.ACTION_VIEW,
+                                                            Uri.parse("https://console.cloud.google.com/auth/clients"))
+                                                    )
+                                                }
+                                            }) {
+                                            Text("Open Google OAuth settings")
+                                        }
                                     }
                                 }
                             }
@@ -415,7 +470,10 @@ private fun AccountBackupToggle(
     title: String, explanation: String, enabled: Boolean,
     interactive: Boolean, onChange: (Boolean) -> Unit
 ) {
-    Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 3.dp),
+    Row(Modifier.fillMaxWidth().heightIn(min = 64.dp)
+        .toggleable(value = enabled, enabled = interactive, role = Role.Switch, onValueChange = onChange)
+        .semantics(mergeDescendants = true) { }
+        .padding(horizontal = 4.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
             Text(title, style = MaterialTheme.typography.bodyMedium,
@@ -423,6 +481,6 @@ private fun AccountBackupToggle(
             Text(explanation, color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodySmall)
         }
-        Switch(checked = enabled, enabled = interactive, onCheckedChange = onChange)
+        Switch(checked = enabled, enabled = interactive, onCheckedChange = null)
     }
 }

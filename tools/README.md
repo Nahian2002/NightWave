@@ -1,6 +1,6 @@
 # NightWave tools — current use and historical checks
 
-**Current source baseline:** NW120 Audio/EQ update, on verified cumulative NW119. These scripts have different evidence strength; do not treat an old smoke PASS as a current Android build.
+**Current source baseline:** NW121 account/recovery update, on verified cumulative NW120. These scripts have different evidence strength; do not treat an old smoke PASS as a current Android build.
 
 ## Recommended entrypoints
 

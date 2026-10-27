@@ -30,6 +30,7 @@ class NightWaveCloudWorker(
         if (!settings.enabled || settings.account.isBlank() || settings.lastSuccessMs <= 0L) {
             return@withContext Result.success()
         }
+        var accessRevision = settings.accessRevision
         try {
             val authorization = Tasks.await(
                 Identity.getAuthorizationClient(applicationContext)
@@ -37,6 +38,8 @@ class NightWaveCloudWorker(
                 20, TimeUnit.SECONDS
             )
             if (authorization.hasResolution()) {
+                if (store.recordAccessIfCurrent(consent, CloudAccessState.NEEDS_REVIEW,
+                        expectedAccessRevision = accessRevision) == null) return@withContext Result.success()
                 store.statusIfCurrent(consent,
                     "Google needs permission again. Open NightWave backup settings.")
                 return@withContext Result.success()
@@ -48,6 +51,8 @@ class NightWaveCloudWorker(
             val legacyAccount = NightWaveCloudAuthorization.authorizedAccount(authorization)
             if (!settings.account.equals(account, ignoreCase = true) ||
                 (legacyAccount != null && !account.equals(legacyAccount, ignoreCase = true))) {
+                if (store.recordAccessIfCurrent(consent, CloudAccessState.NEEDS_REVIEW,
+                        expectedAccessRevision = accessRevision) == null) return@withContext Result.success()
                 store.statusIfCurrent(consent,
                     "Google account changed; reconnect backup in NightWave.")
                 return@withContext Result.success()
@@ -57,6 +62,7 @@ class NightWaveCloudWorker(
                     store.read().consentSnapshot())) {
                 return@withContext Result.success()
             }
+            store.recordAccessIfCurrent(consent, CloudAccessState.CHECKED)?.let { accessRevision = it }
             val backup = LibraryArchiveManager(applicationContext).export()
             val history = if (settings.includeHistory)
                 MusicLibrary(applicationContext).recent() else emptyList()
@@ -79,8 +85,14 @@ class NightWaveCloudWorker(
             // must NEVER be reported as the current verified backup.
             if (!CloudBackupConsentPolicy.same(consent,
                     store.read().consentSnapshot())) return@withContext Result.success()
-            store.successIfCurrent(consent, System.currentTimeMillis(), outcome.created)
-            Result.success()
+            if (store.successIfCurrent(consent, System.currentTimeMillis(), outcome.created))
+                Result.success()
+            else if (!CloudBackupConsentPolicy.same(consent, store.read().consentSnapshot()))
+                Result.success() // A new consent owns the next operation.
+            else {
+                store.statusIfCurrent(consent, "Drive copy verified; local receipt could not be saved. Open backup settings.")
+                Result.failure()
+            }
         } catch (cancel: CancellationException) {
             // WorkManager cancellation is not a failed/retryable backup.
             // In particular, disconnecting the Drive account must not
@@ -91,9 +103,14 @@ class NightWaveCloudWorker(
             // by a late failure from its cancelled/stale previous worker.
             if (!CloudBackupConsentPolicy.same(consent,
                     store.read().consentSnapshot())) return@withContext Result.success()
-            val driveCode = (error as? DriveHttpFailure)?.statusCode
-            val googleCode =
-                (error as? com.google.android.gms.common.api.ApiException)?.statusCode
+            val driveCode = CloudFailureCausePolicy.find(error, DriveHttpFailure::class.java)?.statusCode
+            val googleCode = CloudFailureCausePolicy.find(error,
+                com.google.android.gms.common.api.ApiException::class.java)?.statusCode
+            val failureStage = if (driveCode != null) CloudAuthorizationFailurePolicy.Stage.DRIVE_CHECK
+                else CloudAuthorizationFailurePolicy.Stage.REQUEST
+            if (store.recordAccessIfCurrent(consent, CloudAccessPolicy.afterFailure(
+                    settings.accessState, failureStage, driveCode ?: googleCode),
+                    expectedAccessRevision = accessRevision) == null) return@withContext Result.success()
             when {
                 googleCode != null &&
                     !CloudAuthorizationFailurePolicy.canSuggestRetry(googleCode) -> {
