@@ -2,21 +2,22 @@
 
 An independent Android music player with an original midnight design, local music, playlists, background playback, imported synchronized lyrics, Sound Studio and optional Google Drive backup.
 
-**Current cumulative source:** [`update/nightwave-nw122-measured-performance`](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw122-measured-performance), based on verified NW121 commit `10ea25315d9746ebbde463ef05067b50798c9614`. The default `main` still contains the old v0.8 app.
+**Current integrated source:** [`release/nightwave-nw125-final-candidate`](https://github.com/Nahian2002/NightWave/tree/release/nightwave-nw125-final-candidate), stacked on [NW124](docs/NW124_OPTIONAL_EXTRAS_EVIDENCE.md) and all prior NW111–NW123 waves. **The default `main` is still the older v0.8 snapshot.** Do not download `main` to build the modern NightWave.
 
-**27 October 2026 validation:** Android app and instrumentation sources compile, the debug APK assembles, and **1,464 JVM tests pass with zero failures or skips**. See the [current test report](TEST_REPORT.md) and [update evidence](docs/NW122_PERFORMANCE_MEASUREMENT.md) for scope and receipts.
+**Latest fully executed Android/JVM baseline:** NW122 — 1,464 passing JVM tests, debug APK assembly and Android source compilation on its **earlier** commit. NW123/NW124/NW125 new source has **not** passed a fresh complete build in this session. This branch is a **private device-test candidate**, not a signed, compiled or public-ready APK. See the [current evidence boundaries](TEST_REPORT.md) and [NW125 final candidate instructions](docs/NW125_FINAL_CANDIDATE.md).
 
 **Public release: NO-GO.** Installed-phone signer continuity, Samsung acceptance, production OAuth/Drive restore and source-rights review remain separate gates. A successful build does not authorize distribution or certify phone behavior.
 
 ## Start here
 
+- **[NW125 final build and phone-test instructions](docs/NW125_FINAL_CANDIDATE.md)**
 - [Active NW111–NW125 roadmap](docs/NW111_NW125_SPOTIFY_QUALITY_ROADMAP.md)
 - [Build and safe update instructions](docs/BUILD_AND_RELEASE.md)
 - [Repository navigation](docs/REPOSITORY_INDEX.md)
 - [Current checks and historical tooling](tools/README.md)
 - [Release readiness](RELEASE_READINESS.md), [security](SECURITY.md), [privacy draft](PRIVACY_POLICY_DRAFT.md)
 
-NW122 reduces repeated Unicode search work, public-result scoring and library sort-key preparation, and shares same-query suggestions. Actual Kotlin host benchmarks compare the exact NW121 parent with this update; phone startup, jank, battery and playback soak remain pending. NW121 account/recovery and NW120 audio improvements are retained.
+The cumulative source contains NW122's measured performance work, NW123's accessibility/large-text improvements, and NW124's user-confirmed playlist text import/export, conservative Commons discovery and sleep-timer improvements. Actual phone performance, Android integration, data-preserving upgrade, Google OAuth and playback soak are **not yet measured on this final source branch**.
 
 ## Features
 
@@ -33,7 +34,7 @@ Public video references and playable offline files are separate. Saving a URL do
 
 ## Build on Windows
 
-Use a fresh clone or full ZIP of the current branch, then run `build-windows.cmd`. Require a fresh success in `dist/NightWave-build-status.txt`. Before installing, run `check-device-update.cmd` and verify the signer matches the existing app. Preserve playlists, music and settings; never uninstall or clear storage to force an upgrade.
+Use a fresh clone or full ZIP of **`release/nightwave-nw125-final-candidate`**, then run `build-windows.cmd`. Require a fresh success in `dist/NightWave-build-status.txt`. Before installing, run `check-device-update.cmd` and verify the signer matches the existing app. Preserve playlists, music and settings; never uninstall or clear storage to force an upgrade.
 
 Developers can run `python tools/verify_current.py` for structural and Windows preflight checks. The current automated workflow is `.github/workflows/current-android.yml`; `android.yml` is a manually invoked historical diagnostic workflow. Real JVM and Android compilation remain mandatory.
 
