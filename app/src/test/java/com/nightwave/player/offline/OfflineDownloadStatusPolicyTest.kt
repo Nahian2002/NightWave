@@ -26,9 +26,34 @@ class OfflineDownloadStatusPolicyTest {
     }
 
     @Test fun oldSuccessMetadataDoesNotRemainMisleadingAfterDeletion() {
-        assertEquals("Ready offline · Verified local file",
+        assertEquals("Ready offline · Local file present (size checked)",
             OfflineDownloadStatusPolicy.statusForCompleted(true))
-        assertEquals("Saved previously · Local audio is missing or unavailable",
+        assertEquals("Saved previously · No available indexed audio",
             OfflineDownloadStatusPolicy.statusForCompleted(false))
+    }
+
+    @Test fun missingFileDoesNotBecomeReadyAfterOldWorkSuccess() {
+        assertFalse(OfflineDownloadStatusPolicy.isReady(true, "missing-id", emptySet()))
+        assertEquals("Saved previously · Audio file missing (index retained)",
+            OfflineDownloadStatusPolicy.statusForCompleted(
+                false, OfflineFileHealth.MISSING))
+    }
+
+    @Test fun staleSizeCannotBeMisrepresentedAsPlayabilityProof() {
+        assertEquals("Saved previously · File size changed (not ready)",
+            OfflineDownloadStatusPolicy.statusForCompleted(
+                false, OfflineFileHealth.SIZE_CHANGED))
+        assertEquals("Ready offline · Local file present (size checked)",
+            OfflineDownloadStatusPolicy.statusForCompleted(
+                true, OfflineFileHealth.AVAILABLE))
+    }
+
+    @Test fun unreadableAndUnsafeFilesGetHonestExplanations() {
+        assertEquals("Saved previously · File unreadable (not ready)",
+            OfflineDownloadStatusPolicy.statusForCompleted(
+                false, OfflineFileHealth.UNREADABLE))
+        assertEquals("Saved previously · Unsafe file metadata (not ready)",
+            OfflineDownloadStatusPolicy.statusForCompleted(
+                false, OfflineFileHealth.UNSAFE_METADATA))
     }
 }
