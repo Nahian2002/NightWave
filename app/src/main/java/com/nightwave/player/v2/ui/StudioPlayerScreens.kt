@@ -150,7 +150,6 @@ fun StudioMiniPlayer(
 ) {
     if (!state.hasTrack) return
     val fontScale = LocalDensity.current.fontScale
-    val compactRowHeight = NightWaveAdaptiveChromePolicy.miniPlayerHeightDp(fontScale).dp
     val colors = MaterialTheme.colorScheme
     val health = PlaybackHealthPolicy.classify(state.hasTrack, state.connected,
         state.offline, state.playing, state.buffering, state.resolving, state.error)
@@ -211,10 +210,12 @@ fun StudioMiniPlayer(
         BoxWithConstraints(Modifier.fillMaxWidth()) {
             // Preserve room for a legible title on 320–360dp screens.
             // Next remains available in expanded Now Playing on narrow screens.
-            val showNext = NightWaveChromePolicy.showMiniNext(
-                queueCount = state.queue.size, availableWidthDp = maxWidth.value)
+            val miniLayout = NightWaveMiniPlayerLayoutPolicy.resolve(
+                widthDp = maxWidth.value, fontScale = fontScale,
+                queueCount = state.queue.size)
+            val showNext = miniLayout.showNext
             Row(
-                modifier = Modifier.fillMaxWidth().height(compactRowHeight)
+                modifier = Modifier.fillMaxWidth().height(miniLayout.rowHeightDp.dp)
                     .padding(start = 8.dp, end = 3.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -228,17 +229,16 @@ fun StudioMiniPlayer(
                             onExpand()
                         },
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(9.dp)
+                    horizontalArrangement = Arrangement.spacedBy(miniLayout.labelGapDp.dp)
                 ) {
-                    Crossfade(
+                    if (miniLayout.showArtwork) Crossfade(
                         targetState = state.thumbnail,
                         animationSpec = tween(
                             durationMillis = NightWaveMotionPolicy.duration(
                                 reducedMotion, NightWaveMotionPolicy.COVER_MS)),
                         label = "Mini player changing cover"
                     ) { thumbnail ->
-                        CoverArt(thumbnail, Modifier.size(
-                            if (fontScale >= 1.3f) 44.dp else 40.dp)
+                        CoverArt(thumbnail, Modifier.size(miniLayout.artworkDp.dp)
                             .graphicsLayer {
                                 scaleX = miniScale
                                 scaleY = miniScale
@@ -251,7 +251,7 @@ fun StudioMiniPlayer(
                             style = MaterialTheme.typography.titleSmall.copy(
                                 fontWeight = FontWeight.SemiBold),
                             color = colors.onSurface,
-                            maxLines = if (fontScale >= 1.3f) 2 else 1,
+                            maxLines = miniLayout.titleLines,
                             overflow = TextOverflow.Ellipsis)
                         Text(
                             if (health.phase == PlaybackPhase.LOOKING_UP ||
