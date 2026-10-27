@@ -807,8 +807,13 @@ fun StudioNowPlayingOverlay(
                         color = colors.onSurfaceVariant.copy(alpha = .85f))
                 }
                 Spacer(Modifier.height(if (playerLayout.compact) 13.dp else 22.dp))
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
+                // NW116: let long original/Bangla titles use the full width
+                // on split-screen and large fonts. Normal phones retain the
+                // existing Like-on-the-right layout and visual hierarchy.
+                val fullWidthMetadata = NightWaveNowPlayingPresentationPolicy
+                    .useFullWidthMetadata(playerWidthDp, fontScale)
+                val songMetadata: @Composable (Modifier) -> Unit = { detailModifier ->
+                    Column(detailModifier) {
                         Text(if (state.title.isBlank()) "Choose a track"
                             else playerIdentity.title,
                             style = MaterialTheme.typography.headlineSmall,
@@ -824,10 +829,38 @@ fun StudioNowPlayingOverlay(
                             maxLines = NightWaveNowPlayingPresentationPolicy.artistLines(fontScale),
                             overflow = TextOverflow.Ellipsis)
                     }
-                    IconButton(onClick = onLike, enabled = !state.offline) {
+                }
+                val likeStatus = NightWaveNowPlayingPresentationPolicy.likeStatusLabel(
+                    liked, state.offline)
+                val likeControl: @Composable () -> Unit = {
+                    IconButton(onClick = onLike, enabled = !state.offline,
+                        modifier = Modifier.size(48.dp).semantics {
+                            stateDescription = likeStatus
+                        }) {
                         Icon(if (liked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                             contentDescription = if (liked) "Unlike song" else "Like song",
                             tint = if (liked) colors.primary else colors.onBackground)
+                    }
+                }
+                if (fullWidthMetadata) {
+                    Column(Modifier.fillMaxWidth()) {
+                        songMetadata(Modifier.fillMaxWidth())
+                        Row(Modifier.fillMaxWidth().padding(top = 2.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.End) {
+                            Text(likeStatus,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = colors.onSurfaceVariant,
+                                maxLines = 2, overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f))
+                            likeControl()
+                        }
+                    }
+                } else {
+                    Row(Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically) {
+                        songMetadata(Modifier.weight(1f))
+                        likeControl()
                     }
                 }
                 Spacer(Modifier.height(11.dp))
