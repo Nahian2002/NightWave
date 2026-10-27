@@ -15,6 +15,8 @@ import com.nightwave.player.net.VideoPreview
 object NightWaveHomeCurationPolicy {
     const val MAX_QUICK_PICKS = 6
     const val MAX_MIX_CARDS = 5
+    const val MAX_HOME_RECENT = 100
+    private const val MAX_RECENT_EXCLUSION = 150
 
     data class Plan(
         val nextListens: List<VideoPreview>,
@@ -30,6 +32,33 @@ object NightWaveHomeCurationPolicy {
     fun distinctRecent(recent: List<VideoPreview>): List<VideoPreview> =
         recent.distinctBy { it.url }
 
+    /**
+     * Bound only the in-memory Home shelf / tap-to-play queue, never the saved
+     * listening history. Read until N distinct identities have been seen,
+     * rather than N raw history entries, so repeated plays do not crowd out
+     * valid older tracks. A single additional identity proves "N+" for copy.
+     *
+     * Returning the original VideoPreview objects preserves real metadata.
+     * No IO, metadata rewriting, source changes or history mutations.
+     */
+    data class RecentWindow(val tracks: List<VideoPreview>, val hasMore: Boolean)
+
+    fun recentWindow(
+        recent: List<VideoPreview>, maxVisible: Int = MAX_HOME_RECENT
+    ): RecentWindow {
+        val limit = maxVisible.coerceIn(0, MAX_RECENT_EXCLUSION)
+        if (recent.isEmpty()) return RecentWindow(emptyList(), false)
+        if (limit == 0) return RecentWindow(emptyList(), true)
+        val seen = HashSet<String>(limit + 1)
+        val tracks = ArrayList<VideoPreview>(minOf(limit, recent.size))
+        for (track in recent) {
+            if (!seen.add(track.url)) continue
+            if (tracks.size == limit) return RecentWindow(tracks, true)
+            tracks.add(track)
+        }
+        return RecentWindow(tracks, false)
+    }
+
     fun curate(
         favorites: List<VideoPreview>,
         recent: List<VideoPreview>,
@@ -38,7 +67,10 @@ object NightWaveHomeCurationPolicy {
         personalMixes: List<PersonalMix>,
         dayNumber: Long
     ): Plan {
-        val recentUrls = recent.asSequence().take(150).map { it.url }.toSet()
+        // Exclude 150 DISTINCT recent song identities, not 150 play events.
+        // A repeatedly played song must never consume the whole budget.
+        val recentUrls = recentWindow(recent, MAX_RECENT_EXCLUSION)
+            .tracks.mapTo(hashSetOf()) { it.url }
         val liked = favorites.asSequence().take(300)
             .filter { VideoLink.normalize(it.url) == it.url }.toList()
         val playlists = playlistTracks.asSequence().take(400)
