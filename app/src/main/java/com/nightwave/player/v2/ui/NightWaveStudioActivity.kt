@@ -3023,6 +3023,10 @@ private fun StudioRoot(
                         },
                         onPlay = onPlay, onSongOptions = onSongOptions,
                         onRemoveRecent = onRemoveRecent, onClearRecent = onClearRecent,
+                        openRecentHistory = {
+                            selectedPlaylist = RECENT_COLLECTION
+                            navigateToTab(StudioTab.LIBRARY)
+                        },
                         openLibrary = { navigateToTab(StudioTab.LIBRARY) },
                         openLikedSongs = {
                             selectedPlaylist = LIKED_COLLECTION
@@ -3236,7 +3240,8 @@ private fun StudioHome(
     onPlay: (VideoPreview, List<VideoPreview>) -> Unit,
     onSongOptions: (VideoPreview) -> Unit,
     onRemoveRecent: (VideoPreview) -> Unit,
-    onClearRecent: () -> Unit, openLibrary: () -> Unit,
+    onClearRecent: () -> Unit, openRecentHistory: () -> Unit,
+    openLibrary: () -> Unit,
     openLikedSongs: () -> Unit, openOffline: () -> Unit,
     openSearch: () -> Unit
 ) {
@@ -3267,6 +3272,8 @@ private fun StudioHome(
     var showAllMixTracks by rememberSaveable { mutableStateOf(false) }
     var showAllRecent by rememberSaveable { mutableStateOf(false) }
     var confirmClearHistory by rememberSaveable { mutableStateOf(false) }
+    val recentBrowseActions = NightWaveHomeLayoutPolicy.recentBrowseActions(
+        recentShelf.size, recentWindow.hasMore, showAllRecent)
     val chosenMix = mixes.firstOrNull { it.key == chosenMixKey }
     val mixesPerRow = NightWaveHomeLayoutPolicy.mixColumns(
         androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.toFloat(),
@@ -3357,9 +3364,10 @@ private fun StudioHome(
                             "${recentShelf.size}+ tracks · Private to this device"
                         else "${recentShelf.size} tracks · Private to this device"))
                 }
-                if (recentShelf.size > 6) {
-                    TextButton(onClick = { showAllRecent = !showAllRecent }) {
-                        Text(if (showAllRecent) "Show less" else "See all")
+                if (recentBrowseActions.showExpansion) {
+                    TextButton(onClick = { showAllRecent = !showAllRecent },
+                        modifier = Modifier.testTag("nw117-recent-expand")) {
+                        Text(recentBrowseActions.expansionLabel.orEmpty())
                     }
                 }
             }
@@ -3399,6 +3407,17 @@ private fun StudioHome(
                             onOptions = { onSongOptions(song) },
                             onRemove = { onRemoveRecent(song) }
                         )
+                    }
+                }
+            }
+            if (recentBrowseActions.showFullHistory) {
+                item(key = "nw117-full-recent-history") {
+                    OutlinedButton(
+                        onClick = openRecentHistory,
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                            .testTag("nw117-open-full-recent-history")
+                    ) {
+                        Text("Browse full history")
                     }
                 }
             }
@@ -4151,7 +4170,10 @@ private fun StudioLibrary(
     val selectedSmart = smartCollections.firstOrNull { it.id == selectedPlaylist }
     val tracks = when {
         selectedPlaylist == null || selectedPlaylist == LIKED_COLLECTION -> favorites
-        selectedPlaylist == RECENT_COLLECTION -> recent
+        // Library must show the entire real history (unlike Home's 100-slot
+        // rail), but use unique IDs for stable LazyColumn keys after restores.
+        selectedPlaylist == RECENT_COLLECTION ->
+            remember(recent) { NightWaveHomeCurationPolicy.distinctRecent(recent) }
         selectedSmart != null -> selectedSmart.songs
         else -> playlistPreviews.firstOrNull { it.name == selectedPlaylist }?.songs.orEmpty()
     }
