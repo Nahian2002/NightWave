@@ -1,3 +1,5 @@
+> NW120 build update — 27 October 2026: complete Windows build, 1,433 JVM tests, 49 structural checks, Android production/instrumentation-source compilation, debug assembly and local NW119 signer comparison pass. Audio-session identity/readback and crossfade EQ corrections are implemented; audible output-route and installed-phone acceptance remain pending. See [current test report](TEST_REPORT.md) and [NW120 evidence](docs/NW120_AUDIO_SESSION_EVIDENCE.md). Public release remains NO-GO. Previous milestone counts below are historical.
+
 > Current build update — 27 October 2026: NW119 locally compiles Android app and instrumentation sources, assembles a debug APK and passes all 1,421 JVM tests. Current structural checks pass 49/49; lint has zero errors (315 warnings remain). See [current test report](TEST_REPORT.md) and [NW119 evidence](docs/NW119_CLEANUP_AND_LYRICS_EVIDENCE.md). Installed-phone signer, device, OAuth/Drive, privacy and rights acceptance remain pending. Public release is still NO-GO. Older statements below are historical unless explicitly reconfirmed.
 
 # NightWave — Release Readiness

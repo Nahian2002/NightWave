@@ -42,6 +42,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -51,12 +52,17 @@ import com.nightwave.player.playback.CrossfadePolicy
 import com.nightwave.player.playback.CrossfadeSettingsStore
 import com.nightwave.player.playback.OfflineNormalizationStore
 import com.nightwave.player.playback.EqualizerCapabilities
+import com.nightwave.player.playback.EqualizerCommandPolicy
 import com.nightwave.player.playback.EqualizerStatusStore
 import com.nightwave.player.playback.PlaybackService
 import com.nightwave.player.playback.SoundStudioPolicy
 import com.nightwave.player.playback.SoundStudioTuningPolicy
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.isActive
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.findViewTreeLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import java.util.UUID
 
 /**
@@ -69,6 +75,7 @@ import java.util.UUID
 @Composable
 internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
     val context = LocalContext.current
+    val screenLifecycle = LocalView.current.findViewTreeLifecycleOwner()?.lifecycle
     val scope = rememberCoroutineScope()
     val capabilityStore = remember(context) { EqualizerCapabilities(context) }
     val statusStore = remember(context) { EqualizerStatusStore(context) }
@@ -78,6 +85,7 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
     var capabilities by remember { mutableStateOf(capabilityStore.read()) }
     var status by remember { mutableStateOf(statusStore.read()) }
     var loading by remember { mutableStateOf(true) }
+    var liveConfirmed by remember { mutableStateOf(false) }
     var pendingCommand by remember { mutableStateOf<String?>(null) }
     var notice by remember { mutableStateOf("") }
     var draftLevels by remember { mutableStateOf(emptyList<Int>()) }
@@ -89,8 +97,9 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
 
     fun applySnapshot(resetDraft: Boolean) {
         val latest = capabilityStore.read()
-        if (resetDraft || latest.audioSessionId != capabilities.audioSessionId ||
-            latest.centersHz.size != capabilities.centersHz.size) {
+        val identityChanged = EqualizerCommandPolicy.shouldResetDraft(
+            capabilities.commandToken, latest.commandToken)
+        if (resetDraft || identityChanged) {
             val allowed = SoundStudioPolicy.safeManualRange(
                 latest.minimumMb, latest.maximumMb)
             draftLevels = if (allowed == null) emptyList()
@@ -102,26 +111,46 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                 )
             selectedShape = null
         }
+        val latestStatus = statusStore.read()
+        if (pendingCommand == null && latestStatus != status) notice = ""
+        if (capabilities.sessionReady && identityChanged && !resetDraft)
+            notice = "Audio output changed. Review the refreshed EQ before applying."
         capabilities = latest
-        status = statusStore.read()
+        status = latestStatus
+    }
+
+    suspend fun refreshFromEngine(resetDraft: Boolean) {
+        val requestId = UUID.randomUUID().toString()
+        val sent = runCatching {
+            context.startService(Intent(context, PlaybackService::class.java)
+                .setAction(PlaybackService.ACTION_EQ_DISCOVER)
+                .putExtra(PlaybackService.EXTRA_EQ_COMMAND_ID, requestId))
+        }.isSuccess
+        if (!sent) {
+            liveConfirmed = false
+            notice = "Audio engine could not be reached. Try playing a track first."
+            return
+        }
+        // Cached preferences are not proof that this service answered. Require
+        // the exact discovery acknowledgement, including unavailable sessions.
+        for (attempt in 0 until 10) {
+            delay(200L)
+            if (pendingCommand != null) return // Let the explicit Apply own its reply.
+            if (statusStore.read().commandId == requestId) {
+                applySnapshot(resetDraft)
+                liveConfirmed = true
+                return
+            }
+        }
+        liveConfirmed = false
+        notice = "No fresh reply from playback. Refresh before applying EQ."
     }
 
     fun discover() {
         if (pendingCommand != null || loading || transitionBusy) return
         loading = true
         scope.launch {
-            val sent = runCatching {
-                context.startService(Intent(context, PlaybackService::class.java)
-                    .setAction(PlaybackService.ACTION_EQ_DISCOVER))
-            }.isSuccess
-            if (!sent) notice = "Audio engine could not be reached. Try playing a track first."
-            // The Media3 service may initialize after startService returns.
-            // Recheck briefly instead of treating one early snapshot as final.
-            for (attempt in 0 until 10) {
-                delay(200L)
-                applySnapshot(resetDraft = attempt == 0)
-                if (capabilities.sessionReady) break
-            }
+            refreshFromEngine(resetDraft = true)
             loading = false
         }
     }
@@ -135,6 +164,7 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
             context.startService(Intent(context, PlaybackService::class.java).apply {
                 this.action = action
                 putExtra(PlaybackService.EXTRA_EQ_COMMAND_ID, requestId)
+                putExtra(PlaybackService.EXTRA_EQ_SESSION_TOKEN, capabilities.commandToken)
                 configure(this)
             })
         }
@@ -165,6 +195,7 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                     applySnapshot(resetDraft = action == PlaybackService.ACTION_EQ_PRESET_SET ||
                         action == PlaybackService.ACTION_EQ_BANDS_APPLY)
                     pendingCommand = null
+                    liveConfirmed = true
                     notice = latest.message
                     return@launch
                 }
@@ -172,6 +203,7 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
             if (pendingCommand == requestId) {
                 pendingCommand = null
                 applySnapshot(resetDraft = false)
+                liveConfirmed = false
                 notice = "No reply from the audio engine. Playback may have stopped."
             }
         }
@@ -242,24 +274,29 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
     }
 
     LaunchedEffect(Unit) {
-        val sent = runCatching {
-            context.startService(Intent(context, PlaybackService::class.java)
-                .setAction(PlaybackService.ACTION_EQ_DISCOVER))
-        }.isSuccess
-        if (!sent) notice = "Audio engine couldn't be reached."
-        for (attempt in 0 until 10) {
-            delay(200L)
-            applySnapshot(resetDraft = attempt == 0)
-            if (capabilities.sessionReady) break
-        }
+        refreshFromEngine(resetDraft = true)
         loading = false
+    }
+
+    // Observe only while this screen is visible. Keep edits for an unchanged
+    // device identity; a new frequency/range/preset table invalidates the draft.
+    LaunchedEffect(statusStore, screenLifecycle) {
+        val lifecycle = screenLifecycle ?: return@LaunchedEffect
+        lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            while (isActive) {
+                delay(2_000L)
+                if (!loading && pendingCommand == null && !transitionBusy) {
+                    refreshFromEngine(resetDraft = false)
+                }
+            }
+        }
     }
 
     val primary = MaterialTheme.colorScheme.primary
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
     val manualRange = SoundStudioPolicy.safeManualRange(
         capabilities.minimumMb, capabilities.maximumMb)
-    val validManual = capabilities.sessionReady && manualRange != null &&
+    val validManual = liveConfirmed && capabilities.sessionReady && manualRange != null &&
         manualRange.first < manualRange.last &&
         SoundStudioPolicy.validLevels(
             draftLevels, capabilities.centersHz.size,
@@ -267,8 +304,9 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
     val busy = loading || pendingCommand != null || transitionBusy
     val draftEdited = capabilities.sessionReady &&
         SoundStudioTuningPolicy.hasChanged(draftLevels, capabilities.levelsMb)
-    val tuningStatus = SoundStudioTuningPolicy.statusLabel(
-        status.active, status.selected, draftEdited)
+    val verifiedActive = liveConfirmed && !loading && capabilities.sessionReady && status.active
+    val tuningStatus = if (!liveConfirmed) "Refresh to check current EQ" else
+        SoundStudioTuningPolicy.statusLabel(verifiedActive, status.selected, draftEdited)
 
     Dialog(onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)) {
@@ -314,10 +352,10 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                                    Text(if (!capabilities.sessionReady) "WAITING FOR AUDIO"
-                                        else if (status.active) "ANDROID SESSION EQ"
+                                    Text(if (!liveConfirmed || !capabilities.sessionReady) "WAITING FOR AUDIO"
+                                        else if (verifiedActive) "ANDROID SESSION EQ"
                                         else "EFFECT OFF",
-                                        color = if (status.active) primary else muted,
+                                        color = if (verifiedActive) primary else muted,
                                         style = MaterialTheme.typography.labelMedium,
                                         fontWeight = FontWeight.SemiBold)
                                     Spacer(Modifier.weight(1f))
@@ -325,12 +363,13 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                                         modifier = Modifier.size(17.dp),
                                         strokeWidth = 2.dp)
                                 }
-                                Text(status.message, style = MaterialTheme.typography.bodyMedium)
+                                Text(if (liveConfirmed) status.message else "Waiting for current playback status.",
+                                    style = MaterialTheme.typography.bodyMedium)
                                 Text(tuningStatus, style = MaterialTheme.typography.labelMedium,
                                     color = if (draftEdited) primary else muted,
                                     fontWeight = FontWeight.SemiBold)
                                 Text(
-                                    if (capabilities.sessionReady)
+                                    if (liveConfirmed && capabilities.sessionReady)
                                         "${capabilities.centersHz.size} bands · " +
                                             "${capabilities.presetNames.size} device presets · " +
                                             "${capabilities.minimumMb / 100.0} to " +
@@ -469,7 +508,7 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                                         FilterChip(
                                             selected = status.active &&
                                                 status.selected == index + 1,
-                                            enabled = !busy && capabilities.sessionReady &&
+                                            enabled = !busy && liveConfirmed && capabilities.sessionReady &&
                                                 SoundStudioPolicy.validPreset(
                                                     index + 1, capabilities.presetNames.size),
                                             onClick = {
@@ -490,7 +529,7 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                             Text("Manual bands", style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold)
                             Spacer(Modifier.weight(1f))
-                            TextButton(enabled = !busy && capabilities.sessionReady &&
+                            TextButton(enabled = !busy && liveConfirmed && capabilities.sessionReady &&
                                 manualRange != null, onClick = {
                                     manualRange?.let { range ->
                                         draftLevels = SoundStudioPolicy.flatLevels(
@@ -514,7 +553,7 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                                 SoundStudioTuningPolicy.Shape.entries.forEach { shape ->
                                     FilterChip(
                                         selected = selectedShape == shape,
-                                        enabled = !busy && capabilities.sessionReady &&
+                                        enabled = !busy && liveConfirmed && capabilities.sessionReady &&
                                             manualRange != null &&
                                             capabilities.centersHz.isNotEmpty(),
                                         onClick = {

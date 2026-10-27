@@ -72,7 +72,8 @@ Status vocabulary: PLANNED / IN_PROGRESS / CODE_COMPLETE_UNVERIFIED / GRADLE_VER
 | NW117 Authentic Home | SOURCE_IMPLEMENTED_QA_PENDING | Correct mix and saved-music discovery, unique bounded Home history/Continue, truthful capped expansion and Browse full history into Library with duplicate-safe row keys; 28 new JUnit methods across four batches; Android/Compose/device QA pending |
 | NW118 Library polish | IN_PROGRESS | Repository inventory/index/ignore hygiene and read-only multiselect sanitization for stale/oversized selections without losing filtered hidden items; 8 new JUnit declarations, Gradle/device QA pending |
 | NW119 Lyrics | GRADLE_VERIFIED_DEVICE_PENDING | Strict leading LRC timestamps, shared import/review parsing, lossless length rejection and overflow-safe seek; nine new regressions; cumulative 1,421 JVM tests pass; Bangla/TalkBack/device timing QA pending |
-| NW120–NW125 | PLANNED | Next ordered wave is NW120 Audio/EQ; final acceptance and release gates remain open |
+| NW120 Audio/EQ | GRADLE_VERIFIED_DEVICE_PENDING | Reviewed-session command identity, fresh discovery acknowledgements, effect-control/enabled callbacks, preset readback and shared-session crossfade; 12 new JVM methods, cumulative 1,433 tests pass; audible/route acceptance pending |
+| NW121–NW125 | PLANNED | Next ordered wave is NW121 Drive/guest backup; final release acceptance remains open |
 
 After every wave update this ledger with commit, automated receipts, remaining blockers, actual device acceptance and next planned wave. Avoid recalculating a "Spotify score" based on static code checks.
 
@@ -299,3 +300,14 @@ The roadmap defines future turns and test requirements; it does not schedule aut
 - Repository organization: concise current README/build guide, archived announcements, explicit current vs historical CI, schema v1 retained for migration evidence, and complete source/rollback checkpoints. Historical source-check findings remain recorded, not relabeled passed.
 - Pending: physical-device lyric latency/follow/TalkBack, remaining NW118 large-library/undo acceptance, earlier waves' unfinished runtime work, installed signer, real Drive restoration, rights and release certification.
 - Next ordered feature wave: **NW120 Audio/EQ**. NW125 cannot certify release until all outstanding critical gates pass.
+
+## NW120 implementation ledger — 27 October 2026
+
+- Parent: verified NW119 `ccbaae441fecea1bc3ca5b018fde33bb17ced554`; review branch `update/nightwave-nw120-audio-session-truth`.
+- Commands now carry a hash of the reviewed audio session, ordered frequency centers, gain range and preset table. The service re-reads the device before accepting a non-Off command; a changed or absent identity rejects before saved selection or EQ writes. Off remains available.
+- Sound Studio resets draft gains on full identity changes, including same-count frequency swaps. Fresh request/reply discovery is required before rendering active status; current-state polling runs only with the visible screen lifecycle and does not overwrite pending Apply replies.
+- The service rechecks current control/enabled state and manual/preset readback, observes Android effect-control/enabled callbacks and ignores released instances. Callback status preserves command acknowledgements. Readback failure disables the owned effect without pausing playback or fighting externally disabled effects.
+- Crossfade decks share the requested EQ audio session; incompatible ready decks fall back to existing normal gapless transitions. Explicit EQ changes cancel the previous overlap before scheduling a compatible one; shared-session handoff retains the owned effect. Normalization bounds and local-only eligibility remain unchanged.
+- Twelve new policy JUnit methods cover stale/invalid identities, same-count and range/preset changes, delimiter/Unicode identity, preset mismatch/bounds and crossfade EQ session compatibility. Complete Gradle/JVM and Android compilation pass; final artifact/signature/lint receipts are recorded in [NW120 evidence](NW120_AUDIO_SESSION_EVIDENCE.md).
+- Android hardware callbacks, audible A/B and speaker/Bluetooth/headphone routes still need the consolidated physical-device acceptance cycle. No acoustic quality claim or public release approval follows from framework readback.
+- Next ordered wave: **NW121 Drive/guest backup**. Earlier unfinished device/data/rights gates remain open.

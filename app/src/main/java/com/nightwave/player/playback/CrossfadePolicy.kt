@@ -10,6 +10,10 @@ object CrossfadePolicy {
 
     fun accepts(seconds: Int): Boolean = seconds in 0..MAX_SECONDS
 
+    /** Both overlapping decks must pass through the same requested session EQ. */
+    fun compatibleEffectSession(requestedPreset: Int, outgoingSession: Int, incomingSession: Int): Boolean =
+        requestedPreset == 0 || (outgoingSession > 0 && incomingSession == outgoingSession)
+
     fun canPrepare(
         seconds: Int, offline: Boolean, gaplessTimeline: Boolean,
         normalSpeed: Boolean, index: Int, count: Int,
