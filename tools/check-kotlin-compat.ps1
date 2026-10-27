@@ -317,7 +317,9 @@ if ((Test-Path -LiteralPath $studioPath -PathType Leaf) -and
         $singlePublic = $searchContent.Contains('onPlay(selected, listOf(selected))')
         $publicPathCount = $searchContent.Split(@('playSinglePublic(song)'),
             [System.StringSplitOptions]::None).Length - 1
-        if ($savedPaths -ne 3 -or -not $singlePublic -or $publicPathCount -ne 2) {
+        # NW82: Best matches, Other versions and More results each call playSinglePublic(song).
+        # Every grouped Search tile must remain single-song: do not delete a click path to pass this gate.
+        if ($savedPaths -ne 3 -or -not $singlePublic -or $publicPathCount -ne 3) {
             $issues.Add('NW44: all grouped Search taps must remain single-song.')
         }
     }
