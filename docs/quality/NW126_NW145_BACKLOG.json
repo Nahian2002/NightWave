@@ -5,7 +5,7 @@
   "audit": "docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md",
   "implementation_base_revision": "61703c98238e762e59c049b6690853431f822884",
   "audit_branch": "audit/nightwave-post-nw125-quality-roadmap",
-  "next_batch": "NW126",
+  "next_batch": "NW127",
   "goal": "9.5+ within the declared NightWave music-player scope, conditional on actual product and acceptance evidence",
   "rating_kind": "Subjective comparative product review, not a measured Spotify score",
   "baseline_weighted_score": 6.655,
@@ -126,7 +126,7 @@
       "priority": "P0",
       "title": "Reproducible baseline and build identity",
       "depends_on": [],
-      "implementation_status": "PLANNED",
+      "implementation_status": "LOCAL_VERIFIED",
       "device_status": "NOT_RUN",
       "finding_ids": [
         "Q29",
@@ -146,9 +146,18 @@
         "Verify a permitted in-place validation update preserves library/profile/settings/queue/account boundaries; no reinstall or storage reset is used."
       ],
       "implementation_commit": null,
-      "local_evidence": [],
+      "local_evidence": [
+        "docs/NW126_BUILD_IDENTITY_BASELINE.md",
+        "Build asset independently matches 809 source inputs; three implementations agree on the canonical digest",
+        "54 current checks and 1496 JVM tests; Windows builder promotes only a matching identity",
+        "219-case APK-bound disposable fixture pack prepared; no app data seeded"
+      ],
       "device_evidence": [],
-      "remaining_blockers": []
+      "remaining_blockers": [
+        "Actual installed App details/APK/certificate attribution and clipboard/render tests",
+        "Capture actual flagship and midrange profiles",
+        "Installed signer comparison and approved data-preserving in-place update"
+      ]
     },
     {
       "id": "NW127",

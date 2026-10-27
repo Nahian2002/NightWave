@@ -6,9 +6,9 @@ Before choosing or implementing an upgrade, read:
 2. `docs/quality/NW126_NW145_BACKLOG.json` — batch status, dependencies and acceptance criteria.
 3. `docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md` and `TEST_REPORT.md` — baseline findings and verification limits.
 
-The current cumulative implementation is NW125, protected parent `61703c98238e762e59c049b6690853431f822884`. The audit/roadmap branch adds a repository-gate repair and the next plan. The old default `main` is v0.8; never merge it over the cumulative development chain or assume it is current.
+The current cumulative implementation includes NW126 build identity/baseline, based on protected audit parent `daec2f4d91701286fe7168d8ecff4c3ba3c2287f`. Read the latest backlog and NW126 evidence; physical acceptance is pending. The old default `main` is v0.8; never merge it over the cumulative development chain or assume it is current.
 
-When the owner says "next", select the first eligible incomplete batch in the active backlog. The initial next implementation batch is **NW126**. Check the actual checkout, remote updates and the latest ledger first. Do not restart NW111–NW125 simply because historical documents contain old next-step text.
+When the owner says "next", select the first eligible incomplete batch in the active backlog. The next source batch is **NW127**; NW126 is locally verified with physical checks pending. Check the actual checkout, remote updates and the latest ledger first. Do not restart NW111–NW125 simply because historical documents contain old next-step text.
 
 Preserve package/signing identity, installed data, guest profiles, Google consent/account boundaries, playlists, history, local music, original URLs and migration evidence. Inspect caller wiring as well as pure policies; a large synthetic benchmark does not prove the UI supplies the whole library. Do not remove safeguards or tests to improve a score.
 

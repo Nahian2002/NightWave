@@ -1,31 +1,24 @@
-# Current verification — post-NW125 product audit
+# Current verification — NW126 build identity and baseline
 
-28 October 2026. Implementation baseline: NW125 `61703c98238e762e59c049b6690853431f822884`; branch `audit/nightwave-post-nw125-quality-roadmap` adds the repository-gate correction and next product plan.
+28 October 2026. Branch: `update/nightwave-nw126-build-identity-baseline`, based on protected audit parent `daec2f4d91701286fe7168d8ecff4c3ba3c2287f`.
 
-## Executed locally on the cumulative source
+- Complete Windows builder: **BUILD SUCCESS**. Production Kotlin/Compose, Android test-source compilation and debug assembly pass.
+- **1,496 JVM tests / 188 suites**, zero failures/errors/skips. Twelve new methods cover identity/schema/hash/count/revision validation, bounded/stalled reads, SHA256 vectors and installed artifact/signer/split-base receipt formatting.
+- **54 current checks PASS**, retaining NW125 gates and adding fixture preparation and provenance negative cases. Missing/duplicate/oversized/invalid APK assets, wrong variant/count/digest and an actual older-source APK are rejected.
+- Independent APK asset/source verification: **PASS_EMBEDDED_SOURCE_MATCH**; all 809 source inputs match the canonical identity. The Windows builder invalidates old provenance and refuses promotion on mismatch; current CI has the same packaged-identity gate.
+- Two new Android cases compile for packaged metadata and dialog/copy semantics; no Android instrumentation test was device-executed.
+- Android lint: **0 errors, 313 warnings, 17 hints**. No new warning suppression or baseline.
+- Canonical source ID: `NW-debug-F2C870939591E7C8`; source SHA256 `F2C870939591E7C82DE9D357C3FD1F2379469ED920E3B477C251ABA9E3402DB9`.
+- APK SHA256: `9297D5F9747D38208321652A709DE06DCDDAF4131572B5EDE2B7AE3FEDEFC581`.
+- Retained NW08 source-manifest fingerprint: `95796293E6F87A84713DE48BD3524510402B235312EC60975756587AF23B4435` (809 inputs). This manifest-file hash and the new canonical digest have different documented encoding/ordering contracts.
+- Package `com.nightwave.player`, version `2.0.0-alpha5s`, code35, compile/target36/min26 preserved. Certificate SHA256 `EA737A703B8F116EBC5C8C0A717DDBF3A2A5808ACC9079A8F79CD1B3CD860394`; local prior-APK signer matches. Installed-device comparison remains unrun.
 
-- Complete one-click Windows builder: **BUILD SUCCESS**, both before and after the tooling repair.
-- **1,484 JVM tests in 187 suites; zero failures/errors/skips.** NW123/NW124 tests now execute with the existing cumulative suite.
-- Production Kotlin/Compose, Android instrumentation-source compilation and debug APK assembly: **PASS**. No Android instrumentation test was device-executed.
-- **52/52 current checks PASS** after correction. The original run was 49/50: the repository static audit caught a Python syntax error at NW125 gate line 57. The original failure is preserved in the private checkpoint. The audit fixes the unmatched parenthesis and adds the gate's positive/negative self-test plus normal JSON run to current verification. No safety check or test floor was removed.
-- Android lint: **PASS — 0 errors, 313 warnings, 17 hints**. No new warning baseline or broad suppression. Passing lint is not a warning-free production certification.
-- Package/version: `com.nightwave.player`, `2.0.0-alpha5s`, code `35`, compile/target API36, minimum API26.
-- Debug APK SHA256: `D7420074A7577C2196CC06854AC4F8817F2D9B2D2941202448C292886729D0D4`.
-- Final build-affecting source fingerprint: `5EBCE9F2E60D5AC3D8C1363B9815012DFB4F3555F09CE90C8FF73A2E4E4A925E`, **803 files**. Documentation changes do not alter this manifest.
-- Certificate SHA256: `EA737A703B8F116EBC5C8C0A717DDBF3A2A5808ACC9079A8F79CD1B3CD860394`. Local previous-APK comparison matches. Installed-phone signer continuity is **NOT TESTED**.
+You → App health → App details is implemented to show/copy source identity, installed APK/base-APK hash and public signer hashes using background bounded reads. No account, library, music or signing-key data is included. Revision is explicitly context rather than an assertion that a working snapshot equals HEAD. No on-device render or clipboard acceptance is claimed.
 
-The audit changes no app runtime source, database/schema, account consent, signing material or music files. The same APK hash before/after the tooling-only repair is expected. All NW126–NW145 implementation batches remain planned.
+The final disposable fixture pack binds the exact verified APK/source to all 139 original plus 80 new acceptance IDs, six original WAVs, negative audio and a 10k synthetic metadata recipe. Preparation does not seed an app, connect to a phone or contact an account. Actual hardware conditions remain unset; all run-plan cases begin NOT_RUN while source-ledger outcomes are retained separately.
 
-## Recording and product review
+`adb devices -l` returned no connected devices. NW126-02 is PASS for executed gates; NW126-01/-03 are PARTIAL; NW126-04 and device status remain NOT_RUN. Actual recorded installed attribution, profile capture, permitted signer-preserving installation and data-preservation tests remain required. Source/local completion permits the independent NW127 design work without inventing these results.
 
-The supplied approximately 4m31s recording was visually sampled across its full timeline at 1s intervals, with full-resolution inspection of key states. It shows selected-song playback UI, short background notification continuity, themes, displayed backup verification and transfer cancellation. It does not establish the recorded APK's unique source hash, remote restore correctness, full queue behavior or a completed offline transfer. The review was visual; no acoustic A/B was performed.
+See [NW126 evidence/protocol](docs/NW126_BUILD_IDENTITY_BASELINE.md), [active roadmap](docs/PRODUCT_QUALITY_ROADMAP.md) and [backlog](docs/quality/NW126_NW145_BACKLOG.json). The frozen [post-NW125 product score](docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md) remains 6.7/10. Phone performance, real restore, offline/route/soak, accessibility and applicable release approvals remain open; public release stays NO-GO. Hosted check allocation is reported separately on the PR.
 
-The [detailed audit](docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md) contains the fixed 16-area **subjective 6.7/10** rubric, 32 findings, timestamped evidence, counterevidence and unscored critical dimensions. This is not an automated Spotify score. See the [active NW126–NW145 roadmap](docs/PRODUCT_QUALITY_ROADMAP.md), [20-batch backlog](docs/quality/NW126_NW145_BACKLOG.json) and [80 new NOT_RUN acceptance cases](docs/quality/NW126_NW145_ACCEPTANCE.csv).
-
-## Required acceptance still open
-
-Physical TalkBack/large-font/all-theme checks, full 139-case legacy plus new acceptance, controlled Android startup/search/next/jank/memory/battery, long playback/route soaks, completed owned-audio offline workflows, installed signer, live disposable Google restoration and applicable privacy/security/source/distribution approvals remain pending. Historical host-JVM benchmarks remain host evidence only. Public release remains **NO-GO**.
-
-Private recovery/evidence directory: `C:\Users\jayed\NightWave-checkpoints\20261028-product-audit`. Original recording and extracted frames are excluded from Git. Exact final commit, source archive, bundles and hosted-check diagnostics are retained there. Hosted verification status is independent of these local results and is reported on the audit PR.
-
-Next implementation batch: **NW126 — reproducible baseline and build identity**. Previous [NW125 handoff](docs/NW125_FINAL_CANDIDATE.md), [NW122 benchmarks](docs/NW122_PERFORMANCE_MEASUREMENT.md) and historical acceptance records remain available.
+Next source batch: **NW127 compact visual system and hierarchy**.

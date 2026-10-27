@@ -72,6 +72,7 @@ $buildLog = Join-Path $outDir 'NightWave-build-full.log'
 $previousLog = Join-Path $outDir 'NightWave-build-full-previous.log'
 $errorReport = Join-Path $outDir 'NightWave-build-errors.txt'
 $statusFile = Join-Path $outDir 'NightWave-build-status.txt'
+$provenanceReceipt = Join-Path $outDir 'NightWave-build-provenance.json'
 $output = Join-Path $outDir 'NightWave-debug.apk'
 $previousApk = Join-Path $outDir 'NightWave-debug-previous.apk'
 $sourceManifest = Join-Path $outDir 'NightWave-source-fingerprint.txt'
@@ -95,6 +96,7 @@ if (Test-Path -LiteralPath $buildLog) {
     Set-Content -LiteralPath $buildLog -Encoding UTF8
 'FAILED - build has not yet passed all checks; do not install an old APK.' |
     Set-Content -LiteralPath $statusFile -Encoding UTF8
+'{"status":"NOT_VERIFIED"}' | Set-Content -LiteralPath $provenanceReceipt -Encoding UTF8
 try {
     if (-not [Environment]::Is64BitOperatingSystem) { throw '64-bit Windows is required.' }
     $script:cache = Join-Path $env:LOCALAPPDATA 'NightWaveBuild'
@@ -639,6 +641,13 @@ try {
         throw 'Source fingerprint manifest changed during build.'
     }
     # The verified candidate alone is promoted to the downloadable result.
+    $stage = 'NW126 embedded build provenance'
+    $provenanceVerifier = Join-Path $PSScriptRoot 'verify-build-provenance.ps1'
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $provenanceVerifier -SelfTest
+    if ($LASTEXITCODE -ne 0) { throw 'NW126 provenance negative fixtures failed.' }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $provenanceVerifier `
+        -ProjectRoot $project -ApkPath $apk -OutputFile $provenanceReceipt
+    if ($LASTEXITCODE -ne 0) { throw 'NW126 embedded identity does not match this source; candidate not promoted.' }
     $junitReceiptLine = ((Get-Content -LiteralPath $junitProofOutput |
         Where-Object { $_ -match '^(Total JVM tests|Passed|Failures|Errors|Skipped):' }) -join ' | ')
     if ([string]::IsNullOrWhiteSpace($junitReceiptLine)) {

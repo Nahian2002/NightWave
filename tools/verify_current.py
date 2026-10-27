@@ -33,6 +33,7 @@ PYTHON_CHECKS = (
     ("compare_nw122_performance.py", "--self-test"),
     ("nw125_release_candidate_gate.py", "--self-test"),
     ("nw125_release_candidate_gate.py", "--json"),
+    ("nw126_acceptance.py", "--self-test"),
 )
 
 # Same safety preflights as the one-click Windows builder, including negative
@@ -74,6 +75,7 @@ WINDOWS_CHECKS = (
     ("check-nw59-integration.ps1",),
     ("nw101-source-attestation.ps1", "-SelfTest"),
     ("nw76-junit-proof.ps1", "-SelfTest"),
+    ("verify-build-provenance.ps1", "-SelfTest"),
 )
 
 
