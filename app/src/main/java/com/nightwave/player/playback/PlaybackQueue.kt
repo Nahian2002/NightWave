@@ -317,6 +317,11 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
         if (to !in entries.indices) return null
         if (to != index) forwardVisits.clear()
         if (shuffle && index >= 0 && index != to) {
+            // NW115: an explicit jump still *leaves* a played track. Mark it
+            // heard before switching; otherwise the next random pick may
+            // immediately return to the song the listener just skipped.
+            // A deliberate jump back to that track remains allowed.
+            shuffledSeen.add(index)
             visited.add(index)
             if (visited.size > 100) visited.removeFirst()
         }
