@@ -1,10 +1,10 @@
 # Build and safe update
 
-Updated 27 October 2026. Current branch: `update/nightwave-nw122-measured-performance`, based on verified cumulative NW121. `main` is an older v0.8 snapshot.
+Updated 27 October 2026. **Current complete source for private final build: `release/nightwave-nw125-final-candidate`** (contains NW111–NW124, including NW123/NW124 changes not yet fully compiled). `main` is an older v0.8 snapshot. The last independently verified Android build belongs to NW122, not NW125. Follow [NW125 final candidate instructions](NW125_FINAL_CANDIDATE.md).
 
 ## Local Windows build
 
-1. Clone or download the complete current branch into a new writable folder. The present checkout is `C:\Users\jayed\NightWave-work`; Windows refused writes inside the original OneDrive workspace.
+1. Clone or download the complete **`release/nightwave-nw125-final-candidate`** branch into a new writable folder. The present checkout is `C:\Users\jayed\NightWave-work`; Windows refused writes inside the original OneDrive workspace.
 2. Run `build-windows.cmd`. Cached Gradle/SDK downloads are reused. Read and accept SDK licenses yourself when required.
 3. Require `BUILD SUCCESSFUL` and a fresh `dist/NightWave-build-status.txt`. The builder runs source preflights, JVM tests, debug APK assembly and Android instrumentation-source compilation.
 4. Review `dist/NightWave-jvm-test-proof.txt` and source fingerprint. Failed or interrupted attempts must not promote a stale APK.
@@ -28,6 +28,6 @@ The current CI workflow, `current-android.yml`, runs those checks followed by al
 
 ## Evidence and release
 
-See [current test results](../TEST_REPORT.md) and [NW122 evidence](NW122_PERFORMANCE_MEASUREMENT.md). Local Android compilation is verified; hosted runner allocation, physical-device behavior, installed signer, OAuth/Drive restoration and rights/privacy approval are independent gates. Public release remains **NO-GO**.
+See [current test evidence](../TEST_REPORT.md), [NW125 handoff](NW125_FINAL_CANDIDATE.md) and [NW122 last compiled evidence](NW122_PERFORMANCE_MEASUREMENT.md). Earlier NW122 Android compilation was verified, but this final cumulative branch is **not yet compiled**; hosted runner allocation, physical-device behavior, installed signer, OAuth/Drive restoration and rights/privacy approval are independent gates. Public release remains **NO-GO**.
 
 [Previous build notes](BUILD_AND_RELEASE_HISTORY_20261027.md) preserve older instructions and evidence for recovery.
