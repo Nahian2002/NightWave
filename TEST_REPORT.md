@@ -12,7 +12,7 @@
 
 The complete one-click Windows builder passes production/Compose and Android instrumentation-source compilation, debug assembly, all JVM tests and APK validation. Independent source attestation matches **795 build-affecting files**. The candidate's certificate matches the saved NW121 APK; installed-phone continuity remains untested. Exact artifact hashes and final lint receipt are recorded in [NW122 evidence](docs/NW122_PERFORMANCE_MEASUREMENT.md).
 
-- Final Android lint: **PASS — zero errors, 313 warnings, 0 hints**. No new suppression or warning baseline was introduced.
+- Final Android lint: **PASS — zero errors, 313 warnings, 17 hints**. No new suppression or warning baseline was introduced.
 
 ## Device boundary
 

@@ -63,7 +63,7 @@ Keep other builds/profilers idle during measurements. Preserve each raw JSON and
 ## Android verification and artifact identity
 
 - Complete one-click Windows builder: **BUILD SUCCESS**. Real production Kotlin/Compose, Android instrumentation-source compilation, debug assembly and **1,464 JVM tests in 184 suites** pass with zero failures/errors/skips.
-- Final Android lint: **PASS — zero errors, 313 warnings, 0 hints**. No new suppression or warning baseline was introduced.
+- Final Android lint: **PASS — zero errors, 313 warnings, 17 hints**. No new suppression or warning baseline was introduced.
 - **50/50 current source/negative/Windows checks pass**, including the new comparator self-test. Existing Android account-store tests compile only; no device instrumentation execution is claimed.
 - Independent source attestation: **795 build-affecting files match**; fingerprint SHA256 `6AB4E8527E42D9D9221E27368E094390737ECE7D18F64A69558AC5537A63D1E7`.
 - Debug APK SHA256 `AEC2B9599974381DDA588E1E38B661BE273B4677098E9E3AAA63EF764A662E0D`.
