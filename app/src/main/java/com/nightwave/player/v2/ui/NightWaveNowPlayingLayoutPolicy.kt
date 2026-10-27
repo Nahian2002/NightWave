@@ -13,7 +13,11 @@ object NightWaveNowPlayingLayoutPolicy {
         val horizontalPaddingDp: Int,
         val compact: Boolean,
         val artworkCornerDp: Int,
-        val headerBottomSpaceDp: Int
+        val headerBottomSpaceDp: Int,
+        /** Keep Play/Previous/Next reachable when all five icons cannot fit. */
+        val splitTransportControls: Boolean,
+        /** Give offline/lyrics action labels their own row at large font sizes. */
+        val stackQuickActions: Boolean
     )
 
     fun resolve(widthDp: Float, heightDp: Float, fontScale: Float): Layout {
@@ -32,7 +36,13 @@ object NightWaveNowPlayingLayoutPolicy {
             compact -> 0.36f
             else -> 0.42f
         }
-        val availableWidth = (width - padding * 2 - 12).coerceAtLeast(0f)
+        val availableContentWidth = (width - padding * 2).coerceAtLeast(0f)
+        val availableWidth = (availableContentWidth - 12).coerceAtLeast(0f)
+        // Standard transport requires 4 x 48dp targets + 64/72dp Play,
+        // plus breathing room. Below 284dp, split out secondary modes.
+        // Font magnification gets the same layout even on a wide display.
+        val splitControls = availableContentWidth < 284f || scale >= 1.8f
+        val stackActions = availableContentWidth < 320f || scale >= 1.6f
         val artwork = minOf(availableWidth, height * heightRatio, 420f)
             .coerceAtLeast(0f)
         return Layout(
@@ -40,7 +50,9 @@ object NightWaveNowPlayingLayoutPolicy {
             horizontalPaddingDp = padding,
             compact = compact,
             artworkCornerDp = if (compact) 24 else 30,
-            headerBottomSpaceDp = if (compact) 9 else 20
+            headerBottomSpaceDp = if (compact) 9 else 20,
+            splitTransportControls = splitControls,
+            stackQuickActions = stackActions
         )
     }
 }

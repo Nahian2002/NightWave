@@ -54,4 +54,76 @@ class NightWaveNowPlayingLayoutPolicyTest {
             assertTrue(layout.headerBottomSpaceDp >= 0)
         }
     }
+
+    @Test fun normalWidthRetainsFiveControlsAndSideBySideActions() {
+        for (width in listOf(360f, 390f, 412f, 700f)) {
+            val layout = NightWaveNowPlayingLayoutPolicy.resolve(width, 844f, 1f)
+            assertFalse("Standard phone/tablet should keep unified bar", layout.splitTransportControls)
+            assertFalse("Standard phone/tablet should keep paired actions", layout.stackQuickActions)
+        }
+    }
+
+    @Test fun narrowSplitScreenKeepsAllTransportButtonsReachable() {
+        for (width in listOf(240f, 260f, 280f, 300f)) {
+            val layout = NightWaveNowPlayingLayoutPolicy.resolve(width, 540f, 1f)
+            assertTrue("Narrow viewport requires separated mode controls",
+                layout.splitTransportControls)
+            assertTrue(layout.stackQuickActions)
+            assertTrue(layout.artworkDp <= width)
+        }
+    }
+
+    @Test fun intermediateWidthStacksCardsButStillFitsFiveControlRow() {
+        val layout = NightWaveNowPlayingLayoutPolicy.resolve(320f, 700f, 1f)
+        assertFalse(layout.splitTransportControls)
+        assertTrue(layout.stackQuickActions)
+        assertTrue(layout.artworkDp > 0f)
+        assertEquals(14, layout.horizontalPaddingDp)
+    }
+
+    @Test fun largeFontPrioritizesPrimaryTransportAndReadableCaptions() {
+        val normal = NightWaveNowPlayingLayoutPolicy.resolve(390f, 800f, 1f)
+        val enlarged = NightWaveNowPlayingLayoutPolicy.resolve(390f, 800f, 1.6f)
+        val huge = NightWaveNowPlayingLayoutPolicy.resolve(390f, 800f, 2f)
+        assertFalse(normal.splitTransportControls)
+        assertFalse(normal.stackQuickActions)
+        assertTrue(enlarged.stackQuickActions)
+        assertFalse(enlarged.splitTransportControls)
+        assertTrue(huge.stackQuickActions)
+        assertTrue(huge.splitTransportControls)
+        assertTrue(huge.artworkDp < normal.artworkDp)
+    }
+
+    @Test fun layoutThresholdsAreDeterministicWithoutFlicker() {
+        // Width below 360dp uses 14dp horizontal padding. 311.9 - 28
+        // leaves 283.9dp, below the 284dp five-control breakpoint.
+        assertTrue(NightWaveNowPlayingLayoutPolicy.resolve(
+            311.9f, 720f, 1f).splitTransportControls)
+        assertFalse(NightWaveNowPlayingLayoutPolicy.resolve(
+            312f, 720f, 1f).splitTransportControls)
+        // Under 360dp the existing padding is 14dp, not 20dp.
+        // That puts the 320dp content threshold at 348dp.
+        assertTrue(NightWaveNowPlayingLayoutPolicy.resolve(
+            347.9f, 720f, 1f).stackQuickActions)
+        assertFalse(NightWaveNowPlayingLayoutPolicy.resolve(
+            348f, 720f, 1f).stackQuickActions)
+        assertFalse(NightWaveNowPlayingLayoutPolicy.resolve(
+            360f, 720f, 1f).stackQuickActions)
+    }
+
+    @Test fun invalidAndExtremeMeasurementsStillMakeSafeTransportDecisions() {
+        for (width in listOf(-100f, 0f, 240f, Float.NaN,
+            Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY)) {
+            for (scale in listOf(1f, 2f, Float.NaN, Float.POSITIVE_INFINITY)) {
+                val layout = NightWaveNowPlayingLayoutPolicy.resolve(width, 650f, scale)
+                assertTrue(layout.artworkDp.isFinite())
+                assertTrue(layout.artworkDp >= 0f)
+                assertTrue(layout.horizontalPaddingDp >= 0)
+                if (!width.isFinite() || width <= 0f) {
+                    assertTrue(layout.splitTransportControls)
+                    assertTrue(layout.stackQuickActions)
+                }
+            }
+        }
+    }
 }
