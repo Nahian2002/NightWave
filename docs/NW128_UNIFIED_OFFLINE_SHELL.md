@@ -57,3 +57,5 @@ NW128 acceptance is local/source delivery with physical acceptance pending. The 
 - No device connected; all four new acceptance rows remain PARTIAL, device status NOT_RUN. Prepared 219-case fixture plan is APK/source-bound and NOT_RUN; preparation performs no import/installation/account operation.
 
 The initial API lint failure and the separate generated KSP cache collision are retained as failed attempts. The final build and lint ran sequentially after the checked generated cache was moved aside. Recovery checkpoints include exact source/APK receipts, 190 JUnit reports, failed/final logs and Git bundles; generated/private artifacts remain outside Git. Hosted CI status is separate from these local results.
+
+Implementation commit: `e33235680a6e8b9982895e702ccbedff3a1eadf1`. [Draft PR #131](https://github.com/Nahian2002/NightWave/pull/131). The following ledger-only commit changes no compiled source inputs. The embedded revision is the protected parent context; the canonical digest identifies the actual build snapshot.

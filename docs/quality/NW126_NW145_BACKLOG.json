@@ -230,7 +230,7 @@
         "Recreate/background the shell and return from the system picker; restore the intended destination and discard obsolete transient work.",
         "Keep a deliberate recovery fallback during migration; existing download workers, library ownership and MediaSession remain authoritative."
       ],
-      "implementation_commit": null,
+      "implementation_commit": "e33235680a6e8b9982895e702ccbedff3a1eadf1",
       "local_evidence": [
         "docs/NW128_UNIFIED_OFFLINE_SHELL.md",
         "TEST_REPORT.md",
@@ -246,7 +246,8 @@
         "Device recreation, system-picker return, busy/interrupt and viewport/touch/keyboard/TalkBack acceptance NOT_RUN",
         "Actual public/offline audible continuity, queue identity and recovery switching NOT_RUN",
         "Carry NW126/NW127 installed signer/source attribution, data preservation and visual acceptance blockers forward"
-      ]
+      ],
+      "pull_request": "https://github.com/Nahian2002/NightWave/pull/131"
     },
     {
       "id": "NW129",
