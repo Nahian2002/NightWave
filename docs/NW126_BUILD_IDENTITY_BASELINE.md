@@ -56,3 +56,5 @@ The next independent source batch is NW127 compact visual hierarchy. NW126 local
 - Final APK-bound fixture pack is prepared with all 219 cases NOT_RUN in the run plan; source-ledger outcomes are preserved separately. Actual hardware fields remain unset.
 
 Acceptance ledger: NW126-02 PASS for executed gates; NW126-01 and NW126-03 PARTIAL for local identity/fixture delivery with physical proof pending; NW126-04 NOT_RUN. NW126 implementation is LOCAL_VERIFIED; device acceptance is NOT_RUN. Next independent source batch: NW127.
+
+Implementation commit: `5ddc9827d3d596925de328cfcfbbadaa2599f2eb`. This commit records the runtime/tooling change; the following ledger-only update does not change the compiled source identity.

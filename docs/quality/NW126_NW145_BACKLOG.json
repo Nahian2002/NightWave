@@ -145,7 +145,7 @@
         "Map the original 139 cases plus these 80 cases to a disposable data fixture; declare flagship/midrange device, library corpus and measurement conditions.",
         "Verify a permitted in-place validation update preserves library/profile/settings/queue/account boundaries; no reinstall or storage reset is used."
       ],
-      "implementation_commit": null,
+      "implementation_commit": "5ddc9827d3d596925de328cfcfbbadaa2599f2eb",
       "local_evidence": [
         "docs/NW126_BUILD_IDENTITY_BASELINE.md",
         "Build asset independently matches 809 source inputs; three implementations agree on the canonical digest",
