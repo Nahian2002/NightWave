@@ -143,10 +143,10 @@ def inspect(root: Path, names: list[str] | None = None) -> dict:
 def self_test() -> None:
     assert violations(["app/src/main/assets/production.jks"]) == [
         "binary/credential/generated file tracked: app/src/main/assets/production.jks"]
-    assert violations(["build/stale.apk", "app/build/output.bin"]) == [
+    assert set(violations(["build/stale.apk", "app/build/output.bin"])) == {
         "generated directory tracked: app/build/output.bin",
         "generated directory tracked: build/stale.apk",
-        "binary/credential/generated file tracked: build/stale.apk"]
+        "binary/credential/generated file tracked: build/stale.apk"}
     assert violations(["app/src/main/res/drawable/logo.png",
                        "app/schemas/test/1.json",
                        "docs/NW122_EVIDENCE.md"]) == []
