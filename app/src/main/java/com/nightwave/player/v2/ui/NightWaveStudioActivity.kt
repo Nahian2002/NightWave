@@ -3256,6 +3256,11 @@ private fun StudioHome(
             daily, existing, dayNumber)
     }
     val mixes = homePlan.mixes
+    // Home displays one tile per song ID; repeated play events may remain
+    // in the saved history, but must not duplicate LazyRow keys or playback.
+    val recentShelf = remember(recent) {
+        NightWaveHomeCurationPolicy.distinctRecent(recent)
+    }
     var chosenMixKey by rememberSaveable { mutableStateOf<String?>(null) }
     var showAllMixTracks by rememberSaveable { mutableStateOf(false) }
     var showAllRecent by rememberSaveable { mutableStateOf(false) }
@@ -3287,9 +3292,9 @@ private fun StudioHome(
             NightWaveHomeHero(
                 greeting = NightWaveChromePolicy.greeting(java.time.LocalTime.now().hour),
                 displayName = profile.displayName,
-                lastTrack = recent.firstOrNull(),
-                onContinue = recent.firstOrNull()?.let { last ->
-                    { onResumeSpotlight(last, recent) }
+                lastTrack = recentShelf.firstOrNull(),
+                onContinue = recentShelf.firstOrNull()?.let { last ->
+                    { onResumeSpotlight(last, recentShelf) }
                 }
             )
         }
@@ -3297,10 +3302,10 @@ private fun StudioHome(
             Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())
                     .testTag("nw47-home-quick-access"),
                 horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                if (recent.isNotEmpty()) {
+                if (recentShelf.isNotEmpty()) {
                     NightWaveQuickActionPill("Continue",
                         Icons.Outlined.PlayArrow, "nw47-home-continue") {
-                        recent.firstOrNull()?.let { onResumeSpotlight(it, recent) }
+                        recentShelf.firstOrNull()?.let { onResumeSpotlight(it, recentShelf) }
                     }
                 }
                 NightWaveQuickActionPill("Offline",
@@ -3345,17 +3350,17 @@ private fun StudioHome(
                 horizontalArrangement = Arrangement.SpaceBetween) {
                 Column(Modifier.weight(1f)) {
                     SectionHeading("Recently played",
-                        if (recent.isEmpty()) "Your listening history appears here"
-                        else "${recent.size} tracks · Private to this device")
+                        if (recentShelf.isEmpty()) "Your listening history appears here"
+                        else "${recentShelf.size} tracks · Private to this device")
                 }
-                if (recent.size > 6) {
+                if (recentShelf.size > 6) {
                     TextButton(onClick = { showAllRecent = !showAllRecent }) {
                         Text(if (showAllRecent) "Show less" else "See all")
                     }
                 }
             }
         }
-        if (recent.isEmpty()) item {
+        if (recentShelf.isEmpty()) item {
             EmptyMusicCard("Your soundtrack starts here",
                 "Songs you play will appear here, ready for another listen.",
                 "Discover music", openSearch)
@@ -3365,11 +3370,11 @@ private fun StudioHome(
                     modifier = Modifier.fillMaxWidth().testTag("nw47-recent-shelf"),
                     horizontalArrangement = Arrangement.spacedBy(11.dp)
                 ) {
-                    items(if (showAllRecent) recent.take(100) else recent.take(6),
+                    items(if (showAllRecent) recentShelf.take(100) else recentShelf.take(6),
                         key = { "recent:" + it.url }) { song ->
                         NightWaveRecentShelfTile(
                             song = song, isPlaying = playingUrl == song.url,
-                            onPlay = { onPlay(song, recent) },
+                            onPlay = { onPlay(song, recentShelf) },
                             onOptions = { onSongOptions(song) },
                             onRemove = { onRemoveRecent(song) }
                         )
@@ -3468,7 +3473,7 @@ private fun StudioHome(
             }
         }
         item(key = "nw47-home-library-stats") {
-            NightWaveLibraryNumbers(favorites.size, recent.size, onLibrary = openLibrary)
+            NightWaveLibraryNumbers(favorites.size, recentShelf.size, onLibrary = openLibrary)
         }
         item { SectionHeading("Explore a new mood", "Swipe across six ways to listen") }
         // One horizontally scrollable shelf instead of three oversized rows.
