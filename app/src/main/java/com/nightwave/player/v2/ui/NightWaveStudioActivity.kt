@@ -230,6 +230,8 @@ import com.nightwave.player.v2.recommendation.PersonalMix
 import com.nightwave.player.v2.social.PlaylistShareFormatter
 import com.nightwave.player.v2.social.PlaylistShareParser
 import com.nightwave.player.v2.social.SharedPlaylist
+import com.nightwave.player.v2.social.PlaylistDocumentPolicy
+import com.nightwave.player.v2.social.PreparedPlaylistDocument
 import com.nightwave.player.v2.model.MotionPreference
 import com.nightwave.player.v2.model.NightWaveTheme
 import com.nightwave.player.v2.model.ProfileSettings
@@ -296,6 +298,11 @@ internal class LyricsEditorRetainedState : ViewModel() {
     var pendingExport: PendingLyricsExport? = null
 }
 
+/** One user-approved playlist text snapshot survives SAF rotation, not process death. */
+internal class PlaylistDocumentRetainedState : ViewModel() {
+    var pendingExport: PreparedPlaylistDocument? = null
+}
+
 // This component intentionally uses the pinned Media3 unstable API.
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 class NightWaveStudioActivity : ComponentActivity() {
@@ -306,6 +313,9 @@ class NightWaveStudioActivity : ComponentActivity() {
     private var pinnedPlaylistNames by mutableStateOf<List<String>>(emptyList())
     private var folderSnapshot by mutableStateOf(PlaylistFolderSnapshot())
     private lateinit var playback: StudioPlaybackBridge
+    private val playlistDocumentRetained by lazy {
+        ViewModelProvider(this)[PlaylistDocumentRetainedState::class.java]
+    }
     private lateinit var sleepTimerStatus: SleepTimerStatusStore
     private var sleepRemainingMs by mutableStateOf(0L)
     private lateinit var offlineSpeedStore: OfflinePlaybackSpeedStore
@@ -589,6 +599,60 @@ class NightWaveStudioActivity : ComponentActivity() {
             }.onFailure {
                 showMessage("LRC export could not finish. The selected document " +
                     "may be incomplete; your saved NightWave lyrics are unchanged.")
+            }
+        }
+    }
+
+    /** SAF picker is always user-initiated; an absent/cancelled destination is a no-op. */
+    private val exportPlaylistTextFile = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("text/plain")
+    ) { uri ->
+        val pending = playlistDocumentRetained.pendingExport
+        playlistDocumentRetained.pendingExport = null
+        if (uri == null || pending == null) return@registerForActivityResult
+        lifecycleScope.launch {
+            val outcome = withContext(Dispatchers.IO) {
+                runCatching {
+                    require(pending.bytes.isNotEmpty() &&
+                        pending.bytes.size <= PlaylistDocumentPolicy.MAX_BYTES)
+                    requireNotNull(contentResolver.openOutputStream(uri, "w")) {
+                        "Selected file cannot be opened"
+                    }.use { output ->
+                        output.write(pending.bytes)
+                        output.flush()
+                    }
+                }
+            }
+            if (isFinishing || isDestroyed) return@launch
+            outcome.onSuccess {
+                showMessage("Playlist links exported to your chosen .txt file.")
+            }.onFailure {
+                showMessage("Could not finish exporting. The selected file may be incomplete; " +
+                    "your NightWave playlists are unchanged.")
+            }
+        }
+    }
+
+    /** Imported untrusted text is strictly bounded and reviewed before any library write. */
+    private val importPlaylistTextFile = registerForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri == null) return@registerForActivityResult
+        lifecycleScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                runCatching {
+                    requireNotNull(contentResolver.openInputStream(uri)) {
+                        "Selected text could not be opened"
+                    }.use { input -> PlaylistDocumentPolicy.read(input) }
+                }
+            }
+            if (isFinishing || isDestroyed) return@launch
+            result.onSuccess { parsed ->
+                if (parsed == null) showMessage(
+                    "Invalid or incomplete NightWave playlist text. Library unchanged.")
+                else showSharedPlaylistPreview(parsed)
+            }.onFailure {
+                showMessage("Unable to read that playlist text file. Library unchanged.")
             }
         }
     }
@@ -930,6 +994,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                     onRemoveRecent = { video -> confirmRemoveRecent(video) },
                     onClearRecent = { confirmClearRecent() },
                     onSharePlaylist = { name, tracks -> sharePlaylist(name, tracks) },
+                    onExportPlaylist = { name, tracks -> exportPlaylistText(name, tracks) },
                     onBulkRemove = { name, selected ->
                         val before = library.playlist(name)
                         val urls = selected.map { it.url }.distinct()
@@ -1049,7 +1114,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                             }.onFailure { showMessage("Sharing is unavailable on this device.") }
                         }
                     },
-                    onImportSharedPlaylist = { promptSharedPlaylistPaste() },
+                    onImportSharedPlaylist = { choosePlaylistImport() },
                     onSaveCurrentToPlaylist = { saveCurrentToPlaylist() },
                     onSaveCurrentOffline = { saveCurrentOffline() },
                     storageStatus = shadowStatus,
@@ -2240,6 +2305,21 @@ class NightWaveStudioActivity : ComponentActivity() {
     }
 
     /** Explicit sharesheet only; never shares imported audio files or private data. */
+    /** File export uses the existing 30-link public-only format, never audio bytes. */
+    private fun exportPlaylistText(name: String, tracks: List<VideoPreview>) {
+        val prepared = PlaylistDocumentPolicy.prepare(name, tracks)
+        if (prepared == null) {
+            showMessage("No eligible public links to export from this playlist.")
+            return
+        }
+        playlistDocumentRetained.pendingExport = prepared
+        runCatching { exportPlaylistTextFile.launch(prepared.fileName) }
+            .onFailure {
+                playlistDocumentRetained.pendingExport = null
+                showMessage("Could not open the document picker. Your playlists are unchanged.")
+            }
+    }
+
     private fun sharePlaylist(name: String, tracks: List<VideoPreview>) {
         val text = PlaylistShareFormatter.format(name, tracks)
         if (text == null) {
@@ -2256,6 +2336,22 @@ class NightWaveStudioActivity : ComponentActivity() {
 
 
     /** Clipboard is only accessed if the user explicitly pastes into this field. */
+    private fun choosePlaylistImport() {
+        AlertDialog.Builder(this)
+            .setTitle("Import NightWave playlist")
+            .setMessage(
+                "Choose a NightWave .txt playlist or paste shared text. " +
+                "Only public song links are imported after preview and confirmation; " +
+                "no local audio or existing playlists are overwritten."
+            )
+            .setNegativeButton("Cancel", null)
+            .setNeutralButton("Paste text") { _, _ -> promptSharedPlaylistPaste() }
+            .setPositiveButton("Choose .txt") { _, _ ->
+                runCatching { importPlaylistTextFile.launch(arrayOf("text/plain")) }
+                    .onFailure { showMessage("The document picker is unavailable.") }
+            }.show()
+    }
+
     private fun promptSharedPlaylistPaste() {
         val entry = EditText(this).apply {
             hint = "Paste the NightWave playlist share text"
@@ -2838,6 +2934,7 @@ private fun StudioRoot(
     onClearRecent: () -> Unit,
     onPlaylistSongOptions: (String, VideoPreview) -> Unit,
     onSharePlaylist: (String, List<VideoPreview>) -> Unit,
+    onExportPlaylist: (String, List<VideoPreview>) -> Unit,
     onBulkShareLinks: (List<VideoPreview>, Boolean) -> Unit,
     onBulkRemove: (String, List<VideoPreview>) -> Unit,
     onBulkCopy: (String, List<VideoPreview>) -> Unit,
@@ -3146,6 +3243,7 @@ private fun StudioRoot(
                         onPlaylistSongOptions = onPlaylistSongOptions,
                         onRemoveRecent = onRemoveRecent, onClearRecent = onClearRecent,
                         onSharePlaylist = onSharePlaylist,
+                        onExportPlaylist = onExportPlaylist,
                         onBulkShareLinks = onBulkShareLinks,
                         onBulkRemove = onBulkRemove,
                         onBulkCopy = onBulkCopy,
@@ -4170,6 +4268,7 @@ private fun StudioLibrary(
     onRemoveRecent: (VideoPreview) -> Unit, onClearRecent: () -> Unit,
     onPlaylistSongOptions: (String, VideoPreview) -> Unit,
     onSharePlaylist: (String, List<VideoPreview>) -> Unit,
+    onExportPlaylist: (String, List<VideoPreview>) -> Unit,
     onBulkShareLinks: (List<VideoPreview>, Boolean) -> Unit,
     onBulkRemove: (String, List<VideoPreview>) -> Unit,
     onBulkCopy: (String, List<VideoPreview>) -> Unit,
@@ -4375,6 +4474,12 @@ private fun StudioLibrary(
                 OutlinedButton(onClick = { onSharePlaylist(selectedPlaylist, tracks) },
                     modifier = Modifier.fillMaxWidth()) {
                     Text("Share playlist")
+                }
+            }
+            item(key = "export-current-playlist-document") {
+                OutlinedButton(onClick = { onExportPlaylist(selectedPlaylist, tracks) },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                    Text("Export playlist .txt")
                 }
             }
         }
