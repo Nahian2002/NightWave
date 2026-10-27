@@ -79,6 +79,19 @@ object SearchRelevancePolicy {
      */
     fun publicScore(query: Query, track: VideoPreview): Int {
         if (!query.valid) return 0
+        val exact = publicScoreLiteral(query, track)
+        // Aliases are scoring-only: use the unmodified title and URL, and
+        // keep an exact typed match above an otherwise equal transliteration.
+        val alternatives = SearchMultilingualAliasPolicy.alternatives(query.text)
+        if (alternatives.isEmpty()) return exact
+        val alias = alternatives.maxOf { variant ->
+            publicScoreLiteral(prepare(variant), track) - 36
+        }
+        return maxOf(exact, alias)
+    }
+
+    private fun publicScoreLiteral(query: Query, track: VideoPreview): Int {
+        if (!query.valid) return 0
         val id = identity(track)
         // Canonicalize only for scoring, never for the actual song metadata.
         // A user searching "Alone 2" can reach "Alone, Pt. II" without
