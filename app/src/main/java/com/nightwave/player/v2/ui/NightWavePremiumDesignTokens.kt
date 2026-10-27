@@ -21,6 +21,28 @@ object NightWavePremiumDesignTokens {
     const val ROW_HORIZONTAL_INSET_DP = 12
     const val ROW_VERTICAL_INSET_DP = 9
     const val SECTION_SPACING_DP = 16
+    // NW127: density comes from shared insets and removed duplication, never
+    // smaller type or touch bounds. Minimums permit intrinsic text growth.
+    const val PAGE_TOP_DP = 8
+    const val PAGE_BOTTOM_DP = 24
+    const val ITEM_SPACING_DP = 8
+    const val CARD_PADDING_DP = 12
+    const val CAPTION_GAP_DP = 4
+    const val SECTION_TITLE_SP = 20
+    const val SECTION_LINE_SP = 27
+    const val HEADER_MIN_HEIGHT_DP = 52
+
+    /** Available window, not physical screen width; safe for split-screen. */
+    fun stackActions(widthDp: Float, fontScale: Float): Boolean =
+        !widthDp.isFinite() || widthDp < 360f ||
+            (fontScale.isFinite() && fontScale >= 1.3f)
+
+    fun shelfWidthDp(widthDp: Float, fontScale: Float): Int {
+        val width = if (widthDp.isFinite()) widthDp.coerceAtLeast(0f) else 320f
+        val scale = if (fontScale.isFinite()) fontScale else 1f
+        return if (scale >= 1.3f) (width - 48f).toInt().coerceIn(156, 260)
+            else 156
+    }
 
     /** No negative/NaN measurement can become a Compose dimension. */
     fun pageGutterDp(widthDp: Float): Int =

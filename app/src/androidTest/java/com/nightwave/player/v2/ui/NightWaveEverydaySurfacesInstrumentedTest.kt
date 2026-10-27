@@ -65,6 +65,9 @@ class NightWaveEverydaySurfacesInstrumentedTest {
         compose.onNodeWithText("Example creator", useUnmergedTree = true).assertExists()
         compose.onNodeWithTag("nw47-recent-play").assertExists().performClick()
         compose.onNodeWithTag("nw47-recent-options").assertExists().performClick()
+        compose.runOnIdle { assertEquals(0, removals) }
+        compose.onNodeWithTag("nw127-recent-details").assertExists().performClick()
+        compose.onNodeWithTag("nw47-recent-options").performClick()
         compose.onNodeWithTag("nw47-recent-remove").assertExists().performClick()
         compose.runOnIdle {
             assertEquals(1, plays)

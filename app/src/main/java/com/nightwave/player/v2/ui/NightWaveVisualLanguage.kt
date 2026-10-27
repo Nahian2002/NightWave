@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -160,66 +159,30 @@ fun NightWaveMixCard(
     val accent = NightWaveVisualLanguage.accent(mix.key)
     val scheme = MaterialTheme.colorScheme
     val realCover = mix.tracks.firstOrNull()?.thumbnail?.takeIf { it.isNotBlank() }
-    val fontScale = LocalDensity.current.fontScale
     val trackLabel = "${mix.tracks.size} " +
         (if (mix.tracks.size == 1) "track" else "tracks") +
         " · " + (if (selected) "Collapse" else "View tracks")
-    Card(
-        onClick = onClick,
-        modifier = modifier.heightIn(min =
-            NightWaveAccessibilityPolicy.mixCardMinHeightDp(compact, fontScale).dp),
-        shape = RoundedCornerShape(19.dp),
-        colors = CardDefaults.cardColors(containerColor = scheme.surface)
-    ) {
-        Box(Modifier.fillMaxSize().background(scheme.surfaceVariant)) {
-            if (realCover != null) {
-                // Use genuine, already-saved video artwork, not repeated
-                // synthetic rings or fabricated album imagery.
-                AsyncImage(
-                    model = realCover, contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop,
-                    alpha = .70f
-                )
-                Box(Modifier.fillMaxSize().background(
-                    Brush.horizontalGradient(listOf(
-                        scheme.surface.copy(alpha = .98f),
-                        scheme.surface.copy(alpha = .78f),
-                        scheme.surface.copy(alpha = .22f)
-                    ))
-                ))
-            } else {
-                Box(Modifier.fillMaxSize().background(
-                    Brush.linearGradient(listOf(
-                        accent.copy(alpha = .22f), scheme.surfaceVariant, scheme.surface))
-                ))
-                Canvas(Modifier.fillMaxSize()) {
-                    val center = Offset(size.width * .89f, size.height * .16f)
-                    drawCircle(accent.copy(alpha = .07f),
-                        radius = size.width * .27f, center = center)
-                    drawCircle(accent.copy(alpha = .20f),
-                        radius = size.width * .23f, center = center,
-                        style = Stroke(width = 1.5.dp.toPx()))
-                }
+    Card(onClick = onClick,
+        modifier = modifier.heightIn(min = 48.dp),
+        shape = RoundedCornerShape(NightWavePremiumDesignTokens.CARD_CORNER_DP.dp),
+        colors = CardDefaults.cardColors(containerColor = scheme.surface)) {
+        Column(Modifier.fillMaxWidth()) {
+            // Bounded artwork gets its own region. Captions use an opaque
+            // themed surface, so bright/white artwork cannot wash out text.
+            Box(Modifier.fillMaxWidth().height(if (compact) 72.dp else 88.dp)
+                .background(Brush.linearGradient(listOf(accent.copy(alpha = .22f), scheme.surfaceVariant)))) {
+                if (realCover != null) AsyncImage(model = realCover, contentDescription = null,
+                    modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
             }
-            Column(
-                Modifier.fillMaxSize().padding(horizontal = 17.dp, vertical = 14.dp),
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Icon(Icons.Outlined.AutoAwesome, contentDescription = null,
-                        tint = accent, modifier = Modifier.size(17.dp))
-                    Text("FROM YOUR LIBRARY", style = MaterialTheme.typography.labelSmall,
-                        color = scheme.onSurfaceVariant, maxLines = 1)
-                }
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(mix.title, style = MaterialTheme.typography.titleMedium,
-                        color = scheme.onSurface, maxLines = 1,
-                        overflow = TextOverflow.Ellipsis)
-                    Text(trackLabel, style = MaterialTheme.typography.labelSmall,
-                        color = scheme.onSurfaceVariant, maxLines = 1)
-                }
+            Column(Modifier.fillMaxWidth().background(scheme.surface)
+                .padding(NightWavePremiumDesignTokens.CARD_PADDING_DP.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("FROM YOUR LIBRARY", style = MaterialTheme.typography.labelSmall,
+                    color = scheme.onSurfaceVariant)
+                Text(mix.title, style = MaterialTheme.typography.titleMedium,
+                    color = scheme.onSurface)
+                Text(trackLabel, style = MaterialTheme.typography.labelSmall,
+                    color = scheme.onSurfaceVariant)
             }
         }
     }
@@ -305,20 +268,18 @@ fun NightWaveMoodArt(
                     }
                 }
             }
-            Column(
-                Modifier.fillMaxSize().padding(14.dp),
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                Icon(Icons.Outlined.PlayArrow, contentDescription = null,
-                    tint = Color.White.copy(alpha = .90f),
-                    modifier = Modifier.size(23.dp))
-                Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Column(Modifier.fillMaxWidth()) {
+                Box(Modifier.fillMaxWidth().height(56.dp).padding(12.dp)) {
+                    Icon(Icons.Outlined.PlayArrow, contentDescription = null,
+                        tint = Color.White, modifier = Modifier.size(23.dp))
+                }
+                Column(Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface)
+                    .padding(NightWavePremiumDesignTokens.CARD_PADDING_DP.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(title, style = MaterialTheme.typography.titleMedium,
-                        color = Color.White, maxLines = 1,
-                        overflow = TextOverflow.Ellipsis)
+                        color = MaterialTheme.colorScheme.onSurface)
                     Text(subtitle, style = MaterialTheme.typography.labelSmall,
-                        color = Color.White.copy(alpha = .83f), maxLines = 2,
-                        overflow = TextOverflow.Ellipsis)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }

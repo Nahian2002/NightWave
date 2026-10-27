@@ -9,12 +9,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.LibraryMusic
@@ -24,12 +22,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -42,20 +38,11 @@ fun NightWaveDiscoveryHeader(searchQuery: String = "") {
     val context = LocalContext.current
     // Artwork and results carry the screen. Do not spend a third of the
     // viewport on another large generic discovery card.
-    Row(
-        modifier = Modifier.fillMaxWidth()
-            .padding(vertical = 8.dp)
-            .testTag("nightwave-discovery-header"),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            NightWaveMicroLabel("DISCOVER")
-            Text("Find your sound",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold, maxLines = 2,
-                overflow = TextOverflow.Ellipsis)
-        }
+    Column(Modifier.fillMaxWidth().testTag("nightwave-discovery-header")) {
+    NightWaveSectionActions(heading = {
+        Text("Search", style = MaterialTheme.typography.headlineSmall,
+            color = palette.onBackground)
+    }, action = {
         Surface(
             onClick = {
                 context.startActivity(Intent(
@@ -76,10 +63,10 @@ fun NightWaveDiscoveryHeader(searchQuery: String = "") {
                     tint = palette.primary, modifier = Modifier.size(19.dp))
                 Text("Offline",
                     style = MaterialTheme.typography.labelLarge,
-                    color = palette.primary,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    color = palette.primary)
             }
         }
+    })
     }
 }
 

@@ -1,8 +1,5 @@
 package com.nightwave.player.v2.ui
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -19,30 +16,28 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.Icon
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
-import android.view.HapticFeedbackConstants
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -73,7 +68,7 @@ fun NightWaveQuickActionPill(
             Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp),
                 tint = colors.primary)
             Text(label, style = MaterialTheme.typography.labelLarge,
-                color = colors.onSurface, maxLines = 1)
+                color = colors.onSurface)
         }
     }
 }
@@ -92,112 +87,57 @@ fun NightWaveRecentShelfTile(
     onRemove: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
-    val reducedMotion = LocalNightWaveReduceMotion.current
-    val hapticView = LocalView.current
-    val background by animateColorAsState(
-        targetValue = if (isPlaying) colors.primary.copy(alpha = .16f)
-            else colors.surface,
-        animationSpec = tween(durationMillis = NightWaveMotionPolicy.duration(
-            reducedMotion, NightWaveMotionPolicy.SURFACE_MS)),
-        label = "Recent song playing"
-    )
-    val artworkScale by animateFloatAsState(
-        targetValue = NightWaveMotionPolicy.artworkScale(isPlaying, reducedMotion),
-        animationSpec = tween(durationMillis = NightWaveMotionPolicy.duration(
-            reducedMotion, NightWaveMotionPolicy.COVER_MS)),
-        label = "Recent artwork emphasis"
-    )
-    val identity = remember(song.title, song.author) {
-        MusicIdentity.display(song.title, song.author)
-    }
-    val preferred = remember(song.thumbnail) {
-        NightWaveArtworkPolicy.preferredArtwork(song.thumbnail)
-    }
-    var useOriginal by remember(song.thumbnail) { mutableStateOf(false) }
-    val displayThumbnail = if (useOriginal) song.thumbnail else preferred
     val fontScale = LocalDensity.current.fontScale
-
-    Column(Modifier.width(156.dp).testTag("nw47-recent-tile"),
-        verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Surface(onClick = {
-            if (!reducedMotion)
-                hapticView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
-            onPlay()
-        }, shape = RoundedCornerShape(18.dp),
-            color = background, modifier = Modifier.fillMaxWidth()
-                .testTag("nw47-recent-play")) {
-            Column {
-                Box(Modifier.fillMaxWidth().aspectRatio(1f)
-                    .graphicsLayer {
-                        scaleX = artworkScale
-                        scaleY = artworkScale
-                    }
-                    .clip(RoundedCornerShape(18.dp))
-                    .background(Brush.linearGradient(listOf(
-                        NightWaveVisualLanguage.accent(song.url).copy(alpha = .54f),
-                        colors.surfaceVariant, colors.surface
-                    ))), contentAlignment = Alignment.Center) {
-                    Text("♫", style = MaterialTheme.typography.headlineLarge,
-                        color = colors.onSurface.copy(alpha = .56f))
-                    if (displayThumbnail.isNotBlank()) {
-                        AsyncImage(
-                            model = displayThumbnail,
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize(),
-                            onError = {
-                                if (!useOriginal && NightWaveArtworkPolicy.allowOriginalFallback(
-                                        song.thumbnail, preferred)) useOriginal = true
-                            }
-                        )
-                    }
-                    if (isPlaying) {
-                        Surface(
-                            modifier = Modifier.align(Alignment.BottomStart)
-                                .padding(7.dp),
-                            color = colors.primary,
-                            shape = RoundedCornerShape(7.dp)
-                        ) {
-                            Text("PLAYING",
-                                modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
-                                color = colors.onPrimary,
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold)
-                        }
-                    }
-                }
-                Column(Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(identity.title,
-                        maxLines = NightWavePremiumDesignTokens.titleLines(fontScale, 156f),
-                        overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold, color = colors.onSurface)
-                    Text(identity.artistOrCreator,
-                        maxLines = NightWavePremiumDesignTokens.supportingLines(fontScale),
-                        overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = colors.onSurfaceVariant)
+    val identity = remember(song.title, song.author) { MusicIdentity.display(song.title, song.author) }
+    var showActions by remember(song.url) { mutableStateOf(false) }
+    val tileWidth = NightWavePremiumDesignTokens.shelfWidthDp(
+        LocalConfiguration.current.screenWidthDp.toFloat(), fontScale).dp
+    Column(Modifier.width(tileWidth).testTag("nw47-recent-tile")) {
+        Surface(onClick = onPlay, shape = RoundedCornerShape(18.dp),
+            modifier = Modifier.fillMaxWidth().testTag("nw47-recent-play")) {
+            Box {
+                TrackArtwork(song, Modifier.fillMaxWidth().aspectRatio(1f))
+                if (isPlaying) Surface(
+                    Modifier.align(Alignment.BottomStart).padding(7.dp),
+                    color = colors.primary, shape = RoundedCornerShape(7.dp)) {
+                    Text("PLAYING", Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
+                        color = colors.onPrimary, style = MaterialTheme.typography.labelSmall)
                 }
             }
         }
-        Row(Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween) {
-            IconButton(onClick = onOptions, modifier = Modifier.size(48.dp)
-                .testTag("nw47-recent-options")) {
-                Icon(Icons.Outlined.MoreVert,
-                    contentDescription = "Options for " + identity.title,
-                    tint = colors.onSurfaceVariant)
+        // Metadata shares a row with overflow; Play and overflow have disjoint
+        // measured bounds. No persistent removal row under every cover.
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
+            Column(Modifier.weight(1f).padding(top = 8.dp, end = 2.dp),
+                verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(identity.title,
+                    maxLines = maxOf(2, NightWavePremiumDesignTokens.titleLines(fontScale, tileWidth.value)),
+                    overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.titleSmall,
+                    color = colors.onSurface)
+                Text(identity.artistOrCreator,
+                    maxLines = NightWavePremiumDesignTokens.supportingLines(fontScale),
+                    overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodySmall,
+                    color = colors.onSurfaceVariant)
             }
-            IconButton(onClick = onRemove, modifier = Modifier.size(48.dp)
-                .testTag("nw47-recent-remove")) {
-                Icon(Icons.Outlined.Close,
-                    contentDescription = "Remove " + identity.title + " from Recently Played",
-                    tint = colors.onSurfaceVariant)
+            Box {
+                IconButton(onClick = { showActions = true }, modifier = Modifier.size(48.dp)
+                    .testTag("nw47-recent-options")) {
+                    Icon(Icons.Outlined.MoreVert,
+                        contentDescription = "Actions for " + identity.title, tint = colors.onSurface)
+                }
+                DropdownMenu(expanded = showActions, onDismissRequest = { showActions = false }) {
+                    DropdownMenuItem(text = { Text("Track options") },
+                        modifier = Modifier.heightIn(min = 48.dp).testTag("nw127-recent-details"),
+                        onClick = { showActions = false; onOptions() })
+                    DropdownMenuItem(text = { Text("Remove from Recently Played") },
+                        modifier = Modifier.heightIn(min = 48.dp).testTag("nw47-recent-remove"),
+                        onClick = { showActions = false; onRemove() })
+                }
             }
         }
     }
 }
+
 
 
 /**
@@ -223,7 +163,9 @@ fun NightWaveNextListenTile(
     var useOriginal by remember(song.thumbnail) { mutableStateOf(false) }
     val thumbnail = if (useOriginal) song.thumbnail else preferred
     Column(
-        modifier = Modifier.width(166.dp).testTag("nw84-next-listen-tile"),
+        modifier = Modifier.width(NightWavePremiumDesignTokens.shelfWidthDp(
+            LocalConfiguration.current.screenWidthDp.toFloat(), LocalDensity.current.fontScale).dp)
+            .testTag("nw84-next-listen-tile"),
         verticalArrangement = Arrangement.spacedBy(3.dp)
     ) {
         Surface(
@@ -281,7 +223,8 @@ fun NightWaveNextListenTile(
                         overflow = TextOverflow.Ellipsis)
                     Text(identity.artistOrCreator,
                         style = MaterialTheme.typography.bodySmall,
-                        color = scheme.onSurfaceVariant, maxLines = 1,
+                        color = scheme.onSurfaceVariant, maxLines =
+                            NightWavePremiumDesignTokens.supportingLines(LocalDensity.current.fontScale),
                         overflow = TextOverflow.Ellipsis)
                 }
             }

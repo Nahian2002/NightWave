@@ -31,9 +31,9 @@ object NightWaveAdaptiveChromePolicy {
     }
 
     fun homeHeroHeightDp(fontScale: Float): Int = when {
-        safeFontScale(fontScale) >= 1.6f -> 198
-        safeFontScale(fontScale) >= 1.3f -> 170
-        else -> 140
+        safeFontScale(fontScale) >= 1.6f -> 180
+        safeFontScale(fontScale) >= 1.3f -> 132
+        else -> 96
     }
 
     fun horizontalPaddingDp(widthDp: Float): Int = when {

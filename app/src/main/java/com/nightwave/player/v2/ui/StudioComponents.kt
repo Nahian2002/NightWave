@@ -63,7 +63,7 @@ import com.nightwave.player.net.VideoPreview
 import com.nightwave.player.net.MusicIdentity
 
 @Composable
-fun NightWaveWordmark(modifier: Modifier = Modifier) {
+fun NightWaveWordmark(modifier: Modifier = Modifier, showName: Boolean = true) {
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
@@ -89,7 +89,7 @@ fun NightWaveWordmark(modifier: Modifier = Modifier) {
                 drawPath(p, Color.White, style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round))
             }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(0.dp),
+        if (showName) Row(horizontalArrangement = Arrangement.spacedBy(0.dp),
             verticalAlignment = Alignment.CenterVertically) {
             Text("Night", style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.ExtraBold, letterSpacing = (-0.65f).sp),
@@ -103,14 +103,14 @@ fun NightWaveWordmark(modifier: Modifier = Modifier) {
 
 @Composable
 fun SectionHeading(title: String, hint: String? = null) {
-    Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-        Text(title, style = MaterialTheme.typography.headlineSmall,
+    Column(verticalArrangement = Arrangement.spacedBy(NightWavePremiumDesignTokens.CAPTION_GAP_DP.dp)) {
+        Text(title, style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onBackground,
-            maxLines = 2, overflow = TextOverflow.Ellipsis)
+        )
         if (!hint.isNullOrBlank()) Text(hint,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 3, overflow = TextOverflow.Ellipsis)
+        )
     }
 }
 
@@ -239,7 +239,7 @@ fun ListeningSpotlight(
 
 /** Artwork placeholder remains visible if upstream thumbnails cannot load. */
 @Composable
-private fun TrackArtwork(video: VideoPreview, modifier: Modifier = Modifier) {
+internal fun TrackArtwork(video: VideoPreview, modifier: Modifier = Modifier) {
     Box(modifier.clip(RoundedCornerShape(11.dp))
         .background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.surfaceVariant,
             MaterialTheme.colorScheme.surface))),

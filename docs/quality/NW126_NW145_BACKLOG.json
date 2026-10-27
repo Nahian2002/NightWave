@@ -5,7 +5,7 @@
   "audit": "docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md",
   "implementation_base_revision": "61703c98238e762e59c049b6690853431f822884",
   "audit_branch": "audit/nightwave-post-nw125-quality-roadmap",
-  "next_batch": "NW127",
+  "next_batch": "NW128",
   "goal": "9.5+ within the declared NightWave music-player scope, conditional on actual product and acceptance evidence",
   "rating_kind": "Subjective comparative product review, not a measured Spotify score",
   "baseline_weighted_score": 6.655,
@@ -166,7 +166,7 @@
       "depends_on": [
         "NW126"
       ],
-      "implementation_status": "PLANNED",
+      "implementation_status": "LOCAL_VERIFIED",
       "device_status": "NOT_RUN",
       "finding_ids": [
         "Q01",
@@ -188,9 +188,21 @@
         "Apply a documented shared spacing/type/radius/chrome contract to reusable components; preserve semantics, data callbacks and selected-track state."
       ],
       "implementation_commit": null,
-      "local_evidence": [],
+      "local_evidence": [
+        "docs/NW127_COMPACT_VISUAL_HIERARCHY.md",
+        "TEST_REPORT.md",
+        "Complete Windows builder PASS; 1502 JVM tests / 189 suites; zero failures/errors/skips",
+        "54/54 current source checks PASS; Android app/instrumentation-source compilation and debug assembly PASS",
+        "Lint 0 errors / 313 warnings / 17 hints; no new suppression or baseline",
+        "NW-debug-343760FC90345D51; 811 source inputs independently verified",
+        "180 parameterized Android component cases compile only; not device-executed"
+      ],
       "device_evidence": [],
-      "remaining_blockers": []
+      "remaining_blockers": [
+        "Matched Home/Search/Library/You before/after screenshots at 320/360/412dp and 1x/2x/3x NOT_RUN",
+        "Rendered contrast, independent touch bounds, TalkBack and callback/selected-song device acceptance NOT_RUN",
+        "Carry NW126 installed signer/source attribution and in-place data-preservation blockers forward"
+      ]
     },
     {
       "id": "NW128",
