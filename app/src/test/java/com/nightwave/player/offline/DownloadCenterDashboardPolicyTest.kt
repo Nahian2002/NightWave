@@ -7,20 +7,19 @@ import org.junit.Test
 
 class DownloadCenterDashboardPolicyTest {
     private val policy = DownloadCenterDashboardPolicy
-    private val filter = DownloadCenterViewPolicy.Filter
 
     @Test fun readyAndIssuesAreIndeterminateDuringVerification() {
-        assertEquals("Ready · …", policy.tab(filter.READY, 0, true))
-        assertEquals("Issues · …", policy.tab(filter.ATTENTION, 0, true))
-        assertEquals("Active · 4", policy.tab(filter.ACTIVE, 4, true))
-        assertEquals("All · 19", policy.tab(filter.ALL, 19, true))
+        assertEquals("Ready · …", policy.tab(DownloadCenterViewPolicy.Filter.READY, 0, true))
+        assertEquals("Issues · …", policy.tab(DownloadCenterViewPolicy.Filter.ATTENTION, 0, true))
+        assertEquals("Active · 4", policy.tab(DownloadCenterViewPolicy.Filter.ACTIVE, 4, true))
+        assertEquals("All · 19", policy.tab(DownloadCenterViewPolicy.Filter.ALL, 19, true))
     }
 
     @Test fun historyTabsBoundCountsWithoutHidingRecords() {
-        assertEquals("All · 99+", policy.tab(filter.ALL, 12_000, false))
-        assertEquals("Ready · 0", policy.tab(filter.READY, 0, false))
-        assertEquals("Issues", policy.tab(filter.ATTENTION, -1, false))
-        assertEquals("Active", policy.tab(filter.ACTIVE, null, false))
+        assertEquals("All · 99+", policy.tab(DownloadCenterViewPolicy.Filter.ALL, 12_000, false))
+        assertEquals("Ready · 0", policy.tab(DownloadCenterViewPolicy.Filter.READY, 0, false))
+        assertEquals("Issues", policy.tab(DownloadCenterViewPolicy.Filter.ATTENTION, -1, false))
+        assertEquals("Active", policy.tab(DownloadCenterViewPolicy.Filter.ACTIVE, null, false))
     }
 
     @Test fun transferOverviewSeparatesVerifiedAudioAndCurrentWork() {
