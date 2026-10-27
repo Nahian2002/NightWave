@@ -19,6 +19,8 @@ internal object PlaybackQueueJumpPolicy {
     ): Boolean =
         !hasPlayerError && !playerIdle &&
             !previousSelectedUrl.isNullOrBlank() &&
+            requestedUrl != null &&
+            QueueRestorePolicy.isCanonicalPublicWatchUrl(requestedUrl) &&
             previousSelectedUrl == requestedUrl &&
             requestedUrl == loadedMediaId
 }
