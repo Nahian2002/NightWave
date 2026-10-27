@@ -98,6 +98,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.draw.clip
@@ -1652,7 +1653,12 @@ private fun SwipeUpcomingRow(
                         onDragCancel = { travel = 0f }
                     )
                 } else Modifier)
-                .clickable(onClick = onSelect)
+                .clickable(role = Role.Button, onClick = onSelect)
+                .semantics {
+                    contentDescription = NightWaveAccessibilityPolicy.queueAnnouncement(
+                        number, display.title, display.artistOrCreator, isPlaying)
+                    if (isPlaying) stateDescription = "Playing"
+                }
                 .testTag("nightwave-upcoming-$number")
                 .padding(horizontal = 9.dp, vertical = 5.dp),
             verticalAlignment = Alignment.CenterVertically,
