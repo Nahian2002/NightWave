@@ -173,4 +173,82 @@ class NightWaveHomeCurationPolicyTest {
         assertEquals(a.size, a.map { it.url }.distinct().size)
         assertTrue(a.all { track -> incoming.any { it === track } })
     }
+
+    @Test fun homeRecentWindowCapsLargeHistoryButNeverTouchesStoredRows() {
+        val original = (1..5_000).map { song((it - 1) % 160 + 1) }
+        val before = original.toList()
+        val window = NightWaveHomeCurationPolicy.recentWindow(original)
+        assertEquals(NightWaveHomeCurationPolicy.MAX_HOME_RECENT, window.tracks.size)
+        assertTrue(window.hasMore)
+        assertEquals((1..100).map(::song), window.tracks)
+        assertEquals(before, original)
+        assertTrue(window.tracks.indices.all { i -> window.tracks[i] === original[i] })
+    }
+
+    @Test fun aHundredUniqueTracksHasNoFalseOverflowButNextOneDoes() {
+        val exactly = (1..100).map(::song)
+        val normal = NightWaveHomeCurationPolicy.recentWindow(exactly)
+        assertEquals(exactly, normal.tracks)
+        assertFalse(normal.hasMore)
+        val plusOne = NightWaveHomeCurationPolicy.recentWindow(exactly + song(101))
+        assertEquals(exactly, plusOne.tracks)
+        assertTrue(plusOne.hasMore)
+        assertFalse(NightWaveHomeCurationPolicy.recentWindow(emptyList()).hasMore)
+    }
+
+    @Test fun duplicatesDoNotWasteOneHundredVisibleSongSlots() {
+        val history = List(350) { song(1) } + (2..130).map(::song)
+        val result = NightWaveHomeCurationPolicy.recentWindow(history)
+        assertEquals(100, result.tracks.size)
+        assertEquals((1..100).map(::song), result.tracks)
+        assertEquals(100, result.tracks.map { it.url }.toSet().size)
+        assertTrue(result.hasMore)
+    }
+
+    @Test fun customLimitIsCappedAndZeroLimitStillReportsExistingSongs() {
+        val recent = (1..300).map(::song)
+        val empty = NightWaveHomeCurationPolicy.recentWindow(recent, 0)
+        assertTrue(empty.tracks.isEmpty())
+        assertTrue(empty.hasMore)
+        val negative = NightWaveHomeCurationPolicy.recentWindow(recent, -99)
+        assertTrue(negative.tracks.isEmpty())
+        assertTrue(negative.hasMore)
+        val oversized = NightWaveHomeCurationPolicy.recentWindow(recent, Int.MAX_VALUE)
+        assertEquals(150, oversized.tracks.size)
+        assertTrue(oversized.hasMore)
+        assertEquals(recent.take(150), oversized.tracks)
+    }
+
+    @Test fun exclusionBudgetCountsDistinctRecentSongsNotRepeatedPlays() {
+        val history = List(400) { song(1) } + (2..150).map(::song)
+        val saved = (1..151).map(::song)
+        val picks = plan(favorites = saved, recent = history).nextListens
+        assertEquals(listOf(song(151)), picks)
+        assertFalse(picks.any { it.url in history.map { h -> h.url } })
+        assertEquals(151, saved.size)
+        assertEquals(550, history.size)
+    }
+
+    @Test fun boundedWindowKeepsNewestMetadataAndSourceIdentity() {
+        val first = song(1).copy(title = "Current name", author = "Current creator")
+        val stale = song(1).copy(title = "Old name", author = "Old creator")
+        val input = listOf(first, song(2), stale, song(3))
+        val window = NightWaveHomeCurationPolicy.recentWindow(input, 2)
+        assertEquals(listOf(first, song(2)), window.tracks)
+        assertTrue(window.tracks[0] === first)
+        assertTrue(window.hasMore)
+        assertEquals("Current name", window.tracks.first().title)
+        assertEquals("Old name", input[2].title)
+        assertEquals(window, NightWaveHomeCurationPolicy.recentWindow(input, 2))
+    }
+
+    @Test fun repeatedSingleTrackHistoryNeverFalselyClaimsMoreUniqueTracks() {
+        val repeated = List(5_000) { song(11) }
+        val window = NightWaveHomeCurationPolicy.recentWindow(repeated)
+        assertEquals(listOf(song(11)), window.tracks)
+        assertFalse(window.hasMore)
+        assertEquals(5_000, repeated.size)
+        assertTrue(plan(favorites = listOf(song(11), song(12)), recent = repeated)
+            .nextListens.all { it.url != song(11).url })
+    }
 }
