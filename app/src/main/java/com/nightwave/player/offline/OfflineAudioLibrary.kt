@@ -164,8 +164,9 @@ class OfflineAudioLibrary(private val context: Context) {
         return OfflineAvailabilitySnapshot(true, health)
     }
 
-    fun availableIds(requested: Set<String>): Set<String> =
-        availabilitySnapshot(requested).availableIds
+    fun availableIds(requested: Set<String>): Set<String> {
+        return availabilitySnapshot(requested).availableIds
+    }
 
     fun find(id: String): OfflineSong? = songs().firstOrNull { it.id == id }
 
