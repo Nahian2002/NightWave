@@ -28,6 +28,8 @@ internal object DownloadRecoveryPolicy {
                 "no space left" in text || "enospc" in text ||
                 "insufficient storage" in text ->
                 "Not enough storage. Free device space, then retry."
+            "partial audio" in text ->
+                "Partial audio response. No offline copy was saved; retry with a full permitted recording."
             "http 429" in text || "rate-limit" in text ||
                 "too many requests" in text ->
                 "Audio source is rate-limited. Retry later."
@@ -64,6 +66,12 @@ internal object DownloadRecoveryPolicy {
             else -> "Download failed. This recording is not available offline."
         }
     }
+
+    /** A retry is a new clean transfer, never persisted partial bytes. */
+    fun queuedLabel(previousAttempts: Int): String =
+        if (previousAttempts > 0)
+            "Retry scheduled · Waiting for network/backoff · Starts from zero"
+        else "Queued · Waiting for network"
 
     /** Only a WorkManager cancellation with a retained pause marker is paused. */
     fun isPaused(state: String, pauseMarked: Boolean): Boolean =
