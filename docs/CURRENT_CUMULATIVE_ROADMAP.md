@@ -1,4 +1,6 @@
-# NightWave — NW76–NW90 quality roadmap (authoritative)
+# NightWave — NW76–NW90 quality roadmap (historical)
+
+**Active successor as of 2026-10-27:** [NightWave NW111–NW125 Spotify-quality roadmap](NW111_NW125_SPOTIFY_QUALITY_ROADMAP.md). This file preserves NW76–NW90 evidence and is not a current-release certification. The NW111 successor starts from the latest NW110 Windows-build recovery branch, not obsolete main.
 
 **Source of truth:** Owner-supplied *NightWave — Roadmap to a 9.5–10/10 Experience*.
 **Baseline rating:** 7.2/10 based on the prior phone video; **target:** 9.5+/10, subject to real-device proof.  
