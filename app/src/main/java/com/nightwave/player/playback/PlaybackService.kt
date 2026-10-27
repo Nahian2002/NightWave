@@ -1353,9 +1353,10 @@ class PlaybackService : MediaLibraryService() {
                 val sameQueue = intent.action == ACTION_PLAY_QUEUE && !offlinePlaying &&
                     proposedQueue.isNotEmpty() && queue.snapshot() == proposedQueue &&
                     queue.index == resolvedSelectionIndex
-                val loaded = PlaybackResolutionPolicy.reusesLoadedTrack(
+                val loaded = PlaybackResolutionPolicy.canResumeLoadedPublic(
                     selectedEntry?.url, exoPlayer?.currentMediaItem?.mediaId,
-                    exoPlayer?.playerError != null
+                    exoPlayer?.playerError != null,
+                    exoPlayer?.playbackState == Player.STATE_IDLE
                 )
                 val resolving = selectedEntry != null &&
                     PlaybackResolutionPolicy.awaitsSameResolution(selectedEntry.url, resolvingPublicUrl)
@@ -1369,8 +1370,7 @@ class PlaybackService : MediaLibraryService() {
                     // stream or enqueue another slow extraction of the same URL.
                     if (loaded) exoPlayer?.apply {
                         if (playbackState == Player.STATE_ENDED) seekTo(0L)
-                        if (playbackState == Player.STATE_ENDED ||
-                            playbackState == Player.STATE_IDLE) prepare()
+                        if (playbackState == Player.STATE_ENDED) prepare()
                         play()
                     } else if (PlaybackResolutionPolicy.shouldResumePendingExplicitPlay(
                             explicitPlay = intent.action == ACTION_PLAY_QUEUE,
@@ -1381,6 +1381,25 @@ class PlaybackService : MediaLibraryService() {
                         // Explicitly reselecting a paused pending song restores
                         // Play intent without starting another stream extraction.
                         exoPlayer?.play()
+                    }
+                } else if (PlaybackResolutionPolicy.shouldResolveSavedSelection(
+                        sameQueue = sameQueue,
+                        explicitPlay = intent.action == ACTION_PLAY_QUEUE,
+                        selectedId = selectedEntry?.url,
+                        reusableLoaded = loaded,
+                        pendingMatching = resolving
+                    )) {
+                    // The service may have restarted with an intact saved
+                    // queue but no loaded audio (or an expired IDLE URI).
+                    // A fresh lookup must not erase Shuffle visit history,
+                    // manually scheduled Play Next items or the bookmark.
+                    if (explicitDisplayOrder) {
+                        queue.useExplicitDisplayOrder()
+                        savedQueue.save(queue)
+                    }
+                    selectedEntry?.let { entry ->
+                        resolveAndPlay(entry, autoPlay = true,
+                            resumePositionMs = savedQueue.bookmark(entry.url)?.positionMs ?: 0L)
                     }
                 } else {
                     // Flush outgoing progress while its public identity is
@@ -1828,11 +1847,13 @@ class PlaybackService : MediaLibraryService() {
             return
         }
         val player = exoPlayer ?: return
-        if (PlaybackResolutionPolicy.reusesLoadedTrack(
-                entry.url, player.currentMediaItem?.mediaId, player.playerError != null)) {
-            if (player.playbackState == Player.STATE_ENDED) player.seekTo(0L)
-            if (player.playbackState == Player.STATE_ENDED ||
-                player.playbackState == Player.STATE_IDLE) player.prepare()
+        if (PlaybackResolutionPolicy.canResumeLoadedPublic(
+                entry.url, player.currentMediaItem?.mediaId, player.playerError != null,
+                player.playbackState == Player.STATE_IDLE)) {
+            if (player.playbackState == Player.STATE_ENDED) {
+                player.seekTo(0L)
+                player.prepare()
+            }
             player.play()
             return
         }
