@@ -59,7 +59,11 @@ class ShuffleRecoveryPersistenceTest {
         assertEquals(song(2), restored.current)
         assertNull(restored.previous())
         assertEquals(5, restored.size)
-        assertEquals(song(3), restored.next())
+        // Tampered input is discarded, including the previously imported seen-cycle.
+        // After that reset, pick { 0 } may select Track 1 again. It cannot safely
+        // infer Track 1 was previously heard from the rejected recovery state.
+        assertEquals(ShuffleRecoverySnapshot(), restored.shuffleRecoveryState())
+        assertEquals(song(1), restored.next())
     }
 
     @Test fun legacySnapshotWithoutHistoryRemainsPlayable() {
