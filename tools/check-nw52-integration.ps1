@@ -74,7 +74,13 @@ Assert-NW52Marker $activity 'NightWaveHomeLayoutPolicy.EmptyRecentDestination.SE
 Assert-NW52Marker $activity 'openSearch()' 'Home empty-state real Search navigation'
 Assert-NW52Marker $activity 'Icons.Outlined.Search, "nw47-home-search", openSearch)' 'Home Search shortcut'
 Assert-NW52Marker $activity '.height(48.dp)) {' 'restorable mini-player tap targets'
-Assert-NW52Marker $recentCard 'onClick = onRemove' 'recent removal distinct from playback'
+# NW127 preserves removal behind explicit overflow; do not require the old permanent X row.
+Assert-NW52Marker $recentCard 'onClick = { showActions = false; onRemove() }' 'recent removal distinct from playback'
+Assert-NW52Marker $recentCard 'DropdownMenu(expanded = showActions' 'explicit recent management disclosure'
+Assert-NW52Marker $recentCard 'onClick = { showActions = false; onOptions() }' 'track options retain their callback'
+Assert-NW52Marker $recentCard 'Surface(onClick = onPlay' 'independent artwork playback target'
+Assert-NW52Marker $activity 'onRemove = { onRemoveRecent(song) }' 'removal still uses caller confirmation'
+Assert-NW52Marker $activity '.setTitle("Remove from Recently Played?")' 'history confirmation preserved'
 Assert-NW52Marker $offlineActivity 'OfflineLibraryViewPolicy.includes(' 'offline file-health filter'
 Assert-NW52Marker $offlineActivity 'contentDescription = "Sort offline music' 'sort accessibility'
 if ($activity.Contains('Icons.Outlined.Search, "nw47-home-search") { onSearch("music") }')) {

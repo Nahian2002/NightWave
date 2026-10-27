@@ -13,9 +13,9 @@ class NightWaveAdaptiveChromePolicyTest {
         assertEquals(84, NightWaveAdaptiveChromePolicy.navHeightDp(2f))
         assertEquals(112, NightWaveAdaptiveChromePolicy.navHeightDp(2.4f))
         assertEquals(112, NightWaveAdaptiveChromePolicy.navHeightDp(3f))
-        assertEquals(140, NightWaveAdaptiveChromePolicy.homeHeroHeightDp(1f))
-        assertEquals(170, NightWaveAdaptiveChromePolicy.homeHeroHeightDp(1.3f))
-        assertEquals(198, NightWaveAdaptiveChromePolicy.homeHeroHeightDp(2f))
+        assertEquals(96, NightWaveAdaptiveChromePolicy.homeHeroHeightDp(1f))
+        assertEquals(132, NightWaveAdaptiveChromePolicy.homeHeroHeightDp(1.3f))
+        assertEquals(180, NightWaveAdaptiveChromePolicy.homeHeroHeightDp(2f))
         assertEquals(52, NightWaveAdaptiveChromePolicy.miniPlayerHeightDp(1f))
         assertEquals(78, NightWaveAdaptiveChromePolicy.miniPlayerHeightDp(1.8f))
     }

@@ -29,7 +29,7 @@ class NightWaveSearchLibraryChromeInstrumentedTest {
             }
         }
         compose.onNodeWithTag("nightwave-discovery-header").assertExists()
-        compose.onNodeWithText("Find your sound").assertExists()
+        compose.onNodeWithText("Search").assertExists()
     }
 
     @Test fun libraryHeaderHandlesLongCollectionNames() {

@@ -6,7 +6,7 @@ Established **28 October 2026**, after the owner's post-NW125 recording review. 
 
 1. Read [the detailed audit and scorecard](audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md), [the structured batch backlog](quality/NW126_NW145_BACKLOG.json), and [current verification](../TEST_REPORT.md).
 2. Confirm the actual branch, newest cumulative remote and latest batch status. Baseline source is NW125 `61703c98238e762e59c049b6690853431f822884`; the audit branch adds a small repository-gate repair and this plan. `main` remains the old v0.8 snapshot.
-3. **Next source batch: NW127.** NW126 is locally verified with device acceptance pending. On "next", select the first eligible incomplete batch, respecting dependencies and carrying pending phone checks visibly.
+3. **Next source batch: NW128.** NW126 and NW127 are locally verified with device acceptance pending. On "next", select the first eligible incomplete batch, respecting dependencies and carrying pending phone checks visibly.
 4. Update backlog status/evidence, this roadmap's progress ledger and the current test report after each batch. A source implementation is not device acceptance. Re-rate only with fresh product evidence.
 
 Root [AGENTS.md](../AGENTS.md) makes these continuity instructions discoverable to future coding sessions. The roadmap is persisted in Git/GitHub; it is not a background automation or a promise that a future model remembers private chat text.
@@ -99,6 +99,7 @@ Each batch should be a reviewable change with a clear user problem. Refactor scr
 | --- | --- | --- | --- |
 | 2026-10-28 | Post-NW125 visual/source audit and next plan | AUDIT_COMPLETE; IMPLEMENTATION_NOT_STARTED | Entire recording sampled at 1s, 16-area rubric, 32 findings, 20 batches and 80 new acceptance cases. Q30 tooling parse error repaired; NW125 gate modes added to current runner. Fresh build: 1,484 JVM tests/187 suites and 52 checks pass. Physical acceptance/re-rating remains pending. |
 | 2026-10-28 | NW126 build identity and acceptance baseline | LOCAL_VERIFIED / DEVICE_NOT_RUN | Packaged source ID, installed APK/certificate support receipt, independent promotion gate, 219-case disposable fixture plan; 1,496 JVM tests and 54 checks pass. See [NW126 evidence](NW126_BUILD_IDENTITY_BASELINE.md). |
-| Next | NW127 compact visual hierarchy | PLANNED | Start from NW126 source; physical NW126 acceptance remains open. |
+| 2026-10-28 | NW127 compact visual hierarchy | LOCAL_VERIFIED / DEVICE_NOT_RUN | Shared density/reflow contract, single Continue, recent overflow, opaque captions and stable Library Create; 1,502 JVM tests / 189 suites and 54 checks pass. See [NW127 evidence](NW127_COMPACT_VISUAL_HIERARCHY.md); full-screen/physical acceptance pending. |
+| Next | NW128 unified shell and offline navigation | PLANNED | Start from NW127 source; carry NW126/NW127 physical checks forward. |
 
-All NW126–NW145 acceptance rows begin NOT_RUN. Update this ledger and the structured backlog after real work. Do not interpret the audit's repaired gate or new documents as completion of twenty upgrade batches.
+All NW126–NW145 acceptance rows originally began NOT_RUN; the current CSV records executed evidence and remaining limits. Update this ledger and the structured backlog after real work. Do not interpret the audit's repaired gate or new documents as completion of twenty upgrade batches.

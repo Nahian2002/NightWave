@@ -66,7 +66,7 @@ function Assert-NW59Home([string]$Body) {
         'nw47-home-quick-access',
         'recent-heading',
         'nw47-recent-shelf',
-        'nw47-home-library-stats'
+        'discovery-shelf'
     )
     Assert-NW59Missing $homeSource 'ListeningSpotlight(' 'repeated last-played Home hero'
     Assert-NW59Has $homeSource 'onResumeSpotlight(last, recentShelf)' 'Home Continue command'
@@ -89,12 +89,12 @@ if ($SelfTest) {
     # because assigning $home also tries to overwrite read-only $HOME.
     $homeFixture = 'private fun StudioHome(' + ' nightwave-premium-home-header' +
         ' nw47-home-quick-access recent-heading nw47-recent-shelf' +
-        ' nw47-home-library-stats onResumeSpotlight(last, recentShelf)' +
+        ' discovery-shelf onResumeSpotlight(last, recentShelf)' +
         ' onRemoveRecent(song) NightWaveHomeLayoutPolicy.EmptyRecentDestination.SEARCH -> private fun MoodTile('
     Assert-NW59Home $homeFixture
     $rejected = $false
     try {
-        Assert-NW59Home ($homeFixture.Replace('nw47-home-library-stats', 'missing-stats'))
+        Assert-NW59Home ($homeFixture.Replace('discovery-shelf', 'missing-discovery'))
     } catch { $rejected = $true }
     if (-not $rejected) { throw 'NW59 Home broken fixture was not rejected' }
     Write-Host 'NW59 invariant self-test PASS. Android compilation not attempted.'

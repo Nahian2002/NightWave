@@ -3047,24 +3047,7 @@ private fun StudioRoot(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            Row(Modifier.fillMaxWidth().height(56.dp)
-                    .padding(horizontal = 18.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween) {
-                NightWaveWordmark()
-                Surface(
-                    onClick = { navigateToTab(StudioTab.PROFILE) },
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    modifier = Modifier.size(48.dp)
-                ) {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Outlined.Settings, contentDescription = "Open NightWave settings",
-                            tint = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.size(21.dp))
-                    }
-                }
-            }
+            NightWaveCompactTopBar { navigateToTab(StudioTab.PROFILE) }
         },
         bottomBar = {
             Column {
@@ -3431,8 +3414,9 @@ private fun StudioHome(
         // Scaffold already reserves the mini-player and navigation height;
         // only add breathing room, not an artificial 150dp blank spacer.
         contentPadding = PaddingValues(start = nw83PageGutter, end = nw83PageGutter,
-            top = 18.dp, bottom = 36.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            top = NightWavePremiumDesignTokens.PAGE_TOP_DP.dp,
+            bottom = NightWavePremiumDesignTokens.PAGE_BOTTOM_DP.dp),
+        verticalArrangement = Arrangement.spacedBy(NightWavePremiumDesignTokens.ITEM_SPACING_DP.dp)
     ) {
         item(key = "nightwave-premium-home-header") {
             NightWaveHomeHero(
@@ -3448,12 +3432,6 @@ private fun StudioHome(
             Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())
                     .testTag("nw47-home-quick-access"),
                 horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                if (recentShelf.isNotEmpty()) {
-                    NightWaveQuickActionPill("Continue",
-                        Icons.Outlined.PlayArrow, "nw47-home-continue") {
-                        recentShelf.firstOrNull()?.let { onResumeSpotlight(it, recentShelf) }
-                    }
-                }
                 NightWaveQuickActionPill("Offline",
                     Icons.Outlined.LibraryMusic, "nw47-home-offline", openOffline)
                 NightWaveQuickActionPill("Liked songs",
@@ -3491,23 +3469,20 @@ private fun StudioHome(
         // One last-played hero plus one real recent rail. Never insert another
         // oversized duplicate spotlight that buries the listening shelves.
         item(key = "recent-heading") {
-            Row(Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween) {
-                Column(Modifier.weight(1f)) {
-                    SectionHeading("Recently played",
-                        if (recentShelf.isEmpty()) "Your listening history appears here"
-                        else (if (recentWindow.hasMore)
-                            "${recentShelf.size}+ tracks · Private to this device"
-                        else "${recentShelf.size} tracks · Private to this device"))
-                }
+            NightWaveSectionActions(heading = {
+                SectionHeading("Recently played",
+                    if (recentShelf.isEmpty()) "Your listening history appears here"
+                    else (if (recentWindow.hasMore)
+                        "${recentShelf.size}+ tracks · Private to this device"
+                    else "${recentShelf.size} tracks · Private to this device"))
+            }, action = {
                 if (recentBrowseActions.showExpansion) {
                     TextButton(onClick = { showAllRecent = !showAllRecent },
-                        modifier = Modifier.testTag("nw117-recent-expand")) {
+                        modifier = Modifier.heightIn(min = 48.dp).testTag("nw117-recent-expand")) {
                         Text(recentBrowseActions.expansionLabel.orEmpty())
                     }
                 }
-            }
+            })
         }
         if (recentShelf.isEmpty()) item(key = "nw117-recent-empty-state") {
             // The listener can have saved songs even without visible history.
@@ -3649,10 +3624,6 @@ private fun StudioHome(
                 }
             }
         }
-        item(key = "nw47-home-library-stats") {
-            NightWaveLibraryNumbers(favorites.size, recentShelf.size,
-                onLibrary = openLibrary, recentHasMore = recentWindow.hasMore)
-        }
         item { SectionHeading("Explore a new mood", "Swipe across six ways to listen") }
         // One horizontally scrollable shelf instead of three oversized rows.
         // Uses existing real mood shortcuts and unchanged search actions.
@@ -3667,13 +3638,7 @@ private fun StudioHome(
                 }
             }
         }
-        item {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween) {
-                SectionHeading("Your collection", favorites.size.toString() + " liked tracks")
-                OutlinedButton(onClick = openLibrary) { Text("Open Library  →") }
-            }
-        }
+
     }
 }
 
@@ -3787,8 +3752,9 @@ private fun StudioSearch(
         modifier.fillMaxWidth().widthIn(max =
             NightWavePremiumDesignTokens.MAX_CONTENT_WIDTH_DP.dp).fillMaxHeight(),
         contentPadding = PaddingValues(start = nw83PageGutter, end = nw83PageGutter,
-            top = 16.dp, bottom = 34.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            top = NightWavePremiumDesignTokens.PAGE_TOP_DP.dp,
+            bottom = NightWavePremiumDesignTokens.PAGE_BOTTOM_DP.dp),
+        verticalArrangement = Arrangement.spacedBy(NightWavePremiumDesignTokens.ITEM_SPACING_DP.dp)
     ) {
         item {
             NightWaveDiscoveryHeader(searchQuery = query)
@@ -4353,8 +4319,9 @@ private fun StudioLibrary(
     LazyColumn(modifier.fillMaxWidth().widthIn(max =
         NightWavePremiumDesignTokens.MAX_CONTENT_WIDTH_DP.dp).fillMaxHeight(),
         contentPadding = PaddingValues(start = nw83PageGutter, end = nw83PageGutter,
-            top = 19.dp, bottom = 40.dp),
-        verticalArrangement = Arrangement.spacedBy(13.dp)) {
+            top = NightWavePremiumDesignTokens.PAGE_TOP_DP.dp,
+            bottom = NightWavePremiumDesignTokens.PAGE_BOTTOM_DP.dp),
+        verticalArrangement = Arrangement.spacedBy(NightWavePremiumDesignTokens.ITEM_SPACING_DP.dp)) {
         if (playlistUndo != null) {
             item(key = "playlist-undo-banner") {
                 Surface(shape = RoundedCornerShape(14.dp),
@@ -4445,7 +4412,7 @@ private fun StudioLibrary(
                                 plan.first?.let { onQuickPlay(plan.songs) }
                             },
                             enabled = quickPlayableTracks.isNotEmpty(),
-                            modifier = Modifier.weight(1f).height(46.dp),
+                            modifier = Modifier.weight(1f).heightIn(min = 48.dp),
                             shape = RoundedCornerShape(14.dp)
                         ) {
                             Text("Play list", maxLines = 1)
@@ -4457,7 +4424,7 @@ private fun StudioLibrary(
                                 plan.first?.let { onQuickPlay(plan.songs) }
                             },
                             enabled = quickPlayableTracks.isNotEmpty(),
-                            modifier = Modifier.weight(1f).height(46.dp),
+                            modifier = Modifier.weight(1f).heightIn(min = 48.dp),
                             shape = RoundedCornerShape(14.dp)
                         ) {
                             Text("Shuffle play", maxLines = 1)
@@ -4511,29 +4478,15 @@ private fun StudioLibrary(
             }
         }
         if (selectedPlaylist == null) {
-            item(key = "import-nightwave-playlist-document") {
-                OutlinedButton(onClick = onImportSharedPlaylist,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
-                    Text("Import playlist (.txt or pasted links)")
-                }
-            }
-            item(key = "nw47-library-quick-access") {
-                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())
-                        .testTag("nw47-library-quick-access"),
-                    horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                    NightWaveQuickActionPill("Offline",
-                        Icons.Outlined.LibraryMusic, "nw47-library-offline", onOffline)
-                    NightWaveQuickActionPill("Liked",
-                        Icons.Outlined.FavoriteBorder, "nw47-library-liked") {
-                        onSelectPlaylist(LIKED_COLLECTION)
+            item(key = "nw127-library-create") {
+                NightWaveActionGroup {
+                    OutlinedButton(onClick = onCreatePlaylist,
+                        modifier = Modifier.heightIn(min = 48.dp).testTag("nw47-library-new-playlist")) {
+                        Text("New playlist")
                     }
-                    NightWaveQuickActionPill("History",
-                        Icons.Outlined.PlayArrow, "nw47-library-history") {
-                        onSelectPlaylist(RECENT_COLLECTION)
+                    TextButton(onClick = onSearch, modifier = Modifier.heightIn(min = 48.dp)) {
+                        Text("Find music")
                     }
-                    NightWaveQuickActionPill("New playlist",
-                        Icons.Outlined.AutoAwesome, "nw47-library-new-playlist",
-                        onCreatePlaylist)
                 }
             }
             // Actual collection rows below serve as navigation. Avoid
@@ -4584,24 +4537,15 @@ private fun StudioLibrary(
                     onSelectPlaylist(RECENT_COLLECTION)
                 }
             }
-            item(key = "library-quick-navigation") {
-                Row(Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                    OutlinedButton(onClick = onCreatePlaylist,
-                        modifier = Modifier.weight(1f).height(46.dp),
-                        shape = RoundedCornerShape(14.dp)) {
-                        Text("New playlist", maxLines = 1)
-                    }
-                    OutlinedButton(onClick = onSearch,
-                        modifier = Modifier.weight(1f).height(46.dp),
-                        shape = RoundedCornerShape(14.dp)) {
-                        Text("Find music", maxLines = 1)
-                    }
+            item(key = "import-nightwave-playlist-document") {
+                OutlinedButton(onClick = onImportSharedPlaylist,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                    Text("Import playlist (.txt or pasted links)")
                 }
             }
             item(key = "playlist-folders-manager") {
                 OutlinedButton(onClick = onManageFolders,
-                    modifier = Modifier.fillMaxWidth().height(44.dp),
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
                     shape = RoundedCornerShape(14.dp)) {
                     Text("Organize playlist folders")
                 }
@@ -4642,7 +4586,7 @@ private fun StudioLibrary(
                             }
                         }
                         OutlinedButton(onClick = { playlistToolsOpen = !playlistToolsOpen },
-                            modifier = Modifier.fillMaxWidth().height(44.dp),
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
                             shape = RoundedCornerShape(14.dp)) {
                             Text(if (playlistToolsOpen) "Hide sorting & filters"
                                 else "Sort & filter playlists")
@@ -5072,22 +5016,14 @@ private fun StudioProfile(
         modifier = modifier.widthIn(max =
             NightWavePremiumDesignTokens.MAX_CONTENT_WIDTH_DP.dp).fillMaxHeight(),
         contentPadding = PaddingValues(start = nw83PageGutter, end = nw83PageGutter,
-            top = 12.dp, bottom = 52.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+            top = NightWavePremiumDesignTokens.PAGE_TOP_DP.dp,
+            bottom = NightWavePremiumDesignTokens.PAGE_BOTTOM_DP.dp),
+        verticalArrangement = Arrangement.spacedBy(NightWavePremiumDesignTokens.ITEM_SPACING_DP.dp)
     ) {
         item {
-            Row(
-                Modifier.fillMaxWidth().padding(horizontal = 3.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    NightWaveMicroLabel("Personalize NightWave")
-                    Text("You", style = MaterialTheme.typography.headlineSmall.copy(
-                        fontWeight = FontWeight.ExtraBold))
-                    Text("Library · Sound · Backup",
-                        style = MaterialTheme.typography.bodySmall, color = muted)
-                }
+            NightWaveSectionActions(heading = {
+                Text("You", style = MaterialTheme.typography.headlineSmall)
+            }, action = {
                 Surface(shape = RoundedCornerShape(12.dp),
                     color = MaterialTheme.colorScheme.primary.copy(alpha = .13f)) {
                     Text(CloudAccessPolicy.compactBadge(cloud.account.isNotBlank(), cloud.accessState,
@@ -5096,7 +5032,7 @@ private fun StudioProfile(
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary)
                 }
-            }
+            })
         }
 
         item {
@@ -5152,7 +5088,7 @@ private fun StudioProfile(
                                 save(profile.copy(displayName = updated))
                                 editing = false
                             }
-                        }, modifier = Modifier.fillMaxWidth().height(44.dp),
+                        }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
                             enabled = name.trim().isNotEmpty() &&
                                 name.trim() != profile.displayName) {
                             Text("Save profile")

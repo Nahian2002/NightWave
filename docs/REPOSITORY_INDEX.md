@@ -1,6 +1,6 @@
 # NightWave — repository navigation
 
-**Current implementation baseline:** cumulative NW125, now locally built/tested. The latest audit/required-gate repair and active plan are on [`audit/nightwave-post-nw125-quality-roadmap`](https://github.com/Nahian2002/NightWave/tree/audit/nightwave-post-nw125-quality-roadmap). **Next: NW127.** GitHub default `main` is an older app. Physical acceptance remains open.
+**Current implementation baseline:** cumulative NW127 compact hierarchy on [`update/nightwave-nw127-compact-hierarchy`](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw127-compact-hierarchy). See [NW127 evidence and device protocol](NW127_COMPACT_VISUAL_HIERARCHY.md). **Next source batch: NW128.** GitHub default `main` is an older app; NW126/NW127 physical acceptance remains open.
 
 ## Start here
 
@@ -10,6 +10,7 @@
 | **Final Windows build & phone test** | [NW125 final candidate guide](NW125_FINAL_CANDIDATE.md) |
 | **Active phase plan and true development gates** | [NW126–NW145 roadmap](PRODUCT_QUALITY_ROADMAP.md), [structured backlog](quality/NW126_NW145_BACKLOG.json), [acceptance cases](quality/NW126_NW145_ACCEPTANCE.csv) |
 | Current build identity and acceptance baseline | [NW126 evidence](NW126_BUILD_IDENTITY_BASELINE.md) |
+| Latest compact hierarchy and build evidence | [NW127 evidence](NW127_COMPACT_VISUAL_HIERARCHY.md) |
 | Detailed current product rating and source/video findings | [28 October audit](audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md) |
 | Windows build, Android signing and release procedure | [Build and release](BUILD_AND_RELEASE.md) |
 | Release risks and blockers | [Release readiness](../RELEASE_READINESS.md) |
