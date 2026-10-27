@@ -91,4 +91,67 @@ class NightWaveNowPlayingPresentationPolicyTest {
         assertTrue(p.titleLines(Float.NaN, 390f) >= 2)
         assertFalse(p.offlineActionLabel(true, false).contains("Save for"))
     }
+
+    @Test fun normalPhoneKeepsInlineLikeAndOriginalTextHierarchy() {
+        for (width in listOf(360f, 390f, 412f, 700f)) {
+            assertFalse("Standard phone retains trailing Like icon",
+                p.useFullWidthMetadata(width, 1f))
+        }
+        assertEquals(2, p.titleLines(1f, 390f))
+        assertEquals(1, p.artistLines(1f))
+    }
+
+    @Test fun narrowSplitScreenMovesLikeBelowSongMetadata() {
+        for (width in listOf(0f, 180f, 240f, 280f, 320f, 347.9f)) {
+            assertTrue("Small viewport keeps full-width title",
+                p.useFullWidthMetadata(width, 1f))
+        }
+        // Existing under-360dp gutter is 14dp on each side.
+        assertFalse(p.useFullWidthMetadata(348f, 1f))
+        assertFalse(p.useFullWidthMetadata(360f, 1f))
+    }
+
+    @Test fun accessibilityFontKeepsLongTitleAndArtistReadable() {
+        assertFalse(p.useFullWidthMetadata(390f, 1.3f))
+        assertTrue(p.useFullWidthMetadata(390f, 1.6f))
+        assertTrue(p.useFullWidthMetadata(390f, 2f))
+        assertTrue(p.useFullWidthMetadata(900f, 3f))
+        assertEquals(3, p.titleLines(1.3f, 390f))
+        assertEquals(4, p.titleLines(2f, 390f))
+        assertEquals(4, p.titleLines(3f, 320f))
+        assertEquals(2, p.artistLines(1.6f))
+        assertEquals(3, p.artistLines(2.2f))
+    }
+
+    @Test fun likedCaptionNeverClaimsAnUnavailableOfflineAction() {
+        assertEquals("Add to Liked Songs", p.likeStatusLabel(false, false))
+        assertEquals("In Liked Songs", p.likeStatusLabel(true, false))
+        assertEquals("Likes unavailable for offline tracks", p.likeStatusLabel(false, true))
+        assertEquals("Likes unavailable for offline tracks", p.likeStatusLabel(true, true))
+    }
+
+    @Test fun malformedMeasurementsCannotCreateUndefinedLayoutChoice() {
+        val inputs = listOf(Float.NaN, Float.POSITIVE_INFINITY,
+            Float.NEGATIVE_INFINITY, -100f, 0f)
+        for (width in inputs) {
+            assertTrue(p.useFullWidthMetadata(width, 1f))
+            assertTrue(p.useFullWidthMetadata(width, Float.NaN))
+        }
+        assertFalse(p.useFullWidthMetadata(390f, Float.NaN))
+        assertFalse(p.useFullWidthMetadata(390f, Float.POSITIVE_INFINITY))
+        assertTrue(p.useFullWidthMetadata(390f, 9f))
+        assertEquals(2, p.titleLines(Float.NaN, 390f))
+        assertEquals(1, p.artistLines(Float.NaN))
+    }
+
+    @Test fun largeTextAddsLinesWithoutMutatingIdentityOrQueues() {
+        val title = "ঝুম ভালোবাসা — Live Acoustic Session"
+        val creator = "Long Bengali and English credited artist"
+        val before = listOf(title, creator)
+        for (scale in listOf(1f, 1.3f, 1.6f, 2f, 3f)) {
+            assertTrue(p.titleLines(scale, 390f) >= 2)
+            assertTrue(p.artistLines(scale) >= 1)
+        }
+        assertEquals(before, listOf(title, creator))
+    }
 }
