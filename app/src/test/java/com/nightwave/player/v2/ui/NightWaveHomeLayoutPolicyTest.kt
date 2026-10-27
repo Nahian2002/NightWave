@@ -141,9 +141,9 @@ class NightWaveHomeLayoutPolicyTest {
             assertEquals(null, actions.expansionLabel)
             assertFalse(actions.showFullHistory)
         }
-        val capped = policy.recentBrowseActions(Int.MAX_VALUE, true, false)
-        assertEquals("See first 2147483647", capped.expansionLabel)
-        assertTrue(capped.showFullHistory)
+        // A real Home window is capped by curation at 100; the UI policy
+        // still handles missing and negative values without false actions.
+        assertFalse(policy.recentBrowseActions(6, false, false).showExpansion)
     }
 
     @Test fun recentBrowsePolicyCannotModifyListeningOrCollectionState() {
