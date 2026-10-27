@@ -31,4 +31,20 @@ class AudioDownloadNetworkPolicyTest {
         assertTrue(AudioDownloadNetworkPolicy.MAX_TRANSFER_MINUTES >= 150L)
         assertTrue(AudioDownloadNetworkPolicy.MAX_TRANSFER_MINUTES <= 240L)
     }
+
+    @Test fun requestsWithoutTrustedCheckpointsRejectPartialOrContradictoryBodies() {
+        assertTrue(AudioDownloadNetworkPolicy.isFullStartResponse(200, null))
+        assertTrue(AudioDownloadNetworkPolicy.isFullStartResponse(200, ""))
+        assertFalse(AudioDownloadNetworkPolicy.isFullStartResponse(206, "bytes 0-99/200"))
+        assertFalse(AudioDownloadNetworkPolicy.isFullStartResponse(206, null))
+        assertFalse(AudioDownloadNetworkPolicy.isFullStartResponse(200, "bytes 0-99/200"))
+        for (status in listOf(201, 204, 301, 302, 400, 403, 404, 416, 429, 503)) {
+            assertFalse("HTTP $status is not a complete audio transfer",
+                AudioDownloadNetworkPolicy.isFullStartResponse(status, null))
+        }
+        // Advertising ranges is not enough to safely resume a transfer:
+        // persisted bytes, validator and Content-Range all need binding.
+        assertFalse(AudioDownloadNetworkPolicy.isFullStartResponse(
+            200, "bytes 100-199/200"))
+    }
 }
