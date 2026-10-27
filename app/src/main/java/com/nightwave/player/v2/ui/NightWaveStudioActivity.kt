@@ -656,7 +656,11 @@ class NightWaveStudioActivity : ComponentActivity() {
     ) { uri ->
         val pending = playlistDocumentRetained.pendingExport
         playlistDocumentRetained.pendingExport = null
-        if (uri == null || pending == null) return@registerForActivityResult
+        if (uri == null) return@registerForActivityResult
+        if (pending == null) {
+            showMessage("Playlist export expired after the picker. No file was written.")
+            return@registerForActivityResult
+        }
         lifecycleScope.launch {
             val outcome = withContext(Dispatchers.IO) {
                 runCatching {
