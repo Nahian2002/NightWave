@@ -416,8 +416,11 @@ fun StudioNowPlayingOverlay(
             // remote thumbnails, preserving battery life and privacy.
             NightWaveBackdrop(state.videoUrl.ifBlank { "nightwave-player" }, Modifier.fillMaxSize())
             val fontScale = LocalDensity.current.fontScale
+            // Capture BoxWithConstraints width before entering nested Compose scopes.
+            // Inner Column/Row scopes cannot implicitly access the outer receiver.
+            val playerWidthDp = maxWidth.value
             val playerLayout = NightWaveNowPlayingLayoutPolicy.resolve(
-                maxWidth.value, maxHeight.value, fontScale)
+                playerWidthDp, maxHeight.value, fontScale)
             val contentPaddingDp = playerLayout.horizontalPaddingDp
             val art = playerLayout.artworkDp.dp
             val playerIdentity = remember(state.title, state.artist) {
@@ -812,7 +815,7 @@ fun StudioNowPlayingOverlay(
                             fontWeight = FontWeight.ExtraBold,
                             color = colors.onBackground,
                             maxLines = NightWaveNowPlayingPresentationPolicy.titleLines(
-                                fontScale, maxWidth.value),
+                                fontScale, playerWidthDp),
                             overflow = TextOverflow.Ellipsis)
                         Spacer(Modifier.height(5.dp))
                         Text(playerIdentity.artistOrCreator,
