@@ -85,7 +85,14 @@ Need $activity 'NightWaveHomeHero(' 'Home header not wired'
 Need $activity 'navigateToTab(StudioTab.entries[' 'Pager tab navigation bypassed'
 Need $activity 'userScrollEnabled = !expanded && !showQueue' 'Background swipes may activate under overlay'
 Need $activity 'onHide = { compactHidden = true }' 'Mini-player hide state not preserved'
-Need $mini 'NightWaveChromePolicy.showMiniNext(' 'Mini-player responsive controls not wired'
+# NW116 moved width/font-scale decisions to a dedicated layout policy.
+# Check both the live UI wiring and that policy's original queue/width guard.
+Need $mini 'NightWaveMiniPlayerLayoutPolicy.resolve(' 'Mini-player responsive layout not wired'
+Need $mini 'val showNext = miniLayout.showNext' 'Mini-player Next ignores resolved layout'
+Need $mini 'if (showNext)' 'Mini-player Next visibility guard missing'
+$miniPolicy = Read-Source ($prefix + 'NightWaveMiniPlayerLayoutPolicy.kt')
+Need $miniPolicy 'NightWaveChromePolicy.showMiniNext(queueCount, width)' 'Mini-player queue/width guard missing'
+Need $miniPolicy '!(scale >= 1.8f && width < 460f)' 'Large-font mini-player guard missing'
 Need $mini 'PlayerGestureRules.decideVerticalSwipe(' 'Mini-player swipe gesture behavior removed'
 Need $mini 'actions.playPause()' 'Mini-player Play/Pause callback missing'
 Need $mini 'actions.next()' 'Mini-player Next callback missing'

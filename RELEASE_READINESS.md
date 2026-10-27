@@ -1,3 +1,5 @@
+> Current build update — 27 October 2026: NW119 locally compiles Android app and instrumentation sources, assembles a debug APK and passes all 1,421 JVM tests. Current structural checks pass 49/49; lint has zero errors (315 warnings remain). See [current test report](TEST_REPORT.md) and [NW119 evidence](docs/NW119_CLEANUP_AND_LYRICS_EVIDENCE.md). Installed-phone signer, device, OAuth/Drive, privacy and rights acceptance remain pending. Public release is still NO-GO. Older statements below are historical unless explicitly reconfirmed.
+
 # NightWave — Release Readiness
 
 **Status: NO-GO for public APK / Google Play. GitHub repository remains private.**  

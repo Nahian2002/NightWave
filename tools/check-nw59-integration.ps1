@@ -69,9 +69,9 @@ function Assert-NW59Home([string]$Body) {
         'nw47-home-library-stats'
     )
     Assert-NW59Missing $homeSource 'ListeningSpotlight(' 'repeated last-played Home hero'
-    Assert-NW59Has $homeSource 'onResumeSpotlight(it, recent)' 'Home Continue command'
+    Assert-NW59Has $homeSource 'onResumeSpotlight(last, recentShelf)' 'Home Continue command'
     Assert-NW59Has $homeSource 'onRemoveRecent(song)' 'Recently Played removal'
-    Assert-NW59Has $homeSource '"Discover music", openSearch' 'empty Home Search navigation'
+    Assert-NW59Has $homeSource 'NightWaveHomeLayoutPolicy.EmptyRecentDestination.SEARCH ->' 'empty Home Search navigation'
 }
 if ($SelfTest) {
     Assert-NW59Has 'before after' 'after' 'positive fixture'
@@ -89,8 +89,8 @@ if ($SelfTest) {
     # because assigning $home also tries to overwrite read-only $HOME.
     $homeFixture = 'private fun StudioHome(' + ' nightwave-premium-home-header' +
         ' nw47-home-quick-access recent-heading nw47-recent-shelf' +
-        ' nw47-home-library-stats onResumeSpotlight(it, recent)' +
-        ' onRemoveRecent(song) "Discover music", openSearch private fun MoodTile('
+        ' nw47-home-library-stats onResumeSpotlight(last, recentShelf)' +
+        ' onRemoveRecent(song) NightWaveHomeLayoutPolicy.EmptyRecentDestination.SEARCH -> private fun MoodTile('
     Assert-NW59Home $homeFixture
     $rejected = $false
     try {
@@ -250,7 +250,7 @@ Assert-NW59OpaquePlayer $player
 Assert-NW59Has $player 'color = colors.onSurface)' 'Sound and playback contrast'
 Assert-NW59Has $offlineUi 'OfflineLibraryViewPolicy.accessibilityLabel(filter)' 'TalkBack issues filter'
 Assert-NW59Has $offlineUi 'library.healthReport()' 'offline file health validation'
-Assert-NW59Has $downloads 'OfflineAudioLibrary(applicationContext).availableIds(ids)' 'NW62 background verification of actual saved files'
+Assert-NW59Has $downloads 'OfflineAudioLibrary(applicationContext).availabilitySnapshot(ids)' 'NW62 background verification of actual saved files'
 Assert-NW59Has $downloads 'Resume restarts from zero' 'honest no-byte-resume label'
 Assert-NW59Missing $downloads 'LayoutParams(-1, dp(44))' 'undersized transfer actions'
 Assert-NW59Has $filter 'Filter.ATTENTION -> "Issues"' 'compact offline filter'
@@ -284,7 +284,8 @@ Assert-NW59Missing $oauthSource 'build-tools\35.0.0' 'hardcoded diagnostic SDK v
 $downloadsPolicy = [IO.File]::ReadAllText($files['app/src/main/java/com/nightwave/player/offline/DownloadFileVerificationPolicy.kt'])
 Assert-NW59Has $downloads 'private val fileVerifier = ThreadPoolExecutor(' 'bounded file verification'
 Assert-NW59Has $downloads 'ArrayBlockingQueue<Runnable>(1)' 'bounded pending verification'
-Assert-NW59Has $downloads 'OfflineAudioLibrary(applicationContext).availableIds(ids)' 'background file inspection'
+Assert-NW59Has $downloads 'OfflineAudioLibrary(applicationContext).availabilitySnapshot(ids)' 'background file inspection'
+Assert-NW59Has $downloads 'fileCheckFailed = snapshot?.indexReadable != true' 'unknown index cannot imply missing files'
 Assert-NW59Has $downloads 'DownloadFileVerificationPolicy.canPublish(' 'discard stale file results'
 Assert-NW59Has $downloads 'fileVerifier.shutdownNow()' 'clean up verifier on destroy'
 Assert-NW59Has $downloads 'DownloadFileVerificationPolicy.ready(' 'do not trust WorkManager success alone'
@@ -621,7 +622,7 @@ Assert-NW59Has $nw76Proof '$failed -ne 0 -or $errors -ne 0' 'fail if any JVM tes
 Assert-NW59Has $nw76Proof 'function Invoke-SelfTest' 'parser self-test fixture'
 Assert-NW59Has $nw76Builder 'if (Test-Path -LiteralPath $junitProofOutput) { Remove-Item' 'remove stale test receipt at start'
 Assert-NW59Has $nw76Builder 'NW76 JUnit result certification' 'real proof is a separate gated stage'
-Assert-NW59Has $nw76Builder '-MinimumTests 1000' 'enforce broad JVM regression count'
+Assert-NW59Has $nw76Builder '-MinimumTests 1400' 'enforce current broad JVM regression count'
 Assert-NW59Has $nw76Builder 'JUnit receipt: dist\\NightWave-jvm-test-proof.txt' 'saved status points to fresh test receipt'
 Assert-NW59Has $nw76Builder 'Copy-Item -LiteralPath $apk -Destination $output -Force' 'original verified APK promotion intact'
 $certifyAt = $nw76Builder.IndexOf('    $stage = ''NW76 JUnit result certification''')

@@ -26,6 +26,8 @@ import java.util.concurrent.Executors
  * Search -> choose -> save to Offline Library, entirely within NightWave.
  * This is an independent free-content catalog, NOT YouTube stream extraction.
  */
+// This component intentionally uses the pinned Media3 unstable API.
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 class FreeAudioCatalogActivity : ComponentActivity() {
     companion object {
         const val EXTRA_QUERY = "com.nightwave.player.FREE_AUDIO_QUERY"

@@ -1,6 +1,7 @@
 package com.nightwave.player.offline
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class OfflineLibraryHealthPolicyTest {

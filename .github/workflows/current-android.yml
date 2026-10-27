@@ -1,0 +1,85 @@
+name: NightWave current Android verification
+
+on:
+  push:
+    branches: ['feature/**', 'fix/**', 'update/**', 'audit/**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightwave-current-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+      - name: Install pinned Android SDK
+        shell: bash
+        run: sdkmanager 'platforms;android-36' 'build-tools;35.0.0'
+      - name: Current source, privacy and Windows safety checks
+        run: python tools/verify_current.py
+      - name: Record exact source snapshot
+        shell: pwsh
+        run: |
+          $inputs = @(& ./tools/get-nw08-source-inputs.ps1 -ProjectRoot .)
+          if ($LASTEXITCODE -ne 0) { throw 'Source collection failed' }
+          $manifest = foreach ($relative in $inputs) {
+            "$( (Get-FileHash -LiteralPath $relative -Algorithm SHA256).Hash )  $relative"
+          }
+          $manifest | Set-Content build/current-source-manifest.txt -Encoding ascii
+          git rev-parse HEAD | Set-Content build/current-source-commit.txt -Encoding ascii
+      - name: Compile Android, execute JVM tests, assemble debug candidate
+        shell: bash
+        run: |
+          mkdir -p build
+          touch build/current-attempt-start.txt
+          set -o pipefail
+          gradle --no-daemon --rerun-tasks --no-build-cache --console=plain :app:testDebugUnitTest :app:assembleDebug :app:compileDebugAndroidTestKotlin :app:lintDebug 2>&1 | tee build/current-gradle.log
+      - name: Reject source changes during compilation
+        shell: pwsh
+        run: ./tools/nw101-source-attestation.ps1 -ProjectRoot . -ManifestPath build/current-source-manifest.txt
+      - name: Require fresh executed JVM results
+        shell: pwsh
+        run: ./tools/nw76-junit-proof.ps1 -ResultsDirectory app/build/test-results/testDebugUnitTest -OutputFile build/current-junit-proof.txt -MinimumTests 1400
+      - name: Verify APK package and cryptographic signature
+        shell: pwsh
+        run: |
+          ./tools/verify-apk-signature.ps1 -ApkPath app/build/outputs/apk/debug/app-debug.apk -BuildToolsDir "$env:ANDROID_HOME/build-tools/35.0.0" -VersionName '2.0.0-alpha5s' -VersionCode '35'
+          if ($LASTEXITCODE -ne 0) { throw 'APK identity/signature validation failed' }
+      - name: Preserve verification receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: NightWave-current-build-evidence
+          path: |
+            build/current-source-checks.json
+            build/current-junit-proof.txt
+            build/current-source-manifest.txt
+            build/current-source-commit.txt
+            app/build/test-results/testDebugUnitTest/TEST-*.xml
+            app/build/reports/lint-results-debug.xml
+          if-no-files-found: warn
+      - name: Preserve debug candidate for signer and device review
+        uses: actions/upload-artifact@v4
+        with:
+          name: NightWave-debug-NEEDS-INSTALLED-SIGNER-AND-DEVICE-QA
+          path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 5

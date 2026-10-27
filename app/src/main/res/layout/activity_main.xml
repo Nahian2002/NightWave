@@ -27,7 +27,7 @@
                     android:textColor="#F9FAFF" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                     android:text="MUSIC, WITHOUT THE NOISE"
-                    android:layout_marginTop="-2dp" android:textSize="9sp"
+                    android:layout_marginTop="-2dp" android:textSize="11sp"
                     android:fontFamily="sans-serif-medium" android:letterSpacing="0.17"
                     android:textColor="#AAA7D4" />
             </LinearLayout>
@@ -109,7 +109,7 @@
                     android:layout_weight="1" android:layout_height="wrap_content"
                     android:text="Search for your favorite sounds."
                     android:textColor="#929CB9" android:textSize="13sp"
-                    android:lineSpacingExtra="2dp" android:paddingStart="2dp"/>
+                    android:lineSpacingExtra="2dp" android:paddingStart="2dp" android:paddingEnd="2dp"/>
             </LinearLayout>
             <LinearLayout android:id="@+id/resultsContainer"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
@@ -168,7 +168,7 @@
             android:visibility="gone">
             <TextView android:id="@+id/timeText" android:layout_width="0dp"
                 android:layout_weight="1" android:layout_height="wrap_content"
-                android:text="0:00 / 0:00" android:textColor="#B2B3D0" android:textSize="10sp"/>
+                android:text="0:00 / 0:00" android:textColor="#B2B3D0" android:textSize="11sp"/>
             <TextView android:id="@+id/shuffleButton" android:layout_width="38dp"
                 android:layout_height="40dp" android:gravity="center"
                 android:text="⇄" android:textColor="#C7C7DC" android:textSize="22sp"

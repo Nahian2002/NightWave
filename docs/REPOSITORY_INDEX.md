@@ -1,6 +1,6 @@
 # NightWave — repository navigation
 
-**Current development wave:** NW118, Library Polish (incremental draft branch). This index is a navigation aid, not a release certificate.
+**Current development wave:** NW119 lyrics and cumulative build/organization recovery, on `update/nightwave-cleanup-nw119-lyrics`. This index is a navigation aid, not a release certificate.
 
 ## Start here
 
@@ -23,7 +23,9 @@
 - **JVM tests:** `app/src/test/`; **device tests:** `app/src/androidTest/`. Pure CLI smoke scripts are useful preflights, never substitutes for these suites.
 - **Build rules:** root `build.gradle.kts`, `settings.gradle.kts`, `gradle.properties`, and `app/build.gradle.kts`; **CI:** `.github/workflows/`. Do not delete or alter SDK/signing checks for cosmetic cleanup.
 - **Room schema/migrations and settings:** Treat all as migration evidence; never delete without a verified backwards-compatibility and restore audit.
-- **Current source wave:** NW118 cumulative development branch, based on the exact NW117 final parent `6c78f25b416f8b2723c8d13267f397e46880475e`. Branches are incremental. Do not assume `main` contains any of these updates.
+- **Current source wave:** NW119 update branch, based on exact NW118 parent `64160f1388b6dcef6439f384602d1a7c9a6c63d8`. Branches are incremental. Do not assume `main` contains any of these updates.
+
+Current automated workflow: `.github/workflows/current-android.yml`; `android.yml` remains a manual historical diagnostic. See [historic check inventory](HISTORICAL_CI_SOURCE_CHECKS_20261027.md).
 
 ## Historical material — preserve, don't mistake for current status
 
@@ -37,4 +39,4 @@
 
 Keep generated Android `build/`, local `.gradle/`, IDE settings, archives, diagnostic logs/dumps, local secrets, APKs and signing keys **outside Git**. `.gitignore` prevents future accidental adds but does not untrack history. Do not store account credentials, OAuth tokens, private playlists or media files in GitHub.
 
-**Release status:** NO-GO pending clean current Windows Gradle/JUnit, Android/device validation, signer, Drive read-back/restore, music-source rights and privacy checks. A committed PR and passing source string checks are not runtime QA.
+**Build status:** current Android/JVM build passes (1,421 tests). See [NW119 evidence](NW119_CLEANUP_AND_LYRICS_EVIDENCE.md). **Release status:** NO-GO pending physical-device validation, installed signer, Drive read-back/restore, music-source rights and privacy checks. A committed PR and passing source string checks are not runtime QA.

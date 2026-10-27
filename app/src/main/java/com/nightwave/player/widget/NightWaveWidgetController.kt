@@ -19,6 +19,8 @@ import java.util.concurrent.atomic.AtomicBoolean
  * No startForegroundService(), no launch from background, no new playback engine.
  * Async receiver is always finished, including disconnect and timeout paths.
  */
+// This component intentionally uses the pinned Media3 unstable API.
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 object NightWaveWidgetController {
     const val ACTION_TOGGLE = "com.nightwave.player.widget.TOGGLE"
     const val ACTION_NEXT = "com.nightwave.player.widget.NEXT"

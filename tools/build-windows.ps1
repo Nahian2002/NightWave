@@ -573,7 +573,7 @@ try {
     # pass/fail counts before publishing a source-fingerprinted APK.
     $stage = 'NW76 JUnit result certification'
     & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $junitProof `
-        -ResultsDirectory $testXmlDirectory -OutputFile $junitProofOutput -MinimumTests 1000
+        -ResultsDirectory $testXmlDirectory -OutputFile $junitProofOutput -MinimumTests 1400
     if ($LASTEXITCODE -ne 0 -or
         -not (Test-Path -LiteralPath $junitProofOutput -PathType Leaf)) {
         throw 'NW76 current-attempt JVM reports were missing, incomplete or failing; no APK published.'

@@ -47,7 +47,7 @@ $checks = @(
     @('app\src\main\java\com\nightwave\player\offline\CatalogDownloadsActivity.kt',
         'DownloadFileVerificationPolicy.ready('),
     @('app\src\main\java\com\nightwave\player\offline\CatalogDownloadsActivity.kt',
-        'OfflineAudioLibrary(applicationContext).availableIds(ids)'),
+        'OfflineAudioLibrary(applicationContext).availabilitySnapshot(ids)'),
     @('app\src\main\java\com\nightwave\player\offline\DownloadFileVerificationPolicy.kt',
         'OfflineDownloadStatusPolicy.isReady('),
     @('app\src\main\java\com\nightwave\player\offline\DownloadFileVerificationPolicy.kt',
@@ -67,6 +67,8 @@ $checks = @(
     @('app\src\main\AndroidManifest.xml',
         'android:usesCleartextTraffic="false"')
 )
+# NW113 distinguishes unreadable indexes from missing files.
+$checks += ,@('app\src\main\java\com\nightwave\player\offline\CatalogDownloadsActivity.kt', 'fileCheckFailed = snapshot?.indexReadable != true')
 $failures = 0
 foreach ($entry in $checks) {
     $relative = [string]$entry[0]

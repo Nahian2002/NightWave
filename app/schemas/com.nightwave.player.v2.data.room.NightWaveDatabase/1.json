@@ -1,0 +1,292 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "1e46b393d9e8b8d5aaaa78444313f6ed",
+    "entities": [
+      {
+        "tableName": "saved_track",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`url` TEXT NOT NULL, `title` TEXT NOT NULL, `creator` TEXT NOT NULL, `thumbnail` TEXT NOT NULL, `durationSeconds` INTEGER NOT NULL, PRIMARY KEY(`url`))",
+        "fields": [
+          {
+            "fieldPath": "url",
+            "columnName": "url",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "creator",
+            "columnName": "creator",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "thumbnail",
+            "columnName": "thumbnail",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "durationSeconds",
+            "columnName": "durationSeconds",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "url"
+          ]
+        }
+      },
+      {
+        "tableName": "playlist",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`name` TEXT NOT NULL, `position` INTEGER NOT NULL, PRIMARY KEY(`name`))",
+        "fields": [
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "position",
+            "columnName": "position",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "name"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_playlist_position",
+            "unique": true,
+            "columnNames": [
+              "position"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_playlist_position` ON `${TABLE_NAME}` (`position`)"
+          }
+        ]
+      },
+      {
+        "tableName": "playlist_entry",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`playlistName` TEXT NOT NULL, `url` TEXT NOT NULL, `position` INTEGER NOT NULL, PRIMARY KEY(`playlistName`, `url`), FOREIGN KEY(`playlistName`) REFERENCES `playlist`(`name`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`url`) REFERENCES `saved_track`(`url`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "playlistName",
+            "columnName": "playlistName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "url",
+            "columnName": "url",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "position",
+            "columnName": "position",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "playlistName",
+            "url"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_playlist_entry_url",
+            "unique": false,
+            "columnNames": [
+              "url"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_playlist_entry_url` ON `${TABLE_NAME}` (`url`)"
+          },
+          {
+            "name": "index_playlist_entry_playlistName_position",
+            "unique": true,
+            "columnNames": [
+              "playlistName",
+              "position"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_playlist_entry_playlistName_position` ON `${TABLE_NAME}` (`playlistName`, `position`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "playlist",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "playlistName"
+            ],
+            "referencedColumns": [
+              "name"
+            ]
+          },
+          {
+            "table": "saved_track",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "url"
+            ],
+            "referencedColumns": [
+              "url"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "favorite",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`url` TEXT NOT NULL, `position` INTEGER NOT NULL, PRIMARY KEY(`url`), FOREIGN KEY(`url`) REFERENCES `saved_track`(`url`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "url",
+            "columnName": "url",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "position",
+            "columnName": "position",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "url"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_favorite_position",
+            "unique": true,
+            "columnNames": [
+              "position"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_favorite_position` ON `${TABLE_NAME}` (`position`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "saved_track",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "url"
+            ],
+            "referencedColumns": [
+              "url"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "recent",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`url` TEXT NOT NULL, `position` INTEGER NOT NULL, PRIMARY KEY(`url`), FOREIGN KEY(`url`) REFERENCES `saved_track`(`url`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "url",
+            "columnName": "url",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "position",
+            "columnName": "position",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "url"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_recent_position",
+            "unique": true,
+            "columnNames": [
+              "position"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_recent_position` ON `${TABLE_NAME}` (`position`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "saved_track",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "url"
+            ],
+            "referencedColumns": [
+              "url"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "migration_checkpoint",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`name` TEXT NOT NULL, `legacyDigest` TEXT NOT NULL, `committedAtMs` INTEGER NOT NULL, PRIMARY KEY(`name`))",
+        "fields": [
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "legacyDigest",
+            "columnName": "legacyDigest",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "committedAtMs",
+            "columnName": "committedAtMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "name"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '1e46b393d9e8b8d5aaaa78444313f6ed')"
+    ]
+  }
+}
