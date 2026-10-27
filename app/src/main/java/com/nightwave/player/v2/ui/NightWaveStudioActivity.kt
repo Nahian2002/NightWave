@@ -603,6 +603,53 @@ class NightWaveStudioActivity : ComponentActivity() {
         }
     }
 
+    private val exportFile = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        if (uri == null) return@registerForActivityResult
+        runCatching {
+            val data = archiveManager.export()
+            requireNotNull(contentResolver.openOutputStream(uri)) { "Can't open destination" }
+                .use { it.write(data) }
+        }.onSuccess { showMessage("Guest backup exported successfully.") }
+            .onFailure { showMessage("Export failed: " + (it.message ?: "unknown error")) }
+    }
+    private val importFile = registerForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri == null) return@registerForActivityResult
+        runCatching {
+            requireNotNull(contentResolver.openInputStream(uri)).use { input ->
+                val limit = com.nightwave.player.v2.data.LibraryBackupCodec.MAX_BYTES
+                val buffer = ByteArray(8192)
+                val out = java.io.ByteArrayOutputStream()
+                while (true) {
+                    val count = input.read(buffer)
+                    if (count < 0) break
+                    require(out.size() + count <= limit) { "Backup exceeds the size limit" }
+                    out.write(buffer, 0, count)
+                }
+                archiveManager.preview(out.toByteArray())
+            }
+        }.onSuccess { archive ->
+            AlertDialog.Builder(this)
+                .setTitle("Replace your local library?")
+                .setMessage(
+                    "Backup contains " + archive.favorites.size + " liked songs and " +
+                    archive.playlists.size + " playlists. This will replace your current favorites " +
+                    "and playlists. Your local listening history stays on this phone. " +
+                    "Export your existing library first if you want to keep it."
+                )
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Replace library") { _, _ ->
+                    if (archiveManager.restoreWithConfirmation(archive)) {
+                        profile = profiles.load()
+                        refresh()
+                        showMessage("Guest library restored.")
+                    } else showMessage("Import could not complete. Your previous library is retained.")
+                }.show()
+        }.onFailure { showMessage("Invalid backup: " + (it.message ?: "cannot read file")) }
+    }
     /** SAF picker is always user-initiated; an absent/cancelled destination is a no-op. */
     private val exportPlaylistTextFile = registerForActivityResult(
         ActivityResultContracts.CreateDocument("text/plain")
@@ -657,53 +704,6 @@ class NightWaveStudioActivity : ComponentActivity() {
         }
     }
 
-    private val exportFile = registerForActivityResult(
-        ActivityResultContracts.CreateDocument("application/json")
-    ) { uri ->
-        if (uri == null) return@registerForActivityResult
-        runCatching {
-            val data = archiveManager.export()
-            requireNotNull(contentResolver.openOutputStream(uri)) { "Can't open destination" }
-                .use { it.write(data) }
-        }.onSuccess { showMessage("Guest backup exported successfully.") }
-            .onFailure { showMessage("Export failed: " + (it.message ?: "unknown error")) }
-    }
-    private val importFile = registerForActivityResult(
-        ActivityResultContracts.OpenDocument()
-    ) { uri ->
-        if (uri == null) return@registerForActivityResult
-        runCatching {
-            requireNotNull(contentResolver.openInputStream(uri)).use { input ->
-                val limit = com.nightwave.player.v2.data.LibraryBackupCodec.MAX_BYTES
-                val buffer = ByteArray(8192)
-                val out = java.io.ByteArrayOutputStream()
-                while (true) {
-                    val count = input.read(buffer)
-                    if (count < 0) break
-                    require(out.size() + count <= limit) { "Backup exceeds the size limit" }
-                    out.write(buffer, 0, count)
-                }
-                archiveManager.preview(out.toByteArray())
-            }
-        }.onSuccess { archive ->
-            AlertDialog.Builder(this)
-                .setTitle("Replace your local library?")
-                .setMessage(
-                    "Backup contains " + archive.favorites.size + " liked songs and " +
-                    archive.playlists.size + " playlists. This will replace your current favorites " +
-                    "and playlists. Your local listening history stays on this phone. " +
-                    "Export your existing library first if you want to keep it."
-                )
-                .setNegativeButton("Cancel", null)
-                .setPositiveButton("Replace library") { _, _ ->
-                    if (archiveManager.restoreWithConfirmation(archive)) {
-                        profile = profiles.load()
-                        refresh()
-                        showMessage("Guest library restored.")
-                    } else showMessage("Import could not complete. Your previous library is retained.")
-                }.show()
-        }.onFailure { showMessage("Invalid backup: " + (it.message ?: "cannot read file")) }
-    }
     private var profile by mutableStateOf(ProfileSettings(localId = "pending"))
     private var favorites by mutableStateOf<List<VideoPreview>>(emptyList())
     private var recentlyPlayed by mutableStateOf<List<VideoPreview>>(emptyList())
