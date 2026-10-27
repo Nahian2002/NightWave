@@ -814,10 +814,20 @@ fun StudioNowPlayingOverlay(
                                 .background(colors.background.copy(alpha = .76f)),
                             contentAlignment = Alignment.Center
                         ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(29.dp),
-                                color = colors.primary, strokeWidth = 2.dp
-                            )
+                            if (reduceMotion) {
+                                // A genuinely static buffering cue; the
+                                // indeterminate spinner itself is animation.
+                                Text("Loading",
+                                    modifier = Modifier.testTag(
+                                        "nightwave-now-playing-static-loading"),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = colors.onBackground)
+                            } else {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(29.dp),
+                                    color = colors.primary, strokeWidth = 2.dp
+                                )
+                            }
                         }
                     }
                 }
@@ -1066,15 +1076,24 @@ fun StudioNowPlayingOverlay(
                             Text(queuePreview.heading,
                                 style = MaterialTheme.typography.labelSmall,
                                 color = colors.onSurfaceVariant)
-                            Crossfade(
-                                targetState = queuePreviewTitle,
-                                animationSpec = tween(NightWaveMotionPolicy.duration(
-                                    reduceMotion, NightWaveMotionPolicy.FEEDBACK_MS)),
-                                label = "Next queued song"
-                            ) { title ->
-                                Text(title, style = MaterialTheme.typography.titleMedium,
+                            if (reduceMotion) {
+                                // No previous title layer survives even one
+                                // instant frame when motion is reduced.
+                                Text(queuePreviewTitle,
+                                    style = MaterialTheme.typography.titleMedium,
                                     maxLines = 1, overflow = TextOverflow.Ellipsis,
                                     color = colors.onSurface)
+                            } else {
+                                Crossfade(
+                                    targetState = queuePreviewTitle,
+                                    animationSpec = tween(NightWaveMotionPolicy.FEEDBACK_MS),
+                                    label = "Next queued song"
+                                ) { title ->
+                                    Text(title,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                        color = colors.onSurface)
+                                }
                             }
                         }
                         Icon(Icons.AutoMirrored.Outlined.QueueMusic,
