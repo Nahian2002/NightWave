@@ -151,4 +151,31 @@ class LibraryBulkSelectionPolicyTest {
             selected, "offline:saved", emptyList()).isEmpty())
         assertEquals(2, selected.size)
     }
+
+    @Test fun filteredRowToggleRetainsOtherHiddenPlaylistSelections() {
+        val tracks = listOf(song("aaa111bbb22"), song("ccc333ddd44"),
+            song("eee555fff66"))
+        val original = linkedSetOf(tracks[0].url, tracks[1].url)
+        // Filtering only changes which row is visible; the call site must
+        // provide the full playlist as source, not its filtered display.
+        val after = LibraryBulkSelectionPolicy.toggle(
+            original, tracks[2].url, tracks)
+        assertEquals(setOf(tracks[0].url, tracks[1].url, tracks[2].url), after)
+        val undone = LibraryBulkSelectionPolicy.toggle(after, tracks[2].url, tracks)
+        assertEquals(original, undone)
+        assertEquals(2, LibraryBulkSelectionPolicy.hiddenSelectionCount(
+            undone, listOf(tracks[2])))
+    }
+
+    @Test fun selectedListRemainsAtomicAndBoundedAfterSanitization() {
+        val tracks = (1..50).map { song(it.toString().padStart(11, '0')) }
+        val stale = tracks.take(45).mapTo(linkedSetOf()) { it.url } +
+            setOf("offline:missing")
+        val safe = LibraryBulkSelectionPolicy.sanitize(stale, tracks)
+        val selectedTracks = LibraryBulkSelectionPolicy.selected(tracks, safe)
+        assertEquals(20, safe.size)
+        assertEquals(20, selectedTracks.size)
+        assertEquals(tracks.take(20), selectedTracks)
+        assertEquals(46, stale.size)
+    }
 }
