@@ -231,18 +231,32 @@ fun StudioMiniPlayer(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(miniLayout.labelGapDp.dp)
                 ) {
-                    if (miniLayout.showArtwork) Crossfade(
-                        targetState = state.thumbnail,
-                        animationSpec = tween(
-                            durationMillis = NightWaveMotionPolicy.duration(
-                                reducedMotion, NightWaveMotionPolicy.COVER_MS)),
-                        label = "Mini player changing cover"
-                    ) { thumbnail ->
-                        CoverArt(thumbnail, Modifier.size(miniLayout.artworkDp.dp)
-                            .graphicsLayer {
-                                scaleX = miniScale
-                                scaleY = miniScale
-                            }, 11, "Artwork for " + identity.title)
+                    if (miniLayout.showArtwork) {
+                        val currentArtwork = remember(state.videoUrl, state.thumbnail) {
+                            NightWaveArtworkTransitionPolicy.frame(
+                                state.videoUrl, state.thumbnail)
+                        }
+                        if (reducedMotion) {
+                            // Direct composition avoids even a zero-duration
+                            // overlap of outgoing artwork for Reduce Motion.
+                            CoverArt(state.thumbnail, Modifier.size(miniLayout.artworkDp.dp),
+                                11, "Artwork for " + identity.title)
+                        } else {
+                            Crossfade(
+                                targetState = currentArtwork,
+                                animationSpec = tween(
+                                    durationMillis = NightWaveMotionPolicy.COVER_MS),
+                                label = "Mini player changing cover"
+                            ) { artwork ->
+                                CoverArt(artwork.thumbnail,
+                                    Modifier.size(miniLayout.artworkDp.dp).graphicsLayer {
+                                        scaleX = miniScale
+                                        scaleY = miniScale
+                                    }, 11, NightWaveArtworkTransitionPolicy
+                                        .accessibilityDescription(
+                                            artwork, currentArtwork, identity.title))
+                            }
+                        }
                     }
                     Column(Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -313,7 +327,7 @@ fun StudioMiniPlayer(
 @Composable
 private fun CoverArt(
     url: String, modifier: Modifier = Modifier, radius: Int = 24,
-    description: String = "Song artwork"
+    description: String? = "Song artwork"
 ) {
     val preferredArtwork = remember(url) { NightWaveArtworkPolicy.preferredArtwork(url) }
     var useOriginal by remember(url) { mutableStateOf(false) }
@@ -773,16 +787,26 @@ fun StudioNowPlayingOverlay(
                     ),
                     contentAlignment = Alignment.Center
                 ) {
-                    Crossfade(
-                        targetState = state.thumbnail,
-                        animationSpec = tween(
-                            durationMillis = NightWaveMotionPolicy.duration(
-                                reduceMotion, NightWaveMotionPolicy.COVER_MS)),
-                        label = "Player artwork"
-                    ) { thumbnail ->
-                        CoverArt(thumbnail, Modifier.fillMaxSize(),
+                    val currentArtwork = remember(state.videoUrl, state.thumbnail) {
+                        NightWaveArtworkTransitionPolicy.frame(
+                            state.videoUrl, state.thumbnail)
+                    }
+                    if (reduceMotion) {
+                        CoverArt(state.thumbnail, Modifier.fillMaxSize(),
                             playerLayout.artworkCornerDp,
                             "Artwork for " + playerIdentity.title)
+                    } else {
+                        Crossfade(
+                            targetState = currentArtwork,
+                            animationSpec = tween(
+                                durationMillis = NightWaveMotionPolicy.COVER_MS),
+                            label = "Player artwork"
+                        ) { artwork ->
+                            CoverArt(artwork.thumbnail, Modifier.fillMaxSize(),
+                                playerLayout.artworkCornerDp,
+                                NightWaveArtworkTransitionPolicy.accessibilityDescription(
+                                    artwork, currentArtwork, playerIdentity.title))
+                        }
                     }
                     if (state.buffering) {
                         Box(
