@@ -834,8 +834,9 @@ fun StudioNowPlayingOverlay(
                     liked, state.offline)
                 val likeControl: @Composable () -> Unit = {
                     IconButton(onClick = onLike, enabled = !state.offline,
-                        modifier = Modifier.size(48.dp).semantics {
-                            stateDescription = likeStatus
+                        modifier = Modifier.size(48.dp)
+                            .testTag("nightwave-now-playing-like-action")
+                            .semantics { stateDescription = likeStatus
                         }) {
                         Icon(if (liked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                             contentDescription = if (liked) "Unlike song" else "Like song",
@@ -852,7 +853,8 @@ fun StudioNowPlayingOverlay(
                                 style = MaterialTheme.typography.labelSmall,
                                 color = colors.onSurfaceVariant,
                                 maxLines = 2, overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f))
+                                modifier = Modifier.weight(1f)
+                                    .testTag("nightwave-now-playing-like-status"))
                             likeControl()
                         }
                     }
