@@ -227,6 +227,9 @@ class FreeAudioCatalogActivity : ComponentActivity() {
         val artist = if (term == FreeAudioCatalogPolicy.safeSearchTerm(initialTitle))
             initialArtist else ""
         val queries = OfflineDiscoveryPolicy.queries(term, artist)
+        // The title-only query removes decorative video markers; no network
+        // request or catalog eligibility rule is changed by this review hint.
+        val requestTitle = queries.lastOrNull() ?: term
         worker.execute {
             // At most two metadata searches, only the second when the first
             // returns no eligible recordings. Never silently choose a
@@ -244,12 +247,13 @@ class FreeAudioCatalogActivity : ComponentActivity() {
                 busySearch = false
                 searchAction.alpha = 1f
                 found.onSuccess { list ->
-                    message.text = if (list.isEmpty())
+                    val reviewed = OfflineDiscoveryReviewPolicy.rank(requestTitle, list)
+                    message.text = if (reviewed.isEmpty())
                         "No eligible offline recording found in this catalog. " +
                             "The YouTube track remains online-only; you can import audio you own."
-                    else "${list.size} eligible audio files. These may be DIFFERENT recordings. " +
-                            "Verify the artist, title and license before saving."
-                    list.forEach { showEntry(it) }
+                    else "${reviewed.size} eligible audio files, ordered by title words. " +
+                            "These may be DIFFERENT recordings. Verify artist, title and license."
+                    reviewed.forEach { showEntry(it, requestTitle) }
                 }.onFailure {
                     message.text = "Open-audio search unavailable. Check internet and retry."
                 }
@@ -257,7 +261,7 @@ class FreeAudioCatalogActivity : ComponentActivity() {
         }
     }
 
-    private fun showEntry(entry: FreeAudioCandidate) {
+    private fun showEntry(entry: FreeAudioCandidate, requestTitle: String) {
         val card = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
@@ -271,6 +275,10 @@ class FreeAudioCatalogActivity : ComponentActivity() {
         card.addView(text(entry.title, 15f, Color.WHITE, true).apply {
             maxLines = 2
         })
+        card.addView(text(
+            OfflineDiscoveryReviewPolicy.reviewHint(requestTitle, entry.title),
+            11f, 0xFFE2C99A.toInt()
+        ).apply { setPadding(0, dp(4), 0, 0) })
         if (fromYouTubeSearch) {
             card.addView(text(
                 "Independent recording; not verified as the same YouTube performance.",

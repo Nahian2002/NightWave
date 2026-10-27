@@ -76,7 +76,8 @@ Status vocabulary: PLANNED / IN_PROGRESS / CODE_COMPLETE_UNVERIFIED / GRADLE_VER
 | NW121 Drive/guest backup | GRADLE_VERIFIED_DEVICE_PENDING | Premium responsive account hub, explicit access proof, same-account worker freshness fencing, wrapped-error handling and real-client isolated roundtrip; 20 new JVM methods; 1,453 tests pass; four new Android store cases compile only, live Google/phone QA pending |
 | NW122 Performance | JVM_MEASURED_DEVICE_PENDING | Invocation-local saved identities, single-scan token evidence, shared bounded suggestions and once-per-row public/library sort keys; unchanged-result Kotlin host comparison; startup/ART/next/jank/battery/30-minute soak remain pending |
 | NW123 Accessibility | SOURCE_IMPLEMENTED_UNVERIFIED | TalkBack navigation/queue semantics, 48dp seek hit area and large-type cards; source change needs Android/JVM/device checks |
-| NW124–NW125 | PLANNED | Next ordered wave is NW124 optional extras; final release acceptance remains open |
+| NW124 Optional extras | SOURCE_IMPLEMENTED_UNVERIFIED | Sleep dial accessibility, honest Commons review and opt-in playlist SAF import/export; verification pending |
+| NW125 Final certification | PLANNED | Next ordered phase, including full Windows build, real Samsung acceptance, signer/rights audits |
 
 After every wave update this ledger with commit, automated receipts, remaining blockers, actual device acceptance and next planned wave. Avoid recalculating a "Spotify score" based on static code checks.
 
@@ -346,3 +347,13 @@ The roadmap defines future turns and test requirements; it does not schedule aut
 - Seven new JUnit source tests, expanded native layout assertions and one added Compose Android test; four palette contrast ratios asserted at >=4.5:1 on actual surface pairs.
 - **SOURCE_IMPLEMENTED_UNVERIFIED**: no complete NW123 Windows builder, JVM/Android test execution, physical TalkBack, real contrast/layout capture, signer/upgrade, or soak test. NW122 validation does not automatically certify NW123. See [NW123 evidence](NW123_ACCESSIBILITY_TYPOGRAPHY_EVIDENCE.md).
 - NW124 next, NW125 final device and public-release certification. Public release NO-GO pending separate music rights/Android compliance and actual device/Google acceptance.
+
+## NW124 implementation ledger — 27 October 2026
+
+- Protected NW123 parent: `5cf65294622f930401d3f50981bdbb38a02bef0a`; isolated branch `update/nightwave-nw124-useful-optional-extras`.
+- Public-link-only 30-track playlist format exposed as user-chosen `.txt` export and `.txt`/paste import through Android SAF. Explicit preview and confirmation before any import; existing playlists are not silently replaced. Strict UTF-8, 48 KB input cap, Unicode-safe filenames and private-audio exclusion.
+- Already eligible Commons audio candidates are ranked stably by advisory title-word evidence with explicit not-the-same-recording warnings. No new music rights, candidates, downloads or automatic playback.
+- Screen-reader-adjustable sleep dial and 48dp presets/cancel targets; active timer shows **Replace timer**. Service scheduler and playback engine unchanged.
+- Added **13 JVM** test declarations (6 offline discovery and 7 playlist file cases), plus **2 Android Compose** test declarations for sleep-timer accessibility. All new tests remain **UNRUN**. See [NW124 evidence](NW124_OPTIONAL_EXTRAS_EVIDENCE.md).
+- **SOURCE_IMPLEMENTED_UNVERIFIED**: exact-commit Windows build, Android compile, device/SAF verification, signer continuity, Google/OAuth, 139-case acceptance, 30-minute playback and music rights remain pending. Public release NO-GO.
+- Next ordered wave: **NW125 final certification**.
