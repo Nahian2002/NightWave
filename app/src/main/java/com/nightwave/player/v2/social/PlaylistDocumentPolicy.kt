@@ -25,7 +25,7 @@ object PlaylistDocumentPolicy {
         if (bytes.isEmpty() || bytes.size > MAX_BYTES) return null
         // Preserve Bangla vowel/combining marks without allowing separators,
         // traversal punctuation or filesystem-control characters.
-        val safeBase = name.replace(Regex("""[^\\p{L}\\p{M}\\p{N} _-]+"""), " ")
+        val safeBase = name.replace(Regex("""[^\p{L}\p{M}\p{N} _-]+"""), " ")
             .trim().take(55).trim().ifBlank { "NightWave playlist" }
         return PreparedPlaylistDocument("$safeBase.nightwave.txt", bytes)
     }
