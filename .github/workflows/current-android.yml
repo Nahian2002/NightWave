@@ -35,6 +35,12 @@ jobs:
         run: sdkmanager 'platforms;android-36' 'build-tools;35.0.0'
       - name: Current source, privacy and Windows safety checks
         run: python tools/verify_current.py
+      - name: NW125 source and clean-package preflight (not Android certification)
+        shell: bash
+        run: |
+          mkdir -p build
+          python tools/nw125_release_candidate_gate.py --self-test
+          python tools/nw125_release_candidate_gate.py --json > build/nw125-source-package.json
       - name: Record exact source snapshot
         shell: pwsh
         run: |
@@ -73,6 +79,7 @@ jobs:
             build/current-junit-proof.txt
             build/current-source-manifest.txt
             build/current-source-commit.txt
+            build/nw125-source-package.json
             app/build/test-results/testDebugUnitTest/TEST-*.xml
             app/build/reports/lint-results-debug.xml
           if-no-files-found: warn
