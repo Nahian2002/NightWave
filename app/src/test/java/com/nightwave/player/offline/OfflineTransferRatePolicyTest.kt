@@ -24,4 +24,20 @@ class OfflineTransferRatePolicyTest {
         assertNull(OfflineTransferRatePolicy.etaSeconds(1L, 100L, null))
         assertEquals(9L, (OfflineTransferRatePolicy.etaSeconds(10L, 100L, 10L) ?: -1L))
     }
+
+    @Test fun slowLinksAreNotRoundedUpToFakeOneKilobytePerSecond() {
+        assertEquals("1 B/s", OfflineTransferRatePolicy.display(1L))
+        assertEquals("512 B/s", OfflineTransferRatePolicy.display(512L))
+        assertEquals("1.5 KB/s", OfflineTransferRatePolicy.display(1536L))
+        assertEquals("9.5 KB/s", OfflineTransferRatePolicy.display(9728L))
+        assertEquals("10 KB/s", OfflineTransferRatePolicy.display(10240L))
+    }
+
+    @Test fun nonzeroRemainingTimeRoundsUpRatherThanDisappearing() {
+        assertEquals(1L, OfflineTransferRatePolicy.etaSeconds(99L, 100L, 10L) ?: -1L)
+        assertEquals(2L, OfflineTransferRatePolicy.etaSeconds(97L, 100L, 2L) ?: -1L)
+        assertEquals(9L, OfflineTransferRatePolicy.etaSeconds(10L, 100L, 10L) ?: -1L)
+        assertNull(OfflineTransferRatePolicy.etaSeconds(101L, 100L, 100L))
+        assertNull(OfflineTransferRatePolicy.etaSeconds(0L, -1L, 10L))
+    }
 }

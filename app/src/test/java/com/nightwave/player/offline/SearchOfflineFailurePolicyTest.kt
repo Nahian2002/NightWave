@@ -56,4 +56,13 @@ class SearchOfflineFailurePolicyTest {
                 SearchOfflineFailurePolicy.message("HTTP $code", true))
         }
     }
+
+    @Test fun partialAudioRejectionIsSafeAndNotRepresentedAsSaved() {
+        val explanation = SearchOfflineFailurePolicy.message(
+            "Partial audio response; no trusted resume checkpoint exists " +
+                "https://source.example/?token=secret", false)
+        assertEquals("The audio source returned partial audio; no offline copy was saved.",
+            explanation)
+        assertFalse(explanation.contains("token"))
+    }
 }

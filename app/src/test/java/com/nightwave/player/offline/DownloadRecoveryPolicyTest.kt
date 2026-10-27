@@ -98,4 +98,22 @@ class DownloadRecoveryPolicyTest {
         assertEquals("Audio source is rate-limited. Retry later.",
             p.failedMessage("HTTP 429"))
     }
+
+    @Test fun queuedRetryDisclosesBackoffAndCleanRestart() {
+        assertEquals("Queued · Waiting for network", p.queuedLabel(0))
+        assertEquals("Retry scheduled · Waiting for network/backoff · Starts from zero",
+            p.queuedLabel(1))
+        assertEquals(p.queuedLabel(1), p.queuedLabel(3))
+    }
+
+    @Test fun partialSourceResponsesNeverExposeSensitiveUrlOrClaimResume() {
+        val raw = "Partial audio response; no trusted resume checkpoint exists at " +
+            "https://private.example/?token=secret"
+        val sanitized = p.failedMessage(raw)
+        assertEquals("Partial audio response. No offline copy was saved; retry with a full permitted recording.",
+            sanitized)
+        assertEquals(sanitized, p.failedMessage(sanitized))
+        assertFalse(sanitized.contains("private.example"))
+        assertFalse(sanitized.contains("secret"))
+    }
 }

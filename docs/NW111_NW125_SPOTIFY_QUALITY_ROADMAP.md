@@ -66,7 +66,8 @@ Status vocabulary: PLANNED / IN_PROGRESS / CODE_COMPLETE_UNVERIFIED / GRADLE_VER
 | NW111 Music-first search | CODE_COMPLETE_UNVERIFIED | Bounded nonmusic context demotion committed; 5 new JUnit tests; Windows Gradle/JVM/device tests pending |
 | NW112 Multilingual search | CODE_COMPLETE_UNVERIFIED | Curated 3-group Romanized/Bangla fallback and 135 JUnit query/title fixtures; Android/JVM test build pending |
 | NW113 Offline truth/eligibility | CODE_COMPLETE_UNVERIFIED | Index-unreadable is not treated as deleted files; read-only per-file health and truthful file-size labels; 6 new JVM tests; full Gradle/device pending |
-| NW114–NW125 | PLANNED | No new work executed; status does not imply functionality |
+| NW114 Transfers | IN_PROGRESS | Partial HTTP 206/contradictory Content-Range fail-closed, honest byte/s and ETA, transparent queued retries; 6 new JVM tests. Safe persistent Range resume NOT implemented; full Gradle and device checks pending |
+| NW115–NW125 | PLANNED | Not started; status does not imply functionality |
 
 After every wave update this ledger with commit, automated receipts, remaining blockers, actual device acceptance and next planned wave. Avoid recalculating a "Spotify score" based on static code checks.
 
@@ -111,3 +112,15 @@ The roadmap defines future turns and test requirements; it does not schedule aut
 - Static checks: 12/12 source contract invariants verified including original availableIds signature, path/symlink safety, UI off-thread checks, generation guard and old tests.
 - **NOT EXECUTED:** full Android Gradle/JUnit suites on this commit, complete phone offline playback, read/write low-storage or same-size corruption proof. Size equality is NOT a cryptographic hash or successful Media3 decode. Public music-source rights remain NO-GO until verified.
 - Next: NW114 Transfers & Resumability — true retry state and byte-range continuation only when an authorized source supports it, otherwise truthful restart semantics.
+
+## NW114 implementation ledger — 2026-10-27
+
+- Protected cumulative baseline: NW113 commit 8dffa59b7fc77290b88a0ebefca781eae628895a. Work performed on isolated feature/nightwave-nw114-transfer-truth-and-retry. Existing code, offline library and Android package/signing remain intact.
+- Complete-response safety: AudioDownloadNetworkPolicy.isFullStartResponse() only accepts HTTP 200 with no Content-Range. PermittedAudioDownloader still issues normal GET without Range and rejects 206 or contradictory 200/Content-Range, with a safe text error; never appends response bytes or registers corrupt partial downloads. All pre-existing URL whitelist/DNS/private-storage/media validation checks retained.
+- Throughput and ETA: OfflineTransferRatePolicy now reports actual B/s under 1 KiB/s and one-decimal KiB/s below 10 KiB/s; ETA always rounds a positive remainder upward and never invents a known duration when server total is unavailable.
+- Queued retries: WorkManager ENQUEUED with prior run attempts says "Retry scheduled · Waiting for network/backoff · Starts from zero"; first attempt remains "Queued · Waiting for network". Pause remains a cancellation request, not a byte-range resume.
+- Public UI errors: both general and search offline failure policies classify unsupported partial audio separately without revealing raw signed media URLs or response internals. No new media provider, API key, login, elevated permission, network bypass or source capability is introduced.
+- Regression declaration: 6 additional JUnit methods across AudioDownloadNetworkPolicyTest (1), OfflineTransferRatePolicyTest (2), DownloadRecoveryPolicyTest (2), SearchOfflineFailurePolicyTest (1). Existing tests retained; real JUnit invocation and Android runtime are NOT VERIFIED.
+- Source/diff inspection: only the four source policies, downloader, Downloads UI and four corresponding existing JUnit test files changed (10 files); no library, auth, playback, app manifest, Gradle configuration or signer files touched.
+- **Deferral / remaining scope:** HTTP byte-range resume is NOT implemented. Current downloader intentionally deletes incomplete staging files on cancellation/error; even a source advertising Accept-Ranges is NOT enough to safely resume. True persistent resume needs a stable source identity, strong ETag/validator, Content-Range verification, authenticated private checkpoint persistence, bounded bytes, final full-file hash plus decoder validation, cleanup and lifecycle tests. Never claim existing Pause/Resume retains partial bytes. Additional full JVM/Gradle, reboot, network failure, low-storage, 139-case device and source-rights tests remain mandatory.
+- **NW114 status IN_PROGRESS**, source improvements committed but end-to-end completeness and safe resume unverified; NW115 planned only, not claimed. Public release still NO-GO.
