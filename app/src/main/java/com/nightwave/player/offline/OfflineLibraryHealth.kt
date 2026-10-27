@@ -28,6 +28,24 @@ data class OfflineLibraryHealthReport(
         get() = entries.size - attentionCount
 }
 
+/**
+ * NW113: one read-only batch snapshot for transfer UI and search consumers.
+ * A broken index is NOT proof that every saved audio file was deleted.
+ * AVAILABLE here means safe path + readable regular file + expected length;
+ * full checksum/decoder success must not be inferred from this quick probe.
+ */
+data class OfflineAvailabilitySnapshot(
+    val indexReadable: Boolean,
+    val healthById: Map<String, OfflineFileHealth>
+) {
+    val availableIds: Set<String>
+        get() = if (!indexReadable) emptySet() else
+            healthById.filterValues { it == OfflineFileHealth.AVAILABLE }.keys
+
+    fun health(id: String?): OfflineFileHealth? =
+        if (!indexReadable || id.isNullOrBlank()) null else healthById[id]
+}
+
 /** Pure policy for testable and conservative read-only classification. */
 internal object OfflineLibraryHealthPolicy {
     fun classify(
