@@ -12,6 +12,30 @@ internal object PlaybackResolutionPolicy {
         desiredId: String?, loadedId: String?, hasError: Boolean
     ): Boolean = !hasError && desiredId != null && desiredId == loadedId
 
+    /**
+     * An IDLE Media3 player can still retain a MediaItem whose temporary
+     * network stream URI has expired. Never prepare that stale URI merely
+     * because the public song ID happens to match. Re-resolve on explicit Play.
+     * Existing ID-only comparisons remain available for non-resume use.
+     */
+    fun canResumeLoadedPublic(
+        desiredId: String?, loadedId: String?,
+        hasError: Boolean, playerIdle: Boolean
+    ): Boolean = !playerIdle &&
+        desiredId != null &&
+        QueueRestorePolicy.isCanonicalPublicWatchUrl(desiredId) &&
+        reusesLoadedTrack(desiredId, loadedId, hasError)
+
+    /** Same saved queue after process recovery: preserve its Shuffle/Play Next
+     * state instead of replacing it just to look up a fresh media stream. */
+    fun shouldResolveSavedSelection(
+        sameQueue: Boolean, explicitPlay: Boolean,
+        selectedId: String?, reusableLoaded: Boolean,
+        pendingMatching: Boolean
+    ): Boolean = sameQueue && explicitPlay && !reusableLoaded &&
+        !pendingMatching && selectedId != null &&
+        QueueRestorePolicy.isCanonicalPublicWatchUrl(selectedId)
+
     fun awaitsSameResolution(
         desiredId: String?, pendingId: String?
     ): Boolean = desiredId != null && desiredId == pendingId
