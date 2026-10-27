@@ -74,7 +74,8 @@ Status vocabulary: PLANNED / IN_PROGRESS / CODE_COMPLETE_UNVERIFIED / GRADLE_VER
 | NW119 Lyrics | GRADLE_VERIFIED_DEVICE_PENDING | Strict leading LRC timestamps, shared import/review parsing, lossless length rejection and overflow-safe seek; nine new regressions; cumulative 1,421 JVM tests pass; Bangla/TalkBack/device timing QA pending |
 | NW120 Audio/EQ | GRADLE_VERIFIED_DEVICE_PENDING | Reviewed-session command identity, fresh discovery acknowledgements, effect-control/enabled callbacks, preset readback and shared-session crossfade; 12 new JVM methods, cumulative 1,433 tests pass; audible/route acceptance pending |
 | NW121 Drive/guest backup | GRADLE_VERIFIED_DEVICE_PENDING | Premium responsive account hub, explicit access proof, same-account worker freshness fencing, wrapped-error handling and real-client isolated roundtrip; 20 new JVM methods; 1,453 tests pass; four new Android store cases compile only, live Google/phone QA pending |
-| NW122–NW125 | PLANNED | Next ordered wave is NW122 measured performance; final release acceptance remains open |
+| NW122 Performance | JVM_MEASURED_DEVICE_PENDING | Invocation-local saved identities, single-scan token evidence, shared bounded suggestions and once-per-row public/library sort keys; unchanged-result Kotlin host comparison; startup/ART/next/jank/battery/30-minute soak remain pending |
+| NW123–NW125 | PLANNED | Next ordered source wave is NW123 accessibility; final release acceptance remains open |
 
 After every wave update this ledger with commit, automated receipts, remaining blockers, actual device acceptance and next planned wave. Avoid recalculating a "Spotify score" based on static code checks.
 
@@ -323,3 +324,13 @@ The roadmap defines future turns and test requirements; it does not schedule aut
 - Twenty new JUnit methods execute access/error/layout policies and real Drive client/codecs through an isolated HTTP interceptor. The disposable guest archive upload/readback/decode roundtrip, unchanged-copy reuse, corrupt/denied readback and network/invalid-input failure paths pass without a real account or network. Four new Android store cases compile but were NOT executed.
 - Final Windows builder, all **1,453 JVM tests**, 49 source checks, Android instrumentation-source compile, APK identity and local NW120 signer comparison pass. Lint has zero errors; see [NW121 evidence](NW121_PREMIUM_ACCOUNT_RECOVERY_EVIDENCE.md) for warnings/hashes and limits.
 - Next ordered wave: **NW122 measured performance**. Live Google OAuth/restore, physical layouts, installed-phone signer and earlier acceptance/release gates remain open; no Spotify parity score or public release approval is claimed.
+
+## NW122 implementation ledger — 27 October 2026
+
+- Parent: verified NW121 `10ea25315d9746ebbde463ef05067b50798c9614`; branch `update/nightwave-nw122-measured-performance`.
+- Saved search prepares Unicode/display identities once per invocation across strict/alias/typo passes. Token occurrence matching uses one scan without per-candidate singleton lists, preserving exact/prefix/typo priority and repeated-word/Bangla semantics. There is no persistent or cross-library cache.
+- Public scores and library title/creator keys are prepared once per row before sorting. Same-query suggestions reuse main saved matches only within their existing 5,000-row source limit; larger main searches still cover the full supplied library. Background/cancellation/clear-before-suspend/debounce behavior remains.
+- Eleven new JVM methods verify old occurrence-selection parity over seeded inputs, old ordering comparators, original metadata/objects, aliases/duplicates, edited/removed snapshots, shared suggestions and source bounds. Cumulative **1,464 JVM tests** pass. Preflights retain score/Unicode/URL guards and check both suggestion paths.
+- Actual Kotlin/host-JVM measurements compare the unchanged detached NW121 parent and candidate, with three fresh processes per version, 12 warmups and 40 samples per scenario. Raw source/harness/result hashes, individual receipts and the exact interpretation are in [NW122 evidence](NW122_PERFORMANCE_MEASUREMENT.md). No speed threshold replaces correctness tests.
+- NW122 is **JVM_MEASURED_DEVICE_PENDING**: no phone cold/warm start, input-to-display/ART latency, playback-next time, Android allocation/jank/battery trace or 30-minute soak is claimed. The evidence includes a concrete physical acceptance protocol. Prior account/audio/device/signer/rights gates remain open.
+- Next ordered source wave: **NW123 accessibility**. Public release remains NO-GO.

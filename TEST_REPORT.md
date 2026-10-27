@@ -1,27 +1,23 @@
-# Current verification — NW121 premium account/recovery
+# Current verification — NW122 measured search/library performance
 
-27 October 2026. Branch: `update/nightwave-nw121-premium-account-recovery`. Parent: verified NW120 `eb2722002fdd047bc9f0bff0a1d0e8be83eb167e`.
+27 October 2026. Branch: `update/nightwave-nw122-measured-performance`. Parent: verified NW121 `10ea25315d9746ebbde463ef05067b50798c9614`.
 
 ## Executed locally
 
-- Complete one-click Windows builder: **BUILD SUCCESS**.
-- JVM regression suite: **1,453 tests in 183 suites, zero failures/errors/skips**. Twenty new methods execute account access, wrapped-error, presentation and isolated Drive roundtrip cases.
-- Android production Kotlin/Compose and instrumentation-source compilation: **PASS**. Four new Android store tests were compiled; no Android/device tests were executed.
-- Debug APK assembly and package/version/signature validation: **PASS**. Independent signer comparison against saved NW120: **MATCH**; installed phone remains untested.
-- Current structural/negative and Windows preflights: **49/49 PASS**.
-- Android lint: **PASS**, zero errors, 313 warnings and 17 hints. No new suppression or warning baseline was added.
-- Source attestation: **792 build-affecting files match the compiled working-tree snapshot**.
+- JVM regression suite: **1,464 tests in 184 suites, zero failures/errors/skips**. Eleven new methods cover seeded occurrence-selection parity, prepared labels, stable public/library ordering, original object preservation, duplicate/alias precedence, edited/removed snapshots, shared suggestions and their 5,000-row boundary.
+- Current structural/negative and Windows preflights: **50/50 PASS** (including the new benchmark-comparison self-test). Updated integration checks retain saved-score/URL guards and require both paths of the bounded suggestion reuse.
+- An independent old grade-first oracle matches the new single-scan evidence across 1,200 seeded inputs in both typo modes. Existing Unicode/Bangla, multilingual aliases, playback, cloud, lyrics and library tests remain in the executed suite.
+- Opt-in actual-Kotlin host benchmarks compare an unchanged detached NW121 checkout with this candidate, using identical harness, synthetic labels, runtime and heap. The comparison requires three fresh JVM processes per version and equal ordered-output hashes. See [NW122 protocol, raw receipts, measurements and limits](docs/NW122_PERFORMANCE_MEASUREMENT.md).
+- Benchmark comparator positive/negative fixtures pass, rejecting changed runtime/harness/output/source, invalid timings and insufficient samples/processes. Timing thresholds are separate from correctness gates.
 
-## What the roundtrip proves
+The complete one-click Windows builder passes production/Compose and Android instrumentation-source compilation, debug assembly, all JVM tests and APK validation. Independent source attestation matches **795 build-affecting files**. The candidate's certificate matches the saved NW121 APK; installed-phone continuity remains untested. Exact artifact hashes and final lint receipt are recorded in [NW122 evidence](docs/NW122_PERFORMANCE_MEASUREMENT.md).
 
-The real `NightWaveDriveClient`, multipart upload, remote listing/readback and cloud/guest codecs execute through an in-memory HTTP interceptor. A disposable synthetic guest archive is uploaded, downloaded and decoded unchanged; identical verified copies are reused, while corrupt/denied readback and network or invalid input fail safely. Tests assert appDataFolder scope and no overwrite/delete requests. No Google account, OAuth token, internet request, real audio or on-device library was used.
+- Final Android lint: **PASS — zero errors, 313 warnings, 17 hints**. No new suppression or warning baseline was introduced.
 
-This does **not** execute live Google OAuth, installed-signer setup, Android account switching or the real local-library restore transaction on a phone. Existing restore preview, same-account revision and local-change guards remain compiled and covered by their existing policy tests.
+## Device boundary
 
-## Visual and device boundary
+Host-JVM numbers exclude Android ART, Compose frames, input-to-results/debounce, actual providers, decoding, startup and power conditions. No cold/warm startup, playback-next latency, Android allocation/jank/battery trace or 30-minute playback soak was executed. NW122 remains device-pending; small changes between direct-search timings may be noise.
 
-The redesigned hub is real Compose source compiled into the APK. Pure layout/action tests cover compact width and 2x font decisions; no device/emulator screenshot, pixel comparison or TalkBack run was performed. See the [NW121 acceptance checklist](docs/NW121_PREMIUM_ACCOUNT_RECOVERY_EVIDENCE.md) for live account, layout, cancellation, observer, low-storage and restore acceptance.
+Physical Samsung acceptance, installed-phone signer, production Google OAuth/restore/readback and rights/privacy approval remain open. Existing Android account-store tests are compiled only; no Android instrumentation tests were device-executed. Public release remains **NO-GO**. Next ordered source wave: **NW123 accessibility**.
 
-Physical Samsung validation, installed-phone signer, production Google restore/readback and rights/privacy approval remain open. Public release remains **NO-GO**. Next ordered wave: **NW122 measured performance**.
-
-Earlier results remain in [NW120 evidence](docs/NW120_AUDIO_SESSION_EVIDENCE.md), [NW119 evidence](docs/NW119_CLEANUP_AND_LYRICS_EVIDENCE.md), and the [historical diagnostic inventory](docs/HISTORICAL_CI_SOURCE_CHECKS_20261027.md).
+Earlier results remain in [NW121 account/recovery evidence](docs/NW121_PREMIUM_ACCOUNT_RECOVERY_EVIDENCE.md), [NW120 audio evidence](docs/NW120_AUDIO_SESSION_EVIDENCE.md), [NW119 cleanup evidence](docs/NW119_CLEANUP_AND_LYRICS_EVIDENCE.md) and the [historical diagnostic inventory](docs/HISTORICAL_CI_SOURCE_CHECKS_20261027.md).

@@ -1,0 +1,96 @@
+{
+  "outputSha256": "9e5882625f577b18ae5c2ea81548bde5809d5566bbac56f226f2291681b339c2",
+  "sourceSha256": {
+    "app/src/main/java/com/nightwave/player/net/SearchRelevancePolicy.kt": "7a2dc13d726574c64bf99ec8de9bf8654b7ddc7d695c0d10a037480240ef41fb",
+    "app/src/main/java/com/nightwave/player/net/MusicIdentity.kt": "a2a5cf2a44e1e4ed9db6080111b61556d694a6514f3899879c089870138d2bde",
+    "app/src/main/java/com/nightwave/player/net/SearchScriptNormalization.kt": "aed4c10d721927a0a55564943563722db35de105bf1ec28a7f71d20ba059de73",
+    "app/src/main/java/com/nightwave/player/net/SearchMultilingualAliasPolicy.kt": "71b07b0c8e05369352d255b6cbf34b5ef45d80bfbfea77a643f6c8c8cab438df",
+    "app/src/main/java/com/nightwave/player/net/SavedTrackSearch.kt": "c239aad3f7eb57725609ed811403808e5e8afe0bf0f986f591406124cbdb4c1f",
+    "app/src/main/java/com/nightwave/player/net/SearchTokenMatchingPolicy.kt": "f4f72d17ecbf0c62976846fc44b834d9fdda31bff40814cc42186373b90a8e9d",
+    "app/src/main/java/com/nightwave/player/v2/library/LibraryBrowsePolicy.kt": "0494ce20a1144f4e71ac657eed291f511ca0a32ddd9af635687b1edf4dd7dba4",
+    "app/src/main/java/com/nightwave/player/net/SearchMusicIntentPolicy.kt": "12333721eaf0858863520c65642f7eb23567a59f064937a6a46c6aa3cceebb4c"
+  },
+  "heapArguments": "-Xms512m -Xmx1024m (benchmark task)",
+  "java": "21.0.8+9-LTS",
+  "os": "Windows 11 amd64",
+  "scope": "synthetic host JVM; not Android latency, battery or soak",
+  "vm": "OpenJDK 64-Bit Server VM",
+  "processors": 32,
+  "harnessSha256": "4e9d6df36d3454b8c4641b6f2d82845075b28da656b711703961d748540cbc57",
+  "warmupsPerScenario": 12,
+  "libraryRows": 5000,
+  "measurements": [
+    {
+      "resultCount": 24,
+      "scenario": "saved:moonlight",
+      "p95Ms": 25.8197,
+      "maxMs": 27.7099,
+      "samples": 40,
+      "medianMs": 21.99205
+    },
+    {
+      "resultCount": 24,
+      "scenario": "saved:ভালোবাসা",
+      "p95Ms": 22.4538,
+      "maxMs": 27.6173,
+      "samples": 40,
+      "medianMs": 21.0078
+    },
+    {
+      "resultCount": 24,
+      "scenario": "saved:alo alo",
+      "p95Ms": 24.0936,
+      "maxMs": 25.3788,
+      "samples": 40,
+      "medianMs": 21.72755
+    },
+    {
+      "resultCount": 24,
+      "scenario": "saved:valobasha",
+      "p95Ms": 32.1109,
+      "maxMs": 36.9582,
+      "samples": 40,
+      "medianMs": 25.84875
+    },
+    {
+      "resultCount": 24,
+      "scenario": "saved:midnigth",
+      "p95Ms": 27.0167,
+      "maxMs": 28.4241,
+      "samples": 40,
+      "medianMs": 23.7989
+    },
+    {
+      "resultCount": 0,
+      "scenario": "saved:missingword",
+      "p95Ms": 25.7645,
+      "maxMs": 27.9294,
+      "samples": 40,
+      "medianMs": 23.49435
+    },
+    {
+      "resultCount": 150,
+      "scenario": "public:moonlight",
+      "p95Ms": 5.5569,
+      "maxMs": 5.8682,
+      "samples": 40,
+      "medianMs": 4.4716
+    },
+    {
+      "resultCount": 5000,
+      "scenario": "library:title",
+      "p95Ms": 11.2225,
+      "maxMs": 11.5967,
+      "samples": 40,
+      "medianMs": 9.92765
+    },
+    {
+      "resultCount": 5000,
+      "scenario": "library:creator",
+      "p95Ms": 14.5174,
+      "maxMs": 16.4223,
+      "samples": 40,
+      "medianMs": 12.39265
+    }
+  ]
+}

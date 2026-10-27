@@ -10,11 +10,14 @@ object SavedTrackSearch {
         val prepared = SearchRelevancePolicy.prepare(query)
         if (!prepared.valid) return emptyList()
         if (limit <= 0) return emptyList()
+        // Reuse Unicode/display preparation across strict, alias and typo
+        // passes of THIS snapshot. No stale cross-query/library cache.
+        val identities = tracks.map(SearchRelevancePolicy::prepareSaved)
         // Compute the expensive Unicode identity score once per saved row,
         // then select the BEST entry for duplicated URLs rather than retaining
         // a weaker early placeholder title. Stable ties keep saved order.
         val strict = tracks.withIndex().mapNotNull { (index, track) ->
-            val score = SearchRelevancePolicy.savedScore(prepared, track)
+            val score = SearchRelevancePolicy.savedScore(prepared, identities[index])
             if (score <= 0) null else Triple(track, score, index)
         }
         // A curated Romanized/Bangla spelling is a fallback ONLY if there
@@ -26,7 +29,7 @@ object SavedTrackSearch {
         } else emptyList()
         val aliasHits = if (aliasQueries.isEmpty()) emptyList() else
             tracks.withIndex().mapNotNull { (index, track) ->
-                val best = aliasQueries.maxOf { SearchRelevancePolicy.savedScore(it, track) }
+                val best = aliasQueries.maxOf { SearchRelevancePolicy.savedScore(it, identities[index]) }
                 val score = (best - 25).coerceAtLeast(0)
                 if (score <= 0) null else Triple(track, score, index)
             }
@@ -36,7 +39,7 @@ object SavedTrackSearch {
             strict.isNotEmpty() -> strict
             aliasHits.isNotEmpty() -> aliasHits
             else -> tracks.withIndex().mapNotNull { (index, track) ->
-                val score = SearchRelevancePolicy.savedScore(prepared, track, allowTypo = true)
+                val score = SearchRelevancePolicy.savedScore(prepared, identities[index], allowTypo = true)
                 if (score <= 0) null else Triple(track, score, index)
             }
         }

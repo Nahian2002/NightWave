@@ -44,6 +44,14 @@ object SearchRelevancePolicy {
     fun savedMatches(query: Query, track: VideoPreview): Boolean =
         savedScore(query, track) > 0
 
+    /** Invocation-local derived labels; never persisted or cached globally. */
+    internal data class SavedIdentity(val title: String, val artist: String, val words: List<String>)
+
+    internal fun prepareSaved(track: VideoPreview): SavedIdentity {
+        val id = identity(track)
+        return SavedIdentity(id.title, id.artist, SearchTokenMatchingPolicy.tokens(id.searchable))
+    }
+
     /**
      * Prefer full words and real long-prefix matches. A typo candidate is
      * available only as a separate fallback when no strict saved hits exist.
@@ -51,10 +59,13 @@ object SearchRelevancePolicy {
      */
     fun savedScore(query: Query, track: VideoPreview, allowTypo: Boolean = false): Int {
         if (!query.valid) return 0
-        val id = identity(track)
-        val allWords = SearchTokenMatchingPolicy.tokens(id.searchable)
+        return savedScore(query, prepareSaved(track), allowTypo)
+    }
+
+    internal fun savedScore(query: Query, id: SavedIdentity, allowTypo: Boolean = false): Int {
+        if (!query.valid) return 0
         val strengths = SearchTokenMatchingPolicy.evidenceForTerms(
-            query.terms, allWords, allowTypo)
+            query.terms, id.words, allowTypo)
         if (strengths.any { it == 0 }) return 0
         val exactTitle = id.title == query.text
         val exactArtist = id.artist == query.text
@@ -149,9 +160,9 @@ object SearchRelevancePolicy {
     fun rankPublic(query: String, results: List<VideoPreview>): List<VideoPreview> {
         val prepared = prepare(query)
         if (!prepared.valid) return results
-        return results.withIndex().sortedWith(
-            compareByDescending<IndexedValue<VideoPreview>> { publicScore(prepared, it.value) }
-                .thenBy { it.index }
-        ).map { it.value }
+        // A comparator runs many times per item. Score once before sorting.
+        return results.mapIndexed { index, track -> Triple(track, publicScore(prepared, track), index) }
+            .sortedWith(compareByDescending<Triple<VideoPreview, Int, Int>> { it.second }
+                .thenBy { it.third }).map { it.first }
     }
 }
