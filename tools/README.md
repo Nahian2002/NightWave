@@ -1,6 +1,6 @@
 # NightWave tools — current use and historical checks
 
-**Current source target:** `release/nightwave-nw125-final-candidate`; latest fully executed build evidence remains NW122. These scripts have different evidence strength; do not treat an old smoke PASS as current Android/phone certification.
+**Current implementation baseline:** cumulative NW125; fresh local build and 1,484 JVM tests pass. The audit branch repairs the NW125 Python gate and runs **52 current checks**, including its self-test and normal JSON mode. See [current verification](../TEST_REPORT.md) and [active NW126–NW145 plan](../docs/PRODUCT_QUALITY_ROADMAP.md). Source checks do not certify phone behavior.
 
 ## Recommended entrypoints
 

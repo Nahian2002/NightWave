@@ -1,5 +1,7 @@
 # NightWave — Spotify-quality roadmap, NW111–NW125
 
+> Active-plan update, 28 October 2026: the next upgrade sequence is **NW126–NW145**, defined in [PRODUCT_QUALITY_ROADMAP.md](PRODUCT_QUALITY_ROADMAP.md), with a new recording/source audit, structured backlog and acceptance cases. NW111–NW125 below is implementation history; its earlier next-step and unexecuted-build statements are dated evidence. The current test report records a fresh 1,484-test cumulative build and the repaired repository gate. Pending phone/release gates carry forward; they are not marked passed by the new plan.
+
 Established: 27 October 2026. Status: ACTIVE PLAN, NOT RELEASE CERTIFICATION.
 Protected parent: 7011ad2609e5074f72e5ea750148b0cf625d8f94 (NW110 and Windows-build corrections).
 Development branch: feature/nightwave-nw111-spotify-quality-roadmap-search-relevance.

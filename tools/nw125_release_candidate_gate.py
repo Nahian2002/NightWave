@@ -54,7 +54,7 @@ ALLOWED_FIXTURES = ("app/src/main/res/", "app/src/test/", "app/src/androidTest/"
 
 
 def source_names(root: Path) -> list[str]:
-    if (root.joinpath(".git").exists():
+    if root.joinpath(".git").exists():
         process = subprocess.run(["git", "-C", str(root), "ls-files", "-z"],
                                  stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
                                  timeout=20, check=False)
