@@ -4507,6 +4507,12 @@ private fun StudioLibrary(
             }
         }
         if (selectedPlaylist == null) {
+            item(key = "import-nightwave-playlist-document") {
+                OutlinedButton(onClick = onImportSharedPlaylist,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                    Text("Import playlist (.txt or pasted links)")
+                }
+            }
             item(key = "nw47-library-quick-access") {
                 Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())
                         .testTag("nw47-library-quick-access"),
