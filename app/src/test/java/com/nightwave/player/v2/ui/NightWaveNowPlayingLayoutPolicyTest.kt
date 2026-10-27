@@ -101,8 +101,12 @@ class NightWaveNowPlayingLayoutPolicyTest {
             311.9f, 720f, 1f).splitTransportControls)
         assertFalse(NightWaveNowPlayingLayoutPolicy.resolve(
             312f, 720f, 1f).splitTransportControls)
+        // Under 360dp the existing padding is 14dp, not 20dp.
+        // That puts the 320dp content threshold at 348dp.
         assertTrue(NightWaveNowPlayingLayoutPolicy.resolve(
-            359.9f, 720f, 1f).stackQuickActions)
+            347.9f, 720f, 1f).stackQuickActions)
+        assertFalse(NightWaveNowPlayingLayoutPolicy.resolve(
+            348f, 720f, 1f).stackQuickActions)
         assertFalse(NightWaveNowPlayingLayoutPolicy.resolve(
             360f, 720f, 1f).stackQuickActions)
     }
