@@ -231,18 +231,32 @@ fun StudioMiniPlayer(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(miniLayout.labelGapDp.dp)
                 ) {
-                    if (miniLayout.showArtwork) Crossfade(
-                        targetState = state.thumbnail,
-                        animationSpec = tween(
-                            durationMillis = NightWaveMotionPolicy.duration(
-                                reducedMotion, NightWaveMotionPolicy.COVER_MS)),
-                        label = "Mini player changing cover"
-                    ) { thumbnail ->
-                        CoverArt(thumbnail, Modifier.size(miniLayout.artworkDp.dp)
-                            .graphicsLayer {
-                                scaleX = miniScale
-                                scaleY = miniScale
-                            }, 11, "Artwork for " + identity.title)
+                    if (miniLayout.showArtwork) {
+                        val currentArtwork = remember(state.videoUrl, state.thumbnail) {
+                            NightWaveArtworkTransitionPolicy.frame(
+                                state.videoUrl, state.thumbnail)
+                        }
+                        if (reducedMotion) {
+                            // Direct composition avoids even a zero-duration
+                            // overlap of outgoing artwork for Reduce Motion.
+                            CoverArt(state.thumbnail, Modifier.size(miniLayout.artworkDp.dp),
+                                11, "Artwork for " + identity.title)
+                        } else {
+                            Crossfade(
+                                targetState = currentArtwork,
+                                animationSpec = tween(
+                                    durationMillis = NightWaveMotionPolicy.COVER_MS),
+                                label = "Mini player changing cover"
+                            ) { artwork ->
+                                CoverArt(artwork.thumbnail,
+                                    Modifier.size(miniLayout.artworkDp.dp).graphicsLayer {
+                                        scaleX = miniScale
+                                        scaleY = miniScale
+                                    }, 11, NightWaveArtworkTransitionPolicy
+                                        .accessibilityDescription(
+                                            artwork, currentArtwork, identity.title))
+                            }
+                        }
                     }
                     Column(Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -313,7 +327,7 @@ fun StudioMiniPlayer(
 @Composable
 private fun CoverArt(
     url: String, modifier: Modifier = Modifier, radius: Int = 24,
-    description: String = "Song artwork"
+    description: String? = "Song artwork"
 ) {
     val preferredArtwork = remember(url) { NightWaveArtworkPolicy.preferredArtwork(url) }
     var useOriginal by remember(url) { mutableStateOf(false) }
@@ -773,16 +787,26 @@ fun StudioNowPlayingOverlay(
                     ),
                     contentAlignment = Alignment.Center
                 ) {
-                    Crossfade(
-                        targetState = state.thumbnail,
-                        animationSpec = tween(
-                            durationMillis = NightWaveMotionPolicy.duration(
-                                reduceMotion, NightWaveMotionPolicy.COVER_MS)),
-                        label = "Player artwork"
-                    ) { thumbnail ->
-                        CoverArt(thumbnail, Modifier.fillMaxSize(),
+                    val currentArtwork = remember(state.videoUrl, state.thumbnail) {
+                        NightWaveArtworkTransitionPolicy.frame(
+                            state.videoUrl, state.thumbnail)
+                    }
+                    if (reduceMotion) {
+                        CoverArt(state.thumbnail, Modifier.fillMaxSize(),
                             playerLayout.artworkCornerDp,
                             "Artwork for " + playerIdentity.title)
+                    } else {
+                        Crossfade(
+                            targetState = currentArtwork,
+                            animationSpec = tween(
+                                durationMillis = NightWaveMotionPolicy.COVER_MS),
+                            label = "Player artwork"
+                        ) { artwork ->
+                            CoverArt(artwork.thumbnail, Modifier.fillMaxSize(),
+                                playerLayout.artworkCornerDp,
+                                NightWaveArtworkTransitionPolicy.accessibilityDescription(
+                                    artwork, currentArtwork, playerIdentity.title))
+                        }
                     }
                     if (state.buffering) {
                         Box(
@@ -790,10 +814,20 @@ fun StudioNowPlayingOverlay(
                                 .background(colors.background.copy(alpha = .76f)),
                             contentAlignment = Alignment.Center
                         ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(29.dp),
-                                color = colors.primary, strokeWidth = 2.dp
-                            )
+                            if (reduceMotion) {
+                                // A genuinely static buffering cue; the
+                                // indeterminate spinner itself is animation.
+                                Text("Loading",
+                                    modifier = Modifier.testTag(
+                                        "nightwave-now-playing-static-loading"),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = colors.onBackground)
+                            } else {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(29.dp),
+                                    color = colors.primary, strokeWidth = 2.dp
+                                )
+                            }
                         }
                     }
                 }
@@ -1042,15 +1076,24 @@ fun StudioNowPlayingOverlay(
                             Text(queuePreview.heading,
                                 style = MaterialTheme.typography.labelSmall,
                                 color = colors.onSurfaceVariant)
-                            Crossfade(
-                                targetState = queuePreviewTitle,
-                                animationSpec = tween(NightWaveMotionPolicy.duration(
-                                    reduceMotion, NightWaveMotionPolicy.FEEDBACK_MS)),
-                                label = "Next queued song"
-                            ) { title ->
-                                Text(title, style = MaterialTheme.typography.titleMedium,
+                            if (reduceMotion) {
+                                // No previous title layer survives even one
+                                // instant frame when motion is reduced.
+                                Text(queuePreviewTitle,
+                                    style = MaterialTheme.typography.titleMedium,
                                     maxLines = 1, overflow = TextOverflow.Ellipsis,
                                     color = colors.onSurface)
+                            } else {
+                                Crossfade(
+                                    targetState = queuePreviewTitle,
+                                    animationSpec = tween(NightWaveMotionPolicy.FEEDBACK_MS),
+                                    label = "Next queued song"
+                                ) { title ->
+                                    Text(title,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                        color = colors.onSurface)
+                                }
                             }
                         }
                         Icon(Icons.AutoMirrored.Outlined.QueueMusic,
