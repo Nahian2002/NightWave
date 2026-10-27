@@ -1,5 +1,7 @@
 # NightWave product audit — 28 October 2026
 
+> Follow-up: NW126 is locally verified for build identity/baseline, with physical checks pending. The next source batch is NW127 in the [active roadmap](../PRODUCT_QUALITY_ROADMAP.md). This frozen audit retains its original observations and 6.7/10 rubric.
+
 **Provisional comparative product score: 6.7/10.** The existing player, visual identity and optional backup are useful foundations. Repeated controls, uneven information density, ambiguous source/recording identity, and disconnected offline journeys keep the experience below a polished premium music app. The next target is **9.5+ within NightWave's declared scope**, assessed through real task outcomes and device evidence.
 
 This is a demanding subjective review, not a measured Spotify score or a guarantee that every app function has been exercised. The earlier roadmap's 7.0 estimate used a different recording/rubric; subtracting these numbers would not measure regression.

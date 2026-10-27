@@ -5053,6 +5053,8 @@ private fun StudioProfile(
     onManageHistory: () -> Unit
 ) {
     var name by rememberSaveable(profile.localId) { mutableStateOf(profile.displayName) }
+    var showBuildDetails by rememberSaveable { mutableStateOf(false) }
+    if (showBuildDetails) NightWaveBuildDetailsDialog { showBuildDetails = false }
     var editing by rememberSaveable { mutableStateOf(false) }
     var showAppearance by rememberSaveable { mutableStateOf(false) }
     var showBackup by rememberSaveable { mutableStateOf(false) }
@@ -5444,6 +5446,8 @@ private fun StudioProfile(
                 }
                 StudioProfileRow("Crash diagnostics", "Preview before sharing any report",
                     Icons.Outlined.Settings, onShareDiagnostics)
+                StudioProfileRow("App details", "Version and build ID for support",
+                    Icons.Outlined.Settings, { showBuildDetails = true })
             }
         }
         item {

@@ -1,6 +1,6 @@
 # NightWave — repository navigation
 
-**Current implementation baseline:** cumulative NW125, now locally built/tested. The latest audit/required-gate repair and active plan are on [`audit/nightwave-post-nw125-quality-roadmap`](https://github.com/Nahian2002/NightWave/tree/audit/nightwave-post-nw125-quality-roadmap). **Next: NW126.** GitHub default `main` is an older app. Physical acceptance remains open.
+**Current implementation baseline:** cumulative NW125, now locally built/tested. The latest audit/required-gate repair and active plan are on [`audit/nightwave-post-nw125-quality-roadmap`](https://github.com/Nahian2002/NightWave/tree/audit/nightwave-post-nw125-quality-roadmap). **Next: NW127.** GitHub default `main` is an older app. Physical acceptance remains open.
 
 ## Start here
 
@@ -9,6 +9,7 @@
 | Project overview and limitations | [README](../README.md) |
 | **Final Windows build & phone test** | [NW125 final candidate guide](NW125_FINAL_CANDIDATE.md) |
 | **Active phase plan and true development gates** | [NW126–NW145 roadmap](PRODUCT_QUALITY_ROADMAP.md), [structured backlog](quality/NW126_NW145_BACKLOG.json), [acceptance cases](quality/NW126_NW145_ACCEPTANCE.csv) |
+| Current build identity and acceptance baseline | [NW126 evidence](NW126_BUILD_IDENTITY_BASELINE.md) |
 | Detailed current product rating and source/video findings | [28 October audit](audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md) |
 | Windows build, Android signing and release procedure | [Build and release](BUILD_AND_RELEASE.md) |
 | Release risks and blockers | [Release readiness](../RELEASE_READINESS.md) |
@@ -25,7 +26,7 @@
 - **JVM tests:** `app/src/test/`; **device tests:** `app/src/androidTest/`. Pure CLI smoke scripts are useful preflights, never substitutes for these suites.
 - **Build rules:** root `build.gradle.kts`, `settings.gradle.kts`, `gradle.properties`, and `app/build.gradle.kts`; **CI:** `.github/workflows/`. Do not delete or alter SDK/signing checks for cosmetic cleanup.
 - **Room schema/migrations and settings:** Treat all as migration evidence; never delete without a verified backwards-compatibility and restore audit.
-- **Current source wave:** NW125 implementation, audited from `61703c98238e762e59c049b6690853431f822884`, with the current gate repair on the audit branch. The cumulative APK is now locally built/tested; `main` does not contain these waves. NW126 is the next planned implementation batch.
+- **Current source wave:** NW125 implementation, audited from `61703c98238e762e59c049b6690853431f822884`, with the current gate repair on the audit branch. NW126 build identity/baseline is locally verified on the current update branch; `main` does not contain these waves. NW127 is the next planned source batch.
 
 Current automated workflow: `.github/workflows/current-android.yml`; `android.yml` remains a manual historical diagnostic. See [historic check inventory](HISTORICAL_CI_SOURCE_CHECKS_20261027.md).
 
@@ -41,4 +42,4 @@ Current automated workflow: `.github/workflows/current-android.yml`; `android.ym
 
 Keep generated Android `build/`, local `.gradle/`, IDE settings, archives, diagnostic logs/dumps, local secrets, APKs and signing keys **outside Git**. `.gitignore` prevents future accidental adds but does not untrack history. Do not store account credentials, OAuth tokens, private playlists or media files in GitHub.
 
-**Build status:** cumulative app build and all 1,484 JVM tests pass; current runner passes 52 checks after the NW125 gate repair. See [current verification](../TEST_REPORT.md). **Release status:** NO-GO pending physical-device validation, installed signer, live restore, source rights and privacy checks. A short recording or passing source checks do not certify the full app.
+**Build status:** cumulative app build and all 1,496 JVM tests pass; current runner passes 54 checks including the packaged build identity verifier and baseline-fixture tests. See [current verification](../TEST_REPORT.md). **Release status:** NO-GO pending physical-device validation, installed signer, live restore, source rights and privacy checks. A short recording or passing source checks do not certify the full app.

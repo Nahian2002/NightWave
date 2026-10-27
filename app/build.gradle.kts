@@ -1,8 +1,53 @@
+import java.security.MessageDigest
+import java.nio.file.Files
+import java.util.concurrent.TimeUnit
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.devtools.ksp")
+}
+
+// NW126: source identity is derived from actual input bytes, not a version label.
+// No timestamp, workstation path, account, branch name or remote URL is embedded.
+fun nw126Sha(bytes: ByteArray): String = MessageDigest.getInstance("SHA-256")
+    .digest(bytes).joinToString("") { "%02X".format(it.toInt() and 255) }
+
+fun nw126Inputs(root: File): List<File> {
+    val result = mutableListOf<File>()
+    fun scan(folder: File, include: (File) -> Boolean) {
+        check(folder.isDirectory) { "Missing source directory" }
+        folder.walkTopDown().onEnter {
+            check(!Files.isSymbolicLink(it.toPath())) { "Linked source directories are unsupported" }
+            true
+        }.forEach { file ->
+            check(!Files.isSymbolicLink(file.toPath())) { "Linked source files are unsupported" }
+            if (file.isFile && include(file)) result += file
+        }
+    }
+    scan(File(root, "app/src")) { true }
+    scan(File(root, "tools")) { it.extension in setOf("ps1", "py", "cmd", "kt") }
+    listOf("app/build.gradle.kts", "app/proguard-rules.pro", "build.gradle.kts",
+        "settings.gradle.kts", "gradle.properties", "build-windows.cmd").forEach {
+        result += File(root, it).also { input -> check(input.isFile) { "Missing build configuration" } }
+    }
+    return result.distinct().sortedBy { it.relativeTo(root).invariantSeparatorsPath }
+}
+
+fun nw126Revision(root: File): String {
+    // Revision is context only. The source digest also covers uncommitted inputs.
+    fun git(vararg args: String): String? = runCatching {
+        val process = ProcessBuilder(listOf("git", "-C", root.absolutePath) + args)
+            .redirectErrorStream(true).start()
+        if (!process.waitFor(3, TimeUnit.SECONDS)) {
+            process.destroyForcibly()
+            null
+        } else if (process.exitValue() == 0) process.inputStream.bufferedReader().readText().trim() else null
+    }.getOrNull()
+    val top = git("rev-parse", "--show-toplevel") ?: return "unavailable"
+    if (File(top).canonicalFile != root.canonicalFile) return "unavailable"
+    return git("rev-parse", "HEAD")?.takeIf { it.matches(Regex("[0-9a-f]{40}")) } ?: "unavailable"
 }
 
 android {
@@ -35,6 +80,37 @@ android {
 
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
+}
+
+// Per-variant assets are generated outside app/src; there is no self-hashing file.
+android.buildTypes.forEach { type ->
+    val capitalized = type.name.replaceFirstChar { it.uppercaseChar() }
+    val generated = layout.buildDirectory.dir("generated/nightwaveProvenance/${type.name}/assets")
+    val provenance = tasks.register("generateNightWave${capitalized}Provenance") {
+        outputs.dir(generated)
+        outputs.upToDateWhen { false }
+        doLast {
+            val root = rootProject.projectDir
+            val inputs = nw126Inputs(root)
+            check(inputs.size >= 50) { "Incomplete source tree" }
+            val manifest = inputs.joinToString("") { file ->
+                nw126Sha(file.readBytes()) + "  " + file.relativeTo(root).invariantSeparatorsPath + "\n"
+            }
+            val digest = nw126Sha(("NightWave-source-v1\n" + manifest).toByteArray(Charsets.UTF_8))
+            val directory = generated.get().asFile.also { it.mkdirs() }
+            File(directory, "nightwave-build.json").writeText("""{
+              "schema": 1,
+              "algorithm": "NightWave-source-v1",
+              "variant": "${type.name}",
+              "sourceSha256": "$digest",
+              "inputCount": ${inputs.size},
+              "revisionContext": "${nw126Revision(root)}"
+            }
+            """.trimIndent() + "\n", Charsets.UTF_8)
+        }
+    }
+    android.sourceSets.getByName(type.name).assets.srcDir(generated)
+    tasks.matching { it.name == "merge${capitalized}Assets" }.configureEach { dependsOn(provenance) }
 }
 
 dependencies {

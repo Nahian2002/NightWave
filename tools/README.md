@@ -1,6 +1,6 @@
 # NightWave tools — current use and historical checks
 
-**Current implementation baseline:** cumulative NW125; fresh local build and 1,484 JVM tests pass. The audit branch repairs the NW125 Python gate and runs **52 current checks**, including its self-test and normal JSON mode. See [current verification](../TEST_REPORT.md) and [active NW126–NW145 plan](../docs/PRODUCT_QUALITY_ROADMAP.md). Source checks do not certify phone behavior.
+**Current implementation baseline:** NW126 build identity and baseline; fresh local build and 1,496 JVM tests pass. The runner executes **54 current checks**, including NW125 gates, fixture preparation and provenance negative cases. See [current verification](../TEST_REPORT.md) and [active NW126–NW145 plan](../docs/PRODUCT_QUALITY_ROADMAP.md). Source checks do not certify phone behavior.
 
 ## Recommended entrypoints
 
@@ -33,3 +33,7 @@ The [historical CI inventory](../docs/HISTORICAL_CI_SOURCE_CHECKS_20261027.md) r
 5. **Release certification:** also requires signer, data/Drive restore, device matrix, privacy/security and legal source rights.
 
 The authoritative roadmap is [NW111–NW125](../docs/NW111_NW125_SPOTIFY_QUALITY_ROADMAP.md); build handoff is [NW125 final candidate](../docs/NW125_FINAL_CANDIDATE.md). See [repository inventory and retention rules](../docs/NW118_REPOSITORY_HYGIENE_AUDIT.md). Keep reports and local APKs outside version control; do not commit credentials.
+
+## NW126 identity and baseline
+
+`verify-build-provenance.ps1` reads the actual APK asset and recomputes its source identity; Windows promotion and current CI require it. `nw126_acceptance.py --self-test` validates mapping/fixtures; `--prepare --provenance RECEIPT --apk APK --output NEW_DIRECTORY` binds a disposable 219-case pack to a verified current artifact. It never installs, contacts accounts or seeds app data. See [NW126 evidence/protocol](../docs/NW126_BUILD_IDENTITY_BASELINE.md).
