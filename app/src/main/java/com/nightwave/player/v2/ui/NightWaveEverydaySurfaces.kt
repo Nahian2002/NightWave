@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.LocalDensity
 import android.view.HapticFeedbackConstants
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -114,6 +115,7 @@ fun NightWaveRecentShelfTile(
     }
     var useOriginal by remember(song.thumbnail) { mutableStateOf(false) }
     val displayThumbnail = if (useOriginal) song.thumbnail else preferred
+    val fontScale = LocalDensity.current.fontScale
 
     Column(Modifier.width(156.dp).testTag("nw47-recent-tile"),
         verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -166,10 +168,13 @@ fun NightWaveRecentShelfTile(
                 }
                 Column(Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(identity.title, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    Text(identity.title,
+                        maxLines = NightWavePremiumDesignTokens.titleLines(fontScale, 156f),
+                        overflow = TextOverflow.Ellipsis,
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.SemiBold, color = colors.onSurface)
-                    Text(identity.artistOrCreator, maxLines = 1,
+                    Text(identity.artistOrCreator,
+                        maxLines = NightWavePremiumDesignTokens.supportingLines(fontScale),
                         overflow = TextOverflow.Ellipsis,
                         style = MaterialTheme.typography.bodySmall,
                         color = colors.onSurfaceVariant)
