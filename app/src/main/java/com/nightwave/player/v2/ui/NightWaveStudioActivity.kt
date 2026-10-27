@@ -3367,16 +3367,18 @@ private fun StudioHome(
                 favoriteCount = favorites.size,
                 playlistTrackCount = playlistTracks.size
             )
-            EmptyMusicCard(
-                emptyRecent.title, emptyRecent.detail, emptyRecent.actionLabel
-            ) {
-                when (emptyRecent.destination) {
-                    NightWaveHomeLayoutPolicy.EmptyRecentDestination.LIKED_SONGS ->
-                        openLikedSongs()
-                    NightWaveHomeLayoutPolicy.EmptyRecentDestination.LIBRARY ->
-                        openLibrary()
-                    NightWaveHomeLayoutPolicy.EmptyRecentDestination.SEARCH ->
-                        openSearch()
+            Box(Modifier.fillMaxWidth().testTag("nw117-recent-empty-state")) {
+                EmptyMusicCard(
+                    emptyRecent.title, emptyRecent.detail, emptyRecent.actionLabel
+                ) {
+                    when (emptyRecent.destination) {
+                        NightWaveHomeLayoutPolicy.EmptyRecentDestination.LIKED_SONGS ->
+                            openLikedSongs()
+                        NightWaveHomeLayoutPolicy.EmptyRecentDestination.LIBRARY ->
+                            openLibrary()
+                        NightWaveHomeLayoutPolicy.EmptyRecentDestination.SEARCH ->
+                            openSearch()
+                    }
                 }
             }
         } else {
