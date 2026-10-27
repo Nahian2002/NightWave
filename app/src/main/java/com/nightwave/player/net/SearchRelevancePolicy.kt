@@ -123,6 +123,9 @@ object SearchRelevancePolicy {
         // Metadata is unverified: these cues are weak ranking hints only.
         score += SearchMusicIntentPolicy.titleSignal(wanted, track)
         score += SearchMusicIntentPolicy.variantPenalty(wanted, track)
+        // Songs-only ranking: non-music context is lower-confidence metadata,
+        // not a filter. Every original URL remains visible and selectable.
+        score += SearchMusicIntentPolicy.incidentalNonMusicPenalty(wanted, track)
         // If the listener explicitly requests a reaction, do not suppress it.
         if (unhelpful.any { phrase ->
             phrase in original && phrase !in query.text
