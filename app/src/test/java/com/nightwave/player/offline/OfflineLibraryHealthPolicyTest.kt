@@ -48,4 +48,34 @@ class OfflineLibraryHealthPolicyTest {
         assertEquals(1, report.attentionCount)
         assertEquals(listOf(a, b), report.entries.map { it.song })
     }
+
+    @Test fun nw113UnreadableIndexNeverClaimsAllFilesWereRemoved() {
+        val unknown = OfflineAvailabilitySnapshot(indexReadable = false,
+            healthById = mapOf("cached" to OfflineFileHealth.AVAILABLE))
+        assertTrue(unknown.availableIds.isEmpty())
+        assertEquals(null, unknown.health("cached"))
+        assertEquals(null, unknown.health("unlisted"))
+    }
+
+    @Test fun nw113ReadableIndexDifferentiatesMissingAndSizeChange() {
+        val snapshot = OfflineAvailabilitySnapshot(true, mapOf(
+            "healthy" to OfflineFileHealth.AVAILABLE,
+            "deleted" to OfflineFileHealth.MISSING,
+            "shortened" to OfflineFileHealth.SIZE_CHANGED,
+            "unreadable" to OfflineFileHealth.UNREADABLE,
+            "unsafe" to OfflineFileHealth.UNSAFE_METADATA
+        ))
+        assertEquals(setOf("healthy"), snapshot.availableIds)
+        assertEquals(OfflineFileHealth.MISSING, snapshot.health("deleted"))
+        assertEquals(OfflineFileHealth.SIZE_CHANGED, snapshot.health("shortened"))
+        assertEquals(OfflineFileHealth.UNREADABLE, snapshot.health("unreadable"))
+        assertEquals(OfflineFileHealth.UNSAFE_METADATA, snapshot.health("unsafe"))
+        assertEquals(null, snapshot.health("not-in-index"))
+    }
+
+    @Test fun nw113EmptyIndexHasNoFalseAvailableTracks() {
+        val snapshot = OfflineAvailabilitySnapshot(true, emptyMap())
+        assertTrue(snapshot.availableIds.isEmpty())
+        assertEquals(null, snapshot.health("missing"))
+    }
 }
