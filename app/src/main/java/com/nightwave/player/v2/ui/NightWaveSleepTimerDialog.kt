@@ -37,6 +37,11 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.progressBarRangeInfo
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.setProgress
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -45,6 +50,7 @@ import androidx.compose.ui.window.Dialog
 import com.nightwave.player.playback.SleepTimerPolicy
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.math.roundToInt
 
 /**
  * A duration picker, not an alarm clock.
@@ -96,6 +102,17 @@ fun NightWaveSleepTimerDialog(
                 Box(modifier = Modifier.size(208.dp), contentAlignment = Alignment.Center) {
                     Canvas(
                         modifier = Modifier.size(208.dp).testTag("sleep-timer-dial")
+                            .semantics {
+                                contentDescription = "Sleep timer duration, 1 to 120 minutes"
+                                progressBarRangeInfo = ProgressBarRangeInfo(
+                                    dialValue.toFloat(), 1f..120f, 118)
+                                setProgress { requested ->
+                                    if (!requested.isFinite()) false else {
+                                        input = requested.roundToInt().coerceIn(1, 120).toString()
+                                        true
+                                    }
+                                }
+                            }
                             .pointerInput(Unit) {
                                 detectTapGestures { point ->
                                     input = SleepTimerPolicy.dialMinutes(point.x, point.y,
@@ -148,7 +165,7 @@ fun NightWaveSleepTimerDialog(
                     SleepTimerPolicy.choicesMinutes.forEach { preset ->
                         OutlinedButton(
                             onClick = { input = preset.toString() },
-                            modifier = Modifier.weight(1f).height(38.dp),
+                            modifier = Modifier.weight(1f).heightIn(min = 48.dp),
                             contentPadding = PaddingValues(horizontal = 2.dp, vertical = 0.dp)
                         ) {
                             Text("${preset}m", style = MaterialTheme.typography.labelMedium)
@@ -177,7 +194,7 @@ fun NightWaveSleepTimerDialog(
                 }
                 if (remainingMs > 0L) {
                     OutlinedButton(onClick = onCancel,
-                        modifier = Modifier.fillMaxWidth()) {
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
                         Text("Cancel active timer")
                     }
                 }
@@ -190,7 +207,7 @@ fun NightWaveSleepTimerDialog(
                     Button(onClick = { if (valid) onSet(requireNotNull(minutes)) },
                         enabled = valid,
                         modifier = Modifier.testTag("sleep-timer-confirm")) {
-                        Text("Start timer")
+                        Text(if (remainingMs > 0L) "Replace timer" else "Start timer")
                     }
                 }
             }
