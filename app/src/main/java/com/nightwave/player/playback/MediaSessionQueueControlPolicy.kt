@@ -20,4 +20,17 @@ internal object MediaSessionQueueControlPolicy {
         offlineSelected: Boolean,
         publicSelected: Boolean
     ): Boolean = if (offlinePlaying) offlineSelected else publicSelected
+
+    /**
+     * NW115: an acknowledged Next must have a real next queue target.
+     * This is a read-only check for both MediaSession custom commands and
+     * headset buttons; never consume shuffle candidates or Play Next items.
+     * An exhausted queue with Repeat OFF is not a successful skip.
+     */
+    fun canAcknowledgeNext(
+        offlinePlaying: Boolean,
+        offlineSelected: Boolean,
+        publicSelected: Boolean,
+        hasNext: Boolean
+    ): Boolean = hasNext && canNavigate(offlinePlaying, offlineSelected, publicSelected)
 }
