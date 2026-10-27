@@ -1,6 +1,6 @@
 # NightWave tools — current use and historical checks
 
-**Current source baseline:** NW121 account/recovery update, on verified cumulative NW120. These scripts have different evidence strength; do not treat an old smoke PASS as a current Android build.
+**Current source baseline:** NW122 measured search/library performance, on verified cumulative NW121. These scripts have different evidence strength; do not treat an old smoke PASS as a current Android build.
 
 ## Recommended entrypoints
 
@@ -8,6 +8,10 @@
 - **Release preflight:** root `check-public-release.cmd`, `tools/public_release_preflight.py`, and source-rights/privacy checks. They only prove the gates they actually execute.
 - **Device/signing:** root `check-device-update.cmd`, `capture-nightwave-crash.cmd`, `check-google-oauth.cmd`, and `tools/verify-apk-signature.ps1`.
 - **Android CI:** `.github/workflows/current-android.yml` (required build); `android.yml` (manual historical diagnostics); review their trigger/status on the exact current SHA.
+
+## Performance measurement
+
+The opt-in `nw122-benchmark.init.gradle` runs the actual Kotlin host benchmark in three fresh JVMs. `compare_nw122_performance.py --self-test` checks receipt comparison safeguards; the normal command compares matching baseline/candidate receipts. See [NW122 protocol and limits](../docs/NW122_PERFORMANCE_MEASUREMENT.md). Timings are separate from correctness gates and do not establish phone/ART/battery performance.
 
 ## Current structural checks
 

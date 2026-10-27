@@ -89,7 +89,9 @@ try {
     Check-Marker $player 'NightWaveSeekTimeline(' 'NW04 seek UI'
     Check-Marker $studio 'SoundStudioPolicy.safeManualRange(' 'NW05 safe EQ limits'
     Check-Marker $service 'PublicQueueSelectionPolicy.selectedIndex(' 'NW05 queue identity'
-    Check-Marker $ui 'LocalSearchSuggestions.suggest(' 'NW06 local search suggestions'
+    Check-Marker $ui 'LocalSearchSuggestions.fromMatches(query, savedTracks, suggestionMatches, limit = 6)' 'NW06 same-query local search suggestions'
+    Check-Marker $ui 'if (savedTracks.size <= 5_000) matches' 'NW122 shared suggestions within existing source limit'
+    Check-Marker $ui 'else SavedTrackSearch.match(query, savedTracks.take(5_000))' 'NW122 larger-library suggestion boundary'
     Check-Marker $ui 'SearchResultPresentationPolicy.matches(' 'NW06 search filter state'
     Check-Marker $gateway 'CommunityVideoSearch()' 'NW06 independent search fallback'
 

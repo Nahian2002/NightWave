@@ -1,6 +1,6 @@
 # Build and safe update
 
-Updated 27 October 2026. Current branch: `update/nightwave-nw121-premium-account-recovery`, based on verified cumulative NW120. `main` is an older v0.8 snapshot.
+Updated 27 October 2026. Current branch: `update/nightwave-nw122-measured-performance`, based on verified cumulative NW121. `main` is an older v0.8 snapshot.
 
 ## Local Windows build
 
@@ -28,6 +28,6 @@ The current CI workflow, `current-android.yml`, runs those checks followed by al
 
 ## Evidence and release
 
-See [current test results](../TEST_REPORT.md) and [NW121 evidence](NW121_PREMIUM_ACCOUNT_RECOVERY_EVIDENCE.md). Local Android compilation is verified; hosted runner allocation, physical-device behavior, installed signer, OAuth/Drive restoration and rights/privacy approval are independent gates. Public release remains **NO-GO**.
+See [current test results](../TEST_REPORT.md) and [NW122 evidence](NW122_PERFORMANCE_MEASUREMENT.md). Local Android compilation is verified; hosted runner allocation, physical-device behavior, installed signer, OAuth/Drive restoration and rights/privacy approval are independent gates. Public release remains **NO-GO**.
 
 [Previous build notes](BUILD_AND_RELEASE_HISTORY_20261027.md) preserve older instructions and evidence for recovery.

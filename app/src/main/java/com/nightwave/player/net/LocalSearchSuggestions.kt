@@ -14,15 +14,23 @@ data class LocalSearchSuggestion(
 
 object LocalSearchSuggestions {
     fun suggest(query: String, saved: List<VideoPreview>, limit: Int = 6): List<LocalSearchSuggestion> {
+        if (limit <= 0 || saved.isEmpty() || !SearchRelevancePolicy.prepare(query).valid) return emptyList()
+        return fromMatches(query, saved,
+            SavedTrackSearch.match(query, saved.take(5_000), limit = 24), limit)
+    }
+
+    /** Caller must provide the same query's first-5,000-row ranked matches. */
+    internal fun fromMatches(query: String, saved: List<VideoPreview>,
+        matches: List<VideoPreview>, limit: Int = 6): List<LocalSearchSuggestion> {
         val prepared = SearchRelevancePolicy.prepare(query)
         if (!prepared.valid || limit <= 0 || saved.isEmpty()) return emptyList()
         val capped = limit.coerceAtMost(8)
         val output = mutableListOf<LocalSearchSuggestion>()
         val seenQueries = mutableSetOf<String>()
 
-        // NW26: cover a much larger saved library rather than silently cutting\n        // off search suggestions after the first 400 references.\n        // Same local ranking used by saved-library search. Never invent an
+        // Same local ranking used by saved-library search. Never invent an
         // "official" artist or album from a YouTube uploader label.
-        SavedTrackSearch.match(query, saved.take(5_000), limit = 24).forEach { song ->
+        matches.forEach { song ->
             val display = MusicIdentity.display(song.title, song.author)
             val title = display.title.trim()
             val key = SearchRelevancePolicy.normalize(title)

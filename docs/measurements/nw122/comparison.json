@@ -1,0 +1,184 @@
+{
+  "scope": "synthetic host JVM; not Android latency, battery or soak",
+  "processes": {
+    "before": 3,
+    "after": 3
+  },
+  "orderedOutputMatch": true,
+  "harnessSha256": "4e9d6df36d3454b8c4641b6f2d82845075b28da656b711703961d748540cbc57",
+  "outputSha256": "9e5882625f577b18ae5c2ea81548bde5809d5566bbac56f226f2291681b339c2",
+  "measurements": [
+    {
+      "scenario": "saved:moonlight",
+      "before": {
+        "medianOfProcessP95Ms": 24.1697,
+        "processP95RangeMs": [
+          23.3594,
+          25.1131
+        ],
+        "medianOfProcessMedianMs": 21.50695
+      },
+      "after": {
+        "medianOfProcessP95Ms": 26.1365,
+        "processP95RangeMs": [
+          25.8197,
+          27.6754
+        ],
+        "medianOfProcessMedianMs": 22.42225
+      }
+    },
+    {
+      "scenario": "saved:ভালোবাসা",
+      "before": {
+        "medianOfProcessP95Ms": 22.8619,
+        "processP95RangeMs": [
+          22.7715,
+          23.024
+        ],
+        "medianOfProcessMedianMs": 21.1804
+      },
+      "after": {
+        "medianOfProcessP95Ms": 23.0305,
+        "processP95RangeMs": [
+          22.4538,
+          24.6451
+        ],
+        "medianOfProcessMedianMs": 21.43455
+      }
+    },
+    {
+      "scenario": "saved:alo alo",
+      "before": {
+        "medianOfProcessP95Ms": 23.0613,
+        "processP95RangeMs": [
+          22.6945,
+          28.1411
+        ],
+        "medianOfProcessMedianMs": 21.5753
+      },
+      "after": {
+        "medianOfProcessP95Ms": 24.0936,
+        "processP95RangeMs": [
+          23.1442,
+          27.6173
+        ],
+        "medianOfProcessMedianMs": 21.72755
+      }
+    },
+    {
+      "scenario": "saved:valobasha",
+      "before": {
+        "medianOfProcessP95Ms": 66.0438,
+        "processP95RangeMs": [
+          65.9688,
+          66.965
+        ],
+        "medianOfProcessMedianMs": 64.0301
+      },
+      "after": {
+        "medianOfProcessP95Ms": 32.1109,
+        "processP95RangeMs": [
+          29.5351,
+          32.6655
+        ],
+        "medianOfProcessMedianMs": 24.91885
+      }
+    },
+    {
+      "scenario": "saved:midnigth",
+      "before": {
+        "medianOfProcessP95Ms": 57.8054,
+        "processP95RangeMs": [
+          49.9308,
+          58.2492
+        ],
+        "medianOfProcessMedianMs": 48.80285
+      },
+      "after": {
+        "medianOfProcessP95Ms": 27.81,
+        "processP95RangeMs": [
+          27.0167,
+          27.8681
+        ],
+        "medianOfProcessMedianMs": 24.32105
+      }
+    },
+    {
+      "scenario": "saved:missingword",
+      "before": {
+        "medianOfProcessP95Ms": 49.6645,
+        "processP95RangeMs": [
+          48.937,
+          55.6889
+        ],
+        "medianOfProcessMedianMs": 47.30445
+      },
+      "after": {
+        "medianOfProcessP95Ms": 28.1317,
+        "processP95RangeMs": [
+          25.7645,
+          29.4608
+        ],
+        "medianOfProcessMedianMs": 25.0507
+      }
+    },
+    {
+      "scenario": "public:moonlight",
+      "before": {
+        "medianOfProcessP95Ms": 29.6636,
+        "processP95RangeMs": [
+          29.5426,
+          30.556
+        ],
+        "medianOfProcessMedianMs": 26.5204
+      },
+      "after": {
+        "medianOfProcessP95Ms": 6.1292,
+        "processP95RangeMs": [
+          5.5569,
+          7.3128
+        ],
+        "medianOfProcessMedianMs": 5.5057
+      }
+    },
+    {
+      "scenario": "library:title",
+      "before": {
+        "medianOfProcessP95Ms": 124.9083,
+        "processP95RangeMs": [
+          122.7014,
+          141.0915
+        ],
+        "medianOfProcessMedianMs": 121.109
+      },
+      "after": {
+        "medianOfProcessP95Ms": 11.3735,
+        "processP95RangeMs": [
+          11.2225,
+          12.2779
+        ],
+        "medianOfProcessMedianMs": 10.2285
+      }
+    },
+    {
+      "scenario": "library:creator",
+      "before": {
+        "medianOfProcessP95Ms": 187.9366,
+        "processP95RangeMs": [
+          183.392,
+          197.0177
+        ],
+        "medianOfProcessMedianMs": 177.67125
+      },
+      "after": {
+        "medianOfProcessP95Ms": 14.8307,
+        "processP95RangeMs": [
+          14.5174,
+          16.1847
+        ],
+        "medianOfProcessMedianMs": 13.36805
+      }
+    }
+  ],
+  "interpretation": "Median of independent-process p95s, not pooled p95. No device/soak or speed-threshold verdict."
+}

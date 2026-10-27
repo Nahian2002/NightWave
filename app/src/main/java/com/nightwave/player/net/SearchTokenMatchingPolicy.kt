@@ -37,16 +37,28 @@ internal object SearchTokenMatchingPolicy {
         val used = BooleanArray(words.size)
         return terms.map { term ->
             var chosen = 0
-            for (grade in 3 downTo 1) {
-                val position = words.indices.firstOrNull { at ->
-                    !used[at] && evidence(term, listOf(words[at]), allowTypo) == grade
+            var position = -1
+            // One scan, no per-word singleton lists or repeated grade scans.
+            // Strictly greater retains the first equal-strength occurrence.
+            for (at in words.indices) {
+                if (used[at]) continue
+                val word = words[at]
+                val grade = when {
+                    term.isBlank() -> 0
+                    word == term -> 3
+                    term.length >= 4 && word.startsWith(term) -> 2
+                    allowTypo && term.length >= 5 && word.length >= 5 &&
+                        asciiLatin.matches(term) && asciiLatin.matches(word) &&
+                        oneEditApart(term, word) -> 1
+                    else -> 0
                 }
-                if (position != null) {
-                    used[position] = true
+                if (grade > chosen) {
+                    position = at
                     chosen = grade
-                    break
+                    if (grade == 3) break
                 }
             }
+            if (position >= 0) used[position] = true
             chosen
         }
     }

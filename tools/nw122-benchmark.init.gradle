@@ -1,0 +1,20 @@
+// Opt-in host-JVM measurement; deliberately separate from correctness tests.
+gradle.projectsEvaluated {
+    def app = gradle.rootProject.project(':app')
+    def tests = app.tasks.named('testDebugUnitTest', Test)
+    def receipt = app.findProperty('performanceReceipt') ?: 'build/search-performance'
+    def runs = (app.findProperty('performanceRuns') ?: '3').toInteger()
+    if (runs < 1 || runs > 5) throw new GradleException('performanceRuns must be 1..5')
+    def measurements = (1..runs).collect { run ->
+        app.tasks.register("benchmarkSearchRun${run}", JavaExec) {
+            dependsOn 'compileDebugUnitTestKotlin'
+            if (run > 1) mustRunAfter "benchmarkSearchRun${run - 1}"
+            classpath = tests.get().classpath + tests.get().testClassesDirs
+            mainClass = 'com.nightwave.player.net.NW122SearchBenchmark'
+            jvmArgs '-Xms512m', '-Xmx1024m'
+            args "${receipt}-${run}.json"
+            workingDir gradle.rootProject.projectDir
+        }
+    }
+    app.tasks.register('benchmarkSearch') { dependsOn measurements }
+}

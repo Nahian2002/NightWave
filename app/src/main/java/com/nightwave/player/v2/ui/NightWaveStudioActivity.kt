@@ -3638,10 +3638,15 @@ private fun StudioSearch(
         if (query.isNotBlank()) {
             delay(120L) // debounce typing; do not delay explicit online Search
             value = withContext(Dispatchers.Default) {
+                val matches = SavedTrackSearch.match(query, savedTracks)
+                // Reuse exact same-query ranking for normal libraries. Larger
+                // collections retain suggestions' existing first-5,000 bound.
+                val suggestionMatches = if (savedTracks.size <= 5_000) matches
+                    else SavedTrackSearch.match(query, savedTracks.take(5_000))
                 Triple(
-                    SavedTrackSearch.match(query, savedTracks),
+                    matches,
                     OfflineTrackSearch.match(query, offlineSongs).take(60),
-                    LocalSearchSuggestions.suggest(query, savedTracks, limit = 6)
+                    LocalSearchSuggestions.fromMatches(query, savedTracks, suggestionMatches, limit = 6)
                 )
             }
         }

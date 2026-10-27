@@ -2,9 +2,9 @@
 
 An independent Android music player with an original midnight design, local music, playlists, background playback, imported synchronized lyrics, Sound Studio and optional Google Drive backup.
 
-**Current cumulative source:** [`update/nightwave-nw121-premium-account-recovery`](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw121-premium-account-recovery), based on verified NW120 commit `eb2722002fdd047bc9f0bff0a1d0e8be83eb167e`. The default `main` still contains the old v0.8 app.
+**Current cumulative source:** [`update/nightwave-nw122-measured-performance`](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw122-measured-performance), based on verified NW121 commit `10ea25315d9746ebbde463ef05067b50798c9614`. The default `main` still contains the old v0.8 app.
 
-**27 October 2026 validation:** Android app and instrumentation sources compile, the debug APK assembles, and **1,453 JVM tests pass with zero failures or skips**. See the [current test report](TEST_REPORT.md) and [update evidence](docs/NW121_PREMIUM_ACCOUNT_RECOVERY_EVIDENCE.md) for scope and receipts.
+**27 October 2026 validation:** Android app and instrumentation sources compile, the debug APK assembles, and **1,464 JVM tests pass with zero failures or skips**. See the [current test report](TEST_REPORT.md) and [update evidence](docs/NW122_PERFORMANCE_MEASUREMENT.md) for scope and receipts.
 
 **Public release: NO-GO.** Installed-phone signer continuity, Samsung acceptance, production OAuth/Drive restore and source-rights review remain separate gates. A successful build does not authorize distribution or certify phone behavior.
 
@@ -16,7 +16,7 @@ An independent Android music player with an original midnight design, local musi
 - [Current checks and historical tooling](tools/README.md)
 - [Release readiness](RELEASE_READINESS.md), [security](SECURITY.md), [privacy draft](PRIVACY_POLICY_DRAFT.md)
 
-NW121 refines Account & backup with a clear primary action, compact/large-font layouts, accessible full-row preferences and optional connection details. Saved-account access, last verified backup and current recovery actions are shown separately. Real Google/device acceptance remains pending; existing NW120 audio improvements are retained.
+NW122 reduces repeated Unicode search work, public-result scoring and library sort-key preparation, and shares same-query suggestions. Actual Kotlin host benchmarks compare the exact NW121 parent with this update; phone startup, jank, battery and playback soak remain pending. NW121 account/recovery and NW120 audio improvements are retained.
 
 ## Features
 

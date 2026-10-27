@@ -77,21 +77,18 @@ object LibraryBrowsePolicy {
         val ordered = when (sort) {
             SORT_OLDEST -> matched.reversed()
             SORT_TITLE, SORT_TITLE_DESC -> {
-                val compare = compareBy<IndexedValue<VideoPreview>> {
-                    SearchRelevancePolicy.normalize(
-                        MusicIdentity.display(it.value.title, it.value.author).title)
-                }
+                val keyed = matched.map { row -> row to SearchRelevancePolicy.normalize(
+                    MusicIdentity.display(row.value.title, row.value.author).title) }
+                val compare = compareBy<Pair<IndexedValue<VideoPreview>, String>> { it.second }
                 val stable = if (sort == SORT_TITLE_DESC) compare.reversed() else compare
-                matched.sortedWith(stable.thenBy { it.index })
+                keyed.sortedWith(stable.thenBy { it.first.index }).map { it.first }
             }
-            SORT_CREATOR -> matched.sortedWith(
-                compareBy<IndexedValue<VideoPreview>> {
-                    SearchRelevancePolicy.normalize(
-                        MusicIdentity.display(it.value.title, it.value.author).artistOrCreator)
-                }.thenBy {
-                    SearchRelevancePolicy.normalize(
-                        MusicIdentity.display(it.value.title, it.value.author).title)
-                }.thenBy { it.index })
+            SORT_CREATOR -> matched.map { row ->
+                val display = MusicIdentity.display(row.value.title, row.value.author)
+                Triple(row, SearchRelevancePolicy.normalize(display.artistOrCreator),
+                    SearchRelevancePolicy.normalize(display.title))
+            }.sortedWith(compareBy<Triple<IndexedValue<VideoPreview>, String, String>> { it.second }
+                .thenBy { it.third }.thenBy { it.first.index }).map { it.first }
             else -> matched
         }
         return ordered.map { it.value }
