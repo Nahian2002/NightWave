@@ -63,7 +63,7 @@ Status vocabulary: PLANNED / IN_PROGRESS / CODE_COMPLETE_UNVERIFIED / GRADLE_VER
 | Milestone | Initial status | Reason |
 | --- | --- | --- |
 | NW110 Windows build recovery | CODE_COMPLETE_UNVERIFIED | 1 of 1,283 tests failed on former commit; follow-up test fix unverified on Windows |
-| NW111 Music-first search | IN_PROGRESS | New regression and source scorer planned on this branch |
+| NW111 Music-first search | CODE_COMPLETE_UNVERIFIED | Bounded nonmusic context demotion committed; 5 new JUnit tests; Windows Gradle/JVM/device tests pending |
 | NW112–NW125 | PLANNED | No new work executed; status does not imply functionality |
 
 After every wave update this ledger with commit, automated receipts, remaining blockers, actual device acceptance and next planned wave. Avoid recalculating a "Spotify score" based on static code checks.
@@ -76,3 +76,13 @@ After every wave update this ledger with commit, automated receipts, remaining b
 - [YouTube policy compliance guide](https://developers.google.com/youtube/terms/developer-policies-guide)
 
 The roadmap defines future turns and test requirements; it does not schedule autonomous background coding.
+
+## NW111 implementation ledger — 2026-10-27
+
+- Parent: 7011ad2609e5074f72e5ea750148b0cf625d8f94; isolated branch as above.
+- Production change: SearchMusicIntentPolicy.incidentalNonMusicPenalty() uses exact normalized word boundaries, a bounded -230 nonmusic penalty, -55 if explicit music markers exist, and 0 when the user requested the contextual topic. Read-only metadata; no URLs/playback/files modified.
+- Wiring: SearchRelevancePolicy.publicScore() invokes this advisory penalty during SONGS ranking. VIDEOS still bypasses the music ranker; result counts and original ordering on equal scores unchanged.
+- Added tests: SearchRelevancePolicyTest has five new JUnit methods, with 16 new assertion calls and every one of the original 22 test methods retained. Covers Jhum cultivation vs Jhum music, explicit cultivation intent, music-tag exception, Videos-mode preservation, unchanged ordinary results.
+- Static source verification: all new method references exist, 27 SearchRelevancePolicyTest methods detected, old Alo/Alone and Bangla vowel tests still present. These are source checks, NOT JUnit passes.
+- No permissions, manifest, backend, download/DRM/source-rights, OAuth, offline files or queue code changed.
+- Windows Gradle (new branch): NOT RUN. Device proof: NOT RUN. Fresh APK/identity: NOT VERIFIED. Rights decision: NO-GO unchanged. Next: NW112 native/Romanized multilingual search precision with a stricter gold-fixture evaluation.
