@@ -567,7 +567,7 @@ class OfflineLibraryActivity : ComponentActivity() {
             val health = healthById[song.id] ?: OfflineFileHealth.UNREADABLE
             val available = health == OfflineFileHealth.AVAILABLE
             val availability = when (health) {
-                OfflineFileHealth.AVAILABLE -> "Offline"
+                OfflineFileHealth.AVAILABLE -> "Local file present · Size checked"
                 OfflineFileHealth.MISSING -> "File missing · Entry retained"
                 OfflineFileHealth.SIZE_CHANGED -> "File size changed · Entry retained"
                 OfflineFileHealth.UNREADABLE -> "File unreadable · Entry retained"
