@@ -94,7 +94,8 @@ internal fun NightWaveSeekTimeline(
         }
 
     Canvas(
-        modifier.fillMaxWidth().height(32.dp)
+        // Keep a slim painted rail but offer 48dp for touch exploration.
+        modifier.fillMaxWidth().height(48.dp)
             .testTag("nightwave-player-seek")
             .semantics {
                 contentDescription = "Seek playback"

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -30,6 +31,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import coil.compose.AsyncImage
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -158,12 +160,14 @@ fun NightWaveMixCard(
     val accent = NightWaveVisualLanguage.accent(mix.key)
     val scheme = MaterialTheme.colorScheme
     val realCover = mix.tracks.firstOrNull()?.thumbnail?.takeIf { it.isNotBlank() }
+    val fontScale = LocalDensity.current.fontScale
     val trackLabel = "${mix.tracks.size} " +
         (if (mix.tracks.size == 1) "track" else "tracks") +
         " · " + (if (selected) "Collapse" else "View tracks")
     Card(
         onClick = onClick,
-        modifier = modifier.height(if (compact) 118.dp else 146.dp),
+        modifier = modifier.heightIn(min =
+            NightWaveAccessibilityPolicy.mixCardMinHeightDp(compact, fontScale).dp),
         shape = RoundedCornerShape(19.dp),
         colors = CardDefaults.cardColors(containerColor = scheme.surface)
     ) {
@@ -232,7 +236,9 @@ fun NightWaveMoodArt(
     // A malformed/empty editorial palette should not crash Home composition.
     val safeColors = if (colors.size >= 2) colors else
         listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.surfaceVariant)
-    Card(onClick = onClick, modifier = modifier.height(118.dp),
+    val fontScale = LocalDensity.current.fontScale
+    Card(onClick = onClick, modifier = modifier.heightIn(min =
+        NightWaveAccessibilityPolicy.moodCardMinHeightDp(fontScale).dp),
         shape = RoundedCornerShape(21.dp)) {
         Box(Modifier.fillMaxSize().background(Brush.linearGradient(safeColors))) {
             Canvas(Modifier.fillMaxSize()) {

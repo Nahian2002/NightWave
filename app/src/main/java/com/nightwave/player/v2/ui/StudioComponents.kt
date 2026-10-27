@@ -47,6 +47,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
@@ -120,15 +123,16 @@ fun MusicFeatureCard(
     onClick: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
+    val cardHeight = NightWaveAccessibilityPolicy.featureCardMinHeightDp(LocalDensity.current.fontScale).dp
     Card(
         onClick = onClick,
-        modifier = modifier.fillMaxWidth().height(164.dp),
+        modifier = modifier.fillMaxWidth().heightIn(min = cardHeight),
         shape = RoundedCornerShape(22.dp),
         colors = CardDefaults.cardColors(containerColor = colors.surfaceVariant),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Box(
-            Modifier.fillMaxWidth().height(164.dp).background(
+            Modifier.fillMaxWidth().heightIn(min = cardHeight).background(
                 Brush.linearGradient(listOf(colors.surfaceVariant, colors.surface, colors.surfaceVariant),
                     start = Offset.Zero, end = Offset(980f, 640f))
             )
@@ -310,7 +314,8 @@ fun MusicTrackTile(
             .background(background)
             .border(1.dp, stroke, shape)
             .testTag("nightwave-track-" + surface.name.lowercase())
-            .clickable(onClick = onClick)
+            .clickable(role = Role.Button, onClick = onClick)
+            .semantics { if (isPlaying) stateDescription = "Playing" }
             .padding(
                 vertical = NightWavePremiumDesignTokens.ROW_VERTICAL_INSET_DP.dp,
                 horizontal = NightWavePremiumDesignTokens.ROW_HORIZONTAL_INSET_DP.dp
@@ -330,7 +335,9 @@ fun MusicTrackTile(
             Text(if (isPlaying) identity.artistOrCreator + " · Playing"
                 else identity.artistOrCreator,
                 style = MaterialTheme.typography.bodyMedium,
-                color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                color = scheme.onSurfaceVariant,
+                maxLines = NightWavePremiumDesignTokens.supportingLines(fontScale),
+                overflow = TextOverflow.Ellipsis)
         }
         if (onRemove != null) {
             IconButton(onClick = onRemove, modifier = Modifier.size(48.dp)) {
@@ -358,6 +365,7 @@ fun MusicCollectionTile(
     onClick: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
+    val fontScale = LocalDensity.current.fontScale
     Card(
         onClick = onClick, modifier = Modifier.fillMaxWidth()
             .heightIn(min = NightWaveCollectionChrome.COLLECTION_MIN_HEIGHT_DP.dp)
@@ -383,9 +391,11 @@ fun MusicCollectionTile(
             }
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                 Text(name, style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    maxLines = NightWavePremiumDesignTokens.titleLines(fontScale, 320f),
+                    overflow = TextOverflow.Ellipsis)
                 Text(subtitle, style = MaterialTheme.typography.bodyMedium,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    maxLines = NightWavePremiumDesignTokens.supportingLines(fontScale),
+                    overflow = TextOverflow.Ellipsis,
                     color = colors.onSurfaceVariant)
             }
             Text("›", style = MaterialTheme.typography.titleLarge,

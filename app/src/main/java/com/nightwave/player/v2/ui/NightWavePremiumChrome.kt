@@ -53,6 +53,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -136,7 +137,11 @@ fun NightWavePremiumNavigation(
                             }
                             if (!active) onNavigate(index)
                         }
-                        .semantics { selected = active }
+                        .semantics {
+                            selected = active
+                            // Even truncated visual labels retain a full TalkBack name.
+                            contentDescription = NightWaveAccessibilityPolicy.navigationAnnouncement(label)
+                        }
                         .testTag("nightwave-tab-" + tags[index]),
                     contentAlignment = Alignment.Center
                 ) {

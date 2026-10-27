@@ -17,6 +17,8 @@ object NightWaveAdaptiveChromePolicy {
         if (scale.isFinite()) scale.coerceIn(0.7f, 3f) else 1f
 
     fun navHeightDp(fontScale: Float): Int = when {
+        // At 240–300% system text, 84dp nav clips labels below its icons.
+        safeFontScale(fontScale) >= 2.4f -> 112
         safeFontScale(fontScale) >= 1.6f -> 84
         safeFontScale(fontScale) >= 1.3f -> 72
         else -> NightWaveChromePolicy.NAV_HEIGHT_DP

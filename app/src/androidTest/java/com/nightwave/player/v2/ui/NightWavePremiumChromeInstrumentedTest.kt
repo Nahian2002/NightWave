@@ -4,15 +4,19 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Density
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -76,6 +80,26 @@ class NightWavePremiumChromeInstrumentedTest {
             assertEquals(2, selection)
             assertEquals(1, navigateCalls)
         }
+    }
+
+    @Test fun tabsExposeCompleteTalkBackNamesAtThreeTimesText() {
+        compose.setContent {
+            CompositionLocalProvider(LocalDensity provides Density(1f, 3f)) {
+                MaterialTheme {
+                    Box(Modifier.width(320.dp)) {
+                        NightWavePremiumNavigation(selectedIndex = 2, reducedMotion = true, onNavigate = {})
+                    }
+                }
+            }
+        }
+        compose.onNodeWithTag("nightwave-tab-home")
+            .assertContentDescriptionEquals("Home tab")
+        compose.onNodeWithTag("nightwave-tab-search")
+            .assertContentDescriptionEquals("Search tab")
+        compose.onNodeWithTag("nightwave-tab-library")
+            .assertContentDescriptionEquals("Library tab").assertIsSelected()
+        compose.onNodeWithTag("nightwave-tab-profile")
+            .assertContentDescriptionEquals("You tab")
     }
 
     @Test fun premiumHomeHeroHandlesUserProfileWithoutTrackMetadata() {

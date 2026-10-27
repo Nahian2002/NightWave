@@ -45,6 +45,10 @@ object NightWavePremiumDesignTokens {
         return if (scale >= 1.3f || width >= 430f) 2 else 1
     }
 
+    /** Support two artist/metadata lines at large system font sizes. */
+    fun supportingLines(fontScale: Float): Int =
+        if (fontScale.isFinite() && fontScale >= 1.8f) 2 else 1
+
     fun controlTouchTargetDp(fontScale: Float): Int {
         val scale = if (fontScale.isFinite()) fontScale else 1f
         return if (scale >= 1.8f) 56 else MIN_TOUCH_TARGET_DP
