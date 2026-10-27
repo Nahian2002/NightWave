@@ -179,4 +179,60 @@ class SearchRelevancePolicyTest {
         assertEquals(listOf(exact), SavedTrackSearch.match("moonligt", listOf(exact)))
         assertEquals(listOf(approx), SavedTrackSearch.match("moonlights", listOf(exact, approx)))
     }
+
+    @Test fun nw111JhumCultivationRemainsVisibleButDoesNotBeatRealSong() {
+        val cultivation = track(a, "Jhum Cultivation in the Hills", "Travel Channel")
+        val music = track(b, "Jhum (Official Audio)", "Musician")
+        val ranked = SearchRelevancePolicy.rankPublic("jhum", listOf(cultivation, music))
+        assertEquals(listOf(music, cultivation), ranked)
+        assertEquals(setOf(cultivation.url, music.url), ranked.map { it.url }.toSet())
+        val grouped = SearchResultPresentationPolicy.groupMusic(
+            "jhum", SearchMode.SONGS, listOf(cultivation, music))
+        assertEquals(music, grouped.bestMatches.first())
+        assertTrue(grouped.moreResults.contains(cultivation))
+    }
+
+    @Test fun nw111ExplicitCultivationIntentIsNeverSuppressed() {
+        val cultivation = track(a, "Jhum Cultivation in the Hills", "Educator")
+        assertEquals(0, SearchMusicIntentPolicy.incidentalNonMusicPenalty(
+            "jhum cultivation", cultivation))
+        assertEquals(listOf(cultivation),
+            SearchRelevancePolicy.rankPublic("jhum cultivation", listOf(cultivation)))
+    }
+
+    @Test fun nw111MusicLabeledIncidentalTopicsReceiveOnlySmallPenalty() {
+        val musicLabeled = track(a, "Jhum Cultivation (Official Music Video)", "Singer")
+        val purelyNonMusic = track(b, "Jhum Cultivation in Practice", "Documentary")
+        assertEquals(-55, SearchMusicIntentPolicy.incidentalNonMusicPenalty(
+            "jhum", musicLabeled))
+        assertEquals(-230, SearchMusicIntentPolicy.incidentalNonMusicPenalty(
+            "jhum", purelyNonMusic))
+    }
+
+    @Test fun nw111SongsRankingDoesNotAlterVideosModeOrDropUrls() {
+        val cultivation = track(a, "Jhum Cultivation in the Hills", "Documentary")
+        val music = track(b, "Jhum Official Audio", "Singer")
+        val sourceOrder = listOf(cultivation, music)
+        val videos = SearchResultPresentationPolicy.groupMusic(
+            "jhum", SearchMode.VIDEOS, sourceOrder)
+        assertEquals(sourceOrder, videos.moreResults)
+        assertTrue(videos.bestMatches.isEmpty())
+        assertTrue(videos.otherVersions.isEmpty())
+        val songs = SearchResultPresentationPolicy.groupMusic(
+            "jhum", SearchMode.SONGS, sourceOrder)
+        val kept = songs.bestMatches + songs.moreResults + songs.otherVersions
+        assertEquals(sourceOrder.toSet(), kept.toSet())
+        assertEquals(sourceOrder.size, kept.size)
+    }
+
+    @Test fun nw111NoUnrelatedTopicDoesNotModifyOrdinaryMusicRanking() {
+        val song = track(a, "Moonlight (Official Audio)", "Singer")
+        val cover = track(b, "Moonlight Remix", "DJ")
+        assertEquals(0, SearchMusicIntentPolicy.incidentalNonMusicPenalty(
+            "moonlight", song))
+        assertEquals(0, SearchMusicIntentPolicy.incidentalNonMusicPenalty(
+            "moonlight", cover))
+        assertEquals(song, SearchRelevancePolicy.rankPublic(
+            "moonlight", listOf(cover, song)).first())
+    }
 }
