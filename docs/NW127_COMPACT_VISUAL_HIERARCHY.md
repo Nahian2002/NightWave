@@ -61,3 +61,5 @@ The next independent source batch is **NW128: unified shell and offline navigati
 - `adb devices -l`: no connected device. No app installation, account operation or user-library mutation occurred. All four NW127 acceptance rows are PARTIAL for source delivery with their physical evidence explicitly pending; device status NOT_RUN.
 
 The private checkpoint retains build/source/signature/test/lint receipts, source ZIP and recovery Git bundles. Generated APKs, logs, captures and private recordings are not committed to Git. GitHub hosted execution is recorded separately on the PR; a local PASS cannot imply hosted CI success.
+
+Implementation commit: `35acaac8c2e46b6e218de72d075bc119d43b3147`. The following ledger-only commit changes no compiled source inputs. The embedded revision is the protected parent context; the canonical source ID covers the actual build snapshot.

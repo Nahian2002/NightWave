@@ -187,7 +187,7 @@
         "Independently actionable controls retain at least 48dp nonoverlapping layout/touch bounds; 1x/2x/3x text reflows without truncating required actions.",
         "Apply a documented shared spacing/type/radius/chrome contract to reusable components; preserve semantics, data callbacks and selected-track state."
       ],
-      "implementation_commit": null,
+      "implementation_commit": "35acaac8c2e46b6e218de72d075bc119d43b3147",
       "local_evidence": [
         "docs/NW127_COMPACT_VISUAL_HIERARCHY.md",
         "TEST_REPORT.md",
