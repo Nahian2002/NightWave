@@ -67,7 +67,8 @@ Status vocabulary: PLANNED / IN_PROGRESS / CODE_COMPLETE_UNVERIFIED / GRADLE_VER
 | NW112 Multilingual search | CODE_COMPLETE_UNVERIFIED | Curated 3-group Romanized/Bangla fallback and 135 JUnit query/title fixtures; Android/JVM test build pending |
 | NW113 Offline truth/eligibility | CODE_COMPLETE_UNVERIFIED | Index-unreadable is not treated as deleted files; read-only per-file health and truthful file-size labels; 6 new JVM tests; full Gradle/device pending |
 | NW114 Transfers | IN_PROGRESS | Partial HTTP 206/contradictory Content-Range fail-closed, honest byte/s and ETA, transparent queued retries; 6 new JVM tests. Safe persistent Range resume NOT implemented; full Gradle and device checks pending |
-| NW115–NW125 | PLANNED | Not started; status does not imply functionality |
+| NW115 Playback/queue fidelity | IN_PROGRESS | Explicit Shuffle jumps now retire departed track from unseen cycle; 7 targeted JUnit regressions added; full JVM/Android and media-session tests pending |
+| NW116–NW125 | PLANNED | Not started; status does not imply functionality |
 
 After every wave update this ledger with commit, automated receipts, remaining blockers, actual device acceptance and next planned wave. Avoid recalculating a "Spotify score" based on static code checks.
 
@@ -124,3 +125,14 @@ The roadmap defines future turns and test requirements; it does not schedule aut
 - Source/diff inspection: only the four source policies, downloader, Downloads UI and four corresponding existing JUnit test files changed (10 files); no library, auth, playback, app manifest, Gradle configuration or signer files touched.
 - **Deferral / remaining scope:** HTTP byte-range resume is NOT implemented. Current downloader intentionally deletes incomplete staging files on cancellation/error; even a source advertising Accept-Ranges is NOT enough to safely resume. True persistent resume needs a stable source identity, strong ETag/validator, Content-Range verification, authenticated private checkpoint persistence, bounded bytes, final full-file hash plus decoder validation, cleanup and lifecycle tests. Never claim existing Pause/Resume retains partial bytes. Additional full JVM/Gradle, reboot, network failure, low-storage, 139-case device and source-rights tests remain mandatory.
 - **NW114 status IN_PROGRESS**, source improvements committed but end-to-end completeness and safe resume unverified; NW115 planned only, not claimed. Public release still NO-GO.
+
+## NW115 first implementation batch — 2026-10-27
+
+- Parent NW114 SHA: 86092de7bf2117025f53eb5ed4733e3404f8661f. Isolated branch: feature/nightwave-nw115-shuffle-jump-history. All NW110–NW114 changes preserved, no merge into older main.
+- Detected behavior: PlaybackQueue.next() correctly marks the current song as heard in shuffled cycles, but PlaybackQueue.jump(to) failed to mark the departed selected track as heard. After listener manually jumps A→B, the following shuffle Next could immediately select A again, even though the listener just played it. Recovery snapshots also lost that played-state fact.
+- Minimal fix: add shuffledSeen.add(index) alongside the existing visited.add(index) ONLY for a valid Shuffle-mode jump to a different track. Order matters: store old index before assigning index=to. No changes to linear navigation, explicit user jump back to an already heard song, shuffle cycle reset, repeat, Play Next, queue persistence schema, URL format, private audio or selected song.
+- Test declaration: a new PlaybackQueueShuffleJumpCycleTest.kt with 7 new JUnit test methods and 36 assertion calls: no early replay after explicit jump, restart recovery, invalid/same-song jump, deliberate manual replay, toggling Shuffle, manual Play Next priority, exhausted two-track Repeat OFF and Repeat ALL.
+- Existing suite including ShuffleRecoveryPersistenceTest and PlaybackQueueNavigationModeTest is unchanged. No prior tests removed or modified.
+- Verification: code and regression assertions inspected against actual PlaybackQueue.next()/jump()/restoreShuffleRecovery()/hasNext(). GitHub source-only check, NOT JVM or Android tests. The owner must run the full Gradle/JUnit suite, MediaSession, screen-off and queue persistence phone tests to accept this wave.
+- Remaining NW115 scope: end-to-end exact search→single-song queue, Media3 Session commands, lockscreen/headset, previous threshold, Repeat One, failure recoveries and device stress. **State remains IN_PROGRESS**, not fully certified.
+- NW114 remains IN_PROGRESS for safe persistent byte-range resume, pending a source-authorized resumable protocol and end-to-end validator/checkpoint QA. No pseudo-resume claims, no unverified online source extraction or offline-rights promises. NW125 release remains NO-GO.
