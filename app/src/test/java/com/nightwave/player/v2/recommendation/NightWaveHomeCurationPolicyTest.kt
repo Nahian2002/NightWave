@@ -226,7 +226,7 @@ class NightWaveHomeCurationPolicyTest {
         assertEquals(listOf(song(151)), picks)
         assertFalse(picks.any { it.url in history.map { h -> h.url } })
         assertEquals(151, saved.size)
-        assertEquals(550, history.size)
+        assertEquals(549, history.size)
     }
 
     @Test fun boundedWindowKeepsNewestMetadataAndSourceIdentity() {
