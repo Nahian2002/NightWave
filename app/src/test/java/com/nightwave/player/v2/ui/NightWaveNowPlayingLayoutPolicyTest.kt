@@ -126,4 +126,71 @@ class NightWaveNowPlayingLayoutPolicyTest {
             }
         }
     }
+
+    @Test fun ultraNarrowViewportStacksPrimaryControlsOnlyWhenThreeCannotFit() {
+        val tooNarrow = NightWaveNowPlayingLayoutPolicy.resolve(203.9f, 700f, 1f)
+        val exactFit = NightWaveNowPlayingLayoutPolicy.resolve(204f, 700f, 1f)
+        assertTrue(tooNarrow.stackPrimaryTransportControls)
+        assertFalse(exactFit.stackPrimaryTransportControls)
+        assertTrue(tooNarrow.splitTransportControls)
+        assertTrue(exactFit.splitTransportControls)
+        assertTrue(tooNarrow.stackQuickActions)
+    }
+
+    @Test fun secondaryModeButtonsAlsoStackWhenTheirOwnTargetsCannotFit() {
+        val tiny = NightWaveNowPlayingLayoutPolicy.resolve(131.9f, 700f, 1f)
+        val justEnough = NightWaveNowPlayingLayoutPolicy.resolve(132f, 700f, 1f)
+        assertTrue(tiny.stackSecondaryTransportControls)
+        assertFalse(justEnough.stackSecondaryTransportControls)
+        assertTrue(tiny.stackPrimaryTransportControls)
+        assertTrue(justEnough.stackPrimaryTransportControls)
+    }
+
+    @Test fun normalPhonesAndTabletsKeepOriginalTransportArrangement() {
+        for (width in listOf(240f, 320f, 360f, 390f, 412f, 700f, 1200f)) {
+            val layout = NightWaveNowPlayingLayoutPolicy.resolve(width, 850f, 1f)
+            assertFalse("Primary transport must remain horizontal at $width",
+                layout.stackPrimaryTransportControls)
+            assertFalse(layout.stackSecondaryTransportControls)
+        }
+        val normal = NightWaveNowPlayingLayoutPolicy.resolve(390f, 850f, 1f)
+        assertFalse(normal.splitTransportControls)
+        assertFalse(normal.stackQuickActions)
+    }
+
+    @Test fun largeTextSplitsModesButDoesNotNeedlesslyStackPrimaryActions() {
+        for (scale in listOf(1.3f, 1.6f, 1.8f, 2f, 3f)) {
+            val layout = NightWaveNowPlayingLayoutPolicy.resolve(390f, 850f, scale)
+            assertFalse(layout.stackPrimaryTransportControls)
+            assertFalse(layout.stackSecondaryTransportControls)
+        }
+        assertTrue(NightWaveNowPlayingLayoutPolicy.resolve(
+            390f, 850f, 2f).splitTransportControls)
+        assertTrue(NightWaveNowPlayingLayoutPolicy.resolve(
+            390f, 850f, 2f).stackQuickActions)
+    }
+
+    @Test fun partialTinyWindowStillHasBoundedFiniteArtwork() {
+        val sizes = listOf(0f, 1f, 48f, 60f, 80f, 100f, 120f, 130f, 160f, 200f, 204f)
+        for (width in sizes) {
+            val layout = NightWaveNowPlayingLayoutPolicy.resolve(width, 500f, 2f)
+            assertTrue(layout.artworkDp.isFinite())
+            assertTrue(layout.artworkDp >= 0f)
+            assertTrue(layout.artworkDp <= width)
+            if (width < 204f) assertTrue(layout.stackPrimaryTransportControls)
+            if (width < 132f) assertTrue(layout.stackSecondaryTransportControls)
+        }
+    }
+
+    @Test fun corruptDimensionsFailSafeWithoutSpuriousRowWidths() {
+        for (width in listOf(Float.NaN, Float.POSITIVE_INFINITY,
+            Float.NEGATIVE_INFINITY, -500f, 0f)) {
+            val layout = NightWaveNowPlayingLayoutPolicy.resolve(width, Float.NaN, Float.NaN)
+            assertTrue(layout.stackPrimaryTransportControls)
+            assertTrue(layout.stackSecondaryTransportControls)
+            assertTrue(layout.splitTransportControls)
+            assertTrue(layout.stackQuickActions)
+            assertTrue(layout.artworkDp.isFinite())
+        }
+    }
 }

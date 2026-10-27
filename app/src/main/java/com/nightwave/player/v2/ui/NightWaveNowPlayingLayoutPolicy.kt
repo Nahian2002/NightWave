@@ -17,7 +17,11 @@ object NightWaveNowPlayingLayoutPolicy {
         /** Keep Play/Previous/Next reachable when all five icons cannot fit. */
         val splitTransportControls: Boolean,
         /** Give offline/lyrics action labels their own row at large font sizes. */
-        val stackQuickActions: Boolean
+        val stackQuickActions: Boolean,
+        /** Even the three primary 48/64/48dp controls cannot share one row. */
+        val stackPrimaryTransportControls: Boolean,
+        /** Two 48dp mode buttons cannot share one row in extreme multiwindow. */
+        val stackSecondaryTransportControls: Boolean
     )
 
     fun resolve(widthDp: Float, heightDp: Float, fontScale: Float): Layout {
@@ -43,6 +47,11 @@ object NightWaveNowPlayingLayoutPolicy {
         // Font magnification gets the same layout even on a wide display.
         val splitControls = availableContentWidth < 284f || scale >= 1.8f
         val stackActions = availableContentWidth < 320f || scale >= 1.6f
+        // 48dp Previous + 64dp Play + 48dp Next require 160dp.
+        // Add 16dp breathing room or stack them in truly tiny windows.
+        // Shuffle + Repeat each need a full 48dp touch surface.
+        val stackPrimary = availableContentWidth < 176f
+        val stackSecondary = availableContentWidth < 104f
         val artwork = minOf(availableWidth, height * heightRatio, 420f)
             .coerceAtLeast(0f)
         return Layout(
@@ -52,7 +61,9 @@ object NightWaveNowPlayingLayoutPolicy {
             artworkCornerDp = if (compact) 24 else 30,
             headerBottomSpaceDp = if (compact) 9 else 20,
             splitTransportControls = splitControls,
-            stackQuickActions = stackActions
+            stackQuickActions = stackActions,
+            stackPrimaryTransportControls = stackPrimary,
+            stackSecondaryTransportControls = stackSecondary
         )
     }
 }

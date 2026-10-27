@@ -953,14 +953,16 @@ fun StudioNowPlayingOverlay(
                                 colors.onSurfaceVariant else colors.primary)
                     }
                 }
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = if (playerLayout.splitTransportControls)
-                        Arrangement.SpaceEvenly else Arrangement.SpaceBetween) {
-                    if (!playerLayout.splitTransportControls) shuffleControl()
+                // A physical 48dp tap target must not be squeezed into
+                // a narrower row. Preserve every transport action even when
+                // Android presents an ultra-narrow multiwindow viewport.
+                val previousControl: @Composable () -> Unit = {
                     IconButton(onClick = actions::previous, modifier = Modifier.size(48.dp)) {
                         Icon(Icons.Outlined.SkipPrevious, contentDescription = "Previous track",
                             modifier = Modifier.size(34.dp), tint = colors.onBackground)
                     }
+                }
+                val playControl: @Composable () -> Unit = {
                     Surface(onClick = actions::playPause,
                         color = colors.primary,
                         shadowElevation = if (reduceMotion) 0.dp else 10.dp,
@@ -973,20 +975,48 @@ fun StudioNowPlayingOverlay(
                                 tint = colors.onPrimary, modifier = Modifier.size(33.dp))
                         }
                     }
+                }
+                val nextControl: @Composable () -> Unit = {
                     IconButton(onClick = actions::next, modifier = Modifier.size(48.dp)) {
                         Icon(Icons.Outlined.SkipNext, contentDescription = "Next track",
                             modifier = Modifier.size(34.dp), tint = colors.onBackground)
                     }
-                    if (!playerLayout.splitTransportControls) repeatControl()
+                }
+                if (playerLayout.stackPrimaryTransportControls) {
+                    Column(Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        previousControl()
+                        playControl()
+                        nextControl()
+                    }
+                } else {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = if (playerLayout.splitTransportControls)
+                            Arrangement.SpaceEvenly else Arrangement.SpaceBetween) {
+                        if (!playerLayout.splitTransportControls) shuffleControl()
+                        previousControl()
+                        playControl()
+                        nextControl()
+                        if (!playerLayout.splitTransportControls) repeatControl()
+                    }
                 }
                 if (playerLayout.splitTransportControls) {
-                    // Secondary actions remain 48dp touch targets and are never
-                    // hidden merely because the window is narrow.
-                    Row(Modifier.fillMaxWidth().padding(top = 3.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceEvenly) {
-                        shuffleControl()
-                        repeatControl()
+                    // Never hide Shuffle/Repeat; each action keeps its 48dp
+                    // surface even when the two no longer fit side-by-side.
+                    if (playerLayout.stackSecondaryTransportControls) {
+                        Column(Modifier.fillMaxWidth().padding(top = 3.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally) {
+                            shuffleControl()
+                            repeatControl()
+                        }
+                    } else {
+                        Row(Modifier.fillMaxWidth().padding(top = 3.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceEvenly) {
+                            shuffleControl()
+                            repeatControl()
+                        }
                     }
                 }
                 // NW116: compact split windows and large system fonts give
