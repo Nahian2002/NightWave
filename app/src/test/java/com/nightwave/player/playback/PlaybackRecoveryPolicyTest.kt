@@ -103,4 +103,50 @@ class PlaybackRecoveryPolicyTest {
         assertFalse(PlaybackRecoveryPolicy.acceptsResolvedTrack(
             first, "https://rr.example.googlevideo.com/audio?sig=secret"))
     }
+
+    @Test fun transientHttpResponsesPermitOneGuardedStreamRefresh() {
+        for (status in listOf(408, 425, 429, 500, 502, 503, 504)) {
+            assertTrue("HTTP $status is plausibly transient",
+                PlaybackRecoveryPolicy.retryableHttpStatus(status))
+            assertTrue(schedule(retriableError =
+                PlaybackRecoveryPolicy.retryableHttpStatus(status)))
+        }
+    }
+
+    @Test fun permanentSourceFailuresNeverTriggerAutomaticRefresh() {
+        for (status in listOf(200, 201, 204, 206, 301, 302, 304, 400, 401,
+            402, 403, 404, 405, 410, 416, 418, 422, 451, 501, 505)) {
+            assertFalse("HTTP $status must not auto-retry",
+                PlaybackRecoveryPolicy.retryableHttpStatus(status))
+            assertFalse(schedule(retriableError =
+                PlaybackRecoveryPolicy.retryableHttpStatus(status)))
+        }
+    }
+
+    @Test fun unknownOrMalformedHttpCodeNeverEnablesRefresh() {
+        for (status in listOf<Int?>(null, -1, 0, 1, 99, 600, 999)) {
+            assertFalse(PlaybackRecoveryPolicy.retryableHttpStatus(status))
+        }
+    }
+
+    @Test fun transientHttpStillHonorsPauseTimerAndChangedSelectionFences() {
+        val retriable = PlaybackRecoveryPolicy.retryableHttpStatus(503)
+        assertTrue(retriable)
+        assertFalse(schedule(retriableError = retriable, wantsPlayback = false))
+        assertFalse(schedule(retriableError = retriable, timerPaused = true))
+        assertFalse(schedule(retriableError = retriable, selected = second))
+        assertFalse(schedule(retriableError = retriable, loaded = second))
+        assertFalse(schedule(retriableError = retriable, alreadyRetried = true))
+        assertFalse(schedule(retriableError = retriable, resolvingUrl = first))
+    }
+
+    @Test fun retryPolicyDoesNotAuthorizeALatePostedRecovery() {
+        assertFalse(dispatch(generation = 13))
+        assertFalse(dispatch(wantsPlayback = false))
+        assertFalse(dispatch(offline = true))
+        assertFalse(dispatch(timerPaused = true))
+        assertFalse(dispatch(selected = second))
+        assertFalse(dispatch(retryMarker = null))
+        assertTrue(dispatch())
+    }
 }

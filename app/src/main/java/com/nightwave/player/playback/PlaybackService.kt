@@ -20,6 +20,7 @@ import androidx.media3.common.PlaybackException
 import android.util.Log
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
@@ -911,11 +912,24 @@ class PlaybackService : MediaLibraryService() {
                 savedQueue.recordFailure(video, "Stream refresh failed. Tap Retry to try again.")
                 return
             }
-            val retriable = error.errorCode in setOf(
+            // A generic HTTP error is not always temporary: retrying a 403
+            // or 404 just re-fetches an unauthorized/removed source. Inspect
+            // typed Media3 causes only; never parse signed URLs or raw messages.
+            // Cap traversal to guard malformed nested/cyclic cause graphs.
+            val responseCode = if (
+                error.errorCode == PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS
+            ) generateSequence(error.cause) { it.cause }
+                .take(8)
+                .filterIsInstance<HttpDataSource.InvalidResponseCodeException>()
+                .firstOrNull()?.responseCode
+            else null
+            val retriable = when (error.errorCode) {
                 PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED,
-                PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT,
-                PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS
-            )
+                PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT -> true
+                PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS ->
+                    PlaybackRecoveryPolicy.retryableHttpStatus(responseCode)
+                else -> false
+            }
             if (!PlaybackRecoveryPolicy.mayAutoRetry(
                     expectedUrl = video, selectedUrl = queue.current?.url,
                     loadedMediaId = player.currentMediaItem?.mediaId,
