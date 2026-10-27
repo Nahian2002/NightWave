@@ -1,6 +1,7 @@
 package com.nightwave.player.offline
 
 import android.content.Intent
+import com.nightwave.player.R
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
@@ -14,14 +15,14 @@ import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.ScrollView
 import android.widget.TextView
-import androidx.activity.ComponentActivity
 import java.util.concurrent.Executors
 
 /**
  * Foreground screen for explicit, permissioned direct-audio downloads.
  * Closing the screen cancels the transfer. No silent background retrieval.
  */
-class PermittedAudioDownloadActivity : ComponentActivity() {
+class PermittedAudioDownloadActivity : NightWaveOfflineShellActivity() {
+    override val offlineRoute = NightWaveOfflineRoute.LINK
     private val worker = Executors.newSingleThreadExecutor()
     private var transfer: PermittedAudioDownloader? = null
     private lateinit var urlInput: EditText
@@ -161,8 +162,24 @@ class PermittedAudioDownloadActivity : ComponentActivity() {
             dp(760) else -1
         frame.addView(scroll, FrameLayout.LayoutParams(contentWidth, -1,
             Gravity.TOP or Gravity.CENTER_HORIZONTAL))
-        setContentView(frame)
-        NightWaveSafeInsets.bind(frame)
+        setOfflineContent(frame, panel.getChildAt(0))
+        if (savedInstanceState != null) {
+            // Draft text survives recreation; permission must be confirmed
+            // afresh and a foreground transfer is never silently restarted.
+            urlInput.setText(savedInstanceState.getString("nw128-url-draft").orEmpty().take(4096))
+            nameInput.setText(NightWaveOfflineNavigationPolicy.query(savedInstanceState.getString("nw128-name-draft")))
+            rights.isChecked = false
+            if (savedInstanceState.getBoolean("nw128-foreground-active")) {
+                message.text = getString(R.string.nw128_transfer_interrupted)
+            }
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putString("nw128-url-draft", urlInput.text.toString().take(4096))
+        outState.putString("nw128-name-draft", NightWaveOfflineNavigationPolicy.query(nameInput.text.toString()))
+        outState.putBoolean("nw128-foreground-active", active)
+        super.onSaveInstanceState(outState)
     }
 
     private fun queueBackgroundDownload() {

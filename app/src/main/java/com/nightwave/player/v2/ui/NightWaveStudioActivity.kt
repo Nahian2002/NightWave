@@ -61,6 +61,8 @@ import com.nightwave.player.v2.cloud.NightWaveCloudSchedule
 import com.nightwave.player.v2.data.LibraryArchiveManager
 import com.nightwave.player.diagnostics.NightWaveCrashRecorder
 import com.nightwave.player.diagnostics.NightWaveExitHistory
+import com.nightwave.player.offline.NightWaveOfflineNavigator
+import com.nightwave.player.offline.NightWaveMainNavigationRequest
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.ViewModel
@@ -381,6 +383,8 @@ class NightWaveStudioActivity : ComponentActivity() {
     private var recentRefreshJob: Job? = null
     private var recentRefreshGeneration = 0
     private var searchNavigationToken by mutableStateOf(0)
+    private var mainNavigationRequest by mutableStateOf<NightWaveMainNavigationRequest?>(null)
+    private var appliedMainNavigation: String? = null
     private var shadowRunning = false
     private var shadowRequested = false
     private var youtubeDialog: Dialog? = null
@@ -720,6 +724,8 @@ class NightWaveStudioActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        appliedMainNavigation = savedInstanceState?.getString("nw128-applied-main")
+        mainNavigationRequest = NightWaveOfflineNavigator.request(intent, appliedMainNavigation)
         profiles = GuestProfileStore(this)
         library = MusicLibrary(this)
         folderStore = PlaylistFolderStore(this)
@@ -1193,7 +1199,12 @@ class NightWaveStudioActivity : ComponentActivity() {
                     onOpenClassic = {
                         startActivity(Intent(this, MainActivity::class.java))
                     },
-                    searchNavigationToken = searchNavigationToken
+                    searchNavigationToken = searchNavigationToken,
+                    mainNavigationRequest = mainNavigationRequest,
+                    onMainNavigationApplied = { id ->
+                        appliedMainNavigation = id
+                        if (mainNavigationRequest?.id == id) mainNavigationRequest = null
+                    }
                 )
                 lyricsEditorSession?.let { session ->
                     if (playback.state.videoUrl == "offline:" + session.songId) {
@@ -1222,9 +1233,14 @@ class NightWaveStudioActivity : ComponentActivity() {
         if (savedInstanceState == null) handleIncomingShare(intent)
     }
 
+    override fun startActivity(intent: Intent, options: Bundle?) {
+        super.startActivity(NightWaveOfflineNavigator.reuseOfflineIntent(intent), options)
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        mainNavigationRequest = NightWaveOfflineNavigator.request(intent, appliedMainNavigation)
         handleIncomingShare(intent)
     }
 
@@ -1937,6 +1953,7 @@ class NightWaveStudioActivity : ComponentActivity() {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
+        outState.putString("nw128-applied-main", appliedMainNavigation)
         if (cloudBusy && CloudAuthorizationRecoveryPolicy.shouldRestore(
                 cloudPendingAction, cloudAwaitingResolution)) {
             // Restore only the action, never the Google token or account.
@@ -2964,7 +2981,9 @@ private fun StudioRoot(
     onOfflineSearch: (String) -> Unit,
     onShareDiagnostics: () -> Unit,
     onOpenClassic: () -> Unit,
-    searchNavigationToken: Int
+    searchNavigationToken: Int,
+    mainNavigationRequest: NightWaveMainNavigationRequest?,
+    onMainNavigationApplied: (String) -> Unit
 ) {
     // The pager is the single source of truth for swipes, tabs and Back.
     // Pager state survives rotation and process recreation through Compose Saver.
@@ -3031,6 +3050,17 @@ private fun StudioRoot(
     LaunchedEffect(searchNavigationToken) {
         // Never replay shared media on rotation or slide through other pages.
         if (searchNavigationToken > 0) pagerState.scrollToPage(StudioTab.SEARCH.ordinal)
+    }
+    LaunchedEffect(mainNavigationRequest?.id) {
+        val request = mainNavigationRequest ?: return@LaunchedEffect
+        tabNavigationJob?.cancel()
+        showQueue = false
+        showSoundStudio = false
+        showAccountHub = false
+        if (request.tab != StudioTab.LIBRARY.ordinal) selectedPlaylist = null
+        pagerState.scrollToPage(request.tab)
+        expanded = request.openPlayer
+        onMainNavigationApplied(request.id)
     }
     BackHandler(enabled = showQueue || expanded ||
         (tab == StudioTab.LIBRARY && resolvedPlaylist != null) || tab != StudioTab.HOME) {
@@ -3281,6 +3311,7 @@ private fun StudioRoot(
                         onOpenClassic = onOpenClassic,
                         onEqualizer = { showSoundStudio = true },
                         onOpenAccount = { showAccountHub = true },
+                        onOffline = onOfflineLibrary,
                         onManageHistory = {
                             selectedPlaylist = RECENT_COLLECTION
                             navigateToTab(StudioTab.LIBRARY)
@@ -4994,7 +5025,8 @@ private fun StudioProfile(
     onShareDiagnostics: () -> Unit, onOpenClassic: () -> Unit,
     onEqualizer: () -> Unit,
     onOpenAccount: () -> Unit,
-    onManageHistory: () -> Unit
+    onManageHistory: () -> Unit,
+    onOffline: () -> Unit
 ) {
     var name by rememberSaveable(profile.localId) { mutableStateOf(profile.displayName) }
     var showBuildDetails by rememberSaveable { mutableStateOf(false) }
@@ -5106,6 +5138,8 @@ private fun StudioProfile(
                     Icons.Outlined.Cloud, "nw47-you-account", onOpenAccount)
                 NightWaveQuickActionPill("Sound Studio",
                     Icons.Outlined.GraphicEq, "nw47-you-sound", onEqualizer)
+                NightWaveQuickActionPill("Offline music",
+                    Icons.Outlined.LibraryMusic, "nw128-you-offline", onOffline)
                 NightWaveQuickActionPill("History",
                     Icons.Outlined.LibraryMusic, "nw47-you-history", onManageHistory)
             }
