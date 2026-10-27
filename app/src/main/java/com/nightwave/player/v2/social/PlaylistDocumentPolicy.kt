@@ -23,9 +23,10 @@ object PlaylistDocumentPolicy {
         if (PlaylistShareParser.parse(text) == null) return null
         val bytes = text.toByteArray(Charsets.UTF_8)
         if (bytes.isEmpty() || bytes.size > MAX_BYTES) return null
-        val safeBase = name.filter {
-            it.isLetterOrDigit() || it == ' ' || it == '-' || it == '_'
-        }.trim().take(55).trim().ifBlank { "NightWave playlist" }
+        // Preserve Bangla vowel/combining marks without allowing separators,
+        // traversal punctuation or filesystem-control characters.
+        val safeBase = name.replace(Regex("""[^\\p{L}\\p{M}\\p{N} _-]+"""), " ")
+            .trim().take(55).trim().ifBlank { "NightWave playlist" }
         return PreparedPlaylistDocument("$safeBase.nightwave.txt", bytes)
     }
 
@@ -33,10 +34,16 @@ object PlaylistDocumentPolicy {
     fun read(input: InputStream): SharedPlaylist? {
         val out = ByteArrayOutputStream()
         val chunk = ByteArray(4096)
+        var consecutiveEmptyReads = 0
         while (true) {
             val count = input.read(chunk)
             if (count < 0) break
-            if (count == 0) continue
+            if (count == 0) {
+                // A broken content provider must not spin forever.
+                if (++consecutiveEmptyReads > 8) return null
+                continue
+            }
+            consecutiveEmptyReads = 0
             if (out.size() > MAX_BYTES - count) return null
             out.write(chunk, 0, count)
         }
