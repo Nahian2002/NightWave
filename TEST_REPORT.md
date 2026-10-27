@@ -1,3 +1,11 @@
+# NW125 current acceptance status — candidate source prepared, NOT built
+
+**27 October 2026:** Canonical cumulative branch: `release/nightwave-nw125-final-candidate` (NW124 parent `a21a50c7c4d8039b1950ae226f791cf2173be5c3`). No completed Gradle/JVM/Android tests, APK assembly, installed signer comparison, Samsung capture, or 139-case matrix acceptance on the NW125 source. NW123 and NW124 contain additional tests but they have **not yet executed**. Public release remains NO-GO.
+
+Read [NW125 final candidate build and Samsung acceptance](docs/NW125_FINAL_CANDIDATE.md). The previously executed NW122 results below are retained verbatim as historical benchmark evidence, **not current final-build receipts**.
+
+---
+
 # Current verification — NW122 measured search/library performance
 
 27 October 2026. Branch: `update/nightwave-nw122-measured-performance`. Parent: verified NW121 `10ea25315d9746ebbde463ef05067b50798c9614`.

@@ -1,10 +1,11 @@
 # NightWave tools — current use and historical checks
 
-**Current source baseline:** NW122 measured search/library performance, on verified cumulative NW121. These scripts have different evidence strength; do not treat an old smoke PASS as a current Android build.
+**Current source target:** `release/nightwave-nw125-final-candidate`; latest fully executed build evidence remains NW122. These scripts have different evidence strength; do not treat an old smoke PASS as current Android/phone certification.
 
 ## Recommended entrypoints
 
-- **Windows build/diagnostics:** root `build-windows.cmd`, `diagnose-nightwave-build.cmd`; corresponding `tools/build-windows.ps1`, `tools/diagnose-build.ps1`.
+- **Windows build/diagnostics:** root `build-windows.cmd`, `diagnose-nightwave-build.cmd`; corresponding `tools/build-windows.ps1`, `tools/diagnose-build.ps1`. Use only the complete NW125 branch checkout/ZIP.
+- **NW125 clean-source gate:** `python tools/nw125_release_candidate_gate.py --self-test` and `python tools/nw125_release_candidate_gate.py --json` (if Python is installed). Detects missing build inputs and accidental generated/secret filenames; **source-only**, not an APK or device pass.
 - **Release preflight:** root `check-public-release.cmd`, `tools/public_release_preflight.py`, and source-rights/privacy checks. They only prove the gates they actually execute.
 - **Device/signing:** root `check-device-update.cmd`, `capture-nightwave-crash.cmd`, `check-google-oauth.cmd`, and `tools/verify-apk-signature.ps1`.
 - **Android CI:** `.github/workflows/current-android.yml` (required build); `android.yml` (manual historical diagnostics); review their trigger/status on the exact current SHA.
@@ -31,4 +32,4 @@ The [historical CI inventory](../docs/HISTORICAL_CI_SOURCE_CHECKS_20261027.md) r
 4. **Android/Compose compilation and instrumentation:** provide current Android SDK, APK and device receipts.
 5. **Release certification:** also requires signer, data/Drive restore, device matrix, privacy/security and legal source rights.
 
-The authoritative roadmap is [NW111–NW125](../docs/NW111_NW125_SPOTIFY_QUALITY_ROADMAP.md). See [repository inventory and retention rules](../docs/NW118_REPOSITORY_HYGIENE_AUDIT.md). Keep reports and local APKs outside version control; do not commit credentials.
+The authoritative roadmap is [NW111–NW125](../docs/NW111_NW125_SPOTIFY_QUALITY_ROADMAP.md); build handoff is [NW125 final candidate](../docs/NW125_FINAL_CANDIDATE.md). See [repository inventory and retention rules](../docs/NW118_REPOSITORY_HYGIENE_AUDIT.md). Keep reports and local APKs outside version control; do not commit credentials.

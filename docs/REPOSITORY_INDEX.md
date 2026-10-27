@@ -1,12 +1,13 @@
 # NightWave — repository navigation
 
-**Current development wave:** NW122 measured search/library performance, on `update/nightwave-nw122-measured-performance`. This index is a navigation aid, not a release certificate.
+**Current cumulative release-testing source:** [`release/nightwave-nw125-final-candidate`](https://github.com/Nahian2002/NightWave/tree/release/nightwave-nw125-final-candidate). Includes NW111–NW124 feature code; NW125 build/phone acceptance is **not yet executed**. GitHub default `main` is an older app. This index is a navigation aid, not a release certificate.
 
 ## Start here
 
 | Purpose | Source |
 | --- | --- |
 | Project overview and limitations | [README](../README.md) |
+| **Final Windows build & phone test** | [NW125 final candidate guide](NW125_FINAL_CANDIDATE.md) |
 | **Active phase plan and true development gates** | [NW111–NW125 roadmap](NW111_NW125_SPOTIFY_QUALITY_ROADMAP.md) |
 | Windows build, Android signing and release procedure | [Build and release](BUILD_AND_RELEASE.md) |
 | Release risks and blockers | [Release readiness](../RELEASE_READINESS.md) |
@@ -23,7 +24,7 @@
 - **JVM tests:** `app/src/test/`; **device tests:** `app/src/androidTest/`. Pure CLI smoke scripts are useful preflights, never substitutes for these suites.
 - **Build rules:** root `build.gradle.kts`, `settings.gradle.kts`, `gradle.properties`, and `app/build.gradle.kts`; **CI:** `.github/workflows/`. Do not delete or alter SDK/signing checks for cosmetic cleanup.
 - **Room schema/migrations and settings:** Treat all as migration evidence; never delete without a verified backwards-compatibility and restore audit.
-- **Current source wave:** NW122 update branch, based on exact NW121 parent `10ea25315d9746ebbde463ef05067b50798c9614`. Branches are incremental. Do not assume `main` contains any of these updates.
+- **Current source wave:** NW125 final candidate branch from exact NW124 parent `a21a50c7c4d8039b1950ae226f791cf2173be5c3`. It contains all stacked waves; `main` does not. No final APK build has been run on this source.
 
 Current automated workflow: `.github/workflows/current-android.yml`; `android.yml` remains a manual historical diagnostic. See [historic check inventory](HISTORICAL_CI_SOURCE_CHECKS_20261027.md).
 
@@ -39,4 +40,4 @@ Current automated workflow: `.github/workflows/current-android.yml`; `android.ym
 
 Keep generated Android `build/`, local `.gradle/`, IDE settings, archives, diagnostic logs/dumps, local secrets, APKs and signing keys **outside Git**. `.gitignore` prevents future accidental adds but does not untrack history. Do not store account credentials, OAuth tokens, private playlists or media files in GitHub.
 
-**Build status:** current Android/JVM build passes (1,464 tests). See [NW122 evidence](NW122_PERFORMANCE_MEASUREMENT.md). **Release status:** NO-GO pending physical-device validation, installed signer, Drive read-back/restore, music-source rights and privacy checks. A committed PR and passing source string checks are not runtime QA.
+**Build status:** the NW122 predecessor passed 1,464 tests; NW125 cumulative Android/JVM build is **NOT RUN**. See [NW125 guide](NW125_FINAL_CANDIDATE.md) and [NW122 evidence](NW122_PERFORMANCE_MEASUREMENT.md). **Release status:** NO-GO pending physical-device validation, installed signer, Drive read-back/restore, music-source rights and privacy checks. A committed PR and passing source string checks are not runtime QA.

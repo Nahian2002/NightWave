@@ -1,35 +1,10 @@
 name: NightWave Runner Canary
 
 # This job deliberately does not checkout sources, install dependencies,
-# invoke Android or upload artifacts. If it fails before the single step,
+# invoke Android or upload artifacts. Manual-only since NW125; remove stale
+# historical branch push subscriptions to avoid noise or costly runner attempts. If it fails before the single step,
 # that is a GitHub runner/account provisioning issue, not a Kotlin failure.
 on:
-  push:
-    branches:
-      - fix/nightwave-v2-nw10-compiler-recovery
-      - fix/nightwave-v2-nw27-final-hardening
-      - feature/nightwave-nw52-final-integration-release-gates
-      - feature/nightwave-nw90-final-integration-certification
-      - feature/nightwave-nw91-build-recovery-reliability
-      - feature/nightwave-nw92-data-integrity-recovery
-      - feature/nightwave-nw93-queue-recovery
-      - feature/nightwave-nw94-playback-checkpoint-reliability
-      - feature/nightwave-nw95-headset-media-focus-reliability
-      - feature/nightwave-nw96-equalizer-session-restoration
-      - feature/nightwave-nw97-offline-shuffle-cycle-integrity
-      - feature/nightwave-nw98-background-playback-intent
-      - feature/nightwave-nw99-notification-session-commands
-      - feature/nightwave-nw100-playback-audit-gates
-      - feature/nightwave-nw101-build-attestation-recovery
-      - feature/nightwave-nw102-jvm-test-source-compiler-gate
-      - feature/nightwave-nw103-build-receipt-final-gates
-      - feature/nightwave-nw104-kotlin-junit-compiler-fixes
-      - feature/nightwave-nw105-offline-junit-execution
-      - feature/nightwave-nw106-seek-timeline-reliability
-      - feature/nightwave-nw107-lyrics-follow-accessibility
-      - feature/nightwave-nw108-cloud-playlist-identity
-      - feature/nightwave-nw109-android36-privacy-hardening
-      - feature/nightwave-nw110-final-integration-certification
   workflow_dispatch:
 
 permissions: {}

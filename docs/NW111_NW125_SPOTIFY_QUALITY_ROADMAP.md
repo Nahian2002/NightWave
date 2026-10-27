@@ -77,7 +77,7 @@ Status vocabulary: PLANNED / IN_PROGRESS / CODE_COMPLETE_UNVERIFIED / GRADLE_VER
 | NW122 Performance | JVM_MEASURED_DEVICE_PENDING | Invocation-local saved identities, single-scan token evidence, shared bounded suggestions and once-per-row public/library sort keys; unchanged-result Kotlin host comparison; startup/ART/next/jank/battery/30-minute soak remain pending |
 | NW123 Accessibility | SOURCE_IMPLEMENTED_UNVERIFIED | TalkBack navigation/queue semantics, 48dp seek hit area and large-type cards; source change needs Android/JVM/device checks |
 | NW124 Optional extras | SOURCE_IMPLEMENTED_UNVERIFIED | Sleep dial accessibility, honest Commons review and opt-in playlist SAF import/export; verification pending |
-| NW125 Final certification | PLANNED | Next ordered phase, including full Windows build, real Samsung acceptance, signer/rights audits |
+| NW125 Final certification | CANDIDATE_PREPARED_UNVERIFIED | Complete source integrated and clean-source gate authored. **No NW125 compiled APK or phone pass**; exact-commit Windows build, signer, 139-case device QA and rights/OAuth must still pass |
 
 After every wave update this ledger with commit, automated receipts, remaining blockers, actual device acceptance and next planned wave. Avoid recalculating a "Spotify score" based on static code checks.
 
@@ -357,3 +357,13 @@ The roadmap defines future turns and test requirements; it does not schedule aut
 - Added **13 JVM** test declarations (6 offline discovery and 7 playlist file cases), plus **2 Android Compose** test declarations for sleep-timer accessibility. All new tests remain **UNRUN**. See [NW124 evidence](NW124_OPTIONAL_EXTRAS_EVIDENCE.md).
 - **SOURCE_IMPLEMENTED_UNVERIFIED**: exact-commit Windows build, Android compile, device/SAF verification, signer continuity, Google/OAuth, 139-case acceptance, 30-minute playback and music rights remain pending. Public release NO-GO.
 - Next ordered wave: **NW125 final certification**.
+
+
+## NW125 final source candidate — 27 October 2026
+
+- From NW124 exact commit `a21a50c7c4d8039b1950ae226f791cf2173be5c3`, created `release/nightwave-nw125-final-candidate` without changing the old default `main` or compromising test history.
+- Recursive tracked-file inventory checked 1,090 files, including 516 `app/src`, 261 docs and 283 tools; no tracked generated APK/AAB/ZIP/LOG, obvious signing key path, IDE/Gradle build cache matched. This is **filename hygiene**, not a Git-history secret scan.
+- Added read-only fail-closed NW125 Python source-package audit (with synthetic test fixtures and 139-case CSV validation) to current hosted Android CI; hosted CI allocation has not been confirmed. Never confuse its **PASS_SOURCE_ONLY** with Gradle/device certification.
+- Clarified current README, tools, repository navigation, build instructions and historical TEST_REPORT/RELEASE_READINESS evidence; existing schemas, tests, Room migration, historical scripts and music data boundaries are preserved rather than blindly deleted.
+- NW125 final build and 139-case QA instructions: [NW125 candidate handoff](NW125_FINAL_CANDIDATE.md).
+- **Status: CANDIDATE_PREPARED_UNVERIFIED**, not 15/15 certified. The user will run the complete Windows build and later consolidated device tests; public release remains **NO-GO** until every critical gate and source-rights review passes.
