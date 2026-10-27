@@ -34,6 +34,7 @@ PYTHON_CHECKS = (
     ("nw125_release_candidate_gate.py", "--self-test"),
     ("nw125_release_candidate_gate.py", "--json"),
     ("nw126_acceptance.py", "--self-test"),
+    ("verify_nw128_shell.py", "--self-test"),
 )
 
 # Same safety preflights as the one-click Windows builder, including negative

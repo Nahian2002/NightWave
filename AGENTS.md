@@ -6,9 +6,9 @@ Before choosing or implementing an upgrade, read:
 2. `docs/quality/NW126_NW145_BACKLOG.json` — batch status, dependencies and acceptance criteria.
 3. `docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md` and `TEST_REPORT.md` — baseline findings and verification limits.
 
-The current cumulative implementation includes NW127 compact visual hierarchy, based on protected NW126 parent `0b21056456fb48017545909caf53c757d7b918c5`. Read the latest backlog plus NW126 and NW127 evidence; physical acceptance is pending. The old default `main` is v0.8; never merge it over the cumulative development chain or assume it is current.
+The current cumulative implementation includes NW128 shared offline navigation, based on protected NW127 parent `a6d8842f5379579a164517745567664751713e7c`. Read the latest backlog plus NW126/NW127/NW128 evidence; physical acceptance is pending. The old default `main` is v0.8; never merge it over the cumulative development chain or assume it is current.
 
-When the owner says "next", select the first eligible incomplete batch in the active backlog. The next source batch is **NW128**; NW126 and NW127 are locally verified with physical checks pending. Check the actual checkout, remote updates and the latest ledger first. Do not restart NW111–NW125 simply because historical documents contain old next-step text.
+When the owner says "next", select the first eligible incomplete batch in the active backlog. The next source batch is **NW129**; NW126/NW127/NW128 are locally verified with physical checks pending. Check the actual checkout, remote updates and the latest ledger first. Do not restart NW111–NW125 simply because historical documents contain old next-step text.
 
 Preserve package/signing identity, installed data, guest profiles, Google consent/account boundaries, playlists, history, local music, original URLs and migration evidence. Inspect caller wiring as well as pure policies; a large synthetic benchmark does not prove the UI supplies the whole library. Do not remove safeguards or tests to improve a score.
 

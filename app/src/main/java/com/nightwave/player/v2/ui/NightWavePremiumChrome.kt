@@ -119,6 +119,7 @@ fun NightWaveCompactTopBar(onSettings: () -> Unit) {
 fun NightWavePremiumNavigation(
     selectedIndex: Int,
     reducedMotion: Boolean,
+    onReselect: (() -> Unit)? = null,
     onNavigate: (Int) -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
@@ -184,7 +185,7 @@ fun NightWavePremiumNavigation(
                                 // Android handles device/user haptic preference.
                                 hapticView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
                             }
-                            if (!active) onNavigate(index)
+                            if (!active) onNavigate(index) else onReselect?.invoke()
                         }
                         .semantics {
                             selected = active

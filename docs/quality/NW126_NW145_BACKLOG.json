@@ -5,7 +5,7 @@
   "audit": "docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md",
   "implementation_base_revision": "61703c98238e762e59c049b6690853431f822884",
   "audit_branch": "audit/nightwave-post-nw125-quality-roadmap",
-  "next_batch": "NW128",
+  "next_batch": "NW129",
   "goal": "9.5+ within the declared NightWave music-player scope, conditional on actual product and acceptance evidence",
   "rating_kind": "Subjective comparative product review, not a measured Spotify score",
   "baseline_weighted_score": 6.655,
@@ -211,7 +211,7 @@
       "depends_on": [
         "NW127"
       ],
-      "implementation_status": "PLANNED",
+      "implementation_status": "LOCAL_VERIFIED",
       "device_status": "NOT_RUN",
       "finding_ids": [
         "Q04",
@@ -230,10 +230,24 @@
         "Recreate/background the shell and return from the system picker; restore the intended destination and discard obsolete transient work.",
         "Keep a deliberate recovery fallback during migration; existing download workers, library ownership and MediaSession remain authoritative."
       ],
-      "implementation_commit": null,
-      "local_evidence": [],
+      "implementation_commit": "e33235680a6e8b9982895e702ccbedff3a1eadf1",
+      "local_evidence": [
+        "docs/NW128_UNIFIED_OFFLINE_SHELL.md",
+        "TEST_REPORT.md",
+        "Complete Windows builder PASS; 1515 JVM tests / 190 suites; zero failures/errors/skips",
+        "55/55 current source checks PASS; Android production/instrumentation-source compilation and debug assembly PASS",
+        "NW-debug-208A902EBDBBFC18; 818 source inputs independently verified",
+        "Eight new Android tests compile only; no device execution",
+        "Sequential lint PASS: 0 errors / 313 warnings / 17 hints; API 26–28 fallback, no new lint baseline"
+      ],
       "device_evidence": [],
-      "remaining_blockers": []
+      "remaining_blockers": [
+        "30 real sibling-route/back/gesture cycles, task-stack counts and matched shell screenshots NOT_RUN",
+        "Device recreation, system-picker return, busy/interrupt and viewport/touch/keyboard/TalkBack acceptance NOT_RUN",
+        "Actual public/offline audible continuity, queue identity and recovery switching NOT_RUN",
+        "Carry NW126/NW127 installed signer/source attribution, data preservation and visual acceptance blockers forward"
+      ],
+      "pull_request": "https://github.com/Nahian2002/NightWave/pull/131"
     },
     {
       "id": "NW129",

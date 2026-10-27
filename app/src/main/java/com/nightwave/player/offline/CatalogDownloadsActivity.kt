@@ -20,7 +20,6 @@ import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.ProgressBar
 import android.content.res.ColorStateList
-import androidx.activity.ComponentActivity
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.nightwave.player.net.VideoPreview
@@ -28,7 +27,8 @@ import com.nightwave.player.net.VideoPreview
 /** WorkManager queue remains accessible even if the Compose player cannot open. */
 // This component intentionally uses the pinned Media3 unstable API.
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
-class CatalogDownloadsActivity : ComponentActivity() {
+class CatalogDownloadsActivity : NightWaveOfflineShellActivity() {
+    override val offlineRoute = NightWaveOfflineRoute.DOWNLOADS
     private lateinit var entries: LinearLayout
     private lateinit var overview: TextView
     private lateinit var historyToggle: TextView
@@ -41,6 +41,7 @@ class CatalogDownloadsActivity : ComponentActivity() {
     // Only one 60-row page of WorkManager history is inflated at a time.
     // Filtering and retry deduplication happen before paging.
     private var historyPage = 0
+    private var restoredScroll: Int? = null
     private var resetHistoryScroll = false
     private lateinit var scroll: ScrollView
     private val manager by lazy { WorkManager.getInstance(applicationContext) }
@@ -165,6 +166,7 @@ class CatalogDownloadsActivity : ComponentActivity() {
         outState.putString("nw48-download-filter", currentFilter.name)
         outState.putInt("nw63-download-page", historyPage)
         outState.putBoolean("nw63-show-hidden", showHiddenJobs)
+        outState.putInt("nw128-scroll", if (::scroll.isInitialized) scroll.scrollY else 0)
         super.onSaveInstanceState(outState)
     }
 
@@ -195,7 +197,8 @@ class CatalogDownloadsActivity : ComponentActivity() {
             ?.let { stored -> runCatching {
                 DownloadCenterViewPolicy.Filter.valueOf(stored)
             }.getOrNull() } ?: DownloadCenterViewPolicy.Filter.ALL
-        historyPage = savedInstanceState?.getInt("nw63-download-page", 0) ?: 0
+        historyPage = NightWaveOfflineNavigationPolicy.page(savedInstanceState?.getInt("nw63-download-page", 0) ?: 0)
+        restoredScroll = savedInstanceState?.getInt("nw128-scroll")?.let(NightWaveOfflineNavigationPolicy::scroll)
         showHiddenJobs = savedInstanceState?.getBoolean("nw63-show-hidden", false) ?: false
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -276,8 +279,7 @@ class CatalogDownloadsActivity : ComponentActivity() {
         val contentWidth = if (resources.configuration.screenWidthDp >= 780) dp(760) else -1
         frame.addView(root, FrameLayout.LayoutParams(contentWidth, -1,
             Gravity.TOP or Gravity.CENTER_HORIZONTAL))
-        setContentView(frame)
-        NightWaveSafeInsets.bind(frame)
+        setOfflineContent(frame, root.getChildAt(0))
         manager.getWorkInfosByTagLiveData(CatalogDownloadQueue.TAG)
             .observe(this) { updates ->
                 catalogJobs = updates.orEmpty()
@@ -306,9 +308,10 @@ class CatalogDownloadsActivity : ComponentActivity() {
     private fun render(infos: List<WorkInfo>) {
         if (isFinishing || isDestroyed) return
         lastPaintedAtMs = SystemClock.elapsedRealtime()
+        if (resetHistoryScroll) restoredScroll = null
         val scrollTicket = ++scrollRestoreGeneration
         val originalPosition = if (resetHistoryScroll) 0
-            else if (::scroll.isInitialized) scroll.scrollY else 0
+            else restoredScroll ?: if (::scroll.isInitialized) scroll.scrollY else 0
         resetHistoryScroll = false
         entries.removeAllViews()
         val hidden = DownloadHistoryVisibility.hiddenIds(this)
@@ -803,7 +806,10 @@ class CatalogDownloadsActivity : ComponentActivity() {
             // Older queued restorations must never override newer UI state.
             if (!isFinishing && !isDestroyed &&
                 scrollTicket == scrollRestoreGeneration &&
-                scroll.scrollY != originalPosition) scroll.scrollTo(0, originalPosition)
+                scroll.scrollY != originalPosition) {
+                scroll.scrollTo(0, originalPosition)
+                if (infos.isNotEmpty()) restoredScroll = null
+            }
         }
     }
 

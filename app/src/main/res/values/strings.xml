@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">NightWave</string>
     <string name="widget_description">NightWave compact playback controls</string>
+    <string name="nw128_restore_navigation">Restore main navigation</string>
+    <string name="nw128_transfer_interrupted">Foreground transfer interrupted. Review the source and confirm permission before retrying.</string>
+    <string name="nw128_search_interrupted">Search paused during screen recreation. Tap Search free audio to retry.</string>
+    <string name="nw128_transfer_busy">Download is active. Finish or cancel it before starting another search.</string>
 </resources>

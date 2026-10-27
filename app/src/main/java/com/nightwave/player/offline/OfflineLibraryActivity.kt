@@ -17,7 +17,6 @@ import android.view.Gravity
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
-import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import com.nightwave.player.playback.PlaybackService
 import com.nightwave.player.v2.ui.NightWaveAdaptiveChromePolicy
@@ -28,7 +27,8 @@ import java.util.concurrent.Executors
 /** Native offline UI: safe to open even if the new Compose preview crashes. */
 // This component intentionally uses the pinned Media3 unstable API.
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
-class OfflineLibraryActivity : ComponentActivity() {
+class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
+    override val offlineRoute = NightWaveOfflineRoute.LIBRARY
     companion object {
         const val EXTRA_SEARCH_QUERY = "com.nightwave.player.offline.SEARCH_QUERY"
     }
@@ -50,6 +50,8 @@ class OfflineLibraryActivity : ComponentActivity() {
     private var pendingSearch: Runnable? = null
     private var page = 0
     private var searchText = ""
+    private lateinit var searchInput: EditText
+    private var restoredScroll: Int? = null
     private var sortMode = 0
     private var visibleSongs: List<OfflineSong> = emptyList()
     private var cachedReport: OfflineLibraryHealthReport? = null
@@ -94,7 +96,11 @@ class OfflineLibraryActivity : ComponentActivity() {
                 OfflineLibraryViewPolicy.Filter.valueOf(stored)
             }.getOrNull() } ?: OfflineLibraryViewPolicy.Filter.ALL
         library = OfflineAudioLibrary(this)
-        searchText = intent.getStringExtra(EXTRA_SEARCH_QUERY).orEmpty().trim().take(160)
+        searchText = NightWaveOfflineNavigationPolicy.query(
+            savedInstanceState?.getString("nw128-query") ?: intent.getStringExtra(EXTRA_SEARCH_QUERY))
+        page = NightWaveOfflineNavigationPolicy.page(savedInstanceState?.getInt("nw128-page") ?: 0)
+        sortMode = NightWaveOfflineNavigationPolicy.sort(savedInstanceState?.getInt("nw128-sort") ?: 0)
+        restoredScroll = savedInstanceState?.getInt("nw128-scroll")?.let(NightWaveOfflineNavigationPolicy::scroll)
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(18), dp(17), dp(18), dp(10))
@@ -148,11 +154,14 @@ class OfflineLibraryActivity : ComponentActivity() {
             setHintTextColor(0xFF8294A8.toInt())
             setPadding(dp(15), 0, dp(15), 0)
             background = cardBackground(0xFF172432.toInt())
+            setText(searchText)
+            setSelection(length())
             addTextChangedListener(object : TextWatcher {
                 override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                     searchText = s?.toString()?.trim().orEmpty()
                     page = 0
+                    restoredScroll = null
                     pendingSearch?.let(uiHandler::removeCallbacks)
                     val update = Runnable {
                         if (::tracks.isInitialized && !isFinishing) {
@@ -168,7 +177,7 @@ class OfflineLibraryActivity : ComponentActivity() {
                 override fun afterTextChanged(s: Editable?) {}
             })
         }
-        if (searchText.isNotBlank()) search.setText(searchText)
+        searchInput = search
         root.addView(search, LinearLayout.LayoutParams(-1, dp(49)).apply {
             topMargin = dp(6); bottomMargin = dp(10)
         })
@@ -403,14 +412,27 @@ class OfflineLibraryActivity : ComponentActivity() {
         val contentWidth = if (resources.configuration.screenWidthDp >= 780) dp(760) else -1
         frame.addView(root, FrameLayout.LayoutParams(contentWidth, -1,
             Gravity.TOP or Gravity.CENTER_HORIZONTAL))
-        setContentView(frame)
-        NightWaveSafeInsets.bind(frame)
+        setOfflineContent(frame, header)
         // onResume schedules a fresh health scan on the existing worker.
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putString("nw48-offline-filter", availabilityFilter.name)
+        outState.putString("nw128-query", NightWaveOfflineNavigationPolicy.query(searchText))
+        outState.putInt("nw128-page", page)
+        outState.putInt("nw128-sort", sortMode)
+        outState.putInt("nw128-scroll", if (::trackScroll.isInitialized) trackScroll.scrollY else 0)
         super.onSaveInstanceState(outState)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (intent.hasExtra(EXTRA_SEARCH_QUERY) && ::searchInput.isInitialized) {
+            resetOfflineViewport()
+            restoredScroll = null
+            page = 0
+            searchInput.setText(NightWaveOfflineNavigationPolicy.query(intent.getStringExtra(EXTRA_SEARCH_QUERY)))
+        }
     }
 
     override fun onResume() {
@@ -436,6 +458,12 @@ class OfflineLibraryActivity : ComponentActivity() {
                 if (result.isSuccess) {
                     cachedReport = result.getOrNull()
                     refresh()
+                    restoredScroll?.let { position ->
+                        restoredScroll = null
+                        trackScroll.post {
+                            if (!isFinishing && !isDestroyed) trackScroll.scrollTo(0, position)
+                        }
+                    }
                     // Unreadable storage is still an error, not "repaired".
                     if (cachedReport?.indexReadable == true && successMessage != null)
                         status(successMessage)

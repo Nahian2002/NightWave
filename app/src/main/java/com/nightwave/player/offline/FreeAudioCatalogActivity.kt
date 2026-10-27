@@ -2,6 +2,7 @@ package com.nightwave.player.offline
 
 import android.app.AlertDialog
 import android.content.Intent
+import com.nightwave.player.R
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
@@ -18,7 +19,6 @@ import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.ScrollView
 import android.widget.TextView
-import androidx.activity.ComponentActivity
 import com.nightwave.player.playback.PlaybackService
 import java.util.concurrent.Executors
 
@@ -28,7 +28,8 @@ import java.util.concurrent.Executors
  */
 // This component intentionally uses the pinned Media3 unstable API.
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
-class FreeAudioCatalogActivity : ComponentActivity() {
+class FreeAudioCatalogActivity : NightWaveOfflineShellActivity() {
+    override val offlineRoute = NightWaveOfflineRoute.CATALOG
     companion object {
         const val EXTRA_QUERY = "com.nightwave.player.FREE_AUDIO_QUERY"
         const val EXTRA_ARTIST = "com.nightwave.player.FREE_AUDIO_ARTIST"
@@ -197,17 +198,53 @@ class FreeAudioCatalogActivity : ComponentActivity() {
             dp(760) else -1
         frame.addView(root, FrameLayout.LayoutParams(
             contentWidth, -1, Gravity.TOP or Gravity.CENTER_HORIZONTAL))
-        setContentView(frame)
-        NightWaveSafeInsets.bind(frame)
-        val initial = intent.getStringExtra(EXTRA_QUERY).orEmpty().take(100)
-        initialTitle = initial
-        initialArtist = intent.getStringExtra(EXTRA_ARTIST).orEmpty().take(100)
+        setOfflineContent(frame, root.getChildAt(0))
+        val draft = NightWaveOfflineNavigationPolicy.catalogDraft(
+            savedInstanceState?.getString("nw128-catalog-query"),
+            savedInstanceState?.getString("nw128-catalog-origin-title"),
+            savedInstanceState?.getString("nw128-catalog-origin-artist"),
+            intent.getStringExtra(EXTRA_QUERY), intent.getStringExtra(EXTRA_ARTIST))
+        val initial = draft.query
+        initialTitle = draft.originTitle
+        initialArtist = draft.originArtist
         fromYouTubeSearch = initialArtist.isNotBlank()
         if (initial.isNotBlank()) {
             input.setText(initial)
             input.setSelection(input.length())
-            search()
+            if (savedInstanceState == null) search()
+            else message.text = getString(R.string.nw128_search_interrupted)
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putString("nw128-catalog-query", NightWaveOfflineNavigationPolicy.query(input.text.toString()))
+        outState.putString("nw128-catalog-origin-title", initialTitle)
+        outState.putString("nw128-catalog-origin-artist", initialArtist)
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        val previousIntent = this.intent
+        super.onNewIntent(intent)
+        if (!intent.hasExtra(EXTRA_QUERY)) return
+        if (busyDownload) {
+            setIntent(previousIntent)
+            message.text = getString(R.string.nw128_transfer_busy)
+            return
+        }
+        ++searchGeneration // Any pending response belongs to the old request.
+        busySearch = false
+        resetOfflineViewport()
+        searchAction.alpha = 1f
+        results.removeAllViews()
+        openSaved.visibility = View.GONE
+        playSaved.visibility = View.GONE
+        savedId = ""
+        initialTitle = NightWaveOfflineNavigationPolicy.query(intent.getStringExtra(EXTRA_QUERY))
+        initialArtist = NightWaveOfflineNavigationPolicy.query(intent.getStringExtra(EXTRA_ARTIST))
+        fromYouTubeSearch = initialArtist.isNotBlank()
+        input.setText(initialTitle)
+        search()
     }
 
     private fun search() {
