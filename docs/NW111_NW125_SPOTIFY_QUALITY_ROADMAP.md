@@ -64,7 +64,8 @@ Status vocabulary: PLANNED / IN_PROGRESS / CODE_COMPLETE_UNVERIFIED / GRADLE_VER
 | --- | --- | --- |
 | NW110 Windows build recovery | CODE_COMPLETE_UNVERIFIED | 1 of 1,283 tests failed on former commit; follow-up test fix unverified on Windows |
 | NW111 Music-first search | CODE_COMPLETE_UNVERIFIED | Bounded nonmusic context demotion committed; 5 new JUnit tests; Windows Gradle/JVM/device tests pending |
-| NW112–NW125 | PLANNED | No new work executed; status does not imply functionality |
+| NW112 Multilingual search | CODE_COMPLETE_UNVERIFIED | Curated 3-group Romanized/Bangla fallback and 135 JUnit query/title fixtures; Android/JVM test build pending |
+| NW113–NW125 | PLANNED | No new work executed; status does not imply functionality |
 
 After every wave update this ledger with commit, automated receipts, remaining blockers, actual device acceptance and next planned wave. Avoid recalculating a "Spotify score" based on static code checks.
 
@@ -86,3 +87,14 @@ The roadmap defines future turns and test requirements; it does not schedule aut
 - Static source verification: all new method references exist, 27 SearchRelevancePolicyTest methods detected, old Alo/Alone and Bangla vowel tests still present. These are source checks, NOT JUnit passes.
 - No permissions, manifest, backend, download/DRM/source-rights, OAuth, offline files or queue code changed.
 - Windows Gradle (new branch): NOT RUN. Device proof: NOT RUN. Fresh APK/identity: NOT VERIFIED. Rights decision: NO-GO unchanged. Next: NW112 native/Romanized multilingual search precision with a stricter gold-fixture evaluation.
+
+## NW112 implementation ledger — 2026-10-27
+
+- Starting point: NW111 at commit ce7ce69db251789c314b9164365fb7e815794049, with earlier NW110/Windows fixes unchanged.
+- New pure policy: SearchMultilingualAliasPolicy.kt. Curated whole-token spelling groups: jhum/jhoom/ঝুম, bhalobasha/valobasha/ভালোবাসা and bhalobashi/valobashi/ভালোবাসি. Maximum 8 words and 15 alternates per query. The original normalized query and video URLs are NEVER modified.
+- Online Songs ranking: SearchRelevancePolicy.publicScore evaluates original spelling first; alternate queries receive a fixed score penalty to keep exact matching ahead of equivalent aliases. Existing NW111 incidental-nonmusic demotion remains; Videos mode uses original provider ordering.
+- Saved tracks: SavedTrackSearch uses direct matches first, curated aliases only when no direct hits, typo fallback last. Saved URLs, media, playlists and files remain unchanged.
+- Tests: SearchMultilingualAliasPolicyTest.kt adds nine @Test methods, including 135 deterministic query/title cross-script fixtures (3 spelling groups x 3 typed forms x 3 source forms x 5 query suffixes), independent nonmusic rejection, Bangla vowel contrasts, repeated-token identity, literal-vs-alias, saved fallback, Videos mode unchanged, numeric versions and Alo/Alone. Existing NW82 and NW111 source tests retained.
+- Independent Kotlin CLI policy smoke: Kotlin 1.9.0/JDK21 compiled the new bounded-alias algorithm with the existing token-splitting contract and exercised 33 assertions PASS. This is a local focused policy smoke, **NOT** Gradle, Android, the entire scorer, or the 135 new JUnit cases.
+- Remaining: no complete NW112 Gradle/JVM execution, signed APK, physical-device search benchmark or 40-query measured precision receipt. NW112 source is CODE_COMPLETE_UNVERIFIED and public release remains NO-GO pending rights and all real acceptance checks.
+- Next phase: NW113 offline truth/eligibility, only for owned/licensed/authorized sources. Do not infer blanket YouTube offline rights.
