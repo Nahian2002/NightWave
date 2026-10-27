@@ -4,9 +4,11 @@
 
 NightWave combines locally imported or otherwise authorized music, an offline library, optional Google Drive backup, song discovery, playlists, Sound Studio, queue control, and user-imported synchronized LRC lyrics. The original midnight/teal design is independent of Spotify.
 
-**Current development source:** `feature/nightwave-nw110-final-integration-certification` (cumulative NW109 with executed Kotlin regression proof and fail-closed final release evidence). The older default `main` does not represent this candidate.
+**Current cumulative development source:** `feature/nightwave-nw118-repo-hygiene-library-selection` (NW118 in progress, built on all protected NW110–NW117 branches). The older default `main` is **not** the current cumulative candidate. See [active NW111–NW125 roadmap](docs/NW111_NW125_SPOTIFY_QUALITY_ROADMAP.md), [repository navigation](docs/REPOSITORY_INDEX.md), and [repository hygiene audit](docs/NW118_REPOSITORY_HYGIENE_AUDIT.md) before building or merging.
 
 **Release status:** **NO-GO**. The hosted GitHub Actions runner and empty canary both failed before executing steps; a current Windows debug build, Android/JUnit/139-case device validation, installed-signer continuity, production OAuth/backup, Android 16 behavior/device certification and NW77 YouTube-source rights review remain outstanding. Never install a new APK over a library-bearing app unless its signer matches.
+
+**Important about current test evidence:** Source reviews and targeted Kotlin smoke checks from incremental NW111–NW118 PRs are not a successful latest Android/Compose build or full release verification. Keep release status NO-GO until a current exact-commit Windows Gradle/JVM, device, signing, Drive backup, privacy and rights matrix is executed. Preserve historic evidence documents; consult the new repository index for current vs archived entries.
 
 **NW110 final integration and certification milestone:** [NW110 exact-source JVM and outstanding release gates](docs/NW110_FINAL_CERTIFICATION_EVIDENCE.md). Eight real NW95–NW100 JUnit test classes (53/53 methods) compiled and executed together against the exact 17 GitHub-blob-matched source files; 32,400 randomized queue assertions passed. The source-only JVM result is not an Android build or release approval. The new fail-closed certification script rejects stale/altered JVM receipts and explicitly leaves public distribution **NO-GO** pending real Android Gradle, signer, 139-device-case, Google Drive, privacy, source-rights and Google Play verification.
 
