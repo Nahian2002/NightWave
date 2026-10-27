@@ -4193,7 +4193,8 @@ private fun StudioLibrary(
     var selectedTrackUrls by remember(selectedPlaylist) { mutableStateOf<Set<String>>(emptySet()) }
     LaunchedEffect(selectedPlaylist, tracks) {
         // Drop stale checkboxes after another device surface edits this playlist.
-        selectedTrackUrls = selectedTrackUrls.intersect(tracks.map { it.url }.toSet())
+        selectedTrackUrls = LibraryBulkSelectionPolicy.sanitize(
+            selectedTrackUrls, tracks)
     }
     // A selection remains valid across sorting and filtering. Bulk edits
     // show the full explicitly selected set, including temporarily hidden
@@ -4789,7 +4790,7 @@ private fun StudioLibrary(
                         checked = song.url in selectedTrackUrls,
                         onCheckedChange = {
                             selectedTrackUrls = LibraryBulkSelectionPolicy.toggle(
-                                selectedTrackUrls, song.url, orderedTracks)
+                                selectedTrackUrls, song.url, tracks)
                         },
                         modifier = Modifier.size(48.dp).semantics {
                             contentDescription = "Select " + song.title
@@ -4801,7 +4802,7 @@ private fun StudioLibrary(
                         onOptions = {
                             if (selectingTracks && canSelectPlaylistTracks) {
                                 selectedTrackUrls = LibraryBulkSelectionPolicy.toggle(
-                                    selectedTrackUrls, song.url, orderedTracks)
+                                    selectedTrackUrls, song.url, tracks)
                             } else if (reorderingTracks && canSelectPlaylistTracks) {
                                 Unit
                             } else if (selectedPlaylist != null &&
@@ -4815,7 +4816,7 @@ private fun StudioLibrary(
                         onClick = {
                             if (selectingTracks && canSelectPlaylistTracks) {
                                 selectedTrackUrls = LibraryBulkSelectionPolicy.toggle(
-                                    selectedTrackUrls, song.url, orderedTracks)
+                                    selectedTrackUrls, song.url, tracks)
                             } else if (reorderingTracks && canSelectPlaylistTracks) {
                                 Unit
                             } else onPlay(song,
