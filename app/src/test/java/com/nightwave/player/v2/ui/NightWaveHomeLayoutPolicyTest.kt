@@ -88,4 +88,71 @@ class NightWaveHomeLayoutPolicyTest {
             assertTrue(first.actionLabel.isNotBlank())
         }
     }
+
+    @Test fun shortRecentShelfNeedsNeitherExpansionNorFullHistoryLink() {
+        for (count in listOf(0, 1, 5, 6)) {
+            val actions = policy.recentBrowseActions(count, false, false)
+            assertFalse(actions.showExpansion)
+            assertEquals(null, actions.expansionLabel)
+            assertFalse(actions.showFullHistory)
+        }
+    }
+
+    @Test fun completeSevenSongShelfCanTruthfullySaySeeAll() {
+        val collapsed = policy.recentBrowseActions(7, false, false)
+        assertTrue(collapsed.showExpansion)
+        assertEquals("See all", collapsed.expansionLabel)
+        assertFalse(collapsed.showFullHistory)
+        val expanded = policy.recentBrowseActions(7, false, true)
+        assertTrue(expanded.showExpansion)
+        assertEquals("Show less", expanded.expansionLabel)
+        assertFalse(expanded.showFullHistory)
+    }
+
+    @Test fun cappedHistoryNeverMislabelsHundredAsAll() {
+        val collapsed = policy.recentBrowseActions(100, true, false)
+        assertTrue(collapsed.showExpansion)
+        assertEquals("See first 100", collapsed.expansionLabel)
+        assertTrue(collapsed.showFullHistory)
+        val expanded = policy.recentBrowseActions(100, true, true)
+        assertEquals("Show less", expanded.expansionLabel)
+        assertTrue(expanded.showFullHistory)
+    }
+
+    @Test fun fullHistoryRouteIsIndependentOfShowAllToggle() {
+        for (expanded in listOf(true, false)) {
+            val state = policy.recentBrowseActions(100, true, expanded)
+            assertTrue(state.showFullHistory)
+            assertTrue(state.showExpansion)
+        }
+    }
+
+    @Test fun incompleteWindowUsesTrueOverflowSignalEvenIfOnlyFiveAreVisible() {
+        val actions = policy.recentBrowseActions(5, true, false)
+        assertFalse(actions.showExpansion)
+        assertEquals(null, actions.expansionLabel)
+        assertTrue(actions.showFullHistory)
+    }
+
+    @Test fun negativeOrCorruptCountsCannotCauseMisleadingExpansion() {
+        for (count in listOf(Int.MIN_VALUE, -100, -1, 0)) {
+            val actions = policy.recentBrowseActions(count, false, true)
+            assertFalse(actions.showExpansion)
+            assertEquals(null, actions.expansionLabel)
+            assertFalse(actions.showFullHistory)
+        }
+        val capped = policy.recentBrowseActions(Int.MAX_VALUE, true, false)
+        assertEquals("See first 2147483647", capped.expansionLabel)
+        assertTrue(capped.showFullHistory)
+    }
+
+    @Test fun recentBrowsePolicyCannotModifyListeningOrCollectionState() {
+        val original = listOf("song-a", "song-b", "song-c")
+        val copy = original.toList()
+        val a = policy.recentBrowseActions(100, true, false)
+        val b = policy.recentBrowseActions(100, true, false)
+        assertEquals(a, b)
+        assertEquals(copy, original)
+        assertTrue(a.showFullHistory)
+    }
 }
