@@ -2,7 +2,6 @@ package com.nightwave.player.playback
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -100,6 +99,6 @@ class PlaybackIdleSessionRecoveryPolicyTest {
             sameQueue = true, explicitPlay = false, selectedId = q.current?.url,
             reusableLoaded = false, pendingMatching = false))
         assertEquals(songB, q.current?.url)
-        assertNull(q.previous())
+        assertEquals(songA, q.previous()?.url) // original linear order remains
     }
 }
