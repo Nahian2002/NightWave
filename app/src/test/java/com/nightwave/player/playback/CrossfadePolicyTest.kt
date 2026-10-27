@@ -6,6 +6,19 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class CrossfadePolicyTest {
+    @Test fun nw120OverlappingEqDecksRequireTheSamePositiveAudioSession() {
+        for (preset in listOf(1, 20, 21)) {
+            assertTrue(CrossfadePolicy.compatibleEffectSession(preset, 42, 42))
+            assertFalse(CrossfadePolicy.compatibleEffectSession(preset, 42, 43))
+            assertFalse(CrossfadePolicy.compatibleEffectSession(preset, 0, 0))
+            assertFalse(CrossfadePolicy.compatibleEffectSession(preset, -1, -1))
+        }
+    }
+
+    @Test fun nw120EqOffKeepsIndependentCrossfadeDeckSessionsAvailable() {
+        assertTrue(CrossfadePolicy.compatibleEffectSession(0, 42, 43))
+        assertTrue(CrossfadePolicy.compatibleEffectSession(0, 0, -1))
+    }
     @Test fun defaultIsOffAndDurationBounded() {
         assertEquals(0, CrossfadePolicy.DEFAULT_SECONDS)
         assertFalse(CrossfadePolicy.accepts(-1))

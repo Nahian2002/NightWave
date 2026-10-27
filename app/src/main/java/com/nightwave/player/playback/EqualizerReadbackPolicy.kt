@@ -12,6 +12,16 @@ import kotlin.math.abs
 internal object EqualizerReadbackPolicy {
     enum class Result { VERIFIED, DEVICE_QUANTIZED, MISMATCH, INVALID }
 
+    fun inspectPreset(
+        requestedPreset: Int, currentPreset: Int, actualMb: List<Int>,
+        minimumMb: Int, maximumMb: Int
+    ): Result {
+        if (requestedPreset !in 1..20 || actualMb.size !in 1..32 ||
+            minimumMb > maximumMb || actualMb.any { it !in minimumMb..maximumMb })
+            return Result.INVALID
+        return if (currentPreset == requestedPreset - 1) Result.VERIFIED else Result.MISMATCH
+    }
+
     fun inspect(requestedMb: List<Int>, actualMb: List<Int>): Result {
         if (requestedMb.isEmpty() || requestedMb.size !in 1..32 ||
             requestedMb.size != actualMb.size ||

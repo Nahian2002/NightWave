@@ -7,6 +7,31 @@ import org.junit.Test
 class EqualizerReadbackPolicyTest {
     private val policy = EqualizerReadbackPolicy
 
+    @Test fun nw120DevicePresetMustReadBackTheRequestedPresetIndex() {
+        assertEquals(EqualizerReadbackPolicy.Result.VERIFIED,
+            policy.inspectPreset(2, 1, listOf(-200, 0, 400), -1500, 1500))
+        for (actual in listOf(-1, 0, 2, 20)) assertEquals(EqualizerReadbackPolicy.Result.MISMATCH,
+            policy.inspectPreset(2, actual, listOf(-200, 0, 400), -1500, 1500))
+    }
+
+    @Test fun nw120PresetWithMissingInvalidOrOutOfRangeBandReadbackIsRejected() {
+        for (levels in listOf(emptyList(), listOf(1600), List(33) { 0 }))
+            assertEquals(EqualizerReadbackPolicy.Result.INVALID,
+                policy.inspectPreset(1, 0, levels, -1500, 1500))
+        for (preset in listOf(0, 21, Int.MAX_VALUE))
+            assertEquals(EqualizerReadbackPolicy.Result.INVALID,
+                policy.inspectPreset(preset, 0, listOf(0), -1500, 1500))
+        assertEquals(EqualizerReadbackPolicy.Result.INVALID,
+            policy.inspectPreset(1, 0, listOf(0), 100, -100))
+    }
+
+    @Test fun nw120HardwarePresetBoundsRemainIndependentOfManualGainLimit() {
+        assertEquals(EqualizerReadbackPolicy.Result.VERIFIED,
+            policy.inspectPreset(20, 19, listOf(-2000, 2000), -2400, 2400))
+        assertEquals(EqualizerReadbackPolicy.Result.INVALID,
+            policy.inspect(listOf(2000), listOf(2000)))
+    }
+
     @Test fun nw88ExactManualBandReadbackCanBeReportedAsVerified() {
         assertEquals(EqualizerReadbackPolicy.Result.VERIFIED,
             policy.inspect(listOf(-250, 0, 200, 300), listOf(-250, 0, 200, 300)))

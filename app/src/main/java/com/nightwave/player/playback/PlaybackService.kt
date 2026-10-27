@@ -100,6 +100,7 @@ class PlaybackService : MediaLibraryService() {
         const val ACTION_EQ_BANDS_APPLY = "com.nightwave.player.EQ_BANDS_APPLY"
         const val ACTION_EQ_DISCOVER = "com.nightwave.player.EQ_DISCOVER"
         const val EXTRA_EQ_LEVELS_MB = "eq_levels_mb"
+        const val EXTRA_EQ_SESSION_TOKEN = "eq_session_token"
         const val EXTRA_EQ_COMMAND_ID = "eq_command_id"
         const val EXTRA_EQ_BAND = "eq_band"
         const val EXTRA_EQ_LEVEL_MB = "eq_level_mb"
@@ -153,12 +154,79 @@ class PlaybackService : MediaLibraryService() {
     private var activeEqualizer: Equalizer? = null
     private var equalizerSessionId = C.AUDIO_SESSION_ID_UNSET
 
+    private fun equalizerReadback(effect: Equalizer): EqualizerReadbackPolicy.Result {
+        val count = effect.numberOfBands.toInt()
+        if (count !in 1..32) return EqualizerReadbackPolicy.Result.INVALID
+        val actual = (0 until count).map { effect.getBandLevel(it.toShort()).toInt() }
+        return if (requestedEqPreset == 21) {
+            val centers = (0 until count).map { effect.getCenterFreq(it.toShort()) / 1000 }
+            if (centers != manualCentersHz || manualLevels.size != count ||
+                (0 until count).any { it !in manualLevels }) EqualizerReadbackPolicy.Result.INVALID
+            else EqualizerReadbackPolicy.inspect(
+                (0 until count).map { manualLevels.getValue(it).toInt() }, actual)
+        } else {
+            val range = effect.bandLevelRange
+            if (range.size < 2) EqualizerReadbackPolicy.Result.INVALID
+            else EqualizerReadbackPolicy.inspectPreset(requestedEqPreset,
+                effect.currentPreset.toInt(), actual, range[0].toInt(), range[1].toInt())
+        }
+    }
+
+    private fun hasVerifiedActiveEqualizer(): Boolean = runCatching {
+        val effect = activeEqualizer ?: return@runCatching false
+        EqualizerSessionPolicy.canReuse(requestedEqPreset, equalizerSessionId,
+            exoPlayer?.audioSessionId ?: C.AUDIO_SESSION_ID_UNSET, effect.enabled,
+            effect.hasControl()) && equalizerReadback(effect) in setOf(
+                EqualizerReadbackPolicy.Result.VERIFIED,
+                EqualizerReadbackPolicy.Result.DEVICE_QUANTIZED)
+    }.getOrDefault(false)
+
+    /** Called only on the service thread, including posted Android FX callbacks. */
+    private fun refreshActiveEqualizer(effect: Equalizer) {
+        if (activeEqualizer !== effect) return // Ignore late callbacks from released effects.
+        val session = exoPlayer?.audioSessionId ?: C.AUDIO_SESSION_ID_UNSET
+        val owned = session > 0 && session == equalizerSessionId
+        val published = if (owned) eqCapabilities.publish(effect, session) else {
+            eqCapabilities.clear()
+            false
+        }
+        val active = published && hasVerifiedActiveEqualizer()
+        // An ignored/mutated curve is not an acknowledged active effect. Do not
+        // fight an externally disabled effect by automatically enabling it.
+        if (published && !active && runCatching { effect.enabled }.getOrDefault(false))
+            runCatching { effect.enabled = false }
+        val previous = eqStatus.read()
+        eqStatus.write(requestedEqPreset, active,
+            if (active) "EQ readback verified on Android session. Output route may bypass effects."
+            else "EQ not active or readback changed. Refresh and apply your choice.",
+            previous.commandId) // Live notifications must not erase an Apply acknowledgement.
+    }
+
+    /** Refresh the device identity before accepting a delayed UI command. */
+    private fun eqCommandMatches(intent: Intent, session: Int): Boolean {
+        if (session <= 0) return false
+        val expected = intent.getStringExtra(EXTRA_EQ_SESSION_TOKEN) ?: return false
+        var probe: Equalizer? = null
+        return try {
+            probe = activeEqualizer?.takeIf { equalizerSessionId == session } ?: Equalizer(0, session)
+            eqCapabilities.publish(probe, session) &&
+                EqualizerCommandPolicy.accepts(expected, eqCapabilities.read().commandToken)
+        } catch (_: Exception) {
+            eqCapabilities.clear()
+            false
+        } finally {
+            if (probe !== activeEqualizer) runCatching { probe?.release() }
+        }
+    }
+
     private fun releaseEqualizer() {
         val previous = activeEqualizer
         activeEqualizer = null
         equalizerSessionId = C.AUDIO_SESSION_ID_UNSET
         eqCapabilities.clear()
         eqStatus.write(requestedEqPreset, false, if (requestedEqPreset == 0) "Off" else "Not active")
+        runCatching { previous?.setControlStatusListener(null) }
+        runCatching { previous?.setEnableStatusListener(null) }
         runCatching { previous?.enabled = false }
         runCatching { previous?.release() }
     }
@@ -175,7 +243,10 @@ class PlaybackService : MediaLibraryService() {
         if (existing != null && EqualizerSessionPolicy.canReuse(
                 requestedEqPreset, equalizerSessionId, sessionId,
                 runCatching { existing.enabled }.getOrDefault(false),
-                runCatching { existing.hasControl() }.getOrDefault(false))) return
+                runCatching { existing.hasControl() }.getOrDefault(false))) {
+            refreshActiveEqualizer(existing)
+            return
+        }
         // Control may be revoked when Android changes output/audio effects.
         // Rebuild instead of reporting an old instance as active.
         releaseEqualizer()
@@ -244,18 +315,27 @@ class PlaybackService : MediaLibraryService() {
                 }
                 EqualizerReadbackPolicy.inspect(
                     ordered.values.map { it.toInt() }, actual)
-            } else EqualizerReadbackPolicy.Result.VERIFIED
+            } else equalizerReadback(candidate)
             if (readback == EqualizerReadbackPolicy.Result.MISMATCH ||
                 readback == EqualizerReadbackPolicy.Result.INVALID) {
                 eqStatus.write(requestedEqPreset, false,
                     EqualizerReadbackPolicy.activeLabel(readback))
                 return // candidate is released; playback itself continues.
             }
-            activeEqualizer = candidate
-            equalizerSessionId = sessionId
             // Read back the actual band levels rather than painting a fake
             // response curve for the selected hardware preset.
-            runCatching { eqCapabilities.publish(candidate, sessionId) }
+            if (!eqCapabilities.publish(candidate, sessionId)) {
+                eqStatus.write(requestedEqPreset, false, "EQ snapshot unavailable; effect disabled.")
+                return
+            }
+            candidate.setControlStatusListener { effect, _ ->
+                main.post { if (activeEqualizer === effect) refreshActiveEqualizer(effect as Equalizer) }
+            }
+            candidate.setEnableStatusListener { effect, _ ->
+                main.post { if (activeEqualizer === effect) refreshActiveEqualizer(effect as Equalizer) }
+            }
+            activeEqualizer = candidate
+            equalizerSessionId = sessionId
             eqStatus.write(requestedEqPreset, true,
                 if (requestedEqPreset == 21)
                     EqualizerReadbackPolicy.activeLabel(readback)
@@ -472,6 +552,12 @@ class PlaybackService : MediaLibraryService() {
             }
             val incoming = crossfadeIncoming
             if (incoming != null && crossfadeTargetIndex == index + 1) {
+                if ((incoming.playbackState == Player.STATE_READY || crossfadeStartedAtMs > 0L) &&
+                    !CrossfadePolicy.compatibleEffectSession(requestedEqPreset,
+                        player.audioSessionId, incoming.audioSessionId)) {
+                    cancelCrossfade() // Preserve normal gapless if shared FX is unavailable.
+                    return
+                }
                 if (incoming.playerError != null) {
                     cancelCrossfade() // decoding failed; original gapless player remains.
                     return
@@ -523,6 +609,8 @@ class PlaybackService : MediaLibraryService() {
                 .build().apply {
                 setWakeMode(C.WAKE_MODE_LOCAL)
                 volume = 0f
+                if (requestedEqPreset != 0 && outgoing.audioSessionId > 0)
+                    setAudioSessionId(outgoing.audioSessionId)
                 setAudioAttributes(AudioAttributes.Builder()
                     .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
                     .setUsage(C.USAGE_MEDIA).build(), false)
@@ -602,7 +690,7 @@ class PlaybackService : MediaLibraryService() {
         crossfadeTargetIndex = -1
         crossfadeStartedAtMs = 0L
         main.removeCallbacks(crossfadeTick)
-        releaseEqualizer()
+        if (equalizerSessionId != new.audioSessionId) releaseEqualizer()
         new.addListener(trackListener)
         publishWidgetState()
         applyEqualizer(new.audioSessionId)
@@ -1520,46 +1608,48 @@ class PlaybackService : MediaLibraryService() {
             ACTION_EQ_PRESET_SET -> {
                 val preset = intent.getIntExtra(EXTRA_EQ_PRESET, -1)
                 val sessionId = exoPlayer?.audioSessionId ?: C.AUDIO_SESSION_ID_UNSET
+                val sessionMatches = preset == 0 || eqCommandMatches(intent, sessionId)
                 val availablePresets = eqCapabilities.read().takeIf {
                     it.sessionReady && it.audioSessionId == sessionId
                 }?.presetNames?.size ?: 0
                 // Off is always permitted. All other values must correspond
                 // to a preset advertised by this exact active audio session.
-                if (preset == 0 || (preset in 1..availablePresets && sessionId > 0)) {
+                if (preset == 0 || (sessionMatches && preset in 1..availablePresets && sessionId > 0)) {
                     // An explicit selection is only accepted once its durable
                     // intent is committed. Hardware may still report NOT ACTIVE.
                     if (eqSelectionStore.save(EqualizerSelection(preset))) {
+                        cancelCrossfade()
                         requestedEqPreset = preset
                         manualLevels.clear()
                         manualCentersHz = emptyList()
                         releaseEqualizer()
                         applyEqualizer(sessionId)
                     } else eqStatus.write(requestedEqPreset,
-                        activeEqualizer?.enabled == true,
+                        hasVerifiedActiveEqualizer(),
                         "Could not save EQ choice; previous effect preserved.")
-                } else eqStatus.write(requestedEqPreset, activeEqualizer?.enabled == true,
+                } else eqStatus.write(requestedEqPreset, hasVerifiedActiveEqualizer(),
                     "Rejected: start playback and refresh supported presets.")
             }
             ACTION_EQ_DISCOVER -> {
                 val session = exoPlayer?.audioSessionId ?: C.AUDIO_SESSION_ID_UNSET
+                if (activeEqualizer != null && equalizerSessionId != session) releaseEqualizer()
                 if (session > 0) {
                     var probe: Equalizer? = null
                     try {
                         probe = activeEqualizer ?: Equalizer(0, session)
                         val controlsEffect = probe.hasControl()
-                        if (controlsEffect) eqCapabilities.publish(probe, session)
-                        else eqCapabilities.clear()
                         // On a cold app launch the old SharedPreferences receipt
                         // can still say "active"; the new service has no effect.
-                        val activeOnSession = activeEqualizer === probe &&
-                            equalizerSessionId == session && probe.enabled &&
-                            controlsEffect
-                        eqStatus.write(requestedEqPreset, activeOnSession,
-                            if (activeOnSession)
-                                "Enabled on playback session. Audibility depends on audio route."
-                            else if (!controlsEffect)
-                                "Android EQ is controlled by another effect or unavailable."
-                            else "Equalizer off. Select an available device preset.")
+                        if (activeEqualizer === probe) refreshActiveEqualizer(probe)
+                        else {
+                            if (controlsEffect) eqCapabilities.publish(probe, session)
+                            else eqCapabilities.clear()
+                            eqStatus.write(requestedEqPreset, false,
+                                if (!controlsEffect)
+                                    "Android EQ is controlled by another effect or unavailable."
+                                else "Equalizer off. Select an available device preset.",
+                                eqStatus.read().commandId)
+                        }
                     } catch (_: Exception) {
                         eqCapabilities.clear()
                         eqStatus.write(requestedEqPreset, false,
@@ -1577,12 +1667,14 @@ class PlaybackService : MediaLibraryService() {
                 val values = intent.getIntArrayExtra(EXTRA_EQ_LEVELS_MB)
                 if (values != null && values.size in 1..32 && values.all { it in -1500..1500 }) {
                     val session = exoPlayer?.audioSessionId ?: C.AUDIO_SESSION_ID_UNSET
+                    val sessionMatches = eqCommandMatches(intent, session)
                     val caps = eqCapabilities.read()
-                    if (session > 0 && caps.sessionReady && caps.audioSessionId == session && values.size == caps.centersHz.size &&
+                    if (sessionMatches && session > 0 && caps.sessionReady && caps.audioSessionId == session && values.size == caps.centersHz.size &&
                         values.all { it in caps.minimumMb..caps.maximumMb }) {
                         val choice = EqualizerSelection(
                             21, caps.centersHz, values.toList())
                         if (eqSelectionStore.save(choice)) {
+                            cancelCrossfade()
                             manualLevels.clear()
                             values.forEachIndexed { index, level ->
                                 manualLevels[index] = level.toShort()
@@ -1592,21 +1684,22 @@ class PlaybackService : MediaLibraryService() {
                             releaseEqualizer()
                             applyEqualizer(session)
                         } else eqStatus.write(requestedEqPreset,
-                            activeEqualizer?.enabled == true,
+                            hasVerifiedActiveEqualizer(),
                             "Could not save EQ curve; previous effect preserved.")
-                    } else eqStatus.write(requestedEqPreset, activeEqualizer?.enabled == true, "Rejected: stale session or unsupported bands")
-                } else eqStatus.write(requestedEqPreset, activeEqualizer?.enabled == true, "Rejected: invalid band input")
+                    } else eqStatus.write(requestedEqPreset, hasVerifiedActiveEqualizer(), "Rejected: stale session or unsupported bands")
+                } else eqStatus.write(requestedEqPreset, hasVerifiedActiveEqualizer(), "Rejected: invalid band input")
             }
             ACTION_EQ_BAND_SET -> {
                 val band = intent.getIntExtra(EXTRA_EQ_BAND, -1)
                 val level = intent.getIntExtra(EXTRA_EQ_LEVEL_MB, Int.MIN_VALUE)
                 val session = exoPlayer?.audioSessionId ?: C.AUDIO_SESSION_ID_UNSET
+                val sessionMatches = eqCommandMatches(intent, session)
                 val caps = eqCapabilities.read()
                 val supported = SoundStudioPolicy.safeManualRange(
                     caps.minimumMb, caps.maximumMb)
                 // Older callers may still send individual band commands. Never
                 // assume five bands or mutate a working EQ on stale session data.
-                if (session > 0 && caps.sessionReady &&
+                if (sessionMatches && session > 0 && caps.sessionReady &&
                     caps.audioSessionId == session &&
                     band in caps.centersHz.indices &&
                     supported != null && level in supported) {
@@ -1632,6 +1725,7 @@ class PlaybackService : MediaLibraryService() {
                         val choice = EqualizerSelection(
                             21, caps.centersHz.toList(), updated)
                         if (eqSelectionStore.save(choice)) {
+                            cancelCrossfade()
                             manualLevels.clear()
                             updated.forEachIndexed { index, gain ->
                                 manualLevels[index] = gain.toShort()
@@ -1641,11 +1735,11 @@ class PlaybackService : MediaLibraryService() {
                             releaseEqualizer()
                             applyEqualizer(session)
                         } else eqStatus.write(requestedEqPreset,
-                            activeEqualizer?.enabled == true,
+                            hasVerifiedActiveEqualizer(),
                             "Could not save EQ band; previous effect preserved.")
                     }
                 } else {
-                    eqStatus.write(requestedEqPreset, activeEqualizer?.enabled == true,
+                    eqStatus.write(requestedEqPreset, hasVerifiedActiveEqualizer(),
                         "Rejected: unsupported band or stale audio session")
                 }
             }
@@ -1785,6 +1879,11 @@ class PlaybackService : MediaLibraryService() {
         if (intent?.action == ACTION_EQ_PRESET_SET ||
             intent?.action == ACTION_EQ_BANDS_APPLY ||
             intent?.action == ACTION_EQ_BAND_SET) {
+            scheduleCrossfadeCheck()
+        }
+        if (intent?.action == ACTION_EQ_PRESET_SET ||
+            intent?.action == ACTION_EQ_BANDS_APPLY ||
+            intent?.action == ACTION_EQ_BAND_SET || intent?.action == ACTION_EQ_DISCOVER) {
             val id = intent.getStringExtra(EXTRA_EQ_COMMAND_ID).orEmpty()
             if (id.length in 1..80) {
                 val receipt = eqStatus.read()

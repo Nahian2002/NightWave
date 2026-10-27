@@ -2,9 +2,9 @@
 
 An independent Android music player with an original midnight design, local music, playlists, background playback, imported synchronized lyrics, Sound Studio and optional Google Drive backup.
 
-**Current cumulative source:** [`update/nightwave-cleanup-nw119-lyrics`](https://github.com/Nahian2002/NightWave/tree/update/nightwave-cleanup-nw119-lyrics), based on NW118 commit `64160f1388b6dcef6439f384602d1a7c9a6c63d8`. The default `main` still contains the old v0.8 app.
+**Current cumulative source:** [`update/nightwave-nw120-audio-session-truth`](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw120-audio-session-truth), based on verified NW119 commit `ccbaae441fecea1bc3ca5b018fde33bb17ced554`. The default `main` still contains the old v0.8 app.
 
-**27 October 2026 validation:** Android app and instrumentation sources compile, the debug APK assembles, and **1,421 JVM tests pass with zero failures or skips**. See the [current test report](TEST_REPORT.md) and [update evidence](docs/NW119_CLEANUP_AND_LYRICS_EVIDENCE.md) for scope and receipts.
+**27 October 2026 validation:** Android app and instrumentation sources compile, the debug APK assembles, and **1,433 JVM tests pass with zero failures or skips**. See the [current test report](TEST_REPORT.md) and [update evidence](docs/NW120_AUDIO_SESSION_EVIDENCE.md) for scope and receipts.
 
 **Public release: NO-GO.** Installed-phone signer continuity, Samsung acceptance, production OAuth/Drive restore and source-rights review remain separate gates. A successful build does not authorize distribution or certify phone behavior.
 
@@ -15,6 +15,8 @@ An independent Android music player with an original midnight design, local musi
 - [Repository navigation](docs/REPOSITORY_INDEX.md)
 - [Current checks and historical tooling](tools/README.md)
 - [Release readiness](RELEASE_READINESS.md), [security](SECURITY.md), [privacy draft](PRIVACY_POLICY_DRAFT.md)
+
+NW120 makes EQ commands specific to the reviewed audio output, verifies preset readback, refreshes control-loss status and keeps EQ on both eligible crossfade decks. Audible speaker/Bluetooth/headphone acceptance remains pending.
 
 ## Features
 
