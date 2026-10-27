@@ -1,5 +1,7 @@
 # NW125 — Final candidate handoff and evidence
 
+> 28 October 2026 follow-up: the cumulative app has now passed a fresh local Windows build, all 1,484 JVM tests, Android production/test-source compilation and APK assembly. The post-NW125 audit fixes a Python syntax error in this phase's repository gate; both gate modes now run in the 52-check current verifier. See [current verification](../TEST_REPORT.md) and [active next roadmap](PRODUCT_QUALITY_ROADMAP.md). Installed-phone, full device/restore and release acceptance remain open. The 27 October statements below are preserved as the original handoff record.
+
 **Date:** 27 October 2026
 **Repository:** `Nahian2002/NightWave`
 **Canonical cumulative source:** [`release/nightwave-nw125-final-candidate`](https://github.com/Nahian2002/NightWave/tree/release/nightwave-nw125-final-candidate)

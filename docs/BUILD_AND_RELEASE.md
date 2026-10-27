@@ -1,6 +1,8 @@
 # Build and safe update
 
-Updated 27 October 2026. **Current complete source for private final build: `release/nightwave-nw125-final-candidate`** (contains NW111–NW124, including NW123/NW124 changes not yet fully compiled). `main` is an older v0.8 snapshot. The last independently verified Android build belongs to NW122, not NW125. Follow [NW125 final candidate instructions](NW125_FINAL_CANDIDATE.md).
+**28 October 2026 update:** cumulative NW125 now passes local Windows build, 1,484 JVM tests, Android app/test-source compilation and debug assembly. The current audit branch repairs NW125's Python gate and passes 52 current checks; [TEST_REPORT](../TEST_REPORT.md) records exact evidence. Read the [active NW126–NW145 roadmap](PRODUCT_QUALITY_ROADMAP.md) for future batches. Installed-phone signer and physical/release acceptance remain separate.
+
+**Latest audit/gate repair source: `audit/nightwave-post-nw125-quality-roadmap`**, based on cumulative `release/nightwave-nw125-final-candidate`. `main` is an older v0.8 snapshot. Follow the build procedure below and the retained [NW125 phone instructions](NW125_FINAL_CANDIDATE.md); require fresh receipts for whichever exact source is built.
 
 ## Local Windows build
 
@@ -28,6 +30,6 @@ The current CI workflow, `current-android.yml`, runs those checks followed by al
 
 ## Evidence and release
 
-See [current test evidence](../TEST_REPORT.md), [NW125 handoff](NW125_FINAL_CANDIDATE.md) and [NW122 last compiled evidence](NW122_PERFORMANCE_MEASUREMENT.md). Earlier NW122 Android compilation was verified, but this final cumulative branch is **not yet compiled**; hosted runner allocation, physical-device behavior, installed signer, OAuth/Drive restoration and rights/privacy approval are independent gates. Public release remains **NO-GO**.
+See [current test evidence](../TEST_REPORT.md), [NW125 handoff](NW125_FINAL_CANDIDATE.md) and [NW122 historical benchmark evidence](NW122_PERFORMANCE_MEASUREMENT.md). The cumulative app is locally compiled/tested. Hosted runner allocation, physical-device behavior, installed signer, OAuth/Drive restoration and rights/privacy approval remain independent gates. Public release remains **NO-GO**.
 
 [Previous build notes](BUILD_AND_RELEASE_HISTORY_20261027.md) preserve older instructions and evidence for recovery.

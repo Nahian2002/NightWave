@@ -1,0 +1,799 @@
+{
+  "schema_version": 1,
+  "created_date": "2026-10-28",
+  "active_plan": "docs/PRODUCT_QUALITY_ROADMAP.md",
+  "audit": "docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md",
+  "implementation_base_revision": "61703c98238e762e59c049b6690853431f822884",
+  "audit_branch": "audit/nightwave-post-nw125-quality-roadmap",
+  "next_batch": "NW126",
+  "goal": "9.5+ within the declared NightWave music-player scope, conditional on actual product and acceptance evidence",
+  "rating_kind": "Subjective comparative product review, not a measured Spotify score",
+  "baseline_weighted_score": 6.655,
+  "baseline_score_display": 6.7,
+  "scorecard": [
+    {
+      "area": "Visual identity and coherence",
+      "weight": 8,
+      "score": 7.5
+    },
+    {
+      "area": "Compactness and useful screen space",
+      "weight": 8,
+      "score": 6.0
+    },
+    {
+      "area": "Typography and visual readability",
+      "weight": 6,
+      "score": 7.0
+    },
+    {
+      "area": "Navigation and user control",
+      "weight": 8,
+      "score": 7.0
+    },
+    {
+      "area": "Home usefulness and discovery",
+      "weight": 8,
+      "score": 6.5
+    },
+    {
+      "area": "Search and result decisions",
+      "weight": 10,
+      "score": 6.5
+    },
+    {
+      "area": "Music identity and artwork",
+      "weight": 6,
+      "score": 6.0
+    },
+    {
+      "area": "Now Playing experience",
+      "weight": 10,
+      "score": 8.0
+    },
+    {
+      "area": "Library and collection management",
+      "weight": 8,
+      "score": 7.0
+    },
+    {
+      "area": "Queue experience and discoverability",
+      "weight": 5,
+      "score": 6.5
+    },
+    {
+      "area": "Offline and transfer journey",
+      "weight": 7,
+      "score": 5.0
+    },
+    {
+      "area": "Lyrics availability and onboarding",
+      "weight": 4,
+      "score": 4.5
+    },
+    {
+      "area": "Sound Studio usability",
+      "weight": 4,
+      "score": 7.0
+    },
+    {
+      "area": "Account and recovery experience",
+      "weight": 4,
+      "score": 7.5
+    },
+    {
+      "area": "Personalization and preferences",
+      "weight": 2,
+      "score": 7.5
+    },
+    {
+      "area": "Copy empty loading error states",
+      "weight": 2,
+      "score": 6.0
+    }
+  ],
+  "critical_unscored_dimensions": [
+    "long-term reliability",
+    "Android performance and battery",
+    "physical accessibility",
+    "offline integrity/resume",
+    "restoration/data safety",
+    "privacy/security/release"
+  ],
+  "implementation_status_values": [
+    "PLANNED",
+    "IMPLEMENTING",
+    "SOURCE_COMPLETE",
+    "LOCAL_VERIFIED",
+    "ACCEPTED"
+  ],
+  "device_status_values": [
+    "NOT_RUN",
+    "IN_PROGRESS",
+    "PARTIAL",
+    "PASS",
+    "FAIL",
+    "NOT_APPLICABLE_WITH_REASON"
+  ],
+  "completion_rule": "Source/local completion may permit independent later work with device checks explicitly pending; final certification requires all blocking physical/release evidence.",
+  "audit_repairs_already_done": [
+    "Q30 unmatched Python parenthesis corrected",
+    "NW125 self-test and normal JSON gate wired into the current verification runner"
+  ],
+  "batches": [
+    {
+      "id": "NW126",
+      "priority": "P0",
+      "title": "Reproducible baseline and build identity",
+      "depends_on": [],
+      "implementation_status": "PLANNED",
+      "device_status": "NOT_RUN",
+      "finding_ids": [
+        "Q29",
+        "Q30",
+        "Q31"
+      ],
+      "source_areas": [
+        "app/build.gradle.kts",
+        "tools/verify_current.py",
+        "tools/nw125_release_candidate_gate.py",
+        "docs/NW90_EXPANDED_139_CASE_MATRIX.csv"
+      ],
+      "acceptance_criteria": [
+        "Record exact source/APK/certificate and support-visible build identity; demonstrate the recording or installed validation binary can be attributed to that build.",
+        "Run all current gates including NW125 positive/negative self-test and normal gate; preserve the original Q30 failure and prevent its omission from the required runner.",
+        "Map the original 139 cases plus these 80 cases to a disposable data fixture; declare flagship/midrange device, library corpus and measurement conditions.",
+        "Verify a permitted in-place validation update preserves library/profile/settings/queue/account boundaries; no reinstall or storage reset is used."
+      ],
+      "implementation_commit": null,
+      "local_evidence": [],
+      "device_evidence": [],
+      "remaining_blockers": []
+    },
+    {
+      "id": "NW127",
+      "priority": "P1",
+      "title": "Compact visual system and hierarchy",
+      "depends_on": [
+        "NW126"
+      ],
+      "implementation_status": "PLANNED",
+      "device_status": "NOT_RUN",
+      "finding_ids": [
+        "Q01",
+        "Q02",
+        "Q03",
+        "Q09",
+        "Q12"
+      ],
+      "source_areas": [
+        "v2/ui/NightWavePremiumDesignTokens.kt",
+        "v2/ui/NightWaveChromePolicy.kt",
+        "v2/ui/NightWaveTheme.kt",
+        "v2/ui/NightWaveEverydaySurfaces.kt"
+      ],
+      "acceptance_criteria": [
+        "Capture matched before/after Home, Search, Library and You at 320/360/412dp; primary content gains useful space through less duplication and every intended control remains reachable.",
+        "Measure rendered primary and supporting text contrast including image-overlay cards across every theme; meet the adopted Android/WCAG text and control contrast criteria.",
+        "Independently actionable controls retain at least 48dp nonoverlapping layout/touch bounds; 1x/2x/3x text reflows without truncating required actions.",
+        "Apply a documented shared spacing/type/radius/chrome contract to reusable components; preserve semantics, data callbacks and selected-track state."
+      ],
+      "implementation_commit": null,
+      "local_evidence": [],
+      "device_evidence": [],
+      "remaining_blockers": []
+    },
+    {
+      "id": "NW128",
+      "priority": "P1",
+      "title": "Unified shell and offline navigation",
+      "depends_on": [
+        "NW127"
+      ],
+      "implementation_status": "PLANNED",
+      "device_status": "NOT_RUN",
+      "finding_ids": [
+        "Q04",
+        "Q15",
+        "Q25"
+      ],
+      "source_areas": [
+        "v2/ui/NightWaveStudioActivity.kt",
+        "offline/OfflineLibraryActivity.kt",
+        "offline/CatalogDownloadsActivity.kt",
+        "offline/FreeAudioCatalogActivity.kt"
+      ],
+      "acceptance_criteria": [
+        "Open offline Library, supported catalog and Downloads from each main route; consistent navigation and selected-song controls remain available.",
+        "Run 30 repeated route/back/gesture-back cycles; no duplicate route growth, trapped loop, lost scroll/query or unintended playback stop.",
+        "Recreate/background the shell and return from the system picker; restore the intended destination and discard obsolete transient work.",
+        "Keep a deliberate recovery fallback during migration; existing download workers, library ownership and MediaSession remain authoritative."
+      ],
+      "implementation_commit": null,
+      "local_evidence": [],
+      "device_evidence": [],
+      "remaining_blockers": []
+    },
+    {
+      "id": "NW129",
+      "priority": "P1",
+      "title": "Complete local search corpus",
+      "depends_on": [
+        "NW126",
+        "NW128"
+      ],
+      "implementation_status": "PLANNED",
+      "device_status": "NOT_RUN",
+      "finding_ids": [
+        "Q05",
+        "Q07",
+        "Q13",
+        "Q28"
+      ],
+      "source_areas": [
+        "v2/ui/NightWaveStudioActivity.kt",
+        "net/SavedTrackSearch.kt",
+        "net/LocalSearchSuggestions.kt",
+        "library/MusicLibrary.kt",
+        "offline/OfflineTrackSearch.kt"
+      ],
+      "acceptance_criteria": [
+        "Through the actual screen search, find a saved song after position 350, an offline song after 400 and an item in playlist 26 or later; include a 10,000-item fixture.",
+        "Add/rename/remove an entry while typing; the next accepted snapshot reflects the edit and no old-query/old-library result is presented as current.",
+        "Trace index construction and query execution off the main thread; bound memory/work without silently discarding corpus membership.",
+        "Preserve Unicode/Bangla vowel/repeated-token/alias/typo semantics, best duplicate metadata and original source URLs; report keystroke-to-results distribution."
+      ],
+      "implementation_commit": null,
+      "local_evidence": [],
+      "device_evidence": [],
+      "remaining_blockers": []
+    },
+    {
+      "id": "NW130",
+      "priority": "P1",
+      "title": "Decidable public music results",
+      "depends_on": [
+        "NW129"
+      ],
+      "implementation_status": "PLANNED",
+      "device_status": "NOT_RUN",
+      "finding_ids": [
+        "Q06",
+        "Q07",
+        "Q18",
+        "Q28"
+      ],
+      "source_areas": [
+        "net/MusicIdentity.kt",
+        "net/SearchResultPresentationPolicy.kt",
+        "net/SearchVersionGroupingPolicy.kt",
+        "v2/ui/NightWaveStudioActivity.kt"
+      ],
+      "acceptance_criteria": [
+        "Each ambiguous result exposes real source, available duration and version evidence; two Play Date candidates can be distinguished without opening both.",
+        "Run a preregistered English/Bangla music/creator/version corpus including Jhum versus cultivation, repeated words, curated aliases and true nonmusic requests; report top-result errors.",
+        "A tap plays exactly the chosen URL; distinct recordings are never silently merged, deleted or substituted and Videos/provider order semantics are preserved.",
+        "Cancel/retry or change query during slow provider resolution; current-query progress, actionable timeout and explicit public-web fallback behave correctly."
+      ],
+      "implementation_commit": null,
+      "local_evidence": [],
+      "device_evidence": [],
+      "remaining_blockers": []
+    },
+    {
+      "id": "NW131",
+      "priority": "P1",
+      "title": "Home that earns its screen space",
+      "depends_on": [
+        "NW127",
+        "NW130"
+      ],
+      "implementation_status": "PLANNED",
+      "device_status": "NOT_RUN",
+      "finding_ids": [
+        "Q01",
+        "Q02",
+        "Q09",
+        "Q10",
+        "Q11"
+      ],
+      "source_areas": [
+        "v2/ui/NightWaveStudioActivity.kt",
+        "v2/ui/NightWaveEverydaySurfaces.kt",
+        "v2/ui/NightWaveHomeCurationPolicy.kt",
+        "v2/recommendation/LocalDailyMixEngine.kt",
+        "v2/recommendation/PersonalMixEngine.kt"
+      ],
+      "acceptance_criteria": [
+        "Review new, history-only, liked-only and mature-library states; each has a purposeful primary action and no duplicated empty dashboard sections.",
+        "Show real distinct shelves with understandable local signals; generic mix numbering or mood wording never claims inferred genre or verified artist data without evidence.",
+        "Move routine recent-item management behind accessible overflow/edit controls while preserving confirmation, history recovery and full-history access.",
+        "At small/large type and missing art, card text stays readable; play/Continue uses the intended bounded queue and no persisted history is truncated."
+      ],
+      "implementation_commit": null,
+      "local_evidence": [],
+      "device_evidence": [],
+      "remaining_blockers": []
+    },
+    {
+      "id": "NW132",
+      "priority": "P1",
+      "title": "Clear Library and collection identity",
+      "depends_on": [
+        "NW128",
+        "NW129"
+      ],
+      "implementation_status": "PLANNED",
+      "device_status": "NOT_RUN",
+      "finding_ids": [
+        "Q07",
+        "Q11",
+        "Q12",
+        "Q13",
+        "Q24"
+      ],
+      "source_areas": [
+        "v2/ui/NightWaveStudioActivity.kt",
+        "v2/library/LibraryBrowsePolicy.kt",
+        "v2/library/LibraryBulkSelectionPolicy.kt",
+        "v2/social/PlaylistDocumentPolicy.kt"
+      ],
+      "acceptance_criteria": [
+        "Liked, playlist membership, recent history, derived creator groups and offline files have distinct truthful labels/counts, including a history-only listener.",
+        "Create, rename, pin/folder, filter and sort a real playlist through the screen; stable order and saved membership survive return/restart.",
+        "Select visible and filtered-hidden valid rows, remove/reorder and Undo; bounded atomic edits preserve unrelated collections and stale-local guards.",
+        "Export/import the supported playlist document through the system picker, cancel, malformed input and name conflict; preview and explicit confirmation preserve original data."
+      ],
+      "implementation_commit": null,
+      "local_evidence": [],
+      "device_evidence": [],
+      "remaining_blockers": []
+    },
+    {
+      "id": "NW133",
+      "priority": "P1",
+      "title": "Player artwork and metadata finish",
+      "depends_on": [
+        "NW127",
+        "NW130"
+      ],
+      "implementation_status": "PLANNED",
+      "device_status": "NOT_RUN",
+      "finding_ids": [
+        "Q08",
+        "Q15",
+        "Q16",
+        "Q17"
+      ],
+      "source_areas": [
+        "v2/ui/StudioPlayerScreens.kt",
+        "v2/ui/NightWaveArtworkPolicy.kt",
+        "v2/ui/NightWaveNowPlayingPresentationPolicy.kt",
+        "v2/ui/NightWaveSeekTimeline.kt"
+      ],
+      "acceptance_criteria": [
+        "Use legitimate best-available source art with correctly sized requests and cache/fallback behavior; missing or low-resolution art never becomes a fake verified album cover.",
+        "Keep title/creator, Save, transport and seek stable at 320/360/412dp and large type; artwork scrolling/swipes cannot obscure or trigger the wrong transport.",
+        "Distinguish current-song buffering, paused, playing and failure states; full player, mini-player and notification refer to the same selected identity.",
+        "Seek by touch and accessibility during track change/reconnect; position confirmation is tied to the reviewed track and required queue/lyrics paths remain understandable."
+      ],
+      "implementation_commit": null,
+      "local_evidence": [],
+      "device_evidence": [],
+      "remaining_blockers": []
+    },
+    {
+      "id": "NW134",
+      "priority": "P1",
+      "title": "Queue and transport acceptance",
+      "depends_on": [
+        "NW132",
+        "NW133"
+      ],
+      "implementation_status": "PLANNED",
+      "device_status": "NOT_RUN",
+      "finding_ids": [
+        "Q14",
+        "Q15",
+        "Q16",
+        "Q31"
+      ],
+      "source_areas": [
+        "playback/PlaybackQueue.kt",
+        "playback/PlaybackService.kt",
+        "v2/playback/StudioPlaybackBridge.kt",
+        "v2/ui/StudioPlayerScreens.kt"
+      ],
+      "acceptance_criteria": [
+        "From a real multi-item queue, add Play Next, reorder/remove/Undo and clear explicitly; current song and manual-next priority remain correct.",
+        "Exercise shuffle Previous/Next through visited history, repeat one/all and natural end; queue labels match the authoritative service and no unrelated song is appended after a single-song search selection.",
+        "Background, process-recreate and reconnect around a queue edit; accepted commands and persisted selection remain coherent without stale UI overwrites.",
+        "Test notification, headset/Bluetooth and call/audio-focus transports on declared devices; collect timing and wrong-track/error evidence."
+      ],
+      "implementation_commit": null,
+      "local_evidence": [],
+      "device_evidence": [],
+      "remaining_blockers": []
+    },
+    {
+      "id": "NW135",
+      "priority": "P1",
+      "title": "Offline import and readiness journey",
+      "depends_on": [
+        "NW128",
+        "NW132"
+      ],
+      "implementation_status": "PLANNED",
+      "device_status": "NOT_RUN",
+      "finding_ids": [
+        "Q18",
+        "Q20",
+        "Q21",
+        "Q31"
+      ],
+      "source_areas": [
+        "offline/OfflineLibraryActivity.kt",
+        "offline/OfflineAudioLibrary.kt",
+        "offline/OfflineLibraryHealth.kt",
+        "offline/FreeAudioCatalogActivity.kt"
+      ],
+      "acceptance_criteria": [
+        "An empty listener can import an owned supported file through the system picker, see verification and reach one truthful Ready item in the unified Library.",
+        "Disable connectivity, stop/reopen the validation app and play/seek/skip an eligible imported/downloaded file; record actual offline completion.",
+        "Corrupt/remove/revoke access or simulate storage failure; show repair/reimport/retry only where valid and never label an unreadable index as mass file deletion.",
+        "Per-source capabilities explain import, download, stream-only and unsupported cases before action; user consent alone never fabricates provider capability or rights."
+      ],
+      "implementation_commit": null,
+      "local_evidence": [],
+      "device_evidence": [],
+      "remaining_blockers": []
+    },
+    {
+      "id": "NW136",
+      "priority": "P1",
+      "title": "Resumable recoverable transfers",
+      "depends_on": [
+        "NW135"
+      ],
+      "implementation_status": "PLANNED",
+      "device_status": "NOT_RUN",
+      "finding_ids": [
+        "Q18",
+        "Q19",
+        "Q20",
+        "Q31"
+      ],
+      "source_areas": [
+        "offline/DirectAudioDownloadWorker.kt",
+        "offline/CatalogDownloadsActivity.kt",
+        "offline transfer stores and integrity policies"
+      ],
+      "acceptance_criteria": [
+        "For an explicitly eligible controlled server, pause/restart retains bounded source-bound partial bytes and resumes a validated range instead of starting over.",
+        "Reject wrong ETag/Last-Modified/content identity, invalid 206/Content-Range, expiry and mixed bytes; safe full restart is explicit when resumption is unsupported.",
+        "With a stable job ID, progress/readiness and retained bytes remain truthful through navigation, process death, network drop, cancellation and low storage.",
+        "Completed audio passes real integrity/readback and offline playback; partial/cancelled/corrupt data never appears Ready, and abandoned partial files are cleaned by a tested policy."
+      ],
+      "implementation_commit": null,
+      "local_evidence": [],
+      "device_evidence": [],
+      "remaining_blockers": []
+    },
+    {
+      "id": "NW137",
+      "priority": "P1",
+      "title": "Useful user-owned lyrics",
+      "depends_on": [
+        "NW133",
+        "NW135"
+      ],
+      "implementation_status": "PLANNED",
+      "device_status": "NOT_RUN",
+      "finding_ids": [
+        "Q17",
+        "Q26",
+        "Q27"
+      ],
+      "source_areas": [
+        "v2/lyrics/PrivateLyricsStore.kt",
+        "v2/lyrics/TimedLyrics.kt",
+        "v2/ui/NightWaveLyricsEditorDialog.kt",
+        "v2/ui/StudioPlayerScreens.kt"
+      ],
+      "acceptance_criteria": [
+        "A listener imports an owned UTF-8 LRC through a guided preview and explicit track binding; stable source identity prevents lyrics attaching to a different recording.",
+        "Implement the declared supported online-reference/local-audio lyric scope with explicit unavailable states; no unapproved scrape/provider catalog or automatic translation claim.",
+        "English/Bangla timed lines, repeated cues, offsets, manual scroll/follow, seek and rotation work; preserve strict parsing, lossless rejection and export.",
+        "TalkBack and large-font lyric reading, selected-line contrast and measured seek/follow timing pass on the actual player without wrong-track updates."
+      ],
+      "implementation_commit": null,
+      "local_evidence": [],
+      "device_evidence": [],
+      "remaining_blockers": []
+    },
+    {
+      "id": "NW138",
+      "priority": "P1",
+      "title": "Sound Studio active and draft clarity",
+      "depends_on": [
+        "NW133",
+        "NW134"
+      ],
+      "implementation_status": "PLANNED",
+      "device_status": "NOT_RUN",
+      "finding_ids": [
+        "Q22",
+        "Q27"
+      ],
+      "source_areas": [
+        "v2/ui/NightWaveSoundStudio.kt",
+        "playback/EqualizerCommandPolicy.kt",
+        "playback/EqualizerCapabilities.kt",
+        "playback crossfade policies"
+      ],
+      "acceptance_criteria": [
+        "Simple Off/preset controls and an explicit advanced draft view clearly distinguish current applied state, preview and unapplied edits; Apply stays reachable.",
+        "Change session/control ownership or same-count frequency/range/preset identity; stale commands reject before writes and current readback determines active state.",
+        "Perform recorded permitted speaker/headphone/Bluetooth A/B checks with stable volume; separate audible evidence from framework gain readback.",
+        "Crossfade/gapless, normalization and speed remain truthful for supported local routes; large-text/TalkBack band changes retain labels, units and independent controls."
+      ],
+      "implementation_commit": null,
+      "local_evidence": [],
+      "device_evidence": [],
+      "remaining_blockers": []
+    },
+    {
+      "id": "NW139",
+      "priority": "P1",
+      "title": "Complete optional recovery journey",
+      "depends_on": [
+        "NW126",
+        "NW132"
+      ],
+      "implementation_status": "PLANNED",
+      "device_status": "NOT_RUN",
+      "finding_ids": [
+        "Q23",
+        "Q24",
+        "Q31"
+      ],
+      "source_areas": [
+        "v2/ui/NightWaveAccountHub.kt",
+        "v2/cloud/CloudBackupState.kt",
+        "v2/cloud/NightWaveDriveClient.kt",
+        "cloud restore/merge policies"
+      ],
+      "acceptance_criteria": [
+        "With a disposable account/archive, actually upload/read back, preview and restore/merge; compare contents and prove no silent overwrite of the listener library.",
+        "Account switch/reconnect, newer access proof, changed consent and local edits fence stale work even when timestamps coincide; cancellation preserves prior proof appropriately.",
+        "Revoke access or inject transient network/storage failure; account state, old backup receipt, progress/retry and saved disconnect remain truthful.",
+        "A compact account flow offers one contextual primary action, useful busy phases and reachable recovery/help; metadata backup and audio-file scope are explicit."
+      ],
+      "implementation_commit": null,
+      "local_evidence": [],
+      "device_evidence": [],
+      "remaining_blockers": []
+    },
+    {
+      "id": "NW140",
+      "priority": "P1",
+      "title": "Measured Android performance",
+      "depends_on": [
+        "NW129",
+        "NW134",
+        "NW136"
+      ],
+      "implementation_status": "PLANNED",
+      "device_status": "NOT_RUN",
+      "finding_ids": [
+        "Q03",
+        "Q05",
+        "Q28",
+        "Q31"
+      ],
+      "source_areas": [
+        "v2/ui/NightWaveStudioActivity.kt",
+        "library/MusicLibrary.kt",
+        "search indexing",
+        "Android benchmark/profile configuration"
+      ],
+      "acceptance_criteria": [
+        "Measure reference-device cold fully drawn/warm resume and 10k input-to-results p50/p95 including debounce; compare matched before/after and the declared budgets.",
+        "Measure 100 local Next actions to audible start separately from network/cold decode and natural transitions; preserve selected-song/queue correctness.",
+        "Capture Perfetto/frame, allocation/GC and retained-memory evidence for startup, scroll, rapid typing and route cycles; prioritize actual main-thread IO/index hotspots.",
+        "Run matched-power playback/battery and at least 60-minute integration soak; baseline profiles or caching have measured benefit without stale data or unbounded retained memory."
+      ],
+      "implementation_commit": null,
+      "local_evidence": [],
+      "device_evidence": [],
+      "remaining_blockers": []
+    },
+    {
+      "id": "NW141",
+      "priority": "P1",
+      "title": "Accessibility and Bangla English",
+      "depends_on": [
+        "NW127",
+        "NW133",
+        "NW137",
+        "NW138",
+        "NW139"
+      ],
+      "implementation_status": "PLANNED",
+      "device_status": "NOT_RUN",
+      "finding_ids": [
+        "Q26",
+        "Q27",
+        "Q31"
+      ],
+      "source_areas": [
+        "v2/ui/NightWaveAccessibilityPolicy.kt",
+        "v2/ui/NightWaveTheme.kt",
+        "app/src/main/res/values/strings.xml",
+        "new locale resources and semantics"
+      ],
+      "acceptance_criteria": [
+        "Complete core tasks with TalkBack/Switch Access; order, headings, state announcements and independent row/remove/slider actions are correct.",
+        "At 1x/2x/3x type and all themes, required text/actions remain readable/reachable with measured contrast and 48dp independent targets.",
+        "Move primary-flow strings/plurals/status units into resources; English/Bangla UI, Bangla combining marks, mixed-script titles and locale dates/numbers render correctly.",
+        "Reduced motion removes unnecessary transitions while preserving static loading/playing feedback; no meaning relies solely on color, animation or a gesture."
+      ],
+      "implementation_commit": null,
+      "local_evidence": [],
+      "device_evidence": [],
+      "remaining_blockers": []
+    },
+    {
+      "id": "NW142",
+      "priority": "P1",
+      "title": "Adaptive layouts and input",
+      "depends_on": [
+        "NW128",
+        "NW141"
+      ],
+      "implementation_status": "PLANNED",
+      "device_status": "NOT_RUN",
+      "finding_ids": [
+        "Q03",
+        "Q04",
+        "Q16",
+        "Q27"
+      ],
+      "source_areas": [
+        "v2/ui adaptive/layout policies",
+        "screen navigation",
+        "window insets and keyboard handling"
+      ],
+      "acceptance_criteria": [
+        "Inspect 320/360/412dp, landscape, tablet and split-screen profiles with realistic long titles; no required control clips or becomes unreachable.",
+        "Open keyboard/system picker and rotate during search/import/queue/lyrics; insets and restored destination/state remain correct.",
+        "Use navigation/gesture Back, hardware keyboard focus and external input; independent actions and focus order remain predictable.",
+        "Default and compact density use available space intentionally; large-type/tablet reflow adapts structure rather than shrinking labels to fit."
+      ],
+      "implementation_commit": null,
+      "local_evidence": [],
+      "device_evidence": [],
+      "remaining_blockers": []
+    },
+    {
+      "id": "NW143",
+      "priority": "P1",
+      "title": "First run failures and trust",
+      "depends_on": [
+        "NW135",
+        "NW136",
+        "NW139",
+        "NW141"
+      ],
+      "implementation_status": "PLANNED",
+      "device_status": "NOT_RUN",
+      "finding_ids": [
+        "Q11",
+        "Q18",
+        "Q21",
+        "Q23",
+        "Q24",
+        "Q25",
+        "Q31"
+      ],
+      "source_areas": [
+        "v2/ui onboarding/settings/help",
+        "offline/cloud error presentation",
+        "PRIVACY_POLICY_DRAFT.md",
+        "SECURITY.md"
+      ],
+      "acceptance_criteria": [
+        "A new guest can understand local/import/public-reference scope and start a supported listening task without compulsory Google sign-in or redundant empty cards.",
+        "For each primary action, test empty/loading/disabled/unsupported/offline/error/success states with one understandable next step and retained user work.",
+        "Help/Advanced retains diagnostics, export and recovery tools while removing storage-migration terminology from everyday preference rows.",
+        "Review actual data flows, permissions, support export redaction, dependencies/history and applicable source/provider/release approvals; unresolved issues remain explicit release blockers."
+      ],
+      "implementation_commit": null,
+      "local_evidence": [],
+      "device_evidence": [],
+      "remaining_blockers": []
+    },
+    {
+      "id": "NW144",
+      "priority": "P2",
+      "title": "Finish external controls and sharing",
+      "depends_on": [
+        "NW134",
+        "NW142",
+        "NW143"
+      ],
+      "implementation_status": "PLANNED",
+      "device_status": "NOT_RUN",
+      "finding_ids": [
+        "Q14",
+        "Q15",
+        "Q25",
+        "Q32"
+      ],
+      "source_areas": [
+        "MediaSession notification/widget/car surfaces",
+        "v2/social/PlaylistDocumentPolicy.kt",
+        "document/share entrypoints"
+      ],
+      "acceptance_criteria": [
+        "Verify existing notification/widget and supported car/headset surfaces reflect selected track and route, and transport works after reconnect/restart.",
+        "Share/import/export the declared playlist format with preview, cap/omission notice, name conflict, cancellation and malformed-input safety.",
+        "Return from an external provider/share/picker to the intended NightWave route with the same queue and playback state.",
+        "Document verified album/artist catalogs, Connect-like handoff and collaborative/social/AI services as separate evaluated scope; add no nonfunctional controls or invented service claims."
+      ],
+      "implementation_commit": null,
+      "local_evidence": [],
+      "device_evidence": [],
+      "remaining_blockers": []
+    },
+    {
+      "id": "NW145",
+      "priority": "P0",
+      "title": "Cross-device certification and re-rating",
+      "depends_on": [
+        "NW126",
+        "NW127",
+        "NW128",
+        "NW129",
+        "NW130",
+        "NW131",
+        "NW132",
+        "NW133",
+        "NW134",
+        "NW135",
+        "NW136",
+        "NW137",
+        "NW138",
+        "NW139",
+        "NW140",
+        "NW141",
+        "NW142",
+        "NW143",
+        "NW144"
+      ],
+      "implementation_status": "PLANNED",
+      "device_status": "NOT_RUN",
+      "finding_ids": [
+        "Q29",
+        "Q30",
+        "Q31",
+        "Q32"
+      ],
+      "source_areas": [
+        "docs/PRODUCT_QUALITY_ROADMAP.md",
+        "docs/quality acceptance ledgers",
+        "release tooling and final artifact evidence"
+      ],
+      "acceptance_criteria": [
+        "Execute the original 139 cases and new 80 cases against the exact final source/APK on both declared device classes; resolve every critical/high-severity failure.",
+        "Run the preregistered eight-listener task study, report every outcome and re-rate the frozen weighted rubric; 9.5 requires no core area below 9 and no unknown critical gate.",
+        "Complete two-hour mixed foreground/background playback/route tests plus real restoration/offline and matched performance/battery evidence; retain raw receipts and failures.",
+        "Build/sign/attest the final artifact, verify installed update continuity and all applicable privacy/source/distribution approvals; record release GO or specific NO-GO independently of the product score."
+      ],
+      "implementation_commit": null,
+      "local_evidence": [],
+      "device_evidence": [],
+      "remaining_blockers": []
+    }
+  ]
+}
