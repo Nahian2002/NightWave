@@ -53,7 +53,7 @@ function Assert-NW59SearchCopy([string]$Body) {
     Assert-NW59Missing $header 'state.provider' 'Search header exposing raw provider details'
 }
 function Assert-NW59Home([string]$Body) {
-    $start = $Body.IndexOf('private fun StudioHome(')
+    $start = $Body.IndexOf('internal fun StudioHome(')
     $finish = $Body.IndexOf('private fun MoodTile(', [Math]::Max(0, $start))
     if ($start -lt 0 -or $finish -lt $start) {
         throw 'NW59 cannot isolate Compose Home from source'
@@ -87,7 +87,7 @@ if ($SelfTest) {
     if (-not $rejected) { throw 'NW59 bad screen order test did not fail' }
     # Real exercise of the Home isolation function: this previously failed
     # because assigning $home also tries to overwrite read-only $HOME.
-    $homeFixture = 'private fun StudioHome(' + ' nightwave-premium-home-header' +
+    $homeFixture = 'internal fun StudioHome(' + ' nightwave-premium-home-header' +
         ' nw47-home-quick-access recent-heading nw47-recent-shelf' +
         ' discovery-shelf onResumeSpotlight(last, recentShelf)' +
         ' onRemoveRecent(song) NightWaveHomeLayoutPolicy.EmptyRecentDestination.SEARCH -> private fun MoodTile('

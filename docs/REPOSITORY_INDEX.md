@@ -1,6 +1,6 @@
 # NightWave — repository navigation
 
-**Current implementation baseline:** cumulative NW130 decidable public results on [`update/nightwave-nw130-public-music-results`](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw130-public-music-results). See [NW130 evidence and device protocol](NW130_DECIDABLE_PUBLIC_RESULTS.md). **Next source batch: NW131.** GitHub default `main` is an older app; NW126–NW130 physical acceptance remains open.
+**Current implementation baseline:** cumulative NW131 purposeful Home on [`update/nightwave-nw131-purposeful-home`](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw131-purposeful-home). See [NW131 evidence and device protocol](NW131_PURPOSEFUL_HOME.md). **Next source batch: NW132.** GitHub default `main` is an older app; NW126–NW131 physical acceptance remains open.
 
 ## Start here
 
@@ -15,6 +15,7 @@
 | Shared offline shell and latest build evidence | [NW128 evidence](NW128_UNIFIED_OFFLINE_SHELL.md) |
 | Complete local search and latest build evidence | [NW129 evidence](NW129_COMPLETE_LOCAL_SEARCH.md) |
 | Decidable public results and latest evidence | [NW130 evidence](NW130_DECIDABLE_PUBLIC_RESULTS.md) |
+| Purposeful Home and latest evidence | [NW131 evidence](NW131_PURPOSEFUL_HOME.md) |
 | Detailed current product rating and source/video findings | [28 October audit](audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md) |
 | Windows build, Android signing and release procedure | [Build and release](BUILD_AND_RELEASE.md) |
 | Release risks and blockers | [Release readiness](../RELEASE_READINESS.md) |
@@ -31,7 +32,7 @@
 - **JVM tests:** `app/src/test/`; **device tests:** `app/src/androidTest/`. Pure CLI smoke scripts are useful preflights, never substitutes for these suites.
 - **Build rules:** root `build.gradle.kts`, `settings.gradle.kts`, `gradle.properties`, and `app/build.gradle.kts`; **CI:** `.github/workflows/`. Do not delete or alter SDK/signing checks for cosmetic cleanup.
 - **Room schema/migrations and settings:** Treat all as migration evidence; never delete without a verified backwards-compatibility and restore audit.
-- **Current source wave:** NW125 implementation, audited from `61703c98238e762e59c049b6690853431f822884`, with the current gate repair on the audit branch. NW126 build identity/baseline is locally verified on the current update branch; `main` does not contain these waves. NW127 is the next planned source batch.
+- **Current source wave:** NW131 purposeful Home follows NW130 and completed repository-only publication preparation. NW126–NW131 are locally verified with physical acceptance pending; `main` does not contain these waves. NW132 is next. Consult the structured backlog and current test report.
 
 Current automated workflow: `.github/workflows/current-android.yml`; `android.yml` remains a manual historical diagnostic. See [historic check inventory](HISTORICAL_CI_SOURCE_CHECKS_20261027.md).
 

@@ -3397,7 +3397,7 @@ private fun StudioRoot(
 }
 
 @Composable
-private fun StudioHome(
+internal fun StudioHome(
     modifier: Modifier, profile: ProfileSettings, recent: List<VideoPreview>,
     favorites: List<VideoPreview>, playlistTracks: List<VideoPreview>,
     memory: ListeningMemorySummary,
@@ -3431,9 +3431,23 @@ private fun StudioHome(
     // Home tap-to-play queue just because saved history grew to 5k entries.
     // The complete history remains untouched in Room/preferences/library.
     val recentWindow = remember(recent) {
-        NightWaveHomeCurationPolicy.recentWindow(recent)
+        NightWaveHomeCurationPolicy.recentWindow(recent.filter { VideoLink.normalize(it.url) == it.url })
     }
     val recentShelf = recentWindow.tracks
+    val entry = remember(favorites, recentShelf, playlistTracks) {
+        NightWaveHomePresentationPolicy.entry(favorites, recentShelf, playlistTracks)
+    }
+    val mixPresentations = remember(mixes, favorites, recent, playlistTracks, memory.enabled) {
+        mixes.associate { it.key to NightWaveHomePresentationPolicy.mix(it, favorites, recent, playlistTracks, memory.enabled) }
+    }
+    val openPrimary = {
+        when (entry.primary?.destination) {
+            NightWaveHomeLayoutPolicy.EmptyRecentDestination.LIKED_SONGS -> openLikedSongs()
+            NightWaveHomeLayoutPolicy.EmptyRecentDestination.LIBRARY -> openLibrary()
+            NightWaveHomeLayoutPolicy.EmptyRecentDestination.SEARCH -> openSearch()
+            null -> Unit
+        }
+    }
     var chosenMixKey by rememberSaveable { mutableStateOf<String?>(null) }
     var showAllMixTracks by rememberSaveable { mutableStateOf(false) }
     var showAllRecent by rememberSaveable { mutableStateOf(false) }
@@ -3455,7 +3469,7 @@ private fun StudioHome(
     val nw83PageGutter = NightWavePremiumDesignTokens.pageGutterDp(
         androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.toFloat()).dp
     LazyColumn(
-        modifier = modifier.fillMaxWidth().widthIn(max =
+        modifier = modifier.testTag("nw131-home-list").fillMaxWidth().widthIn(max =
             NightWavePremiumDesignTokens.MAX_CONTENT_WIDTH_DP.dp).fillMaxHeight(),
         // Scaffold already reserves the mini-player and navigation height;
         // only add breathing room, not an artificial 150dp blank spacer.
@@ -3471,7 +3485,11 @@ private fun StudioHome(
                 lastTrack = recentShelf.firstOrNull(),
                 onContinue = recentShelf.firstOrNull()?.let { last ->
                     { onResumeSpotlight(last, recentShelf) }
-                }
+                },
+                emptyTitle = entry.primary?.title,
+                emptyDetail = entry.primary?.detail,
+                emptyActionLabel = entry.primary?.actionLabel,
+                onEmptyAction = if (entry.primary != null) openPrimary else null
             )
         }
         item(key = "nw47-home-quick-access") {
@@ -3480,9 +3498,9 @@ private fun StudioHome(
                 horizontalArrangement = Arrangement.spacedBy(9.dp)) {
                 NightWaveQuickActionPill("Offline",
                     Icons.Outlined.LibraryMusic, "nw47-home-offline", openOffline)
-                NightWaveQuickActionPill("Liked songs",
+                if (entry.showLikedShortcut) NightWaveQuickActionPill("Liked songs",
                     Icons.Outlined.FavoriteBorder, "nw47-home-liked", openLikedSongs)
-                NightWaveQuickActionPill("Find music",
+                if (entry.showSearchShortcut) NightWaveQuickActionPill("Find music",
                     Icons.Outlined.Search, "nw47-home-search", openSearch)
             }
         }
@@ -3512,46 +3530,27 @@ private fun StudioHome(
                 }
             }
         }
-        // One last-played hero plus one real recent rail. Never insert another
-        // oversized duplicate spotlight that buries the listening shelves.
-        item(key = "recent-heading") {
-            NightWaveSectionActions(heading = {
-                SectionHeading("Recently played",
-                    if (recentShelf.isEmpty()) "Your listening history appears here"
-                    else (if (recentWindow.hasMore)
-                        "${recentShelf.size}+ tracks · Private to this device"
-                    else "${recentShelf.size} tracks · Private to this device"))
-            }, action = {
-                if (recentBrowseActions.showExpansion) {
-                    TextButton(onClick = { showAllRecent = !showAllRecent },
-                        modifier = Modifier.heightIn(min = 48.dp).testTag("nw117-recent-expand")) {
-                        Text(recentBrowseActions.expansionLabel.orEmpty())
+        // Empty history is handled by the single purposeful hero above.
+        if (recentShelf.isNotEmpty()) {
+            item(key = "recent-heading") {
+                NightWaveSectionActions(heading = {
+                    SectionHeading("Recently played",
+                        (if (recentWindow.hasMore)
+                            "${recentShelf.size}+ tracks · Private to this device"
+                        else "${recentShelf.size} tracks · Private to this device"))
+                }, action = {
+                    if (recentBrowseActions.showExpansion) {
+                        TextButton(onClick = { showAllRecent = !showAllRecent },
+                            modifier = Modifier.heightIn(min = 48.dp).testTag("nw117-recent-expand")) {
+                            Text(recentBrowseActions.expansionLabel.orEmpty())
+                        }
                     }
-                }
-            })
-        }
-        if (recentShelf.isEmpty()) item(key = "nw117-recent-empty-state") {
-            // The listener can have saved songs even without visible history.
-            // The empty action should lead to that real music, not always search.
-            val emptyRecent = NightWaveHomeLayoutPolicy.recentEmptyState(
-                favoriteCount = favorites.size,
-                playlistTrackCount = playlistTracks.size
-            )
-            Box(Modifier.fillMaxWidth().testTag("nw117-recent-empty-state")) {
-                EmptyMusicCard(
-                    emptyRecent.title, emptyRecent.detail, emptyRecent.actionLabel
-                ) {
-                    when (emptyRecent.destination) {
-                        NightWaveHomeLayoutPolicy.EmptyRecentDestination.LIKED_SONGS ->
-                            openLikedSongs()
-                        NightWaveHomeLayoutPolicy.EmptyRecentDestination.LIBRARY ->
-                            openLibrary()
-                        NightWaveHomeLayoutPolicy.EmptyRecentDestination.SEARCH ->
-                            openSearch()
-                    }
-                }
+                })
             }
-        } else {
+            if (entry.kind == NightWaveHomePresentationPolicy.Kind.HISTORY_ONLY) item(key = "nw131-history-save-hint") {
+                Text("To keep a song in your collection, use its options to like it or add it to a playlist.",
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             item(key = "nw47-recent-shelf") {
                 LazyRow(
                     modifier = Modifier.fillMaxWidth().testTag("nw47-recent-shelf"),
@@ -3614,8 +3613,8 @@ private fun StudioHome(
         // Lead with actual music before accounting-style counters.
         if (mixes.isNotEmpty()) {
             item {
-                SectionHeading("Made for you",
-                    "From your likes, playlists and recent music · on this device")
+                SectionHeading("Your listening mixes",
+                    "From your music · preview before playing")
             }
             mixes.chunked(mixesPerRow).forEachIndexed { row, pair ->
                 item(key = "personal-mix-$row") {
@@ -3626,6 +3625,7 @@ private fun StudioHome(
                                 modifier = if (pair.size == 1) Modifier.fillMaxWidth()
                                     else Modifier.weight(1f),
                                 compact = NightWaveHomeLayoutPolicy.mixCardCompact(mixesPerRow),
+                                presentation = mixPresentations[mix.key],
                                 onClick = {
                                     chosenMixKey = if (chosenMixKey == mix.key) null else mix.key
                                     showAllMixTracks = false
@@ -3637,21 +3637,19 @@ private fun StudioHome(
             }
             if (chosenMix != null) {
                 item(key = "mix-explanation") {
-                    Row(Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f),
-                            verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            Text(chosenMix.description, style = MaterialTheme.typography.titleSmall,
-                                maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            Text(chosenMix.reason, style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    NightWaveSectionActions(heading = {
+                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text(mixPresentations[chosenMix.key]?.title ?: chosenMix.title,
+                                style = MaterialTheme.typography.titleSmall)
+                            Text(mixPresentations[chosenMix.key]?.reason.orEmpty(),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
+                    }, action = {
                         OutlinedButton(onClick = {
                             chosenMix.tracks.firstOrNull()?.let { onPlay(it, chosenMix.tracks) }
-                        }) { Text("Play mix") }
-                    }
+                        }, modifier = Modifier.heightIn(min = 48.dp).testTag("nw131-play-mix")) { Text("Play mix") }
+                    })
                 }
                 items(chosenMix.tracks.take(if (showAllMixTracks) 12 else 3),
                     key = { "mix:" + it.url }) { song ->
@@ -3670,7 +3668,7 @@ private fun StudioHome(
                 }
             }
         }
-        item { SectionHeading("Explore a new mood", "Swipe across six ways to listen") }
+        item { SectionHeading("Search by mood", "Curated search shortcuts · opens Search") }
         // One horizontally scrollable shelf instead of three oversized rows.
         // Uses existing real mood shortcuts and unchanged search actions.
         item(key = "discovery-shelf") {

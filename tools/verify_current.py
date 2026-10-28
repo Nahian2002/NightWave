@@ -37,6 +37,7 @@ PYTHON_CHECKS = (
     ("verify_nw128_shell.py", "--self-test"),
     ("verify_nw129_search.py", "--self-test"),
     ("verify_nw130_public_search.py", "--self-test"),
+    ("verify_nw131_home.py", "--self-test"),
 )
 
 # Same safety preflights as the one-click Windows builder, including negative

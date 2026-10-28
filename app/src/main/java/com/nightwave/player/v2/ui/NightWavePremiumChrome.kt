@@ -251,7 +251,11 @@ fun NightWaveHomeHero(
     displayName: String,
     modifier: Modifier = Modifier,
     lastTrack: VideoPreview? = null,
-    onContinue: (() -> Unit)? = null
+    onContinue: (() -> Unit)? = null,
+    emptyTitle: String? = null,
+    emptyDetail: String? = null,
+    emptyActionLabel: String? = null,
+    onEmptyAction: (() -> Unit)? = null
 ) {
     val firstName = NightWaveChromePolicy.displayFirstName(displayName)
     val colors = MaterialTheme.colorScheme
@@ -259,7 +263,8 @@ fun NightWaveHomeHero(
     val identity = lastTrack?.let { MusicIdentity.display(it.title, it.author) }
     val clickableHero = if (lastTrack != null && onContinue != null) {
         modifier.clickable(role = Role.Button, onClick = onContinue)
-    } else modifier
+    } else if (onEmptyAction != null) modifier.clickable(role = Role.Button,
+        onClickLabel = emptyActionLabel, onClick = onEmptyAction) else modifier
     Row(clickableHero.fillMaxWidth()
         .heightIn(min = NightWaveAdaptiveChromePolicy.homeHeroHeightDp(fontScale).dp)
         .clip(RoundedCornerShape(NightWavePremiumDesignTokens.HERO_CORNER_DP.dp))
@@ -275,14 +280,16 @@ fun NightWaveHomeHero(
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             NightWaveMicroLabel(
                 if (identity == null) "Your listening space" else "Continue listening")
-            Text(if (identity == null) greeting else identity.title,
+            Text(if (identity == null) emptyTitle ?: greeting else identity.title,
                 style = MaterialTheme.typography.titleLarge,
                 color = colors.onSurface, maxLines = 3, overflow = TextOverflow.Ellipsis)
             Text(if (identity == null)
-                "Welcome, " + firstName + " · Your music, your pace"
+                emptyDetail ?: ("Welcome, " + firstName + " · Your music, your pace")
                 else identity.artistOrCreator + " · Tap to continue",
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.onSurfaceVariant)
+            if (identity == null && emptyActionLabel != null) Text(emptyActionLabel + " →",
+                style = MaterialTheme.typography.labelLarge, color = colors.primary)
         }
     }
 }

@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import coil.compose.AsyncImage
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -154,37 +155,63 @@ fun NightWaveMixCard(
     selected: Boolean,
     modifier: Modifier = Modifier,
     compact: Boolean = false,
+    presentation: NightWaveHomePresentationPolicy.MixPresentation? = null,
     onClick: () -> Unit
 ) {
-    val accent = NightWaveVisualLanguage.accent(mix.key)
     val scheme = MaterialTheme.colorScheme
-    val realCover = mix.tracks.firstOrNull()?.thumbnail?.takeIf { it.isNotBlank() }
+    val fontScale = LocalDensity.current.fontScale
+    val first = mix.tracks.firstOrNull()
     val trackLabel = "${mix.tracks.size} " +
         (if (mix.tracks.size == 1) "track" else "tracks") +
         " · " + (if (selected) "Collapse" else "View tracks")
     Card(onClick = onClick,
-        modifier = modifier.heightIn(min = 48.dp),
+        modifier = modifier.heightIn(min = 48.dp).testTag("nw131-mix-" + mix.key),
         shape = RoundedCornerShape(NightWavePremiumDesignTokens.CARD_CORNER_DP.dp),
         colors = CardDefaults.cardColors(containerColor = scheme.surface)) {
-        Column(Modifier.fillMaxWidth()) {
-            // Bounded artwork gets its own region. Captions use an opaque
-            // themed surface, so bright/white artwork cannot wash out text.
-            Box(Modifier.fillMaxWidth().height(if (compact) 72.dp else 88.dp)
-                .background(Brush.linearGradient(listOf(accent.copy(alpha = .22f), scheme.surfaceVariant)))) {
-                if (realCover != null) AsyncImage(model = realCover, contentDescription = null,
-                    modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+        // Single-column cards use a real thumbnail beside the caption rather
+        // than a wide empty banner. Large text receives the whole row width.
+        if (compact && fontScale < 1.3f) {
+            Row(Modifier.fillMaxWidth().padding(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically) {
+                if (first != null) TrackArtwork(first, Modifier.size(64.dp))
+                Column(Modifier.weight(1f)) {
+                    NightWaveMixCaption(mix, presentation, trackLabel, fontScale)
+                }
             }
-            Column(Modifier.fillMaxWidth().background(scheme.surface)
-                .padding(NightWavePremiumDesignTokens.CARD_PADDING_DP.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("FROM YOUR LIBRARY", style = MaterialTheme.typography.labelSmall,
-                    color = scheme.onSurfaceVariant)
-                Text(mix.title, style = MaterialTheme.typography.titleMedium,
-                    color = scheme.onSurface)
-                Text(trackLabel, style = MaterialTheme.typography.labelSmall,
-                    color = scheme.onSurfaceVariant)
+        } else {
+            Column(Modifier.fillMaxWidth()) {
+                if (!compact && fontScale < 1.3f && first != null) {
+                    TrackArtwork(first, Modifier.fillMaxWidth().height(80.dp))
+                }
+                Column(Modifier.fillMaxWidth().background(scheme.surface)
+                    .padding(NightWavePremiumDesignTokens.CARD_PADDING_DP.dp)) {
+                    NightWaveMixCaption(mix, presentation, trackLabel, fontScale)
+                }
             }
         }
+    }
+}
+
+@Composable
+private fun NightWaveMixCaption(
+    mix: PersonalMix,
+    presentation: NightWaveHomePresentationPolicy.MixPresentation?,
+    trackLabel: String,
+    fontScale: Float
+) {
+    val scheme = MaterialTheme.colorScheme
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(presentation?.caption ?: "FROM YOUR LIBRARY", style = MaterialTheme.typography.labelSmall,
+            color = scheme.onSurfaceVariant)
+        Text(presentation?.title ?: mix.title, style = MaterialTheme.typography.titleMedium,
+            color = scheme.onSurface, maxLines = if (fontScale >= 1.3f) Int.MAX_VALUE else 3,
+            overflow = TextOverflow.Ellipsis)
+        val startsWith = presentation?.startsWith.orEmpty()
+        if (startsWith.isNotBlank()) Text(startsWith,
+            style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant,
+            maxLines = if (fontScale >= 1.3f) Int.MAX_VALUE else 2, overflow = TextOverflow.Ellipsis)
+        Text(trackLabel, style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
     }
 }
 
