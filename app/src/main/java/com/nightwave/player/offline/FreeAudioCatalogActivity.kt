@@ -1,5 +1,9 @@
 package com.nightwave.player.offline
 
+import com.nightwave.player.v2.ui.NightWaveNativeMatte
+import com.nightwave.player.v2.ui.NightWaveNativeMattePolicy
+
+
 import android.app.AlertDialog
 import android.content.Intent
 import com.nightwave.player.R
@@ -29,6 +33,8 @@ import java.util.concurrent.Executors
 // This component intentionally uses the pinned Media3 unstable API.
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 class FreeAudioCatalogActivity : NightWaveOfflineShellActivity() {
+    private val nativeMattePalette get() = NightWaveNativeMatte.palette(this)
+
     override val offlineRoute = NightWaveOfflineRoute.CATALOG
     companion object {
         const val EXTRA_QUERY = "com.nightwave.player.FREE_AUDIO_QUERY"
@@ -61,8 +67,7 @@ class FreeAudioCatalogActivity : NightWaveOfflineShellActivity() {
         window.navigationBarColor = 0xFF0C131B.toInt()
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
-                intArrayOf(0xFF0D151E.toInt(), 0xFF12252C.toInt(), 0xFF0C131B.toInt()))
+            background = GradientDrawable().apply { setColor(nativeMattePalette.background.toInt()) }
             setPadding(dp(18), dp(14), dp(18), dp(16))
         }
         root.addView(text("‹  NightWave", 18f, 0xFF98E5DB.toInt(), true).apply {
@@ -88,7 +93,7 @@ class FreeAudioCatalogActivity : NightWaveOfflineShellActivity() {
                     true
                 } else false
             }
-            setTextColor(Color.WHITE)
+            setTextColor(nativeMattePalette.foreground.toInt())
             setHintTextColor(0xFF7F9CAB.toInt())
             background = rounded(0xFF192932.toInt())
             setPadding(dp(13), dp(12), dp(13), dp(12))
@@ -192,7 +197,7 @@ class FreeAudioCatalogActivity : NightWaveOfflineShellActivity() {
             11f, 0xFF91A5B5.toInt()
         ).apply { setPadding(0, dp(9), 0, 0) })
         val frame = FrameLayout(this).apply {
-            setBackgroundColor(0xFF0C131B.toInt())
+            setBackgroundColor(NightWaveNativeMattePolicy.surface(0xFF0C131B, nativeMattePalette).toInt())
         }
         val contentWidth = if (resources.configuration.screenWidthDp > 780)
             dp(760) else -1
@@ -301,10 +306,10 @@ class FreeAudioCatalogActivity : NightWaveOfflineShellActivity() {
     private fun showEntry(entry: FreeAudioCandidate, requestTitle: String) {
         val card = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
-                intArrayOf(0xFF213743.toInt(), 0xFF142630.toInt())).apply {
-                cornerRadius = dp(19).toFloat()
-                setStroke(dp(1), 0xFF385561.toInt())
+            background = GradientDrawable().apply {
+                setColor(nativeMattePalette.surface.toInt())
+                cornerRadius = dp(20).toFloat()
+                setStroke(dp(1), (nativeMattePalette.foreground.toInt() and 0x00FFFFFF) or 0x0D000000)
             }
             elevation = dp(2).toFloat()
             setPadding(dp(15), dp(15), dp(15), dp(15))
@@ -463,14 +468,14 @@ class FreeAudioCatalogActivity : NightWaveOfflineShellActivity() {
 
     private fun dp(value: Int) = (resources.displayMetrics.density * value + 0.5f).toInt()
     private fun rounded(color: Int) = GradientDrawable().apply {
-        setColor(color)
-        cornerRadius = dp(15).toFloat()
+        setColor(NightWaveNativeMattePolicy.surface(color.toLong(), nativeMattePalette).toInt())
+        cornerRadius = dp(20).toFloat()
     }
     private fun text(label: String, size: Float, color: Int, bold: Boolean = false) =
         TextView(this).apply {
             text = label
             textSize = size
-            setTextColor(color)
+            setTextColor(NightWaveNativeMattePolicy.text(color.toLong(), nativeMattePalette).toInt())
             if (bold) setTypeface(typeface, Typeface.BOLD)
         }
 }

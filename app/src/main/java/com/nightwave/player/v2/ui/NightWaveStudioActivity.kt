@@ -134,7 +134,7 @@ import androidx.compose.material.icons.outlined.PersonOutline
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material3.Button
+import com.nightwave.player.v2.ui.NightWaveMatteButton as Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -142,17 +142,17 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import com.nightwave.player.v2.ui.NightWaveMatteIconButton as IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.OutlinedButton
+import com.nightwave.player.v2.ui.NightWaveMatteOutlinedButton as OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import com.nightwave.player.v2.ui.NightWaveMatteTextButton as TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -3456,9 +3456,6 @@ internal fun StudioHome(
     val recentBrowseActions = NightWaveHomeLayoutPolicy.recentBrowseActions(
         recentShelf.size, recentWindow.hasMore, showAllRecent)
     val chosenMix = mixes.firstOrNull { it.key == chosenMixKey }
-    val mixesPerRow = NightWaveHomeLayoutPolicy.mixColumns(
-        androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.toFloat(),
-        androidx.compose.ui.platform.LocalDensity.current.fontScale)
     val palettes = listOf(
         listOf(Color(0xFF423163), Color(0xFF242B57)),
         listOf(Color(0xFF164F58), Color(0xFF19334D)),
@@ -3503,32 +3500,6 @@ internal fun StudioHome(
                     Icons.Outlined.FavoriteBorder, "nw47-home-liked", openLikedSongs)
                 if (entry.showSearchShortcut) NightWaveQuickActionPill("Find music",
                     Icons.Outlined.Search, "nw47-home-search", openSearch)
-            }
-        }
-        // Music from the actual saved library, excluding the visible recent
-        // shelf: no fabricated suggestions or duplicate "Continue" cards.
-        if (homePlan.nextListens.isNotEmpty()) {
-            item(key = "nw84-next-listens-heading") {
-                SectionHeading("For your next listen",
-                    "Liked and playlist tracks beyond your recent rotation")
-            }
-            item(key = "nw84-next-listens-shelf") {
-                LazyRow(
-                    modifier = Modifier.fillMaxWidth()
-                        .testTag("nw84-next-listens-shelf"),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(homePlan.nextListens, key = { "next:" + it.url }) { song ->
-                        NightWaveNextListenTile(
-                            song = song,
-                            provenance = NightWaveHomeCurationPolicy.sourceLabel(
-                                song, favorites),
-                            isPlaying = playingUrl == song.url,
-                            onPlay = { onPlay(song, homePlan.nextListens) },
-                            onOptions = { onSongOptions(song) }
-                        )
-                    }
-                }
             }
         }
         // Empty history is handled by the single purposeful hero above.
@@ -3611,29 +3582,70 @@ internal fun StudioHome(
                 }
             }
         }
+        // Music from the actual saved library, excluding the visible recent
+        // shelf: no fabricated suggestions or duplicate "Continue" cards.
+        if (homePlan.nextListens.isNotEmpty()) {
+            item(key = "nw84-next-listens-heading") {
+                SectionHeading("For your next listen",
+                    "Liked and playlist tracks beyond your recent rotation")
+            }
+            item(key = "nw84-next-listens-shelf") {
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth()
+                        .testTag("nw84-next-listens-shelf"),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(homePlan.nextListens, key = { "next:" + it.url }) { song ->
+                        NightWaveNextListenTile(
+                            song = song,
+                            provenance = NightWaveHomeCurationPolicy.sourceLabel(
+                                song, favorites),
+                            isPlaying = playingUrl == song.url,
+                            onPlay = { onPlay(song, homePlan.nextListens) },
+                            onOptions = { onSongOptions(song) }
+                        )
+                    }
+                }
+            }
+        }
         // Lead with actual music before accounting-style counters.
         if (mixes.isNotEmpty()) {
             item {
                 SectionHeading("Your listening mixes",
                     "From your music · preview before playing")
             }
-            mixes.chunked(mixesPerRow).forEachIndexed { row, pair ->
+            // Keep every existing mix and preview action. One full-width feature leads
+            // into measured paired cells; narrow/large text stacks the same reading order.
+            mixes.firstOrNull()?.let { mix ->
+                item(key = "matte-featured-mix") {
+                    NightWaveMixCard(mix = mix, selected = chosenMixKey == mix.key,
+                        modifier = Modifier.fillMaxWidth(), featured = true,
+                        presentation = mixPresentations[mix.key], onClick = {
+                            chosenMixKey = if (chosenMixKey == mix.key) null else mix.key
+                            showAllMixTracks = false
+                        })
+                }
+            }
+            mixes.drop(1).chunked(2).forEachIndexed { row, pair ->
                 item(key = "personal-mix-$row") {
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        pair.forEach { mix ->
-                            NightWaveMixCard(
-                                mix = mix, selected = chosenMixKey == mix.key,
-                                modifier = if (pair.size == 1) Modifier.fillMaxWidth()
-                                    else Modifier.weight(1f),
-                                compact = NightWaveHomeLayoutPolicy.mixCardCompact(mixesPerRow),
-                                presentation = mixPresentations[mix.key],
-                                onClick = {
-                                    chosenMixKey = if (chosenMixKey == mix.key) null else mix.key
-                                    showAllMixTracks = false
-                                }
-                            )
-                        }
+                    val firstCell: @Composable () -> Unit = {
+                        val mix = pair.first()
+                        NightWaveMixCard(mix = mix, selected = chosenMixKey == mix.key,
+                            modifier = Modifier.fillMaxWidth().fillMaxHeight(), presentation = mixPresentations[mix.key],
+                            onClick = {
+                                chosenMixKey = if (chosenMixKey == mix.key) null else mix.key
+                                showAllMixTracks = false
+                            })
                     }
+                    if (pair.size == 2) NightWaveBentoPair(first = firstCell, second = {
+                        val mix = pair[1]
+                        NightWaveMixCard(mix = mix, selected = chosenMixKey == mix.key,
+                            modifier = Modifier.fillMaxWidth().fillMaxHeight(), presentation = mixPresentations[mix.key],
+                            onClick = {
+                                chosenMixKey = if (chosenMixKey == mix.key) null else mix.key
+                                showAllMixTracks = false
+                            })
+                    }) else firstCell()
                 }
             }
             if (chosenMix != null) {

@@ -1,6 +1,11 @@
 package com.nightwave.player.v2.ui
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -61,35 +66,8 @@ object NightWaveVisualLanguage {
 
 @Composable
 fun NightWaveBackdrop(identity: String, modifier: Modifier = Modifier) {
-    val theme = MaterialTheme.colorScheme
-    val accent = NightWaveVisualLanguage.accent(identity)
-    Box(modifier.background(theme.background)) {
-        Canvas(Modifier.fillMaxSize()) {
-            val width = size.width
-            val height = size.height
-            // Restrained, static ambient light. No high-cost blurs or animation.
-            drawCircle(
-                brush = Brush.radialGradient(
-                    0f to accent.copy(alpha = .21f),
-                    .57f to accent.copy(alpha = .07f),
-                    1f to Color.Transparent,
-                    center = Offset(width * .80f, height * .13f),
-                    radius = (width * .92f).coerceAtLeast(1f)
-                ),
-                radius = width * .92f,
-                center = Offset(width * .80f, height * .13f)
-            )
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colors = listOf(theme.primary.copy(alpha = .075f), Color.Transparent),
-                    center = Offset(width * .15f, height * .82f),
-                    radius = (width * .72f).coerceAtLeast(1f)
-                ),
-                radius = width * .72f,
-                center = Offset(width * .15f, height * .82f)
-            )
-        }
-    }
+    // The route identity remains a caller contract; ambient color belongs only to real player art.
+    Box(modifier.background(MaterialTheme.colorScheme.background))
 }
 
 @Composable
@@ -156,6 +134,7 @@ fun NightWaveMixCard(
     modifier: Modifier = Modifier,
     compact: Boolean = false,
     presentation: NightWaveHomePresentationPolicy.MixPresentation? = null,
+    featured: Boolean = false,
     onClick: () -> Unit
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -165,16 +144,19 @@ fun NightWaveMixCard(
         (if (mix.tracks.size == 1) "track" else "tracks") +
         " · " + (if (selected) "Collapse" else "View tracks")
     Card(onClick = onClick,
-        modifier = modifier.heightIn(min = 48.dp).testTag("nw131-mix-" + mix.key),
+        modifier = modifier.heightIn(min = 48.dp).testTag("nw131-mix-" + mix.key)
+            .semantics { this.selected = selected },
         shape = RoundedCornerShape(NightWavePremiumDesignTokens.CARD_CORNER_DP.dp),
-        colors = CardDefaults.cardColors(containerColor = scheme.surface)) {
+        colors = CardDefaults.cardColors(containerColor = scheme.surface),
+        border = BorderStroke(1.dp, if (selected) scheme.primary else
+            scheme.onSurface.copy(alpha = NightWaveMattePolicy.BORDER_ALPHA))) {
         // Single-column cards use a real thumbnail beside the caption rather
         // than a wide empty banner. Large text receives the whole row width.
-        if (compact && fontScale < 1.3f) {
+        if ((featured && fontScale < 1.3f) || (compact && fontScale < 1.3f)) {
             Row(Modifier.fillMaxWidth().padding(12.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically) {
-                if (first != null) TrackArtwork(first, Modifier.size(64.dp))
+                if (first != null) NightWaveMixMosaic(mix, Modifier.size(if (featured) 88.dp else 64.dp))
                 Column(Modifier.weight(1f)) {
                     NightWaveMixCaption(mix, presentation, trackLabel, fontScale)
                 }
@@ -182,12 +164,27 @@ fun NightWaveMixCard(
         } else {
             Column(Modifier.fillMaxWidth()) {
                 if (!compact && fontScale < 1.3f && first != null) {
-                    TrackArtwork(first, Modifier.fillMaxWidth().height(80.dp))
+                    NightWaveMixMosaic(mix, Modifier.fillMaxWidth().aspectRatio(1f))
                 }
                 Column(Modifier.fillMaxWidth().background(scheme.surface)
                     .padding(NightWavePremiumDesignTokens.CARD_PADDING_DP.dp)) {
                     NightWaveMixCaption(mix, presentation, trackLabel, fontScale)
                 }
+            }
+        }
+    }
+}
+
+/** Four actual source thumbnails, never generated album art or fabricated listening statistics. */
+@Composable
+private fun NightWaveMixMosaic(mix: PersonalMix, modifier: Modifier = Modifier) {
+    val tracks = mix.tracks.distinctBy { it.url }.take(4)
+    Column(modifier.background(MaterialTheme.colorScheme.surfaceVariant),
+        verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        tracks.chunked(2).forEach { row ->
+            Row(Modifier.fillMaxWidth().weight(1f), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                row.forEach { track -> TrackArtwork(track, Modifier.weight(1f).fillMaxSize()) }
+                if (row.size == 1) Spacer(Modifier.weight(1f))
             }
         }
     }
@@ -230,7 +227,7 @@ fun NightWaveMoodArt(
     Card(onClick = onClick, modifier = modifier.heightIn(min =
         NightWaveAccessibilityPolicy.moodCardMinHeightDp(fontScale).dp),
         shape = RoundedCornerShape(21.dp)) {
-        Box(Modifier.fillMaxSize().background(Brush.linearGradient(safeColors))) {
+        Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface)) {
             Canvas(Modifier.fillMaxSize()) {
                 // Six lightweight, genuinely distinct editorial motifs rather
                 // than the same ring graphic pasted across every mood card.

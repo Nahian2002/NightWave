@@ -58,7 +58,7 @@ object NightWaveNowPlayingLayoutPolicy {
             artworkDp = artwork,
             horizontalPaddingDp = padding,
             compact = compact,
-            artworkCornerDp = if (compact) 24 else 30,
+            artworkCornerDp = NightWaveMattePolicy.ART_RADIUS_DP,
             headerBottomSpaceDp = if (compact) 9 else 20,
             splitTransportControls = splitControls,
             stackQuickActions = stackActions,

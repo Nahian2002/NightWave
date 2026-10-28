@@ -18,17 +18,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
+import com.nightwave.player.v2.ui.NightWaveMatteButton as Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import com.nightwave.player.v2.ui.NightWaveMatteOutlinedButton as OutlinedButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import com.nightwave.player.v2.ui.NightWaveMatteTextButton as TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -314,7 +314,7 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
             modifier = Modifier.fillMaxWidth(.94f).fillMaxHeight(.87f),
             shape = RoundedCornerShape(26.dp),
             color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 6.dp
+            tonalElevation = 0.dp
         ) {
             Column {
                 Row(
@@ -342,12 +342,7 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                         Surface(shape = RoundedCornerShape(20.dp),
                             color = MaterialTheme.colorScheme.surfaceVariant) {
                             Column(
-                                Modifier.fillMaxWidth().background(
-                                    Brush.horizontalGradient(listOf(
-                                        primary.copy(alpha = .12f),
-                                        MaterialTheme.colorScheme.surfaceVariant
-                                    ))
-                                ).padding(15.dp),
+                                Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant).padding(15.dp),
                                 verticalArrangement = Arrangement.spacedBy(9.dp)
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically,
@@ -383,7 +378,7 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
 
                     item(key = "nw88-local-audio-transitions") {
                         Surface(color = MaterialTheme.colorScheme.surfaceVariant,
-                            shape = RoundedCornerShape(18.dp)) {
+                            shape = RoundedCornerShape(NightWavePremiumDesignTokens.CARD_CORNER_DP.dp)) {
                             Column(Modifier.fillMaxWidth().padding(15.dp),
                                 verticalArrangement = Arrangement.spacedBy(10.dp)) {
                                 Text("Local playback quality",

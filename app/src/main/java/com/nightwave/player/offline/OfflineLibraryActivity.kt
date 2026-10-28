@@ -1,5 +1,9 @@
 package com.nightwave.player.offline
 
+import com.nightwave.player.v2.ui.NightWaveNativeMatte
+import com.nightwave.player.v2.ui.NightWaveNativeMattePolicy
+
+
 import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.Color
@@ -28,6 +32,8 @@ import java.util.concurrent.Executors
 // This component intentionally uses the pinned Media3 unstable API.
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
+    private val nativeMattePalette get() = NightWaveNativeMatte.palette(this)
+
     override val offlineRoute = NightWaveOfflineRoute.LIBRARY
     companion object {
         const val EXTRA_SEARCH_QUERY = "com.nightwave.player.offline.SEARCH_QUERY"
@@ -104,7 +110,7 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(18), dp(17), dp(18), dp(10))
-            setBackgroundColor(0xFF0C131B.toInt())
+            setBackgroundColor(NightWaveNativeMattePolicy.surface(0xFF0C131B, nativeMattePalette).toInt())
         }
         val header = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -150,7 +156,7 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
             hint = "Search saved songs"
             setSingleLine(true)
             textSize = 15f
-            setTextColor(Color.WHITE)
+            setTextColor(nativeMattePalette.foreground.toInt())
             setHintTextColor(0xFF8294A8.toInt())
             setPadding(dp(15), 0, dp(15), 0)
             background = cardBackground(0xFF172432.toInt())
@@ -407,7 +413,7 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
             11f, 0xFF9EB3BF.toInt()
         ).apply { gravity = Gravity.CENTER }, LinearLayout.LayoutParams(-1, dp(48)))
         val frame = FrameLayout(this).apply {
-            setBackgroundColor(0xFF0C131B.toInt())
+            setBackgroundColor(NightWaveNativeMattePolicy.surface(0xFF0C131B, nativeMattePalette).toInt())
         }
         val contentWidth = if (resources.configuration.screenWidthDp >= 780) dp(760) else -1
         frame.addView(root, FrameLayout.LayoutParams(contentWidth, -1,
@@ -721,13 +727,13 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
         TextView(this).apply {
             text = value
             textSize = size
-            setTextColor(color)
+            setTextColor(NightWaveNativeMattePolicy.text(color.toLong(), nativeMattePalette).toInt())
             if (bold) typeface = Typeface.create("sans-serif", Typeface.BOLD)
         }
 
     private fun cardBackground(color: Int) = GradientDrawable().apply {
-        setColor(color)
-        cornerRadius = dp(14).toFloat()
+        setColor(NightWaveNativeMattePolicy.surface(color.toLong(), nativeMattePalette).toInt())
+        cornerRadius = dp(20).toFloat()
     }
 
     private fun dp(v: Int) = (resources.displayMetrics.density * v + .5f).toInt()
