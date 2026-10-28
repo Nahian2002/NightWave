@@ -1,6 +1,6 @@
 # Current verification — NW132 clear Library
 
-28 October 2026. Branch `update/nightwave-nw132-clear-library`; protected NW131 parent `e80378f1e5c0bc1f81970afd5d4a70c9ce42f2d9` (PR #135). Implementation through `26cd79236662c3b20f3e2961b3066ed232f44118`, following initial `d85be670a4c82a07b9ebfbfe12ea47239776bcb8`. [NW132 behavior and device protocol](docs/NW132_CLEAR_LIBRARY.md).
+28 October 2026. Branch `update/nightwave-nw132-clear-library`; protected NW131 parent `e80378f1e5c0bc1f81970afd5d4a70c9ce42f2d9` (PR #135). Implementation through `26cd79236662c3b20f3e2961b3066ed232f44118`, following initial `d85be670a4c82a07b9ebfbfe12ea47239776bcb8`. [Draft PR #136](https://github.com/Nahian2002/NightWave/pull/136). [NW132 behavior and device protocol](docs/NW132_CLEAR_LIBRARY.md).
 
 Library now distinguishes liked songs, playlist songs, listening history and automatic collections. A history-only listener gets truthful event/song counts and one concise save explanation, without empty liked sections. Create stays visible; existing import/folder/manage and playlist share/export/pin/folder/rename/delete paths move into accessible options. Automatic groups remain available behind a disclosure with actual membership counts cached by library change.
 
