@@ -29,6 +29,10 @@ def verify(src):
                  "surfaceContainer", "surfaceContainerHigh", "surfaceContainerHighest"):
         assert role + " = paletteColor(" in theme, role
     assert "if (Build.VERSION.SDK_INT >= 29) window.isNavigationBarContrastEnforced = false" in bars
+    assert "LaunchedEffect(state.prefillToken)" in home
+    assert "SearchDraftPolicy.shouldApply(state.prefillToken, consumedPrefill)" in home
+    assert 'if (!queryFocused) Text("Search songs, artists or links"' in home
+    assert "LaunchedEffect(state.query)" not in home
     for marker in ("tertiary = paletteColor(palette.secondaryAccent)",
                    "tertiaryContainer = paletteColor(palette.secondarySoft)"):
         assert marker in theme, marker
@@ -42,6 +46,8 @@ if __name__ == "__main__":
                              (FILES[2], ".background(colors.surfaceVariant)"), (FILES[3], "featuredMixCell(pair.size)"),
                              (FILES[4], "sectionSurface(palette, secondary)"), (FILES[4], "tint = accent, modifier"),
                              (FILES[5], "Theme_NightWave_Aurora"), (FILES[6], "Theme_NightWave_AMOLED"),
+                             (FILES[3], "SearchDraftPolicy.shouldApply(state.prefillToken, consumedPrefill)"),
+                             (FILES[3], 'if (!queryFocused) Text("Search songs, artists or links"'),
                              (FILES[5], "surfaceContainerHigh = paletteColor("),
                              (FILES[7], "if (Build.VERSION.SDK_INT >= 29) window.isNavigationBarContrastEnforced = false")):
             broken = dict(src); broken[name] = broken[name].replace(marker, "BROKEN_FIXTURE")

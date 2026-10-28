@@ -115,17 +115,41 @@ class NightWaveMatteAcceptanceInstrumentedTest(
         capture("home")
     }
     @Test fun searchInputKeepsTheExactUserSubmittedQueryAndExistingDispatch() {
+        var snapshot by mutableStateOf(StudioSearchSnapshot())
+        var visible by mutableStateOf(true)
         fixture {
-            StudioSearch(Modifier, StudioSearchSnapshot(), onPrimarySearch = { _, _ -> },
-                onNativeSearch = { query, _ -> action = query }, onWebSearch = {}, onPlay = { _, _ -> },
-                onSongOptions = {}, playingUrl = "", corpus = LocalMusicCorpusState(0L, 0, failed = true),
-                onRetryCorpus = {}, onOfflineSearch = {}, searchHistory = emptyList(), canUndoSearchRemoval = false,
-                onRecordSearch = {}, onRemoveSearch = {}, onUndoSearchRemoval = {}, onClearSearch = {})
+            val holder = androidx.compose.runtime.saveable.rememberSaveableStateHolder()
+            if (visible) holder.SaveableStateProvider("search") {
+                StudioSearch(Modifier, snapshot, onPrimarySearch = { _, _ -> },
+                    onNativeSearch = { query, _ -> action = query }, onWebSearch = {}, onPlay = { _, _ -> },
+                    onSongOptions = {}, playingUrl = "", corpus = LocalMusicCorpusState(0L, 0, failed = true),
+                    onRetryCorpus = {}, onOfflineSearch = {}, searchHistory = emptyList(), canUndoSearchRemoval = false,
+                    onRecordSearch = {}, onRemoveSearch = {}, onUndoSearchRemoval = {}, onClearSearch = {})
+            }
         }
-        compose.onNodeWithTag("nw129-search-query").performTextInput("Fixture query")
-        compose.onNodeWithTag("nw129-search-query").performImeAction()
+        val field = compose.onNodeWithTag("nw129-search-query")
+        field.performClick()
+        compose.onNodeWithText("Search songs, artists or links").assertDoesNotExist()
+        compose.runOnIdle { assertEquals("", action) }
+        field.performTextInput("Fixture query")
+        field.performImeAction()
+        compose.runOnIdle { assertEquals("Fixture query", action) }
+        field.performTextClearance()
+        compose.runOnIdle { snapshot = StudioSearchSnapshot(query = "Fixture query") }
+        field.assertTextEquals("") // A late provider response cannot overwrite a cleared draft.
+        compose.runOnIdle { snapshot = StudioSearchSnapshot(query = "After hours", prefillToken = "explicit-1") }
+        field.assertTextEquals("After hours")
+        field.performTextClearance()
+        compose.runOnIdle { visible = false }
+        compose.waitForIdle()
+        compose.runOnIdle { visible = true }
+        field.performClick()
+        field.assertTextEquals("") // Same consumed shortcut cannot replay when the page returns.
+        compose.runOnIdle { snapshot = snapshot.copy(prefillToken = "explicit-2") }
+        field.assertTextEquals("After hours") // A new intentional shortcut still works.
         compose.runOnIdle { assertEquals("Fixture query", action) }; capture("search")
     }
+
     @Test fun libraryCreateAndImportRemainAvailableWithoutStartingPlayback() {
         fixture {
             StudioLibrary(Modifier, songs, songs, emptyList(), 0, false, emptyList(), PlaylistFolderSnapshot(), emptyList(),

@@ -95,7 +95,7 @@ fun NightWaveMaterialTheme(
         surfaceTint = Color.Transparent,
         inverseSurface = paletteColor(palette.foreground),
         inverseOnSurface = paletteColor(palette.background),
-        outline = paletteColor(palette.outline), outlineVariant = paletteColor(palette.outline).copy(alpha = .62f),
+        outline = paletteColor(palette.outline), outlineVariant = paletteColor(palette.outline).copy(alpha = .22f),
         error = paletteColor(palette.danger), onError = paletteColor(palette.background),
         // Keep required error text on an opaque, contrast-tested surface in every theme.
         errorContainer = paletteColor(palette.surface),
@@ -116,7 +116,7 @@ fun NightWaveMaterialTheme(
         surfaceTint = Color.Transparent,
         inverseSurface = paletteColor(palette.foreground),
         inverseOnSurface = paletteColor(palette.background),
-        outline = paletteColor(palette.outline), outlineVariant = paletteColor(palette.outline).copy(alpha = .62f),
+        outline = paletteColor(palette.outline), outlineVariant = paletteColor(palette.outline).copy(alpha = .22f),
         error = paletteColor(palette.danger), onError = paletteColor(palette.background),
         // Keep required error text on an opaque, contrast-tested surface in every theme.
         errorContainer = paletteColor(palette.surface),

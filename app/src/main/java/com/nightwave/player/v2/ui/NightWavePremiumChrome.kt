@@ -137,12 +137,11 @@ fun NightWavePremiumNavigation(
     val tags = listOf("home", "search", "library", "profile")
     Surface(
         modifier = Modifier.fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 2.dp),
-        color = colors.surface,
+            .padding(horizontal = 12.dp, vertical = 2.dp),
+        color = colors.background,
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
-        border = BorderStroke(1.dp, colors.onSurface.copy(alpha = NightWaveMattePolicy.BORDER_ALPHA)),
-        shape = RoundedCornerShape(NightWavePremiumDesignTokens.NAV_CORNER_DP.dp)
+        shape = RoundedCornerShape(0.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth()
@@ -178,7 +177,6 @@ fun NightWavePremiumNavigation(
                 Box(
                     modifier = Modifier.weight(1f).fillMaxHeight()
                         .clip(RoundedCornerShape(18.dp))
-                        .background(color)
                         .clickable(role = Role.Tab) {
                             if (NightWaveMotionPolicy.tabHaptic(selectedIndex, index,
                                     names.size, reducedMotion)) {
@@ -211,6 +209,9 @@ fun NightWavePremiumNavigation(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
+                        Box(Modifier.clip(CircleShape).background(color)
+                            .padding(horizontal = 14.dp, vertical = 4.dp),
+                            contentAlignment = Alignment.Center) {
                         Icon(
                             imageVector = icons[index],
                             contentDescription = null,
@@ -223,6 +224,7 @@ fun NightWavePremiumNavigation(
                                     scaleY = iconScale
                                 }
                         )
+                        }
                         Spacer(Modifier.height(if (extraLargeText) 3.dp else 4.dp))
                         Text(
                             label,
