@@ -89,6 +89,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -340,9 +341,9 @@ internal fun CoverArt(
 ) {
     val context = LocalContext.current
     val candidates = remember(url, large) { NightWaveArtworkPolicy.requestCandidates(url, large) }
-    var candidateIndex by remember(trackIdentity, url, large) { mutableStateOf(0) }
+    var candidateIndex by remember(trackIdentity, url, large) { mutableIntStateOf(0) }
     var failed by remember(trackIdentity, url, large) { mutableStateOf(false) }
-    var pixels by remember { mutableStateOf(0) }
+    var pixels by remember { mutableIntStateOf(0) }
     val attempt = candidateIndex
     val displayUrl = candidates.getOrNull(attempt)
     val shape = RoundedCornerShape(radius.dp)
