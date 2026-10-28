@@ -3,7 +3,7 @@ package com.nightwave.player.v2.ui
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
-import android.graphics.drawable.ColorDrawable
+import androidx.core.graphics.drawable.toDrawable
 import android.os.Build
 import androidx.core.view.WindowCompat
 import com.nightwave.player.v2.model.Palette
@@ -17,7 +17,7 @@ internal object NightWaveMatteSystemBars {
             if (current is Activity) {
                 val activity = current as Activity
                 val window = activity.window
-                window.setBackgroundDrawable(ColorDrawable(palette.background.toInt()))
+                window.setBackgroundDrawable(palette.background.toInt().toDrawable())
                 if (Build.VERSION.SDK_INT < 35) {
                     window.statusBarColor = palette.background.toInt()
                     window.navigationBarColor = palette.background.toInt()
