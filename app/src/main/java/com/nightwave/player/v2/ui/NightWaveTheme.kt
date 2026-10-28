@@ -79,7 +79,7 @@ fun NightWaveMaterialTheme(
         NightWaveMatteSystemBars.apply(context, palette)
         onDispose { }
     }
-    val scheme = if (palette.isDark) darkColorScheme(
+    val baseScheme = if (palette.isDark) darkColorScheme(
         primary = paletteColor(palette.accent), onPrimary = paletteColor(palette.contrastOnAccent()),
         primaryContainer = paletteColor(palette.accentSoft),
         onPrimaryContainer = paletteColor(palette.foreground),
@@ -121,6 +121,17 @@ fun NightWaveMaterialTheme(
         // Keep required error text on an opaque, contrast-tested surface in every theme.
         errorContainer = paletteColor(palette.surface),
         onErrorContainer = paletteColor(palette.danger)
+    )
+    // Material dialogs/menus use container roles, not the legacy surfaceVariant role.
+    // Supplying all seven keeps them inside the selected palette instead of default purple/gray.
+    val scheme = baseScheme.copy(
+        surfaceDim = paletteColor(if (palette.isDark) palette.background else palette.raised),
+        surfaceBright = paletteColor(if (palette.isDark) palette.raised else palette.surface),
+        surfaceContainerLowest = paletteColor(if (palette.isDark) palette.background else palette.surface),
+        surfaceContainerLow = paletteColor(palette.surface),
+        surfaceContainer = paletteColor(palette.surface),
+        surfaceContainerHigh = paletteColor(palette.raised),
+        surfaceContainerHighest = paletteColor(palette.raised)
     )
     CompositionLocalProvider(
         LocalNightWavePalette provides palette,

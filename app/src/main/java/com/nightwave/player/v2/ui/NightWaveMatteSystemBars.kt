@@ -22,6 +22,9 @@ internal object NightWaveMatteSystemBars {
                     window.statusBarColor = palette.background.toInt()
                     window.navigationBarColor = palette.background.toInt()
                 }
+                // Our opaque, theme-colored window canvas supplies contrast under three-button navigation.
+                // The platform's extra dark scrim otherwise leaves Pearl with a charcoal bottom strip.
+                if (Build.VERSION.SDK_INT >= 29) window.isNavigationBarContrastEnforced = false
                 WindowCompat.getInsetsController(window, window.decorView).apply {
                     isAppearanceLightStatusBars = !palette.isDark
                     isAppearanceLightNavigationBars = !palette.isDark

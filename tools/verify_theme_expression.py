@@ -5,11 +5,12 @@ import argparse
 ROOT = Path(__file__).resolve().parents[1]
 UI = ROOT / "app/src/main/java/com/nightwave/player/v2/ui"
 FILES = ("NightWaveMattePolicy.kt", "NightWavePremiumChrome.kt", "StudioPlayerScreens.kt",
-         "NightWaveStudioActivity.kt", "NightWaveVisualLanguage.kt", "NightWaveTheme.kt", "NightWaveNativeMatte.kt")
+         "NightWaveStudioActivity.kt", "NightWaveVisualLanguage.kt", "NightWaveTheme.kt", "NightWaveNativeMatte.kt",
+         "NightWaveMatteSystemBars.kt")
 
 
 def verify(src):
-    policy, chrome, player, home, visual, theme, native = (src[name] for name in FILES)
+    policy, chrome, player, home, visual, theme, native, bars = (src[name] for name in FILES)
     for marker in ("fun transportFill(palette: Palette): Long = palette.accent",
                    "fun transportInk(palette: Palette): Long = palette.contrastOnAccent()"):
         assert marker in policy, marker
@@ -24,6 +25,10 @@ def verify(src):
     for body in (theme, native):
         for marker in ("Theme_NightWave_Aurora", "Theme_NightWave_Pearl", "Theme_NightWave_AMOLED"):
             assert marker in body, marker
+    for role in ("surfaceDim", "surfaceBright", "surfaceContainerLowest", "surfaceContainerLow",
+                 "surfaceContainer", "surfaceContainerHigh", "surfaceContainerHighest"):
+        assert role + " = paletteColor(" in theme, role
+    assert "if (Build.VERSION.SDK_INT >= 29) window.isNavigationBarContrastEnforced = false" in bars
     for marker in ("tertiary = paletteColor(palette.secondaryAccent)",
                    "tertiaryContainer = paletteColor(palette.secondarySoft)"):
         assert marker in theme, marker
@@ -36,7 +41,9 @@ if __name__ == "__main__":
         for name, marker in ((FILES[0], "Long = palette.accent"), (FILES[1], "colors.primaryContainer"),
                              (FILES[2], ".background(colors.surfaceVariant)"), (FILES[3], "featuredMixCell(pair.size)"),
                              (FILES[4], "sectionSurface(palette, secondary)"), (FILES[4], "tint = accent, modifier"),
-                             (FILES[5], "Theme_NightWave_Aurora"), (FILES[6], "Theme_NightWave_AMOLED")):
+                             (FILES[5], "Theme_NightWave_Aurora"), (FILES[6], "Theme_NightWave_AMOLED"),
+                             (FILES[5], "surfaceContainerHigh = paletteColor("),
+                             (FILES[7], "if (Build.VERSION.SDK_INT >= 29) window.isNavigationBarContrastEnforced = false")):
             broken = dict(src); broken[name] = broken[name].replace(marker, "BROKEN_FIXTURE")
             try:
                 verify(broken)

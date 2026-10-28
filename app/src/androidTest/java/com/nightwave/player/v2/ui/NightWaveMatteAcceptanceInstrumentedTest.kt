@@ -75,6 +75,15 @@ class NightWaveMatteAcceptanceInstrumentedTest(
             val palette = NightWaveDesign.palette(theme)
             assertEquals(palette.background.toInt(), MaterialTheme.colorScheme.background.toArgb())
             assertEquals(palette.foreground.toInt(), MaterialTheme.colorScheme.onBackground.toArgb())
+            val colors = MaterialTheme.colorScheme
+            assertEquals(palette.surface.toInt(), colors.surfaceContainerLow.toArgb())
+            assertEquals(palette.surface.toInt(), colors.surfaceContainer.toArgb())
+            assertEquals(palette.raised.toInt(), colors.surfaceContainerHigh.toArgb())
+            assertEquals(palette.raised.toInt(), colors.surfaceContainerHighest.toArgb())
+            assertEquals((if (palette.isDark) palette.background else palette.surface).toInt(),
+                colors.surfaceContainerLowest.toArgb())
+            assertEquals((if (palette.isDark) palette.background else palette.raised).toInt(), colors.surfaceDim.toArgb())
+            assertEquals((if (palette.isDark) palette.raised else palette.surface).toInt(), colors.surfaceBright.toArgb())
             Column { NightWavePremiumNavigation(0, true) { action = "tab:$it" } }
         }
         for (tag in listOf("home", "search", "library", "profile")) {
