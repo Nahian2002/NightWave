@@ -1104,5 +1104,43 @@
         "TEST_REPORT.md"
       ]
     }
+  },
+  "editorial_finish": {
+    "batch": "DESIGN04",
+    "title": "Source-aware art, readable identity, Home hierarchy and deliberate gestures",
+    "status": "LOCAL_VERIFIED",
+    "device_acceptance": "NOT_RUN",
+    "branch": "design/nightwave-editorial-finish",
+    "pull_request": "https://github.com/Nahian2002/NightWave/pull/148",
+    "protected_parent": "e7890f957fbb96c0b70a8d5dd69ea498eb9b37c6",
+    "implementation_commit": "684cf0cbf0ec543b1037a9431056871e97d9bcce",
+    "build_id": "NW-debug-241397081D965B18",
+    "latest_recorded_ui_score": 8.3,
+    "post_change_score": null,
+    "rating_limit": "Same five-dimension visible-UI rubric; no new-candidate or whole-product score inferred.",
+    "evidence": [
+      "docs/design/EDITORIAL_FINISH.md",
+      "docs/design/EDITORIAL_FINISH_ACCEPTANCE.csv",
+      "TEST_REPORT.md"
+    ],
+    "validation": {
+      "jvm_tests": 1649,
+      "jvm_suites": 207,
+      "source_checks": 65,
+      "android_cases_compiled_only": 468,
+      "lint_errors": 0,
+      "lint_warnings": 313,
+      "lint_hints": 17,
+      "manual_supplement_not_run": 24,
+      "protected_nonpresentation_files_unchanged": 234,
+      "feature_callback_inventories_preserved": 9
+    },
+    "remaining": [
+      "Phone rendering and complete artwork edges across four themes and large text",
+      "Held/released/cancelled shelf touch, vertical scroll, normal page swipes, tabs and theme/recreation",
+      "Full originals, edition titles, all mix actions, TalkBack and prior data/audio/performance/release gates"
+    ],
+    "next_batch": "NW134",
+    "next_branch_rule": "Base a new cumulative review branch on the latest DESIGN04 tip; preserve all pending physical gates."
   }
 }

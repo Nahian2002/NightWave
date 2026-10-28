@@ -1,6 +1,6 @@
 # NightWave tools — current use and historical checks
 
-**Current implementation baseline:** DESIGN03 on `design/nightwave-content-finish`; **1,632 JVM tests / 204 suites** and **64 current source checks** pass. See [current verification](../TEST_REPORT.md) and [theme correction](../docs/design/EXPRESSIVE_THEME_FINISH.md). All hosted/device evidence remains separate; Actions stays disabled.
+**Current implementation baseline:** DESIGN04 on `design/nightwave-editorial-finish`; **1,649 JVM tests / 207 suites** and **65 current source checks** pass. See [current verification](../TEST_REPORT.md) and [editorial finish](../docs/design/EDITORIAL_FINISH.md). All hosted/device evidence remains separate; Actions stays disabled.
 
 ## Recommended entrypoints
 
@@ -49,3 +49,5 @@ NW133 adds `verify_nw133_player.py --self-test` (60 current checks), guarding me
 `verify_matte_design.py --self-test` guards real interaction-source feedback, source-bound reused artwork, clipped/API-gated blur, complete measured collection pairs, native read-only theme selection and accessible seek input/listener cleanup. The source runner totals 61 checks. The existing NW59 palette literal follows approved Pearl #61527F; JVM tests still enforce actual contrast.
 
 `verify_theme_expression.py --self-test` adds eight broken caller fixtures for actual accent fills, selected navigation/mini roles, bounded singleton art, theme-colored mood glyphs, secondary Material roles and all four native dialog selections. Current runner: 62 checks. Actual JVM contrast assertions remain required after changing the approved Pearl literal to #1C47AD.
+
+`verify_editorial_finish.py --self-test` guards source-proportioned frames, full original Details, single lead-mix emphasis and factual summaries, plus root shelf-touch ownership/release with ten broken caller fixtures. The current runner totals 65 checks. These are source checks; the 468-case Android matrix is compiled only.
