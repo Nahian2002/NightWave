@@ -174,7 +174,8 @@ fun StudioMiniPlayer(
     )
     var travel by remember(state.videoUrl) { mutableStateOf(0f) }
     Column(
-        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 3.dp)
+        modifier = modifier.fillMaxWidth().padding(horizontal = NightWavePremiumDesignTokens.pageGutterDp(
+            androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.toFloat()).dp, vertical = 3.dp)
             .testTag("nightwave-mini-player")
             .semantics { stateDescription = statusLabel }
             .clip(miniShape)
@@ -336,6 +337,7 @@ internal fun CoverArt(
     val candidates = remember(url, large) { NightWaveArtworkPolicy.requestCandidates(url, large) }
     var candidateIndex by remember(trackIdentity, url, large) { mutableIntStateOf(0) }
     var failed by remember(trackIdentity, url, large) { mutableStateOf(false) }
+    var imageLoaded by remember(trackIdentity, url, large, candidateIndex) { mutableStateOf(false) }
     var pixels by remember { mutableIntStateOf(0) }
     val attempt = candidateIndex
     val displayUrl = candidates.getOrNull(attempt)
@@ -346,7 +348,7 @@ internal fun CoverArt(
             description?.let { contentDescription = if (failed || displayUrl == null)
                 "$it · image unavailable" else it }
         }, contentAlignment = Alignment.Center) {
-        Canvas(Modifier.fillMaxSize(.64f)) {
+        if (!imageLoaded) Canvas(Modifier.fillMaxSize(.64f)) {
             drawCircle(artworkColors.onSurface.copy(alpha = .12f), radius = size.minDimension * .44f)
             drawCircle(artworkColors.onSurface.copy(alpha = .32f), radius = size.minDimension * .33f,
                 style = Stroke(width = 2.dp.toPx()))
@@ -364,12 +366,16 @@ internal fun CoverArt(
                 }
             }
             AsyncImage(model = request, contentDescription = null,
-                modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = if (large) ContentScale.Inside else ContentScale.Crop,
                 onError = { advance() },
                 onSuccess = { loaded ->
                     if (NightWaveArtworkPolicy.isUnavailableLargeStill(displayUrl,
                             loaded.result.drawable.intrinsicWidth, loaded.result.drawable.intrinsicHeight)) advance()
-                    else if (candidateIndex == attempt) onResolved?.invoke(loaded.result.drawable)
+                    else if (candidateIndex == attempt) {
+                        imageLoaded = true
+                        onResolved?.invoke(loaded.result.drawable)
+                    }
                 })
         }
     }
@@ -856,7 +862,7 @@ fun StudioNowPlayingOverlay(
                         style = MaterialTheme.typography.labelSmall,
                         color = colors.onSurfaceVariant.copy(alpha = .85f))
                 }
-                Spacer(Modifier.height(if (playerLayout.compact) 13.dp else 22.dp))
+                Spacer(Modifier.height(if (playerLayout.compact) 13.dp else 16.dp))
                 // NW116: let long original/Bangla titles use the full width
                 // on split-screen and large fonts. Normal phones retain the
                 // existing Like-on-the-right layout and visual hierarchy.

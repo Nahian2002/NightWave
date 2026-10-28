@@ -64,7 +64,7 @@ internal fun NightWaveMatteButton(
 @Composable
 internal fun NightWaveMatteOutlinedButton(
     onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true,
-    shape: androidx.compose.ui.graphics.Shape = RoundedCornerShape(20.dp),
+    shape: androidx.compose.ui.graphics.Shape = RoundedCornerShape(14.dp),
     colors: ButtonColors = ButtonDefaults.outlinedButtonColors(
         containerColor = MaterialTheme.colorScheme.surfaceVariant,
         contentColor = MaterialTheme.colorScheme.onSurface),

@@ -84,6 +84,10 @@ import com.nightwave.player.playback.CrossfadeSettingsStore
 import com.nightwave.player.playback.OfflineNormalizationStore
 import androidx.activity.compose.setContent
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
+import androidx.compose.foundation.gestures.snapping.SnapPosition
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -3417,6 +3421,9 @@ internal fun StudioHome(
     openSearch: () -> Unit
 ) {
     val dayNumber = java.time.LocalDate.now().toEpochDay()
+    val recentShelfState = rememberLazyListState()
+    val nextShelfState = rememberLazyListState()
+    val moodShelfState = rememberLazyListState()
     // Extend the existing personal mixes, rather than replacing them.
     // All inputs are already device-local saved/recent public video metadata.
     val homePlan = remember(favorites, recent, playlistTracks, dayNumber, memory) {
@@ -3512,8 +3519,8 @@ internal fun StudioHome(
                 NightWaveSectionActions(heading = {
                     SectionHeading("Recently played",
                         (if (recentWindow.hasMore)
-                            "${recentShelf.size}+ tracks · Private to this device"
-                        else "${recentShelf.size} tracks · Private to this device"))
+                            "${recentShelf.size}+ tracks"
+                        else "${recentShelf.size} tracks"))
                 }, action = {
                     if (recentBrowseActions.showExpansion) {
                         TextButton(onClick = { showAllRecent = !showAllRecent },
@@ -3524,12 +3531,14 @@ internal fun StudioHome(
                 })
             }
             if (entry.kind == NightWaveHomePresentationPolicy.Kind.HISTORY_ONLY) item(key = "nw131-history-save-hint") {
-                Text("To keep a song in your collection, use its options to like it or add it to a playlist.",
+                Text("Like or add to a playlist from track options.",
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             item(key = "nw47-recent-shelf") {
                 LazyRow(
                     modifier = Modifier.fillMaxWidth().testTag("nw47-recent-shelf"),
+                    state = recentShelfState,
+                    flingBehavior = rememberSnapFlingBehavior(recentShelfState, SnapPosition.Start),
                     horizontalArrangement = Arrangement.spacedBy(11.dp)
                 ) {
                     items(if (showAllRecent) recentShelf.take(100) else recentShelf.take(6),
@@ -3597,6 +3606,8 @@ internal fun StudioHome(
                 LazyRow(
                     modifier = Modifier.fillMaxWidth()
                         .testTag("nw84-next-listens-shelf"),
+                    state = nextShelfState,
+                    flingBehavior = rememberSnapFlingBehavior(nextShelfState, SnapPosition.Start),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(homePlan.nextListens, key = { "next:" + it.url }) { song ->
@@ -3615,8 +3626,7 @@ internal fun StudioHome(
         // Lead with actual music before accounting-style counters.
         if (mixes.isNotEmpty()) {
             item {
-                SectionHeading("Your listening mixes",
-                    "From your music · preview before playing")
+                SectionHeading("Your mixes", "Choose a mix to preview")
             }
             // Keep every existing mix and preview action. One full-width feature leads
             // into measured paired cells; narrow/large text stacks the same reading order.
@@ -3687,13 +3697,14 @@ internal fun StudioHome(
                 }
             }
         }
-        item { SectionHeading("Search by mood", "Curated search shortcuts · opens Search") }
+        item { SectionHeading("Search by mood", "Choose a mood to explore") }
         // One horizontally scrollable shelf instead of three oversized rows.
         // Uses existing real mood shortcuts and unchanged search actions.
         item(key = "discovery-shelf") {
-            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                DiscoveryShortcuts.picks.forEachIndexed { index, shortcut ->
+            LazyRow(Modifier.fillMaxWidth().testTag("content-mood-shelf"), state = moodShelfState,
+                flingBehavior = rememberSnapFlingBehavior(moodShelfState, SnapPosition.Start),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                itemsIndexed(DiscoveryShortcuts.picks, key = { _, shortcut -> shortcut.key }) { index, shortcut ->
                     MoodTile(shortcut.title, shortcut.subtitle,
                         palettes[index % palettes.size], Modifier.width(178.dp)) {
                         onSearch(shortcut.query)
@@ -3927,7 +3938,7 @@ internal fun StudioSearch(
                         Text("Back to discovery")
                     }
                     SectionHeading(selectedCreatorGroup.name,
-                        "${selectedCreatorGroup.trackCount} local references · Liked, playlists or history")
+                        "${selectedCreatorGroup.trackCount} songs from your music")
                     Text("Creator names come from liked songs, playlists and history; they are not verified artist profiles.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -3983,6 +3994,25 @@ internal fun StudioSearch(
             }
         }
         if (query.isBlank() && !searching) {
+            if (savedTracks.isNotEmpty()) {
+                item {
+                    SectionHeading("From your music",
+                        "Liked, playlists and recent plays")
+                }
+                items(savedTracks.take(3), key = { "search-starter:" + it.url }) { song ->
+                    MusicTrackTile(song, isPlaying = playingUrl == song.url,
+                    surface = NightWaveTrackSurface.SEARCH,
+                    sourceLabel = index?.origin(song.url)?.label(),
+                        onOptions = { onSongOptions(song) },
+                        onClick = { onPlay(song, listOf(song)) })
+                }
+            } else {
+                item {
+                    Text("Your liked songs, playlists and recent music will appear here.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
             if (searchHistory.isNotEmpty()) {
                 item(key = "search-history-heading") {
                     Row(Modifier.fillMaxWidth(),
@@ -4036,40 +4066,32 @@ internal fun StudioSearch(
                 }
             }
             item(key = "search-offline-quick-access") {
-                OutlinedButton(onClick = { onOfflineSearch("") },
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
-                    shape = RoundedCornerShape(15.dp)) {
-                    Icon(Icons.Outlined.LibraryMusic,
-                        contentDescription = null, modifier = Modifier.size(19.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text("Browse offline songs")
-                }
-            }
-            item {
-                Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                    NightWaveMicroLabel("Explore by mood")
-                    DiscoveryShortcuts.picks.take(4).chunked(2).forEach { choices ->
-                        Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                            choices.forEach { shortcut ->
-                                FilterChip(selected = false,
-                                    onClick = {
-                                        mode = SearchMode.SONGS
-                                        query = shortcut.query
-                                        onRecordSearch(shortcut.query)
-                                        onPrimarySearch(shortcut.query, SearchMode.SONGS)
-                                    },
-                                    label = { Text(shortcut.title, maxLines = 1) },
-                                    modifier = Modifier.weight(1f))
-                            }
-                        }
+                NightWaveSectionActions(heading = { NightWaveMicroLabel("Explore") }, action = {
+                    TextButton(onClick = { onOfflineSearch("") }, modifier = Modifier.heightIn(min = 48.dp)) {
+                        Icon(Icons.Outlined.LibraryMusic, contentDescription = null, modifier = Modifier.size(19.dp))
+                        Spacer(Modifier.width(8.dp)); Text("Offline songs")
+                    }
+                })
+                val moodFilters = rememberLazyListState()
+                LazyRow(state = moodFilters,
+                    flingBehavior = rememberSnapFlingBehavior(moodFilters, SnapPosition.Start),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(DiscoveryShortcuts.picks.take(4), key = { it.key }) { shortcut ->
+                        FilterChip(selected = false,
+                            onClick = {
+                                mode = SearchMode.SONGS
+                                query = shortcut.query
+                                onRecordSearch(shortcut.query)
+                                onPrimarySearch(shortcut.query, SearchMode.SONGS)
+                            }, label = { Text(shortcut.title, maxLines = 1) },
+                            modifier = Modifier.heightIn(min = 48.dp))
                     }
                 }
             }
             if (knownCreators.isNotEmpty()) {
                 item(key = "local-creators") {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        SectionHeading("Creators from your music",
-                            "From liked songs, playlists and listening history")
+                        SectionHeading("Creators", "From your music")
                         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             knownCreators.forEach { creator ->
@@ -4097,7 +4119,7 @@ internal fun StudioSearch(
                         shape = RoundedCornerShape(14.dp)
                     ) {
                         Text(if (showAllCreators) "Hide creators"
-                            else "Browse creators · " + creatorGroups.size + " shown; search to find more")
+                            else "All creators · " + creatorGroups.size)
                     }
                 }
                 if (showAllCreators) {
@@ -4127,30 +4149,12 @@ internal fun StudioSearch(
                     }
                 }
             }
-            if (savedTracks.isNotEmpty()) {
-                item {
-                    SectionHeading("From your music",
-                        "Liked, playlists and history · Public videos need internet")
-                }
-                items(savedTracks.take(3), key = { "search-starter:" + it.url }) { song ->
-                    MusicTrackTile(song, isPlaying = playingUrl == song.url,
-                    surface = NightWaveTrackSurface.SEARCH,
-                    sourceLabel = index?.origin(song.url)?.label(),
-                        onOptions = { onSongOptions(song) },
-                        onClick = { onPlay(song, listOf(song)) })
-                }
-            } else {
-                item {
-                    Text("Your liked songs, playlists and recent music will appear here.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
+
         }
         if (savedMatches.isNotEmpty()) {
             item {
                 SectionHeading("From your music",
-                    savedMatches.size.toString() + " matches · Liked, playlists or history")
+                    savedMatches.size.toString() + " matches in your music")
             }
             items(savedMatches.take(savedVisible), key = { "saved:" + it.url }) { song ->
                 MusicTrackTile(song, isPlaying = playingUrl == song.url,
@@ -4635,14 +4639,14 @@ internal fun StudioLibrary(
             }
             if (overview.historyEntries > 0) item(key = "library-recent-collection") {
                 MusicCollectionTile("Recently played",
-                    "${overview.historySongs} songs · ${overview.historyEntries} history entries",
+                    NightWaveContentPresentationPolicy.historySummary(overview.historySongs, overview.historyEntries),
                     cover = historyTracks.firstOrNull()) {
                     onSelectPlaylist(RECENT_COLLECTION)
                 }
             }
             if (overview.showSaveHint) item(key = "nw132-save-hint") {
                 Text(if (overview.historyEntries > 0)
-                    "History records what you played. Like a song or add it to a playlist to keep it in your collections."
+                    "Like or add songs to a playlist to save them beyond your history."
                     else "Find music to like, create a playlist, or open Offline music for your own audio.",
                     style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
@@ -4659,7 +4663,7 @@ internal fun StudioLibrary(
                 }
                 if (automaticCollectionsOpen) items(smartCollections, key = { it.id }) { collection ->
                     MusicCollectionTile(collection.title,
-                        automaticDetails[collection.id].orEmpty(),
+                        NightWaveContentPresentationPolicy.automaticSummary(automaticDetails[collection.id].orEmpty()),
                         cover = collection.songs.firstOrNull()) {
                         onSelectPlaylist(collection.id)
                     }
@@ -5303,7 +5307,7 @@ private fun StudioProfile(
         }
 
         item {
-            StudioProfileGroup("Your listening snapshot") {
+            StudioProfileGroup("Your listening") {
                 StudioProfileRow("Recent listening",
                     "Artists and songs in your recent history",
                     Icons.Outlined.LibraryMusic, { showSnapshot = !showSnapshot },
@@ -5505,9 +5509,9 @@ private fun StudioProfileGroup(
     title: String, content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit
 ) {
     // Settings are an editorial list, not a stack of oversized cards.
-    Column(Modifier.fillMaxWidth().padding(top = 9.dp, bottom = 3.dp)) {
+    Column(Modifier.fillMaxWidth().padding(top = 6.dp, bottom = 3.dp)) {
         Text(title.uppercase(java.util.Locale.ROOT),
-            modifier = Modifier.padding(start = 16.dp, top = 9.dp, bottom = 8.dp),
+            modifier = Modifier.padding(start = 16.dp, top = 6.dp, bottom = 8.dp),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.primary)
         HorizontalDivider(

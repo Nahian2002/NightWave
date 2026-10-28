@@ -38,7 +38,7 @@ object NightWaveNowPlayingLayoutPolicy {
             scale >= 1.6f -> 0.24f
             scale >= 1.3f -> 0.30f
             compact -> 0.36f
-            else -> 0.42f
+            else -> 0.38f
         }
         val availableContentWidth = (width - padding * 2).coerceAtLeast(0f)
         val availableWidth = (availableContentWidth - 12).coerceAtLeast(0f)
@@ -52,14 +52,14 @@ object NightWaveNowPlayingLayoutPolicy {
         // Shuffle + Repeat each need a full 48dp touch surface.
         val stackPrimary = availableContentWidth < 176f
         val stackSecondary = availableContentWidth < 104f
-        val artwork = minOf(availableWidth, height * heightRatio, 420f)
+        val artwork = minOf(availableWidth, height * heightRatio, 360f)
             .coerceAtLeast(0f)
         return Layout(
             artworkDp = artwork,
             horizontalPaddingDp = padding,
             compact = compact,
             artworkCornerDp = NightWaveMattePolicy.ART_RADIUS_DP,
-            headerBottomSpaceDp = if (compact) 9 else 20,
+            headerBottomSpaceDp = if (compact) 9 else 16,
             splitTransportControls = splitControls,
             stackQuickActions = stackActions,
             stackPrimaryTransportControls = stackPrimary,

@@ -240,24 +240,9 @@ fun ListeningSpotlight(
 
 /** Artwork placeholder remains visible if upstream thumbnails cannot load. */
 @Composable
-internal fun TrackArtwork(video: VideoPreview, modifier: Modifier = Modifier) {
-    val artworkColors = MaterialTheme.colorScheme
-    Box(modifier.clip(RoundedCornerShape(NightWavePremiumDesignTokens.ARTWORK_CORNER_DP.dp))
-        .background(MaterialTheme.colorScheme.surfaceVariant),
-        contentAlignment = Alignment.Center) {
-        Canvas(Modifier.size(28.dp)) {
-            drawCircle(artworkColors.onSurface.copy(alpha = .12f), radius = size.minDimension * .47f)
-            drawCircle(artworkColors.onSurface.copy(alpha = .32f), radius = size.minDimension * .29f,
-                style = Stroke(width = 2.dp.toPx()))
-            drawCircle(artworkColors.onSurface.copy(alpha = .5f), radius = size.minDimension * .06f)
-        }
-        if (video.thumbnail.isNotBlank()) {
-            AsyncImage(model = video.thumbnail,
-                contentDescription = "Artwork for " + video.title,
-                modifier = Modifier.matchParentSize(),
-                contentScale = ContentScale.Crop)
-        }
-    }
+internal fun TrackArtwork(video: VideoPreview, modifier: Modifier = Modifier, large: Boolean = false) {
+    CoverArt(video.thumbnail, modifier, NightWavePremiumDesignTokens.ARTWORK_CORNER_DP,
+        description = "Artwork for " + video.title, trackIdentity = video.url, large = large)
 }
 
 @Composable
@@ -386,7 +371,7 @@ fun MusicCollectionTile(
         shape = RoundedCornerShape(NightWavePremiumDesignTokens.CARD_CORNER_DP.dp),
         border = BorderStroke(1.dp, colors.outline.copy(alpha =
             NightWavePremiumDesignTokens.rowBorderAlpha(false))),
-        colors = CardDefaults.cardColors(containerColor = colors.surface),
+        colors = CardDefaults.cardColors(containerColor = colors.surface, contentColor = colors.onSurface),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
@@ -403,7 +388,7 @@ fun MusicCollectionTile(
                 }
             }
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                Text(name, style = MaterialTheme.typography.titleMedium,
+                Text(name, color = colors.onSurface, style = MaterialTheme.typography.titleMedium,
                     maxLines = NightWavePremiumDesignTokens.titleLines(fontScale, 320f),
                     overflow = TextOverflow.Ellipsis)
                 Text(subtitle, style = MaterialTheme.typography.bodyMedium,

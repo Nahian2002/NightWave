@@ -96,7 +96,7 @@ fun NightWaveCompactTopBar(onSettings: () -> Unit) {
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         val showName = maxWidth.value >= 100f + 172f * LocalDensity.current.fontScale
         Row(Modifier.fillMaxWidth().heightIn(min = NightWavePremiumDesignTokens.HEADER_MIN_HEIGHT_DP.dp)
-                .padding(horizontal = 14.dp),
+                .padding(horizontal = NightWavePremiumDesignTokens.pageGutterDp(maxWidth.value).dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween) {
             NightWaveWordmark(Modifier.semantics { if (!showName) contentDescription = "NightWave" },
@@ -137,7 +137,8 @@ fun NightWavePremiumNavigation(
     val tags = listOf("home", "search", "library", "profile")
     Surface(
         modifier = Modifier.fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 2.dp),
+            .padding(horizontal = NightWavePremiumDesignTokens.pageGutterDp(
+                androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.toFloat()).dp, vertical = 2.dp),
         color = colors.background,
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,

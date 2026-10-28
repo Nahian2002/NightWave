@@ -37,7 +37,8 @@ class NightWaveNowPlayingLayoutPolicyTest {
     @Test fun tabletAndLandscapeStayBounded() {
         val tablet = NightWaveNowPlayingLayoutPolicy.resolve(1200f, 1800f, 1f)
         val landscape = NightWaveNowPlayingLayoutPolicy.resolve(900f, 420f, 1f)
-        assertEquals(420f, tablet.artworkDp, 0.001f)
+        // Content finish deliberately caps oversized artwork while retaining responsive bounds.
+        assertEquals(360f, tablet.artworkDp, 0.001f)
         assertEquals(28, tablet.horizontalPaddingDp)
         assertTrue(landscape.compact)
         assertTrue(landscape.artworkDp < 200f)
