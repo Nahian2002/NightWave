@@ -212,18 +212,18 @@ fun NightWavePremiumNavigation(
                         Box(Modifier.clip(CircleShape).background(color)
                             .padding(horizontal = 14.dp, vertical = 4.dp),
                             contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = icons[index],
-                            contentDescription = null,
-                            tint = if (active) colors.primary
-                                else colors.onSurfaceVariant,
-                            modifier = Modifier.size(
-                                (if (extraLargeText) 24 else NightWavePremiumDesignTokens.ICON_SIZE_DP).dp)
-                                .graphicsLayer {
-                                    scaleX = iconScale
-                                    scaleY = iconScale
-                                }
-                        )
+                            Icon(
+                                imageVector = icons[index],
+                                contentDescription = null,
+                                tint = if (active) colors.primary
+                                    else colors.onSurfaceVariant,
+                                modifier = Modifier.size(
+                                    (if (extraLargeText) 24 else NightWavePremiumDesignTokens.ICON_SIZE_DP).dp)
+                                    .graphicsLayer {
+                                        scaleX = iconScale
+                                        scaleY = iconScale
+                                    }
+                            )
                         }
                         Spacer(Modifier.height(if (extraLargeText) 3.dp else 4.dp))
                         Text(
