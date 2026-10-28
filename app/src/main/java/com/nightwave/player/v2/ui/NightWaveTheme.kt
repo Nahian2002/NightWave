@@ -70,12 +70,16 @@ fun NightWaveMaterialTheme(
     val palette = NightWaveDesign.palette(choice)
     val context = androidx.compose.ui.platform.LocalContext.current
     androidx.compose.runtime.DisposableEffect(context, choice) {
-        context.setTheme(if (palette.isDark) com.nightwave.player.R.style.Theme_NightWave
-            else com.nightwave.player.R.style.Theme_NightWave_Pearl)
+        context.setTheme(when (choice) {
+            ThemeChoice.AURORA -> com.nightwave.player.R.style.Theme_NightWave_Aurora
+            ThemeChoice.PEARL -> com.nightwave.player.R.style.Theme_NightWave_Pearl
+            ThemeChoice.AMOLED -> com.nightwave.player.R.style.Theme_NightWave_AMOLED
+            else -> com.nightwave.player.R.style.Theme_NightWave
+        })
         NightWaveMatteSystemBars.apply(context, palette)
         onDispose { }
     }
-    val scheme = if (palette.isDark) darkColorScheme(
+    val baseScheme = if (palette.isDark) darkColorScheme(
         primary = paletteColor(palette.accent), onPrimary = paletteColor(palette.contrastOnAccent()),
         primaryContainer = paletteColor(palette.accentSoft),
         onPrimaryContainer = paletteColor(palette.foreground),
@@ -85,13 +89,13 @@ fun NightWaveMaterialTheme(
         secondary = paletteColor(palette.secondary), onSecondary = paletteColor(palette.background),
         secondaryContainer = paletteColor(palette.raised),
         onSecondaryContainer = paletteColor(palette.foreground),
-        tertiary = paletteColor(palette.accent), onTertiary = paletteColor(palette.contrastOnAccent()),
-        tertiaryContainer = paletteColor(palette.accentSoft),
+        tertiary = paletteColor(palette.secondaryAccent), onTertiary = paletteColor(palette.contrastOnAccent()),
+        tertiaryContainer = paletteColor(palette.secondarySoft),
         onTertiaryContainer = paletteColor(palette.foreground),
         surfaceTint = Color.Transparent,
         inverseSurface = paletteColor(palette.foreground),
         inverseOnSurface = paletteColor(palette.background),
-        outline = paletteColor(palette.outline), outlineVariant = paletteColor(palette.outline).copy(alpha = .62f),
+        outline = paletteColor(palette.outline), outlineVariant = paletteColor(palette.outline).copy(alpha = .22f),
         error = paletteColor(palette.danger), onError = paletteColor(palette.background),
         // Keep required error text on an opaque, contrast-tested surface in every theme.
         errorContainer = paletteColor(palette.surface),
@@ -106,17 +110,28 @@ fun NightWaveMaterialTheme(
         secondary = paletteColor(palette.secondary), onSecondary = paletteColor(palette.background),
         secondaryContainer = paletteColor(palette.raised),
         onSecondaryContainer = paletteColor(palette.foreground),
-        tertiary = paletteColor(palette.accent), onTertiary = paletteColor(palette.contrastOnAccent()),
-        tertiaryContainer = paletteColor(palette.accentSoft),
+        tertiary = paletteColor(palette.secondaryAccent), onTertiary = paletteColor(palette.contrastOnAccent()),
+        tertiaryContainer = paletteColor(palette.secondarySoft),
         onTertiaryContainer = paletteColor(palette.foreground),
         surfaceTint = Color.Transparent,
         inverseSurface = paletteColor(palette.foreground),
         inverseOnSurface = paletteColor(palette.background),
-        outline = paletteColor(palette.outline), outlineVariant = paletteColor(palette.outline).copy(alpha = .62f),
+        outline = paletteColor(palette.outline), outlineVariant = paletteColor(palette.outline).copy(alpha = .22f),
         error = paletteColor(palette.danger), onError = paletteColor(palette.background),
         // Keep required error text on an opaque, contrast-tested surface in every theme.
         errorContainer = paletteColor(palette.surface),
         onErrorContainer = paletteColor(palette.danger)
+    )
+    // Material dialogs/menus use container roles, not the legacy surfaceVariant role.
+    // Supplying all seven keeps them inside the selected palette instead of default purple/gray.
+    val scheme = baseScheme.copy(
+        surfaceDim = paletteColor(if (palette.isDark) palette.background else palette.raised),
+        surfaceBright = paletteColor(if (palette.isDark) palette.raised else palette.surface),
+        surfaceContainerLowest = paletteColor(if (palette.isDark) palette.background else palette.surface),
+        surfaceContainerLow = paletteColor(palette.surface),
+        surfaceContainer = paletteColor(palette.surface),
+        surfaceContainerHigh = paletteColor(palette.raised),
+        surfaceContainerHighest = paletteColor(palette.raised)
     )
     CompositionLocalProvider(
         LocalNightWavePalette provides palette,

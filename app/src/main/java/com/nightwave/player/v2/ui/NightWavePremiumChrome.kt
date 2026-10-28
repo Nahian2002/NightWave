@@ -137,12 +137,11 @@ fun NightWavePremiumNavigation(
     val tags = listOf("home", "search", "library", "profile")
     Surface(
         modifier = Modifier.fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 2.dp),
-        color = colors.surface,
+            .padding(horizontal = 12.dp, vertical = 2.dp),
+        color = colors.background,
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
-        border = BorderStroke(1.dp, colors.onSurface.copy(alpha = NightWaveMattePolicy.BORDER_ALPHA)),
-        shape = RoundedCornerShape(NightWavePremiumDesignTokens.NAV_CORNER_DP.dp)
+        shape = RoundedCornerShape(0.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth()
@@ -154,7 +153,7 @@ fun NightWavePremiumNavigation(
             names.forEachIndexed { index, label ->
                 val active = NightWaveChromePolicy.selectedTab(selectedIndex) == index
                 val color by animateColorAsState(
-                    targetValue = if (active) colors.surfaceVariant
+                    targetValue = if (active) colors.primaryContainer
                         else Color.Transparent,
                     animationSpec = tween(
                         durationMillis = NightWaveMotionPolicy.duration(
@@ -178,7 +177,6 @@ fun NightWavePremiumNavigation(
                 Box(
                     modifier = Modifier.weight(1f).fillMaxHeight()
                         .clip(RoundedCornerShape(18.dp))
-                        .background(color)
                         .clickable(role = Role.Tab) {
                             if (NightWaveMotionPolicy.tabHaptic(selectedIndex, index,
                                     names.size, reducedMotion)) {
@@ -195,34 +193,29 @@ fun NightWavePremiumNavigation(
                         .testTag("nightwave-tab-" + tags[index]),
                     contentAlignment = Alignment.Center
                 ) {
-                    Box(
-                        modifier = Modifier.align(Alignment.TopCenter)
-                            .padding(top = 1.dp)
-                            .size(width = 25.dp, height = 3.dp)
-                            .graphicsLayer {
-                                alpha = indicatorProgress
-                                scaleX = indicatorProgress
-                            }
-                            .clip(CircleShape)
-                            .background(colors.primary)
-                    )
                     Column(
                         modifier = Modifier.padding(vertical = 8.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        Icon(
-                            imageVector = icons[index],
-                            contentDescription = null,
-                            tint = if (active) colors.primary
-                                else colors.onSurfaceVariant,
-                            modifier = Modifier.size(
-                                (if (extraLargeText) 24 else NightWavePremiumDesignTokens.ICON_SIZE_DP).dp)
-                                .graphicsLayer {
-                                    scaleX = iconScale
-                                    scaleY = iconScale
-                                }
-                        )
+                        Box(Modifier.clip(CircleShape), contentAlignment = Alignment.Center) {
+                            Box(Modifier.matchParentSize().graphicsLayer {
+                                alpha = indicatorProgress
+                                scaleX = indicatorProgress
+                            }.background(color))
+                            Icon(
+                                imageVector = icons[index],
+                                contentDescription = null,
+                                tint = if (active) colors.primary
+                                    else colors.onSurfaceVariant,
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 4.dp).size(
+                                    (if (extraLargeText) 24 else NightWavePremiumDesignTokens.ICON_SIZE_DP).dp)
+                                    .graphicsLayer {
+                                        scaleX = iconScale
+                                        scaleY = iconScale
+                                    }
+                            )
+                        }
                         Spacer(Modifier.height(if (extraLargeText) 3.dp else 4.dp))
                         Text(
                             label,
@@ -268,7 +261,8 @@ fun NightWaveHomeHero(
     Row(clickableHero.fillMaxWidth()
         .heightIn(min = NightWaveAdaptiveChromePolicy.homeHeroHeightDp(fontScale).dp)
         .clip(RoundedCornerShape(NightWavePremiumDesignTokens.HERO_CORNER_DP.dp))
-        .background(colors.surface)
+        .background(androidx.compose.ui.graphics.Brush.horizontalGradient(
+            listOf(colors.surface, colors.primaryContainer)))
         .testTag("nightwave-home-hero")
         .padding(NightWavePremiumDesignTokens.CARD_PADDING_DP.dp),
         verticalAlignment = Alignment.CenterVertically,

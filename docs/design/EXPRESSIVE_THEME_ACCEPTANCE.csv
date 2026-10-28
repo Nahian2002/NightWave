@@ -1,0 +1,105 @@
+case_id,theme,width_dp,font_scale,scenario,status,evidence
+DESIGN02-MIDNIGHT-320-1-singleton,MIDNIGHT,320,1,Unpaired collection has bounded artwork and retains its action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-MIDNIGHT-320-1-mood,MIDNIGHT,320,1,Theme-colored mood glyphs/labels retain the explicit search action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-MIDNIGHT-320-2-singleton,MIDNIGHT,320,2,Unpaired collection has bounded artwork and retains its action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-MIDNIGHT-320-2-mood,MIDNIGHT,320,2,Theme-colored mood glyphs/labels retain the explicit search action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-MIDNIGHT-320-3-singleton,MIDNIGHT,320,3,Unpaired collection has bounded artwork and retains its action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-MIDNIGHT-320-3-mood,MIDNIGHT,320,3,Theme-colored mood glyphs/labels retain the explicit search action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-MIDNIGHT-360-1-singleton,MIDNIGHT,360,1,Unpaired collection has bounded artwork and retains its action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-MIDNIGHT-360-1-mood,MIDNIGHT,360,1,Theme-colored mood glyphs/labels retain the explicit search action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-MIDNIGHT-360-2-singleton,MIDNIGHT,360,2,Unpaired collection has bounded artwork and retains its action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-MIDNIGHT-360-2-mood,MIDNIGHT,360,2,Theme-colored mood glyphs/labels retain the explicit search action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-MIDNIGHT-360-3-singleton,MIDNIGHT,360,3,Unpaired collection has bounded artwork and retains its action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-MIDNIGHT-360-3-mood,MIDNIGHT,360,3,Theme-colored mood glyphs/labels retain the explicit search action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-MIDNIGHT-412-1-singleton,MIDNIGHT,412,1,Unpaired collection has bounded artwork and retains its action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-MIDNIGHT-412-1-mood,MIDNIGHT,412,1,Theme-colored mood glyphs/labels retain the explicit search action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-MIDNIGHT-412-2-singleton,MIDNIGHT,412,2,Unpaired collection has bounded artwork and retains its action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-MIDNIGHT-412-2-mood,MIDNIGHT,412,2,Theme-colored mood glyphs/labels retain the explicit search action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-MIDNIGHT-412-3-singleton,MIDNIGHT,412,3,Unpaired collection has bounded artwork and retains its action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-MIDNIGHT-412-3-mood,MIDNIGHT,412,3,Theme-colored mood glyphs/labels retain the explicit search action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-MIDNIGHT-MANUAL-01,MIDNIGHT,declared device,1/2/3,Compare canvas/card/raised hierarchy and overall palette on phone,NOT_RUN,
+DESIGN02-MIDNIGHT-MANUAL-02,MIDNIGHT,declared device,1/2/3,Verify accent button/selected/disabled/playing states,NOT_RUN,
+DESIGN02-MIDNIGHT-MANUAL-03,MIDNIGHT,declared device,1/2/3,Native dialogs and system-bar color/readability,NOT_RUN,
+DESIGN02-MIDNIGHT-MANUAL-04,MIDNIGHT,declared device,1/2/3,Mood icon/text visibility including light Pearl,NOT_RUN,
+DESIGN02-MIDNIGHT-MANUAL-05,MIDNIGHT,declared device,1/2/3,Final singleton balance and all original actions,NOT_RUN,
+DESIGN02-MIDNIGHT-MANUAL-06,MIDNIGHT,declared device,1/2/3,Extreme/missing artwork and live player theme changes,NOT_RUN,
+DESIGN02-MIDNIGHT-MANUAL-07,MIDNIGHT,declared device,1/2/3,Font 1/2/3 and TalkBack/keyboard visual focus,NOT_RUN,
+DESIGN02-MIDNIGHT-MANUAL-08,MIDNIGHT,declared device,1/2/3,Full main/native/recovery theme consistency without reset,NOT_RUN,
+DESIGN02-AURORA-320-1-singleton,AURORA,320,1,Unpaired collection has bounded artwork and retains its action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-AURORA-320-1-mood,AURORA,320,1,Theme-colored mood glyphs/labels retain the explicit search action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-AURORA-320-2-singleton,AURORA,320,2,Unpaired collection has bounded artwork and retains its action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-AURORA-320-2-mood,AURORA,320,2,Theme-colored mood glyphs/labels retain the explicit search action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-AURORA-320-3-singleton,AURORA,320,3,Unpaired collection has bounded artwork and retains its action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-AURORA-320-3-mood,AURORA,320,3,Theme-colored mood glyphs/labels retain the explicit search action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-AURORA-360-1-singleton,AURORA,360,1,Unpaired collection has bounded artwork and retains its action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-AURORA-360-1-mood,AURORA,360,1,Theme-colored mood glyphs/labels retain the explicit search action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-AURORA-360-2-singleton,AURORA,360,2,Unpaired collection has bounded artwork and retains its action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-AURORA-360-2-mood,AURORA,360,2,Theme-colored mood glyphs/labels retain the explicit search action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-AURORA-360-3-singleton,AURORA,360,3,Unpaired collection has bounded artwork and retains its action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-AURORA-360-3-mood,AURORA,360,3,Theme-colored mood glyphs/labels retain the explicit search action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-AURORA-412-1-singleton,AURORA,412,1,Unpaired collection has bounded artwork and retains its action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-AURORA-412-1-mood,AURORA,412,1,Theme-colored mood glyphs/labels retain the explicit search action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-AURORA-412-2-singleton,AURORA,412,2,Unpaired collection has bounded artwork and retains its action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-AURORA-412-2-mood,AURORA,412,2,Theme-colored mood glyphs/labels retain the explicit search action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-AURORA-412-3-singleton,AURORA,412,3,Unpaired collection has bounded artwork and retains its action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-AURORA-412-3-mood,AURORA,412,3,Theme-colored mood glyphs/labels retain the explicit search action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-AURORA-MANUAL-01,AURORA,declared device,1/2/3,Compare canvas/card/raised hierarchy and overall palette on phone,NOT_RUN,
+DESIGN02-AURORA-MANUAL-02,AURORA,declared device,1/2/3,Verify accent button/selected/disabled/playing states,NOT_RUN,
+DESIGN02-AURORA-MANUAL-03,AURORA,declared device,1/2/3,Native dialogs and system-bar color/readability,NOT_RUN,
+DESIGN02-AURORA-MANUAL-04,AURORA,declared device,1/2/3,Mood icon/text visibility including light Pearl,NOT_RUN,
+DESIGN02-AURORA-MANUAL-05,AURORA,declared device,1/2/3,Final singleton balance and all original actions,NOT_RUN,
+DESIGN02-AURORA-MANUAL-06,AURORA,declared device,1/2/3,Extreme/missing artwork and live player theme changes,NOT_RUN,
+DESIGN02-AURORA-MANUAL-07,AURORA,declared device,1/2/3,Font 1/2/3 and TalkBack/keyboard visual focus,NOT_RUN,
+DESIGN02-AURORA-MANUAL-08,AURORA,declared device,1/2/3,Full main/native/recovery theme consistency without reset,NOT_RUN,
+DESIGN02-PEARL-320-1-singleton,PEARL,320,1,Unpaired collection has bounded artwork and retains its action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-PEARL-320-1-mood,PEARL,320,1,Theme-colored mood glyphs/labels retain the explicit search action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-PEARL-320-2-singleton,PEARL,320,2,Unpaired collection has bounded artwork and retains its action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-PEARL-320-2-mood,PEARL,320,2,Theme-colored mood glyphs/labels retain the explicit search action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-PEARL-320-3-singleton,PEARL,320,3,Unpaired collection has bounded artwork and retains its action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-PEARL-320-3-mood,PEARL,320,3,Theme-colored mood glyphs/labels retain the explicit search action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-PEARL-360-1-singleton,PEARL,360,1,Unpaired collection has bounded artwork and retains its action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-PEARL-360-1-mood,PEARL,360,1,Theme-colored mood glyphs/labels retain the explicit search action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-PEARL-360-2-singleton,PEARL,360,2,Unpaired collection has bounded artwork and retains its action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-PEARL-360-2-mood,PEARL,360,2,Theme-colored mood glyphs/labels retain the explicit search action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-PEARL-360-3-singleton,PEARL,360,3,Unpaired collection has bounded artwork and retains its action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-PEARL-360-3-mood,PEARL,360,3,Theme-colored mood glyphs/labels retain the explicit search action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-PEARL-412-1-singleton,PEARL,412,1,Unpaired collection has bounded artwork and retains its action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-PEARL-412-1-mood,PEARL,412,1,Theme-colored mood glyphs/labels retain the explicit search action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-PEARL-412-2-singleton,PEARL,412,2,Unpaired collection has bounded artwork and retains its action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-PEARL-412-2-mood,PEARL,412,2,Theme-colored mood glyphs/labels retain the explicit search action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-PEARL-412-3-singleton,PEARL,412,3,Unpaired collection has bounded artwork and retains its action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-PEARL-412-3-mood,PEARL,412,3,Theme-colored mood glyphs/labels retain the explicit search action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-PEARL-MANUAL-01,PEARL,declared device,1/2/3,Compare canvas/card/raised hierarchy and overall palette on phone,NOT_RUN,
+DESIGN02-PEARL-MANUAL-02,PEARL,declared device,1/2/3,Verify accent button/selected/disabled/playing states,NOT_RUN,
+DESIGN02-PEARL-MANUAL-03,PEARL,declared device,1/2/3,Native dialogs and system-bar color/readability,NOT_RUN,
+DESIGN02-PEARL-MANUAL-04,PEARL,declared device,1/2/3,Mood icon/text visibility including light Pearl,NOT_RUN,
+DESIGN02-PEARL-MANUAL-05,PEARL,declared device,1/2/3,Final singleton balance and all original actions,NOT_RUN,
+DESIGN02-PEARL-MANUAL-06,PEARL,declared device,1/2/3,Extreme/missing artwork and live player theme changes,NOT_RUN,
+DESIGN02-PEARL-MANUAL-07,PEARL,declared device,1/2/3,Font 1/2/3 and TalkBack/keyboard visual focus,NOT_RUN,
+DESIGN02-PEARL-MANUAL-08,PEARL,declared device,1/2/3,Full main/native/recovery theme consistency without reset,NOT_RUN,
+DESIGN02-AMOLED-320-1-singleton,AMOLED,320,1,Unpaired collection has bounded artwork and retains its action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-AMOLED-320-1-mood,AMOLED,320,1,Theme-colored mood glyphs/labels retain the explicit search action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-AMOLED-320-2-singleton,AMOLED,320,2,Unpaired collection has bounded artwork and retains its action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-AMOLED-320-2-mood,AMOLED,320,2,Theme-colored mood glyphs/labels retain the explicit search action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-AMOLED-320-3-singleton,AMOLED,320,3,Unpaired collection has bounded artwork and retains its action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-AMOLED-320-3-mood,AMOLED,320,3,Theme-colored mood glyphs/labels retain the explicit search action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-AMOLED-360-1-singleton,AMOLED,360,1,Unpaired collection has bounded artwork and retains its action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-AMOLED-360-1-mood,AMOLED,360,1,Theme-colored mood glyphs/labels retain the explicit search action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-AMOLED-360-2-singleton,AMOLED,360,2,Unpaired collection has bounded artwork and retains its action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-AMOLED-360-2-mood,AMOLED,360,2,Theme-colored mood glyphs/labels retain the explicit search action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-AMOLED-360-3-singleton,AMOLED,360,3,Unpaired collection has bounded artwork and retains its action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-AMOLED-360-3-mood,AMOLED,360,3,Theme-colored mood glyphs/labels retain the explicit search action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-AMOLED-412-1-singleton,AMOLED,412,1,Unpaired collection has bounded artwork and retains its action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-AMOLED-412-1-mood,AMOLED,412,1,Theme-colored mood glyphs/labels retain the explicit search action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-AMOLED-412-2-singleton,AMOLED,412,2,Unpaired collection has bounded artwork and retains its action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-AMOLED-412-2-mood,AMOLED,412,2,Theme-colored mood glyphs/labels retain the explicit search action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-AMOLED-412-3-singleton,AMOLED,412,3,Unpaired collection has bounded artwork and retains its action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-AMOLED-412-3-mood,AMOLED,412,3,Theme-colored mood glyphs/labels retain the explicit search action,NOT_RUN,Actual screen source compiles only.
+DESIGN02-AMOLED-MANUAL-01,AMOLED,declared device,1/2/3,Compare canvas/card/raised hierarchy and overall palette on phone,NOT_RUN,
+DESIGN02-AMOLED-MANUAL-02,AMOLED,declared device,1/2/3,Verify accent button/selected/disabled/playing states,NOT_RUN,
+DESIGN02-AMOLED-MANUAL-03,AMOLED,declared device,1/2/3,Native dialogs and system-bar color/readability,NOT_RUN,
+DESIGN02-AMOLED-MANUAL-04,AMOLED,declared device,1/2/3,Mood icon/text visibility including light Pearl,NOT_RUN,
+DESIGN02-AMOLED-MANUAL-05,AMOLED,declared device,1/2/3,Final singleton balance and all original actions,NOT_RUN,
+DESIGN02-AMOLED-MANUAL-06,AMOLED,declared device,1/2/3,Extreme/missing artwork and live player theme changes,NOT_RUN,
+DESIGN02-AMOLED-MANUAL-07,AMOLED,declared device,1/2/3,Font 1/2/3 and TalkBack/keyboard visual focus,NOT_RUN,
+DESIGN02-AMOLED-MANUAL-08,AMOLED,declared device,1/2/3,Full main/native/recovery theme consistency without reset,NOT_RUN,

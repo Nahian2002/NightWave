@@ -1,6 +1,6 @@
 # NightWave tools — current use and historical checks
 
-**Current implementation baseline:** DESIGN01 matte refresh on `design/nightwave-matte-system`, stacked on NW133; fresh local build and **1,601 JVM tests / 199 suites** pass. The runner executes **61 current checks**, including eight broken matte wiring fixtures. See [current verification](../TEST_REPORT.md) and [design protocol](../docs/design/MATTE_DESIGN_SYSTEM.md). Actions remains disabled; Android compilation is separate from physical acceptance.
+**Current implementation baseline:** DESIGN02 on `design/nightwave-expressive-themes`; **1,620 JVM tests / 202 suites** and **62 current source checks** pass. See [current verification](../TEST_REPORT.md) and [theme correction](../docs/design/EXPRESSIVE_THEME_FINISH.md). All hosted/device evidence remains separate; Actions stays disabled.
 
 ## Recommended entrypoints
 
@@ -47,3 +47,5 @@ NW130 adds `verify_nw130_public_search.py --self-test` (57 current checks). Its 
 NW133 adds `verify_nw133_player.py --self-test` (60 current checks), guarding measured artwork/cache/fallback wiring, shared status, scoped seek and existing queue/lyrics paths with seven broken fixtures. See [NW133 protocol](../docs/NW133_PLAYER_ARTWORK_METADATA.md). Fourteen JVM tests execute; six new Android screen tests compile only.
 
 `verify_matte_design.py --self-test` guards real interaction-source feedback, source-bound reused artwork, clipped/API-gated blur, complete measured collection pairs, native read-only theme selection and accessible seek input/listener cleanup. The source runner totals 61 checks. The existing NW59 palette literal follows approved Pearl #61527F; JVM tests still enforce actual contrast.
+
+`verify_theme_expression.py --self-test` adds eight broken caller fixtures for actual accent fills, selected navigation/mini roles, bounded singleton art, theme-colored mood glyphs, secondary Material roles and all four native dialog selections. Current runner: 62 checks. Actual JVM contrast assertions remain required after changing the approved Pearl literal to #1C47AD.

@@ -32,7 +32,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
-/** 36 configurations × 8 actual UI cases. Blank source art and in-memory callbacks only.
+/** 36 configurations × 10 actual UI cases. Blank source art and in-memory callbacks only.
  * Does not install data, start playback, connect accounts or contact providers.
  * Captures exist only when these cases actually execute on Android.
  */
@@ -75,6 +75,15 @@ class NightWaveMatteAcceptanceInstrumentedTest(
             val palette = NightWaveDesign.palette(theme)
             assertEquals(palette.background.toInt(), MaterialTheme.colorScheme.background.toArgb())
             assertEquals(palette.foreground.toInt(), MaterialTheme.colorScheme.onBackground.toArgb())
+            val colors = MaterialTheme.colorScheme
+            assertEquals(palette.surface.toInt(), colors.surfaceContainerLow.toArgb())
+            assertEquals(palette.surface.toInt(), colors.surfaceContainer.toArgb())
+            assertEquals(palette.raised.toInt(), colors.surfaceContainerHigh.toArgb())
+            assertEquals(palette.raised.toInt(), colors.surfaceContainerHighest.toArgb())
+            assertEquals((if (palette.isDark) palette.background else palette.surface).toInt(),
+                colors.surfaceContainerLowest.toArgb())
+            assertEquals((if (palette.isDark) palette.background else palette.raised).toInt(), colors.surfaceDim.toArgb())
+            assertEquals((if (palette.isDark) palette.raised else palette.surface).toInt(), colors.surfaceBright.toArgb())
             Column { NightWavePremiumNavigation(0, true) { action = "tab:$it" } }
         }
         for (tag in listOf("home", "search", "library", "profile")) {
@@ -106,17 +115,41 @@ class NightWaveMatteAcceptanceInstrumentedTest(
         capture("home")
     }
     @Test fun searchInputKeepsTheExactUserSubmittedQueryAndExistingDispatch() {
+        var snapshot by mutableStateOf(StudioSearchSnapshot())
+        var visible by mutableStateOf(true)
         fixture {
-            StudioSearch(Modifier, StudioSearchSnapshot(), onPrimarySearch = { _, _ -> },
-                onNativeSearch = { query, _ -> action = query }, onWebSearch = {}, onPlay = { _, _ -> },
-                onSongOptions = {}, playingUrl = "", corpus = LocalMusicCorpusState(0L, 0, failed = true),
-                onRetryCorpus = {}, onOfflineSearch = {}, searchHistory = emptyList(), canUndoSearchRemoval = false,
-                onRecordSearch = {}, onRemoveSearch = {}, onUndoSearchRemoval = {}, onClearSearch = {})
+            val holder = androidx.compose.runtime.saveable.rememberSaveableStateHolder()
+            if (visible) holder.SaveableStateProvider("search") {
+                StudioSearch(Modifier, snapshot, onPrimarySearch = { _, _ -> },
+                    onNativeSearch = { query, _ -> action = query }, onWebSearch = {}, onPlay = { _, _ -> },
+                    onSongOptions = {}, playingUrl = "", corpus = LocalMusicCorpusState(0L, 0, failed = true),
+                    onRetryCorpus = {}, onOfflineSearch = {}, searchHistory = emptyList(), canUndoSearchRemoval = false,
+                    onRecordSearch = {}, onRemoveSearch = {}, onUndoSearchRemoval = {}, onClearSearch = {})
+            }
         }
-        compose.onNodeWithTag("nw129-search-query").performTextInput("Fixture query")
-        compose.onNodeWithTag("nw129-search-query").performImeAction()
+        val field = compose.onNodeWithTag("nw129-search-query")
+        field.performClick()
+        compose.onNodeWithText("Search songs, artists or links").assertDoesNotExist()
+        compose.runOnIdle { assertEquals("", action) }
+        field.performTextInput("Fixture query")
+        field.performImeAction()
+        compose.runOnIdle { assertEquals("Fixture query", action) }
+        field.performTextClearance()
+        compose.runOnIdle { snapshot = StudioSearchSnapshot(query = "Fixture query") }
+        field.assertTextEquals("") // A late provider response cannot overwrite a cleared draft.
+        compose.runOnIdle { snapshot = StudioSearchSnapshot(query = "After hours", prefillToken = "explicit-1") }
+        field.assertTextEquals("After hours")
+        field.performTextClearance()
+        compose.runOnIdle { visible = false }
+        compose.waitForIdle()
+        compose.runOnIdle { visible = true }
+        field.performClick()
+        field.assertTextEquals("") // Same consumed shortcut cannot replay when the page returns.
+        compose.runOnIdle { snapshot = snapshot.copy(prefillToken = "explicit-2") }
+        field.assertTextEquals("After hours") // A new intentional shortcut still works.
         compose.runOnIdle { assertEquals("Fixture query", action) }; capture("search")
     }
+
     @Test fun libraryCreateAndImportRemainAvailableWithoutStartingPlayback() {
         fixture {
             StudioLibrary(Modifier, songs, songs, emptyList(), 0, false, emptyList(), PlaylistFolderSnapshot(), emptyList(),
@@ -211,6 +244,44 @@ class NightWaveMatteAcceptanceInstrumentedTest(
         if (android.os.Build.VERSION.SDK_INT >= 31) assertTrue(android.graphics.Color.green(pixel) > android.graphics.Color.red(pixel))
         else assertEquals(NightWaveDesign.palette(theme).background.toInt(), pixel)
         capture("backdrop")
+    }
+
+    @Test fun singletonCollectionDoesNotGrowAFullWidthSquareArtworkWall() {
+        val mix = PersonalMix("single", "Last collection", "", "", songs.take(4))
+        fixture {
+            Column(Modifier.fillMaxWidth().padding(16.dp)) {
+                NightWaveMixCard(mix, false, modifier = Modifier.fillMaxWidth(),
+                    featured = NightWaveThemeExpressionPolicy.featuredMixCell(1), onClick = { action = "single" })
+            }
+        }
+        val card = compose.onNodeWithTag("nw131-mix-single")
+        if (scale == 1f) assertTrue(card.fetchSemanticsNode().boundsInRoot.height < 200f)
+        card.performClick(); compose.runOnIdle { assertEquals("single", action) }; capture("single-collection")
+    }
+    @Test fun themedMoodKeepsItsExplicitSearchActionAndReadableLabels() {
+        var choice by mutableIntStateOf(0)
+        fixture {
+            Column(Modifier.fillMaxWidth().padding(16.dp)) {
+                val mood = DiscoveryShortcuts.picks[choice]
+                NightWaveMoodArt(mood.title, mood.subtitle, emptyList(),
+                    modifier = Modifier.width(178.dp).testTag("expressive-mood"),
+                    onClick = { action = mood.query })
+            }
+        }
+        DiscoveryShortcuts.picks.forEachIndexed { index, mood ->
+            compose.runOnIdle { choice = index }
+            compose.onNodeWithText(mood.title).assertExists()
+            compose.onNodeWithText(mood.subtitle).assertExists()
+            val header = compose.onNodeWithTag("mood-art-header", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+            val art = compose.onNodeWithTag("mood-art-viewport", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+            val caption = compose.onNodeWithTag("mood-caption", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+            val card = compose.onNodeWithTag("expressive-mood").fetchSemanticsNode().boundsInRoot
+            assertTrue(art.left >= header.left && art.right <= header.right)
+            assertTrue(art.top >= header.top && art.bottom <= header.bottom)
+            assertTrue(caption.top >= header.bottom && caption.bottom <= card.bottom)
+            compose.onNodeWithTag("expressive-mood").performClick()
+            compose.runOnIdle { assertEquals(mood.query, action) }; capture("mood-$index")
+        }
     }
 
 }

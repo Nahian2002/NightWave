@@ -165,7 +165,7 @@ fun StudioMiniPlayer(
     val identity = MusicIdentity.display(state.title, state.artist)
     val reducedMotion = LocalNightWaveReduceMotion.current
     val hapticView = LocalView.current
-    val miniShape = RoundedCornerShape(NightWavePremiumDesignTokens.CARD_CORNER_DP.dp)
+    val miniShape = RoundedCornerShape(NightWavePremiumDesignTokens.ARTWORK_CORNER_DP.dp)
     val miniScale by animateFloatAsState(
         targetValue = NightWaveMotionPolicy.artworkScale(state.playing, reducedMotion),
         animationSpec = if (reducedMotion) snap() else spring(
@@ -174,13 +174,11 @@ fun StudioMiniPlayer(
     )
     var travel by remember(state.videoUrl) { mutableStateOf(0f) }
     Column(
-        modifier = modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 3.dp)
+        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 3.dp)
             .testTag("nightwave-mini-player")
             .semantics { stateDescription = statusLabel }
             .clip(miniShape)
-            .background(colors.surface)
-            // Shadow, clipping and stroke must follow the SAME corner path.
-            .border(1.dp, colors.onSurface.copy(alpha = NightWaveMattePolicy.BORDER_ALPHA), miniShape)
+            .background(colors.surfaceVariant)
             .pointerInput(state.videoUrl) {
                 detectVerticalDragGestures(
                     onDragStart = { travel = 0f },
@@ -321,7 +319,7 @@ fun StudioMiniPlayer(
                 PlayerProgressRules.fraction(state.positionMs, state.durationMs)
             },
             modifier = Modifier.fillMaxWidth().height(2.dp),
-            color = colors.onSurface,
+            color = colors.primary,
             trackColor = colors.onSurface.copy(alpha = .15f)
         )
     }

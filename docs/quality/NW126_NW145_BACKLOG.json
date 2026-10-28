@@ -913,7 +913,7 @@
     "id": "DESIGN01",
     "title": "Owner-requested matte design refresh",
     "implementation_status": "LOCAL_VERIFIED",
-    "device_status": "NOT_RUN",
+    "device_status": "PARTIAL",
     "protected_parent": "f5e706b2a30fb2f629d0f1b0d6e223531f8f0c02",
     "implementation_commit": "b30b7a2e4e9318ac2a91d7edb2418488c649cd03",
     "branch": "design/nightwave-matte-system",
@@ -935,6 +935,107 @@
       "Sequential lint 0 errors / 313 warnings / 17 hints; signer matches protected NW133",
       "229 backend/schema/build files byte-identical; nine callback inventories retained",
       "NW-debug-E5B5F71165F89BF8; 855 source inputs independently verified"
-    ]
+    ],
+    "owner_visual_observation": "Owner recording identifies E5B5 artifact and Midnight; sampled theme review only. No formal Android case or other-theme pass."
+  },
+  "theme_finish": {
+    "id": "DESIGN02",
+    "title": "Expressive theme finish after owner recording",
+    "implementation_status": "LOCAL_VERIFIED",
+    "device_status": "PARTIAL",
+    "protected_parent": "1413f0f3838df497b6c696ccd4243b5a6285916b",
+    "implementation_commit": "0b4e4dea6528f5faebf4c63659545d93cfc54a87",
+    "branch": "design/nightwave-expressive-themes",
+    "pull_request": "https://github.com/Nahian2002/NightWave/pull/146",
+    "recorded_theme_score": 7.6,
+    "score_scope": "Attributable D5 recorded primary Midnight appearance only, same five-dimension rubric; other themes briefly observed; overall 6.7 unchanged",
+    "evidence": [
+      "docs/design/2026-10-28_THEME_RECORDING_REVIEW.md",
+      "docs/design/2026-10-28_THEME_VALIDATION_202916.md",
+      "docs/design/EXPRESSIVE_THEME_FINISH.md",
+      "docs/design/EXPRESSIVE_THEME_ACCEPTANCE.csv",
+      "TEST_REPORT.md",
+      "docs/design/2026-10-28_THEME_POLISH_211137.md",
+      "docs/design/2026-10-28_MOOD_THEME_FINISH_230959.md"
+    ],
+    "local_evidence": [
+      "1609 JVM tests / 200 suites; 62 source checks PASS",
+      "360 Android parameterized cases compile only; device NOT_RUN",
+      "Lint 0 errors / 313 warnings / 17 hints; same signing certificate",
+      "NW-debug-B01767043A0E2FD7; 860 source inputs independently verified",
+      "234 nonpresentation files byte-identical; nine callback inventories retained"
+    ],
+    "remaining_blockers": [
+      "A1BE phone confirmation of all six complete motifs, caption growth, all four palettes, shelf scrolling, accessible input and native/system-bar combinations",
+      "Formal 360-case Android matrix remains NOT_RUN; prior Search/performance/data-preservation/release blockers carry forward"
+    ],
+    "next_source_batch": "NW134",
+    "previous_recorded_theme_score": 6.0,
+    "acceptance_followup": {
+      "implementation_commit": "6057bfaa2a0d8e0ed47b13705adc247902d67b4b",
+      "implementation_status": "LOCAL_VERIFIED",
+      "device_status": "NOT_RUN",
+      "build_id": "NW-debug-B01767043A0E2FD7",
+      "scope": "Material3 container roles and Android API29+ navigation contrast scrim only"
+    },
+    "appearance_polish": {
+      "implementation_status": "LOCAL_VERIFIED",
+      "device_status": "NOT_RUN",
+      "protected_parent": "246bee33cbc25c2bcfb1850e20ee32a11f2125f6",
+      "recorded_scores": {
+        "Midnight": 7.6,
+        "Aurora": 7.6,
+        "Pearl": 7.4,
+        "AMOLED": 7.4
+      },
+      "score_limit": "Recorded screens only; alternative-theme coverage narrower, binary attribution unverified; no new-candidate or whole-app score",
+      "scope": [
+        "Flat rail and smaller navigation selection capsule",
+        "Cleaner mini-player and filled secondary actions",
+        "Softer decorative separators",
+        "Explicit transient Search prefill tokens; focus-aware empty-field hint"
+      ],
+      "evidence": [
+        "docs/design/2026-10-28_THEME_POLISH_211137.md",
+        "TEST_REPORT.md"
+      ],
+      "implementation_commit": "17c827e4936bdb65beff3e0d952d32df74e01153",
+      "build_id": "NW-debug-B985BE0BD6205B3D",
+      "local_evidence": [
+        "1614 JVM tests / 201 suites PASS; five new Search ownership methods",
+        "62 source checks PASS; 12 expressive broken caller fixtures",
+        "360 Android cases compile only, existing Search method expanded; device NOT_RUN",
+        "862 source inputs independently verified; signer matches protected B017",
+        "234 protected files and nine callback inventories preserved",
+        "Sequential lint 0 errors / 313 warnings / 17 hints; no new baseline/suppression"
+      ]
+    },
+    "mood_finish": {
+      "implementation_status": "LOCAL_VERIFIED",
+      "device_status": "NOT_RUN",
+      "protected_parent": "70f12cdbd606fb91c6aca8a77da1f9585a4bbf40",
+      "implementation_commit": "931143f674cf015766fcd95b1a9c81affd185715",
+      "build_id": "NW-debug-A1BE94B78BE9B34D",
+      "recorded_appearance_score": 8.2,
+      "score_limit": "Same five-dimension subjective rubric; demonstrated screen sample varies, no exact APK attribution, not a new-candidate or whole-app score",
+      "scope": [
+        "Separate measured art lane and content-sized caption",
+        "Complete normalized six-mood motifs with stroke padding",
+        "Clearer decorative contrast and truthful Search glyph",
+        "One animated navigation selection capsule"
+      ],
+      "local_evidence": [
+        "1620 JVM tests / 202 suites PASS, six new geometry/locale/bounds regressions",
+        "62 source checks PASS, 14 expressive negative fixtures",
+        "360 Android cases compile only; existing mood case covers six shortcuts, device NOT_RUN",
+        "864 verified source inputs, same signer as protected B985",
+        "234 protected files and nine callback inventories preserved; exact six shortcut definitions retained",
+        "Sequential lint 0 errors / 313 warnings / 17 hints; no new suppression or baseline"
+      ],
+      "evidence": [
+        "docs/design/2026-10-28_MOOD_THEME_FINISH_230959.md",
+        "TEST_REPORT.md"
+      ]
+    }
   }
 }

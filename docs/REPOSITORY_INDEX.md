@@ -1,6 +1,6 @@
 # NightWave — repository navigation
 
-**Current implementation:** owner-requested matte DESIGN01 on [`design/nightwave-matte-system`](https://github.com/Nahian2002/NightWave/tree/design/nightwave-matte-system), stacked on NW133 PR #144. [Design system and feature boundaries](design/MATTE_DESIGN_SYSTEM.md), [theme acceptance ledger](design/MATTE_DESIGN_ACCEPTANCE.csv), [review #145](https://github.com/Nahian2002/NightWave/pull/145). **Next source batch: NW134.** Physical acceptance remains open; canonical `main` holds reviewed source.
+**Current implementation:** DESIGN02 expressive-theme finish on [`design/nightwave-expressive-themes`](https://github.com/Nahian2002/NightWave/tree/design/nightwave-expressive-themes), stacked on PR #145. [Theme-only recording review](design/2026-10-28_THEME_RECORDING_REVIEW.md), [correction](design/EXPRESSIVE_THEME_FINISH.md), [review #146](https://github.com/Nahian2002/NightWave/pull/146). **NW134 remains next.** [Attributable owner review: 7.6/10 theme only](design/2026-10-28_THEME_VALIDATION_202916.md); boundary-fix phone acceptance remains pending.
 
 ## Start here
 
@@ -53,3 +53,7 @@ Current automated workflow: `.github/workflows/current-android.yml`; `android.ym
 Keep generated Android `build/`, local `.gradle/`, IDE settings, archives, diagnostic logs/dumps, local secrets, APKs and signing keys **outside Git**. `.gitignore` prevents future accidental adds but does not untrack history. Do not store account credentials, OAuth tokens, private playlists or media files in GitHub.
 
 **Build status:** exact current results and hashes are in TEST_REPORT.md; the NW132 baseline has 1,573 executed JVM tests and 59 checks. Screen-test compilation is separate from phone execution. See [current verification](../TEST_REPORT.md). **Release status:** NO-GO pending physical-device validation, installed signer, live restore, source rights and privacy checks. A short recording or passing source checks do not certify the full app.
+
+Latest follow-up: [four-theme ratings, chrome polish and Search input ownership](design/2026-10-28_THEME_POLISH_211137.md).
+
+Latest visual correction: [mood artwork containment and 8.2 appearance review](design/2026-10-28_MOOD_THEME_FINISH_230959.md); device confirmation remains pending.

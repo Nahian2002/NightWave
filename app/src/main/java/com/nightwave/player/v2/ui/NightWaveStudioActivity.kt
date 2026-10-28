@@ -148,6 +148,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import com.nightwave.player.v2.ui.NightWaveMatteOutlinedButton as OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -167,6 +168,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.foundation.layout.offset
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -257,7 +259,8 @@ internal data class StudioSearchSnapshot(
     val provider: String = "",
     val error: String = "",
     val hint: String = "",
-    val phase: PublicSearchPhase = PublicSearchPhase.DIRECT
+    val phase: PublicSearchPhase = PublicSearchPhase.DIRECT,
+    val prefillToken: String = ""
 )
 
 /** One short-lived in-memory LRC preview; the file is never cached to disk. */
@@ -1306,7 +1309,8 @@ class NightWaveStudioActivity : ComponentActivity() {
         if (clean.isBlank()) return
         nativeSearchJob?.cancel()
         nativeSearchGeneration++
-        nativeSearchState = StudioSearchSnapshot(query = clean, mode = mode)
+        nativeSearchState = StudioSearchSnapshot(query = clean, mode = mode,
+            prefillToken = java.util.UUID.randomUUID().toString())
     }
 
     private fun openOfficialSearch(query: String) {
@@ -3632,6 +3636,7 @@ internal fun StudioHome(
                         val mix = pair.first()
                         NightWaveMixCard(mix = mix, selected = chosenMixKey == mix.key,
                             modifier = Modifier.fillMaxWidth().fillMaxHeight(), presentation = mixPresentations[mix.key],
+                            featured = NightWaveThemeExpressionPolicy.featuredMixCell(pair.size),
                             onClick = {
                                 chosenMixKey = if (chosenMixKey == mix.key) null else mix.key
                                 showAllMixTracks = false
@@ -3641,6 +3646,7 @@ internal fun StudioHome(
                         val mix = pair[1]
                         NightWaveMixCard(mix = mix, selected = chosenMixKey == mix.key,
                             modifier = Modifier.fillMaxWidth().fillMaxHeight(), presentation = mixPresentations[mix.key],
+                            featured = NightWaveThemeExpressionPolicy.featuredMixCell(pair.size),
                             onClick = {
                                 chosenMixKey = if (chosenMixKey == mix.key) null else mix.key
                                 showAllMixTracks = false
@@ -3729,12 +3735,18 @@ internal fun StudioSearch(
     var mode by rememberSaveable { mutableStateOf(SearchMode.SONGS) }
     var selectedCreator by rememberSaveable { mutableStateOf<String?>(null) }
     var showAllCreators by rememberSaveable { mutableStateOf(false) }
-    LaunchedEffect(state.query) {
-        if (state.query.isNotBlank()) {
-            query = state.query
+    var consumedPrefill by rememberSaveable { mutableStateOf("") }
+    LaunchedEffect(state.prefillToken) {
+        // Only explicit shortcuts/shared text may replace a draft. Provider responses
+        // and pager recreation must never resurrect a query the listener cleared.
+        if (SearchDraftPolicy.shouldApply(state.prefillToken, consumedPrefill)) {
+            query = state.query.take(160)
+            mode = state.mode
+            consumedPrefill = state.prefillToken
             selectedCreator = null
         }
     }
+    var queryFocused by remember { mutableStateOf(false) }
     // Search on the keyboard stays inside NightWave. YouTube stays an
     // explicit alternative when public provider results are unavailable.
     val submit = {
@@ -3803,8 +3815,20 @@ internal fun StudioSearch(
                     query = it.take(160)
                     selectedCreator = null
                 },
-                modifier = Modifier.fillMaxWidth().testTag("nw129-search-query"), shape = RoundedCornerShape(17.dp),
-                singleLine = true, placeholder = { Text("Song or artist name") },
+                modifier = Modifier.fillMaxWidth().testTag("nw129-search-query")
+                    .onFocusChanged { queryFocused = it.isFocused }
+                    .semantics { contentDescription = "Search songs, artists or links" },
+                shape = RoundedCornerShape(17.dp),
+                singleLine = true, placeholder = {
+                    if (!queryFocused) Text("Search songs, artists or links",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    cursorColor = MaterialTheme.colorScheme.primary),
                 leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
                 trailingIcon = {
                     if (query.isNotBlank()) IconButton(onClick = {
@@ -5111,7 +5135,7 @@ private fun StudioProfile(
         item {
             Card(
                 shape = RoundedCornerShape(21.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(Modifier.fillMaxWidth().padding(14.dp),

@@ -2,39 +2,65 @@
     <style name="Theme.NightWave" parent="Theme.NightWave.Base" />
     <style name="Theme.NightWave.Base" parent="android:style/Theme.Material.NoActionBar">
         <item name="android:fontFamily">sans</item>
-        <item name="android:colorAccent">#A1D6C9</item>
+        <item name="android:colorAccent">#66D9EF</item>
         <item name="android:alertDialogTheme">@style/Theme.NightWave.Dialog</item>
         <item name="android:windowLightStatusBar">false</item>
-        <item name="android:statusBarColor">#0A0A0A</item>
-        <item name="android:navigationBarColor">#0A0A0A</item>
+        <item name="android:statusBarColor">#090F1B</item>
+        <item name="android:navigationBarColor">#090F1B</item>
         <item name="android:windowActionModeOverlay">true</item>
-        <item name="android:windowBackground">#0A0A0A</item>
+        <item name="android:windowBackground">#090F1B</item>
     </style>
     <!-- Apply the same NightWave palette to the legacy Android song-action menus.
          Does not change their callbacks, playlist writes or audio playback. -->
     <style name="Theme.NightWave.Dialog" parent="android:style/Theme.Material.Dialog.Alert">
         <item name="android:fontFamily">sans</item>
-        <item name="android:colorAccent">#A1D6C9</item>
-        <item name="android:textColorPrimary">#FFFFFF</item>
-        <item name="android:textColorSecondary">#8E8E93</item>
+        <item name="android:colorAccent">#66D9EF</item>
+        <item name="android:textColorPrimary">#F4F8FF</item>
+        <item name="android:textColorSecondary">#BCCAE0</item>
         <item name="android:windowBackground">@drawable/nightwave_dialog_background</item>
         <item name="android:windowLightStatusBar">false</item>
     </style>
     <style name="Theme.NightWave.Pearl" parent="android:style/Theme.Material.Light.NoActionBar">
         <item name="android:fontFamily">sans</item>
-        <item name="android:colorAccent">#61527F</item>
+        <item name="android:colorAccent">#1C47AD</item>
         <item name="android:alertDialogTheme">@style/Theme.NightWave.Dialog.Pearl</item>
         <item name="android:windowLightStatusBar">true</item>
-        <item name="android:statusBarColor">#F9F7F2</item>
-        <item name="android:navigationBarColor">#F9F7F2</item>
-        <item name="android:windowBackground">#F9F7F2</item>
+        <item name="android:statusBarColor">#F8F5F0</item>
+        <item name="android:navigationBarColor">#F8F5F0</item>
+        <item name="android:windowBackground">#F8F5F0</item>
         <item name="android:windowActionModeOverlay">true</item>
     </style>
     <style name="Theme.NightWave.Dialog.Pearl" parent="android:style/Theme.Material.Light.Dialog.Alert">
         <item name="android:fontFamily">sans</item>
-        <item name="android:colorAccent">#61527F</item>
-        <item name="android:textColorPrimary">#24221F</item>
-        <item name="android:textColorSecondary">#5F5A55</item>
+        <item name="android:colorAccent">#1C47AD</item>
+        <item name="android:textColorPrimary">#14223C</item>
+        <item name="android:textColorSecondary">#4E6080</item>
         <item name="android:windowBackground">@drawable/nightwave_dialog_pearl</item>
+    </style>
+    <style name="Theme.NightWave.Aurora" parent="Theme.NightWave">
+        <item name="android:colorAccent">#C3A0FF</item>
+        <item name="android:windowBackground">#160D24</item>
+        <item name="android:statusBarColor">#160D24</item>
+        <item name="android:navigationBarColor">#160D24</item>
+        <item name="android:alertDialogTheme">@style/Theme.NightWave.Dialog.Aurora</item>
+    </style>
+    <style name="Theme.NightWave.Dialog.Aurora" parent="Theme.NightWave.Dialog">
+        <item name="android:colorAccent">#C3A0FF</item>
+        <item name="android:textColorPrimary">#FAF5FF</item>
+        <item name="android:textColorSecondary">#D3C0E5</item>
+        <item name="android:windowBackground">@drawable/nightwave_dialog_aurora</item>
+    </style>
+    <style name="Theme.NightWave.AMOLED" parent="Theme.NightWave">
+        <item name="android:colorAccent">#72EAD8</item>
+        <item name="android:windowBackground">#000000</item>
+        <item name="android:statusBarColor">#000000</item>
+        <item name="android:navigationBarColor">#000000</item>
+        <item name="android:alertDialogTheme">@style/Theme.NightWave.Dialog.AMOLED</item>
+    </style>
+    <style name="Theme.NightWave.Dialog.AMOLED" parent="Theme.NightWave.Dialog">
+        <item name="android:colorAccent">#72EAD8</item>
+        <item name="android:textColorPrimary">#F1FCFF</item>
+        <item name="android:textColorSecondary">#A8CAD3</item>
+        <item name="android:windowBackground">@drawable/nightwave_dialog_amoled</item>
     </style>
 </resources>
