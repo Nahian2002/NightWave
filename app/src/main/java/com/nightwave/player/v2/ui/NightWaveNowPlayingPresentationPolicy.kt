@@ -5,6 +5,20 @@ package com.nightwave.player.v2.ui
  * Navigation and Media3 remain owned by their existing playback engine.
  */
 object NightWaveNowPlayingPresentationPolicy {
+    fun statusLabel(health: com.nightwave.player.v2.playback.PlaybackHealth): String = when (health.phase) {
+        com.nightwave.player.v2.playback.PlaybackPhase.PAUSED -> "Paused"
+        com.nightwave.player.v2.playback.PlaybackPhase.ERROR -> "Playback unavailable"
+        else -> health.title
+    }
+
+    fun canSeek(track: String, connected: Boolean, durationMs: Long, resolving: Boolean, error: String?): Boolean =
+        track.isNotBlank() && connected && durationMs > 0L && !resolving && error.isNullOrBlank()
+
+    fun seekPosition(expected: String, current: String, connected: Boolean, durationMs: Long,
+        resolving: Boolean, error: String?, fraction: Float): Long? =
+        if (expected != current || !canSeek(current, connected, durationMs, resolving, error)) null
+        else PlayerProgressRules.requestedPosition(durationMs, fraction)
+
     data class QueuePreview(
         val heading: String,
         val subtitle: String,

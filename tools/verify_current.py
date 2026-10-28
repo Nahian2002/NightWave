@@ -39,6 +39,7 @@ PYTHON_CHECKS = (
     ("verify_nw130_public_search.py", "--self-test"),
     ("verify_nw131_home.py", "--self-test"),
     ("verify_nw132_library.py", "--self-test"),
+    ("verify_nw133_player.py", "--self-test"),
 )
 
 # Same safety preflights as the one-click Windows builder, including negative
