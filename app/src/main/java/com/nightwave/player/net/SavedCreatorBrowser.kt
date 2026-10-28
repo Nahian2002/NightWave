@@ -25,7 +25,7 @@ object SavedCreatorBrowser {
         "youtubecreator", "unknowncreator", "unknownartist", "variousartists"
     )
 
-    fun groups(source: List<VideoPreview>): List<SavedCreatorGroup> {
+    fun groups(source: List<VideoPreview>, scanLimit: Int = MAX_SOURCE_TRACKS): List<SavedCreatorGroup> {
         class Bucket(
             val name: String,
             val tracks: MutableList<VideoPreview> = mutableListOf(),
@@ -33,7 +33,7 @@ object SavedCreatorBrowser {
         )
         val grouped = linkedMapOf<String, Bucket>()
         val seenUrls = hashSetOf<String>()
-        source.take(MAX_SOURCE_TRACKS).forEach { video ->
+        source.take(scanLimit.coerceIn(0, 15_600)).forEach { video ->
             // These are local saved PUBLIC references, not imported file IDs.
             if (VideoLink.normalize(video.url) != video.url ||
                 !seenUrls.add(video.url)) return@forEach
@@ -41,7 +41,7 @@ object SavedCreatorBrowser {
                 .artistOrCreator.trim()
             if (label.length !in 2..100) return@forEach
             val key = SearchRelevancePolicy.normalize(label)
-                .filter { it.isLetterOrDigit() }
+                .filterNot(Char::isWhitespace) // retain dependent Bangla vowels in group identity
             if (key.length < 2 || key in generic) return@forEach
             val bucket = grouped.getOrPut(key) { Bucket(label) }
             bucket.count++

@@ -17,6 +17,17 @@ class MusicLibrary(context: Context) {
     private val app = context.applicationContext
     private val prefs = app.getSharedPreferences("nightwave_library_v1", Context.MODE_PRIVATE)
 
+    /** One atomic preference-map capture, then strict complete parsing on the caller's IO dispatcher.
+     * Search never promotes Room to a writer or hides an unreadable collection as empty.
+     */
+    fun searchSnapshot(): com.nightwave.player.v2.data.room.LegacyLibrarySnapshot {
+        val values = LegacyLibraryTransaction.exclusive {
+            prefs.all.filterKeys { it in setOf("favorites", "recent", "playlist_names") || it.startsWith("list_") }
+                .mapValues { (_, value) -> require(value is String) { "Unreadable library metadata" }; value }
+        }
+        return com.nightwave.player.v2.data.room.LegacyLibrarySnapshotParser.parse(values)
+    }
+
     fun favorites(): List<VideoPreview> = read("favorites")
     fun recent(): List<VideoPreview> = read("recent")
     fun isFavorite(url: String): Boolean = favorites().any { it.url == url }

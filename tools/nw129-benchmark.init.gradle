@@ -1,0 +1,20 @@
+// Separate from correctness gates. Run after the complete build, never beside another Gradle writer.
+gradle.projectsEvaluated {
+    def app = gradle.rootProject.project(':app')
+    def tests = app.tasks.named('testDebugUnitTest', Test)
+    def receipt = app.findProperty('nw129Receipt') ?: 'build/nw129-search-performance'
+    def runs = (app.findProperty('nw129Runs') ?: '2').toInteger()
+    if (runs < 1 || runs > 3) throw new GradleException('nw129Runs must be 1..3')
+    def measurements = (1..runs).collect { run ->
+        app.tasks.register("benchmarkFullLocalSearchRun${run}", JavaExec) {
+            dependsOn 'compileDebugUnitTestKotlin'
+            if (run > 1) mustRunAfter "benchmarkFullLocalSearchRun${run - 1}"
+            classpath = tests.get().classpath + tests.get().testClassesDirs
+            mainClass = 'com.nightwave.player.net.NW129SearchBenchmark'
+            jvmArgs '-Xms512m', '-Xmx1024m'
+            args "${receipt}-${run}.json"
+            workingDir gradle.rootProject.projectDir
+        }
+    }
+    app.tasks.register('benchmarkFullLocalSearch') { dependsOn measurements }
+}

@@ -92,24 +92,29 @@ object MusicIdentity {
         tracks: List<VideoPreview>, limit: Int = 8, scanLimit: Int = 350
     ): List<SavedCreatorShortcut> {
         if (limit <= 0 || scanLimit <= 0) return emptyList()
+        return allCreatorsFrom(tracks.take(scanLimit.coerceAtMost(15_600)))
+            .take(limit.coerceAtMost(12))
+    }
+
+    /** Prepared once by the full local index; UI previews may still be small. */
+    fun allCreatorsFrom(tracks: List<VideoPreview>, checkpoint: () -> Unit = {}): List<SavedCreatorShortcut> {
         val names = linkedMapOf<String, Pair<String, Int>>()
         // The usual Home shortcuts stay at the existing 350-item budget.
         // NW70 can explicitly scan more saved references on a background
         // dispatcher, without silently losing creators past item 350.
-        tracks.take(scanLimit.coerceAtMost(5_000))
-            .distinctBy { it.url }.forEach { video ->
+        tracks.distinctBy { it.url }.forEachIndexed { position, video ->
+            if (position % 128 == 0) checkpoint()
             val label = display(video.title, video.author).artistOrCreator.trim()
             val normalized = label.lowercase(Locale.ROOT)
-            if (normalized.isBlank() || normalized in genericCreators) return@forEach
+            if (normalized.isBlank() || normalized in genericCreators) return@forEachIndexed
             val id = key(label)
-            if (id.isBlank()) return@forEach
+            if (id.isBlank()) return@forEachIndexed
             val prev = names[id]
             names[id] = if (prev == null) label to 1 else prev.first to (prev.second + 1)
         }
         return names.values
             .sortedWith(compareByDescending<Pair<String, Int>> { it.second }
                 .thenBy { it.first.lowercase(Locale.ROOT) })
-            .take(limit.coerceAtMost(12))
             .map { SavedCreatorShortcut(it.first, it.second) }
     }
 }

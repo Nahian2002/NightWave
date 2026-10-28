@@ -57,13 +57,17 @@ object LegacyLibrarySnapshotParser {
         // it should detect ordinary legacy writes without deleting or rewriting.
         val relevantKeys = (listOf("favorites", "recent", "playlist_names") +
             names.map { "list_$it" }).sorted()
-        val digestSource = relevantKeys.joinToString("\u0000") { key ->
+        // Preserve the exact digest contract without materializing a second
+        // whole-library string and UTF-8 byte array during full-corpus reads.
+        val digest = MessageDigest.getInstance("SHA-256")
+        relevantKeys.forEachIndexed { index, key ->
+            if (index > 0) digest.update(0.toByte())
             val raw = source[key]
-            key.length.toString() + ":" + key + ":" +
-                (raw?.length ?: -1).toString() + ":" + (raw ?: "")
+            digest.update((key.length.toString() + ":" + key + ":" +
+                (raw?.length ?: -1).toString() + ":").toByteArray(StandardCharsets.UTF_8))
+            if (raw != null) digest.update(raw.toByteArray(StandardCharsets.UTF_8))
         }
-        val hash = MessageDigest.getInstance("SHA-256")
-            .digest(digestSource.toByteArray(StandardCharsets.UTF_8))
+        val hash = digest.digest()
             .joinToString("") { "%02x".format(it) }
         return LegacyLibrarySnapshot(favorites, recent, playlists, hash)
     }
