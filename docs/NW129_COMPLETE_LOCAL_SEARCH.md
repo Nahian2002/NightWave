@@ -71,3 +71,5 @@ NW129 source/local completion may enable **NW130 — decidable public music resu
 - Two final host timing receipts match outputs and current measured-source bytes. APK/source-bound 219-case plan prepared without app seeding. No device connected; all four NW129 rows remain PARTIAL with device status NOT_RUN.
 
 Private recovery checkpoints retain exact source/APK receipts, 192 JUnit reports, timing JSON/hashes, earlier/final logs and Git bundles. Generated/private artifacts are outside Git. Hosted CI execution is recorded independently on the PR.
+
+Implementation commit: `808a89ecce377d615e479d89bfdd60fccda32ffd`. [Draft PR #132](https://github.com/Nahian2002/NightWave/pull/132). The following ledger-only commit changes no compiled source inputs. The embedded revision is protected-parent context; the canonical source digest identifies the actual built snapshot.

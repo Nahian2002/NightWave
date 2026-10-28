@@ -278,7 +278,7 @@
         "Trace index construction and query execution off the main thread; bound memory/work without silently discarding corpus membership.",
         "Preserve Unicode/Bangla vowel/repeated-token/alias/typo semantics, best duplicate metadata and original source URLs; report keystroke-to-results distribution."
       ],
-      "implementation_commit": null,
+      "implementation_commit": "808a89ecce377d615e479d89bfdd60fccda32ffd",
       "local_evidence": [
         "docs/NW129_COMPLETE_LOCAL_SEARCH.md",
         "TEST_REPORT.md",
@@ -296,7 +296,8 @@
         "Android keystroke-to-correct-render distributions, dispatcher traces, peak heap/GC/jank NOT_RUN",
         "Real large-type/Bangla/TalkBack and source-label review NOT_RUN; Library terminology/organization remains NW132 work",
         "Carry NW126-NW128 installed signer, data-preservation and physical blockers forward"
-      ]
+      ],
+      "pull_request": "https://github.com/Nahian2002/NightWave/pull/132"
     },
     {
       "id": "NW130",
