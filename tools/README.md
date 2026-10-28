@@ -1,6 +1,6 @@
 # NightWave tools — current use and historical checks
 
-**Current implementation baseline:** DESIGN05 on `design/nightwave-composition-finish`; **1,657 JVM tests / 207 suites** and **66 current source checks** pass. See [current verification](../TEST_REPORT.md) and [composition finish](../docs/design/COMPOSITION_FINISH.md). All hosted/device evidence remains separate; Actions stays disabled.
+**Current implementation baseline:** DESIGN06 on `design/nightwave-continuity-finish`; **1,671 JVM tests / 208 suites** and **68 current source checks** pass. See [current verification](../TEST_REPORT.md) and [continuity finish](../docs/design/CONTINUITY_FINISH.md). All hosted/device evidence remains separate; Actions stays disabled.
 
 ## Recommended entrypoints
 
@@ -53,3 +53,5 @@ NW133 adds `verify_nw133_player.py --self-test` (60 current checks), guarding me
 `verify_editorial_finish.py --self-test` guards source-proportioned frames, full original Details, single lead-mix emphasis and factual summaries, plus root shelf-touch ownership/release with ten broken caller fixtures. The current runner totals 65 checks. These are source checks; the 468-case Android matrix is compiled only.
 
 `verify_composition_finish.py --self-test` adds ten broken caller fixtures for creator-corroborated captions, edition retention, compact mix facts, sparse Library routes/disclosure and consolidated You actions. Current total: 66 source checks. The Android matrix is 14 x 36 = 504 compiled cases only; new phone evidence is pending. DESIGN04 guards now follow the compact summary caller while retaining all earlier negative cases.
+
+`verify_continuity_finish.py --self-test` guards actual player lifetime, recording/consent controls, UTC/totals/accessibility, measured metrics and real cover wiring with ten broken fixtures. The current runner now also executes the updated `verify_nw58_overlay.py --self-test`: 68 checks total. NW58/NW59 require one synchronous transition, no full-screen alpha fade or effect delay and interrupted-enter backdrop retention; old fixtures remain, with new blank/delay negatives. Android matrix: 16 x 36 = 576 compiled only.

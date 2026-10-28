@@ -83,4 +83,32 @@ class NightWaveEditorialPresentationPolicyTest {
         assertEquals("2 tracks", policy.mixSummary(PersonalMix("x", "x", "", "", listOf(track(1,60),track(2,0)))))
         assertEquals("0 tracks", policy.mixSummary(PersonalMix("x", "x", "", "", emptyList())))
     }
+
+    @Test fun representativeCoversAreStableActualTracksWithoutQueueChanges() {
+        val tracks = (1..8).map { track(it,120).copy(thumbnail = "art:$it") }
+        val mix = PersonalMix("replay", "History", "", "", tracks)
+        val before = tracks.toList()
+        val covers = policy.mixArtwork(mix)
+        assertEquals(4, covers.size)
+        assertEquals(covers, policy.mixArtwork(mix))
+        assertTrue(covers.all { it in tracks })
+        assertEquals(before, mix.tracks)
+    }
+    @Test fun representativeCoversPreferAvailableImagesAndDistinctCreators() {
+        val tracks = listOf(track(1,60,"One"),track(2,60,"One"),track(3,60,"Two"),track(4,60,"Three"),track(5,60,"Four"))
+            .map { it.copy(thumbnail = "art:" + it.url) }
+        val mix = PersonalMix("daily", "Daily", "", "", tracks + track(6,60,"Five"))
+        val covers = policy.mixArtwork(mix)
+        assertEquals(4,covers.map { it.author }.distinct().size)
+        assertTrue(covers.all { it.thumbnail.isNotBlank() })
+    }
+    @Test fun missingOrRepeatedArtworkSourcesStillUseRealUniqueTracks() {
+        val a = track(1,60,"Unknown creator");val b = track(2,60,"Unknown creator")
+        assertEquals(setOf(a,b),policy.mixArtwork(PersonalMix("x","x","","",listOf(a,a,b))).toSet())
+        assertTrue(policy.mixArtwork(PersonalMix("x","x","","",emptyList())).isEmpty())
+    }
+    @Test fun representativeSelectionRetainsAllFourSlotsWithOneCreator() {
+        val tracks = (1..6).map { track(it,120,"One").copy(thumbnail = "art:$it") }
+        assertEquals(4,policy.mixArtwork(PersonalMix("x","x","","",tracks)).distinctBy { it.url }.size)
+    }
 }

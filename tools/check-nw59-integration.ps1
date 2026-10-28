@@ -35,11 +35,19 @@ function Assert-NW59SafeGoogleChooser([string]$Body) {
     Assert-NW59Missing $Body 'else onConnect()' 'Google chooser stacked behind account modal'
 }
 function Assert-NW59OpaquePlayer([string]$Body) {
-    Assert-NW59Has $Body 'MutableTransitionState(false)' 'player transition state'
-    Assert-NW59Has $Body 'LaunchedEffect(expanded) { overlayVisibility.targetState = expanded }' 'safe composition lifetime'
+    Assert-NW59Has $Body 'updateTransition(targetState = expanded, label = "player-overlay")' 'single synchronous player transition'
     Assert-NW59Has $Body 'NightWavePlayerOverlayPolicy.retainBackdrop(' 'opaque transition shield'
     Assert-NW59Has $Body 'testTag("nw58-opaque-player-backdrop")' 'opaque shield tagged'
-    Assert-NW59Has $Body 'visibleState = overlayVisibility' 'transition lifetime'
+    Assert-NW59Has $Body 'overlayVisibility.AnimatedVisibility(' 'shared transition owner'
+    Assert-NW59Has $Body 'visible = { it }' 'transition content lifetime'
+    Assert-NW59Has $Body 'overlayVisibility.isRunning' 'interrupted enter lifetime'
+    $start = $Body.IndexOf('fun StudioNowPlayingOverlay(')
+    $finish = $Body.IndexOf('val colors =', [Math]::Max(0, $start))
+    if ($start -lt 0 -or $finish -lt $start) { throw 'NW59 cannot isolate player transition' }
+    $transitionSource = $Body.Substring($start, $finish - $start)
+    foreach ($bad in @('fadeIn(', 'fadeOut(', 'LaunchedEffect(expanded)', 'MutableTransitionState(false)')) {
+        Assert-NW59Missing $transitionSource $bad 'blank or delayed full-screen player transition'
+    }
     Assert-NW59Missing $Body 'AnimatedVisibility(visible = expanded, enter = enter, exit = exit)' 'non-opaque original player fade'
 }
 function Assert-NW59SearchCopy([string]$Body) {
@@ -97,6 +105,21 @@ if ($SelfTest) {
         Assert-NW59Home ($homeFixture.Replace('discovery-shelf', 'missing-discovery'))
     } catch { $rejected = $true }
     if (-not $rejected) { throw 'NW59 Home broken fixture was not rejected' }
+    $playerFixture = 'fun StudioNowPlayingOverlay( ' +
+        'updateTransition(targetState = expanded, label = "player-overlay") ' +
+        'NightWavePlayerOverlayPolicy.retainBackdrop( testTag("nw58-opaque-player-backdrop") ' +
+        'overlayVisibility.AnimatedVisibility( visible = { it } overlayVisibility.isRunning val colors ='
+    Assert-NW59OpaquePlayer $playerFixture
+    foreach ($missing in @('overlayVisibility.AnimatedVisibility(', 'overlayVisibility.isRunning')) {
+        $rejected = $false
+        try { Assert-NW59OpaquePlayer ($playerFixture.Replace($missing, 'BROKEN_FIXTURE')) } catch { $rejected = $true }
+        if (-not $rejected) { throw ('NW59 opaque-player broken fixture accepted: ' + $missing) }
+    }
+    foreach ($bad in @('fadeIn(', 'fadeOut(', 'LaunchedEffect(expanded)', 'MutableTransitionState(false)')) {
+        $rejected = $false
+        try { Assert-NW59OpaquePlayer ($playerFixture.Replace('val colors =', $bad + ' val colors =')) } catch { $rejected = $true }
+        if (-not $rejected) { throw ('NW59 blank-player broken fixture accepted: ' + $bad) }
+    }
     Write-Host 'NW59 invariant self-test PASS. Android compilation not attempted.'
     exit 0
 }

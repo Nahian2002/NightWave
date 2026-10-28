@@ -22,7 +22,7 @@ def verify(src):
     assert "EmptyMusicCard(" not in home
     assert "mix(it, favorites, recent, playlistTracks, memory.enabled)" in home
     for marker in ("ids(favorites)", "ids(recent)", "ids(playlists)", "Kind.HISTORY_ONLY",
-                   '"RECENT MUSIC"', '"SAVED MUSIC"', '"Uploader variety"',
+                   '"RECENT MUSIC"', '"SAVED MUSIC"', '"Creator blend"',
                    "tracks.count { it.url in liked }", "tracks.count { it.url in history }"):
         assert marker in src[NAMES[1]], marker
     assert "Int.MAX_VALUE" in src[NAMES[2]]

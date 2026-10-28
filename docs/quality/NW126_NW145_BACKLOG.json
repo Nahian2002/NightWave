@@ -1180,5 +1180,46 @@
     ],
     "next_batch": "NW134",
     "next_branch_rule": "Base a new cumulative review branch on latest DESIGN05; preserve pending physical acceptance."
+  },
+  "continuity_finish": {
+    "batch": "DESIGN06",
+    "title": "Player continuity and readable listening surfaces",
+    "status": "LOCAL_VERIFIED",
+    "device_acceptance": "NOT_RUN",
+    "branch": "design/nightwave-continuity-finish",
+    "pull_request": "https://github.com/Nahian2002/NightWave/pull/150",
+    "protected_parent": "b6c6b066cfb9052c74d83b63a5e3233e4cd92392",
+    "implementation_commits": [
+      "5722f71bf40d4dab578bd876d0dab9ccdea0d2b1",
+      "cc10cff5f07d6434a9570dc38f3d16593c257bb5"
+    ],
+    "build_id": "NW-debug-0195B157AA19F1B1",
+    "latest_recorded_ui_score": 8.7,
+    "post_change_score": null,
+    "rating_limit": "Same five-part visible-UI rubric; sequential empty transition sample supports investigating matching source gap, not a freeze or new-candidate score. Aurora not freshly rated.",
+    "evidence": [
+      "docs/design/CONTINUITY_FINISH.md",
+      "docs/design/CONTINUITY_FINISH_ACCEPTANCE.csv",
+      "TEST_REPORT.md"
+    ],
+    "validation": {
+      "jvm_tests": 1671,
+      "jvm_suites": 208,
+      "source_checks": 68,
+      "android_cases_compiled_only": 576,
+      "manual_supplement_not_run": 24,
+      "protected_nonpresentation_files_unchanged": 234,
+      "feature_callback_inventories_preserved": 9,
+      "lint_errors": 0,
+      "lint_warnings": 313,
+      "lint_hints": 17
+    },
+    "remaining": [
+      "First/open/close/interrupted/reduced-motion player frames and source artwork across four themes",
+      "Actual 7/30-day UTC/statistics reflow accessibility consent Refresh Erase confirmation and retained listening data",
+      "Mix identities/real covers original queues; settings spacing; large type TalkBack/keyboard shelf/page gestures; previous data/audio/recovery/performance/release gates"
+    ],
+    "next_batch": "NW134",
+    "next_branch_rule": "Base a new cumulative review branch on latest DESIGN06; retain pending physical checks."
   }
 }

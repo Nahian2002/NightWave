@@ -9,6 +9,7 @@ internal object NightWavePlayerOverlayPolicy {
     fun retainBackdrop(
         requestedExpanded: Boolean,
         transitionCurrent: Boolean,
-        transitionTarget: Boolean
-    ): Boolean = requestedExpanded || transitionCurrent || transitionTarget
+        transitionTarget: Boolean,
+        transitionRunning: Boolean = false
+    ): Boolean = requestedExpanded || transitionCurrent || transitionTarget || transitionRunning
 }

@@ -30,6 +30,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -180,7 +181,7 @@ fun NightWaveMixCard(
 /** Four actual source thumbnails, never generated album art or fabricated listening statistics. */
 @Composable
 private fun NightWaveMixMosaic(mix: PersonalMix, modifier: Modifier = Modifier) {
-    val tracks = mix.tracks.distinctBy { it.url }.take(4)
+    val tracks = remember(mix.key, mix.tracks) { NightWaveEditorialPresentationPolicy.mixArtwork(mix) }
     Column(modifier.background(MaterialTheme.colorScheme.surfaceVariant),
         verticalArrangement = Arrangement.spacedBy(2.dp)) {
         tracks.chunked(2).forEach { row ->

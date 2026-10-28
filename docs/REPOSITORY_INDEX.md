@@ -4,7 +4,7 @@ Latest acceptance correction: [tiny artwork and split-page review](design/2026-1
 
 # NightWave — repository navigation
 
-**Current implementation:** DESIGN05 on [`design/nightwave-composition-finish`](https://github.com/Nahian2002/NightWave/tree/design/nightwave-composition-finish), [draft PR #149](https://github.com/Nahian2002/NightWave/pull/149) stacked on #148. [Architecture and preservation](design/COMPOSITION_FINISH.md), [24-case supplement](design/COMPOSITION_FINISH_ACCEPTANCE.csv), [current verification](../TEST_REPORT.md). Latest recorded UI is 8.5/10; new A2F02AA0 device acceptance is NOT_RUN. **NW134 remains next.**
+**Current implementation:** DESIGN06 on [`design/nightwave-continuity-finish`](https://github.com/Nahian2002/NightWave/tree/design/nightwave-continuity-finish), [draft PR #150](https://github.com/Nahian2002/NightWave/pull/150) stacked on #149. [Architecture and preservation](design/CONTINUITY_FINISH.md), [24-case supplement](design/CONTINUITY_FINISH_ACCEPTANCE.csv), [current verification](../TEST_REPORT.md). Latest recorded visible UI is 8.7/10; new 0195B157 device acceptance is NOT_RUN. **NW134 remains next.**
 
 ## Start here
 

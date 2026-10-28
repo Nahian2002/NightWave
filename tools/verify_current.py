@@ -46,6 +46,8 @@ PYTHON_CHECKS = (
     ("verify_pager_artwork_recovery.py", "--self-test"),
     ("verify_editorial_finish.py", "--self-test"),
     ("verify_composition_finish.py", "--self-test"),
+    ("verify_nw58_overlay.py", "--self-test"),
+    ("verify_continuity_finish.py", "--self-test"),
 )
 
 # Same safety preflights as the one-click Windows builder, including negative
