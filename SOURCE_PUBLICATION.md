@@ -6,6 +6,12 @@
 
 **Current visibility remains private. Source publication is held for owner review and unresolved external checks. Public app distribution remains NO-GO.** No website, APK, store listing or repository visibility was published by this preparation.
 
+## Source-only GitHub scope
+
+The owner's intended publication is GitHub source, without a store submission. Play Console approval, Play Data safety forms, Play closed testing, production AAB submission and the 9.5 product target are not prerequisites for publishing source. They remain separate app-distribution/product gates. Known dependency advisories require honest review and disclosure; a database match does not automatically prohibit source hosting or require feature removal. The presence of extraction code alone does not establish a GitHub policy violation; hosting/content/provider claims must be evaluated on their actual facts.
+
+Repository preparation can preserve the app unchanged. Source publication still needs review of the exact public payload and GitHub settings, included-code/asset rights and any concrete complaint or privacy issue. No blanket guarantee against a complaint or enforcement outcome is possible. [Portfolio case study](docs/publication/PORTFOLIO_CASE_STUDY.md) supplies a source-grounded project overview; it does not publish screenshots or private data.
+
 ## Completed repository work
 
 - Pinned six upstream Actions repositories to exact reviewed tag resolutions; disabled persisted checkout credentials and retained read-only job tokens. This reduces mutable-reference risk; it is not a claim of auditing all upstream implementation code.
