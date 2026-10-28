@@ -4391,10 +4391,17 @@ internal fun StudioLibrary(
     val quickPlayableTracks = remember(orderedTracks) {
         LibraryQuickPlayPolicy.plan(orderedTracks, shuffle = false, seed = 0L).songs
     }
+    // Collection navigation must not inherit a deep scroll offset from another list.
+    // The active collection still restores its position after recreation.
+    val libraryListState = rememberSaveable(selectedPlaylist,
+        saver = androidx.compose.foundation.lazy.LazyListState.Saver) {
+        androidx.compose.foundation.lazy.LazyListState()
+    }
     val nw83PageGutter = NightWavePremiumDesignTokens.pageGutterDp(
         androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.toFloat()).dp
     LazyColumn(modifier.testTag("nw132-library-list").fillMaxWidth().widthIn(max =
         NightWavePremiumDesignTokens.MAX_CONTENT_WIDTH_DP.dp).fillMaxHeight(),
+        state = libraryListState,
         contentPadding = PaddingValues(start = nw83PageGutter, end = nw83PageGutter,
             top = NightWavePremiumDesignTokens.PAGE_TOP_DP.dp,
             bottom = NightWavePremiumDesignTokens.PAGE_BOTTOM_DP.dp),

@@ -49,7 +49,7 @@ object NW122SearchBenchmark {
         val report = JSONObject().put("scope", "synthetic host JVM; not Android latency, battery or soak")
             .put("java", System.getProperty("java.runtime.version"))
             .put("vm", System.getProperty("java.vm.name"))
-            .put("os", System.getProperty("os.name") + " " + System.getProperty("os.arch"))
+            .put("os", System.getProperty("os.name").orEmpty() + " " + System.getProperty("os.arch").orEmpty())
             .put("processors", Runtime.getRuntime().availableProcessors())
             .put("heapArguments", "-Xms512m -Xmx1024m (benchmark task)")
             .put("warmupsPerScenario", 12).put("libraryRows", songs.size)

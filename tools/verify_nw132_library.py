@@ -19,6 +19,8 @@ def verify(src):
                    "LibraryBulkSelectionPolicy.sanitize(", "hiddenSelectedCount", "onBulkRemove(it, selectedTracks)",
                    "onMovePlaylistSong(name, song.url, steps, tracks.map { it.url })"):
         assert marker in screen, marker
+    assert "rememberSaveable(selectedPlaylist," in screen
+    assert "state = libraryListState" in screen
     assert '"Saved tracks"' not in screen
     assert 'if (visibleTracks.isEmpty() && selectedPlaylist != null)' in screen
     for marker in ("library.restorePlaylistIfUnchanged(", "before.map { it.url }", ".setNegativeButton(\"Keep\", null)",
@@ -44,7 +46,7 @@ if __name__ == "__main__":
     verify(src)
     if args.self_test:
         for name, marker in ((NAMES[0], "LibraryCollectionPresentationPolicy.songSection("),
-                             (NAMES[0], "overview.showRecentlyLiked"), (NAMES[0], "onExportPlaylist(name, tracks)"),
+                             (NAMES[0], "overview.showRecentlyLiked"), (NAMES[0], "state = libraryListState"), (NAMES[0], "onExportPlaylist(name, tracks)"),
                              (NAMES[0], "library.restorePlaylistIfUnchanged("), (NAMES[0], "PlaylistDocumentPolicy.read(input)"),
                              (NAMES[2], ".take(MAX_PLAYLIST_SONGS)"), (NAMES[3], "VideoLink.normalize(url) == url")):
             broken = dict(src); assert marker in broken[name]
