@@ -1,37 +1,36 @@
-# Current verification — DESIGN03 complete content finish
+# Current verification — artwork sizing and pager regression correction
 
-[Draft PR #147](https://github.com/Nahian2002/NightWave/pull/147), `design/nightwave-content-finish`, stacked on DESIGN02 #146. Protected parent `6d664ba4111cbd87c9adf28e6600ca0fef25f982`; implementation `cae8caf8`, completed by `ec1f57f7631f9b673000e54777262ec1b2166f69`. [All six authorized recommendations and architecture](docs/design/CONTENT_HIERARCHY_FINISH.md), [96-case supplement](docs/design/CONTENT_FINISH_ACCEPTANCE.csv). [Previous A1BE verification](https://github.com/Nahian2002/NightWave/blob/6d664ba4111cbd87c9adf28e6600ca0fef25f982/TEST_REPORT.md) and prior audits/acceptance remain historical evidence.
+29 October 2026. Existing [draft PR #147](https://github.com/Nahian2002/NightWave/pull/147), `design/nightwave-content-finish`, stacked on #146. Protected previous candidate review `67c35cdca371d805d59284aa77b8ec6729efaf3c`; correction implementation `ff5000124bb80abe9735fbbaf52e965ededba342`. [Owner recording, full scorecard, source gaps and correction](docs/design/2026-10-29_ARTWORK_PAGER_REVIEW.md). [Prior 4041 verification](https://github.com/Nahian2002/NightWave/blob/67c35cdca371d805d59284aa77b8ec6729efaf3c/TEST_REPORT.md) and earlier audits/acceptance remain historical evidence.
 
-The last owner recording is the approximately 92.93911-second `232750` sample: 92 successful one-second seeks plus overview/detail inspection. Its visible appearance/UI scores **8.4/10** on the retained rubric, with varied theme coverage and no exact inspected binary attribution. This is the baseline for DESIGN03, not the new candidate's score. Original whole-product 6.7 audit remains frozen; no full runtime re-evaluation or 9.5–10 is inferred from source/tests.
+The new approximately 127.4956-second owner recording supplies 127 decoded one-second samples (0–126s, 127s failed), overview and detailed inspection. It clearly shows tiny previews in large frames and split destinations across more than one theme. No unique inspected binary identity is exposed. On the same five-dimension rubric the visible UI is **7.8/10** (identity 8.5, color 9, hierarchy 6, coherence 7.5, perceived legibility 8). Diagnostic art/navigation scores are around 4/5; mood composition and music-first Search remain around 8.5. These are recorded subjective appearance judgments, not a current whole-product or new-candidate score. Original 6.7 whole-product audit remains frozen.
 
-All six recommendations are implemented: source-bound contained artwork through the existing shared renderer; compact four-image mix accents; saved music ahead of browsing in empty Search; concise count/membership copy; explicit ordinary text with a distinct readable error container; snapped shelves, aligned gutters and responsive player balance. Large previews use ContentScale.Inside to retain edges and avoid enlarging the loaded drawable. Low-resolution source detail cannot be reconstructed. The same bounded source candidates, third-party/signed/local URL protection, caches and track-identity gates remain.
+The prior Inside/native-size decision was too strict and is superseded by **ContentScale.Fit** for large previews: proportional frame filling with complete image edges, while retaining existing bounded same-source candidates/cache/fallback/identity checks. This can enlarge source pixels and does not recreate absent detail. Featured mosaics are 88dp; paired art uses a bounded 1.6:1 banner. All four thumbnails, sources and actions remain.
 
-All four palette values, stored themes, actual shortcut/song URLs, every mix and preview/action, Search modes/history/Undo/creator/provider/offline routes, draft ownership, native/classic interface, account/consent, playback/queue/library/storage, package/signing and dependencies remain. No feature is hidden or removed.
+Horizontal shelf boundaries consume only leftover horizontal scroll/fling deltas. The pager has a shared 100ms idle fractional-offset recovery that excludes active drag/animation and cancels stale work. Navigation selection/focus follows settledPage; selected-tab taps recenter, and the early return cannot ignore a partial/moving page. Normal page swipes outside shelves, vertical scrolling, all destinations, motion/haptics and overlay behavior remain. Exact device gesture causality is not traced; these source gaps are consistent with the recording and need physical validation.
 
 | Executed or compiled check | Result and limit |
 | --- | --- |
-| Complete Windows builder | PASS: production Android/Compose, debug APK and instrumentation-source compilation on final implementation. |
-| JVM suite | **1,625 tests / 203 suites**, zero failures/errors/skips; five new role/count/membership regressions. Prior tablet artwork expectation changes to the deliberate 360dp cap; narrow/large-text/transport safety assertions remain. |
-| Current source runner | **63/63 PASS** on final implementation. One new caller guard with ten broken fixtures; all prior 62 checks and expressive fixtures retained. |
-| Android theme/layout matrix | **12 × 36 = 432 compiled cases, NOT_RUN**. Two additional methods cover music-first Search and retained browse/play routes, plus owned generated wide-image edge/native-size presentation. Existing scheme test checks ordinary contentColorFor(surface) and distinct error role. |
-| Sequential lint | PASS: **0 errors / 313 warnings / 17 hints**, matching protected A1BE; no new suppression/baseline. |
-| Color contracts | Actual new error surface differs from ordinary/selection surfaces; opaque error text ≥4.5:1 across four themes. Existing normal-text/control/input/target/reflow guards pass; source contrast is not rendered acceptance. |
-| Feature preservation | **234 protected nonpresentation source/schema/build files byte-identical**; callback inventories retained in nine major feature files; six mood shortcut definitions unchanged. Installed-data acceptance remains separate. |
-| Signer | PASS against protected A1BE APK, same certificate. No agent-connected installed APK comparison/install/reset. |
-| Acceptance evidence | Fresh 219-case source/APK-bound fixture pack **PREPARED_NOT_EXECUTED**; 96-case DESIGN03 supplement NOT_RUN. |
-| Publication | Actions stays disabled; no hosted CI pass or public APK. No agent account/data operation. |
+| Complete Windows builder | PASS: production Android/Compose, debug APK and instrumentation-source compilation. |
+| JVM suite | **1,632 tests / 204 suites**, zero failures/errors/skips; seven new idle/drag/restoration/reselect/navigation regressions. |
+| Current source runner | **64/64 PASS**. Ten new recovery broken fixtures; prior 63 checks retained. Existing content fixtures update explicitly superseded Inside/72dp design expectations to Fit/1.6:1 without removing cases. |
+| Android theme/layout matrix | **13 × 36 = 468 compiled cases, NOT_RUN**. New method covers nested shelf-edge flings, normal page swipe, forced partial state and theme recomposition. Existing wide-art method now checks proportional filling and complete edges rather than tiny native-size presentation. |
+| Sequential lint | **0 errors / 313 warnings / 17 hints**, unchanged; no new suppression/baseline. |
+| Feature preservation | **234 protected nonpresentation source/schema/build files byte-identical**; nine callback inventories and exact six shortcut definitions retained. Installed-data acceptance remains separate. |
+| Signer | PASS against protected delivered 4041 APK, same retained certificate. No agent-connected installed comparison or install/reset. |
+| Acceptance | Fresh 219-case source/APK-bound fixture pack PREPARED_NOT_EXECUTED; updated 136-case content supplement NOT_RUN. |
+| Device/publication | No Android device/emulator listed by current adb inventory. No agent install/reset/account/data operation. Actions disabled; no public APK or hosted CI pass. |
 
 | Artifact identity | Value |
 | --- | --- |
-| Build ID | `NW-debug-4041E5226C8D41DF` |
-| Canonical source SHA256 | `4041E5226C8D41DF9B538F3ABF5F6AEC7141BAE5BC69A76EF67258F8A4583A64` |
-| Source inputs | `867` |
-| APK SHA256 | `318A8FBF6126640C57B1234982FBD62237AE028A6E4773EF674A04B0653235BF` |
-| Embedded revision context | `ec1f57f7631f9b673000e54777262ec1b2166f69` |
-| Separate NW08 manifest SHA256 | `55BBE7A09D673EA6F117FC30AA7D3F95E4236EACB9999DB703F0DEEC5FC20CB8`; retained independent encoding/ordering contract |
+| Build ID | `NW-debug-006E0C6D2D365492` |
+| Canonical source SHA256 | `006E0C6D2D365492ED91B403D60791D0A98B2ED89CA2B1E3C0EFA94878C22AD5` |
+| Source inputs | `871` |
+| APK SHA256 | `BA93943B89D5390ACDBF2F8B78B3B12586E773851897E5CDBAAC8A7ED1BB06E0` |
+| Embedded revision context | `ff5000124bb80abe9735fbbaf52e965ededba342` |
+| Separate NW08 manifest SHA256 | `2C98476FB2194167D1E9200D084A9656BF1C2FC057FECD2588858E1363B0BD78`; retained independent encoding/ordering contract |
 | App identity | `com.nightwave.player`, `2.0.0-alpha5s`, code35; min26/compile-target36 unchanged |
 | Signing certificate SHA256 | `EA737A703B8F116EBC5C8C0A717DDBF3A2A5808ACC9079A8F79CD1B3CD860394` |
 
-Private checkpoint `C:\Users\jayed\NightWave-checkpoints\20261029-content-finish` retains protected/final source recovery, actual receipts, feature preservation, source/APK artifacts and unexecuted fixture pack. Earlier private recording checkpoints remain; no media/accounts/credentials/binaries are committed or publicly released. Owner-only candidate delivery is separate.
+Private checkpoint `C:\Users\jayed\NightWave-checkpoints\20261029-ui-review-000718` retains recording samples/metadata, protected recovery, exact receipts and source/APK evidence; older checkpoints remain. Owner-only candidate delivery is separate. No private media/accounts/credentials/binaries are committed or publicly published.
 
-New **4041** phone acceptance must cover every affected shelf/collection/menu/action, all themes, font/window sizes, genuine missing/low-resolution/wide/square/local artwork, normal/error/disabled colors, snapping, empty/typed/cleared Search, creator/history/provider/offline alternatives, native/system bars and TalkBack/keyboard. Prior audio/account/recovery/data/performance/release gates carry forward. Device acceptance **NOT_RUN**, release **NO-GO**. **NW134 remains the next feature batch**, using the cumulative DESIGN03 branch.
+All four palette values, every feature and collection/action, Search draft ownership, complete mood art/caption separation, normal/error roles, original URLs, account/consent, queue/library/storage, native/classic choice, package/signing and dependencies remain. New **006E** phone validation must cover readable artwork and shelf edges/rapid taps/reselect/interrupted swipes/theme/recreation/window/font combinations, plus all prior accessibility/audio/account/recovery/data/performance/release gates. No 9.5–10 is inferred from code tests. New-candidate device acceptance **NOT_RUN**, release **NO-GO**. **NW134 remains next.**

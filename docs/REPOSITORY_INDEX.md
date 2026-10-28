@@ -1,3 +1,5 @@
+Latest acceptance correction: [tiny artwork and split-page review](design/2026-10-29_ARTWORK_PAGER_REVIEW.md), recorded appearance 7.8; 006E phone validation pending.
+
 **Latest review branch:** [`design/nightwave-content-finish`](https://github.com/Nahian2002/NightWave/tree/design/nightwave-content-finish), DESIGN03 on DESIGN02 #146. [All six content/artwork recommendations](design/CONTENT_HIERARCHY_FINISH.md), [acceptance](design/CONTENT_FINISH_ACCEPTANCE.csv). NW134 remains next.
 
 # NightWave — repository navigation

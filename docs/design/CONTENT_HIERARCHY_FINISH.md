@@ -1,3 +1,5 @@
+> **29 October acceptance correction:** the [new owner recording](2026-10-29_ARTWORK_PAGER_REVIEW.md) exposes tiny native-size artwork and split pages. The current correction supersedes Inside with proportional Fit, uses larger balanced mosaics and adds shelf isolation, settled selection, tab reselect and idle pager repair. Read TEST_REPORT.md for the current candidate; original intentions below are retained as history.
+
 # DESIGN03 — music-first content and presentation finish
 
 Owner-authorized single-session implementation of all six recommendations from the `Screen_Recording_20261028_232750.mp4` review. Branch `design/nightwave-content-finish`, protected DESIGN02 parent `6d664ba4111cbd87c9adf28e6600ca0fef25f982`. See [current exact verification](../../TEST_REPORT.md) and [acceptance supplement](CONTENT_FINISH_ACCEPTANCE.csv). [Draft PR #147](https://github.com/Nahian2002/NightWave/pull/147) is a separate review on top of DESIGN02; NW134 remains the next feature batch.
