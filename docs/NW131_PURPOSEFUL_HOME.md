@@ -1,6 +1,6 @@
 # NW131 — purposeful Home and truthful listening mixes
 
-28 October 2026. Branch `update/nightwave-nw131-purposeful-home`; protected parent `e476a979491dcb09fa4734e2763c0f357b6c2cd9` from the completed source-publication preparation. Implementation `f2267fa4d4cd24fccf49228d6823527f08a479e5`. Final local evidence and review link are recorded in [TEST_REPORT](../TEST_REPORT.md).
+28 October 2026. Branch `update/nightwave-nw131-purposeful-home`; protected parent `e476a979491dcb09fa4734e2763c0f357b6c2cd9` from the completed source-publication preparation. Implementation `f2267fa4d4cd24fccf49228d6823527f08a479e5`. [Draft PR #135](https://github.com/Nahian2002/NightWave/pull/135). Final local evidence and review link are recorded in [TEST_REPORT](../TEST_REPORT.md).
 
 ## Listener-visible change
 

@@ -393,7 +393,8 @@
         "320/360/412dp, 1x/2x/3x type, theme/contrast/missing art and TalkBack/Switch Access NOT_RUN",
         "Actual Play/Continue bounded source queue, audible resume, removal/Undo/clear/full-history persistence NOT_RUN",
         "Installed signer/in-place data preservation and all NW126-NW130 physical/recovery/performance/release blockers carry forward"
-      ]
+      ],
+      "pull_request": "https://github.com/Nahian2002/NightWave/pull/135"
     },
     {
       "id": "NW132",

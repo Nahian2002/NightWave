@@ -1,6 +1,6 @@
 # Current verification — NW131 purposeful Home
 
-28 October 2026. Branch `update/nightwave-nw131-purposeful-home`; protected parent `e476a979491dcb09fa4734e2763c0f357b6c2cd9`, the completed app-unchanged publication preparation (PR #134). Implementation `f2267fa4d4cd24fccf49228d6823527f08a479e5`. [NW131 behavior and phone protocol](docs/NW131_PURPOSEFUL_HOME.md).
+28 October 2026. Branch `update/nightwave-nw131-purposeful-home`; protected parent `e476a979491dcb09fa4734e2763c0f357b6c2cd9`, the completed app-unchanged publication preparation (PR #134). Implementation `f2267fa4d4cd24fccf49228d6823527f08a479e5`. [Draft PR #135](https://github.com/Nahian2002/NightWave/pull/135). [NW131 behavior and phone protocol](docs/NW131_PURPOSEFUL_HOME.md).
 
 Home has one purposeful primary action for new, history-only, liked-only, playlist-only and mature listeners. It removes the duplicate empty-history dashboard, keeps Offline and distinct useful shortcuts, and describes real mix contents/local memberships without numbered-mix, genre or verified-artist claims. Small mixes duplicating the quick-pick shelf are suppressed; larger distinct collections remain. Compact captions use real thumbnail/fallback art beside text; large type receives full caption width. Mood tiles clearly open Search.
 
