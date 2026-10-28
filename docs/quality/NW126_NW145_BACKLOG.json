@@ -954,7 +954,8 @@
       "docs/design/2026-10-28_THEME_VALIDATION_202916.md",
       "docs/design/EXPRESSIVE_THEME_FINISH.md",
       "docs/design/EXPRESSIVE_THEME_ACCEPTANCE.csv",
-      "TEST_REPORT.md"
+      "TEST_REPORT.md",
+      "docs/design/2026-10-28_THEME_POLISH_211137.md"
     ],
     "local_evidence": [
       "1609 JVM tests / 200 suites; 62 source checks PASS",
@@ -964,8 +965,8 @@
       "234 nonpresentation files byte-identical; nine callback inventories retained"
     ],
     "remaining_blockers": [
-      "New B017 candidate phone confirmation of all-theme dialog/menu containers and Pearl navigation bar; recorded D5 observations are partial only",
-      "Formal 360-case Android matrix remains NOT_RUN; carry input/native/performance/data-preservation/release blockers forward"
+      "B985 phone confirmation of all four polished themes, Search clear/page-recreation/repeated explicit shortcut behavior and accessible input",
+      "Formal 360-case Android matrix remains NOT_RUN; prior native/performance/data-preservation/release blockers carry forward"
     ],
     "next_source_batch": "NW134",
     "previous_recorded_theme_score": 6.0,
@@ -975,6 +976,38 @@
       "device_status": "NOT_RUN",
       "build_id": "NW-debug-B01767043A0E2FD7",
       "scope": "Material3 container roles and Android API29+ navigation contrast scrim only"
+    },
+    "appearance_polish": {
+      "implementation_status": "LOCAL_VERIFIED",
+      "device_status": "NOT_RUN",
+      "protected_parent": "246bee33cbc25c2bcfb1850e20ee32a11f2125f6",
+      "recorded_scores": {
+        "Midnight": 7.6,
+        "Aurora": 7.6,
+        "Pearl": 7.4,
+        "AMOLED": 7.4
+      },
+      "score_limit": "Recorded screens only; alternative-theme coverage narrower, binary attribution unverified; no new-candidate or whole-app score",
+      "scope": [
+        "Flat rail and smaller navigation selection capsule",
+        "Cleaner mini-player and filled secondary actions",
+        "Softer decorative separators",
+        "Explicit transient Search prefill tokens; focus-aware empty-field hint"
+      ],
+      "evidence": [
+        "docs/design/2026-10-28_THEME_POLISH_211137.md",
+        "TEST_REPORT.md"
+      ],
+      "implementation_commit": "17c827e4936bdb65beff3e0d952d32df74e01153",
+      "build_id": "NW-debug-B985BE0BD6205B3D",
+      "local_evidence": [
+        "1614 JVM tests / 201 suites PASS; five new Search ownership methods",
+        "62 source checks PASS; 12 expressive broken caller fixtures",
+        "360 Android cases compile only, existing Search method expanded; device NOT_RUN",
+        "862 source inputs independently verified; signer matches protected B017",
+        "234 protected files and nine callback inventories preserved",
+        "Sequential lint 0 errors / 313 warnings / 17 hints; no new baseline/suppression"
+      ]
     }
   }
 }

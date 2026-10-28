@@ -42,3 +42,7 @@ Private checkpoint: `C:\Users\jayed\NightWave-checkpoints\20261028-theme-vibranc
 ## Recorded acceptance follow-up
 
 See the [new review](2026-10-28_THEME_VALIDATION_202916.md). Commit `6057bfaa2a0d8e0ed47b13705adc247902d67b4b` maps all seven Material3 container/brightness roles to each selected palette and disables Android's added navigation contrast scrim on API29+. The existing parameterized theme test asserts the actual color scheme roles. Palette values, feature behavior and the explicit classic option remain. Build B017 is locally verified; phone appearance is unrun.
+
+## Four-theme composition and Search clarity
+
+The [next owner review](2026-10-28_THEME_POLISH_211137.md) rates recorded Midnight/Aurora 7.6 and Pearl/AMOLED 7.4, with limited alternate-theme coverage. A flat navigation rail, smaller icon selection capsule, borderless 16dp mini-player, filled secondary actions and softer decorative separators reduce repeated panel weight. Search uses a focus-aware hint and explicit one-time prefill ownership, preserving typed/cleared drafts across pager recreation. Five policy tests and the expanded existing Android Search method cover that regression; the formal matrix remains unrun. No new-candidate 10/10 or overall re-rating is claimed.

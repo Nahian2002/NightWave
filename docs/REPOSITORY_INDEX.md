@@ -53,3 +53,5 @@ Current automated workflow: `.github/workflows/current-android.yml`; `android.ym
 Keep generated Android `build/`, local `.gradle/`, IDE settings, archives, diagnostic logs/dumps, local secrets, APKs and signing keys **outside Git**. `.gitignore` prevents future accidental adds but does not untrack history. Do not store account credentials, OAuth tokens, private playlists or media files in GitHub.
 
 **Build status:** exact current results and hashes are in TEST_REPORT.md; the NW132 baseline has 1,573 executed JVM tests and 59 checks. Screen-test compilation is separate from phone execution. See [current verification](../TEST_REPORT.md). **Release status:** NO-GO pending physical-device validation, installed signer, live restore, source rights and privacy checks. A short recording or passing source checks do not certify the full app.
+
+Latest follow-up: [four-theme ratings, chrome polish and Search input ownership](design/2026-10-28_THEME_POLISH_211137.md).

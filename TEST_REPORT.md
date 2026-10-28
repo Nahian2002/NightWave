@@ -1,39 +1,37 @@
-# Current verification — DESIGN02 recorded review and boundary follow-up
+# Current verification — four-theme composition and Search input clarity
 
-28 October 2026. [Draft PR #146](https://github.com/Nahian2002/NightWave/pull/146), branch `design/nightwave-expressive-themes`, stacked on DESIGN01 PR #145. Protected parent `1413f0f3838df497b6c696ccd4243b5a6285916b`; initial implementation `0b4e4dea6528f5faebf4c63659545d93cfc54a87`; bounded acceptance follow-up `6057bfaa2a0d8e0ed47b13705adc247902d67b4b`. [Original theme-only recording review and 6.0/10 score](docs/design/2026-10-28_THEME_RECORDING_REVIEW.md), [new attributable D5 recording: 7.6/10 theme only](docs/design/2026-10-28_THEME_VALIDATION_202916.md), [correction architecture](docs/design/EXPRESSIVE_THEME_FINISH.md), [104-case supplement](docs/design/EXPRESSIVE_THEME_ACCEPTANCE.csv). [Previous DESIGN01 report](https://github.com/Nahian2002/NightWave/blob/1413f0f3838df497b6c696ccd4243b5a6285916b/TEST_REPORT.md) remains historical evidence.
+28 October 2026. Existing [draft PR #146](https://github.com/Nahian2002/NightWave/pull/146), `design/nightwave-expressive-themes`, stacked on DESIGN01 #145. Protected prior review `246bee33cbc25c2bcfb1850e20ee32a11f2125f6`; implementation `25982c3a`, completed by `17c827e4936bdb65beff3e0d952d32df74e01153`. [New recording, four-theme ratings, cause and acceptance](docs/design/2026-10-28_THEME_POLISH_211137.md). [Previous exact B017 verification](https://github.com/Nahian2002/NightWave/blob/246bee33cbc25c2bcfb1850e20ee32a11f2125f6/TEST_REPORT.md) and [attributable D5 review](docs/design/2026-10-28_THEME_VALIDATION_202916.md) remain historical evidence.
 
-The first 167.73-second recording identifies the previous E5B5 Midnight build and establishes the retained **6.0/10** appearance baseline. The new approximately 300.39-second recording identifies the delivered **D5AD44B8** artifact at about 02:12; 296 timestamp-seek frames decoded, with a five-second overview and selected detailed frames inspected. All four theme choices appear, with primary Midnight covering the broadest journey. On the same five-dimension appearance rubric, primary Midnight is now **7.6/10**. Other themes have limited observations, not independent full-journey scores. This does not re-rate the overall product, execute the formal device matrix or validate the subsequent B017 candidate.
+The latest approximately 147.516-second recording supplies 147 successful one-second samples, a five-second overview and selected details. All four choices appear. On the retained five-dimension appearance rubric, recorded **Midnight/Aurora score 7.6/10; Pearl/AMOLED 7.4/10**. Alternate-theme coverage is narrower, and an exact APK identity is not exposed in inspected frames. Pearl's light system bar and the navy native confirmation are observed improvements; these do not certify all combinations. No new-candidate or whole-app score is assigned from source/tests.
 
-The recording confirms the compact singleton collage and clearer navy/cyan layers. It also exposes Pearl's charcoal Android navigation strip and default gray/purple Material dialog containers. The follow-up supplies all seven Material3 container/brightness roles and disables the platform navigation contrast scrim on API29+, retaining theme backgrounds and icon contrast. The existing parameterized theme method asserts actual scheme roles. Palette values, classic interface, all feature callbacks and data behavior remain. New-fix phone appearance is **NOT_RUN**.
+At the end, **Song or artist name** is a placeholder in an empty field, not submitted query text. Source separately contained a real stale-draft risk: broad `LaunchedEffect(state.query)` could reapply a retained provider query when the pager recreated Search. Explicit Home/shared-text prefill requests now carry unique transient tokens consumed once in saveable UI state; ordinary responses cannot overwrite the draft. New intentional same-query shortcuts remain supported. The hint disappears on focus, uses an explicit readable theme role and retains an accessible field name. No automatic public request or history deletion is added.
 
-DESIGN02 gives Midnight navy/cyan, Aurora plum/lavender/rose, Pearl warm-white/cobalt and AMOLED black/teal/blue. Actual primary controls, selected navigation, mini-player, headers, mix captions, moods and all four native dialog styles consume those roles. The last unpaired mix uses the existing bounded horizontal feature treatment instead of a full-width square collage. All original collections, sources, actions and saved theme identities remain; no feature is hidden or removed.
+Shared design polish replaces the second outlined navigation panel with a flat canvas rail and smaller icon selection capsule, removes the mini-player's redundant stroke, aligns its gutters/corners, fills secondary actions and softens decorative separators. Four palette values, primary accents, all routes, full tab targets/labels/semantics, motion preference, native/classic option, account/consent, original URLs, queue, library, persistence, package/signing identity and dependencies remain.
 
 | Executed or compiled check | Result and limit |
 | --- | --- |
-| Complete Windows builder | PASS: production Android/Compose, debug assembly and instrumentation-source compilation |
-| JVM suite | **1,609 tests / 200 suites**, zero failures/errors/skips; eight new theme-role methods |
-| Current source runner | **62/62 PASS**, including ten broken expressive-wiring fixtures (eight original plus two boundary guards); previous guards retained |
-| Android theme/layout matrix | Ten methods × 36 configurations = **360 planned cases compile only**, including 72 singleton/mood cases and expanded actual color-role assertions; NOT_RUN |
-| Sequential lint | **0 errors / 313 warnings / 17 hints**, matching protected DESIGN01; no new suppression or baseline |
-| Color contracts | Required text ≥4.5:1, outlines ≥3:1, primary-control ink ≥7:1, theme-colored section captions and distinct accents tested; source colors are not rendered acceptance |
-| Feature preservation | 234 nonpresentation source/schema/build files byte-identical to protected parent; callback-name inventories retained in nine major feature files. Runtime/data-preservation proof remains separate |
-| Signer | Verified APK matches protected delivered D5 certificate; both owner App details recordings report the same certificate. No agent-connected installed-APK comparison/new-candidate installation |
-| Publication controls | Self-test PASS; Actions stays disabled; no public APK or hosted CI pass |
-| Device inventory | No agent-connected Android device/emulator; no install/reset/account/data operation |
+| Complete Windows builder | PASS: production Android/Compose, debug assembly and instrumentation-source compilation. Initial missing UI import was repaired before this verified attempt; failed receipt retained privately. |
+| JVM suite | **1,614 tests / 201 suites**, zero failures/errors/skips; five new Search ownership methods. |
+| Current source runner | **62/62 PASS** on final implementation, including **12 expressive negative fixtures**; earlier safeguards retained. |
+| Android theme/layout matrix | Ten methods × 36 configurations = **360 planned cases compile only, NOT_RUN**. Existing Search method now checks focus-hint removal, exact submit, late-response non-overwrite, clear/recreate retention and intentional repeated shortcut. |
+| Sequential lint | PASS: **0 errors / 313 warnings / 17 hints**, matching the protected baseline; no new suppression or lint baseline. |
+| Color/interaction contracts | Existing normal-text ≥4.5:1, required outline ≥3:1, primary ink ≥7:1, responsive layout, reduced motion and target guards pass. Decorative separator opacity is not a rendered accessibility certificate. |
+| Feature preservation | **234 protected nonpresentation source/schema/build files byte-identical**; prior callback-name sets retained in nine major feature files. This does not replace actual installed-data acceptance. |
+| APK signer | PASS against protected delivered B017 APK, same retained certificate. No agent-connected installed-APK comparison or installation. |
+| Acceptance pack | Fresh 219-case pack prepared from actual source/APK/provenance, **PREPARED_NOT_EXECUTED**. |
+| Publication/device | Actions stays disabled; no public binary or hosted CI pass. No agent install/reset/account/data operation. |
 
 | Artifact identity | Value |
 | --- | --- |
-| Build ID | `NW-debug-B01767043A0E2FD7` |
-| Canonical source SHA256 | `B01767043A0E2FD784438E1C989E7EEA6F97FA9DEDD5457F463E105B3A89EAAC` |
-| Source input count | `860` |
-| APK SHA256 | `A803CDCFB32344BB0790B0C29B90ECC5FAD0E4AD7BA57EB62806AE30213EF740` |
-| Embedded revision context | `6057bfaa2a0d8e0ed47b13705adc247902d67b4b` |
-| NW08 manifest SHA256 | `E5DA63754AB32489FE6A267A5EF83338B172761BAC4B83A11B65A98E044C6514`; separate retained encoding/ordering contract |
+| Build ID | `NW-debug-B985BE0BD6205B3D` |
+| Canonical source SHA256 | `B985BE0BD6205B3DCC62857E3DB607FF725234455AD5BD33D58CA6F53A122300` |
+| Source inputs | `862` |
+| APK SHA256 | `3594F08F4AEB252B56B877A2C7C18E8C64D2B621A70F71FB48CB877A78795198` |
+| Embedded revision context | `17c827e4936bdb65beff3e0d952d32df74e01153` |
+| Separate NW08 manifest SHA256 | `D29BDCE2B58467272BB717B444E6A9A2BD2AE07483F4DE22D3BB6BCD49F45E92`; retained independent encoding/ordering contract |
 | App identity | `com.nightwave.player`, `2.0.0-alpha5s`, code35; min26/compile-target36 unchanged |
 | Signing certificate SHA256 | `EA737A703B8F116EBC5C8C0A717DDBF3A2A5808ACC9079A8F79CD1B3CD860394` |
 
-NW59's expected Pearl literal follows the approved cobalt #1C47AD, while actual contrast assertions remain mandatory. Existing layout/transport/visibility tests and source checks remain. Palette's two extra visual roles have compatible defaults; stored profiles, archive formats, theme enums, services, workers, providers, schemas, permissions and dependencies are unchanged.
+Private checkpoint `C:\Users\jayed\NightWave-checkpoints\20261028-theme-polish-211137` retains recording metadata/frames, first-failure and final receipts, feature preservation, source/APK recovery and the new unexecuted acceptance pack. A candidate is delivered privately to the verified owner; media/accounts/credentials/binaries remain outside Git and public releases.
 
-Private checkpoint `C:\Users\jayed\NightWave-checkpoints\20261028-theme-review-202916` retains new owner frames/contact sheet, recording metadata, current build/source/lint/signer/feature-preservation receipts, exact source/APK recovery and a PREPARED_NOT_EXECUTED 219-case pack. Earlier DESIGN01/DESIGN02 checkpoints and evidence remain. Media/accounts/credentials/binaries are not committed or publicly uploaded. Candidate delivery to the owner remains private.
-
-The owner recording supplies **partial appearance observations for D5**, with a justified theme-only score. Follow-up **B017** dialog/menu and Pearl navigation appearance still need phone confirmation. The formal 360-case Android matrix, large type, accessibility/input, native/system-bar combinations, artwork/cache, installed update, performance and all prior physical/release gates remain pending. Overall product score remains the original provisional **6.7/10**, app release **NO-GO**. **NW134 remains the next feature batch**, starting from the cumulative expressive-theme branch.
+The new **B985** polish/input fix needs phone review across all themes, Search page disposal/re-entry, repeated explicit shortcuts, TalkBack/large type, keyboard, native/system-bar combinations and all prior physical/data/audio/performance/release gates. No physical test or 10/10 claim is inferred from passing code checks. Overall provisional product score stays **6.7/10**, release **NO-GO**. **NW134 remains the next feature batch** from this cumulative branch.
