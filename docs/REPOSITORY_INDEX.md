@@ -1,6 +1,6 @@
 # NightWave — repository navigation
 
-**Current implementation baseline:** cumulative NW128 shared offline shell on [`update/nightwave-nw128-offline-shell`](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw128-offline-shell). See [NW128 evidence and device protocol](NW128_UNIFIED_OFFLINE_SHELL.md). **Next source batch: NW129.** GitHub default `main` is an older app; NW126/NW127/NW128 physical acceptance remains open.
+**Current implementation baseline:** cumulative NW129 complete local search on [`update/nightwave-nw129-complete-local-search`](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw129-complete-local-search). See [NW129 evidence and device protocol](NW129_COMPLETE_LOCAL_SEARCH.md). **Next source batch: NW130.** GitHub default `main` is an older app; NW126–NW129 physical acceptance remains open.
 
 ## Start here
 
@@ -12,6 +12,7 @@
 | Current build identity and acceptance baseline | [NW126 evidence](NW126_BUILD_IDENTITY_BASELINE.md) |
 | Latest compact hierarchy and build evidence | [NW127 evidence](NW127_COMPACT_VISUAL_HIERARCHY.md) |
 | Shared offline shell and latest build evidence | [NW128 evidence](NW128_UNIFIED_OFFLINE_SHELL.md) |
+| Complete local search and latest build evidence | [NW129 evidence](NW129_COMPLETE_LOCAL_SEARCH.md) |
 | Detailed current product rating and source/video findings | [28 October audit](audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md) |
 | Windows build, Android signing and release procedure | [Build and release](BUILD_AND_RELEASE.md) |
 | Release risks and blockers | [Release readiness](../RELEASE_READINESS.md) |

@@ -102,11 +102,11 @@ class SearchPerformanceParityTest {
         }
     }
 
-    @Test fun largeLibrarySuggestionsRetainTheFirstFiveThousandBoundary() {
+    @Test fun largeLibrarySuggestionsFindItemsAfterFiveThousand() {
         val saved = List(5_000) { song("Other $it", id = it) } + song("Moonlight", id = 5_001)
         assertEquals(1, SavedTrackSearch.match("moonlight", saved).size)
-        assertTrue(LocalSearchSuggestions.suggest("moonlight", saved).isEmpty())
-        val boundedMatches = SavedTrackSearch.match("moonlight", saved.take(5_000))
+        assertTrue(LocalSearchSuggestions.suggest("moonlight", saved).isNotEmpty())
+        val boundedMatches = SavedTrackSearch.match("moonlight", saved)
         assertEquals(LocalSearchSuggestions.suggest("moonlight", saved),
             LocalSearchSuggestions.fromMatches("moonlight", saved, boundedMatches))
     }

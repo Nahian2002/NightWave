@@ -268,6 +268,7 @@ fun MusicTrackTile(
     isPlaying: Boolean = false,
     surface: NightWaveTrackSurface = NightWaveTrackSurface.HOME,
     rawVideoCaption: Boolean = false,
+    sourceLabel: String? = null,
     onClick: () -> Unit
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -338,6 +339,8 @@ fun MusicTrackTile(
                 color = scheme.onSurfaceVariant,
                 maxLines = NightWavePremiumDesignTokens.supportingLines(fontScale),
                 overflow = TextOverflow.Ellipsis)
+            if (!sourceLabel.isNullOrBlank()) Text(sourceLabel,
+                style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
         }
         if (onRemove != null) {
             IconButton(onClick = onRemove, modifier = Modifier.size(48.dp)) {

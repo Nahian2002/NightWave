@@ -156,6 +156,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -198,6 +199,9 @@ import com.nightwave.player.net.VideoPreview
 import com.nightwave.player.net.YouTubeGateway
 import com.nightwave.player.net.VideoSearchResults
 import com.nightwave.player.net.SearchMode
+import com.nightwave.player.net.LocalMusicCorpusState
+import com.nightwave.player.net.LocalMusicQueryRunner
+import com.nightwave.player.net.LocalMusicSearchResult
 import com.nightwave.player.net.SavedTrackSearch
 import com.nightwave.player.net.LocalSearchSuggestions
 import com.nightwave.player.net.SearchResultPresentationPolicy
@@ -239,7 +243,7 @@ import com.nightwave.player.v2.model.NightWaveTheme
 import com.nightwave.player.v2.model.ProfileSettings
 
 /** Native result rows are an enhancement; the official browser remains a fallback. */
-private data class StudioSearchSnapshot(
+internal data class StudioSearchSnapshot(
     val query: String = "",
     val mode: SearchMode = SearchMode.SONGS,
     val loading: Boolean = false,
@@ -3185,31 +3189,14 @@ private fun StudioRoot(
                         openSearch = { navigateToTab(StudioTab.SEARCH) }
                     )
                     StudioTab.SEARCH -> {
-                        val indexedAudio by produceState(
-                            initialValue = emptyList<com.nightwave.player.offline.OfflineSong>(),
-                            libraryRevision
-                        ) {
-                            // A library revision can invalidate the old
-                            // file index while an asynchronous read is pending.
-                            value = emptyList()
-                            // The old remember(...) block parsed the offline
-                            // index on the Compose UI thread on Search entry.
-                            value = withContext(Dispatchers.IO) {
-                                runCatching {
-                                    OfflineAudioLibrary(studioContext).songs().take(400)
-                                }.getOrDefault(emptyList())
-                            }
-                        }
+                        val (localCorpus, retryLocalCorpus) = rememberNightWaveLocalCorpus(
+                            studioContext, tab == StudioTab.SEARCH, libraryRevision)
                         StudioSearch(
                         Modifier, searchState, onPrimarySearch, onSearch, onWebSearch,
                         onPlay, onSongOptions,
                         playerState.videoUrl.takeIf { playerState.playing }.orEmpty(),
-                        savedTracks = remember(libraryRevision, favorites, recent, playlistNames, roomPreviewActive) {
-                            (favorites + recent + playlistNames.take(25).flatMap(getPlaylist))
-                                .distinctBy { it.url }
-                                .take(350)
-                        },
-                        offlineSongs = indexedAudio,
+                        corpus = localCorpus,
+                        onRetryCorpus = retryLocalCorpus,
                         onOfflineSearch = onOfflineSearch,
                         searchHistory = searchHistory,
                         canUndoSearchRemoval = removedSearchSnapshot != null,
@@ -3679,7 +3666,7 @@ private fun MoodTile(title: String, subtitle: String, gradient: List<Color>, mod
 }
 
 @Composable
-private fun StudioSearch(
+internal fun StudioSearch(
     modifier: Modifier,
     state: StudioSearchSnapshot,
     onPrimarySearch: (String, SearchMode) -> Unit,
@@ -3688,8 +3675,8 @@ private fun StudioSearch(
     onPlay: (VideoPreview, List<VideoPreview>) -> Unit,
     onSongOptions: (VideoPreview) -> Unit,
     playingUrl: String,
-    savedTracks: List<VideoPreview>,
-    offlineSongs: List<OfflineSong>,
+    corpus: LocalMusicCorpusState,
+    onRetryCorpus: () -> Unit,
     onOfflineSearch: (String) -> Unit,
     searchHistory: List<String>,
     canUndoSearchRemoval: Boolean,
@@ -3717,50 +3704,26 @@ private fun StudioSearch(
             onNativeSearch(entered, mode)
         }
     }
-    // NW70: Unicode-aware matching across large local libraries must not
-    // sort thousands of songs on the Compose/UI thread for every keystroke.
-    // Changing a query or library snapshot cancels the previous result and
-    // immediately clears it, so stale suggestions cannot be shown as new ones.
-    val localSearch by produceState(
-        initialValue = Triple(
-            emptyList<VideoPreview>(), emptyList<OfflineSong>(),
-            emptyList<com.nightwave.player.net.LocalSearchSuggestion>()),
-        query, savedTracks, offlineSongs
-    ) {
-        // produceState retains its previous value across key changes.
-        // Explicitly clear it BEFORE any suspend/debounce, or an old search
-        // can briefly appear as new local suggestions while typing.
-        value = Triple(
-            emptyList<VideoPreview>(), emptyList<OfflineSong>(),
-            emptyList<com.nightwave.player.net.LocalSearchSuggestion>())
-        if (query.isNotBlank()) {
-            delay(120L) // debounce typing; do not delay explicit online Search
-            value = withContext(Dispatchers.Default) {
-                val matches = SavedTrackSearch.match(query, savedTracks)
-                // Reuse exact same-query ranking for normal libraries. Larger
-                // collections retain suggestions' existing first-5,000 bound.
-                val suggestionMatches = if (savedTracks.size <= 5_000) matches
-                    else SavedTrackSearch.match(query, savedTracks.take(5_000))
-                Triple(
-                    matches,
-                    OfflineTrackSearch.match(query, offlineSongs).take(60),
-                    LocalSearchSuggestions.fromMatches(query, savedTracks, suggestionMatches, limit = 6)
-                )
-            }
+    val index = corpus.index
+    val localSearch by produceState<LocalMusicSearchResult?>(null, query, index) {
+        value = null
+        if (query.isNotBlank() && index != null) {
+            value = LocalMusicQueryRunner.run(index, query)
         }
     }
-    val savedMatches = localSearch.first
-    val offlineMatches = localSearch.second
-    val localSuggestions = localSearch.third
-    val offlineSuggestions = remember(offlineMatches) {
-        offlineMatches.take(3)
-    }
-    val knownCreators = remember(savedTracks) {
-        MusicIdentity.creatorsFrom(savedTracks, limit = 8)
-    }
-    val creatorGroups = remember(savedTracks) {
-        SavedCreatorBrowser.groups(savedTracks)
-    }
+    // Synchronous tags gate the first composition of a new query/library,
+    // even before the old producer has received cancellation.
+    val acceptedLocal = localSearch?.takeIf { it.accepts(query, index) }
+    val savedMatches = acceptedLocal?.saved.orEmpty()
+    val offlineMatches = acceptedLocal?.offline.orEmpty()
+    val localSuggestions = acceptedLocal?.suggestions.orEmpty()
+    val offlineSuggestions = offlineMatches.take(3)
+    val savedTracks = index?.previews.orEmpty()
+    val knownCreators = index?.creators.orEmpty().take(8)
+    val creatorGroups = index?.creatorGroups.orEmpty()
+    val localPending = !corpus.failed && (index == null || (query.isNotBlank() && acceptedLocal == null))
+    var savedVisible by remember(query, index) { mutableIntStateOf(24) }
+    var offlineVisible by remember(query, index) { mutableIntStateOf(60) }
     val selectedCreatorGroup = remember(selectedCreator, creatorGroups) {
         creatorGroups.firstOrNull { it.name == selectedCreator }
     }
@@ -3780,7 +3743,7 @@ private fun StudioSearch(
     val nw83PageGutter = NightWavePremiumDesignTokens.pageGutterDp(
         androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.toFloat()).dp
     LazyColumn(
-        modifier.fillMaxWidth().widthIn(max =
+        modifier.testTag("nw129-search-list").fillMaxWidth().widthIn(max =
             NightWavePremiumDesignTokens.MAX_CONTENT_WIDTH_DP.dp).fillMaxHeight(),
         contentPadding = PaddingValues(start = nw83PageGutter, end = nw83PageGutter,
             top = NightWavePremiumDesignTokens.PAGE_TOP_DP.dp,
@@ -3796,7 +3759,7 @@ private fun StudioSearch(
                     query = it.take(160)
                     selectedCreator = null
                 },
-                modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(17.dp),
+                modifier = Modifier.fillMaxWidth().testTag("nw129-search-query"), shape = RoundedCornerShape(17.dp),
                 singleLine = true, placeholder = { Text("Song or artist name") },
                 leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
                 trailingIcon = {
@@ -3807,6 +3770,18 @@ private fun StudioSearch(
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(onSearch = { submit() })
             )
+        }
+        if (localPending) item(key = "nw129-local-loading") {
+            Text(if (index == null) "Updating your music…" else "Searching your music…",
+                modifier = Modifier.testTag("nw129-local-loading"),
+                style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        if (corpus.failed) item(key = "nw129-local-error") {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("Local music could not be read. Your music has not been changed; public search is still available.",
+                    style = MaterialTheme.typography.bodyMedium)
+                TextButton(onClick = onRetryCorpus, modifier = Modifier.heightIn(min = 48.dp)) { Text("Retry local music") }
+            }
         }
         if (query.isNotBlank()) {
             item(key = "search-mode-selector") {
@@ -3881,13 +3856,12 @@ private fun StudioSearch(
                         Text("Back to discovery")
                     }
                     SectionHeading(selectedCreatorGroup.name,
-                        SearchConsumerCopyPolicy.savedCreatorSubtitle(
-                            selectedCreatorGroup.trackCount))
-                    Text(SearchConsumerCopyPolicy.savedCreatorNotice(),
+                        "${selectedCreatorGroup.trackCount} local references · Liked, playlists or history")
+                    Text("Creator names come from liked songs, playlists and history; they are not verified artist profiles.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                     if (selectedCreatorGroup.hasMore) {
-                        Text("Showing the first 100 saved tracks for this creator. " +
+                        Text("Showing the first 100 local references for this creator. " +
                             "Search your library to find more.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -3904,6 +3878,7 @@ private fun StudioSearch(
             items(selectedCreatorGroup.tracks, key = { "creator-track:" + it.url }) { song ->
                 MusicTrackTile(song, isPlaying = playingUrl == song.url,
                     surface = NightWaveTrackSurface.SEARCH,
+                    sourceLabel = index?.origin(song.url)?.label(),
                     onOptions = { onSongOptions(song) },
                     onClick = { onPlay(song, listOf(song)) })
             }
@@ -4022,8 +3997,8 @@ private fun StudioSearch(
             if (knownCreators.isNotEmpty()) {
                 item(key = "local-creators") {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        SectionHeading("Artists & creators from your music",
-                            "Browse your saved and recent tracks · on this device")
+                        SectionHeading("Creators from your music",
+                            "From liked songs, playlists and listening history")
                         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             knownCreators.forEach { creator ->
@@ -4050,8 +4025,8 @@ private fun StudioSearch(
                         modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
                         shape = RoundedCornerShape(14.dp)
                     ) {
-                        Text(if (showAllCreators) "Hide saved creators"
-                            else "Browse saved creators · " + creatorGroups.size + " of up to 48")
+                        Text(if (showAllCreators) "Hide creators"
+                            else "Browse creators · " + creatorGroups.size + " shown; search to find more")
                     }
                 }
                 if (showAllCreators) {
@@ -4083,12 +4058,13 @@ private fun StudioSearch(
             }
             if (savedTracks.isNotEmpty()) {
                 item {
-                    SectionHeading("Already in your library",
-                        "Saved entries · public videos require internet to play")
+                    SectionHeading("From your music",
+                        "Liked, playlists and history · Public videos need internet")
                 }
                 items(savedTracks.take(3), key = { "search-starter:" + it.url }) { song ->
                     MusicTrackTile(song, isPlaying = playingUrl == song.url,
                     surface = NightWaveTrackSurface.SEARCH,
+                    sourceLabel = index?.origin(song.url)?.label(),
                         onOptions = { onSongOptions(song) },
                         onClick = { onPlay(song, listOf(song)) })
                 }
@@ -4102,22 +4078,28 @@ private fun StudioSearch(
         }
         if (savedMatches.isNotEmpty()) {
             item {
-                SectionHeading("In your library",
-                    savedMatches.size.toString() + " matches from liked, recent and playlists")
+                SectionHeading("From your music",
+                    savedMatches.size.toString() + " matches · Liked, playlists or history")
             }
-            items(savedMatches, key = { "saved:" + it.url }) { song ->
+            items(savedMatches.take(savedVisible), key = { "saved:" + it.url }) { song ->
                 MusicTrackTile(song, isPlaying = playingUrl == song.url,
                     surface = NightWaveTrackSurface.SEARCH,
+                    sourceLabel = index?.origin(song.url)?.label(),
                     onOptions = { onSongOptions(song) },
                     onClick = { onPlay(song, listOf(song)) })
             }
         }
+        if (savedMatches.size > savedVisible) item(key = "nw129-more-saved") {
+            TextButton(onClick = { savedVisible += 24 }, modifier = Modifier.heightIn(min = 48.dp)) {
+                Text("Show more music matches")
+            }
+        }
         if (offlineMatches.isNotEmpty()) {
             item(key = "offline-search-header") {
-                SectionHeading("Downloaded & imported",
-                    "${offlineMatches.size} matching local tracks · plays without internet")
+                SectionHeading("On-device entries",
+                    "${offlineMatches.size} matches · Open On device to check file availability")
             }
-            items(offlineMatches, key = { "offline-search:" + it.id }) { song ->
+            items(offlineMatches.take(offlineVisible), key = { "offline-search:" + it.id }) { song ->
                 OutlinedButton(
                     onClick = { onOfflineSearch(song.title) },
                     modifier = Modifier.fillMaxWidth().height(48.dp),
@@ -4127,6 +4109,11 @@ private fun StudioSearch(
                         maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text("Offline", style = MaterialTheme.typography.labelSmall)
                 }
+            }
+        }
+        if (offlineMatches.size > offlineVisible) item(key = "nw129-more-offline") {
+            TextButton(onClick = { offlineVisible += 60 }, modifier = Modifier.heightIn(min = 48.dp)) {
+                Text("Show more on-device matches")
             }
         }
         if (searching) {
@@ -4169,6 +4156,7 @@ private fun StudioSearch(
                 items(publicGroups.bestMatches, key = { "public:" + it.url }) { song ->
                     MusicTrackTile(song, isPlaying = playingUrl == song.url,
                         surface = NightWaveTrackSurface.SEARCH,
+                    sourceLabel = index?.origin(song.url)?.label(),
                         rawVideoCaption = mode == SearchMode.VIDEOS,
                         onOptions = { onSongOptions(song) },
                         onClick = { playSinglePublic(song) })
@@ -4182,6 +4170,7 @@ private fun StudioSearch(
                 items(publicGroups.otherVersions, key = { "alternate:" + it.url }) { song ->
                     MusicTrackTile(song, isPlaying = playingUrl == song.url,
                         surface = NightWaveTrackSurface.SEARCH,
+                    sourceLabel = index?.origin(song.url)?.label(),
                         onOptions = { onSongOptions(song) },
                         onClick = { playSinglePublic(song) })
                 }
@@ -4197,6 +4186,7 @@ private fun StudioSearch(
                 items(publicGroups.moreResults, key = { "public:" + it.url }) { song ->
                     MusicTrackTile(song, isPlaying = playingUrl == song.url,
                         surface = NightWaveTrackSurface.SEARCH,
+                    sourceLabel = index?.origin(song.url)?.label(),
                         rawVideoCaption = mode == SearchMode.VIDEOS,
                         onOptions = { onSongOptions(song) },
                         onClick = { playSinglePublic(song) })
@@ -4233,7 +4223,7 @@ private fun StudioSearch(
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         } else if (query.isNotBlank() && savedMatches.isEmpty() &&
-            offlineMatches.isEmpty() && !searching) {
+            offlineMatches.isEmpty() && !searching && !localPending && !corpus.failed) {
             item {
                 Text("No saved matches yet. Search public music, or try a different title or artist.",
                     style = MaterialTheme.typography.bodySmall,

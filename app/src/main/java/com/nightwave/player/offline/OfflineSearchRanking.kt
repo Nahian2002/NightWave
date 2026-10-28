@@ -24,10 +24,21 @@ object OfflineSearchRanking {
 
     /** A nonmatch returns -1. Exact title and prefix outrank extension-only hits. */
     fun score(queryTerms: List<String>, originalTitle: String, extension: String): Int {
-        if (queryTerms.isEmpty()) return -1
+        return score(queryTerms, prepare(originalTitle, extension))
+    }
+
+    internal data class Prepared(val title: String, val extension: String, val words: List<String>)
+    internal fun prepare(originalTitle: String, extension: String): Prepared {
         val title = normalized(originalTitle)
         val ext = normalized(extension)
-        val words = (title + " " + ext).split(' ').filter(String::isNotBlank)
+        return Prepared(title, ext, (title + " " + ext).split(' ').filter(String::isNotBlank))
+    }
+
+    internal fun score(queryTerms: List<String>, prepared: Prepared): Int {
+        if (queryTerms.isEmpty()) return -1
+        val title = prepared.title
+        val ext = prepared.extension
+        val words = prepared.words
         // Align offline search with NW82's token boundaries. Short "alo"
         // cannot match "alone" just because its letters are a substring.
         if (!queryTerms.all { term ->
