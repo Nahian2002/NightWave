@@ -76,11 +76,11 @@ object NightWaveHomePresentationPolicy {
         val purpose = when {
             mix.key == "daily_mix_1" && likedCount > 0 -> "Start with songs you liked"
             mix.key == "daily_mix_1" -> "A familiar starting point"
-            mix.key == "daily_mix_2" && outsideRecent > 0 -> "Explore beyond recent plays"
-            mix.key == "daily_mix_2" -> "A different sequence of recent songs"
+            mix.key == "daily_mix_2" && outsideRecent > 0 -> "Beyond your recent plays"
+            mix.key == "daily_mix_2" -> "Recent songs, reshuffled"
             mix.key == "daily_mix_3" && knownUploaders >= 2 -> "Across $knownUploaders creators"
             tracks.isNotEmpty() && recentCount == 0 && tracks.all { it.url in saved } -> "Revisit music you saved"
-            else -> "Another selection from your music"
+            else -> "More from your music"
         }
         return MixPresentation(title, caption, first?.let { "Starts with $it" }.orEmpty(),
             "On this device" + (if (membership.isNotEmpty()) " · $membership" else "") +

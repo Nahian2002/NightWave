@@ -21,6 +21,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.ExpandMore
+import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -142,9 +144,7 @@ fun NightWaveMixCard(
     val scheme = MaterialTheme.colorScheme
     val fontScale = LocalDensity.current.fontScale
     val first = mix.tracks.firstOrNull()
-    val trackLabel = "${mix.tracks.size} " +
-        (if (mix.tracks.size == 1) "track" else "tracks") +
-        " · " + (if (selected) "Collapse" else "View tracks")
+    val trackLabel = if (selected) "Collapse tracks" else "View tracks"
     Card(onClick = onClick,
         modifier = modifier.heightIn(min = 48.dp).testTag("nw131-mix-" + mix.key)
             .semantics { this.selected = selected },
@@ -160,7 +160,7 @@ fun NightWaveMixCard(
                 verticalAlignment = Alignment.CenterVertically) {
                 if (first != null) NightWaveMixMosaic(mix, Modifier.size(if (featured) 88.dp else 64.dp))
                 Column(Modifier.weight(1f)) {
-                    NightWaveMixCaption(mix, presentation, trackLabel, fontScale)
+                    NightWaveMixCaption(mix, presentation, trackLabel, fontScale, selected)
                 }
             }
         } else {
@@ -170,7 +170,7 @@ fun NightWaveMixCard(
                 }
                 Column(Modifier.fillMaxWidth().background(if (selected || emphasized) scheme.primaryContainer else scheme.surface)
                     .padding(NightWavePremiumDesignTokens.CARD_PADDING_DP.dp)) {
-                    NightWaveMixCaption(mix, presentation, trackLabel, fontScale)
+                    NightWaveMixCaption(mix, presentation, trackLabel, fontScale, selected)
                 }
             }
         }
@@ -197,7 +197,8 @@ private fun NightWaveMixCaption(
     mix: PersonalMix,
     presentation: NightWaveHomePresentationPolicy.MixPresentation?,
     trackLabel: String,
-    fontScale: Float
+    fontScale: Float,
+    selected: Boolean
 ) {
     val scheme = MaterialTheme.colorScheme
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -209,10 +210,15 @@ private fun NightWaveMixCaption(
         val startsWith = presentation?.purpose?.takeIf { it.isNotBlank() } ?: presentation?.startsWith.orEmpty()
         if (startsWith.isNotBlank()) Text(startsWith,
             style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant,
-            maxLines = if (fontScale >= 1.3f) Int.MAX_VALUE else 1, overflow = TextOverflow.Ellipsis)
-        val facts = NightWaveEditorialPresentationPolicy.mixFacts(mix)
-        if (facts.isNotBlank()) Text(facts, style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
-        Text(trackLabel, style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
+            maxLines = if (fontScale >= 1.3f) Int.MAX_VALUE else 2, overflow = TextOverflow.Ellipsis)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically) {
+            Text(NightWaveEditorialPresentationPolicy.mixSummary(mix),
+                modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodySmall,
+                color = scheme.onSurfaceVariant)
+            Icon(if (selected) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
+                contentDescription = trackLabel, modifier = Modifier.size(20.dp), tint = scheme.primary)
+        }
     }
 }
 

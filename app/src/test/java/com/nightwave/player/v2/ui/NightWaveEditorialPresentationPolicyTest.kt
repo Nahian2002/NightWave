@@ -44,4 +44,43 @@ class NightWaveEditorialPresentationPolicyTest {
         assertEquals("", policy.mixFacts(PersonalMix("x", "x", "", "", listOf(track(1, Long.MAX_VALUE, "Unknown creator")))))
         assertEquals("30 sec · 1 creator", policy.mixFacts(PersonalMix("x", "x", "", "", listOf(track(1, 30)))))
     }
+
+    @Test fun ownerCaptionWithoutPromotionalBadgeUsesCorroboratedFinalCreator() {
+        val title = "Amake Amar Moto Thakte Dao | Autograph | Prosenjit Chatterjee | Anupam Roy | Srijit Mukherji | SVF"
+        val display = policy.identity(title, "SVF")
+        assertEquals("Amake Amar Moto Thakte Dao", display.title)
+        assertEquals("SVF", display.artistOrCreator)
+    }
+    @Test fun uncorroboratedMultiPartCaptionsAreNotGuessed() {
+        val title = "Song name | Film name | Performer | Other publisher"
+        assertEquals(title, policy.identity(title, "Channel").title)
+        assertEquals(title, policy.identity(title, "Unknown creator").title)
+    }
+    @Test fun corroboratedCreditsKeepLiveRemixAndBanglaEditions() {
+        assertEquals("River · Live Acoustic Remix", policy.identity(
+            "River | Film | Live Acoustic Remix | Publisher", "Publisher").title)
+        assertEquals("আমাকে আমার মতো থাকতে দাও · লাইভ", policy.identity(
+            "আমাকে আমার মতো থাকতে দাও | অটোগ্রাফ | লাইভ | এসভিএফ", "এসভিএফ").title)
+    }
+    @Test fun genericFinalSourceDoesNotAuthorizeCaptionCollapse() {
+        val title = "Song name | Film | Cast | Unknown creator"
+        assertEquals(title, policy.identity(title, "Unknown creator").title)
+    }
+    @Test fun shortGenuinePipeTitlesRemainCompleteEvenWithCreatorSuffix() {
+        val title = "Love | Hate | Channel"
+        assertEquals(title, policy.identity(title, "Channel").title)
+    }
+    @Test fun banglaCreatorComparisonPreservesDependentVowels() {
+        val title = "A song | Film | Cast | দিন"
+        assertEquals(title, policy.identity(title, "দীন").title)
+    }
+    @Test fun compactMixSummaryIncludesCountAndCompleteDurationOnce() {
+        val a = track(1, 60); val b = track(2, 120)
+        assertEquals("2 tracks · ≈3 min", policy.mixSummary(PersonalMix("x", "x", "", "", listOf(a,b,a))))
+        assertEquals("1 track · 30 sec", policy.mixSummary(PersonalMix("x", "x", "", "", listOf(track(1,30)))))
+    }
+    @Test fun incompleteOrEmptyMixNeverReportsAnInventedDuration() {
+        assertEquals("2 tracks", policy.mixSummary(PersonalMix("x", "x", "", "", listOf(track(1,60),track(2,0)))))
+        assertEquals("0 tracks", policy.mixSummary(PersonalMix("x", "x", "", "", emptyList())))
+    }
 }
