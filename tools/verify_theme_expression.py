@@ -23,6 +23,7 @@ def verify(src):
     assert "NightWaveThemeExpressionPolicy.sectionSurface(palette, secondary)" in visual
     assert "tint = accent, modifier = Modifier.size(23.dp)" in visual
     assert "NightWaveMoodArtPolicy.viewport(size.width, size.height, 4.dp.toPx())" in visual
+    assert 'testTag("mood-art-header")' in visual and 'testTag("mood-caption")' in visual
     assert visual.index('testTag("mood-art-header")') < visual.index('testTag("mood-caption")')
     for body in (theme, native):
         for marker in ("Theme_NightWave_Aurora", "Theme_NightWave_Pearl", "Theme_NightWave_AMOLED"):
