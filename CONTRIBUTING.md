@@ -13,7 +13,7 @@ Thank you for considering a contribution. NightWave is not yet approved for publ
 
 1. Branch from the reviewed development baseline identified in the release checklist; the historical default `main` is not necessarily current.
 2. Keep changes narrowly scoped and update relevant documentation/test cases.
-3. Run the offline source check (`python tools/public_release_preflight.py --self-test`, then `python tools/public_release_preflight.py --json`).
+3. Run `python tools/verify_current.py` for all current structural/negative checks. Publication/release preflight is a separate gate; retain its checks and recorded blockers.
 4. On Windows run `build-windows.cmd` in a clean checkout. A successful source check is **not** a Gradle or Android device test.
 5. Include a summary of build/test outcomes and any untested area. Do not upload personal keys, APKs signed with your private release key, account information, or unreduced logs.
 

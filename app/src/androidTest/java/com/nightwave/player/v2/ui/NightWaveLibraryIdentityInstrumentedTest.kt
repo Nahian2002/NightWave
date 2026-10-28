@@ -72,6 +72,15 @@ class NightWaveLibraryIdentityInstrumentedTest {
         scroll(hasText("2 songs · 3 history entries"))
         compose.onNodeWithText("2 songs · 3 history entries").assertExists()
     }
+    @Test fun openingCollectionFromDeepOverviewStartsAtItsHeader() {
+        data = data.copy(playlists = (1..30).map { "Fixture list $it" to listOf(song(it)) })
+        screen()
+        scroll(hasText("Fixture list 30"))
+        compose.onNodeWithText("Fixture list 30").performClick()
+        compose.onNodeWithText("Fixture list 30").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Back to Library").assertIsDisplayed()
+        compose.runOnIdle { assertEquals("Fixture list 30", selection); assertFalse(played) }
+    }
     @Test fun automaticHistoryCollectionNeverUsesSavedTracksHeading() {
         data = data.copy(recent = listOf(song(1), song(2)))
         selection = SmartLibraryPolicy.PREFIX + "recent"
