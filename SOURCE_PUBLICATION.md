@@ -1,6 +1,6 @@
 # NightWave source-publication preparation
 
-28 October 2026. Protected app parent: `fb8f0455c6903249ab85299a76566153a2b8d2a7` (NW130). Preparation branch: `audit/nightwave-public-source-preparation`.
+28 October 2026. Protected app parent: `fb8f0455c6903249ab85299a76566153a2b8d2a7` (NW130). Preparation branch: `audit/nightwave-public-source-preparation`. Implementation `90743d2a4aa0864ffeadee7ea716a824b76ca48a`; [draft PR #134](https://github.com/Nahian2002/NightWave/pull/134).
 
 **The app is unchanged.** This work changes repository workflows, documentation and publication checks only. It does not remove or alter a feature, dependency, account flow, permission, resource, manifest, test, database, build script, package or signing identity. The existing APK is retained byte-for-byte. This freeze applies to this preparation change; the separate NW131 product roadmap remains planned.
 
@@ -12,7 +12,7 @@
 - Every existing artifact upload now requires a private repository and a non-PR event, in addition to its original success/failure/always condition. Public source builds cannot automatically upload APKs or diagnostic artifacts through these steps. Android compilation and existing verification commands are retained.
 - Added a separate source-publication workflow with checksum-pinned Gitleaks 8.30.1, full available Git history, no inline allow comments and no scan-result uploads. Existing public job logs still need audience/content review before changing visibility.
 - Reviewed all four original `.github` files with independent security and architecture passes. No reportable vulnerability was established in that narrow scope; application/helper implementations, remote settings and historical artifacts are excluded.
-- Scanned 3,468 reachable commits after fetching all branch/tag references and 134 pull-request heads. The 12 scanner matches were individually verified as source hashes, Compose item keys or release-table text, not credentials. `.gitleaksignore` lists only their immutable commit/path/rule/line fingerprints, with reasons in `.github/security/gitleaks-reviewed-matches.json`. New matches remain blocking.
+- Scanned 3,468 reachable commits after fetching all branch/tag references and 133 pull-request heads. The 12 scanner matches were individually verified as source hashes, Compose item keys or release-table text, not credentials. `.gitleaksignore` lists only their immutable commit/path/rule/line fingerprints, with reasons in `.github/security/gitleaks-reviewed-matches.json`. New matches remain blocking.
 - Separately scanned the current tracked/new source snapshot, excluding ignored user media/build outputs; 12 equivalent noncredential matches were individually reviewed. A scanner cannot prove absence of secrets or replace manual review of discussions, attachments, metadata and hosted artifacts.
 - Recorded 164 Maven coordinates from the offline-resolved release graph, including platform/BOM nodes. Cached POMs existed for 155, with license declarations for 152. The inventory is not a complete APK SBOM or a license-compatibility sign-off.
 - Checked those coordinates against OSV. Three advisory matches require app-specific reachability review; no library was updated. See [dependency review](docs/publication/DEPENDENCY_REVIEW.md).
