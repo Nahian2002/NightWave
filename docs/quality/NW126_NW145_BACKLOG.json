@@ -5,7 +5,7 @@
   "audit": "docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md",
   "implementation_base_revision": "61703c98238e762e59c049b6690853431f822884",
   "audit_branch": "audit/nightwave-post-nw125-quality-roadmap",
-  "next_batch": "NW131",
+  "next_batch": "NW132",
   "goal": "9.5+ within the declared NightWave music-player scope, conditional on actual product and acceptance evidence",
   "rating_kind": "Subjective comparative product review, not a measured Spotify score",
   "baseline_weighted_score": 6.655,
@@ -355,7 +355,7 @@
         "NW127",
         "NW130"
       ],
-      "implementation_status": "PLANNED",
+      "implementation_status": "LOCAL_VERIFIED",
       "device_status": "NOT_RUN",
       "finding_ids": [
         "Q01",
@@ -366,10 +366,10 @@
       ],
       "source_areas": [
         "v2/ui/NightWaveStudioActivity.kt",
-        "v2/ui/NightWaveEverydaySurfaces.kt",
-        "v2/ui/NightWaveHomeCurationPolicy.kt",
-        "v2/recommendation/LocalDailyMixEngine.kt",
-        "v2/recommendation/PersonalMixEngine.kt"
+        "v2/ui/NightWaveHomePresentationPolicy.kt",
+        "v2/ui/NightWavePremiumChrome.kt",
+        "v2/ui/NightWaveVisualLanguage.kt",
+        "v2/recommendation/NightWaveHomeCurationPolicy.kt"
       ],
       "acceptance_criteria": [
         "Review new, history-only, liked-only and mature-library states; each has a purposeful primary action and no duplicated empty dashboard sections.",
@@ -377,10 +377,23 @@
         "Move routine recent-item management behind accessible overflow/edit controls while preserving confirmation, history recovery and full-history access.",
         "At small/large type and missing art, card text stays readable; play/Continue uses the intended bounded queue and no persisted history is truncated."
       ],
-      "implementation_commit": null,
-      "local_evidence": [],
+      "implementation_commit": "f2267fa4d4cd24fccf49228d6823527f08a479e5",
+      "local_evidence": [
+        "docs/NW131_PURPOSEFUL_HOME.md",
+        "TEST_REPORT.md",
+        "1559 executed JVM tests / 196 suites; zero failures/errors/skips; 58 current source checks PASS",
+        "13 new deterministic policy methods: primary states, unique membership/older history, uploader/consent wording and distinct shelves",
+        "Six new actual StudioHome Android cases compile; device execution NOT_RUN",
+        "Complete Windows builder, Android production/Compose, instrumentation-source compilation and debug assembly PASS; NW-debug-B89826AEA86A0A03; 838 inputs",
+        "Final sequential lint PASS: 0 errors / 313 warnings / 17 hints, matching NW130; no new suppression/baseline"
+      ],
       "device_evidence": [],
-      "remaining_blockers": []
+      "remaining_blockers": [
+        "New/history-only/liked-only/playlist-only/mature actual Home task acceptance NOT_RUN",
+        "320/360/412dp, 1x/2x/3x type, theme/contrast/missing art and TalkBack/Switch Access NOT_RUN",
+        "Actual Play/Continue bounded source queue, audible resume, removal/Undo/clear/full-history persistence NOT_RUN",
+        "Installed signer/in-place data preservation and all NW126-NW130 physical/recovery/performance/release blockers carry forward"
+      ]
     },
     {
       "id": "NW132",
