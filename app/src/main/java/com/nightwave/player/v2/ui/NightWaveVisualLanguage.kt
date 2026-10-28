@@ -157,7 +157,7 @@ fun NightWaveMixCard(
             Row(Modifier.fillMaxWidth().padding(12.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically) {
-                if (first != null) NightWaveMixMosaic(mix, Modifier.size(if (featured) 72.dp else 64.dp))
+                if (first != null) NightWaveMixMosaic(mix, Modifier.size(if (featured) 88.dp else 64.dp))
                 Column(Modifier.weight(1f)) {
                     NightWaveMixCaption(mix, presentation, trackLabel, fontScale)
                 }
@@ -165,7 +165,7 @@ fun NightWaveMixCard(
         } else {
             Column(Modifier.fillMaxWidth()) {
                 if (!compact && fontScale < 1.3f && first != null) {
-                    NightWaveMixMosaic(mix, Modifier.padding(start = 12.dp, top = 12.dp).size(72.dp))
+                    NightWaveMixMosaic(mix, Modifier.fillMaxWidth().aspectRatio(1.6f))
                 }
                 Column(Modifier.fillMaxWidth().background(if (selected || featured) scheme.primaryContainer else scheme.surfaceVariant)
                     .padding(NightWavePremiumDesignTokens.CARD_PADDING_DP.dp)) {

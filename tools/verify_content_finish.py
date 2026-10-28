@@ -20,14 +20,14 @@ def verify(src):
     for state in ("recentShelfState", "nextShelfState", "moodShelfState"):
         assert f"rememberSnapFlingBehavior({state}, SnapPosition.Start)" in home, state
     assert "itemsIndexed(DiscoveryShortcuts.picks" in home
-    assert "contentScale = if (large) ContentScale.Inside else ContentScale.Crop" in player
+    assert "contentScale = if (large) ContentScale.Fit else ContentScale.Crop" in player
     assert "requestCandidates(url, large)" in player and "candidateIndex == attempt" in player
     assert "CoverArt(video.thumbnail, modifier" in components
     assert "trackIdentity = video.url, large = large" in components
     assert "Text(name, color = colors.onSurface" in components
     assert "contentColor = colors.onSurface" in components
     assert theme.count("NightWaveContentPresentationPolicy.errorSurface(palette)") == 2
-    assert "Modifier.padding(start = 12.dp, top = 12.dp).size(72.dp)" in visual
+    assert "Modifier.fillMaxWidth().aspectRatio(1.6f)" in visual
 
 
 if __name__ == "__main__":
@@ -38,10 +38,10 @@ if __name__ == "__main__":
                              (FILES[0], "rememberSnapFlingBehavior(moodShelfState, SnapPosition.Start)"),
                              (FILES[0], "rememberSnapFlingBehavior(recentShelfState, SnapPosition.Start)"),
                              (FILES[0], "rememberSnapFlingBehavior(nextShelfState, SnapPosition.Start)"),
-                             (FILES[1], "ContentScale.Inside"), (FILES[1], "candidateIndex == attempt"),
+                             (FILES[1], "ContentScale.Fit"), (FILES[1], "candidateIndex == attempt"),
                              (FILES[2], "Text(name, color = colors.onSurface"),
                              (FILES[2], "trackIdentity = video.url, large = large"),
-                             (FILES[3], "Modifier.padding(start = 12.dp, top = 12.dp).size(72.dp)"),
+                             (FILES[3], "Modifier.fillMaxWidth().aspectRatio(1.6f)"),
                              (FILES[4], "NightWaveContentPresentationPolicy.errorSurface(palette)")):
             broken = dict(src); broken[name] = broken[name].replace(marker, "BROKEN_FIXTURE")
             try:

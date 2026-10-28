@@ -3037,10 +3037,11 @@ private fun StudioRoot(
     val pagerState = rememberPagerState(initialPage = StudioTab.HOME.ordinal) {
         StudioTab.entries.size
     }
+    NightWavePagerRecovery(pagerState)
     val scope = rememberCoroutineScope()
     val keyboard = LocalSoftwareKeyboardController.current
     val focus = LocalFocusManager.current
-    val tab = StudioTab.entries[pagerState.currentPage]
+    val tab = StudioTab.entries[pagerState.settledPage]
     LaunchedEffect(tab, playerState.positionMs / 15000L) {
         if (tab == StudioTab.PROFILE || tab == StudioTab.HOME) onMemoryRefresh()
     }
@@ -3070,7 +3071,9 @@ private fun StudioRoot(
     var compactHidden by rememberSaveable { mutableStateOf(false) }
     var tabNavigationJob by remember { mutableStateOf<Job?>(null) }
     fun navigateToTab(destination: StudioTab) {
-        if (destination == tab && tabNavigationJob?.isActive != true) return
+        if (!NightWavePagerRecoveryPolicy.needsNavigation(pagerState.currentPage,
+                pagerState.currentPageOffsetFraction, pagerState.isScrollInProgress, destination.ordinal) &&
+            tabNavigationJob?.isActive != true) return
         if (destination != StudioTab.LIBRARY) selectedPlaylist = null
         // Most recent tap wins. Avoid multiple long animations and expensive
         // intermediate-page compositions on distant-tab jumps.
@@ -3165,6 +3168,7 @@ private fun StudioRoot(
                 NightWavePremiumNavigation(
                     selectedIndex = tab.ordinal,
                     reducedMotion = profile.motion == MotionPreference.REDUCED,
+                    onReselect = { navigateToTab(tab) },
                     onNavigate = { target ->
                         navigateToTab(StudioTab.entries[
                             NightWaveChromePolicy.selectedTab(target)])
@@ -3502,7 +3506,7 @@ internal fun StudioHome(
             )
         }
         item(key = "nw47-home-quick-access") {
-            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())
+            Row(Modifier.fillMaxWidth().nightWaveShelfBoundary().horizontalScroll(rememberScrollState())
                     .testTag("nw47-home-quick-access"),
                 horizontalArrangement = Arrangement.spacedBy(9.dp)) {
                 NightWaveQuickActionPill("Offline",
@@ -3536,7 +3540,7 @@ internal fun StudioHome(
             }
             item(key = "nw47-recent-shelf") {
                 LazyRow(
-                    modifier = Modifier.fillMaxWidth().testTag("nw47-recent-shelf"),
+                    modifier = Modifier.fillMaxWidth().nightWaveShelfBoundary().testTag("nw47-recent-shelf"),
                     state = recentShelfState,
                     flingBehavior = rememberSnapFlingBehavior(recentShelfState, SnapPosition.Start),
                     horizontalArrangement = Arrangement.spacedBy(11.dp)
@@ -3605,7 +3609,7 @@ internal fun StudioHome(
             item(key = "nw84-next-listens-shelf") {
                 LazyRow(
                     modifier = Modifier.fillMaxWidth()
-                        .testTag("nw84-next-listens-shelf"),
+                        .nightWaveShelfBoundary().testTag("nw84-next-listens-shelf"),
                     state = nextShelfState,
                     flingBehavior = rememberSnapFlingBehavior(nextShelfState, SnapPosition.Start),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -3701,7 +3705,7 @@ internal fun StudioHome(
         // One horizontally scrollable shelf instead of three oversized rows.
         // Uses existing real mood shortcuts and unchanged search actions.
         item(key = "discovery-shelf") {
-            LazyRow(Modifier.fillMaxWidth().testTag("content-mood-shelf"), state = moodShelfState,
+            LazyRow(Modifier.fillMaxWidth().nightWaveShelfBoundary().testTag("content-mood-shelf"), state = moodShelfState,
                 flingBehavior = rememberSnapFlingBehavior(moodShelfState, SnapPosition.Start),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 itemsIndexed(DiscoveryShortcuts.picks, key = { _, shortcut -> shortcut.key }) { index, shortcut ->
@@ -3893,7 +3897,7 @@ internal fun StudioSearch(
                     Text("Suggestions from your library",
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                    Row(Modifier.fillMaxWidth().nightWaveShelfBoundary().horizontalScroll(rememberScrollState()),
                         horizontalArrangement = Arrangement.spacedBy(7.dp)) {
                         offlineSuggestions.forEach { offline ->
                             FilterChip(
@@ -4073,7 +4077,7 @@ internal fun StudioSearch(
                     }
                 })
                 val moodFilters = rememberLazyListState()
-                LazyRow(state = moodFilters,
+                LazyRow(modifier = Modifier.nightWaveShelfBoundary(), state = moodFilters,
                     flingBehavior = rememberSnapFlingBehavior(moodFilters, SnapPosition.Start),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(DiscoveryShortcuts.picks.take(4), key = { it.key }) { shortcut ->
@@ -4092,7 +4096,7 @@ internal fun StudioSearch(
                 item(key = "local-creators") {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         SectionHeading("Creators", "From your music")
-                        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                        Row(Modifier.fillMaxWidth().nightWaveShelfBoundary().horizontalScroll(rememberScrollState()),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             knownCreators.forEach { creator ->
                                 FilterChip(selected = false,
@@ -4675,7 +4679,7 @@ internal fun StudioLibrary(
                         SectionHeading("Your playlists",
                             visiblePlaylists.size.toString() + " of " + names.size + " collections")
                         if (folderSnapshot.folders.isNotEmpty()) {
-                            Row(Modifier.horizontalScroll(rememberScrollState()),
+                            Row(Modifier.nightWaveShelfBoundary().horizontalScroll(rememberScrollState()),
                                 horizontalArrangement = Arrangement.spacedBy(7.dp)) {
                                 FilterChip(selected = validFolder == null,
                                     onClick = { selectedFolder = null },
@@ -4722,7 +4726,7 @@ internal fun StudioLibrary(
                         )
                     }
                     item(key = "playlist-sorting") {
-                        Row(Modifier.horizontalScroll(rememberScrollState()),
+                        Row(Modifier.nightWaveShelfBoundary().horizontalScroll(rememberScrollState()),
                             horizontalArrangement = Arrangement.spacedBy(7.dp)) {
                             FilterChip(
                                 selected = playlistSort == LibraryBrowsePolicy.SORT_SAVED,
@@ -4914,7 +4918,7 @@ internal fun StudioLibrary(
                 )
             }
             item {
-                Row(Modifier.horizontalScroll(rememberScrollState()),
+                Row(Modifier.nightWaveShelfBoundary().horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(7.dp)) {
                     FilterChip(
                         selected = sortMode == LibraryBrowsePolicy.SORT_SAVED,
@@ -5200,7 +5204,7 @@ private fun StudioProfile(
         }
 
         item(key = "nw47-you-quick-access") {
-            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())
+            Row(Modifier.fillMaxWidth().nightWaveShelfBoundary().horizontalScroll(rememberScrollState())
                     .testTag("nw47-you-quick-access"),
                 horizontalArrangement = Arrangement.spacedBy(9.dp)) {
                 NightWaveQuickActionPill("Account & backup",
@@ -5276,7 +5280,7 @@ private fun StudioProfile(
                         }
                         Text("Profile icon", style = MaterialTheme.typography.labelSmall,
                             color = muted)
-                        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                        Row(Modifier.fillMaxWidth().nightWaveShelfBoundary().horizontalScroll(rememberScrollState()),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             ProfileSettings.allowedAvatars.sorted().forEach { style ->
                                 FilterChip(

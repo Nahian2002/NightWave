@@ -367,7 +367,7 @@ internal fun CoverArt(
             }
             AsyncImage(model = request, contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
-                contentScale = if (large) ContentScale.Inside else ContentScale.Crop,
+                contentScale = if (large) ContentScale.Fit else ContentScale.Crop,
                 onError = { advance() },
                 onSuccess = { loaded ->
                     if (NightWaveArtworkPolicy.isUnavailableLargeStill(displayUrl,
