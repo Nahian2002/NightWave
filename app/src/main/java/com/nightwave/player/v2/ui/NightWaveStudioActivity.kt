@@ -5428,7 +5428,7 @@ private fun StudioProfile(
                         style = MaterialTheme.typography.bodySmall, color = muted)
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                StudioProfileRow("Advanced storage", "Original library remains authoritative",
+                StudioProfileRow("Advanced storage", "Check storage without changing your music",
                     Icons.Outlined.Settings, { showAdvanced = !showAdvanced },
                     trailing = { Text(if (showAdvanced) "Hide" else "Details",
                         style = MaterialTheme.typography.labelMedium,
@@ -5506,14 +5506,14 @@ private fun StudioProfileGroup(
     title: String, content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit
 ) {
     // Settings are an editorial list, not a stack of oversized cards.
-    Column(Modifier.fillMaxWidth().padding(top = 6.dp, bottom = 3.dp)) {
-        Text(title.uppercase(java.util.Locale.ROOT),
-            modifier = Modifier.padding(start = 16.dp, top = 6.dp, bottom = 8.dp),
-            style = MaterialTheme.typography.labelSmall,
+    Column(Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 0.dp)) {
+        Text(title,
+            modifier = Modifier.padding(start = 12.dp, top = 4.dp, bottom = 8.dp),
+            style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.primary)
         HorizontalDivider(
             color = MaterialTheme.colorScheme.outline.copy(alpha = .21f),
-            modifier = Modifier.padding(horizontal = 15.dp, vertical = 1.dp))
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 1.dp))
         content()
     }
 }
@@ -5527,11 +5527,11 @@ private fun StudioProfileRow(
     Row(
         modifier.fillMaxWidth().heightIn(min = 64.dp)
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 9.dp),
+            .padding(horizontal = 12.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(Modifier.size(39.dp).clip(RoundedCornerShape(12.dp))
+        Box(Modifier.size(36.dp).clip(RoundedCornerShape(12.dp))
             .background(MaterialTheme.colorScheme.primary.copy(alpha = .09f)),
             contentAlignment = Alignment.Center) {
             Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp),

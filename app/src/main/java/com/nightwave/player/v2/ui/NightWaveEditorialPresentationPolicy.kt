@@ -27,6 +27,29 @@ internal object NightWaveEditorialPresentationPolicy {
         .filter { it.isLetterOrDigit() || Character.getType(it) in setOf(
             Character.NON_SPACING_MARK.toInt(), Character.COMBINING_SPACING_MARK.toInt(), Character.ENCLOSING_MARK.toInt()) }
 
+    /** Four real covers with creator variety; selection never reorders the mix queue. */
+    fun mixArtwork(mix: PersonalMix): List<com.nightwave.player.net.VideoPreview> {
+        val tracks = mix.tracks.distinctBy { it.url }
+        if (tracks.isEmpty()) return emptyList()
+        val offset = (mix.key.hashCode().toLong() and 0x7fffffffL).rem(tracks.size).toInt()
+        val rotated = tracks.drop(offset) + tracks.take(offset)
+        val ordered = rotated.filter { it.thumbnail.isNotBlank() } + rotated.filter { it.thumbnail.isBlank() }
+        val covers = mutableListOf<com.nightwave.player.net.VideoPreview>()
+        val creators = mutableSetOf<String>()
+        for (track in ordered) {
+            val creator = creatorKey(track.author)
+            if (track.thumbnail.isNotBlank() && creator.isNotBlank() && track.author.trim().lowercase(java.util.Locale.ROOT) !in genericCreators && creators.add(creator)) {
+                covers += track
+                if (covers.size == 4) return covers
+            }
+        }
+        for (track in ordered) {
+            if (covers.none { it.url == track.url }) covers += track
+            if (covers.size == 4) break
+        }
+        return covers
+    }
+
     /** One compact footer: unique track count and complete known duration. */
     fun mixSummary(mix: PersonalMix): String {
         val tracks = mix.tracks.distinctBy { it.url }

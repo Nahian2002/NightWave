@@ -19,4 +19,8 @@ class NightWavePlayerOverlayPolicyTest {
     @Test fun backdropIsRemovedAfterExitCompletes() {
         assertFalse(NightWavePlayerOverlayPolicy.retainBackdrop(false, false, false))
     }
+    @Test fun interruptedEnterRetainsBackdropUntilItsAnimationsFinish() {
+        assertTrue(NightWavePlayerOverlayPolicy.retainBackdrop(false,false,false,true))
+        assertFalse(NightWavePlayerOverlayPolicy.retainBackdrop(false,false,false,false))
+    }
 }

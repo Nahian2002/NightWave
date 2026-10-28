@@ -3,6 +3,9 @@ package com.nightwave.player.v2.ui
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -33,7 +36,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
-/** 36 configurations × 14 actual UI cases. Blank source art and in-memory callbacks only.
+/** 36 configurations × 16 actual UI cases. Blank source art and in-memory callbacks only.
  * Does not install data, start playback, connect accounts or contact providers.
  * Captures exist only when these cases actually execute on Android.
  */
@@ -198,6 +201,71 @@ class NightWaveMatteAcceptanceInstrumentedTest(
         compose.onNodeWithTag("nw132-automatic-toggle").performClick()
         compose.onNodeWithText(collection.title).performScrollTo().assertIsDisplayed()
         capture("sparse-library")
+    }
+    @Test fun playerEnterAndInterruptedExitKeepVisibleContentEveryFrame() {
+        var expanded by mutableStateOf(false)
+        compose.mainClock.autoAdvance = false
+        fixture(reduceMotion = false) {
+            Box(Modifier.fillMaxSize().background(androidx.compose.ui.graphics.Color.Magenta)) {
+                Text("Underlying screen", modifier = Modifier.testTag("continuity-underlay"))
+                StudioNowPlayingOverlay(expanded, StudioPlayerState(connected = true,
+                    title = "Transition fixture", artist = "Fixture creator", videoUrl = songs.first().url),
+                    Actions(), liked = false, onLike = {}, onOpenQueue = {}, onSaveToPlaylist = {}, onSaveOffline = {},
+                    sleepRemainingMs = 0L, onSleepTimer = {}, offlineSpeedPercent = 100, onOfflineSpeed = {},
+                    listeningLevelPercent = 100, onListeningLevel = {}, crossfadeSeconds = 0, onCrossfade = {},
+                    normalizationEnabled = false, onNormalizationChange = {}, onDismiss = { expanded = false },
+                    reduceMotion = false)
+            }
+        }
+        fun assertInk() {
+            val bitmap = compose.onNodeWithTag("matte-fixture").captureToImage().asAndroidBitmap()
+            val background = NightWaveDesign.palette(theme).background.toInt()
+            var ink = 0
+            for (y in 8 until bitmap.height - 8 step 4) for (x in 8 until bitmap.width - 8 step 4) {
+                val pixel = bitmap.getPixel(x,y)
+                val difference = kotlin.math.abs(android.graphics.Color.red(pixel)-android.graphics.Color.red(background)) +
+                    kotlin.math.abs(android.graphics.Color.green(pixel)-android.graphics.Color.green(background)) +
+                    kotlin.math.abs(android.graphics.Color.blue(pixel)-android.graphics.Color.blue(background))
+                if (pixel != android.graphics.Color.MAGENTA && difference > 100) ink++
+            }
+            assertTrue("Player must paint readable content, not only its backdrop", ink > 20)
+            assertTrue(bitmap.getPixel(bitmap.width/2,bitmap.height/2) != android.graphics.Color.MAGENTA)
+        }
+        compose.runOnIdle { expanded = true }
+        repeat(4) { compose.mainClock.advanceTimeByFrame(); compose.waitForIdle(); assertInk() }
+        compose.runOnIdle { expanded = false }
+        compose.mainClock.advanceTimeBy(48); compose.waitForIdle(); assertInk()
+        compose.runOnIdle { expanded = true }
+        compose.mainClock.advanceTimeByFrame(); compose.waitForIdle(); assertInk()
+        compose.runOnIdle { expanded = false }
+        compose.mainClock.advanceTimeBy(400); compose.waitForIdle()
+        compose.onNodeWithTag("nw58-opaque-player-backdrop").assertDoesNotExist()
+        val ended = compose.onNodeWithTag("matte-fixture").captureToImage().asAndroidBitmap()
+        assertEquals(android.graphics.Color.MAGENTA,ended.getPixel(ended.width/2,ended.height/2))
+        compose.mainClock.autoAdvance = true
+        capture("player-continuity")
+    }
+    @Test fun listeningStatisticsRetainWindowsConsentRefreshAndEraseAtLargeType() {
+        val today = com.nightwave.player.v2.insights.ListeningTrendEngine.utcEpochDay(System.currentTimeMillis())
+        val memory = ListeningMemorySummary(true,120_000L,3,1,emptyList(),daily = listOf(
+            com.nightwave.player.v2.insights.DailyListeningBucket(today,120_000L,3)))
+        fixture {
+            Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+                ListeningMemoryPanel(memory, onEnabledChange = { action = "consent:$it" },
+                    onErase = { action = "erase" }, onRefresh = { action = "refresh" })
+            }
+        }
+        compose.onNodeWithText("2 min recorded · 3 sessions (30s+)").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithTag("listening-window-30").performScrollTo().performClick()
+        compose.onNodeWithText("2 min recorded · 3 sessions (30s+)").assertExists()
+        compose.onNodeWithTag("listening-window-7").performScrollTo().performClick()
+        compose.onNodeWithText("Refresh").performScrollTo().performClick()
+        compose.runOnIdle { assertEquals("refresh",action) }
+        compose.onNodeWithText("Erase & turn off").performScrollTo().performClick()
+        compose.runOnIdle { assertEquals("erase",action) }
+        compose.onNodeWithTag("listening-memory-consent").performScrollTo().performClick()
+        compose.runOnIdle { assertEquals("consent:false",action) }
+        capture("readable-statistics")
     }
     private class Actions : StudioPlayerActions {
         var committed: Pair<String, Long>? = null

@@ -10,12 +10,13 @@ TEST = ROOT / "app/src/test/java/com/nightwave/player/v2/ui"
 
 def verify(screen: str, policy: str, tests: str) -> None:
     required = (
-        "MutableTransitionState(false)",
-        "LaunchedEffect(expanded) { overlayVisibility.targetState = expanded }",
+        'updateTransition(targetState = expanded, label = "player-overlay")',
+        "overlayVisibility.AnimatedVisibility(",
         "NightWavePlayerOverlayPolicy.retainBackdrop(",
         "overlayVisibility.currentState, overlayVisibility.targetState",
+        "overlayVisibility.isRunning",
         '.testTag("nw58-opaque-player-backdrop")',
-        "visibleState = overlayVisibility",
+        "visible = { it }",
         "NightWaveMotionPolicy.PLAYER_ENTER_MS",
         "NightWaveMotionPolicy.PLAYER_EXIT_MS",
         "if (reduceMotion) EnterTransition.None",
@@ -37,6 +38,9 @@ def verify(screen: str, policy: str, tests: str) -> None:
     ):
         if token not in tests:
             raise AssertionError("Missing overlay JVM test " + token)
+    overlay = screen.split("fun StudioNowPlayingOverlay(", 1)[1].split("val colors =", 1)[0]
+    if any(bad in overlay for bad in ("fadeIn(", "fadeOut(", "LaunchedEffect(expanded)", "MutableTransitionState(false)")):
+        raise AssertionError("Delayed or alpha-zero full-screen player transition restored")
     if "AnimatedVisibility(visible = expanded, enter = enter, exit = exit)" in screen:
         raise AssertionError("Old non-sticky fade-over-Home overlay restored")
     if "overlayVisibility.targetState = expanded\n    // NW58" in screen:
@@ -55,7 +59,7 @@ def main() -> None:
     verify(*files)
     if args.self_test:
         for index, old, new in (
-            (0, "visibleState = overlayVisibility", "visible = expanded"),
+            (0, "visible = { it }", "visible = expanded"),
             (0, 'testTag("nw58-opaque-player-backdrop")', 'testTag("unused")'),
             (1, "requestedExpanded || transitionCurrent || transitionTarget",
              "requestedExpanded"),
@@ -69,6 +73,12 @@ def main() -> None:
             except AssertionError:
                 continue
             raise AssertionError("NW58 unsafe fixture was accepted")
+        for injected in ("fadeIn(", "LaunchedEffect(expanded)"):
+            broken = files[:]
+            broken[0] = broken[0].replace("val overlayVisibility = updateTransition", injected + "\n    val overlayVisibility = updateTransition", 1)
+            try: verify(*broken)
+            except AssertionError: continue
+            raise AssertionError("NW58 delayed/blank transition accepted")
         print("NW58 overlay negative fixtures: PASS")
     print("NW58 opaque player/background source contracts: PASS")
     print("UNVERIFIED: actual transition rendering on Android.")

@@ -5,14 +5,12 @@ import android.view.HapticFeedbackConstants
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.updateTransition
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Canvas
@@ -410,34 +408,30 @@ fun StudioNowPlayingOverlay(
     onEditLyrics: () -> Unit = {},
     onRemoveLyrics: () -> Unit = {}
 ) {
-    // No full-height fly-in: short translated motion and alpha make the
-    // player feel attached to the mini player instead of sliding across a screen.
+    // One transition owns backdrop and content from the same requested frame.
+    // Translation alone keeps the player visible throughout; no blank alpha-zero viewport.
     val enter = if (reduceMotion) EnterTransition.None else
         slideInVertically(
             animationSpec = tween(durationMillis = NightWaveMotionPolicy.PLAYER_ENTER_MS),
             initialOffsetY = NightWaveMotionPolicy::playerEntryOffsetPx
-        ) + fadeIn(animationSpec = tween(
-            durationMillis = NightWaveMotionPolicy.PLAYER_ENTER_MS))
+        )
     val exit = if (reduceMotion) ExitTransition.None else
         slideOutVertically(
             animationSpec = tween(durationMillis = NightWaveMotionPolicy.PLAYER_EXIT_MS),
             targetOffsetY = NightWaveMotionPolicy::playerExitOffsetPx
-        ) + fadeOut(animationSpec = tween(
-            durationMillis = NightWaveMotionPolicy.PLAYER_EXIT_MS))
-    val overlayVisibility = remember { MutableTransitionState(false) }
-    LaunchedEffect(expanded) { overlayVisibility.targetState = expanded }
-    // NW58: opacity on the animated *full-screen container* revealed Home
-    // through the player at the start/end of the NW50 transition. Keep a
-    // solid, non-animated backdrop for the entire transition lifetime.
-    // The backdrop goes away only when the closing animation is complete.
+        )
+    val overlayVisibility = updateTransition(targetState = expanded, label = "player-overlay")
+    // NW58: retain the solid backdrop for the same transition lifetime,
+    // including an enter reversed before its current state becomes expanded.
+    // It disappears with the completed exit, never one effect/frame earlier.
     if (NightWavePlayerOverlayPolicy.retainBackdrop(
-            expanded, overlayVisibility.currentState, overlayVisibility.targetState)) {
+            expanded, overlayVisibility.currentState, overlayVisibility.targetState, overlayVisibility.isRunning)) {
         Box(Modifier.fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .testTag("nw58-opaque-player-backdrop"))
     }
-    AnimatedVisibility(
-        visibleState = overlayVisibility,
+    overlayVisibility.AnimatedVisibility(
+        visible = { it },
         enter = enter,
         exit = exit
     ) {
