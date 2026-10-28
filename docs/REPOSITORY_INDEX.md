@@ -1,6 +1,6 @@
 # NightWave — repository navigation
 
-**Current implementation baseline:** cumulative NW129 complete local search on [`update/nightwave-nw129-complete-local-search`](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw129-complete-local-search). See [NW129 evidence and device protocol](NW129_COMPLETE_LOCAL_SEARCH.md). **Next source batch: NW130.** GitHub default `main` is an older app; NW126–NW129 physical acceptance remains open.
+**Current implementation baseline:** cumulative NW130 decidable public results on [`update/nightwave-nw130-public-music-results`](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw130-public-music-results). See [NW130 evidence and device protocol](NW130_DECIDABLE_PUBLIC_RESULTS.md). **Next source batch: NW131.** GitHub default `main` is an older app; NW126–NW130 physical acceptance remains open.
 
 ## Start here
 
@@ -13,6 +13,7 @@
 | Latest compact hierarchy and build evidence | [NW127 evidence](NW127_COMPACT_VISUAL_HIERARCHY.md) |
 | Shared offline shell and latest build evidence | [NW128 evidence](NW128_UNIFIED_OFFLINE_SHELL.md) |
 | Complete local search and latest build evidence | [NW129 evidence](NW129_COMPLETE_LOCAL_SEARCH.md) |
+| Decidable public results and latest evidence | [NW130 evidence](NW130_DECIDABLE_PUBLIC_RESULTS.md) |
 | Detailed current product rating and source/video findings | [28 October audit](audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md) |
 | Windows build, Android signing and release procedure | [Build and release](BUILD_AND_RELEASE.md) |
 | Release risks and blockers | [Release readiness](../RELEASE_READINESS.md) |
@@ -45,4 +46,4 @@ Current automated workflow: `.github/workflows/current-android.yml`; `android.ym
 
 Keep generated Android `build/`, local `.gradle/`, IDE settings, archives, diagnostic logs/dumps, local secrets, APKs and signing keys **outside Git**. `.gitignore` prevents future accidental adds but does not untrack history. Do not store account credentials, OAuth tokens, private playlists or media files in GitHub.
 
-**Build status:** cumulative app build and all 1,496 JVM tests pass; current runner passes 54 checks including the packaged build identity verifier and baseline-fixture tests. See [current verification](../TEST_REPORT.md). **Release status:** NO-GO pending physical-device validation, installed signer, live restore, source rights and privacy checks. A short recording or passing source checks do not certify the full app.
+**Build status:** cumulative app build and all 1,546 JVM tests pass; current runner passes 57 checks including the packaged build identity verifier and baseline-fixture tests. See [current verification](../TEST_REPORT.md). **Release status:** NO-GO pending physical-device validation, installed signer, live restore, source rights and privacy checks. A short recording or passing source checks do not certify the full app.

@@ -61,6 +61,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.nightwave.player.net.VideoPreview
 import com.nightwave.player.net.MusicIdentity
+import com.nightwave.player.net.PublicMusicResultEvidence
 
 @Composable
 fun NightWaveWordmark(modifier: Modifier = Modifier, showName: Boolean = true) {
@@ -269,6 +270,7 @@ fun MusicTrackTile(
     surface: NightWaveTrackSurface = NightWaveTrackSurface.HOME,
     rawVideoCaption: Boolean = false,
     sourceLabel: String? = null,
+    publicEvidence: PublicMusicResultEvidence? = null,
     onClick: () -> Unit
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -332,13 +334,21 @@ fun MusicTrackTile(
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
             Text(identity.title, style = MaterialTheme.typography.titleMedium,
                 color = if (isPlaying) scheme.primary else scheme.onSurface,
-                maxLines = titleLines, overflow = TextOverflow.Ellipsis)
-            Text(if (isPlaying) identity.artistOrCreator + " · Playing"
-                else identity.artistOrCreator,
+                maxLines = if (publicEvidence != null) Int.MAX_VALUE else titleLines, overflow = TextOverflow.Ellipsis)
+            val creator = publicEvidence?.uploader ?: identity.artistOrCreator
+            Text(if (isPlaying) creator + " · Playing" else creator,
                 style = MaterialTheme.typography.bodyMedium,
                 color = scheme.onSurfaceVariant,
-                maxLines = NightWavePremiumDesignTokens.supportingLines(fontScale),
+                maxLines = if (publicEvidence != null) Int.MAX_VALUE else NightWavePremiumDesignTokens.supportingLines(fontScale),
                 overflow = TextOverflow.Ellipsis)
+            if (publicEvidence != null) {
+                Text(publicEvidence.sourceAndDuration, style = MaterialTheme.typography.labelMedium,
+                    color = scheme.onSurfaceVariant)
+                if (publicEvidence.titleLabels.isNotBlank()) Text(publicEvidence.titleLabels,
+                    style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
+                if (publicEvidence.duplicateReference != null) Text(publicEvidence.duplicateReference,
+                    style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
+            }
             if (!sourceLabel.isNullOrBlank()) Text(sourceLabel,
                 style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
         }

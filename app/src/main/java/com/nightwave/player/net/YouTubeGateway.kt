@@ -34,7 +34,11 @@ class YouTubeGateway {
         while (memoryCache.size > 12) memoryCache.remove(memoryCache.keys.first())
     }
 
-    fun search(query: String, mode: SearchMode): VideoSearchResults {
+    fun search(query: String, mode: SearchMode,
+        onPhase: (PublicSearchPhase) -> Unit = {}): VideoSearchResults {
+        val request = PublicSearchRequest.current.get()
+        request?.checkActive()
+        onPhase(PublicSearchPhase.DIRECT)
         val text = query.trim().take(160)
         require(text.isNotBlank()) { "Please enter a song name or artist" }
         val key = mode.name + "|" + text.lowercase(java.util.Locale.ROOT)
@@ -49,7 +53,9 @@ class YouTubeGateway {
             YoutubeSearchQueryHandlerFactory.ALL
         )
         for (filter in filters) {
+            request?.checkActive()
             val attempt = runCatching { searchWithFilter(text, filter) }
+            request?.checkActive()
             val data = attempt.getOrNull()
             if (data != null) {
                 val (videos, report) = data
@@ -80,7 +86,10 @@ class YouTubeGateway {
 
         // Only public title/artist search text is sent to one of the
         // documented independent Invidious community servers. No login data.
+        request?.checkActive()
+        onPhase(PublicSearchPhase.COMMUNITY)
         val alternateResult = runCatching { alternate.search(text) }
+        request?.checkActive()
         alternateResult.onSuccess { fallback ->
             if (fallback.videos.isNotEmpty()) {
                 val ranked = if (mode == SearchMode.SONGS) sortMusicMatches(fallback.videos, text)

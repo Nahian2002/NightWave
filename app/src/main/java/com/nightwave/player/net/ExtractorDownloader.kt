@@ -30,8 +30,8 @@ class ExtractorDownloader : Downloader() {
         val payload = bytes?.toRequestBody(null)
             ?: if (method in setOf("POST", "PUT", "PATCH")) ByteArray(0).toRequestBody(null) else null
         requestBuilder.method(method, payload)
-        client.newCall(requestBuilder.build()).execute().use { res ->
-            return Response(
+        return PublicSearchRequest.executeHttp(client.newCall(requestBuilder.build())) { res ->
+            Response(
                 res.code, res.message, res.headers.toMultimap(),
                 res.body?.string() ?: "", res.request.url.toString()
             )

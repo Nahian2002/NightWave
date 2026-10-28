@@ -32,16 +32,14 @@ object SearchResultPresentationPolicy {
         val prepared = SearchRelevancePolicy.prepare(query)
         if (!prepared.valid) return Groups(emptyList(), videos)
         val ranked = SearchRelevancePolicy.rankPublic(query, videos)
-        val strongest = SearchRelevancePolicy.publicScore(prepared, ranked.first())
+        val (versions, primary) = ranked.partition { SearchVersionGroupingPolicy.isOtherVersion(query, it) }
+        val strongest = primary.firstOrNull()?.let { SearchRelevancePolicy.publicScore(prepared, it) } ?: 0
         if (strongest < 160) return Groups(emptyList(), ranked)
-        val best = ranked.take(5).takeWhile { candidate ->
+        val best = primary.take(5).takeWhile { candidate ->
             SearchRelevancePolicy.publicScore(prepared, candidate) >=
                 maxOf(160, strongest - 55)
         }
-        val (versions, remaining) = ranked.drop(best.size).partition { track ->
-            SearchVersionGroupingPolicy.isOtherVersion(query, track)
-        }
-        return Groups(best, remaining, versions)
+        return Groups(best, primary.drop(best.size), versions)
     }
 
     fun emptyHint(videos: List<VideoPreview>): String =
