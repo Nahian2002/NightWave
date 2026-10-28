@@ -2,6 +2,8 @@
 
 An independent Android music player with an original midnight design, local music, playlists, background playback, imported synchronized lyrics, Sound Studio and optional Google Drive backup.
 
+**Repository publication preparation:** [status and remaining gates](SOURCE_PUBLICATION.md) · [source/service-use notes](TERMS_AND_SOURCE_USE.md). The app is frozen unchanged for this preparation; source visibility remains private and public app distribution is not approved.
+
 **Current integrated source:** [`update/nightwave-nw130-public-music-results`](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw130-public-music-results), based on NW126 and the cumulative implementation. **Default `main` remains the older v0.8 snapshot.**
 
 **28 October 2026 verification:** NW130 makes public sources easier to compare with uploader, duration, title labels and IDs for otherwise identical results. Search now has phase feedback, request-scoped cancellation, a total deadline and actionable retry/explicit fallback. **1,546 JVM tests / 195 suites**, **57 source checks** and the frozen **36-case** ranking corpus pass with zero top-result errors. Three new actual-screen cases compile only; physical acceptance remains pending. See [current verification](TEST_REPORT.md) and [NW130 evidence](docs/NW130_DECIDABLE_PUBLIC_RESULTS.md).

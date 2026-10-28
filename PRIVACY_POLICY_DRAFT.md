@@ -1,7 +1,7 @@
 # NightWave Privacy Policy — DRAFT / NOT YET PUBLISHED FOR USERS
 
-**Last reviewed:** 25 October 2026  
-**Publication status:** The statements below are a source-informed draft. The maintainer must verify them against the final APK, third-party SDK/network traffic and Google Play Data safety form, add a monitored private contact address and a working web URL **before distribution**.
+**Last source/contact review:** 28 October 2026
+**Publication status:** The statements below are a source-informed draft. The maintainer must verify them against the final APK, third-party SDK/network traffic and Google Play Data safety form, confirm monitoring of the contact below and publish a working web URL **before distribution**.
 
 ## Overview
 
@@ -35,7 +35,9 @@ No age-targeting, child privacy or region-specific legal compliance claims are m
 
 ## Contact and privacy rights
 
-**REQUIRED BEFORE PUBLICATION:** replace this text with an actual monitored private support/privacy contact and public policy URL. Do not direct people to disclose account or music information in public GitHub issues.
+**Privacy/security contact:** [jayednahian2002@gmail.com](mailto:jayednahian2002@gmail.com), published with the maintainer's permission. Send only the information needed for your inquiry; never send passwords, authorization tokens or private audio.
+
+A stable public policy URL, actual response/deletion procedures and runtime verification remain required before general app distribution. This repository document is not evidence that a public policy site is already live.
 
 ## Third-party privacy policies
 
