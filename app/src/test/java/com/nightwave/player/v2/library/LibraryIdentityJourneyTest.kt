@@ -87,6 +87,8 @@ class LibraryIdentityJourneyTest {
         assertEquals(listOf(valid), LibraryBulkSelectionPolicy.selected(source, restored))
         assertTrue(LibraryBulkSelectionPolicy.toggle(emptySet(), invalid.url, source).isEmpty())
         assertEquals(setOf(valid.url), LibraryBulkSelectionPolicy.toggleVisible(emptySet(), source, source))
+        assertEquals("Deselect visible", LibraryBulkSelectionPolicy.visibleActionLabel(setOf(valid.url), source))
+        assertTrue(LibraryBulkSelectionPolicy.toggleVisible(setOf(valid.url), source, source).isEmpty())
     }
     @Test fun playlistContentsFilterFindsTheLastSupportedSongWithoutChangingItsOrder() {
         val songs = (1..300).map(::song).toMutableList()

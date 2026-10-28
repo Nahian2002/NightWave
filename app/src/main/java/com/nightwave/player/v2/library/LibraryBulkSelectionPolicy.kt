@@ -66,6 +66,9 @@ object LibraryBulkSelectionPolicy {
 
     fun visibleActionLabel(
         current: Set<String>, visible: List<VideoPreview>
-    ): String = if (visible.isNotEmpty() && visible.all { it.url in current })
-        "Deselect visible" else "Select visible"
+    ): String {
+        val eligibleVisible = visible.asSequence().map { it.url }.filter(::eligible).toSet()
+        return if (eligibleVisible.isNotEmpty() && eligibleVisible.all { it in current })
+            "Deselect visible" else "Select visible"
+    }
 }
