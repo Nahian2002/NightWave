@@ -1,6 +1,6 @@
 # NightWave — repository navigation
 
-**Current implementation baseline:** cumulative NW131 purposeful Home on [`update/nightwave-nw131-purposeful-home`](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw131-purposeful-home). See [NW131 evidence and device protocol](NW131_PURPOSEFUL_HOME.md). **Next source batch: NW132.** GitHub default `main` is an older app; NW126–NW131 physical acceptance remains open.
+**Current implementation baseline:** cumulative NW132 clear Library on [`update/nightwave-nw132-clear-library`](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw132-clear-library). See [NW132 evidence and device protocol](NW132_CLEAR_LIBRARY.md). **Next source batch: NW133.** GitHub default `main` is an older app; NW126–NW132 physical acceptance remains open.
 
 ## Start here
 
@@ -16,6 +16,7 @@
 | Complete local search and latest build evidence | [NW129 evidence](NW129_COMPLETE_LOCAL_SEARCH.md) |
 | Decidable public results and latest evidence | [NW130 evidence](NW130_DECIDABLE_PUBLIC_RESULTS.md) |
 | Purposeful Home and latest evidence | [NW131 evidence](NW131_PURPOSEFUL_HOME.md) |
+| Clear Library identity and latest evidence | [NW132 evidence](NW132_CLEAR_LIBRARY.md) |
 | Detailed current product rating and source/video findings | [28 October audit](audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md) |
 | Windows build, Android signing and release procedure | [Build and release](BUILD_AND_RELEASE.md) |
 | Release risks and blockers | [Release readiness](../RELEASE_READINESS.md) |
@@ -32,7 +33,7 @@
 - **JVM tests:** `app/src/test/`; **device tests:** `app/src/androidTest/`. Pure CLI smoke scripts are useful preflights, never substitutes for these suites.
 - **Build rules:** root `build.gradle.kts`, `settings.gradle.kts`, `gradle.properties`, and `app/build.gradle.kts`; **CI:** `.github/workflows/`. Do not delete or alter SDK/signing checks for cosmetic cleanup.
 - **Room schema/migrations and settings:** Treat all as migration evidence; never delete without a verified backwards-compatibility and restore audit.
-- **Current source wave:** NW131 purposeful Home follows NW130 and completed repository-only publication preparation. NW126–NW131 are locally verified with physical acceptance pending; `main` does not contain these waves. NW132 is next. Consult the structured backlog and current test report.
+- **Current source wave:** NW132 clear Library follows NW131 and completed repository-only publication preparation. NW126–NW132 are locally verified with physical acceptance pending; `main` does not contain these waves. NW133 is next. Consult the structured backlog and current test report.
 
 Current automated workflow: `.github/workflows/current-android.yml`; `android.yml` remains a manual historical diagnostic. See [historic check inventory](HISTORICAL_CI_SOURCE_CHECKS_20261027.md).
 

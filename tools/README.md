@@ -1,6 +1,6 @@
 # NightWave tools — current use and historical checks
 
-**Current implementation baseline:** NW131 purposeful Home; fresh local build and 1,559 JVM tests pass. The runner executes **58 current checks**, including NW125 gates, fixture preparation and provenance negative cases. See [current verification](../TEST_REPORT.md) and [active NW126–NW145 plan](../docs/PRODUCT_QUALITY_ROADMAP.md). Source checks do not certify phone behavior.
+**Current implementation baseline:** NW132 clear Library; fresh local build and 1,573 JVM tests pass. The runner executes **59 current checks**, including NW125 gates, fixture preparation and provenance negative cases. See [current verification](../TEST_REPORT.md) and [active NW126–NW145 plan](../docs/PRODUCT_QUALITY_ROADMAP.md). Source checks do not certify phone behavior.
 
 ## Recommended entrypoints
 

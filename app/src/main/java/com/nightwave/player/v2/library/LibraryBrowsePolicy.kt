@@ -16,6 +16,7 @@ data class LibraryPlaylistPreview(val name: String, val songs: List<VideoPreview
  * unless the user explicitly chooses a temporary view sort.
  */
 object LibraryBrowsePolicy {
+    const val MAX_PLAYLIST_SONGS = 300 // Existing writer capacity, not a new persistence limit.
     const val SORT_SAVED = "saved"
     const val SORT_NAME = "name"
     const val SORT_NAME_DESC = "name_desc"
@@ -42,8 +43,9 @@ object LibraryBrowsePolicy {
                 )) return@filter true
             // Optional NW71 playlist discovery: find the containing playlist
             // by one song's title/creator, not by joining unrelated songs.
-            // Bounded scan, view-only, no change to playlist membership/order.
-            matchContainedSongs && playlist.songs.asSequence().take(100)
+            // Stored playlists are bounded by the library writer; inspect every
+            // contained song, view-only, without changing membership/order.
+            matchContainedSongs && playlist.songs.asSequence().take(MAX_PLAYLIST_SONGS)
                 .any { SearchRelevancePolicy.savedMatches(search, it) }
         }
         val ordered = when (sort) {

@@ -212,6 +212,7 @@ import kotlinx.coroutines.TimeoutCancellationException
 import com.nightwave.player.net.SearchResultPresentationPolicy
 import com.nightwave.player.net.MusicIdentity
 import com.nightwave.player.net.SavedCreatorBrowser
+import com.nightwave.player.v2.library.LibraryCollectionPresentationPolicy
 import com.nightwave.player.v2.library.LibraryBrowsePolicy
 import com.nightwave.player.v2.library.LibraryQuickPlayPolicy
 import com.nightwave.player.v2.library.LibraryPlaylistPreview
@@ -287,7 +288,7 @@ internal data class PendingLyricsExport(
 )
 
 /** One user-visible playlist Undo, guarded by an exact post-edit snapshot. */
-private data class PlaylistUndoState(
+internal data class PlaylistUndoState(
     val playlist: String,
     val before: List<VideoPreview>,
     val after: List<VideoPreview>,
@@ -4283,7 +4284,7 @@ internal fun StudioSearch(
 }
 
 @Composable
-private fun StudioLibrary(
+internal fun StudioLibrary(
     modifier: Modifier, favorites: List<VideoPreview>, recent: List<VideoPreview>,
     names: List<String>,
     libraryRevision: Int, roomPreviewActive: Boolean,
@@ -4320,6 +4321,13 @@ private fun StudioLibrary(
     val playlistPreviews = remember(names, libraryRevision, roomPreviewActive) {
         names.map { name -> LibraryPlaylistPreview(name, getPlaylist(name)) }
     }
+    val overview = remember(favorites, recent, playlistPreviews) {
+        LibraryCollectionPresentationPolicy.overview(favorites, recent, playlistPreviews)
+    }
+    val automaticDetails = remember(smartCollections, favorites, recent, playlistPreviews) {
+        LibraryCollectionPresentationPolicy.automaticDetails(smartCollections, favorites, recent, playlistPreviews)
+    }
+    var automaticCollectionsOpen by rememberSaveable { mutableStateOf(false) }
     var playlistFilter by rememberSaveable { mutableStateOf("") }
     var playlistSort by rememberSaveable { mutableStateOf(LibraryBrowsePolicy.SORT_SAVED) }
     var showFilledOnly by rememberSaveable { mutableStateOf(false) }
@@ -4344,12 +4352,14 @@ private fun StudioLibrary(
         PlaylistPinPolicy.pinnedFirst(filtered, pinnedPlaylistNames) { it.name }
     }
     val selectedSmart = smartCollections.firstOrNull { it.id == selectedPlaylist }
+    val likedTracks = remember(favorites) { LibraryCollectionPresentationPolicy.displaySongs(favorites) }
+    val historyTracks = remember(recent) { LibraryCollectionPresentationPolicy.displaySongs(recent) }
     val tracks = when {
-        selectedPlaylist == null || selectedPlaylist == LIKED_COLLECTION -> favorites
+        selectedPlaylist == null || selectedPlaylist == LIKED_COLLECTION -> likedTracks
         // Library must show the entire real history (unlike Home's 100-slot
         // rail), but use unique IDs for stable LazyColumn keys after restores.
         selectedPlaylist == RECENT_COLLECTION ->
-            remember(recent) { NightWaveHomeCurationPolicy.distinctRecent(recent) }
+            historyTracks
         selectedSmart != null -> selectedSmart.songs
         else -> playlistPreviews.firstOrNull { it.name == selectedPlaylist }?.songs.orEmpty()
     }
@@ -4383,7 +4393,7 @@ private fun StudioLibrary(
     }
     val nw83PageGutter = NightWavePremiumDesignTokens.pageGutterDp(
         androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.toFloat()).dp
-    LazyColumn(modifier.fillMaxWidth().widthIn(max =
+    LazyColumn(modifier.testTag("nw132-library-list").fillMaxWidth().widthIn(max =
         NightWavePremiumDesignTokens.MAX_CONTENT_WIDTH_DP.dp).fillMaxHeight(),
         contentPadding = PaddingValues(start = nw83PageGutter, end = nw83PageGutter,
             top = NightWavePremiumDesignTokens.PAGE_TOP_DP.dp,
@@ -4423,12 +4433,12 @@ private fun StudioLibrary(
                             else -> selectedPlaylist ?: "Your library"
                         },
                         description = when {
-                            selectedPlaylist == null -> "Saved music across your collections"
+                            selectedPlaylist == null -> "Liked songs, playlists and listening history"
                             selectedPlaylist == RECENT_COLLECTION ->
-                                "Your history · Remove entries without deleting saved music"
-                            selectedSmart != null -> selectedSmart.description
-                            else -> NightWaveCollectionChrome.sectionSubtitle(
-                                tracks.size, "saved track", "saved tracks")
+                                "${overview.historySongs} songs · ${overview.historyEntries} history entries · History only"
+                            selectedSmart != null -> automaticDetails[selectedSmart.id].orEmpty()
+                            selectedPlaylist == LIKED_COLLECTION -> "${overview.likedCount} liked songs · Chosen by you"
+                            else -> "${tracks.size} songs · Your playlist"
                         }
                     )
                 }
@@ -4505,43 +4515,21 @@ private fun StudioLibrary(
                 }
             }
         }
-        if (selectedPlaylist != null && selectedPlaylist != LIKED_COLLECTION &&
-            selectedSmart == null && selectedPlaylist in names && tracks.isNotEmpty()
-        ) {
-            item(key = "share-current-playlist") {
-                OutlinedButton(onClick = { onSharePlaylist(selectedPlaylist, tracks) },
-                    modifier = Modifier.fillMaxWidth()) {
-                    Text("Share playlist")
-                }
-            }
-            item(key = "export-current-playlist-document") {
-                OutlinedButton(onClick = { onExportPlaylist(selectedPlaylist, tracks) },
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
-                    Text("Export playlist .txt")
-                }
-            }
-        }
-        if (selectedPlaylist != null && selectedPlaylist in names &&
-            selectedPlaylist != LIKED_COLLECTION && selectedSmart == null
-        ) {
-            item(key = "pin-current-playlist") {
-                OutlinedButton(
-                    onClick = { onTogglePinPlaylist(selectedPlaylist) },
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
-                ) {
-                    Text(if (selectedPlaylist in pinnedPlaylistNames) "Unpin playlist"
-                        else "Pin playlist to top")
-                }
-            }
-            item(key = "move-current-to-folder") {
-                OutlinedButton(
-                    onClick = { onMovePlaylist(selectedPlaylist) },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Folder · " +
-                        (folderSnapshot.folderOf(selectedPlaylist) ?: "Unfiled") +
-                        "  ·  Change")
-                }
+        if (canSelectPlaylistTracks) item(key = "nw132-playlist-tools") {
+            val name = requireNotNull(selectedPlaylist)
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                NightWaveLibraryOptions("Playlist options", "nw132-playlist-options", buildList {
+                    if (tracks.isNotEmpty()) {
+                        add("Share playlist" to { onSharePlaylist(name, tracks) })
+                        add("Export playlist .txt" to { onExportPlaylist(name, tracks) })
+                    }
+                    add((if (name in pinnedPlaylistNames) "Unpin playlist" else "Pin playlist to top") to { onTogglePinPlaylist(name) })
+                    add("Change folder" to { onMovePlaylist(name) })
+                    add("Rename or delete playlists" to onManage)
+                })
+                Text((if (name in pinnedPlaylistNames) "Pinned · " else "") +
+                    (folderSnapshot.folderOf(name) ?: "Unfiled"),
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         if (selectedPlaylist == null) {
@@ -4554,12 +4542,17 @@ private fun StudioLibrary(
                     TextButton(onClick = onSearch, modifier = Modifier.heightIn(min = 48.dp)) {
                         Text("Find music")
                     }
+                    NightWaveLibraryOptions("Library options", "nw132-library-options", listOf(
+                        "Import playlist (.txt or pasted links)" to onImportSharedPlaylist,
+                        "Organize playlist folders" to onManageFolders,
+                        "Manage playlists" to onManage
+                    ))
                 }
             }
             // Actual collection rows below serve as navigation. Avoid
             // duplicating them with two oversized, noninteractive counters.
             item {
-                Text("${favorites.size} liked tracks  ·  ${names.size} playlists",
+                Text(overview.summary,
                     modifier = Modifier.padding(horizontal = 3.dp, vertical = 2.dp),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -4590,41 +4583,40 @@ private fun StudioLibrary(
                     "Your imported audio · listen without Wi-Fi",
                     cover = null, onClick = onOffline)
             }
-            item {
+            if (overview.likedCount > 0) item {
                 MusicCollectionTile("Liked songs",
-                    favorites.size.toString() + " tracks",
-                    cover = favorites.firstOrNull()) {
+                    overview.likedCount.toString() + " liked songs · Chosen by you",
+                    cover = likedTracks.firstOrNull()) {
                     onSelectPlaylist(LIKED_COLLECTION)
                 }
             }
-            item(key = "library-recent-collection") {
+            if (overview.historyEntries > 0) item(key = "library-recent-collection") {
                 MusicCollectionTile("Recently played",
-                    recent.size.toString() + " history entries · Edit",
-                    cover = recent.firstOrNull()) {
+                    "${overview.historySongs} songs · ${overview.historyEntries} history entries",
+                    cover = historyTracks.firstOrNull()) {
                     onSelectPlaylist(RECENT_COLLECTION)
                 }
             }
-            item(key = "import-nightwave-playlist-document") {
-                OutlinedButton(onClick = onImportSharedPlaylist,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
-                    Text("Import playlist (.txt or pasted links)")
-                }
-            }
-            item(key = "playlist-folders-manager") {
-                OutlinedButton(onClick = onManageFolders,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
-                    shape = RoundedCornerShape(14.dp)) {
-                    Text("Organize playlist folders")
-                }
+            if (overview.showSaveHint) item(key = "nw132-save-hint") {
+                Text(if (overview.historyEntries > 0)
+                    "History records what you played. Like a song or add it to a playlist to keep it in your collections."
+                    else "Find music to like, create a playlist, or open Offline music for your own audio.",
+                    style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             if (smartCollections.isNotEmpty()) {
                 item(key = "smart-collections-section") {
-                    SectionHeading("Made from your library",
-                        "Live collections · changes as your saved music changes")
+                    NightWaveSectionActions(heading = {
+                        SectionHeading("Automatic collections", "Grouped from likes, playlists and history")
+                    }, action = {
+                        TextButton(onClick = { automaticCollectionsOpen = !automaticCollectionsOpen },
+                            modifier = Modifier.heightIn(min = 48.dp).testTag("nw132-automatic-toggle")) {
+                            Text(if (automaticCollectionsOpen) "Hide collections" else "Show ${smartCollections.size}")
+                        }
+                    })
                 }
-                items(smartCollections, key = { it.id }) { collection ->
+                if (automaticCollectionsOpen) items(smartCollections, key = { it.id }) { collection ->
                     MusicCollectionTile(collection.title,
-                        collection.songs.size.toString() + " tracks · " + collection.description,
+                        automaticDetails[collection.id].orEmpty(),
                         cover = collection.songs.firstOrNull()) {
                         onSelectPlaylist(collection.id)
                     }
@@ -4665,7 +4657,7 @@ private fun StudioLibrary(
                         OutlinedTextField(
                             value = playlistFilter,
                             onValueChange = { playlistFilter = it.take(80) },
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth().testTag("nw132-playlist-filter"),
                             shape = RoundedCornerShape(15.dp),
                             singleLine = true,
                             placeholder = { Text("Search playlists or their songs") },
@@ -4755,12 +4747,11 @@ private fun StudioLibrary(
                 }
             }
         }
-        item {
-            SectionHeading(when (selectedPlaylist) {
-                    null -> "Recently liked"
-                    RECENT_COLLECTION -> "Listening history"
-                    else -> "Saved tracks"
-                }, if (selectedPlaylist == null) "Your latest five liked songs" else null)
+        if (selectedPlaylist != null || overview.showRecentlyLiked) item {
+            SectionHeading(LibraryCollectionPresentationPolicy.songSection(
+                overview = selectedPlaylist == null, history = selectedPlaylist == RECENT_COLLECTION,
+                automatic = selectedSmart != null, liked = selectedPlaylist == LIKED_COLLECTION),
+                if (selectedPlaylist == null) "Your latest five liked songs" else null)
         }
         if (selectedPlaylist != null && tracks.isNotEmpty()) {
             if (canSelectPlaylistTracks) {
@@ -4863,7 +4854,7 @@ private fun StudioLibrary(
             item {
                 OutlinedTextField(
                     value = localFilter, onValueChange = { localFilter = it.take(80) },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().testTag("nw132-track-filter"),
                     shape = RoundedCornerShape(15.dp),
                     singleLine = true,
                     placeholder = { Text("Filter this collection") },
@@ -4910,7 +4901,7 @@ private fun StudioLibrary(
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
-        if (visibleTracks.isEmpty()) item {
+        if (visibleTracks.isEmpty() && selectedPlaylist != null) item {
             EmptyMusicCard(
                 if (selectedPlaylist == RECENT_COLLECTION && tracks.isEmpty())
                     "No recent plays" else if (tracks.isEmpty()) "Nothing here yet"
@@ -5023,11 +5014,6 @@ private fun StudioLibrary(
                         }
                     }
                 }
-            }
-        }
-        if (selectedPlaylist == null || selectedPlaylist in names) item {
-            OutlinedButton(onClick = onManage, modifier = Modifier.fillMaxWidth()) {
-                Text("Manage playlists")
             }
         }
     }

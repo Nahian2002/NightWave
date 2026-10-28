@@ -8,7 +8,7 @@ BASE = "app/src/main/java/com/nightwave/player/"
 
 def verify(src):
     activity = src["v2/ui/NightWaveStudioActivity.kt"]
-    screen = activity.split("internal fun StudioSearch(", 1)[1].split("private fun StudioLibrary(", 1)[0]
+    screen = activity.split("internal fun StudioSearch(", 1)[1].split("internal fun StudioLibrary(", 1)[0]
     public = screen.split('} else if (responseMatchesQuery && state.videos.isNotEmpty())', 1)[1]
     assert public.count("publicEvidence = publicEvidence[song.url]") == 3
     for marker in ("PublicMusicResultEvidence.forResults(state.videos, mode)", "nw130-cancel-search",
