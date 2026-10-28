@@ -5,6 +5,7 @@
         <item name="android:colorAccent">#A1D6C9</item>
         <item name="android:alertDialogTheme">@style/Theme.NightWave.Dialog</item>
         <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
         <item name="android:statusBarColor">#0A0A0A</item>
         <item name="android:navigationBarColor">#0A0A0A</item>
         <item name="android:windowActionModeOverlay">true</item>
@@ -25,6 +26,7 @@
         <item name="android:colorAccent">#61527F</item>
         <item name="android:alertDialogTheme">@style/Theme.NightWave.Dialog.Pearl</item>
         <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
         <item name="android:statusBarColor">#F9F7F2</item>
         <item name="android:navigationBarColor">#F9F7F2</item>
         <item name="android:windowBackground">#F9F7F2</item>

@@ -92,7 +92,9 @@ class NightWaveLockerActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        NightWaveNativeMatte.applyNativeTheme(this)
         super.onCreate(savedInstanceState)
+        com.nightwave.player.v2.ui.NightWaveMatteSystemBars.apply(this, nativeMattePalette)
         offline = OfflineAudioLibrary(this)
         state = LockerAccountState(this)
         checkpoints = LockerDownloadCheckpointStore(this)
