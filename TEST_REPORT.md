@@ -1,5 +1,6 @@
 # Current verification — NW132 maintenance and cleanup
 
+[Draft PR #137](https://github.com/Nahian2002/NightWave/pull/137).
 28 October 2026. Branch `maintenance/nightwave-nw132-cleanup`; protected NW132 parent `aa6a56fd553a297d5aa790f6049a1f4634a11b63` (PR #136). Code repair `ceae46e06cc5688610e8b4cd66f3a2f3600a35fe`. [Maintenance scope and deletion inventory](docs/REPOSITORY_MAINTENANCE_20261028.md).
 
 Library now starts a newly selected collection at its header instead of inheriting another list's deep scroll offset. Its active list still uses saveable state across recreation. A new actual-screen regression case compiles; phone execution is NOT_RUN. The NW122 host benchmark safely handles absent OS metadata; its prior nullable-receiver warning is absent from the fresh build log. Benchmark scenarios/results are not rerun or claimed improved.

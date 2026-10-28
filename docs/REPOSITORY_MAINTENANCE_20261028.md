@@ -1,5 +1,6 @@
 # Repository maintenance — 28 October 2026
 
+[Draft PR #137](https://github.com/Nahian2002/NightWave/pull/137).
 Scope: cumulative NW132 cleanup, information refresh and focused correctness review. Protected parent `aa6a56fd553a297d5aa790f6049a1f4634a11b63`. Branch `maintenance/nightwave-nw132-cleanup`. NW133 remains the next product batch.
 
 The initial inventory found 1,159 tracked files, no tracked generated archives/logs/cache files and no byte-identical tracked-file groups. Source, migrations, historical tools, dated roadmaps, original acceptance matrices, private data and all recovery checkpoints are retained. Disposable local outputs are considered separately from tracked source. Cleanup never extends to personal folders or global SDK/Gradle downloads.
