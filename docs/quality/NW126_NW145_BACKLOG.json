@@ -955,7 +955,8 @@
       "docs/design/EXPRESSIVE_THEME_FINISH.md",
       "docs/design/EXPRESSIVE_THEME_ACCEPTANCE.csv",
       "TEST_REPORT.md",
-      "docs/design/2026-10-28_THEME_POLISH_211137.md"
+      "docs/design/2026-10-28_THEME_POLISH_211137.md",
+      "docs/design/2026-10-28_MOOD_THEME_FINISH_230959.md"
     ],
     "local_evidence": [
       "1609 JVM tests / 200 suites; 62 source checks PASS",
@@ -965,8 +966,8 @@
       "234 nonpresentation files byte-identical; nine callback inventories retained"
     ],
     "remaining_blockers": [
-      "B985 phone confirmation of all four polished themes, Search clear/page-recreation/repeated explicit shortcut behavior and accessible input",
-      "Formal 360-case Android matrix remains NOT_RUN; prior native/performance/data-preservation/release blockers carry forward"
+      "A1BE phone confirmation of all six complete motifs, caption growth, all four palettes, shelf scrolling, accessible input and native/system-bar combinations",
+      "Formal 360-case Android matrix remains NOT_RUN; prior Search/performance/data-preservation/release blockers carry forward"
     ],
     "next_source_batch": "NW134",
     "previous_recorded_theme_score": 6.0,
@@ -1007,6 +1008,33 @@
         "862 source inputs independently verified; signer matches protected B017",
         "234 protected files and nine callback inventories preserved",
         "Sequential lint 0 errors / 313 warnings / 17 hints; no new baseline/suppression"
+      ]
+    },
+    "mood_finish": {
+      "implementation_status": "LOCAL_VERIFIED",
+      "device_status": "NOT_RUN",
+      "protected_parent": "70f12cdbd606fb91c6aca8a77da1f9585a4bbf40",
+      "implementation_commit": "931143f674cf015766fcd95b1a9c81affd185715",
+      "build_id": "NW-debug-A1BE94B78BE9B34D",
+      "recorded_appearance_score": 8.2,
+      "score_limit": "Same five-dimension subjective rubric; demonstrated screen sample varies, no exact APK attribution, not a new-candidate or whole-app score",
+      "scope": [
+        "Separate measured art lane and content-sized caption",
+        "Complete normalized six-mood motifs with stroke padding",
+        "Clearer decorative contrast and truthful Search glyph",
+        "One animated navigation selection capsule"
+      ],
+      "local_evidence": [
+        "1620 JVM tests / 202 suites PASS, six new geometry/locale/bounds regressions",
+        "62 source checks PASS, 14 expressive negative fixtures",
+        "360 Android cases compile only; existing mood case covers six shortcuts, device NOT_RUN",
+        "864 verified source inputs, same signer as protected B985",
+        "234 protected files and nine callback inventories preserved; exact six shortcut definitions retained",
+        "Sequential lint 0 errors / 313 warnings / 17 hints; no new suppression or baseline"
+      ],
+      "evidence": [
+        "docs/design/2026-10-28_MOOD_THEME_FINISH_230959.md",
+        "TEST_REPORT.md"
       ]
     }
   }

@@ -46,3 +46,7 @@ See the [new review](2026-10-28_THEME_VALIDATION_202916.md). Commit `6057bfaa2a0
 ## Four-theme composition and Search clarity
 
 The [next owner review](2026-10-28_THEME_POLISH_211137.md) rates recorded Midnight/Aurora 7.6 and Pearl/AMOLED 7.4, with limited alternate-theme coverage. A flat navigation rail, smaller icon selection capsule, borderless 16dp mini-player, filled secondary actions and softer decorative separators reduce repeated panel weight. Search uses a focus-aware hint and explicit one-time prefill ownership, preserving typed/cleared drafts across pager recreation. Five policy tests and the expanded existing Android Search method cover that regression; the formal matrix remains unrun. No new-candidate 10/10 or overall re-rating is claimed.
+
+## Mood containment and final composition
+
+The [latest recording review](2026-10-28_MOOD_THEME_FINISH_230959.md) rates the demonstrated screen sample 8.2/10 on the same five-dimension appearance rubric, with no exact binary attribution. A real mood-art defect is corrected: a 72dp measured art lane contains six complete normalized motifs with 4dp stroke padding, and a separate content-sized caption cannot cover them. Decorative accents are clearer; the icon communicates Search. Navigation retains one animated selection capsule. Six geometry/locale/invalid-bound JVM tests and expanded all-six-mood assertions in the existing Android method protect the change. Palette values and all features remain; new phone review is pending.
