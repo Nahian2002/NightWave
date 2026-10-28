@@ -22,7 +22,9 @@ Hosted logs, scanner/triage receipts, settings before/after and final visibility
 
 Repository-wide Actions was disabled and read back before exposure, because historical refs retain older workflows. Local build/verification tools remain usable. Workflow tokens remain read-only and cannot approve PRs; fork secrets/write-token delivery stays disabled. Re-enabling Actions requires a deliberate review of active refs and contribution policy.
 
-## Publication operation and remaining limits
+## Completed publication operation and remaining limits
+
+Published at 09:53 UTC, 28 October 2026; anonymous access and available security/reporting/review controls were verified. See SOURCE_PUBLICATION.md and the sanitized receipt for exact settings. [Review #138](https://github.com/Nahian2002/NightWave/pull/138).
 
 Promote only this reviewed cumulative source to `main` by fast-forward; preserve the old commit/history and private recovery bundle. Confirm the actual public payload, repository settings, available public secret-scanning/push-protection, private reporting and branch protections. Settings unsupported on a private personal repository must be configured/read back after visibility changes; record any unavailable feature honestly.
 

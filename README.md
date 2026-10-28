@@ -2,7 +2,7 @@
 
 An independent Android music player with an original midnight design, local music, playlists, background playback, imported synchronized lyrics, Sound Studio and optional Google Drive backup.
 
-**Repository publication preparation:** [status and remaining gates](SOURCE_PUBLICATION.md) · [source/service-use notes](TERMS_AND_SOURCE_USE.md). The app is unchanged by final source-publication preparation. See the publication record for actual visibility/settings; public app distribution remains unapproved.
+**Repository publication preparation:** [status and remaining gates](SOURCE_PUBLICATION.md) Â· [source/service-use notes](TERMS_AND_SOURCE_USE.md). The app is unchanged by final source-publication preparation. The source is public; no APK is published, and app distribution remains unapproved. See the publication record for verified security settings.
 
 **Latest maintenance:** [cleanup and focused fixes](docs/REPOSITORY_MAINTENANCE_20261028.md); the product roadmap remains at NW133.
 
@@ -10,15 +10,15 @@ An independent Android music player with an original midnight design, local musi
 
 **28 October 2026 verification:** NW132 clarifies liked, playlist, history and automatic-collection identity, simplifies Library tools and searches all 300 supported songs per playlist. **1,573 JVM tests / 197 suites** and **59 source checks** pass; Android/Compose and instrumentation sources compile. Five new Library screen cases compile only; phone/store/picker acceptance remains pending. See [current verification](TEST_REPORT.md) and [NW132 evidence](docs/NW132_CLEAR_LIBRARY.md).
 
-**Active next-upgrade plan:** [NW126–NW145 product-quality roadmap](docs/PRODUCT_QUALITY_ROADMAP.md), based on the [28 October recording/source audit](docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md). Provisional product rating **6.7/10**; 9.5+ is the target, not an achieved certification. **Next source batch: NW133.** NW126–NW132 are locally verified with physical acceptance pending. The audit/plan and gate repair are on [`audit/nightwave-post-nw125-quality-roadmap`](https://github.com/Nahian2002/NightWave/tree/audit/nightwave-post-nw125-quality-roadmap).
+**Active next-upgrade plan:** [NW126â€“NW145 product-quality roadmap](docs/PRODUCT_QUALITY_ROADMAP.md), based on the [28 October recording/source audit](docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md). Provisional product rating **6.7/10**; 9.5+ is the target, not an achieved certification. **Next source batch: NW133.** NW126â€“NW132 are locally verified with physical acceptance pending. The audit/plan and gate repair are on [`audit/nightwave-post-nw125-quality-roadmap`](https://github.com/Nahian2002/NightWave/tree/audit/nightwave-post-nw125-quality-roadmap).
 
 **Public release: NO-GO.** Installed-phone signer continuity, Samsung acceptance, production OAuth/Drive restore and source-rights review remain separate gates. A successful build does not authorize distribution or certify phone behavior.
 
 ## Start here
 
 - **[NW125 final build and phone-test instructions](docs/NW125_FINAL_CANDIDATE.md)**
-- **[Active NW126–NW145 roadmap](docs/PRODUCT_QUALITY_ROADMAP.md)** · [structured backlog](docs/quality/NW126_NW145_BACKLOG.json) · [80 new acceptance cases](docs/quality/NW126_NW145_ACCEPTANCE.csv)
-- [NW111–NW125 implementation history and remaining gates](docs/NW111_NW125_SPOTIFY_QUALITY_ROADMAP.md)
+- **[Active NW126â€“NW145 roadmap](docs/PRODUCT_QUALITY_ROADMAP.md)** Â· [structured backlog](docs/quality/NW126_NW145_BACKLOG.json) Â· [80 new acceptance cases](docs/quality/NW126_NW145_ACCEPTANCE.csv)
+- [NW111â€“NW125 implementation history and remaining gates](docs/NW111_NW125_SPOTIFY_QUALITY_ROADMAP.md)
 - [Build and safe update instructions](docs/BUILD_AND_RELEASE.md)
 - [Repository navigation](docs/REPOSITORY_INDEX.md)
 - [Current checks and historical tooling](tools/README.md)

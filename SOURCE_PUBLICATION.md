@@ -1,8 +1,8 @@
 # NightWave source-publication record
 
-**28 October 2026 — final source review complete; visibility operation/readback pending.** This is source-only GitHub publication. No APK, store submission, website, app-feature change, dependency change, installation or account-data operation is included.
+**28 October 2026 â€” final source review complete; visibility operation/readback pending.** This is source-only GitHub publication. No APK, store submission, website, app-feature change, dependency change, installation or account-data operation is included.
 
-The owner requested publication after receiving the copying/public-log/contact, licensing/provider and enforcement risks. The precise payload is cumulative NW132 plus maintenance, protected at `736f014e6ff38d73f29e014057f3c398a83a63d3`; preparation is on `audit/nightwave-source-publication-final`. Promote it to canonical `main` by fast-forward, preserving history. [Final review](docs/publication/FINAL_SOURCE_REVIEW_20261028.md).
+The owner requested publication after receiving the copying/public-log/contact, licensing/provider and enforcement risks. The precise payload is cumulative NW132 plus maintenance, protected at `736f014e6ff38d73f29e014057f3c398a83a63d3`; preparation is on `audit/nightwave-source-publication-final`. It was promoted to canonical `main` by fast-forward, preserving history. [Final review](docs/publication/FINAL_SOURCE_REVIEW_20261028.md).
 
 ## Verified payload
 
@@ -22,7 +22,19 @@ Repository-wide Actions was disabled and independently read back before exposure
 
 Current workflows use exact Action revisions, no persisted checkout credentials and private non-PR artifact conditions. The scanner is checksum-pinned; broad exclusions and unsafe workflow fixtures are rejected. The final preparation has an explicit app-preservation check against the current protected parent, while the historical NW130 preparation retains its original baseline.
 
-Public-repository security settings, default-branch protection and private vulnerability reporting require actual API readback during publication. Private personal-repository plan restrictions are recorded honestly rather than presented as enabled settings. Final settings/results will be appended after the visibility operation.
+Verified live settings after publication:
+
+| Setting | Readback |
+| --- | --- |
+| Repository/default branch | Public; canonical `main` contains the reviewed cumulative source |
+| Secret scanning/push protection | Enabled |
+| Vulnerability alerts/private reporting | Enabled |
+| Outside-contributor workflow approval | All external contributors |
+| Workflow token | Read-only; cannot approve PRs |
+| Hosted Actions | Disabled repository-wide; no automatic APK upload |
+| Main branch | One review and CODEOWNERS review; stale reviews dismissed; conversations resolved; force pushes/deletions disallowed by the configured rule |
+
+Owner administrators retain their documented bypass. No hosted status check is required while Actions is disabled. Automatic Dependabot update PRs are not enabled, preserving the no-dependency-change scope. GitHub showed zero open secret alerts at initial readback; this is not proof its asynchronous history scan has finished. Local all-ref/source/hosted reviews remain the separate evidence. [Sanitized operation receipt](.github/security/source-publication-result.json).
 
 ## Boundaries that remain
 

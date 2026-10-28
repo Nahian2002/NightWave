@@ -1,0 +1,49 @@
+{
+  "time_utc": "2026-10-28T09:53:35.431112+00:00",
+  "repository": "https://github.com/Nahian2002/NightWave",
+  "visibility": "public",
+  "default_branch": "main",
+  "published_head": "1ed015cb1c1d1467df38142c920a0d62aa61eb9c",
+  "security": {
+    "secret_scanning": {
+      "status": "enabled"
+    },
+    "secret_scanning_push_protection": {
+      "status": "enabled"
+    },
+    "dependabot_security_updates": {
+      "status": "disabled"
+    },
+    "secret_scanning_non_provider_patterns": {
+      "status": "disabled"
+    },
+    "secret_scanning_validity_checks": {
+      "status": "disabled"
+    }
+  },
+  "private_reporting": {
+    "enabled": true
+  },
+  "fork_approval": {
+    "approval_policy": "all_external_contributors"
+  },
+  "actions": {
+    "enabled": false,
+    "sha_pinning_required": false
+  },
+  "open_secret_alert_count": 0,
+  "admin_bypass_retained": true,
+  "required_hosted_checks": false,
+  "app_changed": false,
+  "apk_published": false,
+  "protected_parent": "736f014e6ff38d73f29e014057f3c398a83a63d3",
+  "protected_files_unchanged": 848,
+  "source_inputs_unchanged": 843,
+  "history_reviewed_commits_before_preparation": 3481,
+  "hosted_log_archives_reviewed": 836,
+  "reviewed_prs": 137,
+  "reviewed_comments": 5,
+  "hosted_secret_matches": 0,
+  "reviewed_noncredential_fingerprints": 13,
+  "review": "https://github.com/Nahian2002/NightWave/pull/138"
+}
