@@ -1,6 +1,6 @@
 # Current verification — NW130 decidable public music results
 
-28 October 2026. Branch `update/nightwave-nw130-public-music-results`, protected NW129 parent `da5db134d2563491cefae717b4ee5a3225ba8da7` (PR #132).
+28 October 2026. Branch `update/nightwave-nw130-public-music-results`, protected NW129 parent `da5db134d2563491cefae717b4ee5a3225ba8da7` (PR #132). Implementation `09114486009742d2fdef2d0af2a037e5405d5e37`; [draft PR #133](https://github.com/Nahian2002/NightWave/pull/133).
 
 The actual public result sections expose uploader, source, supplied duration and title-provided labels. Otherwise identical captions show distinct video IDs. Public title/uploader evidence wraps; no inferred artist/album/rights/ready state is added. Songs groups all unmodified selectable objects; Videos preserves provider order/raw captions; each tap sends the chosen object and a single-item collection to the retained exact-source offline-first/playback boundary.
 

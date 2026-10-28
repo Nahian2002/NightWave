@@ -1,6 +1,6 @@
 # NW130 — decidable public music results
 
-28 October 2026. Review branch `update/nightwave-nw130-public-music-results`; protected NW129 parent `da5db134d2563491cefae717b4ee5a3225ba8da7` (PR #132). Exact final build evidence is recorded below and in [TEST_REPORT](../TEST_REPORT.md).
+28 October 2026. Review branch `update/nightwave-nw130-public-music-results`; protected NW129 parent `da5db134d2563491cefae717b4ee5a3225ba8da7` (PR #132). Implementation commit `09114486009742d2fdef2d0af2a037e5405d5e37`; [draft PR #133](https://github.com/Nahian2002/NightWave/pull/133). Exact final build evidence is recorded below and in [TEST_REPORT](../TEST_REPORT.md).
 
 ## User-visible change
 

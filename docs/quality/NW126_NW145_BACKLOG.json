@@ -326,7 +326,7 @@
         "A tap plays exactly the chosen URL; distinct recordings are never silently merged, deleted or substituted and Videos/provider order semantics are preserved.",
         "Cancel/retry or change query during slow provider resolution; current-query progress, actionable timeout and explicit public-web fallback behave correctly."
       ],
-      "implementation_commit": null,
+      "implementation_commit": "09114486009742d2fdef2d0af2a037e5405d5e37",
       "local_evidence": [
         "docs/NW130_DECIDABLE_PUBLIC_RESULTS.md",
         "TEST_REPORT.md",
@@ -344,7 +344,8 @@
         "320/360/412dp, 1x/2x/3x, theme/contrast/TalkBack and long-title wrapping NOT_RUN",
         "Frozen corpus is synthetic candidate ranking only; live recall/quality and listener study remain unverified",
         "Q18 full source-capability/import journey remains NW135; carry NW126-NW129 installed signer/data/physical/audio/performance/recovery gates forward"
-      ]
+      ],
+      "pull_request": "https://github.com/Nahian2002/NightWave/pull/133"
     },
     {
       "id": "NW131",
