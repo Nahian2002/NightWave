@@ -165,7 +165,7 @@ fun NightWaveMixCard(
         } else {
             Column(Modifier.fillMaxWidth()) {
                 if (!compact && fontScale < 1.3f && first != null) {
-                    NightWaveMixMosaic(mix, Modifier.fillMaxWidth().aspectRatio(1f))
+                    NightWaveMixMosaic(mix, Modifier.fillMaxWidth().aspectRatio(1.6f))
                 }
                 Column(Modifier.fillMaxWidth().background(if (selected || featured) scheme.primaryContainer else scheme.surfaceVariant)
                     .padding(NightWavePremiumDesignTokens.CARD_PADDING_DP.dp)) {
@@ -184,7 +184,7 @@ private fun NightWaveMixMosaic(mix: PersonalMix, modifier: Modifier = Modifier) 
         verticalArrangement = Arrangement.spacedBy(2.dp)) {
         tracks.chunked(2).forEach { row ->
             Row(Modifier.fillMaxWidth().weight(1f), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                row.forEach { track -> TrackArtwork(track, Modifier.weight(1f).fillMaxSize()) }
+                row.forEach { track -> TrackArtwork(track, Modifier.weight(1f).fillMaxSize(), radius = 4) }
                 if (row.size == 1) Spacer(Modifier.weight(1f))
             }
         }
@@ -200,15 +200,15 @@ private fun NightWaveMixCaption(
 ) {
     val scheme = MaterialTheme.colorScheme
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(presentation?.caption ?: "FROM YOUR LIBRARY", style = MaterialTheme.typography.labelSmall,
+        if (fontScale >= 1.3f) Text(presentation?.caption ?: "FROM YOUR LIBRARY", style = MaterialTheme.typography.labelSmall,
             color = scheme.onSurfaceVariant)
         Text(presentation?.title ?: mix.title, style = MaterialTheme.typography.titleMedium,
-            color = scheme.onSurface, maxLines = if (fontScale >= 1.3f) Int.MAX_VALUE else 3,
+            color = scheme.onSurface, maxLines = if (fontScale >= 1.3f) Int.MAX_VALUE else 2,
             overflow = TextOverflow.Ellipsis)
         val startsWith = presentation?.startsWith.orEmpty()
         if (startsWith.isNotBlank()) Text(startsWith,
             style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant,
-            maxLines = if (fontScale >= 1.3f) Int.MAX_VALUE else 2, overflow = TextOverflow.Ellipsis)
+            maxLines = if (fontScale >= 1.3f) Int.MAX_VALUE else 1, overflow = TextOverflow.Ellipsis)
         Text(trackLabel, style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
     }
 }

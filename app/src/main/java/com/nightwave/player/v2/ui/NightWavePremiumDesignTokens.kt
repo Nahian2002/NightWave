@@ -41,7 +41,7 @@ object NightWavePremiumDesignTokens {
         val width = if (widthDp.isFinite()) widthDp.coerceAtLeast(0f) else 320f
         val scale = if (fontScale.isFinite()) fontScale else 1f
         return if (scale >= 1.3f) (width - 48f).toInt().coerceIn(156, 260)
-            else 156
+            else 144
     }
 
     /** No negative/NaN measurement can become a Compose dimension. */

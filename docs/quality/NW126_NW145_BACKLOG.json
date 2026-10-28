@@ -1037,5 +1037,72 @@
         "TEST_REPORT.md"
       ]
     }
+  },
+  "content_finish": {
+    "id": "DESIGN03",
+    "title": "Music-first content hierarchy, artwork and consistent theme text",
+    "implementation_status": "LOCAL_VERIFIED",
+    "device_status": "PARTIAL",
+    "protected_parent": "6d664ba4111cbd87c9adf28e6600ca0fef25f982",
+    "branch": "design/nightwave-content-finish",
+    "recorded_baseline_appearance": 8.4,
+    "score_scope": "Prior 232750 recording UI/appearance only; no exact binary attribution or new-candidate score",
+    "evidence": [
+      "docs/design/CONTENT_HIERARCHY_FINISH.md",
+      "docs/design/CONTENT_FINISH_ACCEPTANCE.csv",
+      "TEST_REPORT.md",
+      "docs/design/2026-10-29_ARTWORK_PAGER_REVIEW.md"
+    ],
+    "scope": [
+      "Source-aware contained artwork and existing bounded candidates",
+      "Compact four-image mix accents, music/title hierarchy and all preview actions",
+      "Real saved music before browsing in empty Search",
+      "Concise count/membership copy without losing meaning",
+      "Neutral normal content and distinct readable error container",
+      "Snapping shelves, aligned gutters and balanced responsive player"
+    ],
+    "remaining_blockers": [
+      "006E phone verification of proportional artwork, all theme/shelf/page/reselect/rapid-tap/interrupted-swipe/recreation combinations",
+      "468 formal Android cases and updated 136-case supplement NOT_RUN; prior accessibility/performance/data/audio/release gates carry forward"
+    ],
+    "next_source_batch": "NW134",
+    "pull_request": "https://github.com/Nahian2002/NightWave/pull/147",
+    "implementation_commit": "ec1f57f7631f9b673000e54777262ec1b2166f69",
+    "build_id": "NW-debug-4041E5226C8D41DF",
+    "local_evidence": [
+      "1625 JVM tests / 203 suites, zero failures/errors/skips",
+      "63 source checks PASS, ten new broken caller fixtures; prior checks retained",
+      "432 Android cases compiled only; 96-case new supplement NOT_RUN",
+      "867 source inputs independently verified; signer matches protected A1BE",
+      "234 protected files, nine callback inventories and exact six shortcut definitions retained",
+      "Final sequential lint 0 errors / 313 warnings / 17 hints; no new suppression/baseline"
+    ],
+    "recorded_regression_score": 7.8,
+    "regression_followup": {
+      "implementation_status": "LOCAL_VERIFIED",
+      "device_status": "NOT_RUN",
+      "protected_parent": "67c35cdca371d805d59284aa77b8ec6729efaf3c",
+      "implementation_commit": "ff5000124bb80abe9735fbbaf52e965ededba342",
+      "build_id": "NW-debug-006E0C6D2D365492",
+      "recorded_score_limit": "Owner sample confirms tiny artwork and split pages; no exact binary attribution, no new-candidate score",
+      "scope": [
+        "Fit instead of native-size stamps and more legible balanced mosaics",
+        "Nested shelf horizontal leftovers isolated from pager",
+        "Settled-page selection and current-tab recentering",
+        "Idle partial-page repair excluding active drag/animation"
+      ],
+      "local_evidence": [
+        "1632 JVM tests / 204 suites; seven recovery policy regressions",
+        "64 source checks PASS; ten new recovery broken fixtures",
+        "468 Android cases compiled only; device NOT_RUN",
+        "871 source inputs independently verified; same signer as protected 4041",
+        "234 protected files and nine feature callback inventories retained",
+        "Sequential lint 0 errors / 313 warnings / 17 hints; current adb inventory empty"
+      ],
+      "evidence": [
+        "docs/design/2026-10-29_ARTWORK_PAGER_REVIEW.md",
+        "TEST_REPORT.md"
+      ]
+    }
   }
 }

@@ -1,3 +1,7 @@
+Latest acceptance correction: [tiny artwork and split-page review](design/2026-10-29_ARTWORK_PAGER_REVIEW.md), recorded appearance 7.8; 006E phone validation pending.
+
+**Latest review branch:** [`design/nightwave-content-finish`](https://github.com/Nahian2002/NightWave/tree/design/nightwave-content-finish), DESIGN03 on DESIGN02 #146. [All six content/artwork recommendations](design/CONTENT_HIERARCHY_FINISH.md), [acceptance](design/CONTENT_FINISH_ACCEPTANCE.csv). NW134 remains next.
+
 # NightWave — repository navigation
 
 **Current implementation:** DESIGN02 expressive-theme finish on [`design/nightwave-expressive-themes`](https://github.com/Nahian2002/NightWave/tree/design/nightwave-expressive-themes), stacked on PR #145. [Theme-only recording review](design/2026-10-28_THEME_RECORDING_REVIEW.md), [correction](design/EXPRESSIVE_THEME_FINISH.md), [review #146](https://github.com/Nahian2002/NightWave/pull/146). **NW134 remains next.** [Attributable owner review: 7.6/10 theme only](design/2026-10-28_THEME_VALIDATION_202916.md); boundary-fix phone acceptance remains pending.

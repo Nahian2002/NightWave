@@ -28,11 +28,12 @@ import com.nightwave.player.v2.recommendation.PersonalMix
 import java.io.File
 import org.junit.Assert.*
 import org.junit.Rule
+import kotlinx.coroutines.launch
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
-/** 36 configurations × 10 actual UI cases. Blank source art and in-memory callbacks only.
+/** 36 configurations × 13 actual UI cases. Blank source art and in-memory callbacks only.
  * Does not install data, start playback, connect accounts or contact providers.
  * Captures exist only when these cases actually execute on Android.
  */
@@ -76,6 +77,8 @@ class NightWaveMatteAcceptanceInstrumentedTest(
             assertEquals(palette.background.toInt(), MaterialTheme.colorScheme.background.toArgb())
             assertEquals(palette.foreground.toInt(), MaterialTheme.colorScheme.onBackground.toArgb())
             val colors = MaterialTheme.colorScheme
+            assertEquals(colors.onSurface, androidx.compose.material3.contentColorFor(colors.surface))
+            assertTrue(colors.errorContainer != colors.surface)
             assertEquals(palette.surface.toInt(), colors.surfaceContainerLow.toArgb())
             assertEquals(palette.surface.toInt(), colors.surfaceContainer.toArgb())
             assertEquals(palette.raised.toInt(), colors.surfaceContainerHigh.toArgb())
@@ -282,6 +285,94 @@ class NightWaveMatteAcceptanceInstrumentedTest(
             compose.onNodeWithTag("expressive-mood").performClick()
             compose.runOnIdle { assertEquals(mood.query, action) }; capture("mood-$index")
         }
+    }
+
+    @Test fun searchStartsWithRealMusicAndRetainsBrowseRoutes() {
+        val index = LocalMusicSearchIndex.build(LocalMusicSnapshot(
+            com.nightwave.player.v2.data.room.LegacyLibrarySnapshot(songs.take(3), emptyList(), emptyList(), "fixture"),
+            emptyList()))
+        fixture {
+            StudioSearch(Modifier, StudioSearchSnapshot(), onPrimarySearch = { _, _ -> },
+                onNativeSearch = { _, _ -> }, onWebSearch = {}, onPlay = { song, _ -> action = song.url },
+                onSongOptions = {}, playingUrl = "", corpus = LocalMusicCorpusState(0L, 0, index),
+                onRetryCorpus = {}, onOfflineSearch = { action = "offline" }, searchHistory = emptyList(),
+                canUndoSearchRemoval = false, onRecordSearch = {}, onRemoveSearch = {},
+                onUndoSearchRemoval = {}, onClearSearch = {})
+        }
+        compose.onNodeWithText("Fixture song 1").assertIsDisplayed().performClick()
+        compose.runOnIdle { assertEquals(songs.first().url, action) }
+        compose.onNodeWithTag("nw129-search-list").performScrollToNode(hasText("Offline songs"))
+        compose.onNodeWithText("Offline songs").performClick()
+        compose.runOnIdle { assertEquals("offline", action) }
+        compose.onNodeWithTag("nw129-search-list").performScrollToNode(hasText("Creators"))
+        compose.onNodeWithText("Creators").assertExists()
+    }
+
+    @Test fun wideSourceArtworkFillsThePreviewWhileRetainingBothEdges() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val file = java.io.File.createTempFile("nw-content-art-", ".png", context.cacheDir)
+        try {
+            val bitmap = Bitmap.createBitmap(180, 90, Bitmap.Config.ARGB_8888)
+            val canvas = android.graphics.Canvas(bitmap)
+            canvas.drawColor(android.graphics.Color.GREEN)
+            val paint = android.graphics.Paint().apply { color = android.graphics.Color.RED }
+            canvas.drawRect(0f, 0f, 18f, 90f, paint)
+            paint.color = android.graphics.Color.BLUE
+            canvas.drawRect(162f, 0f, 180f, 90f, paint)
+            file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+            fixture { CoverArt(file.toURI().toString(), Modifier.size(220.dp).testTag("content-art"),
+                large = true, trackIdentity = "owned-fixture") }
+            compose.waitUntil(5_000) {
+                compose.onNodeWithTag("content-art").captureToImage().asAndroidBitmap()
+                    .getPixel(110, 110) == android.graphics.Color.GREEN
+            }
+            val rendered = compose.onNodeWithTag("content-art").captureToImage().asAndroidBitmap()
+            assertEquals(android.graphics.Color.RED, rendered.getPixel(8, 110))
+            assertEquals(android.graphics.Color.BLUE, rendered.getPixel(211, 110))
+            assertTrue(rendered.getPixel(110, 10) != android.graphics.Color.GREEN)
+            capture("source-artwork-containment")
+        } finally { file.delete() }
+    }
+
+    @Test fun shelfEdgeFlingsAndCancelledOrRecoloredPagesCannotStaySplit() {
+        var pager: androidx.compose.foundation.pager.PagerState? = null
+        var scope: kotlinx.coroutines.CoroutineScope? = null
+        var selectedTheme by mutableStateOf(theme)
+        fixture {
+            NightWaveMaterialTheme(selectedTheme) {
+                val state = androidx.compose.foundation.pager.rememberPagerState { 4 }
+                val localScope = rememberCoroutineScope()
+                SideEffect { pager = state; scope = localScope }
+                NightWavePagerRecovery(state)
+                androidx.compose.foundation.pager.HorizontalPager(state, Modifier.fillMaxSize().testTag("recovery-pager")) { page ->
+                    Column(Modifier.fillMaxSize()) {
+                        androidx.compose.foundation.lazy.LazyRow(
+                            Modifier.fillMaxWidth().height(96.dp).nightWaveShelfBoundary().testTag("recovery-shelf-$page")) {
+                            items(6) { n -> Text("Item $n", Modifier.width(96.dp).height(80.dp)) }
+                        }
+                        Box(Modifier.fillMaxWidth().weight(1f).testTag("recovery-blank-$page"))
+                    }
+                }
+            }
+        }
+        repeat(6) { compose.onNodeWithTag("recovery-shelf-0").performTouchInput { swipeLeft() } }
+        compose.waitForIdle()
+        compose.runOnIdle {
+            assertEquals(0, requireNotNull(pager).currentPage)
+            assertTrue(kotlin.math.abs(requireNotNull(pager).currentPageOffsetFraction) <= .001f)
+        }
+        compose.onNodeWithTag("recovery-blank-0").performTouchInput { swipeLeft() }
+        compose.waitForIdle()
+        compose.runOnIdle { assertEquals(1, requireNotNull(pager).settledPage) }
+        compose.runOnIdle {
+            requireNotNull(scope).launch { requireNotNull(pager).scrollToPage(1, .35f) }
+            selectedTheme = NightWaveTheme.entries[(theme.ordinal + 1) % NightWaveTheme.entries.size]
+        }
+        compose.waitUntil(5_000) {
+            val state = requireNotNull(pager)
+            !state.isScrollInProgress && kotlin.math.abs(state.currentPageOffsetFraction) <= .001f
+        }
+        compose.runOnIdle { assertEquals(1, requireNotNull(pager).settledPage) }; capture("pager-recovery")
     }
 
 }

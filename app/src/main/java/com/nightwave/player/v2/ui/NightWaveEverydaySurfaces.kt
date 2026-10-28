@@ -96,7 +96,7 @@ fun NightWaveRecentShelfTile(
         Surface(onClick = onPlay, shape = RoundedCornerShape(NightWavePremiumDesignTokens.CARD_CORNER_DP.dp),
             modifier = Modifier.fillMaxWidth().testTag("nw47-recent-play")) {
             Box {
-                TrackArtwork(song, Modifier.fillMaxWidth().aspectRatio(1f))
+                TrackArtwork(song, Modifier.fillMaxWidth().aspectRatio(1f), large = true)
                 if (isPlaying) Surface(
                     Modifier.align(Alignment.BottomStart).padding(7.dp),
                     color = colors.primary, shape = RoundedCornerShape(7.dp)) {
@@ -157,11 +157,6 @@ fun NightWaveNextListenTile(
     val identity = remember(song.title, song.author) {
         MusicIdentity.display(song.title, song.author)
     }
-    val preferred = remember(song.thumbnail) {
-        NightWaveArtworkPolicy.preferredArtwork(song.thumbnail)
-    }
-    var useOriginal by remember(song.thumbnail) { mutableStateOf(false) }
-    val thumbnail = if (useOriginal) song.thumbnail else preferred
     Column(
         modifier = Modifier.width(NightWavePremiumDesignTokens.shelfWidthDp(
             LocalConfiguration.current.screenWidthDp.toFloat(), LocalDensity.current.fontScale).dp)
@@ -186,18 +181,7 @@ fun NightWaveNextListenTile(
                         .background(scheme.surfaceVariant),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("♫", style = MaterialTheme.typography.headlineLarge,
-                        color = scheme.onSurfaceVariant)
-                    if (thumbnail.isNotBlank()) {
-                        AsyncImage(model = thumbnail,
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize(),
-                            onError = {
-                                if (!useOriginal && NightWaveArtworkPolicy.allowOriginalFallback(
-                                        song.thumbnail, preferred)) useOriginal = true
-                            })
-                    }
+                    TrackArtwork(song, Modifier.fillMaxSize(), large = true)
                     if (isPlaying) {
                         Surface(
                             modifier = Modifier.align(Alignment.BottomStart).padding(8.dp),
