@@ -199,7 +199,7 @@ class NightWaveLockerActivity : ComponentActivity() {
             setSingleLine(true)
             textSize = 14f
             setTextColor(nativeMattePalette.foreground.toInt())
-            setHintTextColor(0xFF8095A8.toInt())
+            setHintTextColor(nativeMattePalette.secondary.toInt())
             setBackgroundColor(NightWaveNativeMattePolicy.surface(0xFF172432, nativeMattePalette).toInt())
             setPadding(dp(12), dp(6), dp(12), dp(6))
             addTextChangedListener(object : TextWatcher {

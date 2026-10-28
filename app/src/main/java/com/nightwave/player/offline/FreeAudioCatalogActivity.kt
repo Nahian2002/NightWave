@@ -63,8 +63,8 @@ class FreeAudioCatalogActivity : NightWaveOfflineShellActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        window.statusBarColor = 0xFF0C131B.toInt()
-        window.navigationBarColor = 0xFF0C131B.toInt()
+        window.statusBarColor = nativeMattePalette.background.toInt()
+        window.navigationBarColor = nativeMattePalette.background.toInt()
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             background = GradientDrawable().apply { setColor(nativeMattePalette.background.toInt()) }
@@ -94,7 +94,7 @@ class FreeAudioCatalogActivity : NightWaveOfflineShellActivity() {
                 } else false
             }
             setTextColor(nativeMattePalette.foreground.toInt())
-            setHintTextColor(0xFF7F9CAB.toInt())
+            setHintTextColor(nativeMattePalette.secondary.toInt())
             background = rounded(0xFF192932.toInt())
             setPadding(dp(13), dp(12), dp(13), dp(12))
         }

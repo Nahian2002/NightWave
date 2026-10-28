@@ -157,7 +157,7 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
             setSingleLine(true)
             textSize = 15f
             setTextColor(nativeMattePalette.foreground.toInt())
-            setHintTextColor(0xFF8294A8.toInt())
+            setHintTextColor(nativeMattePalette.secondary.toInt())
             setPadding(dp(15), 0, dp(15), 0)
             background = cardBackground(0xFF172432.toInt())
             setText(searchText)

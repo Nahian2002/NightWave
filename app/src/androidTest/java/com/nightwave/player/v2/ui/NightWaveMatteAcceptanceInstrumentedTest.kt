@@ -19,7 +19,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.test.platform.app.InstrumentationRegistry
-import com.nightwave.player.library.PlaylistFolderSnapshot
+import com.nightwave.player.v2.library.PlaylistFolderSnapshot
 import com.nightwave.player.net.*
 import com.nightwave.player.v2.insights.ListeningMemorySummary
 import com.nightwave.player.v2.model.*
