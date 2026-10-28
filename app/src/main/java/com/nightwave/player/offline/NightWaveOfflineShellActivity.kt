@@ -45,7 +45,11 @@ abstract class NightWaveOfflineShellActivity : ComponentActivity() {
     private val viewportLayoutListener = View.OnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> restoreViewport() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        com.nightwave.player.v2.ui.NightWaveNativeMatte.applyNativeTheme(this)
         super.onCreate(savedInstanceState)
+        profile = profile.copy(theme = com.nightwave.player.v2.ui.NightWaveNativeMatte.selectedTheme(this))
+        com.nightwave.player.v2.ui.NightWaveMatteSystemBars.apply(this,
+            com.nightwave.player.v2.ui.NightWaveNativeMatte.palette(this))
         nativeRecovery = savedInstanceState?.getBoolean("nw128-recovery")
             ?: intent.getBooleanExtra(NightWaveOfflineNavigator.EXTRA_RECOVERY, false)
         restoredViewport = savedInstanceState?.getInt("nw128-viewport")

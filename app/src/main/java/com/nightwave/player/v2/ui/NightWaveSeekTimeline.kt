@@ -1,6 +1,7 @@
 package com.nightwave.player.v2.ui
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,6 +17,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.progressBarRangeInfo
@@ -45,15 +49,36 @@ internal fun NightWaveSeekTimeline(
     positionDescription: String? = null
 ) {
     val colors = MaterialTheme.colorScheme
+    val dark = LocalNightWavePalette.current.isDark
     val shown = if (fraction.isFinite()) fraction.coerceIn(0f, 1f) else 0f
     val previewCallback by rememberUpdatedState(onPreview)
     val commitCallback by rememberUpdatedState(onCommit)
     val cancelCallback by rememberUpdatedState(onCancel)
+    var pressed by remember(trackIdentity) { androidx.compose.runtime.mutableStateOf(false) }
+    var dragging by remember(trackIdentity) { androidx.compose.runtime.mutableStateOf(false) }
+    var focused by remember { androidx.compose.runtime.mutableStateOf(false) }
+    val context = LocalContext.current
+    val accessibility = remember(context) {
+        context.getSystemService(android.view.accessibility.AccessibilityManager::class.java)
+    }
+    var touchExploration by remember(accessibility) {
+        androidx.compose.runtime.mutableStateOf(accessibility?.isTouchExplorationEnabled == true)
+    }
+    androidx.compose.runtime.DisposableEffect(accessibility) {
+        val listener = android.view.accessibility.AccessibilityManager.TouchExplorationStateChangeListener {
+            touchExploration = it
+        }
+        accessibility?.addTouchExplorationStateChangeListener(listener)
+        onDispose { accessibility?.removeTouchExplorationStateChangeListener(listener) }
+    }
     var dragged by remember(trackIdentity) { mutableFloatStateOf(shown) }
     val tapDragModifier = if (!enabled) Modifier else Modifier
         .pointerInput(enabled, trackIdentity) {
             val edge = 8.dp.toPx()
-            detectTapGestures { pos ->
+            detectTapGestures(onPress = {
+                pressed = true
+                try { tryAwaitRelease() } finally { pressed = false }
+            }) { pos ->
                 NightWaveSeekGesturePolicy.touchFractionOrNull(
                     pos.x, size.width.toFloat(), edge
                 )?.let { commitCallback(trackIdentity, it) }
@@ -66,6 +91,7 @@ internal fun NightWaveSeekTimeline(
             var validDrag = false
             detectDragGestures(
                 onDragStart = { pos ->
+                    dragging = true
                     val mapped = NightWaveSeekGesturePolicy.touchFractionOrNull(
                         pos.x, size.width.toFloat(), edge)
                     validDrag = mapped != null
@@ -75,11 +101,13 @@ internal fun NightWaveSeekTimeline(
                     }
                 },
                 onDragEnd = {
+                    dragging = false
                     if (validDrag) commitCallback(trackIdentity, dragged)
                     else cancelCallback()
                     validDrag = false
                 },
                 onDragCancel = {
+                    dragging = false
                     validDrag = false
                     cancelCallback()
                 }
@@ -114,6 +142,22 @@ internal fun NightWaveSeekTimeline(
                     } else false
                 }
             }
+            .onFocusChanged { focused = it.isFocused }
+            .onPreviewKeyEvent { event ->
+                if (!enabled || event.type != KeyEventType.KeyUp) false else {
+                    val requested = when (event.key) {
+                        Key.DirectionLeft -> shown - .05f
+                        Key.DirectionRight -> shown + .05f
+                        Key.MoveHome -> 0f
+                        Key.MoveEnd -> 1f
+                        else -> null
+                    }
+                    if (requested != null) {
+                        commitCallback(trackIdentity, requested.coerceIn(0f, 1f)); true
+                    } else false
+                }
+            }
+            .focusable(enabled)
             .then(tapDragModifier)
     ) {
         val edge = 8.dp.toPx()
@@ -121,18 +165,18 @@ internal fun NightWaveSeekTimeline(
         val fullX = NightWaveSeekGesturePolicy.thumbX(1f, size.width, edge)
         val cy = size.height / 2f
         val endX = NightWaveSeekGesturePolicy.thumbX(shown, size.width, edge)
-        val baseline = colors.onSurfaceVariant.copy(alpha = .25f)
+        val baseline = if (dark) paletteColor(0xFF2C2C2E) else colors.outline
         drawLine(
             baseline, Offset(startX, cy), Offset(fullX, cy),
             strokeWidth = 4.dp.toPx(), cap = StrokeCap.Round
         )
         drawLine(
-            if (enabled) colors.primary else colors.onSurfaceVariant,
+            if (enabled) colors.onSurface else colors.onSurfaceVariant,
             Offset(startX, cy), Offset(endX, cy),
             strokeWidth = 4.dp.toPx(), cap = StrokeCap.Round
         )
-        drawCircle(
-            color = if (enabled) colors.primary else colors.onSurfaceVariant,
+        if (enabled && NightWaveMattePolicy.showSeekThumb(pressed || dragging, focused, touchExploration)) drawCircle(
+            color = colors.onSurface,
             radius = 6.dp.toPx(), center = Offset(endX, cy)
         )
     }

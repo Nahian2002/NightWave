@@ -33,7 +33,7 @@ import androidx.compose.material.icons.outlined.PersonOutline
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import com.nightwave.player.v2.ui.NightWaveMatteIconButton as IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -137,11 +137,11 @@ fun NightWavePremiumNavigation(
     val tags = listOf("home", "search", "library", "profile")
     Surface(
         modifier = Modifier.fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 2.dp),
+            .padding(horizontal = 8.dp, vertical = 2.dp),
         color = colors.surface,
-        tonalElevation = 1.dp,
-        shadowElevation = 7.dp,
-        border = BorderStroke(1.dp, colors.outline.copy(alpha = .30f)),
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
+        border = BorderStroke(1.dp, colors.onSurface.copy(alpha = NightWaveMattePolicy.BORDER_ALPHA)),
         shape = RoundedCornerShape(NightWavePremiumDesignTokens.NAV_CORNER_DP.dp)
     ) {
         Row(
@@ -154,7 +154,7 @@ fun NightWavePremiumNavigation(
             names.forEachIndexed { index, label ->
                 val active = NightWaveChromePolicy.selectedTab(selectedIndex) == index
                 val color by animateColorAsState(
-                    targetValue = if (active) colors.primary.copy(alpha = .16f)
+                    targetValue = if (active) colors.surfaceVariant
                         else Color.Transparent,
                     animationSpec = tween(
                         durationMillis = NightWaveMotionPolicy.duration(

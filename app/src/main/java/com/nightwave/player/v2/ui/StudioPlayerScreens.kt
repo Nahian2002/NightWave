@@ -67,7 +67,7 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import com.nightwave.player.v2.ui.NightWaveMatteIconButton as IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
@@ -80,9 +80,9 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.Button
+import com.nightwave.player.v2.ui.NightWaveMatteButton as Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.OutlinedButton
+import com.nightwave.player.v2.ui.NightWaveMatteOutlinedButton as OutlinedButton
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.Composable
@@ -177,17 +177,10 @@ fun StudioMiniPlayer(
         modifier = modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 3.dp)
             .testTag("nightwave-mini-player")
             .semantics { stateDescription = statusLabel }
-            .shadow(7.dp, miniShape)
             .clip(miniShape)
-            .background(
-                Brush.horizontalGradient(listOf(
-                    NightWaveVisualLanguage.accent(state.videoUrl).copy(alpha = .14f),
-                    colors.surfaceVariant,
-                    colors.surface
-                ))
-            )
+            .background(colors.surface)
             // Shadow, clipping and stroke must follow the SAME corner path.
-            .border(1.dp, colors.outline.copy(alpha = .26f), miniShape)
+            .border(1.dp, colors.onSurface.copy(alpha = NightWaveMattePolicy.BORDER_ALPHA), miniShape)
             .pointerInput(state.videoUrl) {
                 detectVerticalDragGestures(
                     onDragStart = { travel = 0f },
@@ -328,8 +321,8 @@ fun StudioMiniPlayer(
                 PlayerProgressRules.fraction(state.positionMs, state.durationMs)
             },
             modifier = Modifier.fillMaxWidth().height(2.dp),
-            color = colors.primary,
-            trackColor = colors.outline.copy(alpha = .28f)
+            color = colors.onSurface,
+            trackColor = colors.onSurface.copy(alpha = .15f)
         )
     }
 }
@@ -337,9 +330,11 @@ fun StudioMiniPlayer(
 @Composable
 internal fun CoverArt(
     url: String, modifier: Modifier = Modifier, radius: Int = 24,
-    description: String? = "Song artwork", trackIdentity: String = "", large: Boolean = false
+    description: String? = "Song artwork", trackIdentity: String = "", large: Boolean = false,
+    onResolved: ((android.graphics.drawable.Drawable) -> Unit)? = null
 ) {
     val context = LocalContext.current
+    val artworkColors = MaterialTheme.colorScheme
     val candidates = remember(url, large) { NightWaveArtworkPolicy.requestCandidates(url, large) }
     var candidateIndex by remember(trackIdentity, url, large) { mutableIntStateOf(0) }
     var failed by remember(trackIdentity, url, large) { mutableStateOf(false) }
@@ -348,24 +343,22 @@ internal fun CoverArt(
     val displayUrl = candidates.getOrNull(attempt)
     val shape = RoundedCornerShape(radius.dp)
     Box(modifier.onSizeChanged { pixels = NightWaveArtworkPolicy.requestPixels(it.width, it.height) }
-        .clip(shape).background(Brush.linearGradient(listOf(
-            MaterialTheme.colorScheme.primary.copy(alpha = .5f),
-            MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.surface)))
+        .clip(shape).background(artworkColors.surfaceVariant)
         .semantics {
             description?.let { contentDescription = if (failed || displayUrl == null)
                 "$it · image unavailable" else it }
         }, contentAlignment = Alignment.Center) {
         Canvas(Modifier.fillMaxSize(.64f)) {
-            drawCircle(Color.White.copy(alpha = .26f), radius = size.minDimension * .44f)
-            drawCircle(Color.White.copy(alpha = .65f), radius = size.minDimension * .33f,
+            drawCircle(artworkColors.onSurface.copy(alpha = .12f), radius = size.minDimension * .44f)
+            drawCircle(artworkColors.onSurface.copy(alpha = .32f), radius = size.minDimension * .33f,
                 style = Stroke(width = 2.dp.toPx()))
-            drawCircle(Color.White.copy(alpha = .7f), radius = size.minDimension * .09f)
+            drawCircle(artworkColors.onSurface.copy(alpha = .5f), radius = size.minDimension * .09f)
         }
         if (!failed && displayUrl != null && pixels > 0) {
             val request = remember(displayUrl, pixels, context) {
                 ImageRequest.Builder(context).data(displayUrl).size(pixels, pixels)
                     .memoryCachePolicy(CachePolicy.ENABLED).diskCachePolicy(CachePolicy.ENABLED)
-                    .crossfade(false).build()
+                    .allowHardware(!large).crossfade(false).build()
             }
             val advance = {
                 if (candidateIndex == attempt) {
@@ -378,6 +371,7 @@ internal fun CoverArt(
                 onSuccess = { loaded ->
                     if (NightWaveArtworkPolicy.isUnavailableLargeStill(displayUrl,
                             loaded.result.drawable.intrinsicWidth, loaded.result.drawable.intrinsicHeight)) advance()
+                    else if (candidateIndex == attempt) onResolved?.invoke(loaded.result.drawable)
                 })
         }
     }
@@ -443,13 +437,15 @@ fun StudioNowPlayingOverlay(
         enter = enter,
         exit = exit
     ) {
-        val colors = MaterialTheme.colorScheme
+        val colors = MaterialTheme.colorScheme.copy(onSurfaceVariant =
+            paletteColor(NightWaveMattePolicy.playerSecondary(LocalNightWavePalette.current)))
+        var resolvedArtwork by remember(state.videoUrl, state.thumbnail) {
+            mutableStateOf<android.graphics.drawable.Drawable?>(null)
+        }
         BoxWithConstraints(Modifier.fillMaxSize()
             .windowInsetsPadding(WindowInsets.safeDrawing)
             .background(colors.background)) {
-            // Deterministic, artwork-keyed ambient light; never crop or blur
-            // remote thumbnails, preserving battery life and privacy.
-            NightWaveBackdrop(state.videoUrl.ifBlank { "nightwave-player" }, Modifier.fillMaxSize())
+            NightWaveArtworkBackdrop(resolvedArtwork, Modifier.fillMaxSize())
             val fontScale = LocalDensity.current.fontScale
             // Capture BoxWithConstraints width before entering nested Compose scopes.
             // Inner Column/Row scopes cannot implicitly access the outer receiver.
@@ -671,7 +667,7 @@ fun StudioNowPlayingOverlay(
                         modifier = Modifier.fillMaxWidth().padding(bottom = 14.dp),
                         shape = RoundedCornerShape(20.dp),
                         color = colors.surface,
-                        tonalElevation = 1.dp
+                        tonalElevation = 0.dp
                     ) {
                         Column(Modifier.padding(14.dp),
                             horizontalAlignment = Alignment.CenterHorizontally) {
@@ -769,21 +765,16 @@ fun StudioNowPlayingOverlay(
                 Box(
                     Modifier.size(art)
                         .testTag("nightwave-now-playing-artwork")
-                        .shadow(if (reduceMotion) 8.dp else 20.dp,
+                        .shadow(8.dp,
                             RoundedCornerShape(playerLayout.artworkCornerDp.dp))
                         .graphicsLayer {
                             scaleX = playingArtworkScale
                             scaleY = playingArtworkScale
                         }
                         .clip(RoundedCornerShape(playerLayout.artworkCornerDp.dp))
-                        .background(
-                            Brush.linearGradient(listOf(
-                                NightWaveVisualLanguage.accent(state.videoUrl).copy(alpha = .36f),
-                                colors.surfaceVariant, colors.surface
-                            ))
-                        )
+                        .background(colors.surfaceVariant)
                         .border(1.dp,
-                            colors.onBackground.copy(alpha = .12f),
+                            colors.onBackground.copy(alpha = NightWaveMattePolicy.BORDER_ALPHA),
                             RoundedCornerShape(playerLayout.artworkCornerDp.dp)).then(
                         if (canSwipeArtwork) Modifier.pointerInput(
                             state.videoUrl, state.queue.size, state.connected, state.buffering
@@ -818,7 +809,8 @@ fun StudioNowPlayingOverlay(
                     if (reduceMotion) {
                         CoverArt(state.thumbnail, Modifier.fillMaxSize(),
                             playerLayout.artworkCornerDp,
-                            "Artwork for " + playerIdentity.title, trackIdentity = state.videoUrl, large = true)
+                            "Artwork for " + playerIdentity.title, trackIdentity = state.videoUrl, large = true,
+                            onResolved = { resolvedArtwork = it })
                     } else {
                         Crossfade(
                             targetState = currentArtwork,
@@ -829,7 +821,9 @@ fun StudioNowPlayingOverlay(
                             CoverArt(artwork.thumbnail, Modifier.fillMaxSize(),
                                 playerLayout.artworkCornerDp,
                                 NightWaveArtworkTransitionPolicy.accessibilityDescription(
-                                    artwork, currentArtwork, playerIdentity.title), trackIdentity = artwork.trackId, large = true)
+                                    artwork, currentArtwork, playerIdentity.title), trackIdentity = artwork.trackId, large = true,
+                                onResolved = if (artwork.trackId == state.videoUrl && artwork.thumbnail == state.thumbnail)
+                                    { image -> resolvedArtwork = image } else null)
                         }
                     }
                     if (state.buffering) {
@@ -1002,16 +996,14 @@ fun StudioNowPlayingOverlay(
                     }
                 }
                 val playControl: @Composable () -> Unit = {
-                    Surface(onClick = actions::playPause,
-                        color = colors.primary,
-                        shadowElevation = if (reduceMotion) 0.dp else 10.dp,
-                        shape = CircleShape,
+                    NightWaveMattePlayButton(onClick = actions::playPause,
                         modifier = Modifier.size(if (playerLayout.compact) 64.dp else 72.dp)
                             .testTag("nightwave-now-playing-play-pause")) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(if (state.playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
                                 contentDescription = if (state.playing) "Pause" else "Play",
-                                tint = colors.onPrimary, modifier = Modifier.size(33.dp))
+                                tint = paletteColor(NightWaveMattePolicy.transportInk(LocalNightWavePalette.current)),
+                                modifier = Modifier.size(33.dp))
                         }
                     }
                 }
@@ -1092,7 +1084,7 @@ fun StudioNowPlayingOverlay(
                         shape = RoundedCornerShape(
                             NightWavePremiumDesignTokens.CARD_CORNER_DP.dp),
                         color = if (lyricsOpen) colors.primaryContainer else colors.surface,
-                        tonalElevation = 1.dp
+                        tonalElevation = 0.dp
                     ) {
                         Column(Modifier.fillMaxWidth().padding(
                             horizontal = 12.dp, vertical = 9.dp),
@@ -1134,7 +1126,7 @@ fun StudioNowPlayingOverlay(
                     shape = RoundedCornerShape(
                         NightWavePremiumDesignTokens.CARD_CORNER_DP.dp),
                     color = colors.surface,
-                    tonalElevation = 2.dp
+                    tonalElevation = 0.dp
                 ) {
                     Row(Modifier.fillMaxWidth().padding(
                         horizontal = 17.dp, vertical = 9.dp),

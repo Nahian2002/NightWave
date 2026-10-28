@@ -10,11 +10,11 @@ package com.nightwave.player.v2.ui
 object NightWavePremiumDesignTokens {
     const val MAX_CONTENT_WIDTH_DP = 740
     const val MIN_TOUCH_TARGET_DP = 48
-    const val NAV_CORNER_DP = 24
-    const val CARD_CORNER_DP = 18
-    const val SEARCH_CARD_CORNER_DP = 16
-    const val HERO_CORNER_DP = 24
-    const val ARTWORK_CORNER_DP = 12
+    const val NAV_CORNER_DP = 20
+    const val CARD_CORNER_DP = 20
+    const val SEARCH_CARD_CORNER_DP = 20
+    const val HERO_CORNER_DP = 20
+    const val ARTWORK_CORNER_DP = 16
     const val ICON_SIZE_DP = 22
     const val ROW_ARTWORK_DP = 52
     const val ROW_GAP_DP = 12
@@ -26,7 +26,7 @@ object NightWavePremiumDesignTokens {
     const val PAGE_TOP_DP = 8
     const val PAGE_BOTTOM_DP = 24
     const val ITEM_SPACING_DP = 8
-    const val CARD_PADDING_DP = 12
+    const val CARD_PADDING_DP = 16
     const val CAPTION_GAP_DP = 4
     const val SECTION_TITLE_SP = 20
     const val SECTION_LINE_SP = 27
@@ -77,7 +77,7 @@ object NightWavePremiumDesignTokens {
     }
 
     /** Restrained outline; selection is also shown with readable text. */
-    fun rowBorderAlpha(selected: Boolean): Float = if (selected) .50f else .19f
+    fun rowBorderAlpha(selected: Boolean): Float = if (selected) 1f else NightWaveMattePolicy.BORDER_ALPHA
 
     fun selectedFillAlpha(selected: Boolean): Float = if (selected) .13f else .05f
 }

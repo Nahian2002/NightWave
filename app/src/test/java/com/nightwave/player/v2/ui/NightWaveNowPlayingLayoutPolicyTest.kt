@@ -13,7 +13,7 @@ class NightWaveNowPlayingLayoutPolicyTest {
         assertEquals(20, layout.horizontalPaddingDp)
         assertTrue(layout.artworkDp >= 320f)
         assertTrue(layout.artworkDp <= 390f - 2 * layout.horizontalPaddingDp - 12f)
-        assertEquals(30, layout.artworkCornerDp)
+        assertEquals(16, layout.artworkCornerDp)
     }
 
     @Test fun smallOrSplitScreenRemainsCompactAndReachable() {
@@ -31,7 +31,7 @@ class NightWaveNowPlayingLayoutPolicyTest {
         val large = NightWaveNowPlayingLayoutPolicy.resolve(390f, 800f, 1.8f)
         assertTrue(large.compact)
         assertTrue(large.artworkDp < normal.artworkDp)
-        assertEquals(24, large.artworkCornerDp)
+        assertEquals(16, large.artworkCornerDp)
     }
 
     @Test fun tabletAndLandscapeStayBounded() {

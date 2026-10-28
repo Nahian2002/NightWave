@@ -908,5 +908,33 @@
       "device_evidence": [],
       "remaining_blockers": []
     }
-  ]
+  ],
+  "design_refresh": {
+    "id": "DESIGN01",
+    "title": "Owner-requested matte design refresh",
+    "implementation_status": "LOCAL_VERIFIED",
+    "device_status": "NOT_RUN",
+    "protected_parent": "f5e706b2a30fb2f629d0f1b0d6e223531f8f0c02",
+    "implementation_commit": "b30b7a2e4e9318ac2a91d7edb2418488c649cd03",
+    "branch": "design/nightwave-matte-system",
+    "evidence": [
+      "docs/design/MATTE_DESIGN_SYSTEM.md",
+      "docs/design/MATTE_DESIGN_ACCEPTANCE.csv",
+      "TEST_REPORT.md"
+    ],
+    "remaining_blockers": [
+      "288 parameterized Android cases and 48 manual design cases NOT_RUN",
+      "Physical artwork/rendering/input/native dialog/system bar and all-feature regression acceptance",
+      "Carry previous data-preservation/performance/recovery/release blockers forward"
+    ],
+    "next_source_batch": "NW134",
+    "pull_request": "https://github.com/Nahian2002/NightWave/pull/145",
+    "local_evidence": [
+      "1601 JVM tests / 199 suites and 61 current source checks PASS",
+      "Android/Compose, debug assembly and instrumentation sources PASS; 288 design cases compiled only",
+      "Sequential lint 0 errors / 313 warnings / 17 hints; signer matches protected NW133",
+      "229 backend/schema/build files byte-identical; nine callback inventories retained",
+      "NW-debug-E5B5F71165F89BF8; 855 source inputs independently verified"
+    ]
+  }
 }

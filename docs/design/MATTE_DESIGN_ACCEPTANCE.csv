@@ -1,0 +1,337 @@
+case_id,theme,width_dp,font_scale,method,scenario,status,evidence
+DESIGN01-MIDNIGHT-320-1-navigation,MIDNIGHT,320,1,Android instrumentation,Theme mapping and four independent navigation destinations,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-320-1-home,MIDNIGHT,320,1,Android instrumentation,Continue and explicit mix Play preserve original references,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-320-1-search,MIDNIGHT,320,1,Android instrumentation,Input and exact query dispatch remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-320-1-library,MIDNIGHT,320,1,Android instrumentation,Create and playlist import remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-320-1-player,MIDNIGHT,320,1,Android instrumentation,Save/queue/lyrics and scoped seek remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-320-1-bento,MIDNIGHT,320,1,Android instrumentation,All collection actions retain measured reading order,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-320-1-press,MIDNIGHT,320,1,Android instrumentation,Cancellation and stable minimum touch bounds,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-320-1-backdrop,MIDNIGHT,320,1,Android instrumentation,Provided bitmap and API-specific solid fallback,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-320-2-navigation,MIDNIGHT,320,2,Android instrumentation,Theme mapping and four independent navigation destinations,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-320-2-home,MIDNIGHT,320,2,Android instrumentation,Continue and explicit mix Play preserve original references,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-320-2-search,MIDNIGHT,320,2,Android instrumentation,Input and exact query dispatch remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-320-2-library,MIDNIGHT,320,2,Android instrumentation,Create and playlist import remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-320-2-player,MIDNIGHT,320,2,Android instrumentation,Save/queue/lyrics and scoped seek remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-320-2-bento,MIDNIGHT,320,2,Android instrumentation,All collection actions retain measured reading order,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-320-2-press,MIDNIGHT,320,2,Android instrumentation,Cancellation and stable minimum touch bounds,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-320-2-backdrop,MIDNIGHT,320,2,Android instrumentation,Provided bitmap and API-specific solid fallback,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-320-3-navigation,MIDNIGHT,320,3,Android instrumentation,Theme mapping and four independent navigation destinations,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-320-3-home,MIDNIGHT,320,3,Android instrumentation,Continue and explicit mix Play preserve original references,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-320-3-search,MIDNIGHT,320,3,Android instrumentation,Input and exact query dispatch remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-320-3-library,MIDNIGHT,320,3,Android instrumentation,Create and playlist import remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-320-3-player,MIDNIGHT,320,3,Android instrumentation,Save/queue/lyrics and scoped seek remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-320-3-bento,MIDNIGHT,320,3,Android instrumentation,All collection actions retain measured reading order,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-320-3-press,MIDNIGHT,320,3,Android instrumentation,Cancellation and stable minimum touch bounds,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-320-3-backdrop,MIDNIGHT,320,3,Android instrumentation,Provided bitmap and API-specific solid fallback,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-360-1-navigation,MIDNIGHT,360,1,Android instrumentation,Theme mapping and four independent navigation destinations,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-360-1-home,MIDNIGHT,360,1,Android instrumentation,Continue and explicit mix Play preserve original references,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-360-1-search,MIDNIGHT,360,1,Android instrumentation,Input and exact query dispatch remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-360-1-library,MIDNIGHT,360,1,Android instrumentation,Create and playlist import remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-360-1-player,MIDNIGHT,360,1,Android instrumentation,Save/queue/lyrics and scoped seek remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-360-1-bento,MIDNIGHT,360,1,Android instrumentation,All collection actions retain measured reading order,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-360-1-press,MIDNIGHT,360,1,Android instrumentation,Cancellation and stable minimum touch bounds,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-360-1-backdrop,MIDNIGHT,360,1,Android instrumentation,Provided bitmap and API-specific solid fallback,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-360-2-navigation,MIDNIGHT,360,2,Android instrumentation,Theme mapping and four independent navigation destinations,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-360-2-home,MIDNIGHT,360,2,Android instrumentation,Continue and explicit mix Play preserve original references,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-360-2-search,MIDNIGHT,360,2,Android instrumentation,Input and exact query dispatch remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-360-2-library,MIDNIGHT,360,2,Android instrumentation,Create and playlist import remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-360-2-player,MIDNIGHT,360,2,Android instrumentation,Save/queue/lyrics and scoped seek remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-360-2-bento,MIDNIGHT,360,2,Android instrumentation,All collection actions retain measured reading order,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-360-2-press,MIDNIGHT,360,2,Android instrumentation,Cancellation and stable minimum touch bounds,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-360-2-backdrop,MIDNIGHT,360,2,Android instrumentation,Provided bitmap and API-specific solid fallback,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-360-3-navigation,MIDNIGHT,360,3,Android instrumentation,Theme mapping and four independent navigation destinations,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-360-3-home,MIDNIGHT,360,3,Android instrumentation,Continue and explicit mix Play preserve original references,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-360-3-search,MIDNIGHT,360,3,Android instrumentation,Input and exact query dispatch remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-360-3-library,MIDNIGHT,360,3,Android instrumentation,Create and playlist import remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-360-3-player,MIDNIGHT,360,3,Android instrumentation,Save/queue/lyrics and scoped seek remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-360-3-bento,MIDNIGHT,360,3,Android instrumentation,All collection actions retain measured reading order,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-360-3-press,MIDNIGHT,360,3,Android instrumentation,Cancellation and stable minimum touch bounds,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-360-3-backdrop,MIDNIGHT,360,3,Android instrumentation,Provided bitmap and API-specific solid fallback,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-412-1-navigation,MIDNIGHT,412,1,Android instrumentation,Theme mapping and four independent navigation destinations,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-412-1-home,MIDNIGHT,412,1,Android instrumentation,Continue and explicit mix Play preserve original references,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-412-1-search,MIDNIGHT,412,1,Android instrumentation,Input and exact query dispatch remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-412-1-library,MIDNIGHT,412,1,Android instrumentation,Create and playlist import remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-412-1-player,MIDNIGHT,412,1,Android instrumentation,Save/queue/lyrics and scoped seek remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-412-1-bento,MIDNIGHT,412,1,Android instrumentation,All collection actions retain measured reading order,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-412-1-press,MIDNIGHT,412,1,Android instrumentation,Cancellation and stable minimum touch bounds,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-412-1-backdrop,MIDNIGHT,412,1,Android instrumentation,Provided bitmap and API-specific solid fallback,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-412-2-navigation,MIDNIGHT,412,2,Android instrumentation,Theme mapping and four independent navigation destinations,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-412-2-home,MIDNIGHT,412,2,Android instrumentation,Continue and explicit mix Play preserve original references,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-412-2-search,MIDNIGHT,412,2,Android instrumentation,Input and exact query dispatch remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-412-2-library,MIDNIGHT,412,2,Android instrumentation,Create and playlist import remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-412-2-player,MIDNIGHT,412,2,Android instrumentation,Save/queue/lyrics and scoped seek remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-412-2-bento,MIDNIGHT,412,2,Android instrumentation,All collection actions retain measured reading order,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-412-2-press,MIDNIGHT,412,2,Android instrumentation,Cancellation and stable minimum touch bounds,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-412-2-backdrop,MIDNIGHT,412,2,Android instrumentation,Provided bitmap and API-specific solid fallback,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-412-3-navigation,MIDNIGHT,412,3,Android instrumentation,Theme mapping and four independent navigation destinations,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-412-3-home,MIDNIGHT,412,3,Android instrumentation,Continue and explicit mix Play preserve original references,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-412-3-search,MIDNIGHT,412,3,Android instrumentation,Input and exact query dispatch remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-412-3-library,MIDNIGHT,412,3,Android instrumentation,Create and playlist import remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-412-3-player,MIDNIGHT,412,3,Android instrumentation,Save/queue/lyrics and scoped seek remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-412-3-bento,MIDNIGHT,412,3,Android instrumentation,All collection actions retain measured reading order,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-412-3-press,MIDNIGHT,412,3,Android instrumentation,Cancellation and stable minimum touch bounds,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-412-3-backdrop,MIDNIGHT,412,3,Android instrumentation,Provided bitmap and API-specific solid fallback,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-320-1-navigation,AURORA,320,1,Android instrumentation,Theme mapping and four independent navigation destinations,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-320-1-home,AURORA,320,1,Android instrumentation,Continue and explicit mix Play preserve original references,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-320-1-search,AURORA,320,1,Android instrumentation,Input and exact query dispatch remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-320-1-library,AURORA,320,1,Android instrumentation,Create and playlist import remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-320-1-player,AURORA,320,1,Android instrumentation,Save/queue/lyrics and scoped seek remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-320-1-bento,AURORA,320,1,Android instrumentation,All collection actions retain measured reading order,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-320-1-press,AURORA,320,1,Android instrumentation,Cancellation and stable minimum touch bounds,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-320-1-backdrop,AURORA,320,1,Android instrumentation,Provided bitmap and API-specific solid fallback,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-320-2-navigation,AURORA,320,2,Android instrumentation,Theme mapping and four independent navigation destinations,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-320-2-home,AURORA,320,2,Android instrumentation,Continue and explicit mix Play preserve original references,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-320-2-search,AURORA,320,2,Android instrumentation,Input and exact query dispatch remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-320-2-library,AURORA,320,2,Android instrumentation,Create and playlist import remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-320-2-player,AURORA,320,2,Android instrumentation,Save/queue/lyrics and scoped seek remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-320-2-bento,AURORA,320,2,Android instrumentation,All collection actions retain measured reading order,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-320-2-press,AURORA,320,2,Android instrumentation,Cancellation and stable minimum touch bounds,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-320-2-backdrop,AURORA,320,2,Android instrumentation,Provided bitmap and API-specific solid fallback,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-320-3-navigation,AURORA,320,3,Android instrumentation,Theme mapping and four independent navigation destinations,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-320-3-home,AURORA,320,3,Android instrumentation,Continue and explicit mix Play preserve original references,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-320-3-search,AURORA,320,3,Android instrumentation,Input and exact query dispatch remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-320-3-library,AURORA,320,3,Android instrumentation,Create and playlist import remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-320-3-player,AURORA,320,3,Android instrumentation,Save/queue/lyrics and scoped seek remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-320-3-bento,AURORA,320,3,Android instrumentation,All collection actions retain measured reading order,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-320-3-press,AURORA,320,3,Android instrumentation,Cancellation and stable minimum touch bounds,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-320-3-backdrop,AURORA,320,3,Android instrumentation,Provided bitmap and API-specific solid fallback,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-360-1-navigation,AURORA,360,1,Android instrumentation,Theme mapping and four independent navigation destinations,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-360-1-home,AURORA,360,1,Android instrumentation,Continue and explicit mix Play preserve original references,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-360-1-search,AURORA,360,1,Android instrumentation,Input and exact query dispatch remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-360-1-library,AURORA,360,1,Android instrumentation,Create and playlist import remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-360-1-player,AURORA,360,1,Android instrumentation,Save/queue/lyrics and scoped seek remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-360-1-bento,AURORA,360,1,Android instrumentation,All collection actions retain measured reading order,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-360-1-press,AURORA,360,1,Android instrumentation,Cancellation and stable minimum touch bounds,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-360-1-backdrop,AURORA,360,1,Android instrumentation,Provided bitmap and API-specific solid fallback,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-360-2-navigation,AURORA,360,2,Android instrumentation,Theme mapping and four independent navigation destinations,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-360-2-home,AURORA,360,2,Android instrumentation,Continue and explicit mix Play preserve original references,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-360-2-search,AURORA,360,2,Android instrumentation,Input and exact query dispatch remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-360-2-library,AURORA,360,2,Android instrumentation,Create and playlist import remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-360-2-player,AURORA,360,2,Android instrumentation,Save/queue/lyrics and scoped seek remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-360-2-bento,AURORA,360,2,Android instrumentation,All collection actions retain measured reading order,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-360-2-press,AURORA,360,2,Android instrumentation,Cancellation and stable minimum touch bounds,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-360-2-backdrop,AURORA,360,2,Android instrumentation,Provided bitmap and API-specific solid fallback,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-360-3-navigation,AURORA,360,3,Android instrumentation,Theme mapping and four independent navigation destinations,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-360-3-home,AURORA,360,3,Android instrumentation,Continue and explicit mix Play preserve original references,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-360-3-search,AURORA,360,3,Android instrumentation,Input and exact query dispatch remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-360-3-library,AURORA,360,3,Android instrumentation,Create and playlist import remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-360-3-player,AURORA,360,3,Android instrumentation,Save/queue/lyrics and scoped seek remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-360-3-bento,AURORA,360,3,Android instrumentation,All collection actions retain measured reading order,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-360-3-press,AURORA,360,3,Android instrumentation,Cancellation and stable minimum touch bounds,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-360-3-backdrop,AURORA,360,3,Android instrumentation,Provided bitmap and API-specific solid fallback,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-412-1-navigation,AURORA,412,1,Android instrumentation,Theme mapping and four independent navigation destinations,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-412-1-home,AURORA,412,1,Android instrumentation,Continue and explicit mix Play preserve original references,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-412-1-search,AURORA,412,1,Android instrumentation,Input and exact query dispatch remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-412-1-library,AURORA,412,1,Android instrumentation,Create and playlist import remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-412-1-player,AURORA,412,1,Android instrumentation,Save/queue/lyrics and scoped seek remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-412-1-bento,AURORA,412,1,Android instrumentation,All collection actions retain measured reading order,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-412-1-press,AURORA,412,1,Android instrumentation,Cancellation and stable minimum touch bounds,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-412-1-backdrop,AURORA,412,1,Android instrumentation,Provided bitmap and API-specific solid fallback,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-412-2-navigation,AURORA,412,2,Android instrumentation,Theme mapping and four independent navigation destinations,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-412-2-home,AURORA,412,2,Android instrumentation,Continue and explicit mix Play preserve original references,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-412-2-search,AURORA,412,2,Android instrumentation,Input and exact query dispatch remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-412-2-library,AURORA,412,2,Android instrumentation,Create and playlist import remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-412-2-player,AURORA,412,2,Android instrumentation,Save/queue/lyrics and scoped seek remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-412-2-bento,AURORA,412,2,Android instrumentation,All collection actions retain measured reading order,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-412-2-press,AURORA,412,2,Android instrumentation,Cancellation and stable minimum touch bounds,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-412-2-backdrop,AURORA,412,2,Android instrumentation,Provided bitmap and API-specific solid fallback,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-412-3-navigation,AURORA,412,3,Android instrumentation,Theme mapping and four independent navigation destinations,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-412-3-home,AURORA,412,3,Android instrumentation,Continue and explicit mix Play preserve original references,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-412-3-search,AURORA,412,3,Android instrumentation,Input and exact query dispatch remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-412-3-library,AURORA,412,3,Android instrumentation,Create and playlist import remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-412-3-player,AURORA,412,3,Android instrumentation,Save/queue/lyrics and scoped seek remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-412-3-bento,AURORA,412,3,Android instrumentation,All collection actions retain measured reading order,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-412-3-press,AURORA,412,3,Android instrumentation,Cancellation and stable minimum touch bounds,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AURORA-412-3-backdrop,AURORA,412,3,Android instrumentation,Provided bitmap and API-specific solid fallback,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-320-1-navigation,PEARL,320,1,Android instrumentation,Theme mapping and four independent navigation destinations,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-320-1-home,PEARL,320,1,Android instrumentation,Continue and explicit mix Play preserve original references,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-320-1-search,PEARL,320,1,Android instrumentation,Input and exact query dispatch remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-320-1-library,PEARL,320,1,Android instrumentation,Create and playlist import remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-320-1-player,PEARL,320,1,Android instrumentation,Save/queue/lyrics and scoped seek remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-320-1-bento,PEARL,320,1,Android instrumentation,All collection actions retain measured reading order,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-320-1-press,PEARL,320,1,Android instrumentation,Cancellation and stable minimum touch bounds,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-320-1-backdrop,PEARL,320,1,Android instrumentation,Provided bitmap and API-specific solid fallback,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-320-2-navigation,PEARL,320,2,Android instrumentation,Theme mapping and four independent navigation destinations,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-320-2-home,PEARL,320,2,Android instrumentation,Continue and explicit mix Play preserve original references,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-320-2-search,PEARL,320,2,Android instrumentation,Input and exact query dispatch remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-320-2-library,PEARL,320,2,Android instrumentation,Create and playlist import remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-320-2-player,PEARL,320,2,Android instrumentation,Save/queue/lyrics and scoped seek remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-320-2-bento,PEARL,320,2,Android instrumentation,All collection actions retain measured reading order,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-320-2-press,PEARL,320,2,Android instrumentation,Cancellation and stable minimum touch bounds,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-320-2-backdrop,PEARL,320,2,Android instrumentation,Provided bitmap and API-specific solid fallback,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-320-3-navigation,PEARL,320,3,Android instrumentation,Theme mapping and four independent navigation destinations,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-320-3-home,PEARL,320,3,Android instrumentation,Continue and explicit mix Play preserve original references,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-320-3-search,PEARL,320,3,Android instrumentation,Input and exact query dispatch remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-320-3-library,PEARL,320,3,Android instrumentation,Create and playlist import remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-320-3-player,PEARL,320,3,Android instrumentation,Save/queue/lyrics and scoped seek remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-320-3-bento,PEARL,320,3,Android instrumentation,All collection actions retain measured reading order,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-320-3-press,PEARL,320,3,Android instrumentation,Cancellation and stable minimum touch bounds,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-320-3-backdrop,PEARL,320,3,Android instrumentation,Provided bitmap and API-specific solid fallback,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-360-1-navigation,PEARL,360,1,Android instrumentation,Theme mapping and four independent navigation destinations,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-360-1-home,PEARL,360,1,Android instrumentation,Continue and explicit mix Play preserve original references,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-360-1-search,PEARL,360,1,Android instrumentation,Input and exact query dispatch remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-360-1-library,PEARL,360,1,Android instrumentation,Create and playlist import remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-360-1-player,PEARL,360,1,Android instrumentation,Save/queue/lyrics and scoped seek remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-360-1-bento,PEARL,360,1,Android instrumentation,All collection actions retain measured reading order,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-360-1-press,PEARL,360,1,Android instrumentation,Cancellation and stable minimum touch bounds,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-360-1-backdrop,PEARL,360,1,Android instrumentation,Provided bitmap and API-specific solid fallback,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-360-2-navigation,PEARL,360,2,Android instrumentation,Theme mapping and four independent navigation destinations,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-360-2-home,PEARL,360,2,Android instrumentation,Continue and explicit mix Play preserve original references,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-360-2-search,PEARL,360,2,Android instrumentation,Input and exact query dispatch remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-360-2-library,PEARL,360,2,Android instrumentation,Create and playlist import remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-360-2-player,PEARL,360,2,Android instrumentation,Save/queue/lyrics and scoped seek remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-360-2-bento,PEARL,360,2,Android instrumentation,All collection actions retain measured reading order,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-360-2-press,PEARL,360,2,Android instrumentation,Cancellation and stable minimum touch bounds,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-360-2-backdrop,PEARL,360,2,Android instrumentation,Provided bitmap and API-specific solid fallback,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-360-3-navigation,PEARL,360,3,Android instrumentation,Theme mapping and four independent navigation destinations,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-360-3-home,PEARL,360,3,Android instrumentation,Continue and explicit mix Play preserve original references,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-360-3-search,PEARL,360,3,Android instrumentation,Input and exact query dispatch remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-360-3-library,PEARL,360,3,Android instrumentation,Create and playlist import remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-360-3-player,PEARL,360,3,Android instrumentation,Save/queue/lyrics and scoped seek remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-360-3-bento,PEARL,360,3,Android instrumentation,All collection actions retain measured reading order,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-360-3-press,PEARL,360,3,Android instrumentation,Cancellation and stable minimum touch bounds,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-360-3-backdrop,PEARL,360,3,Android instrumentation,Provided bitmap and API-specific solid fallback,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-412-1-navigation,PEARL,412,1,Android instrumentation,Theme mapping and four independent navigation destinations,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-412-1-home,PEARL,412,1,Android instrumentation,Continue and explicit mix Play preserve original references,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-412-1-search,PEARL,412,1,Android instrumentation,Input and exact query dispatch remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-412-1-library,PEARL,412,1,Android instrumentation,Create and playlist import remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-412-1-player,PEARL,412,1,Android instrumentation,Save/queue/lyrics and scoped seek remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-412-1-bento,PEARL,412,1,Android instrumentation,All collection actions retain measured reading order,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-412-1-press,PEARL,412,1,Android instrumentation,Cancellation and stable minimum touch bounds,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-412-1-backdrop,PEARL,412,1,Android instrumentation,Provided bitmap and API-specific solid fallback,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-412-2-navigation,PEARL,412,2,Android instrumentation,Theme mapping and four independent navigation destinations,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-412-2-home,PEARL,412,2,Android instrumentation,Continue and explicit mix Play preserve original references,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-412-2-search,PEARL,412,2,Android instrumentation,Input and exact query dispatch remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-412-2-library,PEARL,412,2,Android instrumentation,Create and playlist import remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-412-2-player,PEARL,412,2,Android instrumentation,Save/queue/lyrics and scoped seek remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-412-2-bento,PEARL,412,2,Android instrumentation,All collection actions retain measured reading order,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-412-2-press,PEARL,412,2,Android instrumentation,Cancellation and stable minimum touch bounds,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-412-2-backdrop,PEARL,412,2,Android instrumentation,Provided bitmap and API-specific solid fallback,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-412-3-navigation,PEARL,412,3,Android instrumentation,Theme mapping and four independent navigation destinations,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-412-3-home,PEARL,412,3,Android instrumentation,Continue and explicit mix Play preserve original references,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-412-3-search,PEARL,412,3,Android instrumentation,Input and exact query dispatch remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-412-3-library,PEARL,412,3,Android instrumentation,Create and playlist import remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-412-3-player,PEARL,412,3,Android instrumentation,Save/queue/lyrics and scoped seek remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-412-3-bento,PEARL,412,3,Android instrumentation,All collection actions retain measured reading order,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-412-3-press,PEARL,412,3,Android instrumentation,Cancellation and stable minimum touch bounds,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-PEARL-412-3-backdrop,PEARL,412,3,Android instrumentation,Provided bitmap and API-specific solid fallback,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-320-1-navigation,AMOLED,320,1,Android instrumentation,Theme mapping and four independent navigation destinations,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-320-1-home,AMOLED,320,1,Android instrumentation,Continue and explicit mix Play preserve original references,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-320-1-search,AMOLED,320,1,Android instrumentation,Input and exact query dispatch remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-320-1-library,AMOLED,320,1,Android instrumentation,Create and playlist import remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-320-1-player,AMOLED,320,1,Android instrumentation,Save/queue/lyrics and scoped seek remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-320-1-bento,AMOLED,320,1,Android instrumentation,All collection actions retain measured reading order,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-320-1-press,AMOLED,320,1,Android instrumentation,Cancellation and stable minimum touch bounds,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-320-1-backdrop,AMOLED,320,1,Android instrumentation,Provided bitmap and API-specific solid fallback,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-320-2-navigation,AMOLED,320,2,Android instrumentation,Theme mapping and four independent navigation destinations,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-320-2-home,AMOLED,320,2,Android instrumentation,Continue and explicit mix Play preserve original references,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-320-2-search,AMOLED,320,2,Android instrumentation,Input and exact query dispatch remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-320-2-library,AMOLED,320,2,Android instrumentation,Create and playlist import remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-320-2-player,AMOLED,320,2,Android instrumentation,Save/queue/lyrics and scoped seek remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-320-2-bento,AMOLED,320,2,Android instrumentation,All collection actions retain measured reading order,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-320-2-press,AMOLED,320,2,Android instrumentation,Cancellation and stable minimum touch bounds,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-320-2-backdrop,AMOLED,320,2,Android instrumentation,Provided bitmap and API-specific solid fallback,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-320-3-navigation,AMOLED,320,3,Android instrumentation,Theme mapping and four independent navigation destinations,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-320-3-home,AMOLED,320,3,Android instrumentation,Continue and explicit mix Play preserve original references,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-320-3-search,AMOLED,320,3,Android instrumentation,Input and exact query dispatch remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-320-3-library,AMOLED,320,3,Android instrumentation,Create and playlist import remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-320-3-player,AMOLED,320,3,Android instrumentation,Save/queue/lyrics and scoped seek remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-320-3-bento,AMOLED,320,3,Android instrumentation,All collection actions retain measured reading order,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-320-3-press,AMOLED,320,3,Android instrumentation,Cancellation and stable minimum touch bounds,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-320-3-backdrop,AMOLED,320,3,Android instrumentation,Provided bitmap and API-specific solid fallback,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-360-1-navigation,AMOLED,360,1,Android instrumentation,Theme mapping and four independent navigation destinations,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-360-1-home,AMOLED,360,1,Android instrumentation,Continue and explicit mix Play preserve original references,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-360-1-search,AMOLED,360,1,Android instrumentation,Input and exact query dispatch remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-360-1-library,AMOLED,360,1,Android instrumentation,Create and playlist import remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-360-1-player,AMOLED,360,1,Android instrumentation,Save/queue/lyrics and scoped seek remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-360-1-bento,AMOLED,360,1,Android instrumentation,All collection actions retain measured reading order,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-360-1-press,AMOLED,360,1,Android instrumentation,Cancellation and stable minimum touch bounds,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-360-1-backdrop,AMOLED,360,1,Android instrumentation,Provided bitmap and API-specific solid fallback,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-360-2-navigation,AMOLED,360,2,Android instrumentation,Theme mapping and four independent navigation destinations,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-360-2-home,AMOLED,360,2,Android instrumentation,Continue and explicit mix Play preserve original references,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-360-2-search,AMOLED,360,2,Android instrumentation,Input and exact query dispatch remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-360-2-library,AMOLED,360,2,Android instrumentation,Create and playlist import remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-360-2-player,AMOLED,360,2,Android instrumentation,Save/queue/lyrics and scoped seek remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-360-2-bento,AMOLED,360,2,Android instrumentation,All collection actions retain measured reading order,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-360-2-press,AMOLED,360,2,Android instrumentation,Cancellation and stable minimum touch bounds,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-360-2-backdrop,AMOLED,360,2,Android instrumentation,Provided bitmap and API-specific solid fallback,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-360-3-navigation,AMOLED,360,3,Android instrumentation,Theme mapping and four independent navigation destinations,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-360-3-home,AMOLED,360,3,Android instrumentation,Continue and explicit mix Play preserve original references,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-360-3-search,AMOLED,360,3,Android instrumentation,Input and exact query dispatch remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-360-3-library,AMOLED,360,3,Android instrumentation,Create and playlist import remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-360-3-player,AMOLED,360,3,Android instrumentation,Save/queue/lyrics and scoped seek remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-360-3-bento,AMOLED,360,3,Android instrumentation,All collection actions retain measured reading order,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-360-3-press,AMOLED,360,3,Android instrumentation,Cancellation and stable minimum touch bounds,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-360-3-backdrop,AMOLED,360,3,Android instrumentation,Provided bitmap and API-specific solid fallback,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-412-1-navigation,AMOLED,412,1,Android instrumentation,Theme mapping and four independent navigation destinations,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-412-1-home,AMOLED,412,1,Android instrumentation,Continue and explicit mix Play preserve original references,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-412-1-search,AMOLED,412,1,Android instrumentation,Input and exact query dispatch remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-412-1-library,AMOLED,412,1,Android instrumentation,Create and playlist import remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-412-1-player,AMOLED,412,1,Android instrumentation,Save/queue/lyrics and scoped seek remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-412-1-bento,AMOLED,412,1,Android instrumentation,All collection actions retain measured reading order,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-412-1-press,AMOLED,412,1,Android instrumentation,Cancellation and stable minimum touch bounds,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-412-1-backdrop,AMOLED,412,1,Android instrumentation,Provided bitmap and API-specific solid fallback,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-412-2-navigation,AMOLED,412,2,Android instrumentation,Theme mapping and four independent navigation destinations,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-412-2-home,AMOLED,412,2,Android instrumentation,Continue and explicit mix Play preserve original references,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-412-2-search,AMOLED,412,2,Android instrumentation,Input and exact query dispatch remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-412-2-library,AMOLED,412,2,Android instrumentation,Create and playlist import remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-412-2-player,AMOLED,412,2,Android instrumentation,Save/queue/lyrics and scoped seek remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-412-2-bento,AMOLED,412,2,Android instrumentation,All collection actions retain measured reading order,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-412-2-press,AMOLED,412,2,Android instrumentation,Cancellation and stable minimum touch bounds,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-412-2-backdrop,AMOLED,412,2,Android instrumentation,Provided bitmap and API-specific solid fallback,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-412-3-navigation,AMOLED,412,3,Android instrumentation,Theme mapping and four independent navigation destinations,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-412-3-home,AMOLED,412,3,Android instrumentation,Continue and explicit mix Play preserve original references,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-412-3-search,AMOLED,412,3,Android instrumentation,Input and exact query dispatch remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-412-3-library,AMOLED,412,3,Android instrumentation,Create and playlist import remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-412-3-player,AMOLED,412,3,Android instrumentation,Save/queue/lyrics and scoped seek remain available,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-412-3-bento,AMOLED,412,3,Android instrumentation,All collection actions retain measured reading order,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-412-3-press,AMOLED,412,3,Android instrumentation,Cancellation and stable minimum touch bounds,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-AMOLED-412-3-backdrop,AMOLED,412,3,Android instrumentation,Provided bitmap and API-specific solid fallback,NOT_RUN,Test source compiles only; no device run or screenshot.
+DESIGN01-MIDNIGHT-MANUAL-01,MIDNIGHT,declared device,1/2/3,Manual physical acceptance,Native Offline import/search/filter/repair and readback,NOT_RUN,
+DESIGN01-MIDNIGHT-MANUAL-02,MIDNIGHT,declared device,1/2/3,Manual physical acceptance,Supported Catalog query/source/retry/save/cancel,NOT_RUN,
+DESIGN01-MIDNIGHT-MANUAL-03,MIDNIGHT,declared device,1/2/3,Manual physical acceptance,Downloads progress/pause/restart/remove and status roles,NOT_RUN,
+DESIGN01-MIDNIGHT-MANUAL-04,MIDNIGHT,declared device,1/2/3,Manual physical acceptance,Drive Locker consent/picker/account/transfer and recovery boundaries,NOT_RUN,
+DESIGN01-MIDNIGHT-MANUAL-05,MIDNIGHT,declared device,1/2/3,Manual physical acceptance,Native alert dialogs and status/navigation bar readability,NOT_RUN,
+DESIGN01-MIDNIGHT-MANUAL-06,MIDNIGHT,declared device,1/2/3,Manual physical acceptance,Full artwork 404/tiny placeholder/cache/rapid song changes,NOT_RUN,
+DESIGN01-MIDNIGHT-MANUAL-07,MIDNIGHT,declared device,1/2/3,Manual physical acceptance,TalkBack/Switch Access/keyboard seek and large-text reading,NOT_RUN,
+DESIGN01-MIDNIGHT-MANUAL-08,MIDNIGHT,declared device,1/2/3,Manual physical acceptance,All You/Account/appearance/backup/diagnostic entry points,NOT_RUN,
+DESIGN01-MIDNIGHT-MANUAL-09,MIDNIGHT,declared device,1/2/3,Manual physical acceptance,Sound Studio presets/bands/Apply/readback and sleep/audio tools,NOT_RUN,
+DESIGN01-MIDNIGHT-MANUAL-10,MIDNIGHT,declared device,1/2/3,Manual physical acceptance,Classic recovery and external controls remain available,NOT_RUN,
+DESIGN01-MIDNIGHT-MANUAL-11,MIDNIGHT,declared device,1/2/3,Manual physical acceptance,Background/recreation/in-place upgrade preserves data and choices,NOT_RUN,
+DESIGN01-MIDNIGHT-MANUAL-12,MIDNIGHT,declared device,1/2/3,Manual physical acceptance,Rendered contrast/spacing/clipping and GPU/jank/battery comparison,NOT_RUN,
+DESIGN01-AURORA-MANUAL-01,AURORA,declared device,1/2/3,Manual physical acceptance,Native Offline import/search/filter/repair and readback,NOT_RUN,
+DESIGN01-AURORA-MANUAL-02,AURORA,declared device,1/2/3,Manual physical acceptance,Supported Catalog query/source/retry/save/cancel,NOT_RUN,
+DESIGN01-AURORA-MANUAL-03,AURORA,declared device,1/2/3,Manual physical acceptance,Downloads progress/pause/restart/remove and status roles,NOT_RUN,
+DESIGN01-AURORA-MANUAL-04,AURORA,declared device,1/2/3,Manual physical acceptance,Drive Locker consent/picker/account/transfer and recovery boundaries,NOT_RUN,
+DESIGN01-AURORA-MANUAL-05,AURORA,declared device,1/2/3,Manual physical acceptance,Native alert dialogs and status/navigation bar readability,NOT_RUN,
+DESIGN01-AURORA-MANUAL-06,AURORA,declared device,1/2/3,Manual physical acceptance,Full artwork 404/tiny placeholder/cache/rapid song changes,NOT_RUN,
+DESIGN01-AURORA-MANUAL-07,AURORA,declared device,1/2/3,Manual physical acceptance,TalkBack/Switch Access/keyboard seek and large-text reading,NOT_RUN,
+DESIGN01-AURORA-MANUAL-08,AURORA,declared device,1/2/3,Manual physical acceptance,All You/Account/appearance/backup/diagnostic entry points,NOT_RUN,
+DESIGN01-AURORA-MANUAL-09,AURORA,declared device,1/2/3,Manual physical acceptance,Sound Studio presets/bands/Apply/readback and sleep/audio tools,NOT_RUN,
+DESIGN01-AURORA-MANUAL-10,AURORA,declared device,1/2/3,Manual physical acceptance,Classic recovery and external controls remain available,NOT_RUN,
+DESIGN01-AURORA-MANUAL-11,AURORA,declared device,1/2/3,Manual physical acceptance,Background/recreation/in-place upgrade preserves data and choices,NOT_RUN,
+DESIGN01-AURORA-MANUAL-12,AURORA,declared device,1/2/3,Manual physical acceptance,Rendered contrast/spacing/clipping and GPU/jank/battery comparison,NOT_RUN,
+DESIGN01-PEARL-MANUAL-01,PEARL,declared device,1/2/3,Manual physical acceptance,Native Offline import/search/filter/repair and readback,NOT_RUN,
+DESIGN01-PEARL-MANUAL-02,PEARL,declared device,1/2/3,Manual physical acceptance,Supported Catalog query/source/retry/save/cancel,NOT_RUN,
+DESIGN01-PEARL-MANUAL-03,PEARL,declared device,1/2/3,Manual physical acceptance,Downloads progress/pause/restart/remove and status roles,NOT_RUN,
+DESIGN01-PEARL-MANUAL-04,PEARL,declared device,1/2/3,Manual physical acceptance,Drive Locker consent/picker/account/transfer and recovery boundaries,NOT_RUN,
+DESIGN01-PEARL-MANUAL-05,PEARL,declared device,1/2/3,Manual physical acceptance,Native alert dialogs and status/navigation bar readability,NOT_RUN,
+DESIGN01-PEARL-MANUAL-06,PEARL,declared device,1/2/3,Manual physical acceptance,Full artwork 404/tiny placeholder/cache/rapid song changes,NOT_RUN,
+DESIGN01-PEARL-MANUAL-07,PEARL,declared device,1/2/3,Manual physical acceptance,TalkBack/Switch Access/keyboard seek and large-text reading,NOT_RUN,
+DESIGN01-PEARL-MANUAL-08,PEARL,declared device,1/2/3,Manual physical acceptance,All You/Account/appearance/backup/diagnostic entry points,NOT_RUN,
+DESIGN01-PEARL-MANUAL-09,PEARL,declared device,1/2/3,Manual physical acceptance,Sound Studio presets/bands/Apply/readback and sleep/audio tools,NOT_RUN,
+DESIGN01-PEARL-MANUAL-10,PEARL,declared device,1/2/3,Manual physical acceptance,Classic recovery and external controls remain available,NOT_RUN,
+DESIGN01-PEARL-MANUAL-11,PEARL,declared device,1/2/3,Manual physical acceptance,Background/recreation/in-place upgrade preserves data and choices,NOT_RUN,
+DESIGN01-PEARL-MANUAL-12,PEARL,declared device,1/2/3,Manual physical acceptance,Rendered contrast/spacing/clipping and GPU/jank/battery comparison,NOT_RUN,
+DESIGN01-AMOLED-MANUAL-01,AMOLED,declared device,1/2/3,Manual physical acceptance,Native Offline import/search/filter/repair and readback,NOT_RUN,
+DESIGN01-AMOLED-MANUAL-02,AMOLED,declared device,1/2/3,Manual physical acceptance,Supported Catalog query/source/retry/save/cancel,NOT_RUN,
+DESIGN01-AMOLED-MANUAL-03,AMOLED,declared device,1/2/3,Manual physical acceptance,Downloads progress/pause/restart/remove and status roles,NOT_RUN,
+DESIGN01-AMOLED-MANUAL-04,AMOLED,declared device,1/2/3,Manual physical acceptance,Drive Locker consent/picker/account/transfer and recovery boundaries,NOT_RUN,
+DESIGN01-AMOLED-MANUAL-05,AMOLED,declared device,1/2/3,Manual physical acceptance,Native alert dialogs and status/navigation bar readability,NOT_RUN,
+DESIGN01-AMOLED-MANUAL-06,AMOLED,declared device,1/2/3,Manual physical acceptance,Full artwork 404/tiny placeholder/cache/rapid song changes,NOT_RUN,
+DESIGN01-AMOLED-MANUAL-07,AMOLED,declared device,1/2/3,Manual physical acceptance,TalkBack/Switch Access/keyboard seek and large-text reading,NOT_RUN,
+DESIGN01-AMOLED-MANUAL-08,AMOLED,declared device,1/2/3,Manual physical acceptance,All You/Account/appearance/backup/diagnostic entry points,NOT_RUN,
+DESIGN01-AMOLED-MANUAL-09,AMOLED,declared device,1/2/3,Manual physical acceptance,Sound Studio presets/bands/Apply/readback and sleep/audio tools,NOT_RUN,
+DESIGN01-AMOLED-MANUAL-10,AMOLED,declared device,1/2/3,Manual physical acceptance,Classic recovery and external controls remain available,NOT_RUN,
+DESIGN01-AMOLED-MANUAL-11,AMOLED,declared device,1/2/3,Manual physical acceptance,Background/recreation/in-place upgrade preserves data and choices,NOT_RUN,
+DESIGN01-AMOLED-MANUAL-12,AMOLED,declared device,1/2/3,Manual physical acceptance,Rendered contrast/spacing/clipping and GPU/jank/battery comparison,NOT_RUN,

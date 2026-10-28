@@ -1,5 +1,9 @@
 package com.nightwave.player.offline
 
+import com.nightwave.player.v2.ui.NightWaveNativeMatte
+import com.nightwave.player.v2.ui.NightWaveNativeMattePolicy
+
+
 import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.Color
@@ -28,6 +32,8 @@ import com.nightwave.player.net.VideoPreview
 // This component intentionally uses the pinned Media3 unstable API.
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 class CatalogDownloadsActivity : NightWaveOfflineShellActivity() {
+    private val nativeMattePalette get() = NightWaveNativeMatte.palette(this)
+
     override val offlineRoute = NightWaveOfflineRoute.DOWNLOADS
     private lateinit var entries: LinearLayout
     private lateinit var overview: TextView
@@ -203,7 +209,7 @@ class CatalogDownloadsActivity : NightWaveOfflineShellActivity() {
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(18), dp(16), dp(18), dp(12))
-            setBackgroundColor(0xFF0C131B.toInt())
+            setBackgroundColor(NightWaveNativeMattePolicy.surface(0xFF0C131B, nativeMattePalette).toInt())
         }
         root.addView(label("‹  NightWave", 18f, 0xFF98E5DB.toInt(), true).apply {
             gravity = Gravity.CENTER_VERTICAL
@@ -274,7 +280,7 @@ class CatalogDownloadsActivity : NightWaveOfflineShellActivity() {
         scroll = ScrollView(this).apply { addView(entries) }
         root.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
         val frame = FrameLayout(this).apply {
-            setBackgroundColor(0xFF0C131B.toInt())
+            setBackgroundColor(NightWaveNativeMattePolicy.surface(0xFF0C131B, nativeMattePalette).toInt())
         }
         val contentWidth = if (resources.configuration.screenWidthDp >= 780) dp(760) else -1
         frame.addView(root, FrameLayout.LayoutParams(contentWidth, -1,
@@ -900,14 +906,14 @@ class CatalogDownloadsActivity : NightWaveOfflineShellActivity() {
     }
 
     private fun rounded(color: Int) = GradientDrawable().apply {
-        setColor(color)
-        cornerRadius = dp(17).toFloat()
+        setColor(NightWaveNativeMattePolicy.surface(color.toLong(), nativeMattePalette).toInt())
+        cornerRadius = dp(20).toFloat()
     }
     private fun label(value: String, sp: Float, color: Int, bold: Boolean = false) =
         TextView(this).apply {
             text = value
             textSize = sp
-            setTextColor(color)
+            setTextColor(NightWaveNativeMattePolicy.text(color.toLong(), nativeMattePalette).toInt())
             if (bold) setTypeface(typeface, Typeface.BOLD)
         }
     private fun dp(value: Int) = (resources.displayMetrics.density * value + 0.5f).toInt()

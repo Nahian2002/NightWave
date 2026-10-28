@@ -22,18 +22,18 @@ import androidx.compose.material.icons.outlined.CloudDone
 import androidx.compose.material.icons.outlined.LibraryMusic
 import androidx.compose.material.icons.outlined.PersonOutline
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
+import com.nightwave.player.v2.ui.NightWaveMatteButton as Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import com.nightwave.player.v2.ui.NightWaveMatteOutlinedButton as OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import com.nightwave.player.v2.ui.NightWaveMatteTextButton as TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -127,7 +127,7 @@ internal fun NightWaveAccountHubDialog(
                 .testTag("account-backup-hub"),
             shape = RoundedCornerShape(26.dp),
             color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 5.dp
+            tonalElevation = 0.dp
         ) {
             Column {
                 Row(Modifier.fillMaxWidth().padding(
@@ -157,9 +157,7 @@ internal fun NightWaveAccountHubDialog(
                                 containerColor = MaterialTheme.colorScheme.surfaceVariant)
                         ) {
                             Column(
-                                Modifier.fillMaxWidth().background(Brush.linearGradient(listOf(
-                                    primary.copy(alpha = .16f),
-                                    MaterialTheme.colorScheme.surfaceVariant))).padding(layout.paddingDp.dp),
+                                Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant).padding(layout.paddingDp.dp),
                                 verticalArrangement = Arrangement.spacedBy(9.dp)
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically,
@@ -331,7 +329,7 @@ internal fun NightWaveAccountHubDialog(
                     }
                     if (CloudAccessPolicy.needsHelp(connected, cloud.accessState, lastGoogleFailure != null)) {
                         item(key = "google-connection-help") {
-                            Card(shape = RoundedCornerShape(18.dp),
+                            Card(shape = RoundedCornerShape(NightWavePremiumDesignTokens.CARD_CORNER_DP.dp),
                                 colors = CardDefaults.cardColors(
                                     containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
                                 Column(Modifier.fillMaxWidth().padding(15.dp),

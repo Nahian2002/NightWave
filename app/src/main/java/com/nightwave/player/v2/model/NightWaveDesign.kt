@@ -31,20 +31,20 @@ object NightWaveDesign {
 
     fun palette(theme: NightWaveTheme): Palette = when (theme) {
         NightWaveTheme.MIDNIGHT -> Palette(
-            0xFF090D14, 0xFF111B28, 0xFF1B2939, 0xFFF4F8FD, 0xFFA7B7CA,
-            0xFF8BE4D6, 0xFF1C4B4B, 0xFF29394B, 0xFFFFB0B9, true
+            0xFF0A0A0A, 0xFF121212, 0xFF1A1A1A, 0xFFFFFFFF, 0xFF8E8E93,
+            0xFFA1D6C9, 0xFF1E3330, 0xFF737378, 0xFFFFB4AB, true
         )
         NightWaveTheme.AURORA -> Palette(
-            0xFF11101D, 0xFF1B1A2E, 0xFF292742, 0xFFF8F6FF, 0xFFBEB6D5,
-            0xFFC6B6FF, 0xFF4A3E6C, 0xFF363251, 0xFFFFB1B5, true
+            0xFF100F16, 0xFF17151F, 0xFF22202B, 0xFFFAF8FF, 0xFFB3ADBF,
+            0xFFCEC0EC, 0xFF332B44, 0xFF81778E, 0xFFFFB4AB, true
         )
         NightWaveTheme.PEARL -> Palette(
-            0xFFF9F7F2, 0xFFF0EAE2, 0xFFE4D9CB, 0xFF29262B, 0xFF625A63,
-            0xFF815154, 0xFFE8D4CF, 0xFFCEC4C0, 0xFFB53D51, false
+            0xFFF9F7F2, 0xFFF0EDE7, 0xFFE5E0D8, 0xFF24221F, 0xFF5F5A55,
+            0xFF61527F, 0xFFE3DDEB, 0xFF777067, 0xFFAA3042, false
         )
         NightWaveTheme.AMOLED -> Palette(
-            0xFF000000, 0xFF121518, 0xFF1B2228, 0xFFFFFFFF, 0xFFA8B6C0,
-            0xFF9CE9DF, 0xFF1A3939, 0xFF313D43, 0xFFFFA9B5, true
+            0xFF000000, 0xFF0E0E0E, 0xFF181818, 0xFFFFFFFF, 0xFFA0A0A5,
+            0xFFB1CEC5, 0xFF1E2C28, 0xFF737378, 0xFFFFB4AB, true
         )
     }
 }

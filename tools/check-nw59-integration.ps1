@@ -255,7 +255,7 @@ Assert-NW59Has $downloads 'Resume restarts from zero' 'honest no-byte-resume lab
 Assert-NW59Missing $downloads 'LayoutParams(-1, dp(44))' 'undersized transfer actions'
 Assert-NW59Has $filter 'Filter.ATTENTION -> "Issues"' 'compact offline filter'
 Assert-NW59Has $filter 'Filter.ATTENTION -> "Needs attention"' 'accessible offline filter'
-Assert-NW59Has $palette '0xFF815154' 'readable Pearl accent'
+Assert-NW59Has $palette '0xFF61527F' 'approved matte Pearl accent; actual contrast also required by JVM tests'
 Assert-NW59Has $palette 'else 0xFFF9F7F2' 'readable Pearl action text'
 Assert-NW59Has $activity 'openSearch = { navigateToTab(StudioTab.SEARCH) }' 'Home Search action preserved'
 Assert-NW59Has $player 'seekToForTrack' 'safe lyric track-bound seek'

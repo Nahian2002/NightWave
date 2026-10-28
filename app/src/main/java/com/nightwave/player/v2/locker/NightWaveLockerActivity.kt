@@ -1,5 +1,9 @@
 package com.nightwave.player.v2.locker
 
+import com.nightwave.player.v2.ui.NightWaveNativeMatte
+import com.nightwave.player.v2.ui.NightWaveNativeMattePolicy
+
+
 import android.app.AlertDialog
 import android.graphics.Color
 import android.graphics.Typeface
@@ -31,6 +35,8 @@ import java.util.concurrent.Executors
  * No server, credential persistence, automatic upload or MP3 conversion.
  */
 class NightWaveLockerActivity : ComponentActivity() {
+    private val nativeMattePalette get() = NightWaveNativeMatte.palette(this)
+
     companion object { const val EXTRA_OFFLINE_ID = "nightwave_locker_song_id" }
     private lateinit var offline: OfflineAudioLibrary
     private lateinit var state: LockerAccountState
@@ -86,7 +92,9 @@ class NightWaveLockerActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        NightWaveNativeMatte.applyNativeTheme(this)
         super.onCreate(savedInstanceState)
+        com.nightwave.player.v2.ui.NightWaveMatteSystemBars.apply(this, nativeMattePalette)
         offline = OfflineAudioLibrary(this)
         state = LockerAccountState(this)
         checkpoints = LockerDownloadCheckpointStore(this)
@@ -96,7 +104,7 @@ class NightWaveLockerActivity : ComponentActivity() {
         val layout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(18), dp(18), dp(18), dp(18))
-            setBackgroundColor(0xFF090D14.toInt())
+            setBackgroundColor(NightWaveNativeMattePolicy.surface(0xFF090D14, nativeMattePalette).toInt())
         }
         layout.addView(text("NightWave Music", 25f, Color.WHITE, true))
         layout.addView(text("Your audio · Your Google Drive", 13f, 0xFF9AB0C3.toInt()))
@@ -192,9 +200,9 @@ class NightWaveLockerActivity : ComponentActivity() {
             hint = "Search your listed cloud songs"
             setSingleLine(true)
             textSize = 14f
-            setTextColor(Color.WHITE)
-            setHintTextColor(0xFF8095A8.toInt())
-            setBackgroundColor(0xFF172432.toInt())
+            setTextColor(nativeMattePalette.foreground.toInt())
+            setHintTextColor(nativeMattePalette.secondary.toInt())
+            setBackgroundColor(NightWaveNativeMattePolicy.surface(0xFF172432, nativeMattePalette).toInt())
             setPadding(dp(12), dp(6), dp(12), dp(6))
             addTextChangedListener(object : TextWatcher {
                 override fun beforeTextChanged(
@@ -568,7 +576,7 @@ class NightWaveLockerActivity : ComponentActivity() {
             val row = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
                 setPadding(dp(12), dp(9), dp(10), dp(9))
-                setBackgroundColor(0xFF172432.toInt())
+                setBackgroundColor(NightWaveNativeMattePolicy.surface(0xFF172432, nativeMattePalette).toInt())
             }
             row.addView(text(song.name, 14f, Color.WHITE, true).apply {
                 maxLines = 1
@@ -689,17 +697,17 @@ class NightWaveLockerActivity : ComponentActivity() {
         TextView(this).apply {
             text = content
             textSize = size
-            setTextColor(color)
+            setTextColor(NightWaveNativeMattePolicy.text(color.toLong(), nativeMattePalette).toInt())
             if (bold) typeface = Typeface.create("sans-serif", Typeface.BOLD)
         }
     private fun button(label: String, action: () -> Unit) =
         TextView(this).apply {
             text = label
             textSize = 14f
-            setTextColor(0xFF98E0D5.toInt())
+            setTextColor(nativeMattePalette.accent.toInt())
             gravity = Gravity.CENTER_VERTICAL
             setPadding(dp(13), dp(7), dp(7), dp(7))
-            minimumHeight = dp(47)
+            minimumHeight = dp(48)
             setOnClickListener { action() }
         }
     private fun dp(v: Int) = (resources.displayMetrics.density * v + .5f).toInt()

@@ -4,6 +4,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.material3.Typography
+import androidx.compose.material3.Shapes
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.CompositionLocalProvider
@@ -65,6 +68,13 @@ fun NightWaveMaterialTheme(
     content: @Composable () -> Unit
 ) {
     val palette = NightWaveDesign.palette(choice)
+    val context = androidx.compose.ui.platform.LocalContext.current
+    androidx.compose.runtime.DisposableEffect(context, choice) {
+        context.setTheme(if (palette.isDark) com.nightwave.player.R.style.Theme_NightWave
+            else com.nightwave.player.R.style.Theme_NightWave_Pearl)
+        NightWaveMatteSystemBars.apply(context, palette)
+        onDispose { }
+    }
     val scheme = if (palette.isDark) darkColorScheme(
         primary = paletteColor(palette.accent), onPrimary = paletteColor(palette.contrastOnAccent()),
         primaryContainer = paletteColor(palette.accentSoft),
@@ -78,13 +88,12 @@ fun NightWaveMaterialTheme(
         tertiary = paletteColor(palette.accent), onTertiary = paletteColor(palette.contrastOnAccent()),
         tertiaryContainer = paletteColor(palette.accentSoft),
         onTertiaryContainer = paletteColor(palette.foreground),
-        surfaceTint = paletteColor(palette.accent),
+        surfaceTint = Color.Transparent,
         inverseSurface = paletteColor(palette.foreground),
         inverseOnSurface = paletteColor(palette.background),
         outline = paletteColor(palette.outline), outlineVariant = paletteColor(palette.outline).copy(alpha = .62f),
         error = paletteColor(palette.danger), onError = paletteColor(palette.background),
-        // Pearl's raised background only offers ~4.02:1 against danger.
-        // Normal surface exceeds 4.5:1 in all four palettes.
+        // Keep required error text on an opaque, contrast-tested surface in every theme.
         errorContainer = paletteColor(palette.surface),
         onErrorContainer = paletteColor(palette.danger)
     ) else lightColorScheme(
@@ -100,13 +109,12 @@ fun NightWaveMaterialTheme(
         tertiary = paletteColor(palette.accent), onTertiary = paletteColor(palette.contrastOnAccent()),
         tertiaryContainer = paletteColor(palette.accentSoft),
         onTertiaryContainer = paletteColor(palette.foreground),
-        surfaceTint = paletteColor(palette.accent),
+        surfaceTint = Color.Transparent,
         inverseSurface = paletteColor(palette.foreground),
         inverseOnSurface = paletteColor(palette.background),
         outline = paletteColor(palette.outline), outlineVariant = paletteColor(palette.outline).copy(alpha = .62f),
         error = paletteColor(palette.danger), onError = paletteColor(palette.background),
-        // Pearl's raised background only offers ~4.02:1 against danger.
-        // Normal surface exceeds 4.5:1 in all four palettes.
+        // Keep required error text on an opaque, contrast-tested surface in every theme.
         errorContainer = paletteColor(palette.surface),
         onErrorContainer = paletteColor(palette.danger)
     )
@@ -114,6 +122,9 @@ fun NightWaveMaterialTheme(
         LocalNightWavePalette provides palette,
         LocalNightWaveReduceMotion provides reduceMotion
     ) {
-        MaterialTheme(colorScheme = scheme, typography = premiumTypography, content = content)
+        MaterialTheme(colorScheme = scheme, typography = premiumTypography,
+            shapes = Shapes(extraSmall = RoundedCornerShape(8.dp), small = RoundedCornerShape(12.dp),
+                medium = RoundedCornerShape(20.dp), large = RoundedCornerShape(20.dp),
+                extraLarge = RoundedCornerShape(24.dp)), content = content)
     }
 }

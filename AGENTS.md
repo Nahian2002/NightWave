@@ -6,7 +6,7 @@ Before choosing or implementing an upgrade, read:
 2. `docs/quality/NW126_NW145_BACKLOG.json` — batch status, dependencies and acceptance criteria.
 3. `docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md` and `TEST_REPORT.md` — baseline findings and verification limits.
 
-The current review branch adds NW133 player/artwork/status/seek work to protected public-source parent `48abd3055aaf0d2ec7a736c7e85e79bf95dcee3b`. Read docs/NW133_PLAYER_ARTWORK_METADATA.md and the latest backlog plus NW126–NW133 evidence; physical acceptance is pending. `main` is the canonical reviewed cumulative source; NW133 remains on its review branch until merged. Do not merge an old v0.8 tag or historical branch over it.
+Current review branch `design/nightwave-matte-system` adds the explicitly requested DESIGN01 matte redesign to NW133 protected parent `f5e706b2a30fb2f629d0f1b0d6e223531f8f0c02`. Read docs/design/MATTE_DESIGN_SYSTEM.md and its separate 336-case acceptance ledger. DESIGN01 is locally verified with physical acceptance pending; NW134 remains next. Read docs/NW133_PLAYER_ARTWORK_METADATA.md and the latest backlog plus NW126–NW133 evidence; physical acceptance is pending. `main` is the canonical reviewed cumulative source; NW133 remains on its review branch until merged. Do not merge an old v0.8 tag or historical branch over it.
 
 When the owner says "next", select the first eligible incomplete batch in the active backlog. The next source batch is **NW134**; NW126–NW133 are locally verified with physical checks pending. Check the actual checkout, remote updates and the latest ledger first. Do not restart NW111–NW125 simply because historical documents contain old next-step text.
 

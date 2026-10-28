@@ -20,7 +20,7 @@ import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.Icon
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.IconButton
+import com.nightwave.player.v2.ui.NightWaveMatteIconButton as IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -93,7 +93,7 @@ fun NightWaveRecentShelfTile(
     val tileWidth = NightWavePremiumDesignTokens.shelfWidthDp(
         LocalConfiguration.current.screenWidthDp.toFloat(), fontScale).dp
     Column(Modifier.width(tileWidth).testTag("nw47-recent-tile")) {
-        Surface(onClick = onPlay, shape = RoundedCornerShape(18.dp),
+        Surface(onClick = onPlay, shape = RoundedCornerShape(NightWavePremiumDesignTokens.CARD_CORNER_DP.dp),
             modifier = Modifier.fillMaxWidth().testTag("nw47-recent-play")) {
             Box {
                 TrackArtwork(song, Modifier.fillMaxWidth().aspectRatio(1f))
@@ -183,9 +183,7 @@ fun NightWaveNextListenTile(
                     Modifier.fillMaxWidth().aspectRatio(1f)
                         .clip(RoundedCornerShape(
                             NightWavePremiumDesignTokens.CARD_CORNER_DP.dp))
-                        .background(Brush.linearGradient(listOf(
-                            NightWaveVisualLanguage.accent(song.url).copy(alpha = .32f),
-                            scheme.surfaceVariant, scheme.surface))),
+                        .background(scheme.surfaceVariant),
                     contentAlignment = Alignment.Center
                 ) {
                     Text("♫", style = MaterialTheme.typography.headlineLarge,

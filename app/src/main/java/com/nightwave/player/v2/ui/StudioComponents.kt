@@ -32,7 +32,7 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import com.nightwave.player.v2.ui.NightWaveMatteIconButton as IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -73,7 +73,7 @@ fun NightWaveWordmark(modifier: Modifier = Modifier, showName: Boolean = true) {
         val accent = MaterialTheme.colorScheme.primary
         Box(
             modifier = Modifier.size(36.dp).clip(RoundedCornerShape(11.dp))
-                .background(Brush.linearGradient(listOf(accent, MaterialTheme.colorScheme.surfaceVariant))),
+                .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center
         ) {
             Canvas(Modifier.size(25.dp)) {
@@ -87,7 +87,7 @@ fun NightWaveWordmark(modifier: Modifier = Modifier, showName: Boolean = true) {
                     lineTo(x * .77f, y * .51f)
                     lineTo(x * .96f, y * .51f)
                 }
-                drawPath(p, Color.White, style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round))
+                drawPath(p, accent, style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round))
             }
         }
         if (showName) Row(horizontalArrangement = Arrangement.spacedBy(0.dp),
@@ -241,15 +241,15 @@ fun ListeningSpotlight(
 /** Artwork placeholder remains visible if upstream thumbnails cannot load. */
 @Composable
 internal fun TrackArtwork(video: VideoPreview, modifier: Modifier = Modifier) {
-    Box(modifier.clip(RoundedCornerShape(11.dp))
-        .background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.surfaceVariant,
-            MaterialTheme.colorScheme.surface))),
+    val artworkColors = MaterialTheme.colorScheme
+    Box(modifier.clip(RoundedCornerShape(NightWavePremiumDesignTokens.ARTWORK_CORNER_DP.dp))
+        .background(MaterialTheme.colorScheme.surfaceVariant),
         contentAlignment = Alignment.Center) {
         Canvas(Modifier.size(28.dp)) {
-            drawCircle(Color.White.copy(alpha = .12f), radius = size.minDimension * .47f)
-            drawCircle(Color.White.copy(alpha = .5f), radius = size.minDimension * .29f,
+            drawCircle(artworkColors.onSurface.copy(alpha = .12f), radius = size.minDimension * .47f)
+            drawCircle(artworkColors.onSurface.copy(alpha = .32f), radius = size.minDimension * .29f,
                 style = Stroke(width = 2.dp.toPx()))
-            drawCircle(Color.White.copy(alpha = .7f), radius = size.minDimension * .06f)
+            drawCircle(artworkColors.onSurface.copy(alpha = .5f), radius = size.minDimension * .06f)
         }
         if (video.thumbnail.isNotBlank()) {
             AsyncImage(model = video.thumbnail,
