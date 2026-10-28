@@ -913,7 +913,7 @@
     "id": "DESIGN01",
     "title": "Owner-requested matte design refresh",
     "implementation_status": "LOCAL_VERIFIED",
-    "device_status": "NOT_RUN",
+    "device_status": "PARTIAL",
     "protected_parent": "f5e706b2a30fb2f629d0f1b0d6e223531f8f0c02",
     "implementation_commit": "b30b7a2e4e9318ac2a91d7edb2418488c649cd03",
     "branch": "design/nightwave-matte-system",
@@ -935,6 +935,37 @@
       "Sequential lint 0 errors / 313 warnings / 17 hints; signer matches protected NW133",
       "229 backend/schema/build files byte-identical; nine callback inventories retained",
       "NW-debug-E5B5F71165F89BF8; 855 source inputs independently verified"
-    ]
+    ],
+    "owner_visual_observation": "Owner recording identifies E5B5 artifact and Midnight; sampled theme review only. No formal Android case or other-theme pass."
+  },
+  "theme_finish": {
+    "id": "DESIGN02",
+    "title": "Expressive theme finish after owner recording",
+    "implementation_status": "LOCAL_VERIFIED",
+    "device_status": "NOT_RUN",
+    "protected_parent": "1413f0f3838df497b6c696ccd4243b5a6285916b",
+    "implementation_commit": "0b4e4dea6528f5faebf4c63659545d93cfc54a87",
+    "branch": "design/nightwave-expressive-themes",
+    "pull_request": "https://github.com/Nahian2002/NightWave/pull/146",
+    "recorded_theme_score": 6.0,
+    "score_scope": "Old recorded Midnight theme only; not a new overall product rating",
+    "evidence": [
+      "docs/design/2026-10-28_THEME_RECORDING_REVIEW.md",
+      "docs/design/EXPRESSIVE_THEME_FINISH.md",
+      "docs/design/EXPRESSIVE_THEME_ACCEPTANCE.csv",
+      "TEST_REPORT.md"
+    ],
+    "local_evidence": [
+      "1609 JVM tests / 200 suites; 62 source checks PASS",
+      "360 Android parameterized cases compile only; device NOT_RUN",
+      "Lint 0 errors / 313 warnings / 17 hints; same signing certificate",
+      "NW-debug-D5AD44B8F8DCB21B; 860 source inputs independently verified",
+      "234 nonpresentation files byte-identical; nine callback inventories retained"
+    ],
+    "remaining_blockers": [
+      "New-candidate phone visual review of all four themes and the two new visual hierarchy cases",
+      "Carry prior input/native/dialog/performance/data-preservation/release blockers forward"
+    ],
+    "next_source_batch": "NW134"
   }
 }

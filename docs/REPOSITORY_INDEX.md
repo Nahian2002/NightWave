@@ -1,6 +1,6 @@
 # NightWave — repository navigation
 
-**Current implementation:** owner-requested matte DESIGN01 on [`design/nightwave-matte-system`](https://github.com/Nahian2002/NightWave/tree/design/nightwave-matte-system), stacked on NW133 PR #144. [Design system and feature boundaries](design/MATTE_DESIGN_SYSTEM.md), [theme acceptance ledger](design/MATTE_DESIGN_ACCEPTANCE.csv), [review #145](https://github.com/Nahian2002/NightWave/pull/145). **Next source batch: NW134.** Physical acceptance remains open; canonical `main` holds reviewed source.
+**Current implementation:** DESIGN02 expressive-theme finish on [`design/nightwave-expressive-themes`](https://github.com/Nahian2002/NightWave/tree/design/nightwave-expressive-themes), stacked on PR #145. [Theme-only recording review](design/2026-10-28_THEME_RECORDING_REVIEW.md), [correction](design/EXPRESSIVE_THEME_FINISH.md), [review #146](https://github.com/Nahian2002/NightWave/pull/146). **NW134 remains next.** Revised phone visual acceptance is pending.
 
 ## Start here
 
