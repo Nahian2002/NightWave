@@ -1,0 +1,25 @@
+case_id,theme,requirement,status
+DESIGN05-MIDNIGHT-TITLE,Midnight,Exact unbadged owner title is concise in music views; creator and editions retained; complete selectable originals remain in Details,NOT_RUN
+DESIGN05-MIDNIGHT-MIX,Midnight,All mixes thumbnails previews reasons Play and options remain; count/duration appear once and incomplete duration is omitted,NOT_RUN
+DESIGN05-MIDNIGHT-LIBRARY,Midnight,Sparse overview shows true counts Find/Create/import/offline and actual automatic collections; Show/Hide and restored choice work,NOT_RUN
+DESIGN05-MIDNIGHT-YOU,Midnight,Profile edit/privacy text and all account/offline/Sound Studio/History/theme/avatar/recovery controls remain reachable,NOT_RUN
+DESIGN05-MIDNIGHT-NAV,Midnight,Shelf held/released/cancelled gestures vertical scrolling normal page swipes rapid/reselected tabs and theme recreation remain stable,NOT_RUN
+DESIGN05-MIDNIGHT-ACCESS,Midnight,At 320/360/412dp and 1x/2x/3x type captions and actions remain readable reachable and accessible with TalkBack/keyboard,NOT_RUN
+DESIGN05-AURORA-TITLE,Aurora,Exact unbadged owner title is concise in music views; creator and editions retained; complete selectable originals remain in Details,NOT_RUN
+DESIGN05-AURORA-MIX,Aurora,All mixes thumbnails previews reasons Play and options remain; count/duration appear once and incomplete duration is omitted,NOT_RUN
+DESIGN05-AURORA-LIBRARY,Aurora,Sparse overview shows true counts Find/Create/import/offline and actual automatic collections; Show/Hide and restored choice work,NOT_RUN
+DESIGN05-AURORA-YOU,Aurora,Profile edit/privacy text and all account/offline/Sound Studio/History/theme/avatar/recovery controls remain reachable,NOT_RUN
+DESIGN05-AURORA-NAV,Aurora,Shelf held/released/cancelled gestures vertical scrolling normal page swipes rapid/reselected tabs and theme recreation remain stable,NOT_RUN
+DESIGN05-AURORA-ACCESS,Aurora,At 320/360/412dp and 1x/2x/3x type captions and actions remain readable reachable and accessible with TalkBack/keyboard,NOT_RUN
+DESIGN05-PEARL-TITLE,Pearl,Exact unbadged owner title is concise in music views; creator and editions retained; complete selectable originals remain in Details,NOT_RUN
+DESIGN05-PEARL-MIX,Pearl,All mixes thumbnails previews reasons Play and options remain; count/duration appear once and incomplete duration is omitted,NOT_RUN
+DESIGN05-PEARL-LIBRARY,Pearl,Sparse overview shows true counts Find/Create/import/offline and actual automatic collections; Show/Hide and restored choice work,NOT_RUN
+DESIGN05-PEARL-YOU,Pearl,Profile edit/privacy text and all account/offline/Sound Studio/History/theme/avatar/recovery controls remain reachable,NOT_RUN
+DESIGN05-PEARL-NAV,Pearl,Shelf held/released/cancelled gestures vertical scrolling normal page swipes rapid/reselected tabs and theme recreation remain stable,NOT_RUN
+DESIGN05-PEARL-ACCESS,Pearl,At 320/360/412dp and 1x/2x/3x type captions and actions remain readable reachable and accessible with TalkBack/keyboard,NOT_RUN
+DESIGN05-AMOLED-TITLE,AMOLED,Exact unbadged owner title is concise in music views; creator and editions retained; complete selectable originals remain in Details,NOT_RUN
+DESIGN05-AMOLED-MIX,AMOLED,All mixes thumbnails previews reasons Play and options remain; count/duration appear once and incomplete duration is omitted,NOT_RUN
+DESIGN05-AMOLED-LIBRARY,AMOLED,Sparse overview shows true counts Find/Create/import/offline and actual automatic collections; Show/Hide and restored choice work,NOT_RUN
+DESIGN05-AMOLED-YOU,AMOLED,Profile edit/privacy text and all account/offline/Sound Studio/History/theme/avatar/recovery controls remain reachable,NOT_RUN
+DESIGN05-AMOLED-NAV,AMOLED,Shelf held/released/cancelled gestures vertical scrolling normal page swipes rapid/reselected tabs and theme recreation remain stable,NOT_RUN
+DESIGN05-AMOLED-ACCESS,AMOLED,At 320/360/412dp and 1x/2x/3x type captions and actions remain readable reachable and accessible with TalkBack/keyboard,NOT_RUN

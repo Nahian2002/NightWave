@@ -277,7 +277,7 @@ fun NightWaveHomeHero(
                 if (identity == null) "Your listening space" else "Continue listening")
             Text(if (identity == null) emptyTitle ?: greeting else identity.title,
                 style = MaterialTheme.typography.titleLarge,
-                color = colors.onSurface, maxLines = 3, overflow = TextOverflow.Ellipsis)
+                color = colors.onSurface, maxLines = if (fontScale >= 1.3f) Int.MAX_VALUE else 2, overflow = TextOverflow.Ellipsis)
             Text(if (identity == null)
                 emptyDetail ?: ("Welcome, " + firstName + " · Your music, your pace")
                 else identity.artistOrCreator + " · Tap to continue",

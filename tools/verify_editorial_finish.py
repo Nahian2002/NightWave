@@ -24,7 +24,7 @@ def verify(src):
         assert bad not in policy, bad
     assert 'Text(title.ifBlank' in details and 'testTag("editorial-original-title")' in details
     assert 'testTag("editorial-original-source")' in details and "SelectionContainer" in details
-    assert "if (selected || emphasized)" in visual and "NightWaveEditorialPresentationPolicy.mixFacts(mix)" in visual
+    assert "if (selected || emphasized)" in visual and "NightWaveEditorialPresentationPolicy.mixSummary(mix)" in visual
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(); parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args(); src = {n: (BASE / n).read_text(encoding="utf-8") for n in FILES}; verify(src)
@@ -37,7 +37,7 @@ if __name__ == "__main__":
                              (FILES[2], "finally { gestures.end(owner) }"),
                              (FILES[3], "!promotion.containsMatchIn(title)"),
                              (FILES[4], 'testTag("editorial-original-title")'),
-                             (FILES[5], "NightWaveEditorialPresentationPolicy.mixFacts(mix)")):
+                             (FILES[5], "NightWaveEditorialPresentationPolicy.mixSummary(mix)")):
             broken = dict(src); broken[name] = broken[name].replace(marker, "BROKEN_FIXTURE")
             try: verify(broken)
             except AssertionError: continue

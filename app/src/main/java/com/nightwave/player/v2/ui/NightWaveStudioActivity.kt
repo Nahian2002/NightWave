@@ -4375,7 +4375,7 @@ internal fun StudioLibrary(
     val automaticDetails = remember(smartCollections, favorites, recent, playlistPreviews) {
         LibraryCollectionPresentationPolicy.automaticDetails(smartCollections, favorites, recent, playlistPreviews)
     }
-    var automaticCollectionsOpen by rememberSaveable { mutableStateOf(false) }
+    var automaticCollectionsOpen by rememberSaveable { mutableStateOf(true) }
     var playlistFilter by rememberSaveable { mutableStateOf("") }
     var playlistSort by rememberSaveable { mutableStateOf(LibraryBrowsePolicy.SORT_SAVED) }
     var showFilledOnly by rememberSaveable { mutableStateOf(false) }
@@ -4480,7 +4480,9 @@ internal fun StudioLibrary(
                     Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back to Library")
                 }
                 Column(Modifier.weight(1f)) {
-                    NightWaveCollectionHeader(
+                    if (selectedPlaylist == null) {
+                        NightWaveLibraryOverviewHeader(overview.summary)
+                    } else NightWaveCollectionHeader(
                         name = when {
                             selectedPlaylist == LIKED_COLLECTION -> "Liked Songs"
                             selectedPlaylist == RECENT_COLLECTION -> "Recently Played"
@@ -4594,7 +4596,7 @@ internal fun StudioLibrary(
                         modifier = Modifier.heightIn(min = 48.dp).testTag("nw47-library-new-playlist")) {
                         Text("New playlist")
                     }
-                    TextButton(onClick = onSearch, modifier = Modifier.heightIn(min = 48.dp)) {
+                    if (!overview.showSaveHint) TextButton(onClick = onSearch, modifier = Modifier.heightIn(min = 48.dp)) {
                         Text("Find music")
                     }
                     NightWaveLibraryOptions("Library options", "nw132-library-options", listOf(
@@ -4604,14 +4606,7 @@ internal fun StudioLibrary(
                     ))
                 }
             }
-            // Actual collection rows below serve as navigation. Avoid
-            // duplicating them with two oversized, noninteractive counters.
-            item {
-                Text(overview.summary,
-                    modifier = Modifier.padding(horizontal = 3.dp, vertical = 2.dp),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            // Counts live once in the overview header; collection rows remain real navigation.
             if (offlineResumeTitle != null) {
                 item {
                     Card(onClick = onResumeOffline, modifier = Modifier.fillMaxWidth(),
@@ -4653,10 +4648,7 @@ internal fun StudioLibrary(
                 }
             }
             if (overview.showSaveHint) item(key = "nw132-save-hint") {
-                Text(if (overview.historyEntries > 0)
-                    "Like or add songs to a playlist to save them beyond your history."
-                    else "Find music to like, create a playlist, or open Offline music for your own audio.",
-                    style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                NightWaveLibraryStartCard(hasHistory = overview.historyEntries > 0, onFindMusic = onSearch)
             }
             if (smartCollections.isNotEmpty()) {
                 item(key = "smart-collections-section") {
@@ -5147,15 +5139,15 @@ private fun StudioProfile(
         item {
             Card(
                 shape = RoundedCornerShape(21.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Column(Modifier.fillMaxWidth().padding(14.dp),
+                Column(Modifier.fillMaxWidth().padding(12.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Box(
-                            Modifier.size(52.dp).clip(RoundedCornerShape(16.dp))
+                            Modifier.size(40.dp).clip(RoundedCornerShape(12.dp))
                                 .background(MaterialTheme.colorScheme.primary),
                             contentAlignment = Alignment.Center
                         ) {
@@ -5172,12 +5164,11 @@ private fun StudioProfile(
                         Column(Modifier.weight(1f),
                             verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             Text(profile.displayName, style = MaterialTheme.typography.titleMedium,
-                                maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                maxLines = 2, overflow = TextOverflow.Ellipsis)
                             Text("Local profile · Your music stays on this device",
-                                style = MaterialTheme.typography.bodySmall, color = muted,
-                                maxLines = 1)
+                                style = MaterialTheme.typography.bodySmall, color = muted)
                         }
-                        OutlinedButton(onClick = {
+                        TextButton(onClick = {
                             name = profile.displayName
                             editing = !editing
                         }) {
@@ -5208,17 +5199,13 @@ private fun StudioProfile(
         }
 
         item(key = "nw47-you-quick-access") {
-            Row(Modifier.fillMaxWidth().nightWaveShelfBoundary().horizontalScroll(rememberScrollState())
-                    .testTag("nw47-you-quick-access"),
-                horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+            Column(Modifier.fillMaxWidth().testTag("nw47-you-quick-access")) {
+                NightWaveActionGroup {
                 NightWaveQuickActionPill("Account & backup",
                     Icons.Outlined.Cloud, "nw47-you-account", onOpenAccount)
-                NightWaveQuickActionPill("Sound Studio",
-                    Icons.Outlined.GraphicEq, "nw47-you-sound", onEqualizer)
                 NightWaveQuickActionPill("Offline music",
                     Icons.Outlined.LibraryMusic, "nw128-you-offline", onOffline)
-                NightWaveQuickActionPill("History",
-                    Icons.Outlined.LibraryMusic, "nw47-you-history", onManageHistory)
+                }
             }
         }
 
@@ -5253,7 +5240,8 @@ private fun StudioProfile(
             StudioProfileGroup("Appearance & playback") {
                 StudioProfileRow(
                     "Sound Studio", "Equalizer · presets and manual frequency bands",
-                    Icons.Outlined.GraphicEq, onEqualizer
+                    Icons.Outlined.GraphicEq, onEqualizer,
+                    modifier = Modifier.testTag("nw47-you-sound")
                 )
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 StudioProfileRow(
@@ -5333,7 +5321,8 @@ private fun StudioProfile(
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 StudioProfileRow("Manage Recently Played",
                     "Remove one entry or clear history · Saved music stays",
-                    Icons.Outlined.LibraryMusic, onManageHistory)
+                    Icons.Outlined.LibraryMusic, onManageHistory,
+                    modifier = Modifier.testTag("nw47-you-history"))
             }
         }
 
@@ -5532,10 +5521,11 @@ private fun StudioProfileGroup(
 @Composable
 private fun StudioProfileRow(
     title: String, detail: String, icon: androidx.compose.ui.graphics.vector.ImageVector,
-    onClick: () -> Unit, trailing: @Composable (() -> Unit)? = null
+    onClick: () -> Unit, modifier: Modifier = Modifier,
+    trailing: @Composable (() -> Unit)? = null
 ) {
     Row(
-        Modifier.fillMaxWidth().heightIn(min = 66.dp)
+        modifier.fillMaxWidth().heightIn(min = 64.dp)
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 9.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -5552,7 +5542,8 @@ private fun StudioProfileRow(
                 fontWeight = FontWeight.SemiBold)
             Text(detail, style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 2)
+                maxLines = if (androidx.compose.ui.platform.LocalDensity.current.fontScale >= 1.3f) Int.MAX_VALUE else 2,
+                overflow = TextOverflow.Ellipsis)
         }
         if (trailing != null) trailing()
         else Text("›", color = MaterialTheme.colorScheme.onSurfaceVariant,

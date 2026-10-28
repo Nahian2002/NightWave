@@ -33,7 +33,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
-/** 36 configurations × 13 actual UI cases. Blank source art and in-memory callbacks only.
+/** 36 configurations × 14 actual UI cases. Blank source art and in-memory callbacks only.
  * Does not install data, start playback, connect accounts or contact providers.
  * Captures exist only when these cases actually execute on Android.
  */
@@ -172,6 +172,33 @@ class NightWaveMatteAcceptanceInstrumentedTest(
         compose.onNodeWithText("Import playlist (.txt or pasted links)").performClick()
         compose.runOnIdle { assertEquals("import", action) }; capture("library")
     }
+    @Test fun sparseLibraryExposesGuidanceAndRealAutomaticCollections() {
+        val collection = com.nightwave.player.v2.library.SmartLibraryCollection(
+            "nightwave://smart/fixture", "Fixture recent collection", "From history", songs.take(3))
+        fixture {
+            StudioLibrary(Modifier, emptyList(), songs, emptyList(), 0, false, listOf(collection),
+                PlaylistFolderSnapshot(), emptyList(), onTogglePinPlaylist = {}, playingUrl = "",
+                selectedPlaylist = null, onSelectPlaylist = { action = it.orEmpty() },
+                getPlaylist = { emptyList() }, onPlay = { _, _ -> error("Unexpected playback") }, onQuickPlay = {},
+                onManage = {}, onSearch = { action = "find" }, onCreatePlaylist = { action = "create" },
+                onManageFolders = {}, onMovePlaylist = {}, onOffline = { action = "offline" },
+                offlineResumeTitle = null, offlineResumePositionMs = 0L, onResumeOffline = {},
+                onSongOptions = {}, onRemoveRecent = {}, onClearRecent = {}, onPlaylistSongOptions = { _, _ -> },
+                onSharePlaylist = { _, _ -> }, onExportPlaylist = { _, _ -> }, onBulkShareLinks = { _, _ -> },
+                onBulkRemove = { _, _ -> }, onBulkCopy = { _, _ -> }, onMovePlaylistSong = { _, _, _, _ -> },
+                playlistUndo = null, onUndoPlaylistEdit = {}, onDismissPlaylistUndo = {}, onImportSharedPlaylist = {})
+        }
+        compose.onNodeWithTag("composition-library-header").assertExists()
+        compose.onNodeWithTag("composition-library-find").performScrollTo().performClick()
+        compose.runOnIdle { assertEquals("find", action) }
+        compose.onNodeWithText(collection.title).performScrollTo().performClick()
+        compose.runOnIdle { assertEquals(collection.id, action) }
+        compose.onNodeWithTag("nw132-automatic-toggle").performScrollTo().performClick()
+        compose.onNodeWithText(collection.title).assertDoesNotExist()
+        compose.onNodeWithTag("nw132-automatic-toggle").performClick()
+        compose.onNodeWithText(collection.title).performScrollTo().assertIsDisplayed()
+        capture("sparse-library")
+    }
     private class Actions : StudioPlayerActions {
         var committed: Pair<String, Long>? = null
         override fun play(video: VideoPreview, collection: List<VideoPreview>) = Unit
@@ -191,15 +218,16 @@ class NightWaveMatteAcceptanceInstrumentedTest(
     }
     @Test fun fullPlayerRetainsSaveQueueLyricsAndTrackScopedSeek() {
         val actions = Actions(); val selected = songs.first().copy(
-            title = "Fixture song 1 | Film credits | Creator credits | Bengali Movie Song")
+            title = "Fixture song 1 | Film credits | Performer credits | Fixture creator")
         fixture {
             StudioNowPlayingOverlay(expanded = true, state = StudioPlayerState(connected = true, title = selected.title,
-                videoUrl = selected.url, durationMs = 120_000L), actions = actions, liked = false, onLike = {},
+                videoUrl = selected.url, artist = selected.author, durationMs = 120_000L), actions = actions, liked = false, onLike = {},
                 onOpenQueue = { action = "queue" }, onSaveToPlaylist = { action = "save" }, onSaveOffline = {},
                 sleepRemainingMs = 0L, onSleepTimer = {}, offlineSpeedPercent = 100, onOfflineSpeed = {},
                 listeningLevelPercent = 100, onListeningLevel = {}, crossfadeSeconds = 0, onCrossfade = {},
                 normalizationEnabled = false, onNormalizationChange = {}, onDismiss = {}, reduceMotion = true)
         }
+        compose.onNodeWithText("Fixture song 1").assertExists()
         val artBounds = compose.onNodeWithTag("nightwave-now-playing-artwork").fetchSemanticsNode().boundsInRoot
         assertTrue(artBounds.height < artBounds.width)
         compose.onNodeWithTag("nw133-player-content").performScrollToNode(hasTestTag("editorial-track-details"))
