@@ -1,0 +1,25 @@
+case_id,theme,requirement,status
+DESIGN06-MIDNIGHT-PLAYER,Midnight,First-frame content present; opaque backdrop retained through open close rapid reversal and reduced motion; controls and art remain,NOT_RUN
+DESIGN06-MIDNIGHT-STATS,Midnight,Recorded totals date ranges UTC and 7/30-day groups are truthful; sub-minute/long durations readable; no slider-like chart affordance,NOT_RUN
+DESIGN06-MIDNIGHT-CONTROLS,Midnight,Consent Refresh Erase confirmation both windows and all stored statistics remain correct; no opt-in or storage change,NOT_RUN
+DESIGN06-MIDNIGHT-MIX,Midnight,Distinct truthful purposes; stable real representative covers; original queue order membership previews reasons Play and options retained,NOT_RUN
+DESIGN06-MIDNIGHT-SETTINGS,Midnight,Aligned spacing sentence-case labels meaningful copy all settings account recovery and classic paths remain reachable,NOT_RUN
+DESIGN06-MIDNIGHT-ACCESS,Midnight,320/360/412dp 1x/2x/3x type TalkBack keyboard image fallback shelf/page gestures theme rotation and prior data/audio gates,NOT_RUN
+DESIGN06-AURORA-PLAYER,Aurora,First-frame content present; opaque backdrop retained through open close rapid reversal and reduced motion; controls and art remain,NOT_RUN
+DESIGN06-AURORA-STATS,Aurora,Recorded totals date ranges UTC and 7/30-day groups are truthful; sub-minute/long durations readable; no slider-like chart affordance,NOT_RUN
+DESIGN06-AURORA-CONTROLS,Aurora,Consent Refresh Erase confirmation both windows and all stored statistics remain correct; no opt-in or storage change,NOT_RUN
+DESIGN06-AURORA-MIX,Aurora,Distinct truthful purposes; stable real representative covers; original queue order membership previews reasons Play and options retained,NOT_RUN
+DESIGN06-AURORA-SETTINGS,Aurora,Aligned spacing sentence-case labels meaningful copy all settings account recovery and classic paths remain reachable,NOT_RUN
+DESIGN06-AURORA-ACCESS,Aurora,320/360/412dp 1x/2x/3x type TalkBack keyboard image fallback shelf/page gestures theme rotation and prior data/audio gates,NOT_RUN
+DESIGN06-PEARL-PLAYER,Pearl,First-frame content present; opaque backdrop retained through open close rapid reversal and reduced motion; controls and art remain,NOT_RUN
+DESIGN06-PEARL-STATS,Pearl,Recorded totals date ranges UTC and 7/30-day groups are truthful; sub-minute/long durations readable; no slider-like chart affordance,NOT_RUN
+DESIGN06-PEARL-CONTROLS,Pearl,Consent Refresh Erase confirmation both windows and all stored statistics remain correct; no opt-in or storage change,NOT_RUN
+DESIGN06-PEARL-MIX,Pearl,Distinct truthful purposes; stable real representative covers; original queue order membership previews reasons Play and options retained,NOT_RUN
+DESIGN06-PEARL-SETTINGS,Pearl,Aligned spacing sentence-case labels meaningful copy all settings account recovery and classic paths remain reachable,NOT_RUN
+DESIGN06-PEARL-ACCESS,Pearl,320/360/412dp 1x/2x/3x type TalkBack keyboard image fallback shelf/page gestures theme rotation and prior data/audio gates,NOT_RUN
+DESIGN06-AMOLED-PLAYER,AMOLED,First-frame content present; opaque backdrop retained through open close rapid reversal and reduced motion; controls and art remain,NOT_RUN
+DESIGN06-AMOLED-STATS,AMOLED,Recorded totals date ranges UTC and 7/30-day groups are truthful; sub-minute/long durations readable; no slider-like chart affordance,NOT_RUN
+DESIGN06-AMOLED-CONTROLS,AMOLED,Consent Refresh Erase confirmation both windows and all stored statistics remain correct; no opt-in or storage change,NOT_RUN
+DESIGN06-AMOLED-MIX,AMOLED,Distinct truthful purposes; stable real representative covers; original queue order membership previews reasons Play and options retained,NOT_RUN
+DESIGN06-AMOLED-SETTINGS,AMOLED,Aligned spacing sentence-case labels meaningful copy all settings account recovery and classic paths remain reachable,NOT_RUN
+DESIGN06-AMOLED-ACCESS,AMOLED,320/360/412dp 1x/2x/3x type TalkBack keyboard image fallback shelf/page gestures theme rotation and prior data/audio gates,NOT_RUN
