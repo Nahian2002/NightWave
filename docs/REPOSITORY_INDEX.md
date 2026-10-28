@@ -1,6 +1,6 @@
 # NightWave — repository navigation
 
-**Current implementation:** DESIGN02 expressive-theme finish on [`design/nightwave-expressive-themes`](https://github.com/Nahian2002/NightWave/tree/design/nightwave-expressive-themes), stacked on PR #145. [Theme-only recording review](design/2026-10-28_THEME_RECORDING_REVIEW.md), [correction](design/EXPRESSIVE_THEME_FINISH.md), [review #146](https://github.com/Nahian2002/NightWave/pull/146). **NW134 remains next.** Revised phone visual acceptance is pending.
+**Current implementation:** DESIGN02 expressive-theme finish on [`design/nightwave-expressive-themes`](https://github.com/Nahian2002/NightWave/tree/design/nightwave-expressive-themes), stacked on PR #145. [Theme-only recording review](design/2026-10-28_THEME_RECORDING_REVIEW.md), [correction](design/EXPRESSIVE_THEME_FINISH.md), [review #146](https://github.com/Nahian2002/NightWave/pull/146). **NW134 remains next.** [Attributable owner review: 7.6/10 theme only](design/2026-10-28_THEME_VALIDATION_202916.md); boundary-fix phone acceptance remains pending.
 
 ## Start here
 

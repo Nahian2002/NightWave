@@ -942,15 +942,16 @@
     "id": "DESIGN02",
     "title": "Expressive theme finish after owner recording",
     "implementation_status": "LOCAL_VERIFIED",
-    "device_status": "NOT_RUN",
+    "device_status": "PARTIAL",
     "protected_parent": "1413f0f3838df497b6c696ccd4243b5a6285916b",
     "implementation_commit": "0b4e4dea6528f5faebf4c63659545d93cfc54a87",
     "branch": "design/nightwave-expressive-themes",
     "pull_request": "https://github.com/Nahian2002/NightWave/pull/146",
-    "recorded_theme_score": 6.0,
-    "score_scope": "Old recorded Midnight theme only; not a new overall product rating",
+    "recorded_theme_score": 7.6,
+    "score_scope": "Attributable D5 recorded primary Midnight appearance only, same five-dimension rubric; other themes briefly observed; overall 6.7 unchanged",
     "evidence": [
       "docs/design/2026-10-28_THEME_RECORDING_REVIEW.md",
+      "docs/design/2026-10-28_THEME_VALIDATION_202916.md",
       "docs/design/EXPRESSIVE_THEME_FINISH.md",
       "docs/design/EXPRESSIVE_THEME_ACCEPTANCE.csv",
       "TEST_REPORT.md"
@@ -959,13 +960,21 @@
       "1609 JVM tests / 200 suites; 62 source checks PASS",
       "360 Android parameterized cases compile only; device NOT_RUN",
       "Lint 0 errors / 313 warnings / 17 hints; same signing certificate",
-      "NW-debug-D5AD44B8F8DCB21B; 860 source inputs independently verified",
+      "NW-debug-B01767043A0E2FD7; 860 source inputs independently verified",
       "234 nonpresentation files byte-identical; nine callback inventories retained"
     ],
     "remaining_blockers": [
-      "New-candidate phone visual review of all four themes and the two new visual hierarchy cases",
-      "Carry prior input/native/dialog/performance/data-preservation/release blockers forward"
+      "New B017 candidate phone confirmation of all-theme dialog/menu containers and Pearl navigation bar; recorded D5 observations are partial only",
+      "Formal 360-case Android matrix remains NOT_RUN; carry input/native/performance/data-preservation/release blockers forward"
     ],
-    "next_source_batch": "NW134"
+    "next_source_batch": "NW134",
+    "previous_recorded_theme_score": 6.0,
+    "acceptance_followup": {
+      "implementation_commit": "6057bfaa2a0d8e0ed47b13705adc247902d67b4b",
+      "implementation_status": "LOCAL_VERIFIED",
+      "device_status": "NOT_RUN",
+      "build_id": "NW-debug-B01767043A0E2FD7",
+      "scope": "Material3 container roles and Android API29+ navigation contrast scrim only"
+    }
   }
 }
