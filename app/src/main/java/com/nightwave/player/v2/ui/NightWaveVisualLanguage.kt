@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -226,87 +227,45 @@ fun NightWaveMoodArt(
     val surface = paletteColor(NightWaveThemeExpressionPolicy.sectionSurface(palette, secondary))
     val accent = paletteColor(NightWaveThemeExpressionPolicy.sectionAccent(palette, secondary))
     val fontScale = LocalDensity.current.fontScale
+    val motif = NightWaveMoodArtPolicy.motif(title)
     Card(onClick = onClick, modifier = modifier.heightIn(min =
         NightWaveAccessibilityPolicy.moodCardMinHeightDp(fontScale).dp),
-        shape = RoundedCornerShape(21.dp)) {
-        Box(Modifier.fillMaxSize().background(surface)) {
-            Canvas(Modifier.fillMaxSize()) {
-                // Six lightweight, genuinely distinct editorial motifs rather
-                // than the same ring graphic pasted across every mood card.
-                val w = size.width
-                val h = size.height
-                val soft = accent.copy(alpha = .20f)
-                val bright = accent.copy(alpha = .42f)
-                when (title.lowercase()) {
-                    "after hours" -> {
-                        for (i in 0..3) {
-                            drawCircle(soft, radius = w * (.13f + i * .07f),
-                                center = Offset(w * .91f, h * .22f),
-                                style = Stroke(width = 1.3.dp.toPx()))
-                        }
-                        drawCircle(bright, radius = 3.dp.toPx(),
-                            center = Offset(w * .56f, h * .22f))
+        colors = CardDefaults.cardColors(containerColor = surface),
+        shape = RoundedCornerShape(20.dp)) {
+        Column(Modifier.fillMaxWidth()) {
+            // Artwork has its own measured lane. Caption growth can never cover it.
+            Row(Modifier.fillMaxWidth().height(72.dp).testTag("mood-art-header")
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Icon(Icons.Outlined.Search, contentDescription = null,
+                    tint = accent, modifier = Modifier.size(23.dp))
+                Canvas(Modifier.weight(1f).height(56.dp).testTag("mood-art-viewport")) {
+                    val viewport = NightWaveMoodArtPolicy.viewport(size.width, size.height, 4.dp.toPx())
+                        ?: return@Canvas
+                    fun point(x: Float, y: Float) = Offset(
+                        viewport.left + x * viewport.side, viewport.top + y * viewport.side)
+                    val soft = accent.copy(alpha = .38f)
+                    val bright = accent.copy(alpha = .76f)
+                    motif.lines.forEach { line ->
+                        drawLine(if (line.strong) bright else soft,
+                            point(line.x1, line.y1), point(line.x2, line.y2),
+                            strokeWidth = line.strokeDp.dp.toPx(), cap = StrokeCap.Round)
                     }
-                    "deep focus" -> {
-                        for (i in 0..5) {
-                            val x = w * (.57f + i * .065f)
-                            drawLine(if (i == 2) bright else soft,
-                                Offset(x, h * .14f), Offset(x, h * .60f),
-                                strokeWidth = if (i == 2) 3.dp.toPx() else 1.dp.toPx(),
-                                cap = StrokeCap.Round)
-                        }
-                    }
-                    "desi pulse" -> {
-                        for (i in 0..8) {
-                            val x = w * (.48f + i * .058f)
-                            val amplitude = (i % 4 + 1) * .07f
-                            drawLine(if (i % 3 == 0) bright else soft,
-                                Offset(x, h * (.37f - amplitude)),
-                                Offset(x, h * (.37f + amplitude)),
-                                strokeWidth = 2.dp.toPx(), cap = StrokeCap.Round)
-                        }
-                    }
-                    "unplugged" -> {
-                        for (i in 0..4) {
-                            val y = h * (.13f + i * .10f)
-                            drawLine(soft, Offset(w * .47f, y),
-                                Offset(w * .98f, y + h * .18f),
-                                strokeWidth = 1.5.dp.toPx(), cap = StrokeCap.Round)
-                        }
-                    }
-                    "momentum" -> {
-                        for (i in 0..4) {
-                            val x = w * (.50f + i * .09f)
-                            val height = h * (.12f + i * .095f)
-                            drawLine(if (i == 4) bright else soft,
-                                Offset(x, h * .57f), Offset(x, h * .57f - height),
-                                strokeWidth = 5.dp.toPx(), cap = StrokeCap.Round)
-                        }
-                    }
-                    else -> {
-                        val sun = Offset(w * .77f, h * .28f)
-                        drawCircle(bright, radius = w * .12f, center = sun)
-                        for (i in 0..2) {
-                            drawLine(soft, Offset(w * .49f, h * (.44f + i * .08f)),
-                                Offset(w * .99f, h * (.44f + i * .08f)),
-                                strokeWidth = 1.6.dp.toPx(), cap = StrokeCap.Round)
-                        }
+                    motif.rings.forEach { ring ->
+                        if (ring.filled) drawCircle(bright, ring.radius * viewport.side, point(ring.x, ring.y))
+                        else drawCircle(soft, ring.radius * viewport.side, point(ring.x, ring.y),
+                            style = Stroke(width = 1.5.dp.toPx()))
                     }
                 }
             }
-            Column(Modifier.fillMaxWidth()) {
-                Box(Modifier.fillMaxWidth().height(56.dp).padding(12.dp)) {
-                    Icon(Icons.Outlined.PlayArrow, contentDescription = null,
-                        tint = accent, modifier = Modifier.size(23.dp))
-                }
-                Column(Modifier.fillMaxWidth().background(surface)
-                    .padding(NightWavePremiumDesignTokens.CARD_PADDING_DP.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(title, style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface)
-                    Text(subtitle, style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
+            Column(Modifier.fillMaxWidth().testTag("mood-caption")
+                .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(title, style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface)
+                Text(subtitle, style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }

@@ -259,16 +259,29 @@ class NightWaveMatteAcceptanceInstrumentedTest(
         card.performClick(); compose.runOnIdle { assertEquals("single", action) }; capture("single-collection")
     }
     @Test fun themedMoodKeepsItsExplicitSearchActionAndReadableLabels() {
+        var choice by mutableIntStateOf(0)
         fixture {
             Column(Modifier.fillMaxWidth().padding(16.dp)) {
-                NightWaveMoodArt("After hours", "Midnight drives", emptyList(),
-                    modifier = Modifier.fillMaxWidth().testTag("expressive-mood"), onClick = { action = "mood-search" })
+                val mood = DiscoveryShortcuts.picks[choice]
+                NightWaveMoodArt(mood.title, mood.subtitle, emptyList(),
+                    modifier = Modifier.width(178.dp).testTag("expressive-mood"),
+                    onClick = { action = mood.query })
             }
         }
-        compose.onNodeWithText("After hours").assertExists()
-        compose.onNodeWithText("Midnight drives").assertExists()
-        compose.onNodeWithTag("expressive-mood").performClick()
-        compose.runOnIdle { assertEquals("mood-search", action) }; capture("mood-color")
+        DiscoveryShortcuts.picks.forEachIndexed { index, mood ->
+            compose.runOnIdle { choice = index }
+            compose.onNodeWithText(mood.title).assertExists()
+            compose.onNodeWithText(mood.subtitle).assertExists()
+            val header = compose.onNodeWithTag("mood-art-header", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+            val art = compose.onNodeWithTag("mood-art-viewport", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+            val caption = compose.onNodeWithTag("mood-caption", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+            val card = compose.onNodeWithTag("expressive-mood").fetchSemanticsNode().boundsInRoot
+            assertTrue(art.left >= header.left && art.right <= header.right)
+            assertTrue(art.top >= header.top && art.bottom <= header.bottom)
+            assertTrue(caption.top >= header.bottom && caption.bottom <= card.bottom)
+            compose.onNodeWithTag("expressive-mood").performClick()
+            compose.runOnIdle { assertEquals(mood.query, action) }; capture("mood-$index")
+        }
     }
 
 }

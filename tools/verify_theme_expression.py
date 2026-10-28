@@ -22,6 +22,8 @@ def verify(src):
     assert "featured = NightWaveThemeExpressionPolicy.featuredMixCell(pair.size)" in home
     assert "NightWaveThemeExpressionPolicy.sectionSurface(palette, secondary)" in visual
     assert "tint = accent, modifier = Modifier.size(23.dp)" in visual
+    assert "NightWaveMoodArtPolicy.viewport(size.width, size.height, 4.dp.toPx())" in visual
+    assert visual.index('testTag("mood-art-header")') < visual.index('testTag("mood-caption")')
     for body in (theme, native):
         for marker in ("Theme_NightWave_Aurora", "Theme_NightWave_Pearl", "Theme_NightWave_AMOLED"):
             assert marker in body, marker
@@ -45,6 +47,8 @@ if __name__ == "__main__":
         for name, marker in ((FILES[0], "Long = palette.accent"), (FILES[1], "colors.primaryContainer"),
                              (FILES[2], ".background(colors.surfaceVariant)"), (FILES[3], "featuredMixCell(pair.size)"),
                              (FILES[4], "sectionSurface(palette, secondary)"), (FILES[4], "tint = accent, modifier"),
+                             (FILES[4], "NightWaveMoodArtPolicy.viewport(size.width, size.height, 4.dp.toPx())"),
+                             (FILES[4], 'testTag("mood-art-header")'),
                              (FILES[5], "Theme_NightWave_Aurora"), (FILES[6], "Theme_NightWave_AMOLED"),
                              (FILES[3], "SearchDraftPolicy.shouldApply(state.prefillToken, consumedPrefill)"),
                              (FILES[3], 'if (!queryFocused) Text("Search songs, artists or links"'),

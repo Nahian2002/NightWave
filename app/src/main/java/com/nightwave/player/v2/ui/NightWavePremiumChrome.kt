@@ -193,31 +193,22 @@ fun NightWavePremiumNavigation(
                         .testTag("nightwave-tab-" + tags[index]),
                     contentAlignment = Alignment.Center
                 ) {
-                    Box(
-                        modifier = Modifier.align(Alignment.TopCenter)
-                            .padding(top = 1.dp)
-                            .size(width = 25.dp, height = 3.dp)
-                            .graphicsLayer {
-                                alpha = indicatorProgress
-                                scaleX = indicatorProgress
-                            }
-                            .clip(CircleShape)
-                            .background(colors.primary)
-                    )
                     Column(
                         modifier = Modifier.padding(vertical = 8.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        Box(Modifier.clip(CircleShape).background(color)
-                            .padding(horizontal = 14.dp, vertical = 4.dp),
-                            contentAlignment = Alignment.Center) {
+                        Box(Modifier.clip(CircleShape), contentAlignment = Alignment.Center) {
+                            Box(Modifier.matchParentSize().graphicsLayer {
+                                alpha = indicatorProgress
+                                scaleX = indicatorProgress
+                            }.background(color))
                             Icon(
                                 imageVector = icons[index],
                                 contentDescription = null,
                                 tint = if (active) colors.primary
                                     else colors.onSurfaceVariant,
-                                modifier = Modifier.size(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 4.dp).size(
                                     (if (extraLargeText) 24 else NightWavePremiumDesignTokens.ICON_SIZE_DP).dp)
                                     .graphicsLayer {
                                         scaleX = iconScale
