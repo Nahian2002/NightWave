@@ -162,7 +162,7 @@ fun StudioMiniPlayer(
     val health = PlaybackHealthPolicy.classify(state.hasTrack, state.connected,
         state.offline, state.playing, state.buffering, state.resolving, state.error)
     val statusLabel = NightWaveNowPlayingPresentationPolicy.statusLabel(health)
-    val identity = MusicIdentity.display(state.title, state.artist)
+    val identity = NightWaveEditorialPresentationPolicy.identity(state.title, state.artist)
     val reducedMotion = LocalNightWaveReduceMotion.current
     val hapticView = LocalView.current
     val miniShape = RoundedCornerShape(NightWavePremiumDesignTokens.ARTWORK_CORNER_DP.dp)
@@ -443,8 +443,12 @@ fun StudioNowPlayingOverlay(
     ) {
         val colors = MaterialTheme.colorScheme.copy(onSurfaceVariant =
             paletteColor(NightWaveMattePolicy.playerSecondary(LocalNightWavePalette.current)))
+        var showSourceDetails by remember(state.videoUrl) { mutableStateOf(false) }
         var resolvedArtwork by remember(state.videoUrl, state.thumbnail) {
             mutableStateOf<android.graphics.drawable.Drawable?>(null)
+        }
+        if (showSourceDetails) NightWaveTrackDetails(state.title, state.artist, state.videoUrl) {
+            showSourceDetails = false
         }
         BoxWithConstraints(Modifier.fillMaxSize()
             .windowInsetsPadding(WindowInsets.safeDrawing)
@@ -458,8 +462,10 @@ fun StudioNowPlayingOverlay(
                 playerWidthDp, maxHeight.value, fontScale)
             val contentPaddingDp = playerLayout.horizontalPaddingDp
             val art = playerLayout.artworkDp.dp
+            val artHeight = NightWaveArtworkFramePolicy.heightDp(playerLayout.artworkDp,
+                resolvedArtwork?.intrinsicWidth ?: 0, resolvedArtwork?.intrinsicHeight ?: 0, state.offline).dp
             val playerIdentity = remember(state.title, state.artist) {
-                MusicIdentity.display(state.title, state.artist)
+                NightWaveEditorialPresentationPolicy.identity(state.title, state.artist)
             }
             val queuePreview = remember(
                 state.queue, state.queueIndex, state.manualNextUrls,
@@ -477,7 +483,7 @@ fun StudioNowPlayingOverlay(
             }
             val queuePreviewTitle = queuePreview.sourceSlot?.let { at ->
                 state.queue.getOrNull(at)?.let {
-                    MusicIdentity.display(it.title, it.author).title
+                    NightWaveEditorialPresentationPolicy.identity(it.title, it.author).title
                 }
             } ?: queuePreview.subtitle
             val playerHealth = PlaybackHealthPolicy.classify(state.hasTrack, state.connected,
@@ -767,7 +773,7 @@ fun StudioNowPlayingOverlay(
                 }
                 Spacer(Modifier.height(2.dp))
                 Box(
-                    Modifier.size(art)
+                    Modifier.size(width = art, height = artHeight)
                         .testTag("nightwave-now-playing-artwork")
                         .shadow(8.dp,
                             RoundedCornerShape(playerLayout.artworkCornerDp.dp))
@@ -931,7 +937,9 @@ fun StudioNowPlayingOverlay(
                             Icon(Icons.Outlined.Refresh, contentDescription = if (state.connected)
                                 "Retry playback" else "Reconnect player", tint = colors.primary)
                         }
-                    } else Spacer(Modifier.size(48.dp))
+                    }
+                    NightWaveMatteTextButton(onClick = { showSourceDetails = true },
+                        modifier = Modifier.heightIn(min = 48.dp).testTag("editorial-track-details")) { Text("Details") }
                 }
                 // A scrub in progress belongs to exactly one track. Changing tracks
                 // clears the pending drag so an old percentage cannot seek the next.
@@ -1622,7 +1630,7 @@ private fun SwipeUpcomingRow(
     onRemove: () -> Unit
 ) {
     val display = remember(title, subtitle) {
-        MusicIdentity.display(title, subtitle)
+        NightWaveEditorialPresentationPolicy.identity(title, subtitle)
     }
     val fontScale = LocalDensity.current.fontScale
     val titleLines = NightWavePremiumDesignTokens.titleLines(fontScale,

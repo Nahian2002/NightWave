@@ -136,6 +136,7 @@ fun NightWaveMixCard(
     compact: Boolean = false,
     presentation: NightWaveHomePresentationPolicy.MixPresentation? = null,
     featured: Boolean = false,
+    emphasized: Boolean = false,
     onClick: () -> Unit
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -148,7 +149,7 @@ fun NightWaveMixCard(
         modifier = modifier.heightIn(min = 48.dp).testTag("nw131-mix-" + mix.key)
             .semantics { this.selected = selected },
         shape = RoundedCornerShape(NightWavePremiumDesignTokens.CARD_CORNER_DP.dp),
-        colors = CardDefaults.cardColors(containerColor = if (selected || featured) scheme.primaryContainer else scheme.surfaceVariant),
+        colors = CardDefaults.cardColors(containerColor = if (selected || emphasized) scheme.primaryContainer else scheme.surface),
         border = BorderStroke(1.dp, if (selected) scheme.primary else
             scheme.onSurface.copy(alpha = NightWaveMattePolicy.BORDER_ALPHA))) {
         // Single-column cards use a real thumbnail beside the caption rather
@@ -167,7 +168,7 @@ fun NightWaveMixCard(
                 if (!compact && fontScale < 1.3f && first != null) {
                     NightWaveMixMosaic(mix, Modifier.fillMaxWidth().aspectRatio(1.6f))
                 }
-                Column(Modifier.fillMaxWidth().background(if (selected || featured) scheme.primaryContainer else scheme.surfaceVariant)
+                Column(Modifier.fillMaxWidth().background(if (selected || emphasized) scheme.primaryContainer else scheme.surface)
                     .padding(NightWavePremiumDesignTokens.CARD_PADDING_DP.dp)) {
                     NightWaveMixCaption(mix, presentation, trackLabel, fontScale)
                 }
@@ -205,10 +206,12 @@ private fun NightWaveMixCaption(
         Text(presentation?.title ?: mix.title, style = MaterialTheme.typography.titleMedium,
             color = scheme.onSurface, maxLines = if (fontScale >= 1.3f) Int.MAX_VALUE else 2,
             overflow = TextOverflow.Ellipsis)
-        val startsWith = presentation?.startsWith.orEmpty()
+        val startsWith = presentation?.purpose?.takeIf { it.isNotBlank() } ?: presentation?.startsWith.orEmpty()
         if (startsWith.isNotBlank()) Text(startsWith,
             style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant,
             maxLines = if (fontScale >= 1.3f) Int.MAX_VALUE else 1, overflow = TextOverflow.Ellipsis)
+        val facts = NightWaveEditorialPresentationPolicy.mixFacts(mix)
+        if (facts.isNotBlank()) Text(facts, style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
         Text(trackLabel, style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
     }
 }

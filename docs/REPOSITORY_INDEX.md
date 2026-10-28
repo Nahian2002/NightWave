@@ -4,7 +4,7 @@ Latest acceptance correction: [tiny artwork and split-page review](design/2026-1
 
 # NightWave — repository navigation
 
-**Current implementation:** DESIGN02 expressive-theme finish on [`design/nightwave-expressive-themes`](https://github.com/Nahian2002/NightWave/tree/design/nightwave-expressive-themes), stacked on PR #145. [Theme-only recording review](design/2026-10-28_THEME_RECORDING_REVIEW.md), [correction](design/EXPRESSIVE_THEME_FINISH.md), [review #146](https://github.com/Nahian2002/NightWave/pull/146). **NW134 remains next.** [Attributable owner review: 7.6/10 theme only](design/2026-10-28_THEME_VALIDATION_202916.md); boundary-fix phone acceptance remains pending.
+**Current implementation:** DESIGN04 on [`design/nightwave-editorial-finish`](https://github.com/Nahian2002/NightWave/tree/design/nightwave-editorial-finish), [draft PR #148](https://github.com/Nahian2002/NightWave/pull/148) stacked on #147. [Architecture and preservation](design/EDITORIAL_FINISH.md), [24-case manual supplement](design/EDITORIAL_FINISH_ACCEPTANCE.csv), [current verification](../TEST_REPORT.md). Latest recorded UI is 8.3/10; new build 24139708 device acceptance is NOT_RUN. **NW134 remains next.**
 
 ## Start here
 

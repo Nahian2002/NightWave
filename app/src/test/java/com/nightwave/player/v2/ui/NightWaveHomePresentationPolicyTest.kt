@@ -110,4 +110,19 @@ class NightWaveHomePresentationPolicyTest {
         assertEquals(listOf(larger), plan.mixes)
         assertSame(larger.tracks, plan.mixes.single().tracks)
     }
+    @Test fun realMixSourcesHaveDifferentPurposeDescriptions() {
+        val recent = listOf(song(1), song(2))
+        val first = NightWaveHomePresentationPolicy.mix(mix("daily_mix_1", recent), emptyList(), recent, emptyList(), false)
+        val next = NightWaveHomePresentationPolicy.mix(mix("daily_mix_2", recent.reversed()), emptyList(), recent, emptyList(), false)
+        assertNotEquals(first.purpose, next.purpose)
+        assertTrue(first.reason.contains("2 recent"))
+        assertTrue(next.reason.contains("2 recent"))
+    }
+    @Test fun beyondRecentPurposeRequiresAnActualOutsideTrack() {
+        val p = NightWaveHomePresentationPolicy.mix(mix("daily_mix_2", listOf(song(1), song(2))),
+            listOf(song(2)), listOf(song(1)), emptyList(), false)
+        assertEquals("Explore beyond recent plays", p.purpose)
+        assertTrue(p.reason.contains("1 liked"))
+    }
+
 }

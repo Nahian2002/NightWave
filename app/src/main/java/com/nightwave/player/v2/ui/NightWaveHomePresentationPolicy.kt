@@ -14,7 +14,7 @@ object NightWaveHomePresentationPolicy {
         val showLikedShortcut: Boolean,
         val showSearchShortcut: Boolean
     )
-    data class MixPresentation(val title: String, val caption: String, val startsWith: String, val reason: String)
+    data class MixPresentation(val title: String, val caption: String, val startsWith: String, val reason: String, val purpose: String = "")
 
     private fun ids(tracks: List<VideoPreview>): Set<String> = tracks.asSequence()
         .map { it.url }.filter { VideoLink.normalize(it) == it }.toSet()
@@ -73,8 +73,17 @@ object NightWaveHomePresentationPolicy {
             else -> "YOUR MUSIC"
         }
         val first = tracks.firstOrNull()?.let { MusicIdentity.display(it.title, it.author).title }
+        val purpose = when {
+            mix.key == "daily_mix_1" && likedCount > 0 -> "Start with songs you liked"
+            mix.key == "daily_mix_1" -> "A familiar starting point"
+            mix.key == "daily_mix_2" && outsideRecent > 0 -> "Explore beyond recent plays"
+            mix.key == "daily_mix_2" -> "A different sequence of recent songs"
+            mix.key == "daily_mix_3" && knownUploaders >= 2 -> "Across $knownUploaders creators"
+            tracks.isNotEmpty() && recentCount == 0 && tracks.all { it.url in saved } -> "Revisit music you saved"
+            else -> "Another selection from your music"
+        }
         return MixPresentation(title, caption, first?.let { "Starts with $it" }.orEmpty(),
             "On this device" + (if (membership.isNotEmpty()) " · $membership" else "") +
-                (if (memoryEnabled) " · Listening memory enabled" else ""))
+                (if (memoryEnabled) " · Listening memory enabled" else ""), purpose)
     }
 }

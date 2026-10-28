@@ -88,7 +88,7 @@ fun NightWaveRecentShelfTile(
 ) {
     val colors = MaterialTheme.colorScheme
     val fontScale = LocalDensity.current.fontScale
-    val identity = remember(song.title, song.author) { MusicIdentity.display(song.title, song.author) }
+    val identity = remember(song.title, song.author) { NightWaveEditorialPresentationPolicy.identity(song.title, song.author) }
     var showActions by remember(song.url) { mutableStateOf(false) }
     val tileWidth = NightWavePremiumDesignTokens.shelfWidthDp(
         LocalConfiguration.current.screenWidthDp.toFloat(), fontScale).dp
@@ -96,7 +96,7 @@ fun NightWaveRecentShelfTile(
         Surface(onClick = onPlay, shape = RoundedCornerShape(NightWavePremiumDesignTokens.CARD_CORNER_DP.dp),
             modifier = Modifier.fillMaxWidth().testTag("nw47-recent-play")) {
             Box {
-                TrackArtwork(song, Modifier.fillMaxWidth().aspectRatio(1f), large = true)
+                TrackArtwork(song, Modifier.fillMaxWidth().aspectRatio(1.5f), large = true)
                 if (isPlaying) Surface(
                     Modifier.align(Alignment.BottomStart).padding(7.dp),
                     color = colors.primary, shape = RoundedCornerShape(7.dp)) {
@@ -155,7 +155,7 @@ fun NightWaveNextListenTile(
 ) {
     val scheme = MaterialTheme.colorScheme
     val identity = remember(song.title, song.author) {
-        MusicIdentity.display(song.title, song.author)
+        NightWaveEditorialPresentationPolicy.identity(song.title, song.author)
     }
     Column(
         modifier = Modifier.width(NightWavePremiumDesignTokens.shelfWidthDp(
@@ -175,7 +175,7 @@ fun NightWaveNextListenTile(
         ) {
             Column {
                 Box(
-                    Modifier.fillMaxWidth().aspectRatio(1f)
+                    Modifier.fillMaxWidth().aspectRatio(1.5f)
                         .clip(RoundedCornerShape(
                             NightWavePremiumDesignTokens.CARD_CORNER_DP.dp))
                         .background(scheme.surfaceVariant),

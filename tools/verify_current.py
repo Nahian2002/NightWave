@@ -44,6 +44,7 @@ PYTHON_CHECKS = (
     ("verify_theme_expression.py", "--self-test"),
     ("verify_content_finish.py", "--self-test"),
     ("verify_pager_artwork_recovery.py", "--self-test"),
+    ("verify_editorial_finish.py", "--self-test"),
 )
 
 # Same safety preflights as the one-click Windows builder, including negative

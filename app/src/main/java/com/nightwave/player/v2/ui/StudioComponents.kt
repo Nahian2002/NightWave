@@ -264,7 +264,7 @@ fun MusicTrackTile(
     // description rather than pretending an unverified recording title.
     val identity = if (rawVideoCaption)
         MusicIdentity.videoDisplay(video.title, video.author)
-        else MusicIdentity.display(video.title, video.author)
+        else NightWaveEditorialPresentationPolicy.identity(video.title, video.author)
     val fontScale = LocalDensity.current.fontScale
     val availableWidthDp = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.toFloat()
     val titleLines = NightWavePremiumDesignTokens.titleLines(fontScale, availableWidthDp)

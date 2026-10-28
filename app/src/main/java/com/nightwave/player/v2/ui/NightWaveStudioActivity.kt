@@ -158,6 +158,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import com.nightwave.player.v2.ui.NightWaveMatteTextButton as TextButton
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -3037,7 +3038,8 @@ private fun StudioRoot(
     val pagerState = rememberPagerState(initialPage = StudioTab.HOME.ordinal) {
         StudioTab.entries.size
     }
-    NightWavePagerRecovery(pagerState)
+    val shelfGestures = remember { NightWaveShelfGestureState() }
+    NightWavePagerRecovery(pagerState, shelfGestures.active)
     val scope = rememberCoroutineScope()
     val keyboard = LocalSoftwareKeyboardController.current
     val focus = LocalFocusManager.current
@@ -3179,12 +3181,13 @@ private fun StudioRoot(
     ) { safe ->
         // HorizontalPager owns page swipes; child LazyColumns own vertical scroll.
         // Full player / Up Next overlay gestures never move the background tabs.
+        CompositionLocalProvider(LocalNightWaveShelfGestures provides shelfGestures) {
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.fillMaxSize().padding(safe).testTag("nightwave-tab-pager"),
             key = { StudioTab.entries[it].name },
             beyondViewportPageCount = 1,
-            userScrollEnabled = !expanded && !showQueue,
+            userScrollEnabled = !expanded && !showQueue && !shelfGestures.active,
             pageSpacing = 0.dp
         ) { page ->
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
@@ -3347,6 +3350,7 @@ private fun StudioRoot(
                     )
                 }
             }
+        }
         }
     }
     StudioNowPlayingOverlay(
@@ -3637,7 +3641,7 @@ internal fun StudioHome(
             mixes.firstOrNull()?.let { mix ->
                 item(key = "matte-featured-mix") {
                     NightWaveMixCard(mix = mix, selected = chosenMixKey == mix.key,
-                        modifier = Modifier.fillMaxWidth(), featured = true,
+                        modifier = Modifier.fillMaxWidth(), featured = true, emphasized = true,
                         presentation = mixPresentations[mix.key], onClick = {
                             chosenMixKey = if (chosenMixKey == mix.key) null else mix.key
                             showAllMixTracks = false

@@ -190,7 +190,8 @@ class NightWaveMatteAcceptanceInstrumentedTest(
         override fun refreshQueue() = Unit
     }
     @Test fun fullPlayerRetainsSaveQueueLyricsAndTrackScopedSeek() {
-        val actions = Actions(); val selected = songs.first()
+        val actions = Actions(); val selected = songs.first().copy(
+            title = "Fixture song 1 | Film credits | Creator credits | Bengali Movie Song")
         fixture {
             StudioNowPlayingOverlay(expanded = true, state = StudioPlayerState(connected = true, title = selected.title,
                 videoUrl = selected.url, durationMs = 120_000L), actions = actions, liked = false, onLike = {},
@@ -199,6 +200,14 @@ class NightWaveMatteAcceptanceInstrumentedTest(
                 listeningLevelPercent = 100, onListeningLevel = {}, crossfadeSeconds = 0, onCrossfade = {},
                 normalizationEnabled = false, onNormalizationChange = {}, onDismiss = {}, reduceMotion = true)
         }
+        val artBounds = compose.onNodeWithTag("nightwave-now-playing-artwork").fetchSemanticsNode().boundsInRoot
+        assertTrue(artBounds.height < artBounds.width)
+        compose.onNodeWithTag("nw133-player-content").performScrollToNode(hasTestTag("editorial-track-details"))
+        compose.onNodeWithTag("editorial-track-details").performClick()
+        compose.onNodeWithTag("editorial-original-title").assertTextEquals(selected.title)
+        compose.onNodeWithTag("editorial-original-source").assertTextEquals(selected.url)
+        compose.onNodeWithText("Close").performClick()
+        compose.onNodeWithTag("nw133-player-content").performScrollToNode(hasContentDescription("Save track to playlist"))
         compose.onNodeWithContentDescription("Save track to playlist").performClick()
         compose.runOnIdle { assertEquals("save", action) }
         compose.onNodeWithTag("nw133-player-content").performScrollToNode(hasTestTag("nightwave-player-seek"))
@@ -335,6 +344,7 @@ class NightWaveMatteAcceptanceInstrumentedTest(
     }
 
     @Test fun shelfEdgeFlingsAndCancelledOrRecoloredPagesCannotStaySplit() {
+        val touches = NightWaveShelfGestureState()
         var pager: androidx.compose.foundation.pager.PagerState? = null
         var scope: kotlinx.coroutines.CoroutineScope? = null
         var selectedTheme by mutableStateOf(theme)
@@ -343,8 +353,9 @@ class NightWaveMatteAcceptanceInstrumentedTest(
                 val state = androidx.compose.foundation.pager.rememberPagerState { 4 }
                 val localScope = rememberCoroutineScope()
                 SideEffect { pager = state; scope = localScope }
-                NightWavePagerRecovery(state)
-                androidx.compose.foundation.pager.HorizontalPager(state, Modifier.fillMaxSize().testTag("recovery-pager")) { page ->
+                NightWavePagerRecovery(state, touches.active)
+                CompositionLocalProvider(LocalNightWaveShelfGestures provides touches) {
+                androidx.compose.foundation.pager.HorizontalPager(state, Modifier.fillMaxSize().testTag("recovery-pager"), userScrollEnabled = !touches.active) { page ->
                     Column(Modifier.fillMaxSize()) {
                         androidx.compose.foundation.lazy.LazyRow(
                             Modifier.fillMaxWidth().height(96.dp).nightWaveShelfBoundary().testTag("recovery-shelf-$page")) {
@@ -353,8 +364,13 @@ class NightWaveMatteAcceptanceInstrumentedTest(
                         Box(Modifier.fillMaxWidth().weight(1f).testTag("recovery-blank-$page"))
                     }
                 }
+                }
             }
         }
+        compose.onNodeWithTag("recovery-shelf-0").performTouchInput { down(center) }
+        compose.runOnIdle { assertTrue(touches.active) }
+        compose.onNodeWithTag("recovery-shelf-0").performTouchInput { up() }
+        compose.runOnIdle { assertFalse(touches.active) }
         repeat(6) { compose.onNodeWithTag("recovery-shelf-0").performTouchInput { swipeLeft() } }
         compose.waitForIdle()
         compose.runOnIdle {
