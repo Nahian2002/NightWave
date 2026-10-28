@@ -88,6 +88,7 @@ object NightWaveHomeCurationPolicy {
         val chosen = ArrayList<PersonalMix>(MAX_MIX_CARDS)
         val usedKeys = HashSet<String>()
         val signatures = ArrayList<Set<String>>(MAX_MIX_CARDS)
+        val nextUrls = next.mapTo(hashSetOf()) { it.url }
         for (mix in dailyMixes + personalMixes) {
             if (chosen.size >= MAX_MIX_CARDS) break
             val ids = mix.tracks.asSequence()
@@ -98,6 +99,10 @@ object NightWaveHomeCurationPolicy {
             // duplicate. A later genuinely different card with the same key
             // must remain eligible for display.
             if (ids.isEmpty() || mix.key.isBlank() || mix.key in usedKeys) continue
+            // A tiny mix repeating the song shelf adds no useful destination.
+            // Compare against the candidate's size: a larger mix with new songs
+            // must not disappear merely because it contains the six quick picks.
+            if (nextUrls.isNotEmpty() && ids.count { it in nextUrls } * 5 >= ids.size * 4) continue
             // A small Replay mix can be wholly contained in a larger Daily Mix.
             // Both remain accessible through their source library/history, but
             // rendering near-clones together makes Home feel repetitive.
