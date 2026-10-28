@@ -2,11 +2,11 @@
 
 **Current evidence:** NW132 plus maintenance. [TEST_REPORT](../TEST_REPORT.md) records exact build, JVM/Android/source/lint/signing results and limits. Read the [active roadmap](PRODUCT_QUALITY_ROADMAP.md) for future batches. Installed-phone signer and physical/release acceptance remain separate.
 
-**Latest source: `maintenance/nightwave-nw132-cleanup`**, based on cumulative NW132. `main` is an older v0.8 snapshot. Follow the procedure below and retained [phone instructions](NW125_FINAL_CANDIDATE.md); require fresh receipts for the exact source built. NW133 remains next.
+**Latest source: `main`**, based on cumulative NW132. `main` is the canonical cumulative source; old tags/branches remain historical. Follow the procedure below and retained [phone instructions](NW125_FINAL_CANDIDATE.md); require fresh receipts for the exact source built. NW133 remains next.
 
 ## Local Windows build
 
-1. Use the complete **`maintenance/nightwave-nw132-cleanup`** branch in a writable local folder. Preserve the existing working checkout and installed app data.
+1. Use the complete **`main`** branch in a writable local folder. Preserve the existing working checkout and installed app data.
 2. Run `build-windows.cmd`. Cached Gradle/SDK downloads are reused. Read and accept SDK licenses yourself when required.
 3. Require `BUILD SUCCESSFUL` and a fresh `dist/NightWave-build-status.txt`. The builder runs source preflights, JVM tests, debug APK assembly and Android instrumentation-source compilation.
 4. Review `dist/NightWave-jvm-test-proof.txt` and source fingerprint. Failed or interrupted attempts must not promote a stale APK.

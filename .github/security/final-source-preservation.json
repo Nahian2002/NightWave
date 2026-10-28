@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-28",
+  "protected_parent": "736f014e6ff38d73f29e014057f3c398a83a63d3",
+  "scope": "Final source-only publication; current NW132 maintenance app, tools and build inputs unchanged",
+  "protected_files_byte_checked": 848,
+  "packaged_source_inputs": 843,
+  "canonical_source_sha256": "F3E970F569154FEB763708A40BF9BE3416B53FF41BEB4E2ECAB8130665E64914",
+  "app_changed": false,
+  "dependencies_changed": false,
+  "apk_sha256": "56DA667E13A33CEF1D57CD845C1AF3A62EA699361FDFA645E8FA145151784911",
+  "source_scan_reviewed_fingerprints": 13
+}

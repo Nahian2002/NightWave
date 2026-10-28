@@ -6,7 +6,7 @@ Before choosing or implementing an upgrade, read:
 2. `docs/quality/NW126_NW145_BACKLOG.json` — batch status, dependencies and acceptance criteria.
 3. `docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md` and `TEST_REPORT.md` — baseline findings and verification limits.
 
-The current cumulative implementation includes NW132 clear Library, based on protected NW131 parent `e80378f1e5c0bc1f81970afd5d4a70c9ce42f2d9`. Read the latest backlog plus NW126–NW132 evidence; physical acceptance is pending. The old default `main` is v0.8; never merge it over the cumulative development chain or assume it is current.
+The current cumulative implementation includes NW132 clear Library, based on protected NW131 parent `e80378f1e5c0bc1f81970afd5d4a70c9ce42f2d9`. Read the latest backlog plus NW126–NW132 evidence; physical acceptance is pending. `main` is now the canonical reviewed cumulative source. Do not merge an old v0.8 tag or historical branch over it.
 
 When the owner says "next", select the first eligible incomplete batch in the active backlog. The next source batch is **NW133**; NW126–NW132 are locally verified with physical checks pending. Check the actual checkout, remote updates and the latest ledger first. Do not restart NW111–NW125 simply because historical documents contain old next-step text.
 
@@ -20,7 +20,7 @@ Use isolated checkpoints and a reviewable branch. Keep private recordings, extra
 
 ## Maintenance continuity
 
-Current source includes maintenance on `maintenance/nightwave-nw132-cleanup`, based on NW132 `aa6a56fd553a297d5aa790f6049a1f4634a11b63`. Read TEST_REPORT.md and docs/REPOSITORY_MAINTENANCE_20261028.md before more cleanup. Retain historical evidence and useful incremental caches; project housekeeping does not authorize deleting personal folders. NW133 remains next.
+Current source includes maintenance on `main`, based on NW132 `aa6a56fd553a297d5aa790f6049a1f4634a11b63`. Read TEST_REPORT.md and docs/REPOSITORY_MAINTENANCE_20261028.md before more cleanup. Retain historical evidence and useful incremental caches; project housekeeping does not authorize deleting personal folders. NW133 remains next.
 
 ## Repository publication preparation
 

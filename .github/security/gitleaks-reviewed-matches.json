@@ -1,7 +1,7 @@
 {
   "scanner": "gitleaks 8.30.1",
   "date": "2026-10-28",
-  "scope": "All fetched branch/tag and pull-request-head histories at protected parent. Exact immutable commit/path/rule/line identities only; new matches are not approved.",
+  "scope": "All fetched branch/tag and PR-head histories through current NW132 maintenance; exact immutable commit/path/rule/line exclusions only.",
   "matches": [
     {
       "fingerprint": "0b51a5edf1e9a6dbfc064e87e96c30178ca2748f:docs/measurements/nw122/nw122-after-2.json:generic-api-key:9",
@@ -110,6 +110,15 @@
       "commit": "75716473d61a036a4ebbac7fd0c042366dd33326",
       "disposition": "FALSE_POSITIVE",
       "reason": "Markdown release-readiness text spanning table rows; no credential or private-key material."
+    },
+    {
+      "fingerprint": "d85be670a4c82a07b9ebfbfe12ea47239776bcb8:app/src/main/java/com/nightwave/player/v2/ui/NightWaveStudioActivity.kt:generic-api-key:4600",
+      "rule": "generic-api-key",
+      "file": "app/src/main/java/com/nightwave/player/v2/ui/NightWaveStudioActivity.kt",
+      "line": 4600,
+      "commit": "d85be670a4c82a07b9ebfbfe12ea47239776bcb8",
+      "disposition": "FALSE_POSITIVE",
+      "reason": "Compose item(key=\"nw132-save-hint\") UI identity in NW132; verified against the immutable original line, not a credential."
     }
   ]
 }

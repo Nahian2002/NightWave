@@ -1,6 +1,6 @@
 # NightWave — repository navigation
 
-**Current implementation baseline:** cumulative NW132 clear Library on [`maintenance/nightwave-nw132-cleanup`](https://github.com/Nahian2002/NightWave/tree/maintenance/nightwave-nw132-cleanup). See [NW132 evidence and device protocol](NW132_CLEAR_LIBRARY.md). **Next source batch: NW133.** GitHub default `main` is an older app; NW126–NW132 physical acceptance remains open.
+**Current implementation baseline:** cumulative NW132 clear Library on [`main`](https://github.com/Nahian2002/NightWave/tree/main). See [NW132 evidence and device protocol](NW132_CLEAR_LIBRARY.md). **Next source batch: NW133.** GitHub default `main` contains current reviewed source; NW126–NW132 physical acceptance remains open.
 
 ## Start here
 
@@ -34,7 +34,7 @@
 - **JVM tests:** `app/src/test/`; **device tests:** `app/src/androidTest/`. Pure CLI smoke scripts are useful preflights, never substitutes for these suites.
 - **Build rules:** root `build.gradle.kts`, `settings.gradle.kts`, `gradle.properties`, and `app/build.gradle.kts`; **CI:** `.github/workflows/`. Do not delete or alter SDK/signing checks for cosmetic cleanup.
 - **Room schema/migrations and settings:** Treat all as migration evidence; never delete without a verified backwards-compatibility and restore audit.
-- **Current source wave:** NW132 clear Library follows NW131 and completed repository-only publication preparation. NW126–NW132 are locally verified with physical acceptance pending; `main` does not contain these waves. NW133 is next. Consult the structured backlog and current test report.
+- **Current source wave:** NW132 clear Library follows NW131 and completed repository-only publication preparation. NW126–NW132 are locally verified with physical acceptance pending; `main` contains the cumulative source after publication promotion. NW133 is next. Consult the structured backlog and current test report.
 
 Current automated workflow: `.github/workflows/current-android.yml`; `android.yml` remains a manual historical diagnostic. See [historic check inventory](HISTORICAL_CI_SOURCE_CHECKS_20261027.md).
 
