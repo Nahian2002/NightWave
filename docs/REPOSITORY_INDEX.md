@@ -1,6 +1,6 @@
 # NightWave — repository navigation
 
-**Current implementation baseline:** cumulative NW132 clear Library on [`main`](https://github.com/Nahian2002/NightWave/tree/main). See [NW132 evidence and device protocol](NW132_CLEAR_LIBRARY.md). **Next source batch: NW133.** GitHub default `main` contains current reviewed source; NW126–NW132 physical acceptance remains open.
+**Current implementation:** NW133 player/artwork/status/seek on [`update/nightwave-nw133-player-artwork`](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw133-player-artwork), locally verified and pending review. [NW133 evidence and phone protocol](NW133_PLAYER_ARTWORK_METADATA.md). **Next source batch: NW134.** Canonical `main` holds reviewed source; NW126–NW133 physical acceptance remains open.
 
 ## Start here
 
@@ -18,6 +18,7 @@
 | Decidable public results and latest evidence | [NW130 evidence](NW130_DECIDABLE_PUBLIC_RESULTS.md) |
 | Purposeful Home and latest evidence | [NW131 evidence](NW131_PURPOSEFUL_HOME.md) |
 | Clear Library identity and latest evidence | [NW132 evidence](NW132_CLEAR_LIBRARY.md) |
+| Player artwork, state and seek evidence | [NW133 evidence](NW133_PLAYER_ARTWORK_METADATA.md) |
 | Detailed current product rating and source/video findings | [28 October audit](audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md) |
 | Windows build, Android signing and release procedure | [Build and release](BUILD_AND_RELEASE.md) |
 | Release risks and blockers | [Release readiness](../RELEASE_READINESS.md) |
@@ -34,7 +35,7 @@
 - **JVM tests:** `app/src/test/`; **device tests:** `app/src/androidTest/`. Pure CLI smoke scripts are useful preflights, never substitutes for these suites.
 - **Build rules:** root `build.gradle.kts`, `settings.gradle.kts`, `gradle.properties`, and `app/build.gradle.kts`; **CI:** `.github/workflows/`. Do not delete or alter SDK/signing checks for cosmetic cleanup.
 - **Room schema/migrations and settings:** Treat all as migration evidence; never delete without a verified backwards-compatibility and restore audit.
-- **Current source wave:** NW132 clear Library follows NW131 and completed repository-only publication preparation. NW126–NW132 are locally verified with physical acceptance pending; `main` contains the cumulative source after publication promotion. NW133 is next. Consult the structured backlog and current test report.
+- **Current source wave:** NW133 follows completed source-only publication of NW132 maintenance. NW126–NW133 are locally verified with physical acceptance pending; NW133 is on its review branch, and NW134 is next. See the structured backlog and current test report.
 
 Current automated workflow: `.github/workflows/current-android.yml`; `android.yml` remains a manual historical diagnostic. See [historic check inventory](HISTORICAL_CI_SOURCE_CHECKS_20261027.md).
 

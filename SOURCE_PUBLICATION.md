@@ -1,8 +1,10 @@
 # NightWave source-publication record
 
-**28 October 2026 â€” final source review complete; visibility operation/readback pending.** This is source-only GitHub publication. No APK, store submission, website, app-feature change, dependency change, installation or account-data operation is included.
+**28 October 2026 — source published; public visibility and controls read back.** This is source-only GitHub publication. No APK, store submission, website, app-feature change, dependency change, installation or account-data operation is included.
 
 The owner requested publication after receiving the copying/public-log/contact, licensing/provider and enforcement risks. The precise payload is cumulative NW132 plus maintenance, protected at `736f014e6ff38d73f29e014057f3c398a83a63d3`; preparation is on `audit/nightwave-source-publication-final`. It was promoted to canonical `main` by fast-forward, preserving history. [Final review](docs/publication/FINAL_SOURCE_REVIEW_20261028.md).
+
+The frozen NW132 payload below records the completed publication operation. Separately authorized product work continues on review branches; [NW133](docs/NW133_PLAYER_ARTWORK_METADATA.md) changes app source without changing repository visibility or enabling Actions.
 
 ## Verified payload
 

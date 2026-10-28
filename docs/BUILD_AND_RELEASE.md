@@ -1,12 +1,12 @@
 # Build and safe update
 
-**Current evidence:** NW132 plus maintenance. [TEST_REPORT](../TEST_REPORT.md) records exact build, JVM/Android/source/lint/signing results and limits. Read the [active roadmap](PRODUCT_QUALITY_ROADMAP.md) for future batches. Installed-phone signer and physical/release acceptance remain separate.
+**Current evidence:** NW133 player/artwork/status/seek on its review branch. [TEST_REPORT](../TEST_REPORT.md) records exact build, JVM/Android/source/lint/signing results and limits. Read the [active roadmap](PRODUCT_QUALITY_ROADMAP.md) for future batches. Installed-phone signer and physical/release acceptance remain separate.
 
-**Latest source: `main`**, based on cumulative NW132. `main` is the canonical cumulative source; old tags/branches remain historical. Follow the procedure below and retained [phone instructions](NW125_FINAL_CANDIDATE.md); require fresh receipts for the exact source built. NW133 remains next.
+**Reviewed source: `main`**, based on cumulative NW132. `main` is the canonical cumulative source; old tags/branches remain historical. Follow the procedure below and retained [phone instructions](NW125_FINAL_CANDIDATE.md); require fresh receipts for the exact source built. NW133 is locally verified on `update/nightwave-nw133-player-artwork`, pending review; NW134 is next. Use that exact branch for this candidate.
 
 ## Local Windows build
 
-1. Use the complete **`main`** branch in a writable local folder. Preserve the existing working checkout and installed app data.
+1. Use the complete **`main`** branch for reviewed source, or the exact named review branch for a candidate. Work in a writable local folder. Preserve the existing working checkout and installed app data.
 2. Run `build-windows.cmd`. Cached Gradle/SDK downloads are reused. Read and accept SDK licenses yourself when required.
 3. Require `BUILD SUCCESSFUL` and a fresh `dist/NightWave-build-status.txt`. The builder runs source preflights, JVM tests, debug APK assembly and Android instrumentation-source compilation.
 4. Review `dist/NightWave-jvm-test-proof.txt` and source fingerprint. Failed or interrupted attempts must not promote a stale APK.
@@ -24,7 +24,7 @@ Use the existing [139-case acceptance matrix](NW90_EXPANDED_139_CASE_MATRIX.csv)
 
 `python tools/verify_current.py` runs current Python structural/negative checks and, on Windows, the same source safety preflights used by the local builder. It invalidates stale source-check receipts before running. This is source validation only.
 
-The current CI workflow, `current-android.yml`, runs those checks followed by real Gradle JVM tests, APK assembly and Android test-source compilation. It requires at least 1,400 executed passing tests, runs lint and verifies package/version and APK signature. Artifacts are restricted to permitted private non-PR runs. GitHub's signer can differ from the installed signer.
+Repository Actions is deliberately disabled following public-source publication; no hosted CI pass is claimed. The retained workflow definition, `current-android.yml`, would run those checks followed by real Gradle JVM tests, APK assembly and Android test-source compilation. It requires at least 1,400 executed passing tests, runs lint and verifies package/version and APK signature. Artifacts are restricted to permitted private non-PR runs. GitHub's signer can differ from the installed signer.
 
 `android.yml` is now a manual historical diagnostic workflow. Its baseline [188-command inventory](HISTORICAL_CI_SOURCE_CHECKS_20261027.md) includes 98 failures, many caused by superseded exact strings or historic hashes; those reports are not relabeled as passes. Source checks and all original JVM/device tests are retained. Current Windows preflights and real Gradle tests remain required.
 

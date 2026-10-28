@@ -1,6 +1,6 @@
 # NightWave tools — current use and historical checks
 
-**Current implementation baseline:** NW132 plus maintenance; fresh local build and 1,573 JVM tests pass. The runner executes **59 current checks**, including NW125 gates, fixture preparation and provenance negative cases. See [current verification](../TEST_REPORT.md) and [active NW126–NW145 plan](../docs/PRODUCT_QUALITY_ROADMAP.md). Source checks do not certify phone behavior.
+**Current implementation baseline:** NW133 player/artwork/status/seek on its review branch; fresh local build and 1,587 JVM tests / 198 suites pass. The runner executes **60 current checks**, including the new player wiring/negative fixtures. See [current verification](../TEST_REPORT.md) and [active plan](../docs/PRODUCT_QUALITY_ROADMAP.md). Source checks do not certify phone behavior. Actions remains deliberately disabled.
 
 ## Recommended entrypoints
 
@@ -8,7 +8,7 @@
 - **NW125 clean-source gate:** `python tools/nw125_release_candidate_gate.py --self-test` and `python tools/nw125_release_candidate_gate.py --json` (if Python is installed). Detects missing build inputs and accidental generated/secret filenames; **source-only**, not an APK or device pass.
 - **Release preflight:** root `check-public-release.cmd`, `tools/public_release_preflight.py`, and source-rights/privacy checks. They only prove the gates they actually execute.
 - **Device/signing:** root `check-device-update.cmd`, `capture-nightwave-crash.cmd`, `check-google-oauth.cmd`, and `tools/verify-apk-signature.ps1`.
-- **Android CI:** `.github/workflows/current-android.yml` (required build); `android.yml` (manual historical diagnostics); review their trigger/status on the exact current SHA.
+- **Android CI:** definitions are retained under `.github/workflows/`; repository Actions is deliberately disabled. Local build/lint/source receipts are separate from hosted checks.
 
 ## Performance measurement
 
@@ -43,3 +43,5 @@ NW128 adds `verify_nw128_shell.py --self-test` to the current runner, bringing i
 NW129 adds `verify_nw129_search.py --self-test` to the current runner (56 checks) for full caller membership, source observation/cleanup, revision/query tags and paging. `nw129-benchmark.init.gradle` runs the actual prepared typing runner in fresh host JVMs; it does not establish Android input/render latency or heap behavior. See [NW129 protocol](../docs/NW129_COMPLETE_LOCAL_SEARCH.md).
 
 NW130 adds `verify_nw130_public_search.py --self-test` (57 current checks). Its negative fixtures guard evidence wiring, exact single-source selection, phases/deadline/generation and both request-scoped HTTP paths. The frozen test corpus is under `app/src/test/resources/`; JUnit emits `app/build/reports/nw130-public-corpus.json`. MockWebServer checks actual local socket/body cancellation and isolation; phone/provider acceptance remains separate. See [NW130 protocol](../docs/NW130_DECIDABLE_PUBLIC_RESULTS.md).
+
+NW133 adds `verify_nw133_player.py --self-test` (60 current checks), guarding measured artwork/cache/fallback wiring, shared status, scoped seek and existing queue/lyrics paths with seven broken fixtures. See [NW133 protocol](../docs/NW133_PLAYER_ARTWORK_METADATA.md). Fourteen JVM tests execute; six new Android screen tests compile only.
