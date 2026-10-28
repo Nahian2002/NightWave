@@ -154,7 +154,7 @@ fun NightWavePremiumNavigation(
             names.forEachIndexed { index, label ->
                 val active = NightWaveChromePolicy.selectedTab(selectedIndex) == index
                 val color by animateColorAsState(
-                    targetValue = if (active) colors.surfaceVariant
+                    targetValue = if (active) colors.primaryContainer
                         else Color.Transparent,
                     animationSpec = tween(
                         durationMillis = NightWaveMotionPolicy.duration(
@@ -268,7 +268,8 @@ fun NightWaveHomeHero(
     Row(clickableHero.fillMaxWidth()
         .heightIn(min = NightWaveAdaptiveChromePolicy.homeHeroHeightDp(fontScale).dp)
         .clip(RoundedCornerShape(NightWavePremiumDesignTokens.HERO_CORNER_DP.dp))
-        .background(colors.surface)
+        .background(androidx.compose.ui.graphics.Brush.horizontalGradient(
+            listOf(colors.surface, colors.primaryContainer)))
         .testTag("nightwave-home-hero")
         .padding(NightWavePremiumDesignTokens.CARD_PADDING_DP.dp),
         verticalAlignment = Alignment.CenterVertically,

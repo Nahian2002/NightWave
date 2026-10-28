@@ -3632,6 +3632,7 @@ internal fun StudioHome(
                         val mix = pair.first()
                         NightWaveMixCard(mix = mix, selected = chosenMixKey == mix.key,
                             modifier = Modifier.fillMaxWidth().fillMaxHeight(), presentation = mixPresentations[mix.key],
+                            featured = NightWaveThemeExpressionPolicy.featuredMixCell(pair.size),
                             onClick = {
                                 chosenMixKey = if (chosenMixKey == mix.key) null else mix.key
                                 showAllMixTracks = false
@@ -3641,6 +3642,7 @@ internal fun StudioHome(
                         val mix = pair[1]
                         NightWaveMixCard(mix = mix, selected = chosenMixKey == mix.key,
                             modifier = Modifier.fillMaxWidth().fillMaxHeight(), presentation = mixPresentations[mix.key],
+                            featured = NightWaveThemeExpressionPolicy.featuredMixCell(pair.size),
                             onClick = {
                                 chosenMixKey = if (chosenMixKey == mix.key) null else mix.key
                                 showAllMixTracks = false
@@ -5111,7 +5113,7 @@ private fun StudioProfile(
         item {
             Card(
                 shape = RoundedCornerShape(21.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(Modifier.fillMaxWidth().padding(14.dp),

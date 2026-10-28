@@ -11,7 +11,10 @@ data class Palette(
     val accentSoft: Long,
     val outline: Long,
     val danger: Long,
-    val isDark: Boolean
+    val isDark: Boolean,
+    /** Decorative/secondary actions only; never a new stored theme or metadata identity. */
+    val secondaryAccent: Long = accent,
+    val secondarySoft: Long = accentSoft
 ) {
     // All current light palettes use a dark accent to keep small labels
     // readable on cards. Light lettering is required on that dark accent.
@@ -31,20 +34,24 @@ object NightWaveDesign {
 
     fun palette(theme: NightWaveTheme): Palette = when (theme) {
         NightWaveTheme.MIDNIGHT -> Palette(
-            0xFF0A0A0A, 0xFF121212, 0xFF1A1A1A, 0xFFFFFFFF, 0xFF8E8E93,
-            0xFFA1D6C9, 0xFF1E3330, 0xFF737378, 0xFFFFB4AB, true
+            0xFF090F1B, 0xFF121E30, 0xFF1B2D44, 0xFFF4F8FF, 0xFFBCCAE0,
+            0xFF66D9EF, 0xFF13384A, 0xFF7B90AE, 0xFFFFB4B9, true,
+            0xFFB8ADFF, 0xFF342D55
         )
         NightWaveTheme.AURORA -> Palette(
-            0xFF100F16, 0xFF17151F, 0xFF22202B, 0xFFFAF8FF, 0xFFB3ADBF,
-            0xFFCEC0EC, 0xFF332B44, 0xFF81778E, 0xFFFFB4AB, true
+            0xFF160D24, 0xFF241636, 0xFF342447, 0xFFFAF5FF, 0xFFD3C0E5,
+            0xFFC3A0FF, 0xFF4D2E70, 0xFFA38AB6, 0xFFFFB9C9, true,
+            0xFFFFB8D0, 0xFF542C48
         )
         NightWaveTheme.PEARL -> Palette(
-            0xFFF9F7F2, 0xFFF0EDE7, 0xFFE5E0D8, 0xFF24221F, 0xFF5F5A55,
-            0xFF61527F, 0xFFE3DDEB, 0xFF777067, 0xFFAA3042, false
+            0xFFF8F5F0, 0xFFFFFFFF, 0xFFE8EDF8, 0xFF14223C, 0xFF4E6080,
+            0xFF1C47AD, 0xFFDDE7FF, 0xFF758199, 0xFFAA3042, false,
+            0xFF7C3BA9, 0xFFF0E1F8
         )
         NightWaveTheme.AMOLED -> Palette(
-            0xFF000000, 0xFF0E0E0E, 0xFF181818, 0xFFFFFFFF, 0xFFA0A0A5,
-            0xFFB1CEC5, 0xFF1E2C28, 0xFF737378, 0xFFFFB4AB, true
+            0xFF000000, 0xFF0C171C, 0xFF142A30, 0xFFF1FCFF, 0xFFA8CAD3,
+            0xFF72EAD8, 0xFF143E3C, 0xFF77959F, 0xFFFFB4AB, true,
+            0xFF9ABEFF, 0xFF203551
         )
     }
 }

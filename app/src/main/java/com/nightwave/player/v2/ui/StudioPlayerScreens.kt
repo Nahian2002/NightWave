@@ -178,7 +178,7 @@ fun StudioMiniPlayer(
             .testTag("nightwave-mini-player")
             .semantics { stateDescription = statusLabel }
             .clip(miniShape)
-            .background(colors.surface)
+            .background(colors.surfaceVariant)
             // Shadow, clipping and stroke must follow the SAME corner path.
             .border(1.dp, colors.onSurface.copy(alpha = NightWaveMattePolicy.BORDER_ALPHA), miniShape)
             .pointerInput(state.videoUrl) {
@@ -321,7 +321,7 @@ fun StudioMiniPlayer(
                 PlayerProgressRules.fraction(state.positionMs, state.durationMs)
             },
             modifier = Modifier.fillMaxWidth().height(2.dp),
-            color = colors.onSurface,
+            color = colors.primary,
             trackColor = colors.onSurface.copy(alpha = .15f)
         )
     }

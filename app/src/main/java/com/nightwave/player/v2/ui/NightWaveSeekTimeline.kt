@@ -171,12 +171,12 @@ internal fun NightWaveSeekTimeline(
             strokeWidth = 4.dp.toPx(), cap = StrokeCap.Round
         )
         drawLine(
-            if (enabled) colors.onSurface else colors.onSurfaceVariant,
+            if (enabled) colors.primary else colors.onSurfaceVariant,
             Offset(startX, cy), Offset(endX, cy),
             strokeWidth = 4.dp.toPx(), cap = StrokeCap.Round
         )
         if (enabled && NightWaveMattePolicy.showSeekThumb(pressed || dragging, focused, touchExploration)) drawCircle(
-            color = colors.onSurface,
+            color = colors.primary,
             radius = 6.dp.toPx(), center = Offset(endX, cy)
         )
     }

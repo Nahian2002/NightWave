@@ -147,7 +147,7 @@ fun NightWaveMixCard(
         modifier = modifier.heightIn(min = 48.dp).testTag("nw131-mix-" + mix.key)
             .semantics { this.selected = selected },
         shape = RoundedCornerShape(NightWavePremiumDesignTokens.CARD_CORNER_DP.dp),
-        colors = CardDefaults.cardColors(containerColor = scheme.surface),
+        colors = CardDefaults.cardColors(containerColor = if (selected || featured) scheme.primaryContainer else scheme.surfaceVariant),
         border = BorderStroke(1.dp, if (selected) scheme.primary else
             scheme.onSurface.copy(alpha = NightWaveMattePolicy.BORDER_ALPHA))) {
         // Single-column cards use a real thumbnail beside the caption rather
@@ -166,7 +166,7 @@ fun NightWaveMixCard(
                 if (!compact && fontScale < 1.3f && first != null) {
                     NightWaveMixMosaic(mix, Modifier.fillMaxWidth().aspectRatio(1f))
                 }
-                Column(Modifier.fillMaxWidth().background(scheme.surface)
+                Column(Modifier.fillMaxWidth().background(if (selected || featured) scheme.primaryContainer else scheme.surfaceVariant)
                     .padding(NightWavePremiumDesignTokens.CARD_PADDING_DP.dp)) {
                     NightWaveMixCaption(mix, presentation, trackLabel, fontScale)
                 }
@@ -220,21 +220,23 @@ fun NightWaveMoodArt(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    // A malformed/empty editorial palette should not crash Home composition.
-    val safeColors = if (colors.size >= 2) colors else
-        listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.surfaceVariant)
+    // Legacy palette arguments stay source-compatible; selected-theme roles own contrast.
+    val palette = LocalNightWavePalette.current
+    val secondary = NightWaveThemeExpressionPolicy.secondaryMood(title)
+    val surface = paletteColor(NightWaveThemeExpressionPolicy.sectionSurface(palette, secondary))
+    val accent = paletteColor(NightWaveThemeExpressionPolicy.sectionAccent(palette, secondary))
     val fontScale = LocalDensity.current.fontScale
     Card(onClick = onClick, modifier = modifier.heightIn(min =
         NightWaveAccessibilityPolicy.moodCardMinHeightDp(fontScale).dp),
         shape = RoundedCornerShape(21.dp)) {
-        Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface)) {
+        Box(Modifier.fillMaxSize().background(surface)) {
             Canvas(Modifier.fillMaxSize()) {
                 // Six lightweight, genuinely distinct editorial motifs rather
                 // than the same ring graphic pasted across every mood card.
                 val w = size.width
                 val h = size.height
-                val soft = Color.White.copy(alpha = .17f)
-                val bright = Color.White.copy(alpha = .30f)
+                val soft = accent.copy(alpha = .20f)
+                val bright = accent.copy(alpha = .42f)
                 when (title.lowercase()) {
                     "after hours" -> {
                         for (i in 0..3) {
@@ -295,9 +297,9 @@ fun NightWaveMoodArt(
             Column(Modifier.fillMaxWidth()) {
                 Box(Modifier.fillMaxWidth().height(56.dp).padding(12.dp)) {
                     Icon(Icons.Outlined.PlayArrow, contentDescription = null,
-                        tint = Color.White, modifier = Modifier.size(23.dp))
+                        tint = accent, modifier = Modifier.size(23.dp))
                 }
-                Column(Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface)
+                Column(Modifier.fillMaxWidth().background(surface)
                     .padding(NightWavePremiumDesignTokens.CARD_PADDING_DP.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(title, style = MaterialTheme.typography.titleMedium,

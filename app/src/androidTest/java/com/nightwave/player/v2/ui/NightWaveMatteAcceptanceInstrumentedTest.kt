@@ -32,7 +32,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
-/** 36 configurations × 8 actual UI cases. Blank source art and in-memory callbacks only.
+/** 36 configurations × 10 actual UI cases. Blank source art and in-memory callbacks only.
  * Does not install data, start playback, connect accounts or contact providers.
  * Captures exist only when these cases actually execute on Android.
  */
@@ -211,6 +211,31 @@ class NightWaveMatteAcceptanceInstrumentedTest(
         if (android.os.Build.VERSION.SDK_INT >= 31) assertTrue(android.graphics.Color.green(pixel) > android.graphics.Color.red(pixel))
         else assertEquals(NightWaveDesign.palette(theme).background.toInt(), pixel)
         capture("backdrop")
+    }
+
+    @Test fun singletonCollectionDoesNotGrowAFullWidthSquareArtworkWall() {
+        val mix = PersonalMix("single", "Last collection", "", "", songs.take(4))
+        fixture {
+            Column(Modifier.fillMaxWidth().padding(16.dp)) {
+                NightWaveMixCard(mix, false, modifier = Modifier.fillMaxWidth(),
+                    featured = NightWaveThemeExpressionPolicy.featuredMixCell(1), onClick = { action = "single" })
+            }
+        }
+        val card = compose.onNodeWithTag("nw131-mix-single")
+        if (scale == 1f) assertTrue(card.fetchSemanticsNode().boundsInRoot.height < 200f)
+        card.performClick(); compose.runOnIdle { assertEquals("single", action) }; capture("single-collection")
+    }
+    @Test fun themedMoodKeepsItsExplicitSearchActionAndReadableLabels() {
+        fixture {
+            Column(Modifier.fillMaxWidth().padding(16.dp)) {
+                NightWaveMoodArt("After hours", "Midnight drives", emptyList(),
+                    modifier = Modifier.fillMaxWidth().testTag("expressive-mood"), onClick = { action = "mood-search" })
+            }
+        }
+        compose.onNodeWithText("After hours").assertExists()
+        compose.onNodeWithText("Midnight drives").assertExists()
+        compose.onNodeWithTag("expressive-mood").performClick()
+        compose.runOnIdle { assertEquals("mood-search", action) }; capture("mood-color")
     }
 
 }

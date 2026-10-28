@@ -8,7 +8,7 @@ object NightWaveMattePolicy {
     const val ART_RADIUS_DP = 16
     const val GRID_GAP_DP = 8
     const val CARD_PADDING_DP = 16
-    const val BORDER_ALPHA = .05f
+    const val BORDER_ALPHA = .08f
     const val PRESS_MS = 100
     const val BLUR_DP = 60
     const val BACKDROP_BITMAP_PX = 96
@@ -28,8 +28,8 @@ object NightWaveMattePolicy {
 
     fun supportsBlur(sdk: Int): Boolean = sdk >= 31
     fun backdropAlpha(dark: Boolean): Float = if (dark) .15f else .08f
-    fun transportFill(palette: Palette): Long = if (palette.isDark) 0xFFFFFFFF else 0xFF191919
-    fun transportInk(palette: Palette): Long = if (palette.isDark) 0xFF0A0A0A else 0xFFFFFFFF
+    fun transportFill(palette: Palette): Long = palette.accent
+    fun transportInk(palette: Palette): Long = palette.contrastOnAccent()
     // Readable even over the brightest/darkest permitted artwork background.
     fun playerSecondary(palette: Palette): Long = if (palette.isDark) 0xFFB9BAC0 else palette.secondary
 }

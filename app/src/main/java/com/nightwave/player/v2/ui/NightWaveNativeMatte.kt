@@ -14,8 +14,12 @@ object NightWaveNativeMatte {
     }
     fun palette(context: Context) = palettes.getValue(selectedTheme(context))
     fun applyNativeTheme(context: Context) {
-        context.setTheme(if (palette(context).isDark) com.nightwave.player.R.style.Theme_NightWave
-            else com.nightwave.player.R.style.Theme_NightWave_Pearl)
+        context.setTheme(when (selectedTheme(context)) {
+            NightWaveTheme.AURORA -> com.nightwave.player.R.style.Theme_NightWave_Aurora
+            NightWaveTheme.PEARL -> com.nightwave.player.R.style.Theme_NightWave_Pearl
+            NightWaveTheme.AMOLED -> com.nightwave.player.R.style.Theme_NightWave_AMOLED
+            else -> com.nightwave.player.R.style.Theme_NightWave
+        })
     }
 }
 

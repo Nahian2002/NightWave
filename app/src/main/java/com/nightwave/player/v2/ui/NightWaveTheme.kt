@@ -70,8 +70,12 @@ fun NightWaveMaterialTheme(
     val palette = NightWaveDesign.palette(choice)
     val context = androidx.compose.ui.platform.LocalContext.current
     androidx.compose.runtime.DisposableEffect(context, choice) {
-        context.setTheme(if (palette.isDark) com.nightwave.player.R.style.Theme_NightWave
-            else com.nightwave.player.R.style.Theme_NightWave_Pearl)
+        context.setTheme(when (choice) {
+            ThemeChoice.AURORA -> com.nightwave.player.R.style.Theme_NightWave_Aurora
+            ThemeChoice.PEARL -> com.nightwave.player.R.style.Theme_NightWave_Pearl
+            ThemeChoice.AMOLED -> com.nightwave.player.R.style.Theme_NightWave_AMOLED
+            else -> com.nightwave.player.R.style.Theme_NightWave
+        })
         NightWaveMatteSystemBars.apply(context, palette)
         onDispose { }
     }
@@ -85,8 +89,8 @@ fun NightWaveMaterialTheme(
         secondary = paletteColor(palette.secondary), onSecondary = paletteColor(palette.background),
         secondaryContainer = paletteColor(palette.raised),
         onSecondaryContainer = paletteColor(palette.foreground),
-        tertiary = paletteColor(palette.accent), onTertiary = paletteColor(palette.contrastOnAccent()),
-        tertiaryContainer = paletteColor(palette.accentSoft),
+        tertiary = paletteColor(palette.secondaryAccent), onTertiary = paletteColor(palette.contrastOnAccent()),
+        tertiaryContainer = paletteColor(palette.secondarySoft),
         onTertiaryContainer = paletteColor(palette.foreground),
         surfaceTint = Color.Transparent,
         inverseSurface = paletteColor(palette.foreground),
@@ -106,8 +110,8 @@ fun NightWaveMaterialTheme(
         secondary = paletteColor(palette.secondary), onSecondary = paletteColor(palette.background),
         secondaryContainer = paletteColor(palette.raised),
         onSecondaryContainer = paletteColor(palette.foreground),
-        tertiary = paletteColor(palette.accent), onTertiary = paletteColor(palette.contrastOnAccent()),
-        tertiaryContainer = paletteColor(palette.accentSoft),
+        tertiary = paletteColor(palette.secondaryAccent), onTertiary = paletteColor(palette.contrastOnAccent()),
+        tertiaryContainer = paletteColor(palette.secondarySoft),
         onTertiaryContainer = paletteColor(palette.foreground),
         surfaceTint = Color.Transparent,
         inverseSurface = paletteColor(palette.foreground),
