@@ -1,12 +1,13 @@
 # NightWave — repository navigation
 
-**Current implementation baseline:** cumulative NW132 clear Library on [`update/nightwave-nw132-clear-library`](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw132-clear-library). See [NW132 evidence and device protocol](NW132_CLEAR_LIBRARY.md). **Next source batch: NW133.** GitHub default `main` is an older app; NW126–NW132 physical acceptance remains open.
+**Current implementation baseline:** cumulative NW132 clear Library on [`maintenance/nightwave-nw132-cleanup`](https://github.com/Nahian2002/NightWave/tree/maintenance/nightwave-nw132-cleanup). See [NW132 evidence and device protocol](NW132_CLEAR_LIBRARY.md). **Next source batch: NW133.** GitHub default `main` is an older app; NW126–NW132 physical acceptance remains open.
 
 ## Start here
 
 | Purpose | Source |
 | --- | --- |
 | Source-publication preparation; app unchanged | [Publication status](../SOURCE_PUBLICATION.md), [source-use information](../TERMS_AND_SOURCE_USE.md), [dependency review](publication/DEPENDENCY_REVIEW.md) |
+| Latest cleanup, navigation repair and deleted-file inventory | [Maintenance report](REPOSITORY_MAINTENANCE_20261028.md) |
 | Project overview and limitations | [README](../README.md) |
 | **Final Windows build & phone test** | [NW125 final candidate guide](NW125_FINAL_CANDIDATE.md) |
 | **Active phase plan and true development gates** | [NW126–NW145 roadmap](PRODUCT_QUALITY_ROADMAP.md), [structured backlog](quality/NW126_NW145_BACKLOG.json), [acceptance cases](quality/NW126_NW145_ACCEPTANCE.csv) |
@@ -49,4 +50,4 @@ Current automated workflow: `.github/workflows/current-android.yml`; `android.ym
 
 Keep generated Android `build/`, local `.gradle/`, IDE settings, archives, diagnostic logs/dumps, local secrets, APKs and signing keys **outside Git**. `.gitignore` prevents future accidental adds but does not untrack history. Do not store account credentials, OAuth tokens, private playlists or media files in GitHub.
 
-**Build status:** cumulative app build and all 1,546 JVM tests pass; current runner passes 57 checks including the packaged build identity verifier and baseline-fixture tests. See [current verification](../TEST_REPORT.md). **Release status:** NO-GO pending physical-device validation, installed signer, live restore, source rights and privacy checks. A short recording or passing source checks do not certify the full app.
+**Build status:** exact current results and hashes are in TEST_REPORT.md; the NW132 baseline has 1,573 executed JVM tests and 59 checks. Screen-test compilation is separate from phone execution. See [current verification](../TEST_REPORT.md). **Release status:** NO-GO pending physical-device validation, installed signer, live restore, source rights and privacy checks. A short recording or passing source checks do not certify the full app.

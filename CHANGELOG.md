@@ -1,5 +1,12 @@
 # NightWave Changelog
 
+## 2026-10-28 — NW132 and maintenance
+
+- Current cumulative source is NW132 plus maintenance; NW133 is next. See [current evidence](TEST_REPORT.md) and [roadmap](docs/PRODUCT_QUALITY_ROADMAP.md).
+- NW131 improved Home actions, shelves and truthful mix descriptions. NW132 clarified Library origins/options, complete 300-song playlist filtering and valid bounded selection.
+- Maintenance resets collection scroll for a new Library destination, handles absent OS metadata in the host benchmark, and refreshes active information pages. Cleanup inventory and limits: [maintenance report](docs/REPOSITORY_MAINTENANCE_20261028.md).
+- Earlier entries are historical milestones, not current failed builds or next-step instructions.
+
 ## 2026-10-22 — NW-16: permissioned HTTPS audio downloader to Offline Library
 
 - Added **Offline Library -> Download permitted audio** and a private on-device download screen for directly linked HTTPS MP3/M4A/AAC/FLAC/WAV/OGG/OPUS/WebM audio, with explicit rights confirmation.

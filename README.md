@@ -4,7 +4,9 @@ An independent Android music player with an original midnight design, local musi
 
 **Repository publication preparation:** [status and remaining gates](SOURCE_PUBLICATION.md) · [source/service-use notes](TERMS_AND_SOURCE_USE.md). The app was preserved unchanged through this preparation; subsequent product upgrades are separate. Source visibility remains private and public app distribution is not approved.
 
-**Current integrated source:** [`update/nightwave-nw132-clear-library`](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw132-clear-library), based on NW126 and the cumulative implementation. **Default `main` remains the older v0.8 snapshot.**
+**Latest maintenance:** [cleanup and focused fixes](docs/REPOSITORY_MAINTENANCE_20261028.md); the product roadmap remains at NW133.
+
+**Current integrated source:** [`maintenance/nightwave-nw132-cleanup`](https://github.com/Nahian2002/NightWave/tree/maintenance/nightwave-nw132-cleanup), based on NW126 and the cumulative implementation. **Default `main` remains the older v0.8 snapshot.**
 
 **28 October 2026 verification:** NW132 clarifies liked, playlist, history and automatic-collection identity, simplifies Library tools and searches all 300 supported songs per playlist. **1,573 JVM tests / 197 suites** and **59 source checks** pass; Android/Compose and instrumentation sources compile. Five new Library screen cases compile only; phone/store/picker acceptance remains pending. See [current verification](TEST_REPORT.md) and [NW132 evidence](docs/NW132_CLEAR_LIBRARY.md).
 
