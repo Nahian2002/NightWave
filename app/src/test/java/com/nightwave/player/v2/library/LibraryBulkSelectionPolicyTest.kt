@@ -26,7 +26,7 @@ class LibraryBulkSelectionPolicyTest {
     }
 
     @Test fun selectVisibleCapsAtTwentyUniqueTracks() {
-        val many = (0..40).map { song("track$it") }
+        val many = (0..40).map { song(it.toString().padStart(11, '0')) }
         val selected = LibraryBulkSelectionPolicy.selectVisible(many + many[0])
         assertEquals(20, selected.size)
         val atCap = LibraryBulkSelectionPolicy.toggle(selected, many[25].url, many)

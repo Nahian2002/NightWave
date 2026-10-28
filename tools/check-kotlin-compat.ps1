@@ -301,7 +301,7 @@ if ((Test-Path -LiteralPath $studioPath -PathType Leaf) -and
     $queueSource = [System.IO.File]::ReadAllText($queuePath)
     $service = [System.IO.File]::ReadAllText($servicePath)
     $start = $studio.IndexOf('internal fun StudioSearch(')
-    $finish = $studio.IndexOf('private fun StudioLibrary(')
+    $finish = $studio.IndexOf('internal fun StudioLibrary(')
     if ($start -lt 0 -or $finish -le $start) {
         $issues.Add('NW43 Search and Library function boundaries missing.')
     } else {

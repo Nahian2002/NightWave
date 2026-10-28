@@ -12,7 +12,7 @@ def verify(src):
     for bad in (".take(350)", ".take(400)", ".take(25)", ".distinctBy"):
         assert bad not in caller, "Search caller drops membership: " + bad
     assert "rememberNightWaveLocalCorpus(" in caller and "corpus = localCorpus" in caller
-    screen = activity.split("internal fun StudioSearch(", 1)[1].split("private fun StudioLibrary(", 1)[0]
+    screen = activity.split("internal fun StudioSearch(", 1)[1].split("internal fun StudioLibrary(", 1)[0]
     for marker in ("LocalMusicQueryRunner.run(index, query)", "it.accepts(query, index)",
                    "savedMatches.take(savedVisible)", "offlineMatches.take(offlineVisible)",
                    "nw129-local-loading", "nw129-local-error", "sourceLabel = index?.origin(song.url)?.label()"):
