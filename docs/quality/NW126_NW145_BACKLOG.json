@@ -1142,5 +1142,43 @@
     ],
     "next_batch": "NW134",
     "next_branch_rule": "Base a new cumulative review branch on the latest DESIGN04 tip; preserve all pending physical gates."
+  },
+  "composition_finish": {
+    "batch": "DESIGN05",
+    "title": "Concise music identity and deliberate Home Library You composition",
+    "status": "LOCAL_VERIFIED",
+    "device_acceptance": "NOT_RUN",
+    "branch": "design/nightwave-composition-finish",
+    "pull_request": "https://github.com/Nahian2002/NightWave/pull/149",
+    "protected_parent": "16295d1cd516d9733289fc8100c736666f0fa04b",
+    "implementation_commit": "70b3c3f0be27641e4ba763ec38983a8083d40c6a",
+    "build_id": "NW-debug-A2F02AA0261F4AC4",
+    "latest_recorded_ui_score": 8.5,
+    "post_change_score": null,
+    "rating_limit": "Same five-part visible-UI rubric. Sequential recording timestamps used; no persistent blank/idle freeze confirmed. No whole-product re-rating.",
+    "evidence": [
+      "docs/design/COMPOSITION_FINISH.md",
+      "docs/design/COMPOSITION_FINISH_ACCEPTANCE.csv",
+      "TEST_REPORT.md"
+    ],
+    "validation": {
+      "jvm_tests": 1657,
+      "jvm_suites": 207,
+      "source_checks": 66,
+      "android_cases_compiled_only": 504,
+      "lint_errors": 0,
+      "lint_warnings": 313,
+      "lint_hints": 17,
+      "manual_supplement_not_run": 24,
+      "protected_nonpresentation_files_unchanged": 234,
+      "feature_callback_inventories_preserved": 9
+    },
+    "remaining": [
+      "Four-theme rendered composition and long/edition headline identity plus complete original Details",
+      "Library fresh/restored disclosure, Find/Create/import/offline/real collection routes and moved You Sound Studio/History actions",
+      "320/360/412dp and large text, TalkBack/keyboard, shelf/page gestures and prior data/audio/recovery/performance/release gates"
+    ],
+    "next_batch": "NW134",
+    "next_branch_rule": "Base a new cumulative review branch on latest DESIGN05; preserve pending physical acceptance."
   }
 }
