@@ -254,7 +254,7 @@ fun NightWaveHomeHero(
     val firstName = NightWaveChromePolicy.displayFirstName(displayName)
     val colors = MaterialTheme.colorScheme
     val fontScale = LocalDensity.current.fontScale
-    val identity = lastTrack?.let { MusicIdentity.display(it.title, it.author) }
+    val identity = lastTrack?.let { NightWaveEditorialPresentationPolicy.identity(it.title, it.author) }
     val clickableHero = if (lastTrack != null && onContinue != null) {
         modifier.clickable(role = Role.Button, onClick = onContinue)
     } else if (onEmptyAction != null) modifier.clickable(role = Role.Button,
