@@ -2,11 +2,11 @@
 
 An independent Android music player with an original midnight design, local music, playlists, background playback, imported synchronized lyrics, Sound Studio and optional Google Drive backup.
 
-**Current integrated source:** [`update/nightwave-nw129-complete-local-search`](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw129-complete-local-search), based on NW126 and the cumulative implementation. **Default `main` remains the older v0.8 snapshot.**
+**Current integrated source:** [`update/nightwave-nw130-public-music-results`](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw130-public-music-results), based on NW126 and the cumulative implementation. **Default `main` remains the older v0.8 snapshot.**
 
-**28 October 2026 verification:** NW129 removes the actual Search caller's 350/400/25-playlist limits and uses complete observed, prepared background snapshots with fresh-query/revision gates, origin labels and result paging. **1,532 JVM tests / 192 suites** and **56 source checks** pass; three actual-screen cases compile only. Final host timing on 10k public/5k offline metadata is separate from unrun phone input/render/heap acceptance. See [current verification](TEST_REPORT.md) and [NW129 evidence](docs/NW129_COMPLETE_LOCAL_SEARCH.md).
+**28 October 2026 verification:** NW130 makes public sources easier to compare with uploader, duration, title labels and IDs for otherwise identical results. Search now has phase feedback, request-scoped cancellation, a total deadline and actionable retry/explicit fallback. **1,546 JVM tests / 195 suites**, **57 source checks** and the frozen **36-case** ranking corpus pass with zero top-result errors. Three new actual-screen cases compile only; physical acceptance remains pending. See [current verification](TEST_REPORT.md) and [NW130 evidence](docs/NW130_DECIDABLE_PUBLIC_RESULTS.md).
 
-**Active next-upgrade plan:** [NW126–NW145 product-quality roadmap](docs/PRODUCT_QUALITY_ROADMAP.md), based on the [28 October recording/source audit](docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md). Provisional product rating **6.7/10**; 9.5+ is the target, not an achieved certification. **Next source batch: NW130.** NW126–NW129 are locally verified with physical acceptance pending. The audit/plan and gate repair are on [`audit/nightwave-post-nw125-quality-roadmap`](https://github.com/Nahian2002/NightWave/tree/audit/nightwave-post-nw125-quality-roadmap).
+**Active next-upgrade plan:** [NW126–NW145 product-quality roadmap](docs/PRODUCT_QUALITY_ROADMAP.md), based on the [28 October recording/source audit](docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md). Provisional product rating **6.7/10**; 9.5+ is the target, not an achieved certification. **Next source batch: NW131.** NW126–NW130 are locally verified with physical acceptance pending. The audit/plan and gate repair are on [`audit/nightwave-post-nw125-quality-roadmap`](https://github.com/Nahian2002/NightWave/tree/audit/nightwave-post-nw125-quality-roadmap).
 
 **Public release: NO-GO.** Installed-phone signer continuity, Samsung acceptance, production OAuth/Drive restore and source-rights review remain separate gates. A successful build does not authorize distribution or certify phone behavior.
 
@@ -37,7 +37,7 @@ Public video references and playable offline files are separate. Saving a URL do
 
 ## Build on Windows
 
-Use a fresh clone or full ZIP of **`release/nightwave-nw125-final-candidate`**, then run `build-windows.cmd`. Require a fresh success in `dist/NightWave-build-status.txt`. Before installing, run `check-device-update.cmd` and verify the signer matches the existing app. Preserve playlists, music and settings; never uninstall or clear storage to force an upgrade.
+Use a fresh clone or full ZIP of the **current integrated source branch linked above**, then run `build-windows.cmd`. Require a fresh success in `dist/NightWave-build-status.txt`. Before installing, run `check-device-update.cmd` and verify the signer matches the existing app. Preserve playlists, music and settings; never uninstall or clear storage to force an upgrade.
 
 Developers can run `python tools/verify_current.py` for structural and Windows preflight checks. The current automated workflow is `.github/workflows/current-android.yml`; `android.yml` is a manually invoked historical diagnostic workflow. Real JVM and Android compilation remain mandatory.
 

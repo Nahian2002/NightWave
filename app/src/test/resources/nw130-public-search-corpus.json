@@ -1,0 +1,618 @@
+{
+  "registration_date": "2026-10-28",
+  "scope": "Synthetic frozen candidate sets; metadata ranking only, not live provider recall or independently labelled catalog truth. Registered before NW130 implementation/scoring evaluation. Expected winners and distractors are fixed. Videos must preserve all supplied provider order.",
+  "cases": [
+    {
+      "id": "play-date",
+      "query": "play date",
+      "expected_top": 1,
+      "candidates": [
+        {
+          "title": "Play Date (Slowed + Reverb)",
+          "author": "Uploader",
+          "duration": 215
+        },
+        {
+          "title": "Melanie Martinez - Play Date (Official Audio)",
+          "author": "Melanie Martinez",
+          "duration": 215
+        }
+      ]
+    },
+    {
+      "id": "requested-remix",
+      "query": "play date remix",
+      "expected_top": 1,
+      "candidates": [
+        {
+          "title": "Play Date (Official Audio)",
+          "author": "Uploader",
+          "duration": 215
+        },
+        {
+          "title": "Play Date Remix",
+          "author": "Uploader",
+          "duration": 215
+        }
+      ]
+    },
+    {
+      "id": "requested-live",
+      "query": "moonlight live",
+      "expected_top": 1,
+      "candidates": [
+        {
+          "title": "Moonlight (Official Audio)",
+          "author": "Uploader",
+          "duration": 215
+        },
+        {
+          "title": "Moonlight (Live)",
+          "author": "Uploader",
+          "duration": 215
+        }
+      ]
+    },
+    {
+      "id": "requested-cover",
+      "query": "moonlight cover",
+      "expected_top": 1,
+      "candidates": [
+        {
+          "title": "Moonlight (Official Audio)",
+          "author": "Uploader",
+          "duration": 215
+        },
+        {
+          "title": "Moonlight Cover",
+          "author": "Uploader",
+          "duration": 215
+        }
+      ]
+    },
+    {
+      "id": "creator-title",
+      "query": "melanie martinez play date",
+      "expected_top": 1,
+      "candidates": [
+        {
+          "title": "Play Date karaoke",
+          "author": "Uploader",
+          "duration": 215
+        },
+        {
+          "title": "Melanie Martinez - Play Date (Official Audio)",
+          "author": "Melanie Martinez",
+          "duration": 215
+        }
+      ]
+    },
+    {
+      "id": "creator-only",
+      "query": "aurora",
+      "expected_top": 1,
+      "candidates": [
+        {
+          "title": "Aurora gameplay",
+          "author": "Game channel",
+          "duration": 215
+        },
+        {
+          "title": "Runaway",
+          "author": "AURORA",
+          "duration": 215
+        }
+      ]
+    },
+    {
+      "id": "part-number",
+      "query": "alone 2",
+      "expected_top": 1,
+      "candidates": [
+        {
+          "title": "Home Alone 2 Trailer",
+          "author": "Uploader",
+          "duration": 215
+        },
+        {
+          "title": "Alan Walker - Alone, Pt. II (Official Audio)",
+          "author": "Uploader",
+          "duration": 215
+        }
+      ]
+    },
+    {
+      "id": "contraction",
+      "query": "we dont talk anymore",
+      "expected_top": 1,
+      "candidates": [
+        {
+          "title": "We Dont Talk Anymore slowed",
+          "author": "Uploader",
+          "duration": 215
+        },
+        {
+          "title": "Charlie Puth - We Don't Talk Anymore (Official Audio)",
+          "author": "Uploader",
+          "duration": 215
+        }
+      ]
+    },
+    {
+      "id": "accent",
+      "query": "beyonce halo",
+      "expected_top": 1,
+      "candidates": [
+        {
+          "title": "Halo gameplay",
+          "author": "Uploader",
+          "duration": 215
+        },
+        {
+          "title": "Beyoncé - Halo (Official Audio)",
+          "author": "Beyoncé",
+          "duration": 215
+        }
+      ]
+    },
+    {
+      "id": "repeated",
+      "query": "alo alo",
+      "expected_top": 1,
+      "candidates": [
+        {
+          "title": "Alo (Official Audio)",
+          "author": "Uploader",
+          "duration": 215
+        },
+        {
+          "title": "Alo Alo (Official Audio)",
+          "author": "Uploader",
+          "duration": 215
+        }
+      ]
+    },
+    {
+      "id": "repeated-bangla",
+      "query": "আলো আলো",
+      "expected_top": 1,
+      "candidates": [
+        {
+          "title": "আলো (Official Audio)",
+          "author": "Uploader",
+          "duration": 215
+        },
+        {
+          "title": "আলো আলো (Official Audio)",
+          "author": "Uploader",
+          "duration": 215
+        }
+      ]
+    },
+    {
+      "id": "bangla-vowels",
+      "query": "মালা",
+      "expected_top": 1,
+      "candidates": [
+        {
+          "title": "মেলা",
+          "author": "Uploader",
+          "duration": 215
+        },
+        {
+          "title": "মালা",
+          "author": "Uploader",
+          "duration": 215
+        }
+      ]
+    },
+    {
+      "id": "bangla-vowels-reverse",
+      "query": "মেলা",
+      "expected_top": 1,
+      "candidates": [
+        {
+          "title": "মালা",
+          "author": "Uploader",
+          "duration": 215
+        },
+        {
+          "title": "মেলা",
+          "author": "Uploader",
+          "duration": 215
+        }
+      ]
+    },
+    {
+      "id": "jhum-music",
+      "query": "jhum",
+      "expected_top": 1,
+      "candidates": [
+        {
+          "title": "Jhum cultivation explained",
+          "author": "Uploader",
+          "duration": 215
+        },
+        {
+          "title": "Jhum (Official Audio)",
+          "author": "Uploader",
+          "duration": 215
+        }
+      ]
+    },
+    {
+      "id": "jhum-script",
+      "query": "ঝুম",
+      "expected_top": 1,
+      "candidates": [
+        {
+          "title": "Jhum cultivation explained",
+          "author": "Uploader",
+          "duration": 215
+        },
+        {
+          "title": "ঝুম (Official Audio)",
+          "author": "Uploader",
+          "duration": 215
+        }
+      ]
+    },
+    {
+      "id": "jhum-alias",
+      "query": "jhoom",
+      "expected_top": 1,
+      "candidates": [
+        {
+          "title": "Jhum cultivation explained",
+          "author": "Uploader",
+          "duration": 215
+        },
+        {
+          "title": "ঝুম (Official Audio)",
+          "author": "Uploader",
+          "duration": 215
+        }
+      ]
+    },
+    {
+      "id": "jhum-alias-reverse",
+      "query": "ঝুম",
+      "expected_top": 1,
+      "candidates": [
+        {
+          "title": "Jhum cultivation explained",
+          "author": "Uploader",
+          "duration": 215
+        },
+        {
+          "title": "Jhoom (Official Audio)",
+          "author": "Uploader",
+          "duration": 215
+        }
+      ]
+    },
+    {
+      "id": "love-alias",
+      "query": "valobasha",
+      "expected_top": 1,
+      "candidates": [
+        {
+          "title": "Valobasha cooking tutorial",
+          "author": "Uploader",
+          "duration": 215
+        },
+        {
+          "title": "ভালোবাসা (Official Audio)",
+          "author": "Uploader",
+          "duration": 215
+        }
+      ]
+    },
+    {
+      "id": "love-alias-reverse",
+      "query": "ভালোবাসি",
+      "expected_top": 1,
+      "candidates": [
+        {
+          "title": "Bhalobashi reaction",
+          "author": "Uploader",
+          "duration": 215
+        },
+        {
+          "title": "Bhalobashi (Official Audio)",
+          "author": "Uploader",
+          "duration": 215
+        }
+      ]
+    },
+    {
+      "id": "exact-before-alias",
+      "query": "jhum",
+      "expected_top": 1,
+      "candidates": [
+        {
+          "title": "ঝুম (Official Audio)",
+          "author": "Uploader",
+          "duration": 215
+        },
+        {
+          "title": "Jhum (Official Audio)",
+          "author": "Uploader",
+          "duration": 215
+        }
+      ]
+    },
+    {
+      "id": "exact-bangla-before-alias",
+      "query": "ঝুম",
+      "expected_top": 1,
+      "candidates": [
+        {
+          "title": "Jhum (Official Audio)",
+          "author": "Uploader",
+          "duration": 215
+        },
+        {
+          "title": "ঝুম (Official Audio)",
+          "author": "Uploader",
+          "duration": 215
+        }
+      ]
+    },
+    {
+      "id": "short-boundary",
+      "query": "alo",
+      "expected_top": 1,
+      "candidates": [
+        {
+          "title": "Alone (Official Audio)",
+          "author": "Uploader",
+          "duration": 215
+        },
+        {
+          "title": "Alo (Official Audio)",
+          "author": "Uploader",
+          "duration": 215
+        }
+      ]
+    },
+    {
+      "id": "numeric-boundary",
+      "query": "alone 2",
+      "expected_top": 1,
+      "candidates": [
+        {
+          "title": "Alone 2024 (Official Audio)",
+          "author": "Uploader",
+          "duration": 215
+        },
+        {
+          "title": "Alone Part II (Official Audio)",
+          "author": "Uploader",
+          "duration": 215
+        }
+      ]
+    },
+    {
+      "id": "explicit-farming",
+      "query": "jhum cultivation",
+      "expected_top": 1,
+      "candidates": [
+        {
+          "title": "Jhum (Official Audio)",
+          "author": "Uploader",
+          "duration": 215
+        },
+        {
+          "title": "Jhum cultivation explained",
+          "author": "Uploader",
+          "duration": 215
+        }
+      ]
+    },
+    {
+      "id": "explicit-tutorial",
+      "query": "guitar tutorial",
+      "expected_top": 1,
+      "candidates": [
+        {
+          "title": "Guitar (Official Audio)",
+          "author": "Uploader",
+          "duration": 215
+        },
+        {
+          "title": "Guitar tutorial",
+          "author": "Uploader",
+          "duration": 215
+        }
+      ]
+    },
+    {
+      "id": "explicit-reaction",
+      "query": "moonlight reaction",
+      "expected_top": 1,
+      "candidates": [
+        {
+          "title": "Moonlight (Official Audio)",
+          "author": "Uploader",
+          "duration": 215
+        },
+        {
+          "title": "Moonlight reaction",
+          "author": "Uploader",
+          "duration": 215
+        }
+      ]
+    },
+    {
+      "id": "explicit-movie",
+      "query": "home alone 2",
+      "expected_top": 1,
+      "candidates": [
+        {
+          "title": "Alan Walker - Alone, Pt. II (Official Audio)",
+          "author": "Uploader",
+          "duration": 215
+        },
+        {
+          "title": "Home Alone 2",
+          "author": "Uploader",
+          "duration": 215
+        }
+      ]
+    },
+    {
+      "id": "explicit-cooking",
+      "query": "cooking recipe",
+      "expected_top": 1,
+      "candidates": [
+        {
+          "title": "Cooking (Official Audio)",
+          "author": "Uploader",
+          "duration": 215
+        },
+        {
+          "title": "Cooking recipe",
+          "author": "Uploader",
+          "duration": 215
+        }
+      ]
+    },
+    {
+      "id": "explicit-gameplay",
+      "query": "halo gameplay",
+      "expected_top": 1,
+      "candidates": [
+        {
+          "title": "Beyoncé - Halo (Official Audio)",
+          "author": "Uploader",
+          "duration": 215
+        },
+        {
+          "title": "Halo gameplay",
+          "author": "Uploader",
+          "duration": 215
+        }
+      ]
+    },
+    {
+      "id": "bangla-title",
+      "query": "রাতের গান",
+      "expected_top": 1,
+      "candidates": [
+        {
+          "title": "দিনের গান",
+          "author": "Uploader",
+          "duration": 215
+        },
+        {
+          "title": "রাতের গান (Official Audio)",
+          "author": "Uploader",
+          "duration": 215
+        }
+      ]
+    },
+    {
+      "id": "bangla-creator",
+      "query": "রাতের গান শিল্পী",
+      "expected_top": 1,
+      "candidates": [
+        {
+          "title": "দিনের গান",
+          "author": "অন্য শিল্পী",
+          "duration": 215
+        },
+        {
+          "title": "রাতের গান",
+          "author": "শিল্পী",
+          "duration": 215
+        }
+      ]
+    },
+    {
+      "id": "bangla-repeated-alias",
+      "query": "ঝুম ঝুম",
+      "expected_top": 1,
+      "candidates": [
+        {
+          "title": "Jhum (Official Audio)",
+          "author": "Uploader",
+          "duration": 215
+        },
+        {
+          "title": "Jhum Jhum (Official Audio)",
+          "author": "Uploader",
+          "duration": 215
+        }
+      ]
+    },
+    {
+      "id": "speed-request",
+      "query": "play date sped up",
+      "expected_top": 1,
+      "candidates": [
+        {
+          "title": "Play Date (Official Audio)",
+          "author": "Uploader",
+          "duration": 215
+        },
+        {
+          "title": "Play Date Sped Up",
+          "author": "Uploader",
+          "duration": 215
+        }
+      ]
+    },
+    {
+      "id": "acoustic-request",
+      "query": "moonlight acoustic",
+      "expected_top": 1,
+      "candidates": [
+        {
+          "title": "Moonlight (Official Audio)",
+          "author": "Uploader",
+          "duration": 215
+        },
+        {
+          "title": "Moonlight Acoustic",
+          "author": "Uploader",
+          "duration": 215
+        }
+      ]
+    },
+    {
+      "id": "karaoke-request",
+      "query": "moonlight karaoke",
+      "expected_top": 1,
+      "candidates": [
+        {
+          "title": "Moonlight (Official Audio)",
+          "author": "Uploader",
+          "duration": 215
+        },
+        {
+          "title": "Moonlight Karaoke",
+          "author": "Uploader",
+          "duration": 215
+        }
+      ]
+    },
+    {
+      "id": "nonmusic-unboxing",
+      "query": "phone unboxing",
+      "expected_top": 1,
+      "candidates": [
+        {
+          "title": "Phone (Official Audio)",
+          "author": "Uploader",
+          "duration": 215
+        },
+        {
+          "title": "Phone unboxing",
+          "author": "Uploader",
+          "duration": 215
+        }
+      ]
+    }
+  ]
+}

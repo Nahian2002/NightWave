@@ -1,10 +1,10 @@
 # NightWave tools — current use and historical checks
 
-**Current implementation baseline:** NW126 build identity and baseline; fresh local build and 1,496 JVM tests pass. The runner executes **54 current checks**, including NW125 gates, fixture preparation and provenance negative cases. See [current verification](../TEST_REPORT.md) and [active NW126–NW145 plan](../docs/PRODUCT_QUALITY_ROADMAP.md). Source checks do not certify phone behavior.
+**Current implementation baseline:** NW130 decidable public results; fresh local build and 1,546 JVM tests pass. The runner executes **57 current checks**, including NW125 gates, fixture preparation and provenance negative cases. See [current verification](../TEST_REPORT.md) and [active NW126–NW145 plan](../docs/PRODUCT_QUALITY_ROADMAP.md). Source checks do not certify phone behavior.
 
 ## Recommended entrypoints
 
-- **Windows build/diagnostics:** root `build-windows.cmd`, `diagnose-nightwave-build.cmd`; corresponding `tools/build-windows.ps1`, `tools/diagnose-build.ps1`. Use only the complete NW125 branch checkout/ZIP.
+- **Windows build/diagnostics:** root `build-windows.cmd`, `diagnose-nightwave-build.cmd`; corresponding `tools/build-windows.ps1`, `tools/diagnose-build.ps1`. Use the complete current integrated branch checkout/ZIP linked in the root README.
 - **NW125 clean-source gate:** `python tools/nw125_release_candidate_gate.py --self-test` and `python tools/nw125_release_candidate_gate.py --json` (if Python is installed). Detects missing build inputs and accidental generated/secret filenames; **source-only**, not an APK or device pass.
 - **Release preflight:** root `check-public-release.cmd`, `tools/public_release_preflight.py`, and source-rights/privacy checks. They only prove the gates they actually execute.
 - **Device/signing:** root `check-device-update.cmd`, `capture-nightwave-crash.cmd`, `check-google-oauth.cmd`, and `tools/verify-apk-signature.ps1`.
@@ -32,7 +32,7 @@ The [historical CI inventory](../docs/HISTORICAL_CI_SOURCE_CHECKS_20261027.md) r
 4. **Android/Compose compilation and instrumentation:** provide current Android SDK, APK and device receipts.
 5. **Release certification:** also requires signer, data/Drive restore, device matrix, privacy/security and legal source rights.
 
-The authoritative roadmap is [NW111–NW125](../docs/NW111_NW125_SPOTIFY_QUALITY_ROADMAP.md); build handoff is [NW125 final candidate](../docs/NW125_FINAL_CANDIDATE.md). See [repository inventory and retention rules](../docs/NW118_REPOSITORY_HYGIENE_AUDIT.md). Keep reports and local APKs outside version control; do not commit credentials.
+The authoritative roadmap is [NW126–NW145](../docs/PRODUCT_QUALITY_ROADMAP.md); build handoff is [NW125 final candidate](../docs/NW125_FINAL_CANDIDATE.md). See [repository inventory and retention rules](../docs/NW118_REPOSITORY_HYGIENE_AUDIT.md). Keep reports and local APKs outside version control; do not commit credentials.
 
 ## NW126 identity and baseline
 
@@ -41,3 +41,5 @@ The authoritative roadmap is [NW111–NW125](../docs/NW111_NW125_SPOTIFY_QUALITY
 NW128 adds `verify_nw128_shell.py --self-test` to the current runner, bringing it to 55 source checks. It checks migrated callers, separate transport/navigation ownership, lifecycle release and acknowledged main handoff; it rejects broken wiring fixtures. This is not Android task-stack or device proof. See [NW128 protocol](../docs/NW128_UNIFIED_OFFLINE_SHELL.md). Do not run Gradle build and lint concurrently in the same checkout; run the complete builder first, then lint.
 
 NW129 adds `verify_nw129_search.py --self-test` to the current runner (56 checks) for full caller membership, source observation/cleanup, revision/query tags and paging. `nw129-benchmark.init.gradle` runs the actual prepared typing runner in fresh host JVMs; it does not establish Android input/render latency or heap behavior. See [NW129 protocol](../docs/NW129_COMPLETE_LOCAL_SEARCH.md).
+
+NW130 adds `verify_nw130_public_search.py --self-test` (57 current checks). Its negative fixtures guard evidence wiring, exact single-source selection, phases/deadline/generation and both request-scoped HTTP paths. The frozen test corpus is under `app/src/test/resources/`; JUnit emits `app/build/reports/nw130-public-corpus.json`. MockWebServer checks actual local socket/body cancellation and isolation; phone/provider acceptance remains separate. See [NW130 protocol](../docs/NW130_DECIDABLE_PUBLIC_RESULTS.md).

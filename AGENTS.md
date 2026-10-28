@@ -6,9 +6,9 @@ Before choosing or implementing an upgrade, read:
 2. `docs/quality/NW126_NW145_BACKLOG.json` — batch status, dependencies and acceptance criteria.
 3. `docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md` and `TEST_REPORT.md` — baseline findings and verification limits.
 
-The current cumulative implementation includes NW129 complete local search, based on protected NW128 parent `684efcfbb3fd3eacf2f8a2ad4d94aff4e8592092`. Read the latest backlog plus NW126–NW129 evidence; physical acceptance is pending. The old default `main` is v0.8; never merge it over the cumulative development chain or assume it is current.
+The current cumulative implementation includes NW130 decidable public results, based on protected NW129 parent `da5db134d2563491cefae717b4ee5a3225ba8da7`. Read the latest backlog plus NW126–NW130 evidence; physical acceptance is pending. The old default `main` is v0.8; never merge it over the cumulative development chain or assume it is current.
 
-When the owner says "next", select the first eligible incomplete batch in the active backlog. The next source batch is **NW130**; NW126–NW129 are locally verified with physical checks pending. Check the actual checkout, remote updates and the latest ledger first. Do not restart NW111–NW125 simply because historical documents contain old next-step text.
+When the owner says "next", select the first eligible incomplete batch in the active backlog. The next source batch is **NW131**; NW126–NW130 are locally verified with physical checks pending. Check the actual checkout, remote updates and the latest ledger first. Do not restart NW111–NW125 simply because historical documents contain old next-step text.
 
 Preserve package/signing identity, installed data, guest profiles, Google consent/account boundaries, playlists, history, local music, original URLs and migration evidence. Inspect caller wiring as well as pure policies; a large synthetic benchmark does not prove the UI supplies the whole library. Do not remove safeguards or tests to improve a score.
 

@@ -1,0 +1,2 @@
+# Preserve the preregistered fixture bytes across all Git checkout settings.
+app/src/test/resources/nw130-public-search-corpus.json -text whitespace=cr-at-eol

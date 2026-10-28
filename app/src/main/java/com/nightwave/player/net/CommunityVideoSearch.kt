@@ -36,6 +36,7 @@ class CommunityVideoSearch(
     fun search(query: String): Result {
         val failures = mutableListOf<String>()
         for (base in instances) {
+            PublicSearchRequest.current.get()?.checkActive()
             try {
                 val url = (base + "/api/v1/search").toHttpUrl().newBuilder()
                     .addQueryParameter("q", query)
@@ -48,18 +49,21 @@ class CommunityVideoSearch(
                     .header("User-Agent", "NightWave/0.7 (Android)")
                     .get()
                     .build()
-                client.newCall(request).execute().use { response ->
+                val found = PublicSearchRequest.executeHttp(client.newCall(request)) { response ->
                     if (!response.isSuccessful) {
                         failures.add(base.substringAfter("://") + ": HTTP " + response.code)
-                        return@use
+                        return@executeHttp null
                     }
                     val payload = response.body?.string().orEmpty()
                     if (payload.length > 3_000_000) throw IOException("Search response exceeded limit")
                     val parsed = InvidiousResults.parse(payload)
-                    if (parsed.isNotEmpty()) return Result(parsed, base.substringAfter("://"))
+                    if (parsed.isNotEmpty()) return@executeHttp Result(parsed, base.substringAfter("://"))
                     failures.add(base.substringAfter("://") + ": empty response")
+                    null
                 }
+                if (found != null) return found
             } catch (e: Exception) {
+                PublicSearchRequest.current.get()?.checkActive()
                 failures.add(base.substringAfter("://") + ": " + e.javaClass.simpleName)
             }
         }

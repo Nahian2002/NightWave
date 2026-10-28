@@ -204,6 +204,11 @@ import com.nightwave.player.net.LocalMusicQueryRunner
 import com.nightwave.player.net.LocalMusicSearchResult
 import com.nightwave.player.net.SavedTrackSearch
 import com.nightwave.player.net.LocalSearchSuggestions
+import com.nightwave.player.net.PublicMusicResultEvidence
+import com.nightwave.player.net.PublicMusicSearchRunner
+import com.nightwave.player.net.PublicSearchPhase
+import com.nightwave.player.net.PublicSearchDeadlineException
+import kotlinx.coroutines.TimeoutCancellationException
 import com.nightwave.player.net.SearchResultPresentationPolicy
 import com.nightwave.player.net.MusicIdentity
 import com.nightwave.player.net.SavedCreatorBrowser
@@ -250,7 +255,8 @@ internal data class StudioSearchSnapshot(
     val videos: List<VideoPreview> = emptyList(),
     val provider: String = "",
     val error: String = "",
-    val hint: String = ""
+    val hint: String = "",
+    val phase: PublicSearchPhase = PublicSearchPhase.DIRECT
 )
 
 /** One short-lived in-memory LRC preview; the file is never cached to disk. */
@@ -1174,6 +1180,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                     onPrimarySearch = { query, mode -> primarySearch(query, mode) },
                     onPrepareSearch = { query, mode -> prepareSearch(query, mode) },
                     onWebSearch = { query -> openOfficialSearch(query) },
+                    onCancelSearch = { cancelNativeSearch() },
                     onPlay = { video, collection -> playSearchedOfflineFirst(video, collection) },
                     onLibraryQuickPlay = { collection -> playback.playLibraryCollection(collection) },
                     onLegacyPlayer = { manageLibrary() },
@@ -1876,6 +1883,14 @@ class NightWaveStudioActivity : ComponentActivity() {
             else "Automatic backup stopped, but disconnection could not be saved. Please retry.")
     }
 
+    private fun cancelNativeSearch() {
+        nativeSearchGeneration++
+        nativeSearchJob?.cancel()
+        nativeSearchJob = null
+        if (nativeSearchState.loading) nativeSearchState = nativeSearchState.copy(loading = false,
+            error = "Search cancelled. Retry when you are ready.")
+    }
+
     private fun nativeSearch(query: String, mode: SearchMode) {
         val clean = query.trim().take(160)
         when (val input = SearchInputResolver.resolve(clean)) {
@@ -1908,7 +1923,16 @@ class NightWaveStudioActivity : ComponentActivity() {
             videos = previous?.videos.orEmpty(), provider = previous?.provider.orEmpty())
         nativeSearchJob = lifecycleScope.launch {
             val result: Result<VideoSearchResults> = try {
-                withContext(Dispatchers.IO) { Result.success(nativeGateway.search(clean, mode)) }
+                Result.success(PublicMusicSearchRunner.run {
+                    nativeGateway.search(clean, mode) { phase ->
+                        lifecycleScope.launch {
+                            if (request == nativeSearchGeneration && nativeSearchState.loading &&
+                                !isFinishing && !isDestroyed) nativeSearchState = nativeSearchState.copy(phase = phase)
+                        }
+                    }
+                })
+            } catch (timeout: TimeoutCancellationException) {
+                Result.failure(PublicSearchDeadlineException())
             } catch (cancel: CancellationException) {
                 throw cancel
             } catch (error: Exception) {
@@ -1921,10 +1945,12 @@ class NightWaveStudioActivity : ComponentActivity() {
                         videos = response.videos, provider = response.note,
                         hint = SearchResultPresentationPolicy.emptyHint(response.videos))
                 },
-                onFailure = {
+                onFailure = { failure ->
                     nativeSearchState = StudioSearchSnapshot(query = clean, mode = mode,
                         videos = previous?.videos.orEmpty(), provider = previous?.provider.orEmpty(),
-                        error = "Online providers could not be reached. Saved music still works.")
+                        error = if (failure is PublicSearchDeadlineException)
+                            "Search took too long. Retry or open YouTube search."
+                        else "Online providers could not be reached. Your local music is still available.")
                 }
             )
         }
@@ -2974,6 +3000,7 @@ private fun StudioRoot(
     onPrimarySearch: (String, SearchMode) -> Unit,
     onPrepareSearch: (String, SearchMode) -> Unit,
     onWebSearch: (String) -> Unit,
+    onCancelSearch: () -> Unit,
     searchState: StudioSearchSnapshot,
     onPlay: (VideoPreview, List<VideoPreview>) -> Unit,
     onLibraryQuickPlay: (List<VideoPreview>) -> Unit,
@@ -3195,6 +3222,7 @@ private fun StudioRoot(
                         Modifier, searchState, onPrimarySearch, onSearch, onWebSearch,
                         onPlay, onSongOptions,
                         playerState.videoUrl.takeIf { playerState.playing }.orEmpty(),
+                        onCancelSearch = onCancelSearch,
                         corpus = localCorpus,
                         onRetryCorpus = retryLocalCorpus,
                         onOfflineSearch = onOfflineSearch,
@@ -3683,7 +3711,8 @@ internal fun StudioSearch(
     onRecordSearch: (String) -> Unit,
     onRemoveSearch: (String) -> Unit,
     onUndoSearchRemoval: () -> Unit,
-    onClearSearch: () -> Unit
+    onClearSearch: () -> Unit,
+    onCancelSearch: () -> Unit = {}
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var mode by rememberSaveable { mutableStateOf(SearchMode.SONGS) }
@@ -3736,6 +3765,9 @@ internal fun StudioSearch(
             query, mode, state.videos)
         else SearchResultPresentationPolicy.Groups(emptyList(), emptyList())
     }
+    val publicEvidence = remember(state.videos, mode) {
+        PublicMusicResultEvidence.forResults(state.videos, mode)
+    }
     // All public-result groups share one user-intent playback command.
     val playSinglePublic = { selected: VideoPreview ->
         onPlay(selected, listOf(selected))
@@ -3756,6 +3788,7 @@ internal fun StudioSearch(
         item {
             OutlinedTextField(
                 value = query, onValueChange = {
+                    if (it != query && state.loading) onCancelSearch()
                     query = it.take(160)
                     selectedCreator = null
                 },
@@ -3763,7 +3796,10 @@ internal fun StudioSearch(
                 singleLine = true, placeholder = { Text("Song or artist name") },
                 leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
                 trailingIcon = {
-                    if (query.isNotBlank()) IconButton(onClick = { query = "" }) {
+                    if (query.isNotBlank()) IconButton(onClick = {
+                        if (state.loading) onCancelSearch()
+                        query = ""
+                    }) {
                         Icon(Icons.Outlined.Close, contentDescription = "Clear search")
                     }
                 },
@@ -4123,13 +4159,17 @@ internal fun StudioSearch(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     CircularProgressIndicator(modifier = Modifier.size(22.dp),
                         strokeWidth = 2.dp)
-                    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                        Text("Finding music…",
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Text(state.phase.label,
                             style = MaterialTheme.typography.titleSmall)
                         Text(SearchConsumerCopyPolicy.loadingHint(
                             savedMatches.isNotEmpty() || offlineMatches.isNotEmpty()),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        TextButton(onClick = onCancelSearch, modifier = Modifier.heightIn(min = 48.dp)
+                            .testTag("nw130-cancel-search")) { Text("Cancel search") }
+                        TextButton(onClick = { onCancelSearch(); onWebSearch(query.trim()) },
+                            modifier = Modifier.heightIn(min = 48.dp)) { Text("Open YouTube search") }
                     }
                 }
             }
@@ -4143,9 +4183,13 @@ internal fun StudioSearch(
             }
             if (state.error.isNotBlank()) {
                 item {
-                    Text("Showing the previous results. Refresh couldn't complete.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Column {
+                        Text(state.error + " Showing previous results.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        TextButton(onClick = { onNativeSearch(query.trim(), mode) },
+                            modifier = Modifier.heightIn(min = 48.dp)) { Text("Retry search") }
+                    }
                 }
             }
             if (publicGroups.bestMatches.isNotEmpty()) {
@@ -4157,6 +4201,7 @@ internal fun StudioSearch(
                     MusicTrackTile(song, isPlaying = playingUrl == song.url,
                         surface = NightWaveTrackSurface.SEARCH,
                     sourceLabel = index?.origin(song.url)?.label(),
+                        publicEvidence = publicEvidence[song.url],
                         rawVideoCaption = mode == SearchMode.VIDEOS,
                         onOptions = { onSongOptions(song) },
                         onClick = { playSinglePublic(song) })
@@ -4165,12 +4210,13 @@ internal fun StudioSearch(
             if (publicGroups.otherVersions.isNotEmpty()) {
                 item(key = "nw82-alternate-recordings-heading") {
                     SectionHeading("Other versions",
-                        "Remixes, live and alternate recordings · choose the one you want")
+                        "Version labels come from video titles · each source stays selectable")
                 }
                 items(publicGroups.otherVersions, key = { "alternate:" + it.url }) { song ->
                     MusicTrackTile(song, isPlaying = playingUrl == song.url,
                         surface = NightWaveTrackSurface.SEARCH,
                     sourceLabel = index?.origin(song.url)?.label(),
+                        publicEvidence = publicEvidence[song.url],
                         onOptions = { onSongOptions(song) },
                         onClick = { playSinglePublic(song) })
                 }
@@ -4187,6 +4233,7 @@ internal fun StudioSearch(
                     MusicTrackTile(song, isPlaying = playingUrl == song.url,
                         surface = NightWaveTrackSurface.SEARCH,
                     sourceLabel = index?.origin(song.url)?.label(),
+                        publicEvidence = publicEvidence[song.url],
                         rawVideoCaption = mode == SearchMode.VIDEOS,
                         onOptions = { onSongOptions(song) },
                         onClick = { playSinglePublic(song) })
@@ -4201,11 +4248,12 @@ internal fun StudioSearch(
                     verticalArrangement = Arrangement.spacedBy(7.dp)) {
                     Text(SearchConsumerCopyPolicy.unavailableTitle(),
                         style = MaterialTheme.typography.titleSmall)
+                    Text(state.error, style = MaterialTheme.typography.bodyMedium)
                     Text(SearchConsumerCopyPolicy.fallbackHint(
                         savedMatches.isNotEmpty() || offlineMatches.isNotEmpty()),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         OutlinedButton(onClick = { onNativeSearch(query.trim(), mode) },
                             enabled = query.isNotBlank()) {
                             Text("Retry search")
