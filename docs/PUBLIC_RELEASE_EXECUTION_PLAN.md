@@ -1,3 +1,5 @@
+> Historical 25 October plan. Current repository-only preparation and exact app-preservation evidence: [28 October source-publication status](../SOURCE_PUBLICATION.md). NW130 now builds and targets API36; older SDK/build statements below are retained as history. No app change is authorized for publication preparation.
+
 # NightWave — execution plan without Android application changes
 
 **Prepared:** 25 October 2026

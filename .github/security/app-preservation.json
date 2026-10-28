@@ -1,0 +1,16 @@
+{
+  "date": "2026-10-28",
+  "protected_parent": "fb8f0455c6903249ab85299a76566153a2b8d2a7",
+  "scope": "Repository-only preparation; app/**, tools/**, app dependencies/tests/resources/manifest/build inputs and signing/data paths unchanged",
+  "protected_files_byte_checked": 839,
+  "app_tree_git_object": "35da4e68e0de5173a168f3315f8a4375ec77b7aa",
+  "tools_tree_git_object": "4597f8037b3cd2ed736607c990b2515cd2039c6c",
+  "packaged_source_inputs": 834,
+  "canonical_source_sha256": "4555E7A995AB9B03B0A2FDF481E53ABE7C82CABA47E98BA8E0976A2995E414EA",
+  "build_id": "NW-debug-4555E7A995AB9B03",
+  "existing_apk_sha256": "6A9313A4468A9620D7BBAA98B65FC7CEC54D3263B2888431BD0DA6461EDD5639",
+  "app_changed": false,
+  "new_app_build_run": false,
+  "tests": "Existing NW130 JVM/Android build evidence retained; repository controls validated separately.",
+  "app_device_or_account_mutations": false
+}

@@ -1,0 +1,115 @@
+{
+  "scanner": "gitleaks 8.30.1",
+  "date": "2026-10-28",
+  "scope": "All fetched branch/tag and pull-request-head histories at protected parent. Exact immutable commit/path/rule/line identities only; new matches are not approved.",
+  "matches": [
+    {
+      "fingerprint": "0b51a5edf1e9a6dbfc064e87e96c30178ca2748f:docs/measurements/nw122/nw122-after-2.json:generic-api-key:9",
+      "rule": "generic-api-key",
+      "file": "docs/measurements/nw122/nw122-after-2.json",
+      "line": 9,
+      "commit": "0b51a5edf1e9a6dbfc064e87e96c30178ca2748f",
+      "disposition": "FALSE_POSITIVE",
+      "reason": "Recorded SHA256 of SearchTokenMatchingPolicy source in a host benchmark receipt, not an API credential."
+    },
+    {
+      "fingerprint": "0b51a5edf1e9a6dbfc064e87e96c30178ca2748f:docs/measurements/nw122/nw122-after-3.json:generic-api-key:9",
+      "rule": "generic-api-key",
+      "file": "docs/measurements/nw122/nw122-after-3.json",
+      "line": 9,
+      "commit": "0b51a5edf1e9a6dbfc064e87e96c30178ca2748f",
+      "disposition": "FALSE_POSITIVE",
+      "reason": "Recorded SHA256 of SearchTokenMatchingPolicy source in a host benchmark receipt, not an API credential."
+    },
+    {
+      "fingerprint": "0b51a5edf1e9a6dbfc064e87e96c30178ca2748f:docs/measurements/nw122/nw122-before-1.json:generic-api-key:9",
+      "rule": "generic-api-key",
+      "file": "docs/measurements/nw122/nw122-before-1.json",
+      "line": 9,
+      "commit": "0b51a5edf1e9a6dbfc064e87e96c30178ca2748f",
+      "disposition": "FALSE_POSITIVE",
+      "reason": "Recorded SHA256 of SearchTokenMatchingPolicy source in a host benchmark receipt, not an API credential."
+    },
+    {
+      "fingerprint": "0b51a5edf1e9a6dbfc064e87e96c30178ca2748f:docs/measurements/nw122/nw122-after-1.json:generic-api-key:9",
+      "rule": "generic-api-key",
+      "file": "docs/measurements/nw122/nw122-after-1.json",
+      "line": 9,
+      "commit": "0b51a5edf1e9a6dbfc064e87e96c30178ca2748f",
+      "disposition": "FALSE_POSITIVE",
+      "reason": "Recorded SHA256 of SearchTokenMatchingPolicy source in a host benchmark receipt, not an API credential."
+    },
+    {
+      "fingerprint": "0b51a5edf1e9a6dbfc064e87e96c30178ca2748f:docs/measurements/nw122/nw122-before-2.json:generic-api-key:9",
+      "rule": "generic-api-key",
+      "file": "docs/measurements/nw122/nw122-before-2.json",
+      "line": 9,
+      "commit": "0b51a5edf1e9a6dbfc064e87e96c30178ca2748f",
+      "disposition": "FALSE_POSITIVE",
+      "reason": "Recorded SHA256 of SearchTokenMatchingPolicy source in a host benchmark receipt, not an API credential."
+    },
+    {
+      "fingerprint": "0b51a5edf1e9a6dbfc064e87e96c30178ca2748f:docs/measurements/nw122/nw122-before-3.json:generic-api-key:9",
+      "rule": "generic-api-key",
+      "file": "docs/measurements/nw122/nw122-before-3.json",
+      "line": 9,
+      "commit": "0b51a5edf1e9a6dbfc064e87e96c30178ca2748f",
+      "disposition": "FALSE_POSITIVE",
+      "reason": "Recorded SHA256 of SearchTokenMatchingPolicy source in a host benchmark receipt, not an API credential."
+    },
+    {
+      "fingerprint": "15a73048f61cef6cba89553ec25058d334503951:tools/verify_nw84_home.py:generic-api-key:50",
+      "rule": "generic-api-key",
+      "file": "tools/verify_nw84_home.py",
+      "line": 50,
+      "commit": "15a73048f61cef6cba89553ec25058d334503951",
+      "disposition": "FALSE_POSITIVE",
+      "reason": "Quoted Compose item(key=...) source marker checked by a structural UI test, not a credential."
+    },
+    {
+      "fingerprint": "15a73048f61cef6cba89553ec25058d334503951:tools/verify_nw84_home.py:generic-api-key:63",
+      "rule": "generic-api-key",
+      "file": "tools/verify_nw84_home.py",
+      "line": 63,
+      "commit": "15a73048f61cef6cba89553ec25058d334503951",
+      "disposition": "FALSE_POSITIVE",
+      "reason": "Quoted Compose item(key=...) source marker checked by a structural UI test, not a credential."
+    },
+    {
+      "fingerprint": "9dcf93aa043e5e0dd6026ce8e0f26c3d33268b04:app/src/main/java/com/nightwave/player/v2/ui/NightWaveStudioActivity.kt:generic-api-key:3926",
+      "rule": "generic-api-key",
+      "file": "app/src/main/java/com/nightwave/player/v2/ui/NightWaveStudioActivity.kt",
+      "line": 3926,
+      "commit": "9dcf93aa043e5e0dd6026ce8e0f26c3d33268b04",
+      "disposition": "FALSE_POSITIVE",
+      "reason": "Compose lazy-list item key used as UI identity, not authentication material."
+    },
+    {
+      "fingerprint": "c0f3c38348e04816dae9a5af81cda9482f20fb70:tools/verify_nw57_home.py:generic-api-key:20",
+      "rule": "generic-api-key",
+      "file": "tools/verify_nw57_home.py",
+      "line": 20,
+      "commit": "c0f3c38348e04816dae9a5af81cda9482f20fb70",
+      "disposition": "FALSE_POSITIVE",
+      "reason": "Quoted Compose item(key=...) source marker checked by a structural UI test, not a credential."
+    },
+    {
+      "fingerprint": "b1aafb8b668a63ef2637bf72338d06e2482486d7:app/src/main/java/com/nightwave/player/v2/ui/NightWaveStudioActivity.kt:generic-api-key:3188",
+      "rule": "generic-api-key",
+      "file": "app/src/main/java/com/nightwave/player/v2/ui/NightWaveStudioActivity.kt",
+      "line": 3188,
+      "commit": "b1aafb8b668a63ef2637bf72338d06e2482486d7",
+      "disposition": "FALSE_POSITIVE",
+      "reason": "Compose lazy-list item key used as UI identity, not authentication material."
+    },
+    {
+      "fingerprint": "75716473d61a036a4ebbac7fd0c042366dd33326:docs/NIGHTWAVE_NW07_RELEASE_READINESS.md:generic-api-key:40",
+      "rule": "generic-api-key",
+      "file": "docs/NIGHTWAVE_NW07_RELEASE_READINESS.md",
+      "line": 40,
+      "commit": "75716473d61a036a4ebbac7fd0c042366dd33326",
+      "disposition": "FALSE_POSITIVE",
+      "reason": "Markdown release-readiness text spanning table rows; no credential or private-key material."
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+# Exact immutable findings manually reviewed as source hashes, Compose UI keys or documentation.
+# Reasons: .github/security/gitleaks-reviewed-matches.json. No path/rule-wide exclusions.
+0b51a5edf1e9a6dbfc064e87e96c30178ca2748f:docs/measurements/nw122/nw122-after-2.json:generic-api-key:9
+0b51a5edf1e9a6dbfc064e87e96c30178ca2748f:docs/measurements/nw122/nw122-after-3.json:generic-api-key:9
+0b51a5edf1e9a6dbfc064e87e96c30178ca2748f:docs/measurements/nw122/nw122-before-1.json:generic-api-key:9
+0b51a5edf1e9a6dbfc064e87e96c30178ca2748f:docs/measurements/nw122/nw122-after-1.json:generic-api-key:9
+0b51a5edf1e9a6dbfc064e87e96c30178ca2748f:docs/measurements/nw122/nw122-before-2.json:generic-api-key:9
+0b51a5edf1e9a6dbfc064e87e96c30178ca2748f:docs/measurements/nw122/nw122-before-3.json:generic-api-key:9
+15a73048f61cef6cba89553ec25058d334503951:tools/verify_nw84_home.py:generic-api-key:50
+15a73048f61cef6cba89553ec25058d334503951:tools/verify_nw84_home.py:generic-api-key:63
+9dcf93aa043e5e0dd6026ce8e0f26c3d33268b04:app/src/main/java/com/nightwave/player/v2/ui/NightWaveStudioActivity.kt:generic-api-key:3926
+c0f3c38348e04816dae9a5af81cda9482f20fb70:tools/verify_nw57_home.py:generic-api-key:20
+b1aafb8b668a63ef2637bf72338d06e2482486d7:app/src/main/java/com/nightwave/player/v2/ui/NightWaveStudioActivity.kt:generic-api-key:3188
+75716473d61a036a4ebbac7fd0c042366dd33326:docs/NIGHTWAVE_NW07_RELEASE_READINESS.md:generic-api-key:40

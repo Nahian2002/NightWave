@@ -6,6 +6,7 @@
 
 | Purpose | Source |
 | --- | --- |
+| Source-publication preparation; app unchanged | [Publication status](../SOURCE_PUBLICATION.md), [source-use information](../TERMS_AND_SOURCE_USE.md), [dependency review](publication/DEPENDENCY_REVIEW.md) |
 | Project overview and limitations | [README](../README.md) |
 | **Final Windows build & phone test** | [NW125 final candidate guide](NW125_FINAL_CANDIDATE.md) |
 | **Active phase plan and true development gates** | [NW126–NW145 roadmap](PRODUCT_QUALITY_ROADMAP.md), [structured backlog](quality/NW126_NW145_BACKLOG.json), [acceptance cases](quality/NW126_NW145_ACCEPTANCE.csv) |
