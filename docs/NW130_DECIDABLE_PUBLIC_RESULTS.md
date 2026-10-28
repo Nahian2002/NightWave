@@ -20,7 +20,7 @@ Loading offers **Cancel search** and explicit **Open YouTube search**. Timeout i
 
 ## Preregistered ranking corpus
 
-The fixed candidate sets were saved and hashed before the NW130 scoring evaluation. Fixture: `app/src/test/resources/nw130-public-search-corpus.json`; SHA256 **8EEF27755ECFA3CC941B2DB72BD756A0E223420CED271C20A2C3211794763DF3**. A private preregistration receipt is in the checkpoint. The test verifies that exact digest before evaluating every expected winner and original selectable object. Its exact path is pinned to LF in `.gitattributes` so Windows clones keep the same preregistered bytes.
+The fixed candidate sets were saved and hashed before the NW130 scoring evaluation. Fixture: `app/src/test/resources/nw130-public-search-corpus.json`; SHA256 **8EEF27755ECFA3CC941B2DB72BD756A0E223420CED271C20A2C3211794763DF3**. A private preregistration receipt is in the checkpoint. The test verifies that exact digest before evaluating every expected winner and original selectable object. Its exact path disables text conversion in `.gitattributes` so every clone keeps the original preregistered bytes.
 
 **36 cases; zero top-result errors** on supplied synthetic candidates. Cases cover English/Bangla titles and creators, Jhum/cultivation, bidirectional curated aliases/exact preference, Bangla vowel distinctions, repeated words, short/numeric boundaries, part-number/contraction/accent handling, explicitly requested remix/live/cover/speed/acoustic/karaoke, and genuine farming/tutorial/reaction/movie/cooking/gameplay/unboxing requests. Every case also checks full group membership/original object identity and Videos order. Scoring/alias/normalization policies are unchanged from NW129; presentation grouping is extended.
 
