@@ -184,7 +184,7 @@ private fun NightWaveMixMosaic(mix: PersonalMix, modifier: Modifier = Modifier) 
         verticalArrangement = Arrangement.spacedBy(2.dp)) {
         tracks.chunked(2).forEach { row ->
             Row(Modifier.fillMaxWidth().weight(1f), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                row.forEach { track -> TrackArtwork(track, Modifier.weight(1f).fillMaxSize()) }
+                row.forEach { track -> TrackArtwork(track, Modifier.weight(1f).fillMaxSize(), radius = 4) }
                 if (row.size == 1) Spacer(Modifier.weight(1f))
             }
         }
