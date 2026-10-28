@@ -119,7 +119,7 @@ import coil.request.ImageRequest
 import coil.request.CachePolicy
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.material.icons.outlined.PlaylistAdd
+import androidx.compose.material.icons.automirrored.outlined.PlaylistAdd
 import androidx.compose.material.icons.outlined.Refresh
 import com.nightwave.player.v2.model.NightWaveTheme
 import com.nightwave.player.v2.playback.StudioPlayerActions
@@ -761,7 +761,7 @@ fun StudioNowPlayingOverlay(
                     }
                     IconButton(onClick = onSaveToPlaylist, enabled = !state.offline,
                         modifier = Modifier.size(48.dp)) {
-                        Icon(Icons.Outlined.PlaylistAdd, contentDescription = "Save track to playlist",
+                        Icon(Icons.AutoMirrored.Outlined.PlaylistAdd, contentDescription = "Save track to playlist",
                             tint = colors.onBackground)
                     }
                 }
