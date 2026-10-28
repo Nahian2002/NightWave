@@ -1,3 +1,5 @@
+> Final source review supersedes the historical NW130-only assumptions below. See [the final record](../../SOURCE_PUBLICATION.md) and [review](FINAL_SOURCE_REVIEW_20261028.md). App preservation now uses current NW132 maintenance; the original preparation receipt remains historical. The owner has explicitly requested this source-only publication.
+
 # Source-publication operator checklist
 
 This checklist authorizes no visibility change, app modification, history deletion or binary release. Read [current status](../../SOURCE_PUBLICATION.md); the owner's app-freeze requirement takes priority.

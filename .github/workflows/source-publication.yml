@@ -30,6 +30,9 @@ jobs:
       - name: Verify this preparation did not change app or build inputs
         if: github.head_ref == 'audit/nightwave-public-source-preparation' || github.ref == 'refs/heads/audit/nightwave-public-source-preparation'
         run: python .github/scripts/check_publication_controls.py --verify-app-unchanged
+      - name: Verify final source publication preserves the current app
+        if: github.head_ref == 'audit/nightwave-source-publication-final' || github.ref == 'refs/heads/audit/nightwave-source-publication-final'
+        run: python .github/scripts/check_publication_controls.py --verify-app-unchanged --protected-parent 736f014e6ff38d73f29e014057f3c398a83a63d3
       - name: Download checksum-pinned secret scanner
         shell: bash
         run: |

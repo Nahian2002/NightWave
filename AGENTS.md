@@ -2,13 +2,13 @@
 
 Before choosing or implementing an upgrade, read:
 
-1. `docs/PRODUCT_QUALITY_ROADMAP.md` — active product plan and next batch.
-2. `docs/quality/NW126_NW145_BACKLOG.json` — batch status, dependencies and acceptance criteria.
-3. `docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md` and `TEST_REPORT.md` — baseline findings and verification limits.
+1. `docs/PRODUCT_QUALITY_ROADMAP.md` â€” active product plan and next batch.
+2. `docs/quality/NW126_NW145_BACKLOG.json` â€” batch status, dependencies and acceptance criteria.
+3. `docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md` and `TEST_REPORT.md` â€” baseline findings and verification limits.
 
-The current cumulative implementation includes NW132 clear Library, based on protected NW131 parent `e80378f1e5c0bc1f81970afd5d4a70c9ce42f2d9`. Read the latest backlog plus NW126–NW132 evidence; physical acceptance is pending. The old default `main` is v0.8; never merge it over the cumulative development chain or assume it is current.
+The current cumulative implementation includes NW132 clear Library, based on protected NW131 parent `e80378f1e5c0bc1f81970afd5d4a70c9ce42f2d9`. Read the latest backlog plus NW126â€“NW132 evidence; physical acceptance is pending. `main` is now the canonical reviewed cumulative source. Do not merge an old v0.8 tag or historical branch over it.
 
-When the owner says "next", select the first eligible incomplete batch in the active backlog. The next source batch is **NW133**; NW126–NW132 are locally verified with physical checks pending. Check the actual checkout, remote updates and the latest ledger first. Do not restart NW111–NW125 simply because historical documents contain old next-step text.
+When the owner says "next", select the first eligible incomplete batch in the active backlog. The next source batch is **NW133**; NW126â€“NW132 are locally verified with physical checks pending. Check the actual checkout, remote updates and the latest ledger first. Do not restart NW111â€“NW125 simply because historical documents contain old next-step text.
 
 Preserve package/signing identity, installed data, guest profiles, Google consent/account boundaries, playlists, history, local music, original URLs and migration evidence. Inspect caller wiring as well as pure policies; a large synthetic benchmark does not prove the UI supplies the whole library. Do not remove safeguards or tests to improve a score.
 
@@ -20,8 +20,12 @@ Use isolated checkpoints and a reviewable branch. Keep private recordings, extra
 
 ## Maintenance continuity
 
-Current source includes maintenance on `maintenance/nightwave-nw132-cleanup`, based on NW132 `aa6a56fd553a297d5aa790f6049a1f4634a11b63`. Read TEST_REPORT.md and docs/REPOSITORY_MAINTENANCE_20261028.md before more cleanup. Retain historical evidence and useful incremental caches; project housekeeping does not authorize deleting personal folders. NW133 remains next.
+Current source includes maintenance on `main`, based on NW132 `aa6a56fd553a297d5aa790f6049a1f4634a11b63`. Read TEST_REPORT.md and docs/REPOSITORY_MAINTENANCE_20261028.md before more cleanup. Retain historical evidence and useful incremental caches; project housekeeping does not authorize deleting personal folders. NW133 remains next.
 
-## Repository publication preparation
+## Completed source-only publication
 
-The owner explicitly requires no app changes for public-repository preparation. On `audit/nightwave-public-source-preparation`, preserve all `app/`, `tools/`, Gradle/build inputs, package/signing identity and installed data at NW130 parent `fb8f0455c6903249ab85299a76566153a2b8d2a7`. Read [SOURCE_PUBLICATION.md](SOURCE_PUBLICATION.md). Work is limited to repository workflows, documentation and publication controls. Dependency advisories and provider/rights issues must be recorded without silently changing features or libraries. Do not switch visibility, delete/rewrite history or publish binaries as an incidental cleanup step. The preparation ended unchanged at `e476a979491dcb09fa4734e2763c0f357b6c2cd9`. Separately authorized NW131–NW132 product changes follow on their own branches; the next product batch is NW133.
+Source is public on canonical `main` after explicit owner authorization. Read SOURCE_PUBLICATION.md and .github/security/source-publication-result.json. App bytes remain NW132 maintenance. Actions is deliberately disabled; public secret scanning/push protection, private reporting and main review protections were read back. Owner admin bypass is retained; hosted required checks are not configured. Do not re-enable Actions, publish APKs, or change dependency/provider behavior incidentally. NW133 remains next.
+
+## Historical repository publication preparation
+
+The owner explicitly requires no app changes for public-repository preparation. On `audit/nightwave-public-source-preparation`, preserve all `app/`, `tools/`, Gradle/build inputs, package/signing identity and installed data at NW130 parent `fb8f0455c6903249ab85299a76566153a2b8d2a7`. Read [SOURCE_PUBLICATION.md](SOURCE_PUBLICATION.md). Work is limited to repository workflows, documentation and publication controls. Dependency advisories and provider/rights issues must be recorded without silently changing features or libraries. Do not switch visibility, delete/rewrite history or publish binaries as an incidental cleanup step. The preparation ended unchanged at `e476a979491dcb09fa4734e2763c0f357b6c2cd9`. Separately authorized NW131â€“NW132 product changes follow on their own branches; the next product batch is NW133.

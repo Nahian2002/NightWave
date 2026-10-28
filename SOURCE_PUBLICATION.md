@@ -1,53 +1,50 @@
-# NightWave source-publication preparation
+# NightWave source-publication record
 
-28 October 2026. Protected app parent: `fb8f0455c6903249ab85299a76566153a2b8d2a7` (NW130). Preparation branch: `audit/nightwave-public-source-preparation`. Implementation `90743d2a4aa0864ffeadee7ea716a824b76ca48a`; [draft PR #134](https://github.com/Nahian2002/NightWave/pull/134).
+**28 October 2026 â€” final source review complete; visibility operation/readback pending.** This is source-only GitHub publication. No APK, store submission, website, app-feature change, dependency change, installation or account-data operation is included.
 
-**The app is unchanged.** This work changes repository workflows, documentation and publication checks only. It does not remove or alter a feature, dependency, account flow, permission, resource, manifest, test, database, build script, package or signing identity. The existing APK is retained byte-for-byte. This freeze applies to this preparation change; the separate NW131 product roadmap remains planned.
+The owner requested publication after receiving the copying/public-log/contact, licensing/provider and enforcement risks. The precise payload is cumulative NW132 plus maintenance, protected at `736f014e6ff38d73f29e014057f3c398a83a63d3`; preparation is on `audit/nightwave-source-publication-final`. It was promoted to canonical `main` by fast-forward, preserving history. [Final review](docs/publication/FINAL_SOURCE_REVIEW_20261028.md).
 
-**Current visibility remains private. Source publication is held for owner review and unresolved external checks. Public app distribution remains NO-GO.** No website, APK, store listing or repository visibility was published by this preparation.
+## Verified payload
 
-## Source-only GitHub scope
-
-The owner's intended publication is GitHub source, without a store submission. Play Console approval, Play Data safety forms, Play closed testing, production AAB submission and the 9.5 product target are not prerequisites for publishing source. They remain separate app-distribution/product gates. Known dependency advisories require honest review and disclosure; a database match does not automatically prohibit source hosting or require feature removal. The presence of extraction code alone does not establish a GitHub policy violation; hosting/content/provider claims must be evaluated on their actual facts.
-
-Repository preparation can preserve the app unchanged. Source publication still needs review of the exact public payload and GitHub settings, included-code/asset rights and any concrete complaint or privacy issue. No blanket guarantee against a complaint or enforcement outcome is possible. [Portfolio case study](docs/publication/PORTFOLIO_CASE_STUDY.md) supplies a source-grounded project overview; it does not publish screenshots or private data.
-
-## Completed repository work
-
-- Pinned six upstream Actions repositories to exact reviewed tag resolutions; disabled persisted checkout credentials and retained read-only job tokens. This reduces mutable-reference risk; it is not a claim of auditing all upstream implementation code.
-- Every existing artifact upload now requires a private repository and a non-PR event, in addition to its original success/failure/always condition. Public source builds cannot automatically upload APKs or diagnostic artifacts through these steps. Android compilation and existing verification commands are retained.
-- Added a separate source-publication workflow with checksum-pinned Gitleaks 8.30.1, full available Git history, no inline allow comments and no scan-result uploads. Existing public job logs still need audience/content review before changing visibility.
-- Reviewed all four original `.github` files with independent security and architecture passes. No reportable vulnerability was established in that narrow scope; application/helper implementations, remote settings and historical artifacts are excluded.
-- Scanned 3,468 reachable commits after fetching all branch/tag references and 133 pull-request heads. The 12 scanner matches were individually verified as source hashes, Compose item keys or release-table text, not credentials. `.gitleaksignore` lists only their immutable commit/path/rule/line fingerprints, with reasons in `.github/security/gitleaks-reviewed-matches.json`. New matches remain blocking.
-- Separately scanned the current tracked/new source snapshot, excluding ignored user media/build outputs; 12 equivalent noncredential matches were individually reviewed. A scanner cannot prove absence of secrets or replace manual review of discussions, attachments, metadata and hosted artifacts.
-- Recorded 164 Maven coordinates from the offline-resolved release graph, including platform/BOM nodes. Cached POMs existed for 155, with license declarations for 152. The inventory is not a complete APK SBOM or a license-compatibility sign-off.
-- Checked those coordinates against OSV. Three advisory matches require app-specific reachability review; no library was updated. See [dependency review](docs/publication/DEPENDENCY_REVIEW.md).
-- Added maintainer ownership, a private reporting contact approved by the owner, source-use notes and fail-closed publication checks. The contact is `jayednahian2002@gmail.com`; monitoring remains the owner's responsibility.
-
-## Remaining publication decisions
-
-| Gate | Status / next evidence |
+| Check | Evidence |
 | --- | --- |
-| App preservation | Require the final 839-file byte comparison, unchanged 834-input packaged source identity and unchanged APK hash. |
-| Credentials in fetched Git history | No confirmed credential in the reviewed scanner matches. Future commits/refs must be rescanned; no unbounded no-secrets guarantee. |
-| Hosted material | Review past Actions job logs/artifacts, release assets, issues/PR discussions/attachments, author identities and refs. Old copies are not removed by new workflow conditions. |
-| Repository settings | These safeguards exist only on the preparation branch until reviewed/merged. Older branch/workflow revisions are not rewritten and can retain different upload behavior; review those refs or disable Actions repository-wide before public visibility. Select the intended reviewed default branch; old `main` remains v0.8. Verify branch/CODEOWNERS enforcement, fork-run approvals, secret scanning/push protection and available alerts. The connected connector does not expose these settings; no setting is claimed enabled. |
-| Private reporting | Email is supplied. GitHub Private Vulnerability Reporting is a public-repository feature; enable and verify it during an explicitly approved publication operation if desired. |
-| Software and asset rights | Complete code/asset provenance, transitive license compatibility and redistribution notices. A declared GPL license alone cannot prove ownership of every contribution. |
-| Source/provider permissions | No YouTube/platform/recording approval is established. Existing extraction/offline behavior remains untouched; no claim of legality or guaranteed hosting/store acceptance is made. |
-| Dependency advisories | Three database matches remain pending reachability/disposition. Changing app dependencies is prohibited for this preparation. |
-| Privacy / public app distribution | Source-informed draft/contact updated; no live policy site or runtime/OAuth/deletion verification is claimed. Installed signer, release signing, device/audio/data-preservation, provider and distribution gates remain open. |
+| App/build preservation | 848 protected files byte-identical to NW132 maintenance; all 843 packaged source inputs and existing APK unchanged. [Receipt](.github/security/final-source-preservation.json). |
+| Git history | Fresh all-ref scan, with PR heads through #137, covers 3,481 reachable commits before final preparation commits. Thirteen exact immutable noncredential exclusions; no wildcard/rule/path exclusion. Later publication commits must pass the same scan. |
+| Current tracked/new source | Thirteen individually reviewed noncredential matches: source hashes, Compose keys and historical release-table text. |
+| Hosted records | All 836 retained workflow-log archives, 137 PR records and five comments checked privately; zero hosted secret matches or attachments. Only OpenAI/GitHub no-reply email identities appeared there. |
+| Existing downloads | Zero retained Actions artifacts and zero releases/assets in the reviewed inventory. No prior upload is silently assumed safe. |
+| Source/media inventory | App source contains Kotlin, XML and one JSON test corpus; no bundled recording, lyric file, bitmap, font or third-party binary was identified. GPL declaration/license and upstream notice remain. |
+| Dependency/provider review | Supplier license inventory and three unvalidated Guava/jsoup advisory matches remain disclosed. Source-only publication does not grant media/service permissions or certify the runtime app. [Dependency review](docs/publication/DEPENDENCY_REVIEW.md). |
 
-## Verification and recovery
+## Repository controls
 
-Run `python .github/scripts/check_publication_controls.py --self-test --verify-app-unchanged` from this preparation checkout. It checks the actual workflow text, action revisions, every artifact condition and exact reviewed scanner exclusions, then rejects changes/additions to protected app/build paths. Negative fixtures reject public uploads, credential persistence, write tokens, privileged PR triggers, unknown action revisions and broad secret exclusions. Independent YAML parsing and scanner positive-control evidence are retained privately.
+Repository-wide Actions was disabled and independently read back before exposure. This protects against older refs whose workflows predate the current private-only artifact guards. Local build/source checks remain available; re-enabling hosted execution requires deliberate review of active refs. Read-only tokens and disabled workflow PR approval remain; fork write tokens/secrets are disabled.
 
-The local checkpoint `20261028-public-source-preparation` retains the protected history, app-file byte hashes, APK/source identity, redacted scanner/triage results, dependency reports, workflow resolution records and final review state. Never post raw findings, personal recordings or account data in a public issue. No historical refs were deleted or rewritten, no credentials were used to test validity, and no phone was installed/reset.
+Current workflows use exact Action revisions, no persisted checkout credentials and private non-PR artifact conditions. The scanner is checksum-pinned; broad exclusions and unsafe workflow fixtures are rejected. The final preparation has an explicit app-preservation check against the current protected parent, while the historical NW130 preparation retains its original baseline.
 
-The original 139-case acceptance matrix, frozen product audit and app test evidence are retained. Current product verification remains the NW130 result in [TEST_REPORT.md](TEST_REPORT.md); repository-only checks do not create a new app build or change its provisional 6.7 rating.
+Verified live settings after publication:
 
-## Enforcement risk
+| Setting | Readback |
+| --- | --- |
+| Repository/default branch | Public; canonical `main` contains the reviewed cumulative source |
+| Secret scanning/push protection | Enabled |
+| Vulnerability alerts/private reporting | Enabled |
+| Outside-contributor workflow approval | All external contributors |
+| Workflow token | Read-only; cannot approve PRs |
+| Hosted Actions | Disabled repository-wide; no automatic APK upload |
+| Main branch | One review and CODEOWNERS review; stale reviews dismissed; conversations resolved; force pushes/deletions disallowed by the configured rule |
 
-Making source public is not an automatic app ban. It also does not exempt the project from GitHub's acceptable-use/copyright processes, service-provider terms or app-store rules. A complaint or platform review is a separate event whose outcome cannot be guaranteed. Personal-use notices, GPL licensing, disclaimers or user consent do not replace applicable platform/content permissions.
+Owner administrators retain their documented bypass. No hosted status check is required while Actions is disabled. Automatic Dependabot update PRs are not enabled, preserving the no-dependency-change scope. GitHub showed zero open secret alerts at initial readback; this is not proof its asynchronous history scan has finished. Local all-ref/source/hosted reviews remain the separate evidence. [Sanitized operation receipt](.github/security/source-publication-result.json).
 
-Official policy references checked for this review: [GitHub visibility](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/managing-repository-settings/setting-repository-visibility), [GitHub acceptable use](https://docs.github.com/en/site-policy/acceptable-use-policies/github-acceptable-use-policies), [YouTube Terms](https://www.youtube.com/static?template=terms), [YouTube API policies](https://developers.google.com/youtube/terms/developer-policies) (their API-client scope must be evaluated separately from NewPipe extraction), [Play intellectual property](https://support.google.com/googleplay/android-developer/answer/9888072?hl=en), [Play user data](https://support.google.com/googleplay/android-developer/answer/10144311?hl=en).
+## Boundaries that remain
+
+- Public copies/forks cannot be recalled by making the repository private later. The owner approved publishing the personal security/privacy contact; monitoring remains the owner's responsibility.
+- GPL covers applicable software, not recordings, lyrics, artwork, trademarks or third-party services. No blanket license-compatibility, provider approval or takedown-immunity claim is made. No specific hosting copyright violation was established by this review.
+- Dependency matches are not confirmed app exploits, but remain unresolved app-security review items. They are not marked fixed by publishing source.
+- App release remains **NO-GO** pending installed signer, phone/accessibility/audio/recovery/performance and applicable distribution review. Source-only publication has no 9.5-score or Play-submission prerequisite. NW133 remains next.
+
+The earlier NW130-only preservation work is historical [PR #134](https://github.com/Nahian2002/NightWave/pull/134), with its original 839-file/834-input receipt retained. NW131/NW132 and maintenance were separately authorized product work. This final publication changes none of their app/build inputs.
+
+Private recovery: `20261028-source-publication-final`, containing protected history, scan/triage/log/privacy/settings receipts and final operation evidence. The verified app build remains [NW132 maintenance](TEST_REPORT.md). Never publish the raw administrative/log/scanner checkpoint.
+
+Policy references: [GitHub visibility](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/managing-repository-settings/setting-repository-visibility), [GitHub copyright process](https://docs.github.com/en/site-policy/content-removal-policies/dmca-takedown-policy), [YouTube terms](https://www.youtube.com/static?template=terms).

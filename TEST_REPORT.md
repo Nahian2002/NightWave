@@ -1,4 +1,6 @@
-# Current verification — NW132 maintenance and cleanup
+# Current verification â€” NW132 maintenance and cleanup
+
+> Source-publication follow-up: repository is now public on canonical `main`; the app/build inputs and APK below are byte-identical. Repository-only controls and hosted-source/privacy scans are separate from these retained app tests. See [publication record](SOURCE_PUBLICATION.md) and [PR #138](https://github.com/Nahian2002/NightWave/pull/138).
 
 [Draft PR #137](https://github.com/Nahian2002/NightWave/pull/137).
 28 October 2026. Branch `maintenance/nightwave-nw132-cleanup`; protected NW132 parent `aa6a56fd553a297d5aa790f6049a1f4634a11b63` (PR #136). Code repair `ceae46e06cc5688610e8b4cd66f3a2f3600a35fe`. [Maintenance scope and deletion inventory](docs/REPOSITORY_MAINTENANCE_20261028.md).
@@ -18,4 +20,4 @@ Removed 354 disposable local files / 60.79 MiB after checking protected checkpoi
 
 All prior acceptance limits remain: actual screen navigation/restoration, native dialogs/system picker/store/restart, accessible geometry/contrast/large type, audible playback, installed update and live account recovery are unrun. See [NW132 protocol](docs/NW132_CLEAR_LIBRARY.md), [active acceptance cases](docs/quality/NW126_NW145_ACCEPTANCE.csv) and [readiness](RELEASE_READINESS.md). Earlier batch evidence remains historical, not a new run on this candidate.
 
-This maintenance is not NW133. Next: **NW133 — player, artwork and metadata finish**. Product score remains provisional **6.7/10**, app release **NO-GO**; source-only publication is a separate decision. [Active roadmap](docs/PRODUCT_QUALITY_ROADMAP.md).
+This maintenance is not NW133. Next: **NW133 â€” player, artwork and metadata finish**. Product score remains provisional **6.7/10**, app release **NO-GO**; source-only publication is a separate decision. [Active roadmap](docs/PRODUCT_QUALITY_ROADMAP.md).

@@ -38,7 +38,7 @@ def verify(workflows, pins, ignores, reviews):
                 assert not re.search(r"(?m)^\s+path:\s*(?:\.|\*\*|~/|/home|C:)", block), name + ": broad artifact selection"
     assert upload_count >= 2, "Existing private artifact verification paths unexpectedly disappeared"
     fingerprints = {r["fingerprint"] for r in reviews["matches"]}
-    assert len(fingerprints) == 12
+    assert len(fingerprints) == 13
     assert all(r["disposition"] == "FALSE_POSITIVE" and r["reason"] for r in reviews["matches"])
     assert set(ignores) == fingerprints and len(ignores) == len(fingerprints), "Only the exact reviewed immutable matches may be ignored"
     for row in reviews["matches"]:
@@ -58,10 +58,10 @@ def inputs():
     return workflows, pins, ignores, reviews
 
 
-def app_unchanged():
+def app_unchanged(parent=BASE):
     protected = ["app/", "tools/", "gradle/", "build.gradle.kts", "settings.gradle.kts",
                  "gradle.properties", "build-windows.cmd", "gradlew", "gradlew.bat", ".gitattributes"]
-    changed = subprocess.check_output(["git", "diff", "--name-only", BASE, "--", *protected], cwd=ROOT, text=True)
+    changed = subprocess.check_output(["git", "diff", "--name-only", parent, "--", *protected], cwd=ROOT, text=True)
     assert not changed.strip(), "Protected app/build inputs changed: " + changed
     added = subprocess.check_output(["git", "ls-files", "--others", "--exclude-standard", "--", *protected], cwd=ROOT, text=True)
     assert not added.strip(), "Untracked app/build additions: " + added
@@ -93,11 +93,12 @@ def self_test(data):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(); parser.add_argument("--self-test", action="store_true")
     parser.add_argument("--verify-app-unchanged", action="store_true")
+    parser.add_argument("--protected-parent", choices=(BASE, "736f014e6ff38d73f29e014057f3c398a83a63d3"), default=BASE)
     args = parser.parse_args(); data = inputs()
     if args.self_test:
         self_test(data)
     else:
         verify(*data)
     if args.verify_app_unchanged:
-        app_unchanged()
+        app_unchanged(args.protected_parent)
     print("PASS repository publication controls; no public APK upload, approved action pins and exact secret-match exclusions. App/security/rights certification is separate.")

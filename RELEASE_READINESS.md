@@ -1,6 +1,6 @@
 # NightWave readiness
 
-**28 October 2026 — development candidate; app release NO-GO.** Current source is [NW132 plus maintenance](https://github.com/Nahian2002/NightWave/tree/maintenance/nightwave-nw132-cleanup). Default `main` remains the older v0.8 snapshot. NW133 is the next product batch.
+**28 October 2026 — development candidate; app release NO-GO.** Current source is [NW132 plus maintenance](https://github.com/Nahian2002/NightWave/tree/main). Canonical `main` contains the reviewed cumulative source. NW133 is the next product batch.
 
 Exact local JVM, Android/Compose, instrumentation-source, assembly, source, lint and artifact/signing evidence: [TEST_REPORT](TEST_REPORT.md). Compiled screen tests are not executed phone acceptance. Hosted runner allocation is reported separately in the review.
 
