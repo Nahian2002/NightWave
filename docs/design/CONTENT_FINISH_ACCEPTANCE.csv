@@ -1,0 +1,97 @@
+case_id,kind,theme,width_dp,font_scale,requirement,status
+DESIGN03-ORDER-MIDNIGHT-320-1,ANDROID,MIDNIGHT,320,1,Real music visible first; play and browse routes retained,NOT_RUN
+DESIGN03-ART-MIDNIGHT-320-1,ANDROID,MIDNIGHT,320,1,Owned generated wide source keeps both edges without upscaling,NOT_RUN
+DESIGN03-ORDER-MIDNIGHT-320-2,ANDROID,MIDNIGHT,320,2,Real music visible first; play and browse routes retained,NOT_RUN
+DESIGN03-ART-MIDNIGHT-320-2,ANDROID,MIDNIGHT,320,2,Owned generated wide source keeps both edges without upscaling,NOT_RUN
+DESIGN03-ORDER-MIDNIGHT-320-3,ANDROID,MIDNIGHT,320,3,Real music visible first; play and browse routes retained,NOT_RUN
+DESIGN03-ART-MIDNIGHT-320-3,ANDROID,MIDNIGHT,320,3,Owned generated wide source keeps both edges without upscaling,NOT_RUN
+DESIGN03-ORDER-MIDNIGHT-360-1,ANDROID,MIDNIGHT,360,1,Real music visible first; play and browse routes retained,NOT_RUN
+DESIGN03-ART-MIDNIGHT-360-1,ANDROID,MIDNIGHT,360,1,Owned generated wide source keeps both edges without upscaling,NOT_RUN
+DESIGN03-ORDER-MIDNIGHT-360-2,ANDROID,MIDNIGHT,360,2,Real music visible first; play and browse routes retained,NOT_RUN
+DESIGN03-ART-MIDNIGHT-360-2,ANDROID,MIDNIGHT,360,2,Owned generated wide source keeps both edges without upscaling,NOT_RUN
+DESIGN03-ORDER-MIDNIGHT-360-3,ANDROID,MIDNIGHT,360,3,Real music visible first; play and browse routes retained,NOT_RUN
+DESIGN03-ART-MIDNIGHT-360-3,ANDROID,MIDNIGHT,360,3,Owned generated wide source keeps both edges without upscaling,NOT_RUN
+DESIGN03-ORDER-MIDNIGHT-412-1,ANDROID,MIDNIGHT,412,1,Real music visible first; play and browse routes retained,NOT_RUN
+DESIGN03-ART-MIDNIGHT-412-1,ANDROID,MIDNIGHT,412,1,Owned generated wide source keeps both edges without upscaling,NOT_RUN
+DESIGN03-ORDER-MIDNIGHT-412-2,ANDROID,MIDNIGHT,412,2,Real music visible first; play and browse routes retained,NOT_RUN
+DESIGN03-ART-MIDNIGHT-412-2,ANDROID,MIDNIGHT,412,2,Owned generated wide source keeps both edges without upscaling,NOT_RUN
+DESIGN03-ORDER-MIDNIGHT-412-3,ANDROID,MIDNIGHT,412,3,Real music visible first; play and browse routes retained,NOT_RUN
+DESIGN03-ART-MIDNIGHT-412-3,ANDROID,MIDNIGHT,412,3,Owned generated wide source keeps both edges without upscaling,NOT_RUN
+DESIGN03-HOME-MIDNIGHT,MANUAL,MIDNIGHT,,,"All mixes and recent actions, bounded mosaics and previews",NOT_RUN
+DESIGN03-SNAP-MIDNIGHT,MANUAL,MIDNIGHT,,,All six mood cards and music shelves settle readably,NOT_RUN
+DESIGN03-COLOR-MIDNIGHT,MANUAL,MIDNIGHT,,,Normal versus error content roles and disabled states,NOT_RUN
+DESIGN03-INPUT-MIDNIGHT,MANUAL,MIDNIGHT,,,"Typed/cleared draft, creators, history and all source alternatives",NOT_RUN
+DESIGN03-ARTWORK-MIDNIGHT,MANUAL,MIDNIGHT,,,Wide square missing low-resolution and local art without wrong-track ambience,NOT_RUN
+DESIGN03-ACCESS-MIDNIGHT,MANUAL,MIDNIGHT,,,TalkBack keyboard reduced-motion native/system-bar and large-type journeys,NOT_RUN
+DESIGN03-ORDER-AURORA-320-1,ANDROID,AURORA,320,1,Real music visible first; play and browse routes retained,NOT_RUN
+DESIGN03-ART-AURORA-320-1,ANDROID,AURORA,320,1,Owned generated wide source keeps both edges without upscaling,NOT_RUN
+DESIGN03-ORDER-AURORA-320-2,ANDROID,AURORA,320,2,Real music visible first; play and browse routes retained,NOT_RUN
+DESIGN03-ART-AURORA-320-2,ANDROID,AURORA,320,2,Owned generated wide source keeps both edges without upscaling,NOT_RUN
+DESIGN03-ORDER-AURORA-320-3,ANDROID,AURORA,320,3,Real music visible first; play and browse routes retained,NOT_RUN
+DESIGN03-ART-AURORA-320-3,ANDROID,AURORA,320,3,Owned generated wide source keeps both edges without upscaling,NOT_RUN
+DESIGN03-ORDER-AURORA-360-1,ANDROID,AURORA,360,1,Real music visible first; play and browse routes retained,NOT_RUN
+DESIGN03-ART-AURORA-360-1,ANDROID,AURORA,360,1,Owned generated wide source keeps both edges without upscaling,NOT_RUN
+DESIGN03-ORDER-AURORA-360-2,ANDROID,AURORA,360,2,Real music visible first; play and browse routes retained,NOT_RUN
+DESIGN03-ART-AURORA-360-2,ANDROID,AURORA,360,2,Owned generated wide source keeps both edges without upscaling,NOT_RUN
+DESIGN03-ORDER-AURORA-360-3,ANDROID,AURORA,360,3,Real music visible first; play and browse routes retained,NOT_RUN
+DESIGN03-ART-AURORA-360-3,ANDROID,AURORA,360,3,Owned generated wide source keeps both edges without upscaling,NOT_RUN
+DESIGN03-ORDER-AURORA-412-1,ANDROID,AURORA,412,1,Real music visible first; play and browse routes retained,NOT_RUN
+DESIGN03-ART-AURORA-412-1,ANDROID,AURORA,412,1,Owned generated wide source keeps both edges without upscaling,NOT_RUN
+DESIGN03-ORDER-AURORA-412-2,ANDROID,AURORA,412,2,Real music visible first; play and browse routes retained,NOT_RUN
+DESIGN03-ART-AURORA-412-2,ANDROID,AURORA,412,2,Owned generated wide source keeps both edges without upscaling,NOT_RUN
+DESIGN03-ORDER-AURORA-412-3,ANDROID,AURORA,412,3,Real music visible first; play and browse routes retained,NOT_RUN
+DESIGN03-ART-AURORA-412-3,ANDROID,AURORA,412,3,Owned generated wide source keeps both edges without upscaling,NOT_RUN
+DESIGN03-HOME-AURORA,MANUAL,AURORA,,,"All mixes and recent actions, bounded mosaics and previews",NOT_RUN
+DESIGN03-SNAP-AURORA,MANUAL,AURORA,,,All six mood cards and music shelves settle readably,NOT_RUN
+DESIGN03-COLOR-AURORA,MANUAL,AURORA,,,Normal versus error content roles and disabled states,NOT_RUN
+DESIGN03-INPUT-AURORA,MANUAL,AURORA,,,"Typed/cleared draft, creators, history and all source alternatives",NOT_RUN
+DESIGN03-ARTWORK-AURORA,MANUAL,AURORA,,,Wide square missing low-resolution and local art without wrong-track ambience,NOT_RUN
+DESIGN03-ACCESS-AURORA,MANUAL,AURORA,,,TalkBack keyboard reduced-motion native/system-bar and large-type journeys,NOT_RUN
+DESIGN03-ORDER-PEARL-320-1,ANDROID,PEARL,320,1,Real music visible first; play and browse routes retained,NOT_RUN
+DESIGN03-ART-PEARL-320-1,ANDROID,PEARL,320,1,Owned generated wide source keeps both edges without upscaling,NOT_RUN
+DESIGN03-ORDER-PEARL-320-2,ANDROID,PEARL,320,2,Real music visible first; play and browse routes retained,NOT_RUN
+DESIGN03-ART-PEARL-320-2,ANDROID,PEARL,320,2,Owned generated wide source keeps both edges without upscaling,NOT_RUN
+DESIGN03-ORDER-PEARL-320-3,ANDROID,PEARL,320,3,Real music visible first; play and browse routes retained,NOT_RUN
+DESIGN03-ART-PEARL-320-3,ANDROID,PEARL,320,3,Owned generated wide source keeps both edges without upscaling,NOT_RUN
+DESIGN03-ORDER-PEARL-360-1,ANDROID,PEARL,360,1,Real music visible first; play and browse routes retained,NOT_RUN
+DESIGN03-ART-PEARL-360-1,ANDROID,PEARL,360,1,Owned generated wide source keeps both edges without upscaling,NOT_RUN
+DESIGN03-ORDER-PEARL-360-2,ANDROID,PEARL,360,2,Real music visible first; play and browse routes retained,NOT_RUN
+DESIGN03-ART-PEARL-360-2,ANDROID,PEARL,360,2,Owned generated wide source keeps both edges without upscaling,NOT_RUN
+DESIGN03-ORDER-PEARL-360-3,ANDROID,PEARL,360,3,Real music visible first; play and browse routes retained,NOT_RUN
+DESIGN03-ART-PEARL-360-3,ANDROID,PEARL,360,3,Owned generated wide source keeps both edges without upscaling,NOT_RUN
+DESIGN03-ORDER-PEARL-412-1,ANDROID,PEARL,412,1,Real music visible first; play and browse routes retained,NOT_RUN
+DESIGN03-ART-PEARL-412-1,ANDROID,PEARL,412,1,Owned generated wide source keeps both edges without upscaling,NOT_RUN
+DESIGN03-ORDER-PEARL-412-2,ANDROID,PEARL,412,2,Real music visible first; play and browse routes retained,NOT_RUN
+DESIGN03-ART-PEARL-412-2,ANDROID,PEARL,412,2,Owned generated wide source keeps both edges without upscaling,NOT_RUN
+DESIGN03-ORDER-PEARL-412-3,ANDROID,PEARL,412,3,Real music visible first; play and browse routes retained,NOT_RUN
+DESIGN03-ART-PEARL-412-3,ANDROID,PEARL,412,3,Owned generated wide source keeps both edges without upscaling,NOT_RUN
+DESIGN03-HOME-PEARL,MANUAL,PEARL,,,"All mixes and recent actions, bounded mosaics and previews",NOT_RUN
+DESIGN03-SNAP-PEARL,MANUAL,PEARL,,,All six mood cards and music shelves settle readably,NOT_RUN
+DESIGN03-COLOR-PEARL,MANUAL,PEARL,,,Normal versus error content roles and disabled states,NOT_RUN
+DESIGN03-INPUT-PEARL,MANUAL,PEARL,,,"Typed/cleared draft, creators, history and all source alternatives",NOT_RUN
+DESIGN03-ARTWORK-PEARL,MANUAL,PEARL,,,Wide square missing low-resolution and local art without wrong-track ambience,NOT_RUN
+DESIGN03-ACCESS-PEARL,MANUAL,PEARL,,,TalkBack keyboard reduced-motion native/system-bar and large-type journeys,NOT_RUN
+DESIGN03-ORDER-AMOLED-320-1,ANDROID,AMOLED,320,1,Real music visible first; play and browse routes retained,NOT_RUN
+DESIGN03-ART-AMOLED-320-1,ANDROID,AMOLED,320,1,Owned generated wide source keeps both edges without upscaling,NOT_RUN
+DESIGN03-ORDER-AMOLED-320-2,ANDROID,AMOLED,320,2,Real music visible first; play and browse routes retained,NOT_RUN
+DESIGN03-ART-AMOLED-320-2,ANDROID,AMOLED,320,2,Owned generated wide source keeps both edges without upscaling,NOT_RUN
+DESIGN03-ORDER-AMOLED-320-3,ANDROID,AMOLED,320,3,Real music visible first; play and browse routes retained,NOT_RUN
+DESIGN03-ART-AMOLED-320-3,ANDROID,AMOLED,320,3,Owned generated wide source keeps both edges without upscaling,NOT_RUN
+DESIGN03-ORDER-AMOLED-360-1,ANDROID,AMOLED,360,1,Real music visible first; play and browse routes retained,NOT_RUN
+DESIGN03-ART-AMOLED-360-1,ANDROID,AMOLED,360,1,Owned generated wide source keeps both edges without upscaling,NOT_RUN
+DESIGN03-ORDER-AMOLED-360-2,ANDROID,AMOLED,360,2,Real music visible first; play and browse routes retained,NOT_RUN
+DESIGN03-ART-AMOLED-360-2,ANDROID,AMOLED,360,2,Owned generated wide source keeps both edges without upscaling,NOT_RUN
+DESIGN03-ORDER-AMOLED-360-3,ANDROID,AMOLED,360,3,Real music visible first; play and browse routes retained,NOT_RUN
+DESIGN03-ART-AMOLED-360-3,ANDROID,AMOLED,360,3,Owned generated wide source keeps both edges without upscaling,NOT_RUN
+DESIGN03-ORDER-AMOLED-412-1,ANDROID,AMOLED,412,1,Real music visible first; play and browse routes retained,NOT_RUN
+DESIGN03-ART-AMOLED-412-1,ANDROID,AMOLED,412,1,Owned generated wide source keeps both edges without upscaling,NOT_RUN
+DESIGN03-ORDER-AMOLED-412-2,ANDROID,AMOLED,412,2,Real music visible first; play and browse routes retained,NOT_RUN
+DESIGN03-ART-AMOLED-412-2,ANDROID,AMOLED,412,2,Owned generated wide source keeps both edges without upscaling,NOT_RUN
+DESIGN03-ORDER-AMOLED-412-3,ANDROID,AMOLED,412,3,Real music visible first; play and browse routes retained,NOT_RUN
+DESIGN03-ART-AMOLED-412-3,ANDROID,AMOLED,412,3,Owned generated wide source keeps both edges without upscaling,NOT_RUN
+DESIGN03-HOME-AMOLED,MANUAL,AMOLED,,,"All mixes and recent actions, bounded mosaics and previews",NOT_RUN
+DESIGN03-SNAP-AMOLED,MANUAL,AMOLED,,,All six mood cards and music shelves settle readably,NOT_RUN
+DESIGN03-COLOR-AMOLED,MANUAL,AMOLED,,,Normal versus error content roles and disabled states,NOT_RUN
+DESIGN03-INPUT-AMOLED,MANUAL,AMOLED,,,"Typed/cleared draft, creators, history and all source alternatives",NOT_RUN
+DESIGN03-ARTWORK-AMOLED,MANUAL,AMOLED,,,Wide square missing low-resolution and local art without wrong-track ambience,NOT_RUN
+DESIGN03-ACCESS-AMOLED,MANUAL,AMOLED,,,TalkBack keyboard reduced-motion native/system-bar and large-type journeys,NOT_RUN

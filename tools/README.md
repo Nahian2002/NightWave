@@ -1,6 +1,6 @@
 # NightWave tools — current use and historical checks
 
-**Current implementation baseline:** DESIGN02 on `design/nightwave-expressive-themes`; **1,620 JVM tests / 202 suites** and **62 current source checks** pass. See [current verification](../TEST_REPORT.md) and [theme correction](../docs/design/EXPRESSIVE_THEME_FINISH.md). All hosted/device evidence remains separate; Actions stays disabled.
+**Current implementation baseline:** DESIGN03 on `design/nightwave-content-finish`; **1,625 JVM tests / 203 suites** and **63 current source checks** pass. See [current verification](../TEST_REPORT.md) and [theme correction](../docs/design/EXPRESSIVE_THEME_FINISH.md). All hosted/device evidence remains separate; Actions stays disabled.
 
 ## Recommended entrypoints
 

@@ -1,37 +1,37 @@
-# Current verification — complete mood artwork and composition finish
+# Current verification — DESIGN03 complete content finish
 
-28 October 2026. Existing [draft PR #146](https://github.com/Nahian2002/NightWave/pull/146), `design/nightwave-expressive-themes`, stacked on DESIGN01 #145. Protected prior review `70f12cdbd606fb91c6aca8a77da1f9585a4bbf40`; implementation `ac3a8866`, caller guard completed by `931143f674cf015766fcd95b1a9c81affd185715`. [Latest recording, ratings and exact defect](docs/design/2026-10-28_MOOD_THEME_FINISH_230959.md). [Previous B985 verification](https://github.com/Nahian2002/NightWave/blob/70f12cdbd606fb91c6aca8a77da1f9585a4bbf40/TEST_REPORT.md) and all prior review/acceptance evidence remain historical.
+[Draft PR #147](https://github.com/Nahian2002/NightWave/pull/147), `design/nightwave-content-finish`, stacked on DESIGN02 #146. Protected parent `6d664ba4111cbd87c9adf28e6600ca0fef25f982`; implementation `cae8caf8`, completed by `ec1f57f7631f9b673000e54777262ec1b2166f69`. [All six authorized recommendations and architecture](docs/design/CONTENT_HIERARCHY_FINISH.md), [96-case supplement](docs/design/CONTENT_FINISH_ACCEPTANCE.csv). [Previous A1BE verification](https://github.com/Nahian2002/NightWave/blob/6d664ba4111cbd87c9adf28e6600ca0fef25f982/TEST_REPORT.md) and prior audits/acceptance remain historical evidence.
 
-Latest owner recording: approximately 88.62687 seconds, 86 successful timestamp samples (0–85s; 86–88s unavailable), four-second overview and selected details inspected. The selected AMOLED and observed Aurora/Pearl/player screens show a cleaner flat rail and theme separation. On the same five-dimension rubric, the demonstrated screen sample scores **8.2/10 appearance**: identity 8, color character 9, hierarchy 8, observed coherence 8, perceived legibility 8. Color identity averages 8.5; layout/coherence is around 8. Theme coverage differs and no unique inspected APK identity is exposed, so this is not controlled A/B evidence or a new candidate/device pass. Original overall provisional product score remains **6.7/10**.
+The last owner recording is the approximately 92.93911-second `232750` sample: 92 successful one-second seeks plus overview/detail inspection. Its visible appearance/UI scores **8.4/10** on the retained rubric, with varied theme coverage and no exact inspected binary attribution. This is the baseline for DESIGN03, not the new candidate's score. Original whole-product 6.7 audit remains frozen; no full runtime re-evaluation or 9.5–10 is inferred from source/tests.
 
-Mood-card clipping is confirmed by both video and source. The old full-card Canvas placed geometry behind an opaque caption, and circles extended beyond card edges. All six motifs now use complete normalized geometry in a dedicated 72dp header with a centered square viewport and 4dp stroke padding. Text grows separately below the art. Decorative contrast is clearer, a Search glyph matches the actual shortcut behavior, and navigation retains one animated selection capsule. Horizontal viewport cropping of a partially scrolled neighboring card remains normal shelf behavior; internal motif bounds are corrected.
+All six recommendations are implemented: source-bound contained artwork through the existing shared renderer; compact four-image mix accents; saved music ahead of browsing in empty Search; concise count/membership copy; explicit ordinary text with a distinct readable error container; snapped shelves, aligned gutters and responsive player balance. Large previews use ContentScale.Inside to retain edges and avoid enlarging the loaded drawable. Low-resolution source detail cannot be reconstructed. The same bounded source candidates, third-party/signed/local URL protection, caches and track-identity gates remain.
 
-All four palette values, actual shortcut titles/subtitles/queries/actions, source URLs, playback/queue, library/history, Search draft ownership, native/classic option, account/consent, stored theme/data formats, package/signing identity and dependencies remain. No feature is hidden or removed.
+All four palette values, stored themes, actual shortcut/song URLs, every mix and preview/action, Search modes/history/Undo/creator/provider/offline routes, draft ownership, native/classic interface, account/consent, playback/queue/library/storage, package/signing and dependencies remain. No feature is hidden or removed.
 
 | Executed or compiled check | Result and limit |
 | --- | --- |
-| Complete Windows builder | PASS: production Android/Compose, debug APK and instrumentation-source compilation. |
-| JVM suite | **1,620 tests / 202 suites**, zero failures/errors/skips; six new motif/viewport/invalid-bound/locale regressions. |
-| Current source runner | **62/62 PASS**, including **14 expressive broken-wiring fixtures**; earlier safeguards retained. |
-| Android theme/layout matrix | Ten methods × 36 configurations = **360 compiled cases, NOT_RUN**. Existing mood method covers all six shortcuts, artwork within header, caption below header/inside card and original callbacks; no device execution inferred. |
-| Sequential lint | PASS: **0 errors / 313 warnings / 17 hints**, unchanged from the protected baseline; no new suppression/baseline. |
-| Color/layout/input contracts | Existing opaque text, primary-control ink, required outline, responsive type, target and reduced-motion checks pass. Decorative alpha is not a rendered contrast certificate. |
-| Feature preservation | **234 protected nonpresentation source/schema/build files byte-identical**; callback-name inventories retained in nine major feature files. All six shortcut definitions also byte-identical to protected B985. Installed-data acceptance remains separate. |
-| APK signer | PASS against protected delivered B985, same retained certificate. No agent-connected installed-APK comparison or installation. |
-| Acceptance pack | Fresh 219-case source/APK-bound pack **PREPARED_NOT_EXECUTED**. |
-| Publication/device | Actions stays disabled; no hosted CI pass or public APK. No agent install/reset/account/data operation. |
+| Complete Windows builder | PASS: production Android/Compose, debug APK and instrumentation-source compilation on final implementation. |
+| JVM suite | **1,625 tests / 203 suites**, zero failures/errors/skips; five new role/count/membership regressions. Prior tablet artwork expectation changes to the deliberate 360dp cap; narrow/large-text/transport safety assertions remain. |
+| Current source runner | **63/63 PASS** on final implementation. One new caller guard with ten broken fixtures; all prior 62 checks and expressive fixtures retained. |
+| Android theme/layout matrix | **12 × 36 = 432 compiled cases, NOT_RUN**. Two additional methods cover music-first Search and retained browse/play routes, plus owned generated wide-image edge/native-size presentation. Existing scheme test checks ordinary contentColorFor(surface) and distinct error role. |
+| Sequential lint | PASS: **0 errors / 313 warnings / 17 hints**, matching protected A1BE; no new suppression/baseline. |
+| Color contracts | Actual new error surface differs from ordinary/selection surfaces; opaque error text ≥4.5:1 across four themes. Existing normal-text/control/input/target/reflow guards pass; source contrast is not rendered acceptance. |
+| Feature preservation | **234 protected nonpresentation source/schema/build files byte-identical**; callback inventories retained in nine major feature files; six mood shortcut definitions unchanged. Installed-data acceptance remains separate. |
+| Signer | PASS against protected A1BE APK, same certificate. No agent-connected installed APK comparison/install/reset. |
+| Acceptance evidence | Fresh 219-case source/APK-bound fixture pack **PREPARED_NOT_EXECUTED**; 96-case DESIGN03 supplement NOT_RUN. |
+| Publication | Actions stays disabled; no hosted CI pass or public APK. No agent account/data operation. |
 
 | Artifact identity | Value |
 | --- | --- |
-| Build ID | `NW-debug-A1BE94B78BE9B34D` |
-| Canonical source SHA256 | `A1BE94B78BE9B34D6D686584BD0752C8BED2FD978198335B6E2D6C2C3918ADD0` |
-| Source inputs | `864` |
-| APK SHA256 | `4B339D149255451AD4DAC11917C7B60153F1A3AC06BCE033220251C5C8923A53` |
-| Embedded revision context | `931143f674cf015766fcd95b1a9c81affd185715` |
-| Separate NW08 manifest SHA256 | `B4E1886EC19086EFE66D70F67F05937AABE00F57C97B5471D1FC3121E4C2C986`; retained independent encoding/ordering contract |
+| Build ID | `NW-debug-4041E5226C8D41DF` |
+| Canonical source SHA256 | `4041E5226C8D41DF9B538F3ABF5F6AEC7141BAE5BC69A76EF67258F8A4583A64` |
+| Source inputs | `867` |
+| APK SHA256 | `318A8FBF6126640C57B1234982FBD62237AE028A6E4773EF674A04B0653235BF` |
+| Embedded revision context | `ec1f57f7631f9b673000e54777262ec1b2166f69` |
+| Separate NW08 manifest SHA256 | `55BBE7A09D673EA6F117FC30AA7D3F95E4236EACB9999DB703F0DEEC5FC20CB8`; retained independent encoding/ordering contract |
 | App identity | `com.nightwave.player`, `2.0.0-alpha5s`, code35; min26/compile-target36 unchanged |
 | Signing certificate SHA256 | `EA737A703B8F116EBC5C8C0A717DDBF3A2A5808ACC9079A8F79CD1B3CD860394` |
 
-Private checkpoint `C:\Users\jayed\NightWave-checkpoints\20261028-theme-review-230959` retains recording metadata/frames, actual validation, feature preservation, source/APK recovery and the unexecuted acceptance pack. Owner-only candidate delivery is separate; no private media/accounts/credentials/binaries are committed or publicly published.
+Private checkpoint `C:\Users\jayed\NightWave-checkpoints\20261029-content-finish` retains protected/final source recovery, actual receipts, feature preservation, source/APK artifacts and unexecuted fixture pack. Earlier private recording checkpoints remain; no media/accounts/credentials/binaries are committed or publicly released. Owner-only candidate delivery is separate.
 
-New **A1BE** phone review must check all six full motifs in four themes, narrow/large type, caption growth, shelf scrolling, all actions, TalkBack, motion and native/system-bar combinations. Prior Search page-recreation, storage/account/audio/performance and release gates carry forward. Pure geometry and passing builds do not establish a rendered 9.5–10 score. Device acceptance remains **NOT_RUN**, release **NO-GO**. **NW134 remains next** from the cumulative branch.
+New **4041** phone acceptance must cover every affected shelf/collection/menu/action, all themes, font/window sizes, genuine missing/low-resolution/wide/square/local artwork, normal/error/disabled colors, snapping, empty/typed/cleared Search, creator/history/provider/offline alternatives, native/system bars and TalkBack/keyboard. Prior audio/account/recovery/data/performance/release gates carry forward. Device acceptance **NOT_RUN**, release **NO-GO**. **NW134 remains the next feature batch**, using the cumulative DESIGN03 branch.
