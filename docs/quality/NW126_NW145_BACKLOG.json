@@ -5,7 +5,7 @@
   "audit": "docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md",
   "implementation_base_revision": "61703c98238e762e59c049b6690853431f822884",
   "audit_branch": "audit/nightwave-post-nw125-quality-roadmap",
-  "next_batch": "NW132",
+  "next_batch": "NW133",
   "goal": "9.5+ within the declared NightWave music-player scope, conditional on actual product and acceptance evidence",
   "rating_kind": "Subjective comparative product review, not a measured Spotify score",
   "baseline_weighted_score": 6.655,
@@ -404,7 +404,7 @@
         "NW128",
         "NW129"
       ],
-      "implementation_status": "PLANNED",
+      "implementation_status": "LOCAL_VERIFIED",
       "device_status": "NOT_RUN",
       "finding_ids": [
         "Q07",
@@ -415,9 +415,10 @@
       ],
       "source_areas": [
         "v2/ui/NightWaveStudioActivity.kt",
+        "v2/ui/NightWaveLibraryOptions.kt",
+        "v2/library/LibraryCollectionPresentationPolicy.kt",
         "v2/library/LibraryBrowsePolicy.kt",
-        "v2/library/LibraryBulkSelectionPolicy.kt",
-        "v2/social/PlaylistDocumentPolicy.kt"
+        "v2/library/LibraryBulkSelectionPolicy.kt"
       ],
       "acceptance_criteria": [
         "Liked, playlist membership, recent history, derived creator groups and offline files have distinct truthful labels/counts, including a history-only listener.",
@@ -425,10 +426,25 @@
         "Select visible and filtered-hidden valid rows, remove/reorder and Undo; bounded atomic edits preserve unrelated collections and stale-local guards.",
         "Export/import the supported playlist document through the system picker, cancel, malformed input and name conflict; preview and explicit confirmation preserve original data."
       ],
-      "implementation_commit": null,
-      "local_evidence": [],
+      "implementation_commit": "26cd79236662c3b20f3e2961b3066ed232f44118",
+      "local_evidence": [
+        "docs/NW132_CLEAR_LIBRARY.md",
+        "TEST_REPORT.md",
+        "1573 executed JVM tests / 197 suites; zero failures/errors/skips; 59 current source checks PASS",
+        "14 new real-policy identity/filter/selection/mutation/document journeys; five actual StudioLibrary Android cases compile only",
+        "Distinct saved/history/automatic origins, compact options and stable Create; all 300 supported playlist songs searchable; valid hidden selection retained within 20-item bound",
+        "Complete builder/Android/Compose/instrumentation-source/APK PASS; NW-debug-A74122CC488E2AA8; 843 inputs",
+        "Sequential lint 0 errors / 313 warnings / 17 hints, matching NW131; no suppression/baseline"
+      ],
       "device_evidence": [],
-      "remaining_blockers": []
+      "remaining_blockers": [
+        "Actual screen identity/counts and Create/rename/pin/folder/filter/sort persistence across Back/recreation/restart NOT_RUN",
+        "Actual filtered-hidden selection, confirmation/remove/copy/reorder/Undo and stale-local recovery NOT_RUN",
+        "System document provider export/import/cancel/malformed/conflict/preview roundtrip NOT_RUN",
+        "320/360/412dp, 1x/2x/3x, themes/art/contrast/TalkBack/Switch Access and installed signer/data-preserving update NOT_RUN",
+        "Q24 broader You/advanced diagnostic disclosure remains follow-up under NW143; not fixed by this Library batch",
+        "Carry all NW126-NW131 physical/recovery/performance/app-release/publication gates forward"
+      ]
     },
     {
       "id": "NW133",
