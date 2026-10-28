@@ -1,6 +1,6 @@
 # NightWave tools — current use and historical checks
 
-**Current implementation baseline:** NW133 player/artwork/status/seek on its review branch; fresh local build and 1,587 JVM tests / 198 suites pass. The runner executes **60 current checks**, including the new player wiring/negative fixtures. See [current verification](../TEST_REPORT.md) and [active plan](../docs/PRODUCT_QUALITY_ROADMAP.md). Source checks do not certify phone behavior. Actions remains deliberately disabled.
+**Current implementation baseline:** DESIGN01 matte refresh on `design/nightwave-matte-system`, stacked on NW133; fresh local build and **1,601 JVM tests / 199 suites** pass. The runner executes **61 current checks**, including eight broken matte wiring fixtures. See [current verification](../TEST_REPORT.md) and [design protocol](../docs/design/MATTE_DESIGN_SYSTEM.md). Actions remains disabled; Android compilation is separate from physical acceptance.
 
 ## Recommended entrypoints
 
@@ -45,3 +45,5 @@ NW129 adds `verify_nw129_search.py --self-test` to the current runner (56 checks
 NW130 adds `verify_nw130_public_search.py --self-test` (57 current checks). Its negative fixtures guard evidence wiring, exact single-source selection, phases/deadline/generation and both request-scoped HTTP paths. The frozen test corpus is under `app/src/test/resources/`; JUnit emits `app/build/reports/nw130-public-corpus.json`. MockWebServer checks actual local socket/body cancellation and isolation; phone/provider acceptance remains separate. See [NW130 protocol](../docs/NW130_DECIDABLE_PUBLIC_RESULTS.md).
 
 NW133 adds `verify_nw133_player.py --self-test` (60 current checks), guarding measured artwork/cache/fallback wiring, shared status, scoped seek and existing queue/lyrics paths with seven broken fixtures. See [NW133 protocol](../docs/NW133_PLAYER_ARTWORK_METADATA.md). Fourteen JVM tests execute; six new Android screen tests compile only.
+
+`verify_matte_design.py --self-test` guards real interaction-source feedback, source-bound reused artwork, clipped/API-gated blur, complete measured collection pairs, native read-only theme selection and accessible seek input/listener cleanup. The source runner totals 61 checks. The existing NW59 palette literal follows approved Pearl #61527F; JVM tests still enforce actual contrast.

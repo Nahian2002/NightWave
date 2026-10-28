@@ -4,7 +4,7 @@ NightWave is an independent Kotlin/Compose Android music player with an original
 
 | Information | Current value |
 | --- | --- |
-| Source | [Canonical main](https://github.com/Nahian2002/NightWave/tree/main); [NW133 review branch](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw133-player-artwork) |
+| Source | [Canonical main](https://github.com/Nahian2002/NightWave/tree/main); [matte design review branch](https://github.com/Nahian2002/NightWave/tree/design/nightwave-matte-system) |
 | Application | `com.nightwave.player` · `2.0.0-alpha5s` · code 35 |
 | Android | Minimum API 26; compile/target API 36 |
 | Next product batch | NW134, following the active NW126–NW145 roadmap |

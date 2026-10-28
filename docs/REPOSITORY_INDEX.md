@@ -1,6 +1,6 @@
 # NightWave — repository navigation
 
-**Current implementation:** NW133 player/artwork/status/seek on [`update/nightwave-nw133-player-artwork`](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw133-player-artwork), locally verified and pending review. [NW133 evidence and phone protocol](NW133_PLAYER_ARTWORK_METADATA.md). **Next source batch: NW134.** Canonical `main` holds reviewed source; NW126–NW133 physical acceptance remains open.
+**Current implementation:** owner-requested matte DESIGN01 on [`design/nightwave-matte-system`](https://github.com/Nahian2002/NightWave/tree/design/nightwave-matte-system), stacked on NW133 PR #144. [Design system and feature boundaries](design/MATTE_DESIGN_SYSTEM.md), [theme acceptance ledger](design/MATTE_DESIGN_ACCEPTANCE.csv), [review #145](https://github.com/Nahian2002/NightWave/pull/145). **Next source batch: NW134.** Physical acceptance remains open; canonical `main` holds reviewed source.
 
 ## Start here
 
@@ -18,6 +18,7 @@
 | Decidable public results and latest evidence | [NW130 evidence](NW130_DECIDABLE_PUBLIC_RESULTS.md) |
 | Purposeful Home and latest evidence | [NW131 evidence](NW131_PURPOSEFUL_HOME.md) |
 | Clear Library identity and latest evidence | [NW132 evidence](NW132_CLEAR_LIBRARY.md) |
+| Four-theme matte design and acceptance | [DESIGN01](design/MATTE_DESIGN_SYSTEM.md), [336-case ledger](design/MATTE_DESIGN_ACCEPTANCE.csv) |
 | Player artwork, state and seek evidence | [NW133 evidence](NW133_PLAYER_ARTWORK_METADATA.md) |
 | Detailed current product rating and source/video findings | [28 October audit](audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md) |
 | Windows build, Android signing and release procedure | [Build and release](BUILD_AND_RELEASE.md) |
