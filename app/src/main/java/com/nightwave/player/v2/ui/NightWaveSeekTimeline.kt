@@ -21,6 +21,8 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.setProgress
+import androidx.compose.ui.semantics.disabled
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.MaterialTheme
 
@@ -39,14 +41,15 @@ internal fun NightWaveSeekTimeline(
     onPreview: (Float) -> Unit,
     onCommit: (String, Float) -> Unit,
     onCancel: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    positionDescription: String? = null
 ) {
     val colors = MaterialTheme.colorScheme
     val shown = if (fraction.isFinite()) fraction.coerceIn(0f, 1f) else 0f
     val previewCallback by rememberUpdatedState(onPreview)
     val commitCallback by rememberUpdatedState(onCommit)
     val cancelCallback by rememberUpdatedState(onCancel)
-    var dragged by remember { mutableFloatStateOf(shown) }
+    var dragged by remember(trackIdentity) { mutableFloatStateOf(shown) }
     val tapDragModifier = if (!enabled) Modifier else Modifier
         .pointerInput(enabled, trackIdentity) {
             val edge = 8.dp.toPx()
@@ -99,6 +102,8 @@ internal fun NightWaveSeekTimeline(
             .testTag("nightwave-player-seek")
             .semantics {
                 contentDescription = "Seek playback"
+                positionDescription?.let { stateDescription = it }
+                if (!enabled) disabled()
                 progressBarRangeInfo = ProgressBarRangeInfo(shown, 0f..1f)
                 if (enabled) setProgress { requested ->
                     val mapped = NightWaveSeekGesturePolicy

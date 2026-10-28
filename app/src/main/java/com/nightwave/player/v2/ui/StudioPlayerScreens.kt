@@ -89,6 +89,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -114,6 +115,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import coil.request.CachePolicy
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.material.icons.automirrored.outlined.PlaylistAdd
+import androidx.compose.material.icons.outlined.Refresh
 import com.nightwave.player.v2.model.NightWaveTheme
 import com.nightwave.player.v2.playback.StudioPlayerActions
 import com.nightwave.player.v2.playback.StudioPlayerState
@@ -154,6 +161,7 @@ fun StudioMiniPlayer(
     val colors = MaterialTheme.colorScheme
     val health = PlaybackHealthPolicy.classify(state.hasTrack, state.connected,
         state.offline, state.playing, state.buffering, state.resolving, state.error)
+    val statusLabel = NightWaveNowPlayingPresentationPolicy.statusLabel(health)
     val identity = MusicIdentity.display(state.title, state.artist)
     val reducedMotion = LocalNightWaveReduceMotion.current
     val hapticView = LocalView.current
@@ -168,6 +176,7 @@ fun StudioMiniPlayer(
     Column(
         modifier = modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 3.dp)
             .testTag("nightwave-mini-player")
+            .semantics { stateDescription = statusLabel }
             .shadow(7.dp, miniShape)
             .clip(miniShape)
             .background(
@@ -241,7 +250,7 @@ fun StudioMiniPlayer(
                             // Direct composition avoids even a zero-duration
                             // overlap of outgoing artwork for Reduce Motion.
                             CoverArt(state.thumbnail, Modifier.size(miniLayout.artworkDp.dp),
-                                11, "Artwork for " + identity.title)
+                                11, "Artwork for " + identity.title, trackIdentity = state.videoUrl)
                         } else {
                             Crossfade(
                                 targetState = currentArtwork,
@@ -255,7 +264,7 @@ fun StudioMiniPlayer(
                                         scaleY = miniScale
                                     }, 11, NightWaveArtworkTransitionPolicy
                                         .accessibilityDescription(
-                                            artwork, currentArtwork, identity.title))
+                                            artwork, currentArtwork, identity.title), trackIdentity = artwork.trackId)
                             }
                         }
                     }
@@ -272,7 +281,7 @@ fun StudioMiniPlayer(
                             if (health.phase == PlaybackPhase.LOOKING_UP ||
                                 health.phase == PlaybackPhase.BUFFERING ||
                                 health.phase == PlaybackPhase.DISCONNECTED ||
-                                health.phase == PlaybackPhase.ERROR) health.title
+                                health.phase == PlaybackPhase.ERROR) statusLabel
                             else identity.artistOrCreator,
                             style = MaterialTheme.typography.bodySmall,
                             color = colors.onSurfaceVariant, maxLines = 1,
@@ -326,39 +335,50 @@ fun StudioMiniPlayer(
 }
 
 @Composable
-private fun CoverArt(
+internal fun CoverArt(
     url: String, modifier: Modifier = Modifier, radius: Int = 24,
-    description: String? = "Song artwork"
+    description: String? = "Song artwork", trackIdentity: String = "", large: Boolean = false
 ) {
-    val preferredArtwork = remember(url) { NightWaveArtworkPolicy.preferredArtwork(url) }
-    var useOriginal by remember(url) { mutableStateOf(false) }
-    val displayUrl = if (useOriginal) url else preferredArtwork
+    val context = LocalContext.current
+    val candidates = remember(url, large) { NightWaveArtworkPolicy.requestCandidates(url, large) }
+    var candidateIndex by remember(trackIdentity, url, large) { mutableIntStateOf(0) }
+    var failed by remember(trackIdentity, url, large) { mutableStateOf(false) }
+    var pixels by remember { mutableIntStateOf(0) }
+    val attempt = candidateIndex
+    val displayUrl = candidates.getOrNull(attempt)
     val shape = RoundedCornerShape(radius.dp)
-    Box(modifier.clip(shape).background(
-        Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary.copy(alpha = .5f),
-            MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.surface))
-    ), contentAlignment = Alignment.Center) {
-        // The motif stays behind a real artwork request. If Coil cannot load a
-        // thumbnail (offline/missing image), the branded fallback remains visible.
+    Box(modifier.onSizeChanged { pixels = NightWaveArtworkPolicy.requestPixels(it.width, it.height) }
+        .clip(shape).background(Brush.linearGradient(listOf(
+            MaterialTheme.colorScheme.primary.copy(alpha = .5f),
+            MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.surface)))
+        .semantics {
+            description?.let { contentDescription = if (failed || displayUrl == null)
+                "$it · image unavailable" else it }
+        }, contentAlignment = Alignment.Center) {
         Canvas(Modifier.fillMaxSize(.64f)) {
             drawCircle(Color.White.copy(alpha = .26f), radius = size.minDimension * .44f)
             drawCircle(Color.White.copy(alpha = .65f), radius = size.minDimension * .33f,
                 style = Stroke(width = 2.dp.toPx()))
             drawCircle(Color.White.copy(alpha = .7f), radius = size.minDimension * .09f)
         }
-        if (displayUrl.isNotBlank()) {
-            AsyncImage(
-                model = displayUrl,
-                contentDescription = description,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop,
-                onError = {
-                    // Some uploads do not provide a high-quality thumbnail.
-                    // Fall back to the original address instead of blank art.
-                    if (!useOriginal && NightWaveArtworkPolicy.allowOriginalFallback(
-                            url, preferredArtwork)) useOriginal = true
+        if (!failed && displayUrl != null && pixels > 0) {
+            val request = remember(displayUrl, pixels, context) {
+                ImageRequest.Builder(context).data(displayUrl).size(pixels, pixels)
+                    .memoryCachePolicy(CachePolicy.ENABLED).diskCachePolicy(CachePolicy.ENABLED)
+                    .crossfade(false).build()
+            }
+            val advance = {
+                if (candidateIndex == attempt) {
+                    if (attempt + 1 < candidates.size) candidateIndex = attempt + 1 else failed = true
                 }
-            )
+            }
+            AsyncImage(model = request, contentDescription = null,
+                modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop,
+                onError = { advance() },
+                onSuccess = { loaded ->
+                    if (NightWaveArtworkPolicy.isUnavailableLargeStill(displayUrl,
+                            loaded.result.drawable.intrinsicWidth, loaded.result.drawable.intrinsicHeight)) advance()
+                })
         }
     }
 }
@@ -460,6 +480,9 @@ fun StudioNowPlayingOverlay(
                     MusicIdentity.display(it.title, it.author).title
                 }
             } ?: queuePreview.subtitle
+            val playerHealth = PlaybackHealthPolicy.classify(state.hasTrack, state.connected,
+                state.offline, state.playing, state.buffering, state.resolving, state.error)
+            val playerStatus = NightWaveNowPlayingPresentationPolicy.statusLabel(playerHealth)
             val canSwipeArtwork = state.connected && !state.buffering && state.queue.size > 1
             var horizontalTravel by remember(state.videoUrl) { mutableStateOf(0f) }
             val playingArtworkScale by animateFloatAsState(
@@ -699,7 +722,7 @@ fun StudioNowPlayingOverlay(
                 }
             } else {
             Column(
-                Modifier.fillMaxSize().verticalScroll(rememberScrollState())
+                Modifier.fillMaxSize().verticalScroll(rememberScrollState()).testTag("nw133-player-content")
                     .padding(horizontal = contentPaddingDp.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(0.dp)
@@ -738,7 +761,7 @@ fun StudioNowPlayingOverlay(
                     }
                     IconButton(onClick = onSaveToPlaylist, enabled = !state.offline,
                         modifier = Modifier.size(48.dp)) {
-                        Icon(Icons.Outlined.MoreVert, contentDescription = "Save track to playlist",
+                        Icon(Icons.AutoMirrored.Outlined.PlaylistAdd, contentDescription = "Save track to playlist",
                             tint = colors.onBackground)
                     }
                 }
@@ -795,7 +818,7 @@ fun StudioNowPlayingOverlay(
                     if (reduceMotion) {
                         CoverArt(state.thumbnail, Modifier.fillMaxSize(),
                             playerLayout.artworkCornerDp,
-                            "Artwork for " + playerIdentity.title)
+                            "Artwork for " + playerIdentity.title, trackIdentity = state.videoUrl, large = true)
                     } else {
                         Crossfade(
                             targetState = currentArtwork,
@@ -806,7 +829,7 @@ fun StudioNowPlayingOverlay(
                             CoverArt(artwork.thumbnail, Modifier.fillMaxSize(),
                                 playerLayout.artworkCornerDp,
                                 NightWaveArtworkTransitionPolicy.accessibilityDescription(
-                                    artwork, currentArtwork, playerIdentity.title))
+                                    artwork, currentArtwork, playerIdentity.title), trackIdentity = artwork.trackId, large = true)
                         }
                     }
                     if (state.buffering) {
@@ -900,7 +923,18 @@ fun StudioNowPlayingOverlay(
                         likeControl()
                     }
                 }
-                Spacer(Modifier.height(11.dp))
+                Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("nw133-player-status"),
+                    verticalAlignment = Alignment.CenterVertically) {
+                    Text(playerStatus, modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (playerHealth.needsUserAction) colors.error else colors.onSurfaceVariant)
+                    if (playerHealth.needsUserAction) {
+                        IconButton(onClick = actions::retry, modifier = Modifier.size(48.dp)) {
+                            Icon(Icons.Outlined.Refresh, contentDescription = if (state.connected)
+                                "Retry playback" else "Reconnect player", tint = colors.primary)
+                        }
+                    } else Spacer(Modifier.size(48.dp))
+                }
                 // A scrub in progress belongs to exactly one track. Changing tracks
                 // clears the pending drag so an old percentage cannot seek the next.
                 var dragFraction by remember(state.videoUrl) { mutableStateOf<Float?>(null) }
@@ -909,14 +943,18 @@ fun StudioNowPlayingOverlay(
                 NightWaveSeekTimeline(
                     trackIdentity = state.videoUrl,
                     fraction = fraction,
-                    enabled = state.connected && state.durationMs > 0L,
+                    enabled = NightWaveNowPlayingPresentationPolicy.canSeek(state.videoUrl,
+                        state.connected, state.durationMs, state.resolving, state.error),
                     onPreview = { dragFraction = it },
                     onCommit = { originatingTrack, requested ->
-                        PlayerProgressRules.requestedPosition(state.durationMs, requested)
+                        NightWaveNowPlayingPresentationPolicy.seekPosition(originatingTrack,
+                            state.videoUrl, state.connected, state.durationMs, state.resolving, state.error, requested)
                             ?.let { actions.seekToForTrack(originatingTrack, it) }
                         dragFraction = null
                     },
-                    onCancel = { dragFraction = null }
+                    onCancel = { dragFraction = null },
+                    positionDescription = timeLabel(PlayerProgressRules.requestedPosition(
+                        state.durationMs, fraction) ?: 0L) + " of " + timeLabel(state.durationMs)
                 )
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(timeLabel(PlayerProgressRules.requestedPosition(
@@ -1416,24 +1454,8 @@ fun StudioNowPlayingOverlay(
                     }
                 }
                 }
-                Spacer(Modifier.height(26.dp))
-                if (state.buffering) {
-                    val health = PlaybackHealthPolicy.classify(
-                        state.hasTrack, state.connected, state.offline,
-                        state.playing, state.buffering, state.resolving, state.error)
-                    Row(verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        CircularProgressIndicator(modifier = Modifier.size(25.dp),
-                            color = colors.primary, strokeWidth = 2.dp)
-                        Text(health.title, style = MaterialTheme.typography.bodyMedium,
-                            color = colors.onSurfaceVariant)
-                    }
-                }
                 state.error?.takeIf { it.isNotBlank() }?.let { message ->
                     Text(message, style = MaterialTheme.typography.bodyMedium, color = colors.error)
-                    Button(onClick = actions::retry) {
-                        Text(if (state.connected) "Retry playback" else "Reconnect player")
-                    }
                 }
                 Spacer(Modifier.height(32.dp))
             }
