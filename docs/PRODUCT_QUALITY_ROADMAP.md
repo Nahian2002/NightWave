@@ -9,7 +9,7 @@ Established **28 October 2026**, after the owner's post-NW125 recording review. 
 3. **FINISH02 locally verified; next ART02, then SEARCH02 and NW137–NW145.** Read the [revised sequence and daily schedule](quality/UPCOMING_UPDATES.md). NW126–NW136 are locally verified with physical acceptance pending. Original NW134/NW135/NW136 and prior physical rows remain NOT_RUN.
 4. Update backlog status/evidence, this roadmap's progress ledger and the current test report after each batch. A source implementation is not device acceptance. Re-rate only with fresh product evidence.
 
-Root [AGENTS.md](../AGENTS.md) makes these continuity instructions discoverable to future coding sessions. The roadmap is persisted in Git/GitHub. A separate every-six-hour thread heartbeat now reads this plan; its cadence and operating limits are recorded in the upcoming-update schedule.
+Root [AGENTS.md](../AGENTS.md) makes these continuity instructions discoverable to future coding sessions. The roadmap is persisted in Git/GitHub. A separate hourly thread heartbeat now reads this plan; its cadence and operating limits are recorded in the upcoming-update schedule.
 
 ## Outcome and product boundaries
 
@@ -99,7 +99,7 @@ Each batch should be a reviewable change with a clear user problem. Refactor scr
 
 ## Progress ledger
 
-29 October replanning: every-six-hour follow-ups run one eligible source batch at a time. FINISH02 **LOCAL_VERIFIED / DEVICE_NOT_RUN**: known saved identity, filter recovery and completed transfer receipt; 1,754 JVM / 217 suites, 74 source checks, lint 0 errors / 317 warnings / 17 hints. [Evidence](quality/FINISH02_EVERYDAY_CLARITY.md). ART02 is next; historical rows below retain their original next-step context.
+29 October replanning: hourly follow-ups run one eligible source batch at a time. FINISH02 **LOCAL_VERIFIED / DEVICE_NOT_RUN**: known saved identity, filter recovery and completed transfer receipt; 1,754 JVM / 217 suites, 74 source checks, lint 0 errors / 317 warnings / 17 hints. [Evidence](quality/FINISH02_EVERYDAY_CLARITY.md). ART02 is next; historical rows below retain their original next-step context.
 
 | Date | Work | Status | Evidence / remaining |
 | --- | --- | --- | --- |

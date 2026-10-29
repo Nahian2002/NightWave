@@ -20,7 +20,7 @@ Use isolated checkpoints and a reviewable branch. Keep private recordings, extra
 
 ## Revised execution schedule — 29 October 2026
 
-Read docs/quality/UPCOMING_UPDATES.md and backlog execution_order first. Latest recorded review is docs/audits/2026-10-29_RECORDING_230548_REVIEW.md: about 8.4 demonstrated usability, 8.8 main visual, 9.0 offline journey; one 2,704,719-byte transfer reports 507ms (~42.678 Mbps), not a universal guarantee. FINISH02 on fix/nightwave-everyday-finish is locally verified from c932daaa (#155); ART02 is next. Every-six-hour Asia/Dhaka thread heartbeat nightwave-sequential-upgrades runs at most one eligible batch and must not overlap unfinished work. Original NW137–NW145 and all physical gates remain. Update actual evidence before advancing; consult execution_order instead of historical next-batch notes below.
+Read docs/quality/UPCOMING_UPDATES.md and backlog execution_order first. Latest recorded review is docs/audits/2026-10-29_RECORDING_230548_REVIEW.md: about 8.4 demonstrated usability, 8.8 main visual, 9.0 offline journey; one 2,704,719-byte transfer reports 507ms (~42.678 Mbps), not a universal guarantee. FINISH02 on fix/nightwave-everyday-finish is locally verified from c932daaa (#155); ART02 is next. Hourly Asia/Dhaka thread heartbeat nightwave-sequential-upgrades runs at most one eligible batch and must not overlap unfinished work. Original NW137–NW145 and all physical gates remain. Update actual evidence before advancing; consult execution_order instead of historical next-batch notes below.
 
 ## Maintenance continuity
 

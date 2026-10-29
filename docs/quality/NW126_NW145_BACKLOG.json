@@ -1536,7 +1536,7 @@
   "schedule": {
     "kind": "thread_heartbeat",
     "automation_id": "nightwave-sequential-upgrades",
-    "cadence": "Every 6 hours, Asia/Dhaka",
+    "cadence": "Every hour, Asia/Dhaka",
     "one_batch_per_run": true,
     "dates_are_target_slots_not_completion_promises": true,
     "requires_local_app_host_available": true

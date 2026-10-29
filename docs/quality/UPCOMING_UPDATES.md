@@ -19,11 +19,11 @@ Replanned 29 October 2026 from the [latest owner recording review](../audits/202
 | 11 | NW144 | After NW143 | Existing notification/widget/external controls and share roundtrips. |
 | 12 | NW145 | After blocking evidence closes | Consolidated physical acceptance, task study, two-hour soaks and defensible re-rating. |
 
-The schedule is every six hours. These are planned sequential slots, not deadlines or automatic acceptance. One bounded eligible batch runs at a time; a build failure or unfinished batch moves the later slots. Independent source work can continue with recorded device checks pending. Phone/account gates wait for actual evidence and appropriate user authorization. No automatic install, reset, merge, public APK or repository setting change.
+The schedule is every hour. These are planned sequential slots, not deadlines or automatic acceptance. One bounded eligible batch runs at a time; a build failure or unfinished batch moves the later slots. Independent source work can continue with recorded device checks pending. Phone/account gates wait for actual evidence and appropriate user authorization. No automatic install, reset, merge, public APK or repository setting change.
 
 ## Follow-up schedule
 
-Codex heartbeat `nightwave-sequential-upgrades` is active in this chat, **every six hours**, as requested by the owner (Asia/Dhaka host timezone). The local Codex app/host must be available. Each run reads the current backlog and checkout, skips overlapping active work, completes one eligible source batch and records its next step. Report completed work, meaningful failures or required input; remain quiet on unchanged state. The backlog carries the actual status; target dates never mark a batch complete.
+Codex heartbeat `nightwave-sequential-upgrades` is active in this chat, **every hour**, as requested by the owner (Asia/Dhaka host timezone). The local Codex app/host must be available. Each run reads the current backlog and checkout, skips overlapping active work, completes one eligible source batch and records its next step. Report completed work, meaningful failures or required input; remain quiet on unchanged state. The backlog carries the actual status; target dates never mark a batch complete.
 
 ## FINISH02 committed implementation plan
 
