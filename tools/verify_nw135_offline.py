@@ -30,6 +30,7 @@ def verify(src):
                    'registerOnSharedPreferenceChangeListener(indexListener)', 'unregisterOnSharedPreferenceChangeListener(indexListener)',
                    'if (healthRecheckRequested)'):
         assert marker in ui,marker
+    assert 'val rawReport = cachedReport ?: run {' in ui
     assert '.putExtra(OfflineLibraryActivity.EXTRA_IMPORT_OWNED, true)' in studio
     assert 'SearchTrackSaveQueue.enqueue(this, video)' in studio
     assert 'showOfflineSources(video)' in studio and 'Other audio sources' in studio
@@ -46,6 +47,7 @@ if __name__=='__main__':
                             (FILES[2],'if (!report.indexReadable)'),
                             (FILES[2],'audioCheckFailures.add(song.id)'),
                             (FILES[2],'registerOnSharedPreferenceChangeListener(indexListener)'),
+                            (FILES[2],'val rawReport = cachedReport ?: run {'),
                             (FILES[3],'.putExtra(OfflineLibraryActivity.EXTRA_IMPORT_OWNED, true)'),
                             (FILES[5],'"Available local files (size checked)"')):
             broken=dict(src); broken[name]=broken[name].replace(marker,'BROKEN_FIXTURE')
