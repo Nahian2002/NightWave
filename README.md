@@ -2,7 +2,7 @@
 
 **Upcoming updates:** [hourly sequence and both usage guards](docs/quality/UPCOMING_UPDATES.md). NW138 Sound Studio is locally verified; NW139 optional recovery is next. One eligible batch per run with actual evidence recorded.
 
-**Current review work:** [NW138 Sound Studio](docs/NW138_SOUND_STUDIO.md) on [update/nightwave-nw138-sound-studio](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw138-sound-studio), stacked on [NW137 #159](https://github.com/Nahian2002/NightWave/pull/159). Current active EQ is distinct from an advanced manual draft; Apply/Discard remain outside the scrolling content. Existing features/themes, EQ engine, sources and stored data remain.
+**Current review work:** [NW138 Sound Studio](docs/NW138_SOUND_STUDIO.md) on [update/nightwave-nw138-sound-studio](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw138-sound-studio), [draft PR #160](https://github.com/Nahian2002/NightWave/pull/160), stacked on [NW137 #159](https://github.com/Nahian2002/NightWave/pull/159). Current active EQ is distinct from an advanced manual draft; Apply/Discard remain outside the scrolling content. Existing features/themes, EQ engine, sources and stored data remain.
 
 **Current integrated source:** [`main`](https://github.com/Nahian2002/NightWave/tree/main) remains the integrated baseline; newer cumulative changes are on the review branch above and are not automatically merged.
 

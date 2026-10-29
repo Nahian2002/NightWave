@@ -5,7 +5,7 @@ Established **28 October 2026**, after the owner's post-NW125 recording review. 
 ## Start here in every future chat
 
 1. Read [the detailed audit and scorecard](audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md), [the structured batch backlog](quality/NW126_NW145_BACKLOG.json), and [current verification](../TEST_REPORT.md).
-2. Confirm checkout and newest cumulative remote. Latest review branch: **NW138** on `update/nightwave-nw138-sound-studio`, stacked on [NW137 #159](https://github.com/Nahian2002/NightWave/pull/159). Read [current evidence](NW138_SOUND_STUDIO.md). Read the [recording rating, repair plan and results](OFFLINE_FINISH_RECORDING_REVIEW.md). Main remains the integrated baseline; the review branch contains newest unmerged work.
+2. Confirm checkout and newest cumulative remote. Latest review branch: **NW138** [draft PR #160](https://github.com/Nahian2002/NightWave/pull/160) on `update/nightwave-nw138-sound-studio`, stacked on [NW137 #159](https://github.com/Nahian2002/NightWave/pull/159). Read [current evidence](NW138_SOUND_STUDIO.md). Read the [recording rating, repair plan and results](OFFLINE_FINISH_RECORDING_REVIEW.md). Main remains the integrated baseline; the review branch contains newest unmerged work.
 3. **NW138 and prior source batches locally verified; next NW139, then NW140–NW145.** Read the [revised sequence and hourly schedule](quality/UPCOMING_UPDATES.md). NW126–NW136 are locally verified with physical acceptance pending. Original NW134/NW135/NW136 and prior physical rows remain NOT_RUN.
 4. Update backlog status/evidence, this roadmap's progress ledger and the current test report after each batch. A source implementation is not device acceptance. Re-rate only with fresh product evidence.
 

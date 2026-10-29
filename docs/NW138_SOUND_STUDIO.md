@@ -34,3 +34,5 @@ Physical acceptance remains NOT_RUN in the original NW138 matrix and eight suppl
 - Four new Compose runtime methods and [eight supplemental phone cases](quality/NW138_SOUND_STUDIO_ACCEPTANCE.csv) **NOT_RUN**; original NW138 and prior matrices retained. Final rating/release acceptance remains open. NW139 is next.
 
 One successful pre-refinement build is retained privately as superseded evidence. Review then strengthened the durable-choice/readback check and added a failed-save regression; all final checks above use the final refined source. An evidence-summary assertion initially expected the generic label PASS rather than actual PASS_SOURCE_ONLY; its corrected readback confirmed all 78 checks without altering product source or claiming Android runtime results.
+
+Cumulative [draft PR #160](https://github.com/Nahian2002/NightWave/pull/160) targets NW137 #159; no merge is performed.
