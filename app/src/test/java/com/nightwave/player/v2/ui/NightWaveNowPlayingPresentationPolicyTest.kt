@@ -72,7 +72,7 @@ class NightWaveNowPlayingPresentationPolicyTest {
         assertEquals("Offline options", p.offlineActionLabel(true, false))
         assertEquals("Open offline library", p.offlineActionLabel(true, true))
         assertEquals("Choose a song", p.offlineActionLabel(false, false))
-        assertEquals("Synchronized lyrics require local audio",
+        assertEquals("Attach your own LRC to this video",
             p.lyricsSubtitle(false, false))
         assertEquals("Your synchronized lyrics · ready",
             p.lyricsSubtitle(true, true))

@@ -61,7 +61,7 @@ Need $ui 'val searchHit = index in searchMatchSet' 'Search result highlighting m
 Need $ui 'lyrics-save-edits' 'Explicit private lyric save missing'
 Need $ui 'lyrics-export-lrc' 'Separate LRC export missing'
 Need $activity 'songId = session.songId' 'Song identity is not passed to editor'
-Need $activity 'lyricsStore.saveReviewed(' 'Fingerprint-guarded save missing'
+Need $activity 'boundLyrics.saveReviewed(' 'Fingerprint-guarded save missing'
 Need $activity 'pending.requestId != lyricsEditorEpoch' 'Export session fencing missing'
 Need $builder 'check-phase6v6e-integration.ps1' 'Windows cumulative gate not registered'
 Need $builder ':app:testDebugUnitTest :app:assembleDebug :app:compileDebugAndroidTestKotlin' 'Android compilation and JUnit gates missing'

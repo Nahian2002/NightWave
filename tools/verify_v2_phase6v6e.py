@@ -71,7 +71,7 @@ REQUIRED = {
         "ViewModelProvider(this)[LyricsEditorRetainedState::class.java]",
         'ActivityResultContracts.CreateDocument("text/plain")',
         "pending.requestId != lyricsEditorEpoch",
-        "lyricsStore.saveReviewed(", "onExport = { exportLyricsEditorDraft() }",
+        "boundLyrics.saveReviewed(", "onExport = { exportLyricsEditorDraft() }",
         "lyricsRevision++",
     ),
     "tools/build-windows.ps1": (

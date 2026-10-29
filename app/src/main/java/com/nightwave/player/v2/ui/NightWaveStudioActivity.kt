@@ -13,6 +13,8 @@ import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.auth.api.identity.AuthorizationResult
 import com.nightwave.player.v2.lyrics.PrivateLyricsStore
+import com.nightwave.player.v2.lyrics.BoundLyricsStore
+import com.nightwave.player.v2.lyrics.LyricsTrackBindingPolicy
 import com.nightwave.player.v2.lyrics.PrivateLyricsOffsetStore
 import com.nightwave.player.v2.lyrics.LyricsSyncPolicy
 import com.nightwave.player.v2.lyrics.TimedLyrics
@@ -271,7 +273,7 @@ internal data class StudioSearchSnapshot(
 )
 
 /** One short-lived in-memory LRC preview; the file is never cached to disk. */
-private data class PendingLyricsReview(
+internal data class PendingLyricsReview(
     val bytes: ByteArray,
     val report: LyricsImportReview,
     val title: String,
@@ -321,6 +323,18 @@ internal class LyricsEditorRetainedState : ViewModel() {
     var pendingExport: PendingLyricsExport? = null
 }
 
+/** One bounded private import survives rotation, never process death or cloud backup. */
+internal class LyricsImportRetainedState : ViewModel() {
+    @Volatile var epoch = 0
+    var pendingId: String? = null
+    var reviewId: String? = null
+    var review: PendingLyricsReview? = null
+    override fun onCleared() {
+        epoch++
+        pendingId = null; reviewId = null; review = null
+    }
+}
+
 /** One user-approved playlist text snapshot survives SAF rotation, not process death. */
 internal class PlaylistDocumentRetainedState : ViewModel() {
     var pendingExport: PreparedPlaylistDocument? = null
@@ -353,6 +367,7 @@ class NightWaveStudioActivity : ComponentActivity() {
     private lateinit var archiveManager: LibraryArchiveManager
     private lateinit var lyricsStore: PrivateLyricsStore
     private lateinit var lyricsOffsetStore: PrivateLyricsOffsetStore
+    private lateinit var boundLyrics: BoundLyricsStore
     private var currentLyricsOffsetMs by mutableStateOf(0)
     // Main-thread UI changes invalidate earlier queued disk writes.
     @Volatile private var lyricsOffsetWriteVersion = 0
@@ -361,8 +376,16 @@ class NightWaveStudioActivity : ComponentActivity() {
         ListeningMemorySummary(false, 0L, 0, 0, emptyList())
     )
     private var memoryReadGeneration = 0
-    private var pendingLyricsId: String? = null
-    @Volatile private var lyricsImportEpoch = 0
+    private val lyricsImportRetained by lazy {
+        ViewModelProvider(this)[LyricsImportRetainedState::class.java]
+    }
+    private var pendingLyricsId: String?
+        get() = lyricsImportRetained.pendingId
+        set(value) { lyricsImportRetained.pendingId = value }
+    private var lyricsImportEpoch: Int
+        get() = lyricsImportRetained.epoch
+        set(value) { lyricsImportRetained.epoch = value }
+    private var lyricsReviewDialog: AlertDialog? = null
     private var lyricsRevision by mutableStateOf(0)
     private var loadedLyrics by mutableStateOf<Pair<String, TimedLyrics>?>(null)
     private val lyricsEditorRetained by lazy {
@@ -466,18 +489,22 @@ class NightWaveStudioActivity : ComponentActivity() {
         val id = pendingLyricsId
         pendingLyricsId = null
         if (uri == null || id == null) return@registerForActivityResult
-        val selectedMedia = "offline:$id"
-        if (playback.state.videoUrl != selectedMedia) {
-            showMessage("Song changed. Choose lyrics again for the current offline track.")
-            return@registerForActivityResult
-        }
+        val selectedMedia = LyricsTrackBindingPolicy.mediaId(id) ?: return@registerForActivityResult
         val requestEpoch = ++lyricsImportEpoch
-        val duration = playback.state.durationMs
         lifecycleScope.launch {
+            val ready = kotlinx.coroutines.withTimeoutOrNull(3_000L) {
+                while (!playback.state.connected) delay(80L)
+                true
+            } == true
+            if (!ready || requestEpoch != lyricsImportEpoch || playback.state.videoUrl != selectedMedia) {
+                showMessage("Player or selected song changed. Choose lyrics again for the current track.")
+                return@launch
+            }
+            val duration = playback.state.durationMs
+            val selectedTitle = playback.state.title
             val outcome = withContext(Dispatchers.IO) {
                 runCatching {
-                    val song = requireNotNull(OfflineAudioLibrary(this@NightWaveStudioActivity)
-                        .find(id)) { "This offline track is no longer available" }
+                    val title = boundLyrics.title(id, selectedTitle)
                     val displayName = runCatching {
                         contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME),
                             null, null, null)?.use { cursor ->
@@ -500,14 +527,16 @@ class NightWaveStudioActivity : ComponentActivity() {
                         result.toByteArray()
                     }
                     val report = LyricsImportReviewPolicy.inspect(
-                        data, displayName, song.title, duration)
-                    PendingLyricsReview(data, report, song.title,
-                        lyricsStore.fingerprint(id))
+                        data, displayName, title, duration)
+                    PendingLyricsReview(data, report, title,
+                        boundLyrics.fingerprint(id))
                 }
             }
             if (requestEpoch != lyricsImportEpoch ||
                 playback.state.videoUrl != selectedMedia) return@launch
             outcome.onSuccess { selection ->
+                lyricsImportRetained.reviewId = id
+                lyricsImportRetained.review = selection
                 showLyricsImportReview(id, requestEpoch, selection)
             }.onFailure { error ->
                 // Never expose the provider path, song content, or exception
@@ -521,7 +550,7 @@ class NightWaveStudioActivity : ComponentActivity() {
     private fun showLyricsImportReview(
         id: String, requestEpoch: Int, selection: PendingLyricsReview
     ) {
-        if (playback.state.videoUrl != "offline:$id" ||
+        if (playback.state.videoUrl != LyricsTrackBindingPolicy.mediaId(id) ||
             requestEpoch != lyricsImportEpoch || isFinishing || isDestroyed) return
         val report = selection.report
         val replacing = selection.previousFingerprint != null
@@ -532,7 +561,8 @@ class NightWaveStudioActivity : ComponentActivity() {
             "[%02d:%02d] %s".format(java.util.Locale.ROOT, minutes,
                 seconds, it.text.take(64))
         }
-        val summary = "Offline song: " + selection.title.take(85) +
+        val summary = "Selected song: " + selection.title.take(85) +
+            "\nBinding: " + LyricsTrackBindingPolicy.sourceLabel(id) +
             "\nSelected file: " + report.sourceLabel +
             "\nTimed lyric lines: " + report.cueCount +
             "\nLast timestamp: " + (report.lastCueMs / 1_000L) + "s" +
@@ -541,33 +571,44 @@ class NightWaveStudioActivity : ComponentActivity() {
             "\n\nReview notes:\n" + warnings +
             "\n\nPreview:\n" + samples +
             "\n\nFilename/title matching is advisory. Confirm the song yourself."
-        AlertDialog.Builder(this)
+        if (lyricsReviewDialog != null) return
+        lyricsReviewDialog = AlertDialog.Builder(this)
             .setTitle(if (replacing) "Review lyric replacement" else "Review imported lyrics")
             .setMessage(summary)
-            .setNegativeButton(if (replacing) "Keep existing lyrics" else "Cancel", null)
+            .setNegativeButton(if (replacing) "Keep existing lyrics" else "Cancel") { _, _ ->
+                lyricsImportRetained.review = null; lyricsImportRetained.reviewId = null
+            }
+            .setOnCancelListener {
+                lyricsImportRetained.review = null; lyricsImportRetained.reviewId = null
+            }
+            .setOnDismissListener { lyricsReviewDialog = null }
             .setPositiveButton(if (replacing) "Replace LRC" else "Import LRC") { _, _ ->
                 if (requestEpoch != lyricsImportEpoch ||
-                    playback.state.videoUrl != "offline:$id") {
+                    playback.state.videoUrl != LyricsTrackBindingPolicy.mediaId(id)) {
                     showMessage("Song changed; lyrics were not imported.")
                     return@setPositiveButton
                 }
+                lyricsImportRetained.review = null; lyricsImportRetained.reviewId = null
                 lifecycleScope.launch {
                     val saved = withContext(Dispatchers.IO) {
                         runCatching {
                             check(requestEpoch == lyricsImportEpoch &&
-                                playback.state.videoUrl == "offline:$id") {
-                                "The selected offline song changed before saving"
+                                playback.state.videoUrl == LyricsTrackBindingPolicy.mediaId(id)) {
+                                "The selected song changed before saving"
                             }
-                            lyricsStore.saveReviewed(
-                                id, selection.bytes, selection.previousFingerprint)
+                            boundLyrics.saveReviewed(
+                                id, selection.bytes, selection.previousFingerprint) {
+                                    !isDestroyed && requestEpoch == lyricsImportEpoch &&
+                                        LyricsTrackBindingPolicy.matches(id, playback.state.videoUrl)
+                                }
                         }
                     }
                     if (requestEpoch != lyricsImportEpoch ||
-                        playback.state.videoUrl != "offline:$id") return@launch
+                        playback.state.videoUrl != LyricsTrackBindingPolicy.mediaId(id)) return@launch
                     saved.onSuccess { accepted ->
                         if (accepted) {
                             lyricsRevision++
-                            showMessage("Imported lyrics saved for this offline song.")
+                            showMessage("Your lyrics are attached to this selected source.")
                         } else {
                             showMessage("Existing lyrics changed during preview. " +
                                 "Select the file again; no lyrics were replaced.")
@@ -592,7 +633,7 @@ class NightWaveStudioActivity : ComponentActivity() {
             pending.requestId != lyricsEditorEpoch ||
             editor.requestId != pending.requestId ||
             editor.songId != pending.songId ||
-            playback.state.videoUrl != "offline:" + pending.songId ||
+            playback.state.videoUrl != LyricsTrackBindingPolicy.mediaId(pending.songId) ||
             isFinishing || isDestroyed) {
             showMessage("Lyrics export expired or song changed. No data was written.")
             return@registerForActivityResult
@@ -606,7 +647,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                     check(pending.requestId == lyricsEditorEpoch &&
                         activeEditor?.requestId == pending.requestId &&
                         activeEditor.songId == pending.songId &&
-                        playback.state.videoUrl == "offline:" + pending.songId) {
+                        playback.state.videoUrl == LyricsTrackBindingPolicy.mediaId(pending.songId)) {
                         "Lyrics export session changed before opening destination"
                     }
                     val bytes = pending.prepared.bytes
@@ -766,6 +807,7 @@ class NightWaveStudioActivity : ComponentActivity() {
         archiveManager = LibraryArchiveManager(this)
         lyricsStore = PrivateLyricsStore(this)
         lyricsOffsetStore = PrivateLyricsOffsetStore(this)
+        boundLyrics = BoundLyricsStore(this, lyricsStore, lyricsOffsetStore)
         listeningMemoryStore = ListeningMemoryStore(this)
         refreshListeningMemory()
         cloudStore = CloudBackupState(this)
@@ -806,14 +848,28 @@ class NightWaveStudioActivity : ComponentActivity() {
                 // reset the Room preview or hash large offline audio on the UI.
                 if (playback.state.videoUrl.isNotBlank()) refreshRecentForTrackChange()
             }
-            LaunchedEffect(playback.state.videoUrl, lyricsRevision) {
+            LaunchedEffect(playback.state.videoUrl, playback.state.connected, lyricsRevision) {
+                lyricsOffsetWriteVersion++
+                val selected = playback.state.videoUrl
+                if (playback.state.connected && selected.isNotBlank()) {
+                    val awaiting = lyricsImportRetained.reviewId ?: pendingLyricsId
+                    if (awaiting != null && !LyricsTrackBindingPolicy.matches(awaiting, selected)) {
+                        lyricsImportEpoch++
+                        pendingLyricsId = null
+                        lyricsImportRetained.reviewId = null; lyricsImportRetained.review = null
+                        lyricsReviewDialog?.dismiss()
+                    } else if (lyricsImportRetained.reviewId != null && lyricsImportRetained.review != null) {
+                        showLyricsImportReview(requireNotNull(lyricsImportRetained.reviewId),
+                            lyricsImportEpoch, requireNotNull(lyricsImportRetained.review))
+                    }
+                }
                 lyricsEditorSession?.let { session ->
                     // Media3 can briefly report a blank track while a
                     // recreated Activity reconnects. Keep the retained draft
                     // until an actual, different track becomes known.
                     val current = playback.state.videoUrl
                     if (current.isNotBlank() &&
-                        current != "offline:" + session.songId) {
+                        current != LyricsTrackBindingPolicy.mediaId(session.songId)) {
                         val unsaved = LyricsEditorPolicy.changed(
                             session.baseline, session.draft)
                         lyricsEditorEpoch++
@@ -827,12 +883,13 @@ class NightWaveStudioActivity : ComponentActivity() {
                 loadedLyrics = null
                 currentLyricsOffsetMs = 0
                 val current = playback.state.videoUrl
-                if (current.startsWith("offline:")) {
-                    val id = current.removePrefix("offline:")
+                val lyricId = LyricsTrackBindingPolicy.storageId(current)
+                if (lyricId != null) {
+                    val id = lyricId
                     val result = withContext(Dispatchers.IO) {
-                        val lines = runCatching { lyricsStore.read(id) }.getOrNull()
+                        val lines = runCatching { boundLyrics.read(id) }.getOrNull()
                         val offset = if (lines != null)
-                            lyricsOffsetStore.read(id) else 0
+                            boundLyrics.readOffset(id) else 0
                         lines to offset
                     }
                     if (playback.state.videoUrl == current && result.first != null) {
@@ -950,14 +1007,12 @@ class NightWaveStudioActivity : ComponentActivity() {
                     onMemoryErase = { confirmEraseListeningMemory() },
                     onMemoryRefresh = { refreshListeningMemory() },
                     currentLyrics = loadedLyrics?.takeIf {
-                        playback.state.videoUrl == "offline:" + it.first
+                        playback.state.videoUrl == LyricsTrackBindingPolicy.mediaId(it.first)
                     }?.second,
                     lyricsOffsetMs = currentLyricsOffsetMs,
                     onLyricsOffsetChange = { desiredOffset ->
                         val current = playback.state.videoUrl
-                        val id = current.takeIf {
-                            it.startsWith("offline:")
-                        }?.removePrefix("offline:")
+                        val id = LyricsTrackBindingPolicy.storageId(current)
                         if (id != null && loadedLyrics?.first == id &&
                             LyricsSyncPolicy.validOffset(desiredOffset)) {
                             val version = ++lyricsOffsetWriteVersion
@@ -969,14 +1024,17 @@ class NightWaveStudioActivity : ComponentActivity() {
                                     synchronized(lyricsOffsetStore) {
                                         if (version != lyricsOffsetWriteVersion) true
                                         else runCatching {
-                                            lyricsOffsetStore.save(id, desiredOffset)
+                                            boundLyrics.saveOffset(id, desiredOffset) {
+                                                version == lyricsOffsetWriteVersion && !isDestroyed &&
+                                                    LyricsTrackBindingPolicy.matches(id, playback.state.videoUrl)
+                                            }
                                         }.getOrDefault(false)
                                     }
                                 }
                                 if (version == lyricsOffsetWriteVersion &&
                                     playback.state.videoUrl == current &&
                                     loadedLyrics?.first == id && !saved) {
-                                    currentLyricsOffsetMs = lyricsOffsetStore.read(id)
+                                    currentLyricsOffsetMs = boundLyrics.readOffset(id)
                                     showMessage("Lyric timing could not be saved.")
                                 }
                             }
@@ -984,21 +1042,19 @@ class NightWaveStudioActivity : ComponentActivity() {
                     },
                     onEditLyrics = { openLyricsEditor() },
                     onImportLyrics = {
-                        val id = playback.state.videoUrl.takeIf {
-                            it.startsWith("offline:")
-                        }?.removePrefix("offline:")
+                        val id = LyricsTrackBindingPolicy.storageId(playback.state.videoUrl)
                         if (id != null) {
                             pendingLyricsId = id
                             importLyricsFile.launch(arrayOf("text/*", "application/octet-stream"))
                         }
                     },
                     onRemoveLyrics = {
-                        val id = playback.state.videoUrl.takeIf {
-                            it.startsWith("offline:")
-                        }?.removePrefix("offline:")
+                        val id = LyricsTrackBindingPolicy.storageId(playback.state.videoUrl)
                         if (id != null) lifecycleScope.launch {
                             val done = withContext(Dispatchers.IO) {
-                                runCatching { lyricsStore.delete(id) }.getOrDefault(false)
+                                runCatching { boundLyrics.delete(id) {
+                                    !isDestroyed && LyricsTrackBindingPolicy.matches(id, playback.state.videoUrl)
+                                } }.getOrDefault(false)
                             }
                             if (done) {
                                 lyricsRevision++
@@ -1229,7 +1285,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                     }
                 )
                 lyricsEditorSession?.let { session ->
-                    if (playback.state.videoUrl == "offline:" + session.songId) {
+                    if (playback.state.videoUrl == LyricsTrackBindingPolicy.mediaId(session.songId)) {
                         NightWaveLyricsEditorDialog(
                             songId = session.songId,
                             songTitle = session.songTitle,
@@ -2017,6 +2073,8 @@ class NightWaveStudioActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        lyricsReviewDialog?.dismiss()
+        lyricsReviewDialog = null
         cloudStatusSubscription?.close()
         cloudStatusSubscription = null
         cloudRequestGeneration++
@@ -2499,24 +2557,23 @@ class NightWaveStudioActivity : ComponentActivity() {
     /** Show only user-imported offline lyrics. Read baseline before editing. */
     private fun openLyricsEditor() {
         val chosen = playback.state.videoUrl
-        val id = chosen.takeIf { it.startsWith("offline:") }
-            ?.removePrefix("offline:") ?: return
+        val id = LyricsTrackBindingPolicy.storageId(chosen) ?: return
         if (loadedLyrics?.first != id) {
-            showMessage("Import an LRC for this offline song before editing.")
+            showMessage("Import your own LRC for this selected source before editing.")
             return
         }
         val requestId = ++lyricsEditorEpoch
         val expectedRevision = lyricsRevision
+        val selectedTitle = playback.state.title
         lifecycleScope.launch {
             val snapshot = withContext(Dispatchers.IO) {
                 runCatching {
-                    val song = requireNotNull(OfflineAudioLibrary(this@NightWaveStudioActivity)
-                        .find(id)) { "Offline song is no longer indexed" }
-                    val imported = requireNotNull(lyricsStore.read(id)) {
+                    val title = boundLyrics.title(id, selectedTitle)
+                    val imported = requireNotNull(boundLyrics.read(id)) {
                         "No imported LRC is available for this song"
                     }
-                    Triple(song.title, LyricsEditorPolicy.begin(imported),
-                        lyricsStore.fingerprint(id))
+                    Triple(title, LyricsEditorPolicy.begin(imported),
+                        boundLyrics.fingerprint(id))
                 }
             }
             if (lyricsEditorEpoch != requestId ||
@@ -2537,7 +2594,7 @@ class NightWaveStudioActivity : ComponentActivity() {
     private fun onLyricsEditorDraft(edited: LyricsEditorDraft) {
         val editor = lyricsEditorSession ?: return
         if (editor.saving || lyricsEditorEpoch != editor.requestId ||
-            playback.state.videoUrl != "offline:" + editor.songId ||
+            playback.state.videoUrl != LyricsTrackBindingPolicy.mediaId(editor.songId) ||
             !LyricsEditorPolicy.changed(editor.draft, edited)) return
         val undo = (editor.undo + editor.draft).takeLast(LyricsEditorPolicy.MAX_UNDO)
         lyricsEditorSession = editor.copy(draft = edited, undo = undo)
@@ -2546,7 +2603,7 @@ class NightWaveStudioActivity : ComponentActivity() {
     private fun undoLyricsEditorDraft() {
         val editor = lyricsEditorSession ?: return
         if (editor.saving || lyricsEditorEpoch != editor.requestId ||
-            playback.state.videoUrl != "offline:" + editor.songId ||
+            playback.state.videoUrl != LyricsTrackBindingPolicy.mediaId(editor.songId) ||
             editor.undo.isEmpty()) return
         lyricsEditorSession = editor.copy(
             draft = editor.undo.last(), undo = editor.undo.dropLast(1))
@@ -2563,7 +2620,7 @@ class NightWaveStudioActivity : ComponentActivity() {
     private fun exportLyricsEditorDraft() {
         val editor = lyricsEditorSession ?: return
         if (editor.saving || lyricsEditorEpoch != editor.requestId ||
-            playback.state.videoUrl != "offline:" + editor.songId) return
+            playback.state.videoUrl != LyricsTrackBindingPolicy.mediaId(editor.songId)) return
         val prepared = runCatching {
             LyricsExportPolicy.prepare(editor.songTitle, editor.baseline, editor.draft)
         }.getOrElse {
@@ -2583,7 +2640,7 @@ class NightWaveStudioActivity : ComponentActivity() {
     private fun saveLyricsEditorDraft() {
         val editor = lyricsEditorSession ?: return
         if (editor.saving || lyricsEditorEpoch != editor.requestId ||
-            playback.state.videoUrl != "offline:" + editor.songId ||
+            playback.state.videoUrl != LyricsTrackBindingPolicy.mediaId(editor.songId) ||
             !LyricsEditorPolicy.changed(editor.baseline, editor.draft)) return
         val output = runCatching { LyricsEditorPolicy.serialize(editor.draft) }
             .getOrElse {
@@ -2595,21 +2652,24 @@ class NightWaveStudioActivity : ComponentActivity() {
             val result = withContext(Dispatchers.IO) {
                 runCatching {
                     check(editor.requestId == lyricsEditorEpoch &&
-                        playback.state.videoUrl == "offline:" + editor.songId) {
+                        playback.state.videoUrl == LyricsTrackBindingPolicy.mediaId(editor.songId)) {
                         "Song changed before LRC could be saved"
                     }
-                    lyricsStore.saveReviewed(
-                        editor.songId, output, editor.expectedFingerprint)
+                    boundLyrics.saveReviewed(
+                        editor.songId, output, editor.expectedFingerprint) {
+                            !isDestroyed && editor.requestId == lyricsEditorEpoch &&
+                                LyricsTrackBindingPolicy.matches(editor.songId, playback.state.videoUrl)
+                        }
                 }
             }
             if (editor.requestId != lyricsEditorEpoch ||
-                playback.state.videoUrl != "offline:" + editor.songId) return@launch
+                playback.state.videoUrl != LyricsTrackBindingPolicy.mediaId(editor.songId)) return@launch
             result.onSuccess { accepted ->
                 if (accepted) {
                     lyricsEditorEpoch++
                     lyricsEditorSession = null
                     lyricsRevision++
-                    showMessage("Edited lyrics saved to this offline song.")
+                    showMessage("Edited lyrics saved to this selected source.")
                 } else {
                     lyricsEditorSession = editor.copy(saving = false)
                     showMessage("Saved lyrics changed since the editor opened. " +

@@ -127,6 +127,7 @@ import com.nightwave.player.v2.playback.PlaybackPhase
 import com.nightwave.player.net.VideoPreview
 import com.nightwave.player.net.MusicIdentity
 import com.nightwave.player.v2.lyrics.TimedLyrics
+import com.nightwave.player.v2.lyrics.LyricsTrackBindingPolicy
 import com.nightwave.player.v2.lyrics.LyricsSyncPolicy
 import com.nightwave.player.v2.lyrics.LyricsPresentationPolicy
 import com.nightwave.player.v2.lyrics.LyricsReadingPolicy
@@ -493,6 +494,7 @@ fun StudioNowPlayingOverlay(
                     dampingRatio = .78f, stiffness = 310f),
                 label = "Now Playing artwork spring"
             )
+            val lyricsSupported = LyricsTrackBindingPolicy.storageId(state.videoUrl) != null
             var lyricsOpen by remember(state.videoUrl) { mutableStateOf(false) }
             var lyricsGuideOpen by remember(state.videoUrl) { mutableStateOf(false) }
             var lyricsImmersive by remember(state.videoUrl) { mutableStateOf(false) }
@@ -504,7 +506,7 @@ fun StudioNowPlayingOverlay(
             var speedOptionsOpen by remember { mutableStateOf(false) }
             var listeningOptionsOpen by remember { mutableStateOf(false) }
             var advancedAudioOpen by remember { mutableStateOf(false) }
-            if (lyricsImmersive && state.offline && lyrics != null) {
+            if (lyricsImmersive && lyricsSupported && lyrics != null) {
                 val activeCue = LyricsSyncPolicy.activeIndex(
                     lyrics, state.positionMs, lyricsOffsetMs)
                 val lyricListState = rememberLazyListState()
@@ -1170,7 +1172,7 @@ fun StudioNowPlayingOverlay(
                 }
                 if (lyricsOpen) {
                     Spacer(Modifier.height(10.dp))
-                    if (state.offline) {
+                    if (lyricsSupported) {
                         OutlinedButton(
                             onClick = { lyricsGuideOpen = !lyricsGuideOpen },
                             modifier = Modifier.fillMaxWidth()
@@ -1211,13 +1213,14 @@ fun StudioNowPlayingOverlay(
                             }
                         }
                     }
-                    if (!state.offline) {
-                        Text("Synchronized lyrics are not available for public videos. " +
-                            "NightWave does not copy lyrics from streaming sites.",
+                    if (!lyricsSupported) {
+                        Text("Choose a local song or supported public video to attach your own LRC. " +
+                            "NightWave does not fetch lyrics from streaming sites.",
                             style = MaterialTheme.typography.bodySmall,
                             color = colors.onSurfaceVariant)
                     } else if (lyrics == null) {
-                        Text("Import your own timestamped .lrc file to show lyrics for this local song.",
+                        Text(if (state.offline) "Import your own timestamped .lrc file for this on-device copy."
+                            else "Attach your own timestamped LRC to this exact video. Public-video lyrics stay on this device.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = colors.onSurfaceVariant)
                         Spacer(Modifier.height(8.dp))
@@ -1227,7 +1230,7 @@ fun StudioNowPlayingOverlay(
                         val active = LyricsSyncPolicy.activeIndex(
                             lyrics, state.positionMs, lyricsOffsetMs)
                         val start = (active - 2).coerceAtLeast(0)
-                        Text("Synchronized with this offline track",
+                        Text(if (state.offline) "Your lyrics · This on-device copy" else "Your lyrics · This video",
                             style = MaterialTheme.typography.labelSmall,
                             color = colors.onSurfaceVariant)
                         Spacer(Modifier.height(8.dp))

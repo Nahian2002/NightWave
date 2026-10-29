@@ -56,7 +56,7 @@ Require $activity 'var session by mutableStateOf<LyricsEditorSession?>(null)' 'R
 Require $activity 'get() = lyricsEditorRetained.session' 'Retained editor read missing'
 Require $activity 'set(value) { lyricsEditorRetained.session = value }' 'Retained editor update missing'
 Require $activity 'LyricsEditorPolicy.begin(imported)' 'Import snapshot not captured'
-Require $activity 'lyricsStore.saveReviewed(' 'Verified reviewed save not wired'
+Require $activity 'boundLyrics.saveReviewed(' 'Verified reviewed save not wired'
 Require $activity 'editor.expectedFingerprint' 'Concurrent LRC protection missing'
 Require $activity 'editor.requestId == lyricsEditorEpoch' 'Old save generation not guarded'
 Require $activity 'fun undoLyricsEditorDraft()' 'Undo not implemented'

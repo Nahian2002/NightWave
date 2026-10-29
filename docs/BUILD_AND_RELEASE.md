@@ -1,8 +1,8 @@
 # Build and safe update
 
-**Current evidence:** SEARCH02 on `update/nightwave-search02-responsive`, [draft PR #158](https://github.com/Nahian2002/NightWave/pull/158), stacked on ART02 #157. [TEST_REPORT](../TEST_REPORT.md) records exact build/JVM/Android/source/lint/signing and remaining physical evidence. Read the [hourly upgrade sequence](quality/UPCOMING_UPDATES.md).
+**Current evidence:** NW137 on `update/nightwave-nw137-owned-lyrics`, [draft PR #159](https://github.com/Nahian2002/NightWave/pull/159), stacked on SEARCH02 #158. [TEST_REPORT](../TEST_REPORT.md) records exact build/JVM/Android/source/lint/signing and remaining physical evidence. Read the [hourly sequence and weekly reserve](quality/UPCOMING_UPDATES.md).
 
-**Integrated source: `main`**, based on cumulative NW132. Later cumulative review work is on the exact branch above; old tags/branches remain historical. Follow the procedure below and retained [phone instructions](NW125_FINAL_CANDIDATE.md); require fresh receipts for the exact source built. SEARCH02 is locally verified, physical acceptance pending; NW137 is next. Use the named review branch for the newest candidate.
+**Integrated source: `main`**, based on cumulative NW132. Later cumulative review work is on the exact branch above; old tags/branches remain historical. Follow the procedure below and retained [phone instructions](NW125_FINAL_CANDIDATE.md); require fresh receipts for the exact source built. NW137 is locally verified, physical acceptance pending; NW138 is next. Use the named review branch for the newest candidate.
 
 ## Local Windows build
 
