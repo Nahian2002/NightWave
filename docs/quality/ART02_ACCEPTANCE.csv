@@ -1,0 +1,9 @@
+case_id,area,scenario,pass_criterion,status,evidence
+ART02-01,Identity,Existing saved song with one canonical link and matching stored public queue entry,Known title and creator recover without rewriting original song ID title bytes URL or cloud format,NOT_RUN,
+ART02-02,Artwork,Existing sidecar and matching cached image with no live Internet,Local cover appears in saved row player and notification without a new HTTP request or audio readiness dependency,NOT_RUN,
+ART02-03,Artwork,Missing invalid oversized quota-full and tiny-placeholder cache entries,Safe existing fallback or honest placeholder; no crash or wrong video art; no audio/index mutation,NOT_RUN,
+ART02-04,Freshness,Delete or replace saved item during image staging and switch source link or metadata,Stale completion cannot recreate removed cover/metadata or attach to a different recording; staged owned temporary image cleaned,NOT_RUN,
+ART02-05,Playback,Recover selected cover while playing paused buffering and rapidly switching public/offline tracks,Only current matching offline metadata changes; position transport queue URI and source quality retained; separate online playback untouched,NOT_RUN,
+ART02-06,Lifecycle,Scroll pages filter rotate close and recreate during recovery,Visible/selected work stays bounded; closed workers and stale callbacks cannot update the old screen; no repeated image requests,NOT_RUN,
+ART02-07,Queue,Existing queue IDs stay unchanged while selected and queued covers recover,Revision invalidates display snapshot; each item retains its own identity art order and selected queue index,NOT_RUN,
+ART02-08,Acceptance,Four themes large fonts TalkBack airplane-mode play/seek gapless crossfade and long playback,Readable cover/title presentation and all existing routes remain; no audible interruption or accumulating resource leak,NOT_RUN,

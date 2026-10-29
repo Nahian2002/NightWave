@@ -212,6 +212,7 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
     }
 
     private var cachedOfflineIds: List<String> = emptyList()
+    private var cachedOfflineArtworkRevision = -1L
     private var cachedOfflineQueue: List<VideoPreview> = emptyList()
     /** Media3 notifies us when Android kills/restarts the session process. */
     private val controllerListener = object : MediaController.Listener {
@@ -329,6 +330,7 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
         // Imported files may have been deleted or re-imported while the Offline
         // Library Activity was on top. Refresh the cache on return, not on each tick.
         cachedOfflineIds = emptyList()
+        cachedOfflineArtworkRevision = -1L
         cachedOfflineQueue = emptyList()
         // One bounded attempt on foreground re-entry, never a reconnect loop.
         if (controller == null && future == null) connect()
@@ -365,7 +367,8 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
     /** Cached per ordered local list; no offline library JSON scan every UI tick. */
     private fun offlineQueueFor(id: String): Pair<List<VideoPreview>, Int> {
         val checkpoint = OfflineSessionStore(context).read() ?: return emptyList<VideoPreview>() to -1
-        if (checkpoint.ids != cachedOfflineIds) {
+        val artworkRevision = OfflineTrackIdentityStore.revision(context)
+        if (checkpoint.ids != cachedOfflineIds || artworkRevision != cachedOfflineArtworkRevision) {
             val known = runCatching { OfflineAudioLibrary(context).songs().associateBy { it.id } }
                 .getOrDefault(emptyMap())
             val identities = OfflineTrackIdentityStore(context)
@@ -377,6 +380,7 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
                 }
             }
             cachedOfflineIds = checkpoint.ids
+            cachedOfflineArtworkRevision = artworkRevision
         }
         return cachedOfflineQueue to cachedOfflineQueue.indexOfFirst { it.url == "offline:" + id }
     }

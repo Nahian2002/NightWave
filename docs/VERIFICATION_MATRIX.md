@@ -1,6 +1,6 @@
 # Current verification guide
 
-**29 October 2026.** Current cumulative FINISH02 is locally verified; ART02 next. Exact evidence: [TEST_REPORT](../TEST_REPORT.md), [new eight-case supplement](quality/FINISH02_ACCEPTANCE.csv).
+**30 October 2026.** Current cumulative ART02 is locally verified; SEARCH02 next. Exact evidence: [TEST_REPORT](../TEST_REPORT.md), [new eight-case supplement](quality/ART02_ACCEPTANCE.csv).
 
 | Evidence | Meaning | Limit |
 | --- | --- | --- |
