@@ -38,7 +38,35 @@ Main-screen visual rubric remains **8.8/10** (identity 8.5, colors 9.0, hierarch
 
 ## Results and remaining acceptance
 
-Pending implementation. No post-fix score is awarded before reviewing the resulting app.
+**LOCAL_VERIFIED / DEVICE_NOT_RUN**, [draft PR #155](https://github.com/Nahian2002/NightWave/pull/155), final built revision `336dc8c38aa0fdf6079e38bfc81d0ad606b69457`. Both the original repair plan and the later owner-timing concurrency extension were committed before their corresponding implementation. No post-fix score is awarded before reviewing the resulting app.
+
+- Implemented validated probe/four-part transfer, ordered durable hashing/checkpoint commit, bounded memory and isolated cancellation; changed/unsupported sources restart safely. Per-call metric clocks and synchronized totals prevent concurrent timing corruption; elapsed wall time is shown separately from summed receive time. Source quality and every existing URL/DNS/redirect/format/storage/integrity check remain.
+- Implemented measured rolling-byte speed, a three-second speed warm-up and ten-second/64 KiB ETA eligibility, excluding restored bytes. Byte completion shows Finishing/Checking rather than Downloading 100%. Global help now distinguishes supported continuation and safe restart.
+- Consolidated duplicate source destinations through shared tabs, retaining duplicate destinations in native recovery. Import/more tools share a row, storage/recheck share a row, one-page paging is omitted, and saved rows have readable identity plus a 56dp playable artwork action. All source, history, recovery, upload, filter and playback routes remain reachable. No theme palette was changed without an observed color fault.
+- Added an optional bounded identity sidecar. Known creator/title use the existing conservative display formatter; imported IDs/audio index/cloud format remain unchanged. Cover images are copied only from existing Coil disk cache, never fetched by the sidecar: 1 MiB/image, 64 MiB total, checked dimensions/type/path, atomic copy. A cache miss or metadata failure never changes audio readiness. Existing links can use matching public queue metadata for display; absent evidence remains Saved audio. This local sidecar is not a new cloud-art backup feature.
+- Added lifecycle-owned, bounded background library reconciliation with index/generation/media/queue freshness fences. Removing the selected offline item stops/releases it and clears its checkpoint, without auto-starting another source or erasing public queues. Removing upcoming files evicts prepared items and remaps queue/shuffle history. Buffering controls retain Pause based on requested transport while audible-playing state remains separate.
+- Inspected pager recovery and sampled swipe transitions: no persistent stopped offset is established. Existing idle recovery remains; no unsupported claim of a new pager defect or fix.
+
+### Validation and exact identity
+
+**1,747 JVM tests / 216 suites, 73 source checks, lint 0 errors / 317 warnings / 17 hints**, zero JVM failures/errors/skips; full Android/Compose/APK and instrumentation-source build PASS. Twenty-one added JVM methods cover range ordering/fallback/backoff/cancel/recovery and controlled throughput, optional metadata validation/Unicode, rate warm-up/stall/restored bytes, buffering intent and offline queue removal/history. Seventy-three current gates include broken-caller fixtures. Final lint passes; two added UseKtx preference-style notices and one short Recheck label localization notice are triaged for existing conventions/NW141, without suppression or baseline. Android/source compilation does not execute the new runtime on a phone.
+
+Matched exact-byte controlled fixture (64 KiB per 250ms per response):
+
+```
+OFFLINE_FINISH_CONTROLLED threads=1 bytes=2097171 nanos=7901540800 mbps=2.1233033435706616 scope=per-connection-paced-loopback-not-phone
+OFFLINE_FINISH_CONTROLLED threads=4 bytes=2097171 nanos=1899911100 mbps=8.830606863657989 scope=per-connection-paced-loopback-not-phone
+```
+
+This demonstrates the benefit under per-connection pacing, not a source's aggregate limit, Wi-Fi/mobile speed, battery result or guaranteed minimum.
+
+Build **NW-debug-FD80578F4DE7C202**; canonical source SHA256 **FD80578F4DE7C20251247DBEB81EAAAE298C8289CD02233680C8F9509C39D29D**, **914 inputs**. APK SHA256 **1451AFEF92B6DFDA50914602E2F0F3C8BF3F18C32DA9DDAECB165B4D4FC81F28**, signer **EA737A703B8F116EBC5C8C0A717DDBF3A2A5808ACC9079A8F79CD1B3CD860394**, matching the last delivered NW136 APK. Package `com.nightwave.player`, version `2.0.0-alpha5s` / code35, min26/target36 and dependencies remain unchanged. Source readback: 226 protected files identical, fourteen intentional existing files changed, all nine callback inventories retained; the protected inventory explicitly includes the added NW136 transfer files and two player UI files. Gateway/source/bitrate and public-address body are unchanged.
+
+Private checkpoint keeps original recording samples, baseline/final bundles, exact working-source ZIP/CRC/canonical readback, raw JVM and lint/source/provenance/signature receipts and owner-only APK/hash delivery. Initial compile errors and an obsolete marker preflight are retained as superseded evidence; no failed candidate is presented as final proof.
+
+### Phone/release gates still open
+
+All [fifteen new cases](quality/OFFLINE_FINISH_ACCEPTANCE.csv) and prior physical gates remain NOT_RUN. The recording supports one saved-file Ready/playback-state/removal observation, not exact APK attribution, airplane-mode sound, multi-device reliability, TalkBack, contrast, large-font reflow, live source speed, account restore or resource-soak acceptance. No device was connected, installed or reset. Source is on a cumulative draft PR; no public APK, merge or Actions change. **NW137 remains the next source batch.** The route to a defensible 9.5 still includes measured phone tasks and NW137–NW145; this repair does not self-award that score.
 
 ### Owner-provided transfer evidence, before concurrency implementation
 
