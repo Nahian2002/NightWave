@@ -69,7 +69,7 @@ REQUIRED = {
         "fun discardLyricsEditorDraft()",
         "fun saveLyricsEditorDraft()",
         "LyricsEditorPolicy.serialize(editor.draft)",
-        "lyricsStore.saveReviewed(",
+        "boundLyrics.saveReviewed(",
         "editor.expectedFingerprint",
         "editor.requestId == lyricsEditorEpoch",
         "onEditLyrics = { openLyricsEditor() }",
@@ -147,7 +147,7 @@ def self_test() -> None:
         assert not audit(root), audit(root)
         target = root / (P + "ui/NightWaveStudioActivity.kt")
         target.write_text(target.read_text(encoding="utf-8").replace(
-            "lyricsStore.saveReviewed(", "unsafe_overwrite_without_review("),
+            "boundLyrics.saveReviewed(", "unsafe_overwrite_without_review("),
             encoding="utf-8")
         assert any("saveReviewed" in message for message in audit(root))
         target = root / (P + "lyrics/LyricsEditorPolicy.kt")

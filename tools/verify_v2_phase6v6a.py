@@ -53,8 +53,8 @@ REQ = {
     P + "ui/NightWaveStudioActivity.kt": [
         "lyricsOffsetStore = PrivateLyricsOffsetStore(this)",
         "currentLyricsOffsetMs = 0",
-        "lyricsOffsetStore.read(id)",
-        "lyricsOffsetStore.save(id, desiredOffset)",
+        "boundLyrics.readOffset(id)",
+        "boundLyrics.saveOffset(id, desiredOffset)",
         "playback.state.videoUrl == current",
         "loadedLyrics?.first == id",
         "lyricsOffsetMs = currentLyricsOffsetMs",

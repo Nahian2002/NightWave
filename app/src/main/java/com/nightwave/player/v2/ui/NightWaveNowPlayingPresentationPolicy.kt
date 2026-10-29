@@ -85,8 +85,8 @@ object NightWaveNowPlayingPresentationPolicy {
         if (canSwipe) "Swipe artwork to skip" else null
 
     fun lyricsSubtitle(offline: Boolean, importedLyrics: Boolean): String = when {
-        !offline -> "Synchronized lyrics require local audio"
         importedLyrics -> "Your synchronized lyrics · ready"
+        !offline -> "Attach your own LRC to this video"
         else -> "Import your own LRC lyrics"
     }
 

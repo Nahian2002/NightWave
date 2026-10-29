@@ -44,6 +44,8 @@ class NW133PlayerInstrumentedTest {
     }
     private val actions = Actions()
     private var queueOpened = 0
+    private var importedLyrics by mutableStateOf<com.nightwave.player.v2.lyrics.TimedLyrics?>(null)
+    private var lyricImports = 0
     private fun player() {
         compose.setContent {
             NightWaveMaterialTheme(NightWaveTheme.MIDNIGHT, reduceMotion = true) {
@@ -51,11 +53,29 @@ class NW133PlayerInstrumentedTest {
                     liked = false, onLike = {}, onOpenQueue = { queueOpened++ }, onSaveToPlaylist = {}, onSaveOffline = {},
                     sleepRemainingMs = 0L, onSleepTimer = {}, offlineSpeedPercent = 100, onOfflineSpeed = {},
                     listeningLevelPercent = 100, onListeningLevel = {}, crossfadeSeconds = 0, onCrossfade = {},
-                    normalizationEnabled = false, onNormalizationChange = {}, onDismiss = {})
+                    normalizationEnabled = false, onNormalizationChange = {}, onDismiss = {},
+                    lyrics = importedLyrics, onImportLyrics = { lyricImports++ })
             }
         }
     }
     private fun scroll(tag: String) = compose.onNodeWithTag("nw133-player-content").performScrollToNode(hasTestTag(tag))
+
+    @Test fun publicVideoOffersOwnedImportWithoutStartingAnyProviderOrPlayback() {
+        player(); scroll("nightwave-now-playing-lyrics-action")
+        compose.onNodeWithTag("nightwave-now-playing-lyrics-action").performClick()
+        compose.onNodeWithTag("nw133-player-content").performScrollToNode(hasText("Import synchronized lyrics"))
+        compose.onNodeWithText("Import synchronized lyrics").performClick()
+        compose.runOnIdle { assertEquals(1, lyricImports); assertEquals(0, actions.mutations) }
+    }
+    @Test fun publicOwnedLyricsUseTheSameSourceGuardedCueSeek() {
+        importedLyrics = com.nightwave.player.v2.lyrics.TimedLyricsCodec.parse("[00:01.00] Owned words".toByteArray())
+        player(); scroll("nightwave-now-playing-lyrics-action")
+        compose.onNodeWithTag("nightwave-now-playing-lyrics-action").performClick()
+        compose.onNodeWithTag("nw133-player-content").performScrollToNode(hasText("Open full-screen synchronized lyrics"))
+        compose.onNodeWithText("Open full-screen synchronized lyrics").performClick()
+        compose.onNodeWithTag("lyrics-cue-0").performClick()
+        compose.runOnIdle { assertEquals(listOf(state.videoUrl to 1000L), actions.seeks); assertEquals(0, actions.mutations) }
+    }
 
     @Test fun miniAnnouncesBufferingForSameSelectedTitleWithoutStartingPlayback() {
         state = state.copy(playing = true, buffering = true)

@@ -58,7 +58,7 @@ NEEDED = {
         "LyricsExportPolicy.prepare(",
         "exportLyricsFile.launch(prepared.suggestedName)",
         "onExport = { exportLyricsEditorDraft() }",
-        "lyricsStore.saveReviewed(",
+        "boundLyrics.saveReviewed(",
     ),
     "app/build.gradle.kts": ("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7",),
     "tools/build-windows.ps1": (

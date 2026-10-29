@@ -55,8 +55,8 @@ assert "LyricsEditorPolicy.nudge(draft, index, 1, nudgeStep)" in editor_ui
 assert "lyrics-editor-fine-nudge" in editor_ui
 assert "onApply(updated)" in editor_ui and "Save changes" in editor_ui
 assert "Discard unsaved lyric edits?" in editor_ui
-assert "lyricsStore.saveReviewed(" in activity
-assert "lyricsOffsetStore.save(id, desiredOffset)" in activity
+assert "boundLyrics.saveReviewed(" in activity
+assert "boundLyrics.saveOffset(id, desiredOffset)" in activity
 assert "nightwave_private_lrc_offset_v1" in offset_store
 assert "nightwave_private_lrc_v1" in original_lyrics
 assert tests.count("@Test fun") >= 8

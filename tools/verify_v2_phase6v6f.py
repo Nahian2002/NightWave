@@ -51,7 +51,7 @@ EXPECTED = {
     ),
     MAIN + "ui/NightWaveStudioActivity.kt": (
         "internal class LyricsEditorRetainedState : ViewModel()",
-        "lyricsStore.saveReviewed(", "pending.requestId != lyricsEditorEpoch",
+        "boundLyrics.saveReviewed(", "pending.requestId != lyricsEditorEpoch",
         "activeEditor?.requestId == pending.requestId",
         "playback.state.videoUrl == \"offline:\" + pending.songId",
         "exportLyricsFile.launch(prepared.suggestedName)",

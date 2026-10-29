@@ -33,13 +33,13 @@ REQUIRED = {
         "fun restoreCloudMissing(entries: List<CloudLyricEntry>)",
     ),
     P + "ui/NightWaveStudioActivity.kt": (
-        "private data class PendingLyricsReview(",
+        "internal data class PendingLyricsReview(",
         "LyricsImportReviewPolicy.inspect(",
-        "lyricsStore.fingerprint(id)", "showLyricsImportReview(",
+        "boundLyrics.fingerprint(id)", "showLyricsImportReview(",
         "setPositiveButton(if (replacing) \"Replace LRC\" else \"Import LRC\")",
-        "lyricsStore.saveReviewed(", "lyricsRevision++",
+        "boundLyrics.saveReviewed(", "lyricsRevision++",
         "requestEpoch != lyricsImportEpoch",
-        'playback.state.videoUrl != "offline:$id"',
+        'playback.state.videoUrl != LyricsTrackBindingPolicy.mediaId(id)',
         "LyricsImportReviewPolicy.failureHint(error)",
         "contentResolver.openInputStream(uri)",
         "TimedLyricsCodec.MAX_BYTES",
@@ -125,7 +125,7 @@ def self_test() -> None:
         assert any("fingerprint(id)" in e for e in audit(root))
         ui = root / (P + "ui/NightWaveStudioActivity.kt")
         ui.write_text(ui.read_text(encoding="utf-8").replace(
-            "lyricsStore.saveReviewed(", "lyricsStore.save("), encoding="utf-8")
+            "boundLyrics.saveReviewed(", "lyricsStore.save("), encoding="utf-8")
         assert any("saveReviewed" in e for e in audit(root))
     print("PASS: synthetic 6V6B gate rejects unsafe replacement and missing reviewed import")
 

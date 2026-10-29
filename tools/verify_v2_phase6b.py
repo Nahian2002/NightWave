@@ -25,7 +25,7 @@ insight_tests = read("app/src/test/java/com/nightwave/player/v2/insights/Listeni
 assert 'ActivityResultContracts.OpenDocument()' in activity
 assert 'importLyricsFile.launch(arrayOf("text/*", "application/octet-stream"))' in activity
 assert 'val id = pendingLyricsId' in activity
-assert 'playback.state.videoUrl != "offline:$id"' in activity
+assert 'playback.state.videoUrl != LyricsTrackBindingPolicy.mediaId(id)' in activity
 assert 'count <= TimedLyricsCodec.MAX_BYTES' in activity
 assert 'lyricsStore.save(id, data.toByteArray())' in activity
 assert 'onRemoveLyrics' in activity
