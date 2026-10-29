@@ -116,6 +116,7 @@ class SearchTrackSaveWorker(
                     fail(OfflineTransferCompletionPolicy.NOT_VERIFIED)
                 else Result.success(Data.Builder()
                     .putString(SearchTrackSaveQueue.KEY_ID, saved.id)
+                    .apply { AudioTransferData.putCompletion(this, downloader.completedTransfer()) }
                     .putString(AudioTransferData.DETAILS, downloader.transferDetails()).build())
             }
         } catch (error: Exception) {

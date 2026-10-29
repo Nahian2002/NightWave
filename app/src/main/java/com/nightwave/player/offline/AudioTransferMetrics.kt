@@ -10,7 +10,7 @@ import java.net.Proxy
 import java.util.concurrent.TimeUnit
 
 /** Numbers only. Never retains a request, URL, IP, validator or account. */
-internal class AudioTransferMetrics {
+internal class AudioTransferMetrics(private val monotonicNanos: () -> Long = System::nanoTime) {
     @Volatile var requests = 0
     @Volatile var wireBytes = 0L
     @Volatile var readNanos = 0L
@@ -65,7 +65,13 @@ internal class AudioTransferMetrics {
     private var headerNanos = 0L
     private var status = 0
     private var protocol = "pending"
-    private val startedAt = System.nanoTime()
+    private val startedAt = monotonicNanos()
+    private var completed: CompletedAudioTransfer? = null
+    @Synchronized fun markTransferComplete() {
+        if (completed == null) completed = CompletedAudioTransfer(wireBytes,
+            TimeUnit.NANOSECONDS.toMillis((monotonicNanos() - startedAt).coerceAtLeast(0)))
+    }
+    @Synchronized fun completedTransfer(): CompletedAudioTransfer? = completed
     @Synchronized fun summary(): String {
         fun ms(n: Long) = TimeUnit.NANOSECONDS.toMillis(n.coerceAtLeast(0))
         return "$mode · $protocol · HTTP $status · $requests requests\n" +

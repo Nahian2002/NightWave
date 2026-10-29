@@ -95,6 +95,7 @@ class DirectAudioDownloadWorker(
                 fail(OfflineTransferCompletionPolicy.NOT_VERIFIED)
             } else Result.success(Data.Builder()
                 .putString(DirectAudioDownloadQueue.KEY_DONE, saved.id)
+                    .apply { AudioTransferData.putCompletion(this, downloader.completedTransfer()) }
                     .putString(AudioTransferData.DETAILS, downloader.transferDetails())
                 .build())
         } catch (error: Exception) {

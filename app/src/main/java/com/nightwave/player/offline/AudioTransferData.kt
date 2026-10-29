@@ -11,6 +11,21 @@ internal object AudioTransferData {
     const val TAG = "nightwave-validated-range-v1"
     const val DETAILS = "nw136_transfer_details"
     const val RESUMED = "nw136_resumed_bytes"
+    private const val RECEIPT_VERSION = "finish02_receipt_version"
+    private const val RECEIPT_BYTES = "finish02_receipt_bytes"
+    private const val RECEIPT_ELAPSED = "finish02_receipt_elapsed_ms"
+
+    fun putCompletion(builder: androidx.work.Data.Builder, receipt: CompletedAudioTransfer?) {
+        if (receipt?.label() == null) return
+        builder.putInt(RECEIPT_VERSION, 1)
+            .putLong(RECEIPT_BYTES, receipt.receivedBytes)
+            .putLong(RECEIPT_ELAPSED, receipt.elapsedMs)
+    }
+
+    fun completion(data: androidx.work.Data): CompletedAudioTransfer? =
+        if (data.getInt(RECEIPT_VERSION, 0) != 1) null else
+            CompletedAudioTransfer(data.getLong(RECEIPT_BYTES, 0),
+                data.getLong(RECEIPT_ELAPSED, 0)).takeIf { it.label() != null }
 
     /** On API 26–30, consult persisted state on the transfer thread only.
      * WorkManager records explicit cancellation before stopping its worker.

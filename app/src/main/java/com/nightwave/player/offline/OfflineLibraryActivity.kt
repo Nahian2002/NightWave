@@ -65,6 +65,7 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
     private var page = 0
     private var searchText = ""
     private lateinit var searchInput: EditText
+    private lateinit var clearSearch: TextView
     private var restoredScroll: Int? = null
     private var sortMode = 0
     private var visibleSongs: List<OfflineSong> = emptyList()
@@ -208,6 +209,8 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
                 override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                     searchText = s?.toString()?.trim().orEmpty()
+                    if (::clearSearch.isInitialized) clearSearch.visibility =
+                        if (searchText.isBlank()) View.GONE else View.VISIBLE
                     page = 0
                     restoredScroll = null
                     pendingSearch?.let(uiHandler::removeCallbacks)
@@ -226,8 +229,20 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
             })
         }
         searchInput = search
-        browseControls += search
-        root.addView(search, LinearLayout.LayoutParams(-1, dp(49)).apply {
+        val searchRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        searchRow.addView(search, LinearLayout.LayoutParams(0, dp(49), 1f))
+        clearSearch = label("×", 24f, nativeMattePalette.foreground.toInt()).apply {
+            gravity = Gravity.CENTER
+            contentDescription = "Clear saved-song search"
+            visibility = if (searchText.isBlank()) View.GONE else View.VISIBLE
+            setOnClickListener { searchInput.setText(""); searchInput.requestFocus() }
+        }
+        searchRow.addView(clearSearch, LinearLayout.LayoutParams(dp(48), dp(49)))
+        browseControls += searchRow
+        root.addView(searchRow, LinearLayout.LayoutParams(-1, -2).apply {
             topMargin = dp(6); bottomMargin = dp(10)
         })
         fun quickAction(text: String, description: String, bright: Boolean,
@@ -634,13 +649,14 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
                 marginEnd = dp(2)
             })
         }
+        val identities = OfflineTrackIdentityStore(this)
         val checkpoint = OfflineSessionStore(this).read()
         val resumeSong = all.firstOrNull { it.id == checkpoint?.selectedId }
             ?.takeIf { it.id in playableIds && library.fileFor(it) != null }
         resumeControl.visibility = if (resumeSong == null) View.GONE else View.VISIBLE
         if (resumeSong != null) {
             val minute = (checkpoint?.positionMs ?: 0L) / 60_000
-            resumeControl.text = "↻  Resume · " + resumeSong.title +
+            resumeControl.text = "↻  Resume · " + identities.display(resumeSong).title +
                 (if (minute > 0) " · " + minute + "m" else "")
             resumeControl.maxLines = 1
             resumeControl.ellipsize = android.text.TextUtils.TruncateAt.END
@@ -658,7 +674,6 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
         nextPage.alpha = if (nextPage.isEnabled) 1f else 0.35f
         val pageSongs = visibleSongs.drop(page * OfflineLibraryCapacity.pageSize())
             .take(OfflineLibraryCapacity.pageSize())
-        val identities = OfflineTrackIdentityStore(this)
         tracks.removeAllViews()
         if (report.attentionCount > 0) {
             tracks.addView(label(
@@ -689,11 +704,32 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
                 .apply { setPadding(dp(5), 0, dp(5), dp(8)) })
             tracks.addView(label("Tap Import files above. The system picker lets you choose which files to copy.",
                 14f, 0xFF91E2D7.toInt()).apply { setPadding(dp(5), 0, dp(5), dp(8)) })
-        } else if (visibleSongs.isEmpty()) tracks.addView(label(
-            OfflineLibraryViewPolicy.emptyMessage(
+        } else if (visibleSongs.isEmpty()) {
+            tracks.addView(label(OfflineLibraryViewPolicy.emptyMessage(
                 availabilityFilter, all.isNotEmpty(), searchText.isNotBlank()),
-            14f, 0xFFABB8CC.toInt()
-        ).apply { setPadding(dp(5), dp(25), 0, 0) })
+                14f, nativeMattePalette.secondary.toInt()).apply {
+                setPadding(dp(5), dp(25), 0, dp(8))
+            })
+            if (OfflineLibraryViewPolicy.canShowAll(
+                    availabilityFilter, all.isNotEmpty(), searchText.isNotBlank())) {
+                tracks.addView(label("Show all saved songs", 15f,
+                    nativeMattePalette.accent.toInt(), true).apply {
+                    minHeight = dp(48)
+                    gravity = Gravity.CENTER_VERTICAL
+                    contentDescription = "Clear search and availability filters; show all saved songs"
+                    setOnClickListener {
+                        availabilityFilter = OfflineLibraryViewPolicy.Filter.ALL
+                        page = 0
+                        restoredScroll = null
+                        searchInput.setText("")
+                        pendingSearch?.let(uiHandler::removeCallbacks)
+                        pendingSearch = null
+                        refresh()
+                        trackScroll.post { trackScroll.scrollTo(0, 0) }
+                    }
+                }, LinearLayout.LayoutParams(-1, -2))
+            }
+        }
         pageSongs.forEach { song ->
             val importedLyrics = lyrics.hasImportedLrc(song.id)
             val health = healthById[song.id] ?: OfflineFileHealth.UNREADABLE
@@ -750,7 +786,7 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
             row.addView(label("☁", 20f, 0xFF91E2D7.toInt()).apply {
                 gravity = Gravity.CENTER
                 alpha = if (available) 1f else 0.35f
-                contentDescription = "Upload " + song.title + " to your own Google Drive"
+                contentDescription = "Upload " + identity.title + " to your own Google Drive"
                 setOnClickListener {
                     if (available && library.fileFor(song) != null) {
                         startActivity(Intent(this@OfflineLibraryActivity, NightWaveLockerActivity::class.java)
@@ -762,13 +798,13 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
             }, LinearLayout.LayoutParams(dp(48), dp(48)))
             row.addView(label("⋮", 24f, 0xFFB9C9D6.toInt()).apply {
                 gravity = Gravity.CENTER
-                contentDescription = if (available) "Offline options for " + song.title
-                    else "Recovery options for " + song.title
+                contentDescription = if (available) "Offline options for " + identity.title
+                    else "Recovery options for " + identity.title
                 setOnClickListener {
                     if (!available || library.fileFor(song) == null) {
                         AlertDialog.Builder(this@OfflineLibraryActivity)
                             .setTitle(OfflineLibraryRecoveryGuide.title(health))
-                            .setMessage(song.title + "\n\n" +
+                            .setMessage(identity.title + "\n\n" +
                                 OfflineLibraryRecoveryGuide.help(health) +
                                 "\n\nNightWave has not changed this entry or its file. " +
                                 "Re-importing creates a separate, verified copy.")
@@ -778,7 +814,7 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
                             .setNegativeButton("Check audio") { _, _ -> checkAudio(song) }
                             .setPositiveButton("OK", null).show()
                     } else {
-                        AlertDialog.Builder(this@OfflineLibraryActivity).setTitle(song.title)
+                        AlertDialog.Builder(this@OfflineLibraryActivity).setTitle(identity.title)
                             .setItems(arrayOf("Check audio (read only)", "Remove offline copy")) { _, which ->
                                 if (which == 0) checkAudio(song) else confirmRemove(song)
                             }.setNegativeButton("Cancel", null).show()
@@ -857,7 +893,7 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
 
     private fun confirmRemove(song: OfflineSong) {
         AlertDialog.Builder(this).setTitle("Remove offline song?")
-            .setMessage("Delete " + song.title + " from NightWave offline storage?")
+            .setMessage("Delete " + OfflineTrackIdentityStore(this).display(song).title + " from NightWave offline storage?")
             .setNegativeButton("Cancel", null)
             .setPositiveButton("Remove") { _, _ ->
                 if (library.delete(song)) {

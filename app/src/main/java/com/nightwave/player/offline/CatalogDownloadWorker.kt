@@ -117,6 +117,7 @@ class CatalogDownloadWorker(
                 failed(OfflineTransferCompletionPolicy.NOT_VERIFIED)
             } else Result.success(Data.Builder()
                 .putString(CatalogDownloadQueue.KEY_DONE, saved.id)
+                    .apply { AudioTransferData.putCompletion(this, transfer.completedTransfer()) }
                     .putString(AudioTransferData.DETAILS, transfer.transferDetails())
                 .putString(CatalogDownloadQueue.KEY_SAVED_TITLE, saved.title)
                 .build())
