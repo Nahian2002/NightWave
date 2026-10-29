@@ -2,7 +2,7 @@
 
 **Upcoming updates:** [revised roadmap and hourly sequence](docs/quality/UPCOMING_UPDATES.md). FINISH02, ART02 and SEARCH02 are locally verified; NW137 guided owned lyrics is next. One eligible batch per hourly run with recorded checks.
 
-**Current review work:** [SEARCH02 responsive public search](docs/quality/SEARCH02_RESPONSIVE_SEARCH.md) on [update/nightwave-search02-responsive](https://github.com/Nahian2002/NightWave/tree/update/nightwave-search02-responsive), stacked on ART02 #157. Matching recent results stay usable during refresh; explicit Refresh bypasses the bounded public memory cache, fallback gets a provider phase budget, and optional timing details explain waiting. All features/themes and source/data boundaries remain.
+**Current review work:** [SEARCH02 responsive public search](docs/quality/SEARCH02_RESPONSIVE_SEARCH.md) on [update/nightwave-search02-responsive](https://github.com/Nahian2002/NightWave/tree/update/nightwave-search02-responsive), [draft PR #158](https://github.com/Nahian2002/NightWave/pull/158), stacked on ART02 #157. Matching recent results stay usable during refresh; explicit Refresh bypasses the bounded public memory cache, fallback gets a provider phase budget, and optional timing details explain waiting. All features/themes and source/data boundaries remain.
 
 **Current integrated source:** [`main`](https://github.com/Nahian2002/NightWave/tree/main), based on NW126 and the cumulative implementation. **Canonical `main` contains the reviewed cumulative source.**
 

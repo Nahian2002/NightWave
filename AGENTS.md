@@ -6,7 +6,7 @@ Before choosing or implementing an upgrade, read:
 2. `docs/quality/NW126_NW145_BACKLOG.json` — batch status, dependencies and acceptance criteria.
 3. `docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md` and `TEST_REPORT.md` — baseline findings and verification limits.
 
-Current cumulative review branch is `update/nightwave-search02-responsive`, SEARCH02 stacked on ART02 #157. Read docs/quality/SEARCH02_RESPONSIVE_SEARCH.md, docs/quality/UPCOMING_UPDATES.md and TEST_REPORT.md. Build NW-debug-5ACF2492268C8B8E: 1,772 JVM / 219 suites, 76 source checks; lint 0 errors / 317 warnings / 17 hints with identical issue inventory. Two new Android screen methods compile only; eight new physical cases and all earlier gates remain NOT_RUN. No new rating is inferred.
+Current cumulative review branch is `update/nightwave-search02-responsive`, SEARCH02 [draft PR #158](https://github.com/Nahian2002/NightWave/pull/158), stacked on ART02 #157. Read docs/quality/SEARCH02_RESPONSIVE_SEARCH.md, docs/quality/UPCOMING_UPDATES.md and TEST_REPORT.md. Build NW-debug-5ACF2492268C8B8E: 1,772 JVM / 219 suites, 76 source checks; lint 0 errors / 317 warnings / 17 hints with identical issue inventory. Two new Android screen methods compile only; eight new physical cases and all earlier gates remain NOT_RUN. No new rating is inferred.
 
 When the owner says "next", select the first eligible incomplete source batch in backlog execution_order. **NW137 is next**, then NW138–NW145, on a cumulative branch based on the newest reviewed tip. FINISH02, ART02 and SEARCH02 are locally verified. Check checkout, remote and latest ledger first; preserve original physical rows/history. Main remains the integrated baseline. Do not overlap another active batch or restart a broad redesign.
 

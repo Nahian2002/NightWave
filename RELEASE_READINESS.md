@@ -1,6 +1,6 @@
 # NightWave readiness
 
-**30 October 2026 — development candidate; app release NO-GO.** Integrated source is [NW132 plus maintenance](https://github.com/Nahian2002/NightWave/tree/main). Current cumulative SEARCH02 is on `update/nightwave-search02-responsive`, stacked on #157, locally verified with physical acceptance pending. [NW137 is next in the revised sequence](docs/quality/UPCOMING_UPDATES.md); six-hour follow-ups do not waive release gates.
+**30 October 2026 — development candidate; app release NO-GO.** Integrated source is [NW132 plus maintenance](https://github.com/Nahian2002/NightWave/tree/main). Current cumulative SEARCH02 is on `update/nightwave-search02-responsive`, [draft PR #158](https://github.com/Nahian2002/NightWave/pull/158), stacked on #157, locally verified with physical acceptance pending. [NW137 is next in the revised sequence](docs/quality/UPCOMING_UPDATES.md); six-hour follow-ups do not waive release gates.
 
 Exact local JVM, Android/Compose, instrumentation-source, assembly, source, lint and artifact/signing evidence: [TEST_REPORT](TEST_REPORT.md). Compiled screen tests are not executed phone acceptance. Hosted runner allocation is reported separately in the review.
 

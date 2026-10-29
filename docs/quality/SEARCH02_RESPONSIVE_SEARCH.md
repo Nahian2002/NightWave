@@ -1,6 +1,6 @@
 # SEARCH02 — responsive public search
 
-30 October 2026. **LOCAL_VERIFIED / DEVICE_NOT_RUN** on `update/nightwave-search02-responsive`, stacked on ART02 #157. Protected parent `633b6f4f1a715378eb47a17c00ea0e9127dbe8c4`. Private checkpoint `20261030-search02` retains the baseline bundle. NW137 follows this bounded batch.
+30 October 2026. **LOCAL_VERIFIED / DEVICE_NOT_RUN** on `update/nightwave-search02-responsive`, [draft PR #158](https://github.com/Nahian2002/NightWave/pull/158), stacked on ART02 #157. Protected parent `633b6f4f1a715378eb47a17c00ea0e9127dbe8c4`. Private checkpoint `20261030-search02` retains the baseline bundle. NW137 follows this bounded batch.
 
 ## Committed implementation plan
 
