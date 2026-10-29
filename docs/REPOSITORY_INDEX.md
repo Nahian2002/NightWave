@@ -1,6 +1,6 @@
 # NightWave — repository navigation
 
-**Current implementation:** NETWORK01 on [`fix/nightwave-network-throughput`](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-network-throughput), [draft PR #153](https://github.com/Nahian2002/NightWave/pull/153) stacked on NW135 #152. [Transport evidence](NETWORK_TRANSPORT_THROUGHPUT.md), [ten-case supplement](quality/NETWORK_THROUGHPUT_ACCEPTANCE.csv), [verification](../TEST_REPORT.md). Build 3733A8B0 phone throughput/audio acceptance NOT_RUN. **NW136 remains next.** Earlier reviews/audits are retained.
+**Current implementation:** NW136 on [`update/nightwave-nw136-resumable-transfers`](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw136-resumable-transfers), [draft PR #154](https://github.com/Nahian2002/NightWave/pull/154) stacked on NETWORK01 #153. [Researched plan/evidence](NW136_RESUMABLE_TRANSFERS.md), [14-case physical supplement](quality/NW136_TRANSPORT_ACCEPTANCE.csv), [verification](../TEST_REPORT.md). Build CBD2E4D4; physical speed/audio/recovery NOT_RUN. **NW137 is next.** Earlier reviews/audits remain historical.
 
 ## Start here
 

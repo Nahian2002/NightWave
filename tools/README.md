@@ -1,8 +1,10 @@
 # NightWave tools — current use and historical checks
 
-**Current implementation baseline:** NETWORK01 on `fix/nightwave-network-throughput`; **1,697 JVM tests / 212 suites** and **71 source checks** pass. [Verification](../TEST_REPORT.md), [transport evidence](../docs/NETWORK_TRANSPORT_THROUGHPUT.md). Lint 0/314/17 includes the aligned-adapter version notice. One new Android local-source test and existing 612 theme cases compile only. Actions stays disabled; no physical bandwidth/audio certification.
+**Current implementation baseline:** NW136 on `update/nightwave-nw136-resumable-transfers`, [draft PR #154](https://github.com/Nahian2002/NightWave/pull/154); 1,726 JVM tests / 214 suites, 72 source checks, lint 0 errors / 314 warnings / 17 hints. [Verification](../TEST_REPORT.md), [research and transfer evidence](../docs/NW136_RESUMABLE_TRANSFERS.md). Twenty-nine new JVM methods execute; physical and existing Android/theme cases remain NOT_RUN. Actions stays disabled.
 
 ## Recommended entrypoints
+
+- **NW136 range/recovery fences:** `python tools/verify_nw136_transfer.py --self-test` checks the real worker/caller path, validators, sync-before-checkpoint, hashed recovery, bounds and diagnostics using broken-caller fixtures. Real HTTP/file behavior executes in the JVM suite; source checks do not certify phone performance.
 
 - **NETWORK01 transport fences:** `python tools/verify_network_throughput.py --self-test` checks pooled transport, local routing, bounded read-ahead, flush-before-sync and retained source/cancel checks with eight broken-caller fixtures. Included in current runner; phone throughput is separate.
 

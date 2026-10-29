@@ -467,6 +467,7 @@ class CatalogDownloadsActivity : NightWaveOfflineShellActivity() {
         visibleJobs.forEach { info ->
             val isDirect = DirectAudioDownloadQueue.TAG in info.tags
             val isSearch = SearchTrackSaveQueue.TAG in info.tags
+            val checkpointAware = AudioTransferData.TAG in info.tags
             val actuallySaved = DownloadFileVerificationPolicy.ready(
                 info.state == WorkInfo.State.SUCCEEDED, savedId(info), availableIds,
                 verifyingFiles, fileCheckFailed)
@@ -516,7 +517,9 @@ class CatalogDownloadsActivity : NightWaveOfflineShellActivity() {
                 progressSamples.remove(info.id)
                 observedSpeed.remove(info.id)
             } else if (info.state == WorkInfo.State.RUNNING) {
-                if (previousSample == null || received < previousSample.first) {
+                val resumedStart = info.progress.getLong(AudioTransferData.RESUMED, 0L)
+                if (previousSample == null || received < previousSample.first ||
+                    previousSample.first < resumedStart) {
                     progressSamples[info.id] = received to now
                     observedSpeed.remove(info.id)
                 } else if (received > previousSample.first) {
@@ -544,7 +547,7 @@ class CatalogDownloadsActivity : NightWaveOfflineShellActivity() {
                 " · " + (if (rate == null && previousSample != null &&
                     now - previousSample.second > 8_000L)
                     "No new bytes · Waiting for source"
-                    else OfflineTransferRatePolicy.display(rate)) +
+                    else OfflineTransferRatePolicy.preciseDisplay(rate)) +
                     (OfflineTransferRatePolicy.etaSeconds(received, total, rate)
                         ?.takeIf { it in 1..86400L }
                         ?.let { " · about " + (it / 60L) + "m " + (it % 60L) + "s left" }
@@ -553,7 +556,7 @@ class CatalogDownloadsActivity : NightWaveOfflineShellActivity() {
             val state = when (info.state) {
                 WorkInfo.State.ENQUEUED -> if (pausePending)
                     "Pausing · Waiting for worker to stop"
-                    else DownloadRecoveryPolicy.queuedLabel(info.runAttemptCount)
+                    else DownloadRecoveryPolicy.queuedLabel(info.runAttemptCount, checkpointAware)
                 WorkInfo.State.RUNNING -> if (pausePending)
                     "Pausing · Cancelling current transfer"
                     else if (verifyingTransfer)
@@ -572,7 +575,9 @@ class CatalogDownloadsActivity : NightWaveOfflineShellActivity() {
                             isDirect -> DirectAudioDownloadQueue.KEY_ERROR
                             else -> CatalogDownloadQueue.KEY_ERROR
                         }))
-                WorkInfo.State.CANCELLED -> if (pausedByUser)
+                WorkInfo.State.CANCELLED -> if (pausedByUser && checkpointAware)
+                    "Paused · Checked bytes resume when the source supports it"
+                    else if (pausedByUser)
                     "Paused · Resume restarts from zero (partial bytes not retained)"
                     else "Cancelled · No partial track saved"
                 WorkInfo.State.BLOCKED -> if (pausePending)
@@ -618,6 +623,21 @@ class CatalogDownloadsActivity : NightWaveOfflineShellActivity() {
                 setPadding(0, dp(5), 0, dp(7))
                 maxLines = 3
             })
+            val transferDetails = info.progress.getString(AudioTransferData.DETAILS)
+                ?: info.outputData.getString(AudioTransferData.DETAILS)
+            if (checkpointAware && !transferDetails.isNullOrBlank()) {
+                card.addView(label("Transfer details", 13f, 0xFFB4C7D3.toInt(), true).apply {
+                    minHeight = dp(48)
+                    gravity = Gravity.CENTER_VERTICAL
+                    contentDescription = "Show transfer timing and resume details"
+                    setOnClickListener {
+                        AlertDialog.Builder(this@CatalogDownloadsActivity)
+                            .setTitle("Transfer details")
+                            .setMessage(transferDetails.take(1600))
+                            .setPositiveButton("Done", null).show()
+                    }
+                })
+            }
             if (info.state == WorkInfo.State.RUNNING || info.state == WorkInfo.State.ENQUEUED) {
                 val bar = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
                     val pct = if (verifyingTransfer) null
@@ -648,7 +668,9 @@ class CatalogDownloadsActivity : NightWaveOfflineShellActivity() {
                         actionRow.addView(label("Pause", 13f,
                             0xFF91E2D7.toInt(), true).apply {
                             gravity = Gravity.CENTER
-                            contentDescription = "Pause download; resuming restarts from zero"
+                            contentDescription = if (checkpointAware)
+                                "Pause download; checked bytes resume on supported sources"
+                                else "Pause download; resuming restarts from zero"
                             setOnClickListener { confirmSearchPause(info) }
                         }, LinearLayout.LayoutParams(0, dp(48), 1f))
                     }
@@ -731,7 +753,7 @@ class CatalogDownloadsActivity : NightWaveOfflineShellActivity() {
                             info.state.isFinished, false, info.tags)) {
                         card.addView(label(
                             DownloadRecoveryPolicy.retryLabel(
-                                info.state.name, markedPause) + "  →", 14f,
+                                info.state.name, markedPause, checkpointAware) + "  →", 14f,
                             0xFF9FE3DF.toInt(), true).apply {
                             gravity = Gravity.CENTER
                             setOnClickListener {
@@ -825,7 +847,11 @@ class CatalogDownloadsActivity : NightWaveOfflineShellActivity() {
             info.state.isFinished) return
         AlertDialog.Builder(this)
             .setTitle("Pause this download?")
-            .setMessage("NightWave will stop this transfer safely. Its partial audio " +
+            .setMessage(if (AudioTransferData.TAG in info.tags)
+                "NightWave will stop safely. Resume can reuse completed, checked segments for 24 hours " +
+                "and validates the source again. Expired checkpoints are cleared when another download starts. " +
+                "Sources without reliable range support restart safely."
+                else "NightWave will stop this transfer safely. Its partial audio " +
                 "is removed; tapping Resume starts again from zero because " +
                 "the source may not support byte-range continuation.")
             .setPositiveButton("Pause") { _, _ ->
@@ -864,7 +890,7 @@ class CatalogDownloadsActivity : NightWaveOfflineShellActivity() {
         AlertDialog.Builder(this)
             .setTitle(if (resumeOf != null) "Resume saving?" else "Retry offline save?")
             .setMessage((if (resumeOf != null)
-                "Resume restarts from zero; earlier bytes were not retained. " else "") +
+                "Resume checks retained bytes and the source. Unsupported or changed sources restart safely. " else "") +
                 "Retry this same searched recording, rather than a different " +
                 "catalog match. Only proceed if you have permission to keep it offline. " +
                 "Unavailable, restricted, or protected audio cannot be saved.")

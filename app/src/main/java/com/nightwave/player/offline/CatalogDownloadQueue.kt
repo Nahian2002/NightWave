@@ -65,6 +65,7 @@ object CatalogDownloadQueue {
                 .build())
             .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
             .addTag(TAG)
+            .addTag(AudioTransferData.TAG)
             .addTag(TITLE_TAG + safeTitle)
             .addTag(OfflineSaveRetryPolicy.CREATED_TAG_PREFIX + System.currentTimeMillis())
             .build()

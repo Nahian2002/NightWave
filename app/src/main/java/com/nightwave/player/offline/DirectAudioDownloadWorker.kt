@@ -13,13 +13,14 @@ import androidx.core.app.NotificationCompat
 import androidx.work.Data
 import androidx.work.ForegroundInfo
 import androidx.work.Worker
+import androidx.work.WorkInfo
 import androidx.work.WorkerParameters
 import java.io.IOException
 
 /**
  * A user-consented direct HTTPS audio download that survives Activity closing,
- * backgrounding, and ordinary process restarts. Interrupted downloads restart
- * from zero and are validated before the offline-library index is committed.
+ * backgrounding, and ordinary process restarts. Eligible servers resume checked
+ * segments; every file is validated before the offline-library index commits.
  */
 class DirectAudioDownloadWorker(
     context: Context, parameters: WorkerParameters
@@ -36,14 +37,19 @@ class DirectAudioDownloadWorker(
         if (isStopped) return fail("Download cancelled")
         return try {
             makeNotificationChannel()
-            // Failed attempts leave no reusable partial bytes.
+            // The engine validates retained segments before resuming an eligible source.
             setProgressAsync(Data.Builder()
                 .putLong(DirectAudioDownloadQueue.KEY_RECEIVED, 0L)
                 .putLong(DirectAudioDownloadQueue.KEY_TOTAL, -1L)
                 .putBoolean(DirectAudioDownloadQueue.KEY_VERIFYING, false).build())
             setForegroundAsync(foreground(source.fileName, 0L, null)).get()
             if (isStopped) return fail("Download cancelled")
-            val downloader = PermittedAudioDownloader(applicationContext)
+            val downloader = PermittedAudioDownloader(applicationContext, retainOnStop = {
+                if (Build.VERSION.SDK_INT >= 31)
+                    stopReason != WorkInfo.STOP_REASON_CANCELLED_BY_APP &&
+                        stopReason != WorkInfo.STOP_REASON_USER
+                else AudioTransferData.legacyMayRetain(applicationContext, id)
+            })
             transfer = downloader
             var lastProgress = -1L
             var lastTime = 0L
@@ -54,6 +60,8 @@ class DirectAudioDownloadWorker(
                     .putLong(DirectAudioDownloadQueue.KEY_RECEIVED, latestReceived)
                     .putLong(DirectAudioDownloadQueue.KEY_TOTAL, latestTotal)
                     .putBoolean(DirectAudioDownloadQueue.KEY_VERIFYING, true)
+                        .putString(AudioTransferData.DETAILS, downloader.transferDetails())
+                        .putLong(AudioTransferData.RESUMED, downloader.resumedBytes())
                     .build())
                     setForegroundAsync(foreground(source.fileName,
                         latestReceived, latestTotal.takeIf { it > 0L }, verifying = true))
@@ -73,6 +81,8 @@ class DirectAudioDownloadWorker(
                         .putLong(DirectAudioDownloadQueue.KEY_RECEIVED, received)
                         .putLong(DirectAudioDownloadQueue.KEY_TOTAL, total ?: -1L)
                         .putBoolean(DirectAudioDownloadQueue.KEY_VERIFYING, false)
+                        .putString(AudioTransferData.DETAILS, downloader.transferDetails())
+                        .putLong(AudioTransferData.RESUMED, downloader.resumedBytes())
                         .build())
                     setForegroundAsync(foreground(source.fileName, received, total))
                 }
@@ -85,6 +95,7 @@ class DirectAudioDownloadWorker(
                 fail(OfflineTransferCompletionPolicy.NOT_VERIFIED)
             } else Result.success(Data.Builder()
                 .putString(DirectAudioDownloadQueue.KEY_DONE, saved.id)
+                    .putString(AudioTransferData.DETAILS, downloader.transferDetails())
                 .build())
         } catch (error: Exception) {
             if (isStopped) fail("Download cancelled")
@@ -102,7 +113,8 @@ class DirectAudioDownloadWorker(
 
     private fun fail(reason: String): Result =
         Result.failure(Data.Builder()
-            .putString(DirectAudioDownloadQueue.KEY_ERROR, reason).build())
+            .putString(DirectAudioDownloadQueue.KEY_ERROR, reason)
+            .putString(AudioTransferData.DETAILS, transfer?.transferDetails().orEmpty()).build())
 
     private fun makeNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

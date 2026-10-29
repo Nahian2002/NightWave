@@ -1,18 +1,18 @@
 # NightWave
 
-**Current review work:** [NETWORK01 media transport and I/O](docs/NETWORK_TRANSPORT_THROUGHPUT.md), [fix/nightwave-network-throughput](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-network-throughput), [draft PR #153](https://github.com/Nahian2002/NightWave/pull/153) stacked on NW135 #152. Playback negotiates HTTP/2 where supported, clients reuse pools, bounded read-ahead has more room and small reads are batched before disk sync. Audio quality/source selection and all themes/features remain. Recorded 14-19 KB/s and buffering prompted this work; actual phone improvement and the limiting hop remain unverified.
+**Current review work:** [NW136 resumable transfers](docs/NW136_RESUMABLE_TRANSFERS.md), [update/nightwave-nw136-resumable-transfers](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw136-resumable-transfers), [draft PR #154](https://github.com/Nahian2002/NightWave/pull/154) stacked on NETWORK01 #153. Eligible servers now use validated bounded ranges, durable checked recovery and safe restart fallback. Downloads exposes measured timing details and clear KiB/s/Mbps. Source quality, all themes/features, data schemas and signing remain. Phone/provider speed remains unverified.
 
 **Current integrated source:** [`main`](https://github.com/Nahian2002/NightWave/tree/main), based on NW126 and the cumulative implementation. **Canonical `main` contains the reviewed cumulative source.**
 
-**29 October 2026 verification:** **1,697 JVM tests / 212 suites**, **71 source checks** and full Android/Compose/instrumentation-source build pass. Lint: 0 errors / 314 warnings / 17 hints; one added notice keeps the adapter aligned with pinned Media3. Nine network/I/O JVM cases execute; one new Android local-source case and earlier 612 theme cases compile only. Build **3733A8B0** retains signing identity. Phone throughput/audio/data/resource checks remain pending. See [current verification](TEST_REPORT.md).
+**29 October 2026 verification:** **1,726 JVM tests / 214 suites**, **72 source checks**, full Android/Compose/APK/instrumentation-source build pass. Lint: **0 errors / 314 warnings / 17 hints**, no added warning or suppression. Build **CBD2E4D4**, same signer. Twenty-nine new HTTP/checkpoint/policy JVM methods execute; existing Android/theme cases compile only. Physical speed/audio/data/recovery checks remain pending. See [current verification](TEST_REPORT.md).
 
-**Active next-upgrade plan:** [NW126–NW145 product-quality roadmap](docs/PRODUCT_QUALITY_ROADMAP.md), based on the [28 October recording/source audit](docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md). Provisional product rating **6.7/10**; 9.5+ is the target, not an achieved certification. **Next source batch: NW136.** NW126–NW135 are locally verified with physical acceptance pending. The audit/plan and gate repair are on [`audit/nightwave-post-nw125-quality-roadmap`](https://github.com/Nahian2002/NightWave/tree/audit/nightwave-post-nw125-quality-roadmap).
+**Active next-upgrade plan:** [NW126–NW145 roadmap](docs/PRODUCT_QUALITY_ROADMAP.md), [structured backlog](docs/quality/NW126_NW145_BACKLOG.json), [original audit](docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md). **Next source batch: NW137.** NW126–NW136 are locally verified with physical acceptance pending. The original 6.7 product baseline and latest recorded 8.8 visual rubric remain historical ratings; networking changes do not establish a new 9.5 score.
 
 **Public release: NO-GO.** Installed-phone signer continuity, Samsung acceptance, production OAuth/Drive restore and source-rights review remain separate gates. A successful build does not authorize distribution or certify phone behavior.
 
 ## Start here
 
-- **[Current networking build evidence and phone checks](docs/NETWORK_TRANSPORT_THROUGHPUT.md)** · [safe upgrade guide](docs/BUILD_AND_RELEASE.md)
+- **[Current resumable transfer evidence and phone checks](docs/NW136_RESUMABLE_TRANSFERS.md)** · [safe upgrade guide](docs/BUILD_AND_RELEASE.md)
 - **[Active NW126–NW145 roadmap](docs/PRODUCT_QUALITY_ROADMAP.md)** · [structured backlog](docs/quality/NW126_NW145_BACKLOG.json) · [80 new acceptance cases](docs/quality/NW126_NW145_ACCEPTANCE.csv)
 - [NW111–NW125 implementation history and remaining gates](docs/NW111_NW125_SPOTIFY_QUALITY_ROADMAP.md)
 - [Build and safe update instructions](docs/BUILD_AND_RELEASE.md)
