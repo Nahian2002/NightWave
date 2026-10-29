@@ -1,6 +1,6 @@
 # ART02 — existing saved artwork continuity
 
-30 October 2026. **LOCAL_VERIFIED / DEVICE_NOT_RUN**. Protected parent `941922ed`; branch `update/nightwave-art02-cached-artwork`, stacked on FINISH02 #156. Private checkpoint `20261030-art02` contains the pre-change recovery bundle. SEARCH02 follows this bounded batch.
+30 October 2026. **LOCAL_VERIFIED / DEVICE_NOT_RUN**. Protected parent `941922ed7b6b86d992db2a2d8469bd46af427c5f`; branch `update/nightwave-art02-cached-artwork`, [draft PR #157](https://github.com/Nahian2002/NightWave/pull/157), stacked on FINISH02 #156. Private checkpoint `20261030-art02` contains the pre-change recovery bundle. SEARCH02 follows this bounded batch.
 
 ## Committed implementation plan
 
@@ -37,4 +37,4 @@ The Library schedules selected/current-page candidates separately from its read-
 
 Build **NW-debug-EF876AADD31F4B90**; canonical source SHA256 **EF876AADD31F4B90F884BEEFEB492F01C2638B639AD1724C874D4406A7EC3D3A**, **921 inputs**. APK SHA256 **C6D9EE03BC6F7D94D619DF3B6EF51646B2E36814A769C112117D6D3F0B1E7AF9**. Signer **EA737A703B8F116EBC5C8C0A717DDBF3A2A5808ACC9079A8F79CD1B3CD860394**, matching prior FINISH02. Package/version `com.nightwave.player` / `2.0.0-alpha5s` / code35, min26/target36 unchanged. Canonical source matches the implementation commit above.
 
-Private checkpoint retains the initial Unit-return compiler failure and superseded build rejected by the source-freeze gate; only the final frozen build is delivery evidence. Previous 219-case pack is prepared again for this exact APK, without executing phone/account tasks. Latest recorded usability/visual/offline scores remain 8.4/8.8/9.0, with exact recorded APK attribution unproven; this source batch awards no new rating. **SEARCH02 is next**, then NW137–NW145. The existing hourly heartbeat remains active and runs one eligible batch at a time.
+Private checkpoint retains the initial Unit-return compiler failure and superseded build rejected by the source-freeze gate; only the final frozen build is delivery evidence. An interrupted lint attempt is retained separately; final sequential lint completed successfully. Previous 219-case pack is prepared again for this exact APK, without executing phone/account tasks. Latest recorded usability/visual/offline scores remain 8.4/8.8/9.0, with exact recorded APK attribution unproven; this source batch awards no new rating. **SEARCH02 is next**, then NW137–NW145. The existing hourly heartbeat remains active and runs one eligible batch at a time.

@@ -31,7 +31,7 @@ Codex heartbeat `nightwave-sequential-upgrades` is active in this chat, **every 
 
 ## FINISH02 committed implementation plan
 
-Completed locally: [results and exact build](FINISH02_EVERYDAY_CLARITY.md). Eight physical cases remain NOT_RUN. Next: ART02.
+Completed locally: [results and exact build](FINISH02_EVERYDAY_CLARITY.md). Eight physical cases remain NOT_RUN. ART02 follows this historical plan and is locally verified above.
 
 Protected parent: `c932daaa1b3ac2e3da87730b3d726659f1e74171`. Branch: `fix/nightwave-everyday-finish`, stacked on #155. Private checkpoint: `20261029-finish02` outside Git.
 

@@ -2,7 +2,7 @@
 
 **Upcoming updates:** [revised roadmap and hourly sequence](docs/quality/UPCOMING_UPDATES.md). FINISH02 and ART02 are locally verified; SEARCH02 precedes NW137–NW145. One eligible batch per hourly run, with actual checks recorded.
 
-**Current review work:** [ART02 cached artwork continuity](docs/quality/ART02_CACHED_ARTWORK.md) on [update/nightwave-art02-cached-artwork](https://github.com/Nahian2002/NightWave/tree/update/nightwave-art02-cached-artwork), stacked on FINISH02 #156. Existing known songs recover available cached covers behind bounded source/deletion/lifecycle fences. Current offline metadata and queue display refresh; all features/themes and audio/source/data boundaries remain.
+**Current review work:** [ART02 cached artwork continuity](docs/quality/ART02_CACHED_ARTWORK.md) on [update/nightwave-art02-cached-artwork](https://github.com/Nahian2002/NightWave/tree/update/nightwave-art02-cached-artwork), [draft PR #157](https://github.com/Nahian2002/NightWave/pull/157), stacked on FINISH02 #156. Existing known songs recover available cached covers behind bounded source/deletion/lifecycle fences. Current offline metadata and queue display refresh; all features/themes and audio/source/data boundaries remain.
 
 **Current integrated source:** [`main`](https://github.com/Nahian2002/NightWave/tree/main), based on NW126 and the cumulative implementation. **Canonical `main` contains the reviewed cumulative source.**
 

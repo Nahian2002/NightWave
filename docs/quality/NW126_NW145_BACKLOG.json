@@ -1525,7 +1525,7 @@
         "Eight new physical cases and six new Android runtime tests NOT_RUN; prior audio/data/accessibility/recovery/soak/release gates retained",
         "Unknown original source or unavailable cached cover remains a truthful placeholder; no background image fetch"
       ],
-      "protected_parent": "941922ed",
+      "protected_parent": "941922ed7b6b86d992db2a2d8469bd46af427c5f",
       "branch": "update/nightwave-art02-cached-artwork",
       "evidence": [
         "docs/quality/ART02_CACHED_ARTWORK.md",
@@ -1534,7 +1534,8 @@
       ],
       "build_id": "NW-debug-EF876AADD31F4B90",
       "source_sha256": "EF876AADD31F4B90F884BEEFEB492F01C2638B639AD1724C874D4406A7EC3D3A",
-      "apk_sha256": "C6D9EE03BC6F7D94D619DF3B6EF51646B2E36814A769C112117D6D3F0B1E7AF9"
+      "apk_sha256": "C6D9EE03BC6F7D94D619DF3B6EF51646B2E36814A769C112117D6D3F0B1E7AF9",
+      "pull_request": "https://github.com/Nahian2002/NightWave/pull/157"
     },
     {
       "id": "SEARCH02",
