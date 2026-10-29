@@ -1,8 +1,10 @@
 # NightWave tools — current use and historical checks
 
-**Current implementation baseline:** FINISH02 on `fix/nightwave-everyday-finish`, stacked on #155; 1,754 JVM / 217 suites, 74 source checks, lint 0 errors / 317 warnings / 17 hints. [Evidence](../docs/quality/FINISH02_EVERYDAY_CLARITY.md), [verification](../TEST_REPORT.md). Seven added tests execute; eight new phone cases remain NOT_RUN. Actions stays disabled.
+**Current implementation baseline:** ART02 on `update/nightwave-art02-cached-artwork`, stacked on #156; 1,762 JVM / 218 suites, 75 source checks, lint 0 errors / 317 warnings / 17 hints. [Evidence](../docs/quality/ART02_CACHED_ARTWORK.md), [verification](../TEST_REPORT.md). Eight added JVM tests execute; six new Android methods compile only. Phone acceptance NOT_RUN; Actions stays disabled.
 
 ## Recommended entrypoints
+
+- **ART02 cached-artwork fences:** `python tools/verify_artwork_recovery.py --self-test` protects bounded cache-only staging, source/deletion/lifecycle publication, metadata-only player updates and revision-based queue refresh. Runtime cache, notification and audible acceptance remain separate.
 
 - **FINISH02 caller fences:** `python tools/verify_everyday_offline.py --self-test` checks filter recovery, known saved identity, frozen numeric receipt boundaries and verified-file display with broken-caller fixtures. Phone acceptance remains separate.
 

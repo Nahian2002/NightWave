@@ -1,6 +1,6 @@
 # NightWave — repository navigation
 
-**Current implementation:** FINISH02 on [`fix/nightwave-everyday-finish`](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-everyday-finish), [draft PR #156](https://github.com/Nahian2002/NightWave/pull/156), stacked on #155. [Changes/evidence](quality/FINISH02_EVERYDAY_CLARITY.md), [execution order and hourly schedule](quality/UPCOMING_UPDATES.md), [verification](../TEST_REPORT.md). Build 9457716D; eight new physical cases NOT_RUN. **ART02 is next.** Earlier reviews remain historical.
+**Current implementation:** ART02 on [`update/nightwave-art02-cached-artwork`](https://github.com/Nahian2002/NightWave/tree/update/nightwave-art02-cached-artwork), stacked on #156. [Changes/evidence](quality/ART02_CACHED_ARTWORK.md), [hourly sequence](quality/UPCOMING_UPDATES.md), [verification](../TEST_REPORT.md). Eight new physical cases NOT_RUN. **SEARCH02 is next.** Earlier reviews remain historical.
 
 ## Start here
 

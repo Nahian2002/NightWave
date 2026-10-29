@@ -5,8 +5,8 @@ Established **28 October 2026**, after the owner's post-NW125 recording review. 
 ## Start here in every future chat
 
 1. Read [the detailed audit and scorecard](audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md), [the structured batch backlog](quality/NW126_NW145_BACKLOG.json), and [current verification](../TEST_REPORT.md).
-2. Confirm checkout and newest cumulative remote. Latest review branch: **FINISH02** on `fix/nightwave-everyday-finish`, stacked on [OFFLINE_FINISH #155](https://github.com/Nahian2002/NightWave/pull/155). Read [current evidence](quality/FINISH02_EVERYDAY_CLARITY.md). Read the [recording rating, repair plan and results](OFFLINE_FINISH_RECORDING_REVIEW.md). Main remains the integrated baseline; the review branch contains newest unmerged work.
-3. **FINISH02 locally verified; next ART02, then SEARCH02 and NW137–NW145.** Read the [revised sequence and daily schedule](quality/UPCOMING_UPDATES.md). NW126–NW136 are locally verified with physical acceptance pending. Original NW134/NW135/NW136 and prior physical rows remain NOT_RUN.
+2. Confirm checkout and newest cumulative remote. Latest review branch: **ART02** on `update/nightwave-art02-cached-artwork`, stacked on [FINISH02 #156](https://github.com/Nahian2002/NightWave/pull/156). Read [current evidence](quality/ART02_CACHED_ARTWORK.md). Read the [recording rating, repair plan and results](OFFLINE_FINISH_RECORDING_REVIEW.md). Main remains the integrated baseline; the review branch contains newest unmerged work.
+3. **FINISH02 and ART02 locally verified; next SEARCH02, then NW137–NW145.** Read the [revised sequence and hourly schedule](quality/UPCOMING_UPDATES.md). NW126–NW136 are locally verified with physical acceptance pending. Original NW134/NW135/NW136 and prior physical rows remain NOT_RUN.
 4. Update backlog status/evidence, this roadmap's progress ledger and the current test report after each batch. A source implementation is not device acceptance. Re-rate only with fresh product evidence.
 
 Root [AGENTS.md](../AGENTS.md) makes these continuity instructions discoverable to future coding sessions. The roadmap is persisted in Git/GitHub. A separate hourly thread heartbeat now reads this plan; its cadence and operating limits are recorded in the upcoming-update schedule.
@@ -98,6 +98,8 @@ Record: exact protected parent and commit; user-visible before/after; relevant Q
 Each batch should be a reviewable change with a clear user problem. Refactor screen/state/repository seams incrementally, especially the large Studio Activity; avoid a simultaneous navigation, persistence and player-engine rewrite. Do not delete linked history, schemas or checks as cosmetic cleanup.
 
 ## Progress ledger
+
+30 October ART02 **LOCAL_VERIFIED / DEVICE_NOT_RUN**: bounded known-source cached artwork recovery, optional sidecar revision and current offline metadata/queue freshness. 1,762 JVM / 218 suites, 75 source checks; six new Android test methods compile only. [Evidence](quality/ART02_CACHED_ARTWORK.md). SEARCH02 next. Historical rows retain original next-step context.
 
 29 October replanning: hourly follow-ups run one eligible source batch at a time. FINISH02 **LOCAL_VERIFIED / DEVICE_NOT_RUN**: known saved identity, filter recovery and completed transfer receipt; 1,754 JVM / 217 suites, 74 source checks, lint 0 errors / 317 warnings / 17 hints. [Evidence](quality/FINISH02_EVERYDAY_CLARITY.md). ART02 is next; historical rows below retain their original next-step context.
 
