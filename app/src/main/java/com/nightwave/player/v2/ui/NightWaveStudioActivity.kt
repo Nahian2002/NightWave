@@ -4272,9 +4272,6 @@ internal fun StudioSearch(
                     if (searching) "Recent results · Updating…" else "Recent results",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
-                if (state.provider.isNotBlank()) Text(state.provider,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (!searching) Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     TextButton(onClick = { onNativeSearch(query.trim(), mode) },
                         modifier = Modifier.weight(1f).heightIn(min = 48.dp).testTag("search02-refresh")) { Text("Refresh results") }
