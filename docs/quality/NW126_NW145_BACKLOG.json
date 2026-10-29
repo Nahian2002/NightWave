@@ -668,7 +668,7 @@
         "NW133",
         "NW135"
       ],
-      "implementation_status": "PLANNED",
+      "implementation_status": "IMPLEMENTING",
       "device_status": "NOT_RUN",
       "finding_ids": [
         "Q17",
@@ -690,7 +690,12 @@
       "implementation_commit": null,
       "local_evidence": [],
       "device_evidence": [],
-      "remaining_blockers": []
+      "remaining_blockers": [],
+      "protected_parent": "721ece36",
+      "branch": "update/nightwave-nw137-owned-lyrics",
+      "evidence": [
+        "docs/NW137_OWNED_LYRICS.md"
+      ]
     },
     {
       "id": "NW138",
