@@ -1,0 +1,11 @@
+# NW139 optional recovery implementation plan
+
+Protected parent `4520a961497a438a76a1904ed52d4ce0d2337202`, cumulative NW138 #160. Private checkpoint `20261030-nw139-recovery` retains the baseline bundle and exact working bytes. No active overlapping batch or uncommitted work was present at admission.
+
+1. Compact the account hub around one contextual primary recovery action and concise metadata/audio scope. Preserve local export, all recovery/compare/options/help and explicit disconnect/account confirmation. Show meaningful local operation phases instead of an undifferentiated busy label; safe informational help remains reachable.
+2. Bind preview/restore/merge/optional application to an ephemeral exact consent and access-revision receipt, including same-timestamp newer proof. Atomically recheck that receipt while committing local recovery; preserve existing library checkpoint/local-edit checks and original data formats. No network work belongs inside a local commit guard.
+3. Fence stale access/backup success/failure receipts in interactive and worker flows using the existing access revision, preserving previous verified copies on cancellation/transient failure. Existing OAuth scopes, account choices, Drive endpoints/HTTP client, archive formats and source quality remain.
+4. Add deterministic receipt/phase/presentation tests, real client in-memory roundtrip/merge regressions, isolated preference/Compose runtime test sources and negative caller checks. Run current source checks, full Windows builder and then sequential lint; verify signer/source/APK, preservation, private recovery and owner-only Drive bytes/hash. Commit a cumulative draft PR and next-batch ledger.
+5. Prepare an explicit disposable-account live procedure and phone cases, all NOT_RUN until owner-scoped execution. Do not use the owner's live account for app backup/restore or auto-install/reset/merge/publish binaries/change Actions. Build success cannot prove a live restore, OAuth or final rating. NW140 follows locally verified source work; final acceptance still needs actual evidence.
+
+Budget admission includes all implementation, repairs, validation, review and private delivery; recheck both shared limits before expensive phases and at least every ten minutes.
