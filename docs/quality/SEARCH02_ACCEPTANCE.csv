@@ -1,0 +1,9 @@
+case_id,area,scenario,pass_criterion,status,evidence
+SEARCH02-01,Continuity,Refresh a query that already has selectable public results,Matching rows remain visible with updating status and every version retains its original URL and single-track action,NOT_RUN,
+SEARCH02-02,Cache,Repeat a recent query then explicitly refresh it,Recent cache reuse is labeled and explicit Refresh makes a fresh lookup; stale cache updates within the original overall bound,NOT_RUN,
+SEARCH02-03,Isolation,Type a different query switch Songs/Videos switch profile and recreate,No mismatched rows or prefilled text; cache remains per gateway memory without private/local/account data or disk persistence,NOT_RUN,
+SEARCH02-04,Providers,Direct provider stalls or fails while independent provider is healthy,Eight-second direct phase leaves fallback opportunity within twenty-second whole search; no endpoint fan-out or silent browser navigation,NOT_RUN,
+SEARCH02-05,Cancellation,Cancel switch query background rotate and retry during active response,Only owned search calls stop; stale response cannot publish or commit cache after cancellation; playback and downloads remain active,NOT_RUN,
+SEARCH02-06,Diagnostics,Inspect successful cached live failed and timed-out search details,Frozen numeric timings distinguish phases HTTP work and cache reuse without exposing query URL IP account headers or bodies,NOT_RUN,
+SEARCH02-07,Accessibility,Four themes narrow phone large fonts and TalkBack,Refresh Cancel Retry details and browser fallback remain reachable with independent minimum 48dp targets and no clipped controls,NOT_RUN,
+SEARCH02-08,Performance,Repeated cold and recent same-query runs on Wi-Fi and mobile with background playback,Record real timing distributions provider failures local results and task outcomes; no universal latency or 9.5 claim from host tests,NOT_RUN,

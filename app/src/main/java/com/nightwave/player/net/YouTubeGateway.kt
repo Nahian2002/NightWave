@@ -16,33 +16,34 @@ enum class SearchMode { SONGS, VIDEOS }
 data class VideoSearchResults(
     val videos: List<VideoPreview>,
     val usedVideoFallback: Boolean,
-    val note: String = ""
+    val note: String = "",
+    val fromCache: Boolean = false
 )
 
 /** Public video search; never hides extraction failures as an ordinary empty result. */
 class YouTubeGateway {
     private val maxResults = 55
     private val alternate = CommunityVideoSearch()
-    private val memoryCache = LinkedHashMap<String, Pair<Long, VideoSearchResults>>(12, .75f, true)
-
-    @Synchronized private fun cached(key: String): VideoSearchResults? {
-        val item = memoryCache[key] ?: return null
-        return item.second.takeIf { android.os.SystemClock.elapsedRealtime() - item.first < 600_000 }
-    }
-    @Synchronized private fun remember(key: String, result: VideoSearchResults) {
-        memoryCache[key] = android.os.SystemClock.elapsedRealtime() to result
-        while (memoryCache.size > 12) memoryCache.remove(memoryCache.keys.first())
+    private val memoryCache = PublicSearchResultCache()
+    internal fun cachedSearch(query: String, mode: SearchMode): CachedPublicSearch? = memoryCache.get(query, mode)
+    private fun remember(query: String, mode: SearchMode, result: VideoSearchResults, request: PublicSearchRequest?) {
+        if (request == null) memoryCache.put(query, mode, result)
+        else request.commitIfActive { memoryCache.put(query, mode, result) }
     }
 
-    fun search(query: String, mode: SearchMode,
+    fun search(query: String, mode: SearchMode, forceRefresh: Boolean = false,
         onPhase: (PublicSearchPhase) -> Unit = {}): VideoSearchResults {
         val request = PublicSearchRequest.current.get()
         request?.checkActive()
-        onPhase(PublicSearchPhase.DIRECT)
         val text = query.trim().take(160)
         require(text.isNotBlank()) { "Please enter a song name or artist" }
-        val key = mode.name + "|" + text.lowercase(java.util.Locale.ROOT)
-        cached(key)?.let { return it }
+        if (!forceRefresh) cachedSearch(text, mode)?.takeIf { it.fresh }?.let {
+            request?.checkActive()
+            request?.cacheHit()
+            return it.result
+        }
+        request?.beginPhase(PublicSearchPhase.DIRECT)
+        onPhase(PublicSearchPhase.DIRECT)
 
         val diagnostics = mutableListOf<String>()
         // Existing extractor first. If a source returns no items *and* parsing
@@ -63,7 +64,8 @@ class YouTubeGateway {
                 if (videos.isNotEmpty()) {
                     val ranked = if (mode == SearchMode.SONGS) sortMusicMatches(videos, text) else videos
                     val result = VideoSearchResults(ranked.take(maxResults), false, "YouTube search")
-                    remember(key, result)
+                    request?.checkActive()
+                    remember(text, mode, result, request)
                     return result
                 }
                 if (report.contains("raw=0") && !report.contains("errors=0")) {
@@ -87,6 +89,7 @@ class YouTubeGateway {
         // Only public title/artist search text is sent to one of the
         // documented independent Invidious community servers. No login data.
         request?.checkActive()
+        request?.beginPhase(PublicSearchPhase.COMMUNITY)
         onPhase(PublicSearchPhase.COMMUNITY)
         val alternateResult = runCatching { alternate.search(text) }
         request?.checkActive()
@@ -98,7 +101,8 @@ class YouTubeGateway {
                     ranked.take(maxResults), true,
                     "Results via independent community search (" + fallback.server + ")"
                 )
-                remember(key, result)
+                request?.checkActive()
+                remember(text, mode, result, request)
                 android.util.Log.i("NightWaveSearch", "Recovered " + ranked.size +
                     " search results through " + fallback.server)
                 return result

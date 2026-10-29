@@ -73,4 +73,27 @@ class NightWavePublicSearchInstrumentedTest {
         compose.runOnIdle { assertEquals(1, cancellations) }
         compose.onNode(hasTestTag("nightwave-track-search") and hasText("Play Date")).assertDoesNotExist()
     }
+    @Test fun matchingRecentRowsStaySelectableWhileRefreshIsLoading() {
+        state = StudioSearchSnapshot(query = "play date", loading = true,
+            videos = listOf(first, second), fromCache = true)
+        screen()
+        val row = hasTestTag("nightwave-track-search") and hasText("Video ID: 00000000001")
+        compose.onNodeWithTag("nw129-search-list").performScrollToNode(row)
+        compose.onNode(row).assertIsDisplayed().performClick()
+        compose.runOnIdle { assertEquals(listOf(first.url), played.map { it.url }) }
+        compose.onNodeWithTag("nw129-search-list").performScrollToNode(hasTestTag("nw130-cancel-search"))
+        compose.onNodeWithTag("nw130-cancel-search").assertIsDisplayed()
+    }
+    @Test fun recentResultsHaveExplicitRefreshAndOptionalFrozenDetails() {
+        val details = "Elapsed 120 ms · Recent results\nHTTP calls 0"
+        state = StudioSearchSnapshot(query = "play date", videos = listOf(first, second),
+            fromCache = true, details = details)
+        screen()
+        compose.onNodeWithTag("nw129-search-list").performScrollToNode(hasTestTag("search02-refresh"))
+        compose.onNodeWithTag("search02-refresh").performClick()
+        compose.runOnIdle { assertEquals(1, retries) }
+        compose.onNodeWithText("Search details").performClick()
+        compose.onNodeWithText(details).assertIsDisplayed()
+        compose.onNodeWithText("Done").performClick()
+    }
 }
