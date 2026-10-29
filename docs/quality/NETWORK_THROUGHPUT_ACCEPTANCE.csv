@@ -1,0 +1,11 @@
+case_id,area,scenario,status,evidence
+NET01-01,Wi-Fi,Same phone song source and quality: compare old/new playback alone on reported 100 Mbps line; record actual first-audio and rebuffer events,NOT_RUN,
+NET01-02,Mobile,Repeat controlled playback and transfer checks on mobile data without fixed Wi-Fi binding or changed quality; record bytes and elapsed time,NOT_RUN,
+NET01-03,Transfer,Compare one eligible controlled fast endpoint with the problematic searched source; separate remote delivery from local copy/verification time,NOT_RUN,
+NET01-04,Contention,Compare playback alone download alone and both together; no wrong song auto-pause account change or cancellation of another job,NOT_RUN,
+NET01-05,Network recovery,Stall disconnect switch Wi-Fi/mobile background and resume; selected identity retry/cancel and status stay correct without stale URL persistence,NOT_RUN,
+NET01-06,Integrity,Full eligible downloads preserve exact bytes hash audio-only validation limits storage and atomic index; truncated partial or damaged data never becomes Ready,NOT_RUN,
+NET01-07,Local audio,Offline import play seek skip lyrics and queue work without networking; originals and installed data remain intact,NOT_RUN,
+NET01-08,Resource bounds,Measure heap data battery and playback soak on reference phones; read-ahead stays bounded and meaningful regressions are investigated,NOT_RUN,
+NET01-09,Protocols,Verify negotiated HTTP/2 on supporting HTTPS endpoint and HTTP/1.1 fallback; private-DNS and redirect restrictions on downloads remain intact,NOT_RUN,
+NET01-10,Preservation,Same-signer update retains four themes all features profiles consent account separation library history and prior NW134/NW135 gates,NOT_RUN,

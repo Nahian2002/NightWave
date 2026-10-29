@@ -1,10 +1,10 @@
 # NightWave
 
-**Current review work:** [NW135 owned import and offline readiness](docs/NW135_OFFLINE_IMPORT_READINESS.md), [update/nightwave-nw135-offline-journey](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw135-offline-journey), [draft PR #152](https://github.com/Nahian2002/NightWave/pull/152) stacked on #151. Owned imports check an actual audio track/sample before saving; clear stages/results and compact empty Library guide the journey. Read-only Check audio, explicit source choices and index-change refresh preserve existing themes/features, originals and stored music. No new rating is assigned; latest recorded appearance remains 8.8/10.
+**Current review work:** [NETWORK01 media transport and I/O](docs/NETWORK_TRANSPORT_THROUGHPUT.md), [fix/nightwave-network-throughput](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-network-throughput), [draft PR #153](https://github.com/Nahian2002/NightWave/pull/153) stacked on NW135 #152. Playback negotiates HTTP/2 where supported, clients reuse pools, bounded read-ahead has more room and small reads are batched before disk sync. Audio quality/source selection and all themes/features remain. Recorded 14-19 KB/s and buffering prompted this work; actual phone improvement and the limiting hop remain unverified.
 
 **Current integrated source:** [`main`](https://github.com/Nahian2002/NightWave/tree/main), based on NW126 and the cumulative implementation. **Canonical `main` contains the reviewed cumulative source.**
 
-**29 October 2026 verification:** **1,688 JVM tests / 210 suites**, **70 source checks** and full Android/Compose/instrumentation-source compilation pass. Sequential lint: 0 errors / 313 warnings / 17 hints. Five new Android import/probe cases and the existing 612-case theme matrix compile only. Build **2D35C8B6** retains signing identity; actual system-picker, airplane-mode audio/seek/restart, storage/recovery and installed-data acceptance remain pending. See [current verification](TEST_REPORT.md).
+**29 October 2026 verification:** **1,697 JVM tests / 212 suites**, **71 source checks** and full Android/Compose/instrumentation-source build pass. Lint: 0 errors / 314 warnings / 17 hints; one added notice keeps the adapter aligned with pinned Media3. Nine network/I/O JVM cases execute; one new Android local-source case and earlier 612 theme cases compile only. Build **3733A8B0** retains signing identity. Phone throughput/audio/data/resource checks remain pending. See [current verification](TEST_REPORT.md).
 
 **Active next-upgrade plan:** [NW126–NW145 product-quality roadmap](docs/PRODUCT_QUALITY_ROADMAP.md), based on the [28 October recording/source audit](docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md). Provisional product rating **6.7/10**; 9.5+ is the target, not an achieved certification. **Next source batch: NW136.** NW126–NW135 are locally verified with physical acceptance pending. The audit/plan and gate repair are on [`audit/nightwave-post-nw125-quality-roadmap`](https://github.com/Nahian2002/NightWave/tree/audit/nightwave-post-nw125-quality-roadmap).
 
@@ -12,7 +12,7 @@
 
 ## Start here
 
-- **[Current NW135 build evidence and phone checks](docs/NW135_OFFLINE_IMPORT_READINESS.md)** · [safe upgrade guide](docs/BUILD_AND_RELEASE.md)
+- **[Current networking build evidence and phone checks](docs/NETWORK_TRANSPORT_THROUGHPUT.md)** · [safe upgrade guide](docs/BUILD_AND_RELEASE.md)
 - **[Active NW126–NW145 roadmap](docs/PRODUCT_QUALITY_ROADMAP.md)** · [structured backlog](docs/quality/NW126_NW145_BACKLOG.json) · [80 new acceptance cases](docs/quality/NW126_NW145_ACCEPTANCE.csv)
 - [NW111–NW125 implementation history and remaining gates](docs/NW111_NW125_SPOTIFY_QUALITY_ROADMAP.md)
 - [Build and safe update instructions](docs/BUILD_AND_RELEASE.md)
