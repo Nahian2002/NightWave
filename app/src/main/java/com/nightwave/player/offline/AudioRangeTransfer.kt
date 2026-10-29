@@ -322,7 +322,9 @@ internal class AudioRangeTransfer(
                 metrics.addSync(System.nanoTime() - syncAt)
                 require(state.segments.size < 1024) { "Too many audio segments" }
                 state.segments.add(Segment(part.end, hex(MessageDigest.getInstance("SHA-256").digest(part.bytes))))
+                val checkpointAt = System.nanoTime()
                 persist(meta, temp, state)
+                metrics.addSync(System.nanoTime() - checkpointAt)
                 space(state.total, state.offset)
             }
             metrics.mode = if (metrics.resumedBytes > 0) "Validated parallel resume" else "Bounded parallel ranges"
