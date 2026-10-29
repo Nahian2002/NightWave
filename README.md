@@ -1,24 +1,18 @@
 # NightWave
 
-An independent Android music player with an original midnight design, local music, playlists, background playback, imported synchronized lyrics, Sound Studio and optional Google Drive backup.
-
-**Source publication:** [status and remaining gates](SOURCE_PUBLICATION.md) · [source/service-use notes](TERMS_AND_SOURCE_USE.md). The completed publication step preserved the app; later product updates are reviewed separately. The source is public; no APK is published, and app distribution remains unapproved. See the publication record for verified security settings.
-
-**Latest design update:** [DESIGN06 continuity finish](docs/design/CONTINUITY_FINISH.md), [draft PR #150](https://github.com/Nahian2002/NightWave/pull/150), on `design/nightwave-continuity-finish` stacked on #149. Latest recorded visible UI is **8.7/10**. Player content/backdrop now share a synchronous opaque transition; listening surfaces have readable actual totals, UTC dates, accessible comparison bars and metric reflow; Home mixes have distinct purposes and real representative covers; settings copy/spacing is calmer. All themes, features and data contracts remain. New **0195B157** phone acceptance is pending.
-
-**Latest owner follow-up:** [Four-theme scorecard and Search clarification](docs/design/2026-10-28_THEME_POLISH_211137.md). Shared navigation/player/secondary actions are quieter, and an old search response cannot refill a cleared draft. All theme choices and features remain; new phone acceptance is pending.
+**Current review work:** [NW134 guarded queue editing and compact UI finish](docs/NW134_QUEUE_TRANSPORT.md), [update/nightwave-nw134-queue-finish](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw134-queue-finish), [draft PR #151](https://github.com/Nahian2002/NightWave/pull/151) stacked on #150. Short statistics controls wrap to measured content, counts use correct plurals, automatic collections have distinct icons and Library guidance/selection decoration is quieter. Public queue edits are snapshot-checked, Clear Up Next is confirmed and Undo restores manual priority. All themes/features remain. Latest recorded appearance is 8.8/10; this new candidate has no assigned score.
 
 **Current integrated source:** [`main`](https://github.com/Nahian2002/NightWave/tree/main), based on NW126 and the cumulative implementation. **Canonical `main` contains the reviewed cumulative source.**
 
-**29 October 2026 verification:** **1,671 JVM tests / 208 suites**, **68 source checks** and full Android/Compose/instrumentation-source compilation pass. The current theme/layout matrix has **576 planned Android cases, compiled only**. [Current verification](TEST_REPORT.md) separates recorded appearance from unrun 0195B157 transition/listening acceptance. Appearance scores come from the recording, not test counts.
+**29 October 2026 verification:** **1,682 JVM tests / 209 suites**, **69 source checks** and full Android/Compose/instrumentation-source compilation pass. Sequential lint: 0 errors / 313 warnings / 17 hints. The theme/layout matrix has **612 compiled cases only**, plus three new compiled queue UI cases. Build **16B498CC** retains signing identity; real phone rendering, queue/transport/restart/audio and data acceptance remain pending. See [current verification](TEST_REPORT.md).
 
-**Active next-upgrade plan:** [NW126–NW145 product-quality roadmap](docs/PRODUCT_QUALITY_ROADMAP.md), based on the [28 October recording/source audit](docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md). Provisional product rating **6.7/10**; 9.5+ is the target, not an achieved certification. **Next source batch: NW134.** NW126–NW133 are locally verified with physical acceptance pending. The audit/plan and gate repair are on [`audit/nightwave-post-nw125-quality-roadmap`](https://github.com/Nahian2002/NightWave/tree/audit/nightwave-post-nw125-quality-roadmap).
+**Active next-upgrade plan:** [NW126–NW145 product-quality roadmap](docs/PRODUCT_QUALITY_ROADMAP.md), based on the [28 October recording/source audit](docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md). Provisional product rating **6.7/10**; 9.5+ is the target, not an achieved certification. **Next source batch: NW135.** NW126–NW134 are locally verified with physical acceptance pending. The audit/plan and gate repair are on [`audit/nightwave-post-nw125-quality-roadmap`](https://github.com/Nahian2002/NightWave/tree/audit/nightwave-post-nw125-quality-roadmap).
 
 **Public release: NO-GO.** Installed-phone signer continuity, Samsung acceptance, production OAuth/Drive restore and source-rights review remain separate gates. A successful build does not authorize distribution or certify phone behavior.
 
 ## Start here
 
-- **[NW125 final build and phone-test instructions](docs/NW125_FINAL_CANDIDATE.md)**
+- **[Current NW134 build evidence and phone checks](docs/NW134_QUEUE_TRANSPORT.md)** · [safe upgrade guide](docs/BUILD_AND_RELEASE.md)
 - **[Active NW126–NW145 roadmap](docs/PRODUCT_QUALITY_ROADMAP.md)** · [structured backlog](docs/quality/NW126_NW145_BACKLOG.json) · [80 new acceptance cases](docs/quality/NW126_NW145_ACCEPTANCE.csv)
 - [NW111–NW125 implementation history and remaining gates](docs/NW111_NW125_SPOTIFY_QUALITY_ROADMAP.md)
 - [Build and safe update instructions](docs/BUILD_AND_RELEASE.md)

@@ -1,8 +1,10 @@
 # NightWave tools — current use and historical checks
 
-**Current implementation baseline:** DESIGN06 on `design/nightwave-continuity-finish`; **1,671 JVM tests / 208 suites** and **68 current source checks** pass. See [current verification](../TEST_REPORT.md) and [continuity finish](../docs/design/CONTINUITY_FINISH.md). All hosted/device evidence remains separate; Actions stays disabled.
+**Current implementation baseline:** NW134 on `update/nightwave-nw134-queue-finish`; **1,682 JVM tests / 209 suites** and **69 source checks** pass. See [current verification](../TEST_REPORT.md) and [queue/transport evidence](../docs/NW134_QUEUE_TRANSPORT.md). Sequential lint is 0/313/17; theme matrix612 plus new queue3 cases compile only. Hosted/device evidence remains separate; Actions stays disabled.
 
 ## Recommended entrypoints
+
+- **NW134 queue fences:** `python tools/verify_nw134_queue.py --self-test` checks actual UI/bridge/service guards and seven broken-caller fixtures. Included in the current runner; no runtime/audio certification.
 
 - **Windows build/diagnostics:** root `build-windows.cmd`, `diagnose-nightwave-build.cmd`; corresponding `tools/build-windows.ps1`, `tools/diagnose-build.ps1`. Use the complete current integrated branch checkout/ZIP linked in the root README.
 - **NW125 clean-source gate:** `python tools/nw125_release_candidate_gate.py --self-test` and `python tools/nw125_release_candidate_gate.py --json` (if Python is installed). Detects missing build inputs and accidental generated/secret filenames; **source-only**, not an APK or device pass.

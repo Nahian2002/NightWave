@@ -1,0 +1,13 @@
+case_id,area,scenario,status,evidence
+NW134-F01,Statistics,All four themes at 320/360/412dp with 1x/2x/3x text: short controls fit or wrap and every action is independently reachable,NOT_RUN,
+NW134-F02,Copy,Zero one and multiple creator tracks playlists and sessions use accurate labels without losing privacy or consent meaning,NOT_RUN,
+NW134-F03,Library,Automatic category identities are distinct and save guidance leaves more music visible; Find Create filters folders offline import and playlist options remain,NOT_RUN,
+NW134-F04,Selection,Selected and unselected mixes remain distinguishable in four themes and TalkBack with expand collapse Play and preview intact,NOT_RUN,
+NW134-F05,Queue,Real multi-item public queue: Play Next twice then move within both priority and ordinary sections; audible next matches service order,NOT_RUN,
+NW134-F06,Undo,Remove first Play Next choice then Undo: original manual priority and current song remain; old token cannot resurrect after another command,NOT_RUN,
+NW134-F07,Clear,Cancel and confirm Clear Up Next; current song position playback and saved data remain; earlier songs and repeat behavior are explicit,NOT_RUN,
+NW134-F08,Stale queue,Open clear confirmation then advance or edit queue elsewhere; stale confirm changes nothing; rapid reorder never alters another identity,NOT_RUN,
+NW134-F09,Recovery,Background process-recreate and reconnect after edits: authoritative persisted order priority current position and modes agree,NOT_RUN,
+NW134-F10,Transport,Real notification headset Bluetooth call interruption and audio focus: no wrong song lost intent unintended resume or unexpected stop; record timings,NOT_RUN,
+NW134-F11,Shuffle,Shuffle Previous Next retraces visited songs; repeat one all and natural end work; linear edit restrictions are explained without dropping Play Next,NOT_RUN,
+NW134-F12,Preservation,Same-signer in-place upgrade retains profiles playlists history queue consent themes local files and account boundaries; no uninstall or clear-data,NOT_RUN,
