@@ -19,6 +19,7 @@ PYTHON_CHECKS = (
     ("verify_offline_finish.py", "--self-test"),
     ("verify_everyday_offline.py", "--self-test"),
     ("verify_artwork_recovery.py", "--self-test"),
+    ("verify_search_continuity.py", "--self-test"),
     ("verify_nw136_transfer.py", "--self-test"),
     ("verify_network_throughput.py", "--self-test"),
     ("verify_nw135_offline.py", "--self-test"),

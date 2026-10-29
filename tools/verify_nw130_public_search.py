@@ -9,7 +9,9 @@ BASE = "app/src/main/java/com/nightwave/player/"
 def verify(src):
     activity = src["v2/ui/NightWaveStudioActivity.kt"]
     screen = activity.split("internal fun StudioSearch(", 1)[1].split("internal fun StudioLibrary(", 1)[0]
-    public = screen.split('} else if (responseMatchesQuery && state.videos.isNotEmpty())', 1)[1]
+    # SEARCH02 keeps matching rows visible while the independent loading block runs.
+    assert '}\n        if (responseMatchesQuery && state.videos.isNotEmpty())' in screen
+    public = screen.split('if (responseMatchesQuery && state.videos.isNotEmpty())', 1)[1]
     assert public.count("publicEvidence = publicEvidence[song.url]") == 3
     for marker in ("PublicMusicResultEvidence.forResults(state.videos, mode)", "nw130-cancel-search",
                    "if (it != query && state.loading) onCancelSearch()", "Text(state.phase.label",
@@ -56,6 +58,8 @@ if __name__ == "__main__":
         for name, old, new in (
             (names[0], "publicEvidence = publicEvidence[song.url]", "publicEvidence = null"),
             (names[0], "onPlay(selected, listOf(selected))", "onPlay(selected, state.videos)"),
+            (names[0], '}\n        if (responseMatchesQuery && state.videos.isNotEmpty())',
+             '} else if (responseMatchesQuery && state.videos.isNotEmpty())'),
             (names[3], "finally { request.cancel() }", "finally { }"),
             (names[3], "calls.toList().forEach { it.cancel() }", "calls.clear()"),
             (names[4], "PublicSearchRequest.executeHttp", "unscopedHttp"),

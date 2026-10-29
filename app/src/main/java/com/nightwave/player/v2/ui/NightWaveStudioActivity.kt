@@ -265,6 +265,8 @@ internal data class StudioSearchSnapshot(
     val error: String = "",
     val hint: String = "",
     val phase: PublicSearchPhase = PublicSearchPhase.DIRECT,
+    val fromCache: Boolean = false,
+    val details: String = "",
     val prefillToken: String = ""
 )
 
@@ -1929,17 +1931,26 @@ class NightWaveStudioActivity : ComponentActivity() {
         val previous = nativeSearchState.takeIf {
             it.query.equals(clean, ignoreCase = true) && it.mode == mode
         }
+        val recent = nativeGateway.cachedSearch(clean, mode)
+        val carriedVideos = recent?.result?.videos ?: previous?.videos.orEmpty()
+        val carriedProvider = recent?.result?.note ?: previous?.provider.orEmpty()
+        // An explicit repeat/Refresh/Retry with visible results must contact the provider.
+        val forceRefresh = previous?.videos?.isNotEmpty() == true
         nativeSearchState = StudioSearchSnapshot(query = clean, mode = mode, loading = true,
-            videos = previous?.videos.orEmpty(), provider = previous?.provider.orEmpty())
+            videos = carriedVideos, provider = carriedProvider,
+            fromCache = recent != null || previous?.fromCache == true)
         nativeSearchJob = lifecycleScope.launch {
+            var searchDetails = ""
             val result: Result<VideoSearchResults> = try {
-                Result.success(PublicMusicSearchRunner.run {
-                    nativeGateway.search(clean, mode) { phase ->
-                        lifecycleScope.launch {
-                            if (request == nativeSearchGeneration && nativeSearchState.loading &&
-                                !isFinishing && !isDestroyed) nativeSearchState = nativeSearchState.copy(phase = phase)
+                Result.success(PublicMusicSearchRunner.run { searchRequest ->
+                    try {
+                        nativeGateway.search(clean, mode, forceRefresh = forceRefresh) { phase ->
+                            lifecycleScope.launch {
+                                if (request == nativeSearchGeneration && nativeSearchState.loading &&
+                                    !isFinishing && !isDestroyed) nativeSearchState = nativeSearchState.copy(phase = phase)
+                            }
                         }
-                    }
+                    } finally { searchDetails = searchRequest.details() }
                 })
             } catch (timeout: TimeoutCancellationException) {
                 Result.failure(PublicSearchDeadlineException())
@@ -1953,11 +1964,13 @@ class NightWaveStudioActivity : ComponentActivity() {
                 onSuccess = { response ->
                     nativeSearchState = StudioSearchSnapshot(query = clean, mode = mode,
                         videos = response.videos, provider = response.note,
+                        fromCache = response.fromCache, details = searchDetails,
                         hint = SearchResultPresentationPolicy.emptyHint(response.videos))
                 },
                 onFailure = { failure ->
                     nativeSearchState = StudioSearchSnapshot(query = clean, mode = mode,
-                        videos = previous?.videos.orEmpty(), provider = previous?.provider.orEmpty(),
+                        videos = carriedVideos, provider = carriedProvider,
+                        fromCache = recent != null || previous?.fromCache == true, details = searchDetails,
                         error = if (failure is PublicSearchDeadlineException)
                             "Search took too long. Retry or open YouTube search."
                         else "Online providers could not be reached. Your local music is still available.")
@@ -3834,6 +3847,15 @@ internal fun StudioSearch(
     }
     val nw83PageGutter = NightWavePremiumDesignTokens.pageGutterDp(
         androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.toFloat()).dp
+    var showSearchDetails by remember(state.query, state.mode, state.details) { mutableStateOf(false) }
+    if (showSearchDetails && responseMatchesQuery && state.details.isNotBlank()) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showSearchDetails = false },
+            title = { Text("Search details") },
+            text = { Text(state.details) },
+            confirmButton = { TextButton(onClick = { showSearchDetails = false }) { Text("Done") } }
+        )
+    }
     LazyColumn(
         modifier.testTag("nw129-search-list").fillMaxWidth().widthIn(max =
             NightWavePremiumDesignTokens.MAX_CONTENT_WIDTH_DP.dp).fillMaxHeight(),
@@ -4238,13 +4260,27 @@ internal fun StudioSearch(
                     }
                 }
             }
-        } else if (responseMatchesQuery && state.videos.isNotEmpty()) {
+        }
+        if (responseMatchesQuery && state.videos.isNotEmpty()) {
             item(key = "nw54-public-results-heading") {
                 SectionHeading(
                     SearchConsumerCopyPolicy.resultsTitle(
                         if (mode == SearchMode.VIDEOS) SearchConsumerCopyPolicy.Mode.VIDEOS
                         else SearchConsumerCopyPolicy.Mode.SONGS),
                     SearchConsumerCopyPolicy.resultCount(state.videos.size))
+                if (searching || state.fromCache) Text(
+                    if (searching) "Recent results · Updating…" else "Recent results",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (state.provider.isNotBlank()) Text(state.provider,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (!searching) Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    TextButton(onClick = { onNativeSearch(query.trim(), mode) },
+                        modifier = Modifier.weight(1f).heightIn(min = 48.dp).testTag("search02-refresh")) { Text("Refresh results") }
+                    if (state.details.isNotBlank()) TextButton(onClick = { showSearchDetails = true },
+                        modifier = Modifier.weight(1f).heightIn(min = 48.dp)) { Text("Search details") }
+                }
             }
             if (state.error.isNotBlank()) {
                 item {
@@ -4304,7 +4340,7 @@ internal fun StudioSearch(
                         onClick = { playSinglePublic(song) })
                 }
             }
-        } else if (responseMatchesQuery && state.error.isNotBlank()) {
+        } else if (!searching && responseMatchesQuery && state.error.isNotBlank()) {
             item {
                 Column(Modifier.fillMaxWidth()
                     .clip(RoundedCornerShape(16.dp))
@@ -4314,6 +4350,8 @@ internal fun StudioSearch(
                     Text(SearchConsumerCopyPolicy.unavailableTitle(),
                         style = MaterialTheme.typography.titleSmall)
                     Text(state.error, style = MaterialTheme.typography.bodyMedium)
+                    if (state.details.isNotBlank()) TextButton(onClick = { showSearchDetails = true },
+                        modifier = Modifier.heightIn(min = 48.dp)) { Text("Search details") }
                     Text(SearchConsumerCopyPolicy.fallbackHint(
                         savedMatches.isNotEmpty() || offlineMatches.isNotEmpty()),
                         style = MaterialTheme.typography.bodySmall,
@@ -4330,7 +4368,7 @@ internal fun StudioSearch(
                     }
                 }
             }
-        } else if (responseMatchesQuery && state.hint.isNotBlank()) {
+        } else if (!searching && responseMatchesQuery && state.hint.isNotBlank()) {
             item {
                 Text(state.hint, style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
