@@ -13,6 +13,7 @@ import java.util.Locale
 import com.nightwave.player.v2.locker.LockerAudioPolicy
 import com.nightwave.player.v2.locker.LockerRemoteTrack
 import java.util.UUID
+import com.nightwave.player.net.MediaTransferIo
 
 /**
  * Offline music from user-selected files only (SAF): never fetches or caches
@@ -206,19 +207,21 @@ class OfflineAudioLibrary(private val context: Context) {
             var count = 0L
             requireNotNull(context.contentResolver.openInputStream(uri)) { "Selected file cannot be opened" }.use { input ->
                 FileOutputStream(pending).use { output ->
-                    val buffer = ByteArray(32768)
-                    while (true) {
-                        val read = input.read(buffer)
-                        if (read < 0) break
-                        if (read == 0) continue
-                        count += read
-                        require(count <= MAX_SONG_BYTES) { "File exceeds the 250 MB audio limit" }
-                        if (count % (4L * 1024L * 1024L) < read) {
-                            require(root.usableSpace > OfflineLibraryCapacity.MIN_FREE_HEADROOM_BYTES) {
-                                "Device storage is almost full; import safely stopped"
+                    MediaTransferIo.bufferedWrite(output) { buffered ->
+                        val buffer = ByteArray(MediaTransferIo.BUFFER_BYTES)
+                        while (true) {
+                            val read = input.read(buffer)
+                            if (read < 0) break
+                            if (read == 0) continue
+                            count += read
+                            require(count <= MAX_SONG_BYTES) { "File exceeds the 250 MB audio limit" }
+                            if (count % (4L * 1024L * 1024L) < read) {
+                                require(root.usableSpace > OfflineLibraryCapacity.MIN_FREE_HEADROOM_BYTES) {
+                                    "Device storage is almost full; import safely stopped"
+                                }
                             }
+                            buffered.write(buffer, 0, read)
                         }
-                        output.write(buffer, 0, read)
                     }
                     output.fd.sync()
                 }
@@ -261,7 +264,7 @@ class OfflineAudioLibrary(private val context: Context) {
     private fun audioSha256(file: File): ByteArray {
         val digest = MessageDigest.getInstance("SHA-256")
         file.inputStream().use { input ->
-            val chunk = ByteArray(32_768)
+            val chunk = ByteArray(MediaTransferIo.BUFFER_BYTES)
             while (true) {
                 val count = input.read(chunk)
                 if (count < 0) break
@@ -316,7 +319,7 @@ class OfflineAudioLibrary(private val context: Context) {
             try {
                 staged.inputStream().use { input ->
                     FileOutputStream(pending).use { output ->
-                        input.copyTo(output, 32_768)
+                        input.copyTo(output, MediaTransferIo.BUFFER_BYTES)
                         output.fd.sync()
                     }
                 }

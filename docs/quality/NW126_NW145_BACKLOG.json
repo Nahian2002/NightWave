@@ -1320,5 +1320,51 @@
     },
     "next_batch": "NW136",
     "next_branch_rule": "Base a new cumulative review branch on latest NW135; carry all pending physical gates."
+  },
+  "network_throughput": {
+    "batch": "NETWORK01",
+    "branch": "fix/nightwave-network-throughput",
+    "pull_request": "https://github.com/Nahian2002/NightWave/pull/153",
+    "protected_parent": "f11329b5e7eeec652dbb853f3d016ea725d220b5",
+    "implementation_commits": [
+      "83a150098b768a3c89ff5491576e26fa13b8c469",
+      "2f61ec2f2f6d03fc36a90a979c28308501d370b5"
+    ],
+    "status": "LOCAL_VERIFIED",
+    "device_acceptance": "NOT_RUN",
+    "build_id": "NW-debug-3733A8B004D88749",
+    "recording": "180628",
+    "observed_download_KB_s": [
+      14,
+      19
+    ],
+    "root_cause": "UNPROVEN; observed low delivery and buffering do not isolate source/route/device/app",
+    "post_change_speed_measurement": null,
+    "evidence": [
+      "docs/NETWORK_TRANSPORT_THROUGHPUT.md",
+      "docs/quality/NETWORK_THROUGHPUT_ACCEPTANCE.csv",
+      "TEST_REPORT.md"
+    ],
+    "validation": {
+      "jvm_tests": 1697,
+      "jvm_suites": 212,
+      "source_checks": 71,
+      "new_android_case_compiled_only": 1,
+      "theme_matrix_compiled_only": 612,
+      "protected_files_unchanged": 230,
+      "intentional_transport_build_files_changed": 4,
+      "callback_inventories_preserved": 9,
+      "lint_errors": 0,
+      "lint_warnings": 314,
+      "lint_hints": 17,
+      "added_lint_warning": "Aligned Media3 adapter version notice; no suppression"
+    },
+    "next_batch": "NW136",
+    "remaining": [
+      "Same-phone source/quality Wi-Fi/mobile A/B and audible startup/rebuffer/seek/background/route tests",
+      "Controlled eligible fast endpoint versus problematic source",
+      "Heap/data/battery/soak and original NW134/NW135 data/recovery/release gates"
+    ],
+    "next_branch_rule": "Base next cumulative branch on NETWORK01; NW136 remains PLANNED until genuine range/checkpoint work."
   }
 }

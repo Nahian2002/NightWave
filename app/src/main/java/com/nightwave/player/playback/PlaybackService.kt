@@ -21,7 +21,8 @@ import android.util.Log
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.HttpDataSource
-import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.datasource.okhttp.OkHttpDataSource
+import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.session.MediaSession
@@ -1095,13 +1096,15 @@ class PlaybackService : MediaLibraryService() {
         savedQueue.restore(queue)
         // Do NOT play, seek, or access any offline file on service creation.
         // The user must request ACTION_RESUME_OFFLINE explicitly.
-        val networkSource = DefaultHttpDataSource.Factory()
-            .setUserAgent("Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 Chrome/121.0 Mobile Safari/537.36")
-            .setAllowCrossProtocolRedirects(true)
-            .setConnectTimeoutMs(20_000)
-            .setReadTimeoutMs(20_000)
+        val networkSource = OkHttpDataSource.Factory(PlaybackMediaNetwork.client)
+            .setUserAgent(PlaybackMediaNetwork.USER_AGENT)
         val player = ExoPlayer.Builder(this)
             .setMediaSourceFactory(DefaultMediaSourceFactory(DefaultDataSource.Factory(this, networkSource)))
+            .setLoadControl(DefaultLoadControl.Builder()
+                .setBufferDurationsMs(PlaybackMediaNetwork.MIN_BUFFER_MS, PlaybackMediaNetwork.MAX_BUFFER_MS,
+                    PlaybackMediaNetwork.START_BUFFER_MS, PlaybackMediaNetwork.REBUFFER_MS)
+                .setTargetBufferBytes(PlaybackMediaNetwork.TARGET_BYTES)
+                .setPrioritizeTimeOverSizeThresholds(false).build())
             .setHandleAudioBecomingNoisy(true)
             .build().apply {
                 // One service-owned output trim. Unity (100%) is the default.

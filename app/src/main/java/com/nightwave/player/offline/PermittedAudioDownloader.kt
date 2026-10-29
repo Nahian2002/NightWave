@@ -4,6 +4,7 @@ import android.content.Context
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.os.StatFs
+import com.nightwave.player.net.MediaTransferIo
 import okhttp3.Call
 import okhttp3.Dns
 import okhttp3.OkHttpClient
@@ -26,25 +27,52 @@ class PermittedAudioDownloader(private val context: Context) {
     private val cancelled = AtomicBoolean(false)
     @Volatile private var currentCall: Call? = null
 
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(15, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        // NW79: a slow valid 250 MiB transfer may take more than 25 min.
-        // Idle reads still time out after 30 s; bytes, safety and user cancel
-        // stay bounded while WorkManager keeps foreground progress.
-        .callTimeout(AudioDownloadNetworkPolicy.MAX_TRANSFER_MINUTES, TimeUnit.MINUTES)
-        .followRedirects(false)
-        .followSslRedirects(false)
-        .dns(object : Dns {
-            override fun lookup(hostname: String): List<InetAddress> {
-                val resolved = Dns.SYSTEM.lookup(hostname)
-                require(resolved.isNotEmpty() && resolved.all(::isPublicAddress)) {
-                    "Private or unsafe network address blocked"
+    companion object {
+        private val client = OkHttpClient.Builder()
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            // NW79: a slow valid 250 MiB transfer may take more than 25 min.
+            // Idle reads still time out after 30 s; bytes, safety and user cancel
+            // stay bounded while WorkManager keeps foreground progress.
+            .callTimeout(AudioDownloadNetworkPolicy.MAX_TRANSFER_MINUTES, TimeUnit.MINUTES)
+            .followRedirects(false)
+            .followSslRedirects(false)
+            .dns(object : Dns {
+                override fun lookup(hostname: String): List<InetAddress> {
+                    val resolved = Dns.SYSTEM.lookup(hostname)
+                    require(resolved.isNotEmpty() && resolved.all(::isPublicAddress)) {
+                        "Private or unsafe network address blocked"
+                    }
+                    return resolved
                 }
-                return resolved
+            })
+            .build()
+
+        private fun isPublicAddress(address: InetAddress): Boolean {
+            if (address.isAnyLocalAddress || address.isLoopbackAddress ||
+                address.isLinkLocalAddress || address.isSiteLocalAddress ||
+                address.isMulticastAddress) return false
+            val octets = address.address
+            // IPv6 unique local (fc00::/7), documentation (2001:db8::/32),
+            // and IPv4 carrier-grade NAT / test networks are not remote media.
+            if (octets.size == 16) {
+                if ((octets[0].toInt() and 0xFE) == 0xFC) return false
+                if ((octets[0].toInt() and 0xFF) == 0x20 &&
+                    (octets[1].toInt() and 0xFF) == 0x01 &&
+                    (octets[2].toInt() and 0xFF) == 0x0D &&
+                    (octets[3].toInt() and 0xFF) == 0xB8) return false
             }
-        })
-        .build()
+            if (octets.size == 4) {
+                val a = octets[0].toInt() and 255
+                val b = octets[1].toInt() and 255
+                if (a == 0 || a >= 224 || a == 100 && b in 64..127 ||
+                    a == 169 && b == 254 || a == 192 && b == 0 ||
+                    a == 198 && b in 18..19 || a == 198 && b == 51 ||
+                    a == 203 && b == 0) return false
+            }
+            return true
+        }
+    }
 
     fun cancel() {
         cancelled.set(true)
@@ -234,37 +262,39 @@ class PermittedAudioDownloader(private val context: Context) {
                 var prefixCount = 0
                 body.byteStream().use { input ->
                     FileOutputStream(pending).use { output ->
-                        // Larger sequential reads reduce JNI and progress-callback
-                        // overhead for fast authorized audio endpoints. Throughput
-                        // remains limited by the source server and network.
-                        val buffer = ByteArray(128 * 1024)
-                        while (true) {
-                            check(!cancelled.get()) { "Download cancelled" }
-                            val n = input.read(buffer)
-                            if (n < 0) break
-                            if (n == 0) continue
-                            received += n
-                            require(received <= PermittedAudioDownloadPolicy.MAX_BYTES) {
-                                "File exceeds the 250 MB song limit."
-                            }
-                            if (prefixCount < prefix.size) {
-                                val copy = minOf(n, prefix.size - prefixCount)
-                                buffer.copyInto(prefix, prefixCount, 0, copy)
-                                prefixCount += copy
-                            }
-                            output.write(buffer, 0, n)
-                            if (received % (4L * 1024L * 1024L) < n ||
-                                (length > 0L && received == length)) {
-                                val freeNow = runCatching {
-                                    StatFs(context.applicationContext.filesDir.absolutePath)
-                                        .availableBytes
-                                }.getOrDefault(-1L)
-                                require(OfflineSaveStoragePolicy.canContinue(freeNow, received)) {
-                                    "Device storage is too low to finish saving audio safely."
+                        MediaTransferIo.bufferedWrite(output) { buffered ->
+                            // Larger sequential reads reduce JNI and progress-callback
+                            // overhead for fast authorized audio endpoints. Throughput
+                            // remains limited by the source server and network.
+                            val buffer = ByteArray(MediaTransferIo.BUFFER_BYTES)
+                            while (true) {
+                                check(!cancelled.get()) { "Download cancelled" }
+                                val n = input.read(buffer)
+                                if (n < 0) break
+                                if (n == 0) continue
+                                received += n
+                                require(received <= PermittedAudioDownloadPolicy.MAX_BYTES) {
+                                    "File exceeds the 250 MB song limit."
                                 }
+                                if (prefixCount < prefix.size) {
+                                    val copy = minOf(n, prefix.size - prefixCount)
+                                    buffer.copyInto(prefix, prefixCount, 0, copy)
+                                    prefixCount += copy
+                                }
+                                buffered.write(buffer, 0, n)
+                                if (received % (4L * 1024L * 1024L) < n ||
+                                    (length > 0L && received == length)) {
+                                    val freeNow = runCatching {
+                                        StatFs(context.applicationContext.filesDir.absolutePath)
+                                            .availableBytes
+                                    }.getOrDefault(-1L)
+                                    require(OfflineSaveStoragePolicy.canContinue(freeNow, received)) {
+                                        "Device storage is too low to finish saving audio safely."
+                                    }
+                                }
+                                progress(received, length.takeIf { it > 0 })
                             }
-                            progress(received, length.takeIf { it > 0 })
-                        }
+                        } // Flush every buffered byte before durable sync and validation.
                         output.fd.sync()
                     }
                 }
@@ -336,28 +366,5 @@ class PermittedAudioDownloader(private val context: Context) {
         }
     }
 
-    private fun isPublicAddress(address: InetAddress): Boolean {
-        if (address.isAnyLocalAddress || address.isLoopbackAddress ||
-            address.isLinkLocalAddress || address.isSiteLocalAddress ||
-            address.isMulticastAddress) return false
-        val octets = address.address
-        // IPv6 unique local (fc00::/7), documentation (2001:db8::/32),
-        // and IPv4 carrier-grade NAT / test networks are not remote media.
-        if (octets.size == 16) {
-            if ((octets[0].toInt() and 0xFE) == 0xFC) return false
-            if ((octets[0].toInt() and 0xFF) == 0x20 &&
-                (octets[1].toInt() and 0xFF) == 0x01 &&
-                (octets[2].toInt() and 0xFF) == 0x0D &&
-                (octets[3].toInt() and 0xFF) == 0xB8) return false
-        }
-        if (octets.size == 4) {
-            val a = octets[0].toInt() and 255
-            val b = octets[1].toInt() and 255
-            if (a == 0 || a >= 224 || a == 100 && b in 64..127 ||
-                a == 169 && b == 254 || a == 192 && b == 0 ||
-                a == 198 && b in 18..19 || a == 198 && b == 51 ||
-                a == 203 && b == 0) return false
-        }
-        return true
-    }
+
 }

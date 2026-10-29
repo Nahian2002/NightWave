@@ -149,6 +149,7 @@ dependencies {
     // Explicit Guava API used by non-blocking Media3 widget/session commands.
     implementation("com.google.guava:guava:33.3.1-android")
     implementation("androidx.media3:media3-datasource:1.6.1")
+    implementation("androidx.media3:media3-datasource-okhttp:1.6.1")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.github.TeamNewPipe:NewPipeExtractor:v0.26.5")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs_nio:2.1.5")

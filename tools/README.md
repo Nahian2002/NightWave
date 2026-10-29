@@ -1,8 +1,10 @@
 # NightWave tools — current use and historical checks
 
-**Current implementation baseline:** NW135 on `update/nightwave-nw135-offline-journey`; **1,688 JVM tests / 210 suites** and **70 source checks** pass. See [current verification](../TEST_REPORT.md) and [offline evidence](../docs/NW135_OFFLINE_IMPORT_READINESS.md). Lint 0/313/17; five new import/probe and existing 612 theme cases compile only. Actions stays disabled; device/hosted evidence remains separate.
+**Current implementation baseline:** NETWORK01 on `fix/nightwave-network-throughput`; **1,697 JVM tests / 212 suites** and **71 source checks** pass. [Verification](../TEST_REPORT.md), [transport evidence](../docs/NETWORK_TRANSPORT_THROUGHPUT.md). Lint 0/314/17 includes the aligned-adapter version notice. One new Android local-source test and existing 612 theme cases compile only. Actions stays disabled; no physical bandwidth/audio certification.
 
 ## Recommended entrypoints
+
+- **NETWORK01 transport fences:** `python tools/verify_network_throughput.py --self-test` checks pooled transport, local routing, bounded read-ahead, flush-before-sync and retained source/cancel checks with eight broken-caller fixtures. Included in current runner; phone throughput is separate.
 
 - **NW135 import/readiness fences:** `python tools/verify_nw135_offline.py --self-test` checks pre-commit audio probe, cleanup, cached background health, index listener and source routes with nine broken-caller fixtures. Included in the current runner; actual SAF/audio/device proof is separate.
 

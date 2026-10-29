@@ -1,6 +1,6 @@
 # NightWave — repository navigation
 
-**Current implementation:** NW135 on [`update/nightwave-nw135-offline-journey`](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw135-offline-journey), [draft PR #152](https://github.com/Nahian2002/NightWave/pull/152) stacked on #151. [Import/readiness evidence](NW135_OFFLINE_IMPORT_READINESS.md), [ten-case supplement](quality/NW135_OFFLINE_ACCEPTANCE.csv), [current verification](../TEST_REPORT.md). Build2D35C8B6 physical acceptance is NOT_RUN. **NW136 is next.** Earlier audit/design ratings remain historical evidence.
+**Current implementation:** NETWORK01 on [`fix/nightwave-network-throughput`](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-network-throughput), [draft PR #153](https://github.com/Nahian2002/NightWave/pull/153) stacked on NW135 #152. [Transport evidence](NETWORK_TRANSPORT_THROUGHPUT.md), [ten-case supplement](quality/NETWORK_THROUGHPUT_ACCEPTANCE.csv), [verification](../TEST_REPORT.md). Build 3733A8B0 phone throughput/audio acceptance NOT_RUN. **NW136 remains next.** Earlier reviews/audits are retained.
 
 ## Start here
 
@@ -19,6 +19,7 @@
 | Purposeful Home and latest evidence | [NW131 evidence](NW131_PURPOSEFUL_HOME.md) |
 | Clear Library identity and latest evidence | [NW132 evidence](NW132_CLEAR_LIBRARY.md) |
 | Four-theme matte design and acceptance | [DESIGN01](design/MATTE_DESIGN_SYSTEM.md), [336-case ledger](design/MATTE_DESIGN_ACCEPTANCE.csv) |
+| Media transport investigation | [NETWORK01 evidence](NETWORK_TRANSPORT_THROUGHPUT.md) |
 | Owned import and offline readiness | [NW135 evidence](NW135_OFFLINE_IMPORT_READINESS.md) |
 | Queue/transport and UI finishing evidence | [NW134 evidence](NW134_QUEUE_TRANSPORT.md) |
 | Player artwork, state and seek evidence | [NW133 evidence](NW133_PLAYER_ARTWORK_METADATA.md) |
@@ -38,7 +39,7 @@
 - **JVM tests:** `app/src/test/`; **device tests:** `app/src/androidTest/`. Pure CLI smoke scripts are useful preflights, never substitutes for these suites.
 - **Build rules:** root `build.gradle.kts`, `settings.gradle.kts`, `gradle.properties`, and `app/build.gradle.kts`; **CI:** `.github/workflows/`. Do not delete or alter SDK/signing checks for cosmetic cleanup.
 - **Room schema/migrations and settings:** Treat all as migration evidence; never delete without a verified backwards-compatibility and restore audit.
-- **Current source wave:** NW135 on its cumulative review branch; NW126-NW135 locally verified with physical acceptance pending. NW136 is next. See active backlog and current verification.
+- **Current source wave:** NETWORK01 follows locally verified NW135; NW136 remains planned. Phone bandwidth/audio/resource and original gates remain pending.
 
 Current automated workflow: `.github/workflows/current-android.yml`; `android.yml` remains a manual historical diagnostic. See [historic check inventory](HISTORICAL_CI_SOURCE_CHECKS_20261027.md).
 

@@ -1,2 +1,4 @@
 NightWave source project: GPL-3.0-or-later. See LICENSE.
 NewPipeExtractor upstream: https://github.com/TeamNewPipe/NewPipeExtractor
+AndroidX Media3, including media3-datasource-okhttp 1.6.1: https://github.com/androidx/media
+Media3 supplier license: Apache License 2.0, https://www.apache.org/licenses/LICENSE-2.0
