@@ -1,0 +1,9 @@
+case_id,area,scenario,status,evidence
+NW138-S01,Simple EQ,Open with playing track; Off and each device preset; verify fresh selected name/readback without advanced edits.,NOT_RUN,
+NW138-S02,Manual draft,"Open Advanced; guided curve, slider and independent +/-1 dB; no audio command until Apply; current active state stays distinct.",NOT_RUN,
+NW138-S03,Persistent Apply/accessibility,"320/360/412dp, 1x/2x/3x font and TalkBack/Switch Access; scroll last band; Apply/Discard reachable and frequency/gain/units understandable in every theme.",NOT_RUN,
+NW138-S04,Stale identity/control,"Change session, control ownership, same-count frequency/range/preset table during edit/Apply; stale request rejected before writes; refreshed draft and readback truthful.",NOT_RUN,
+NW138-S05,Failed apply/refresh,Reject or time out manual Apply with same identity; draft retained and retryable; device rounding adopts only verified actual gains; same-identity Refresh preserves edits; Discard makes no audio change.,NOT_RUN,
+NW138-S06,Acoustic route evidence,"Record permitted speaker, wired/headphone and Bluetooth A/B at stable volume; report framework gains separately from audible outcome; no fabricated acoustic claim.",NOT_RUN,
+NW138-S07,Original playback preferences,"Existing crossfade/gapless, normalization, shuffle/repeat and 1x/non-1x speed route matrix; settings remain reachable; unsupported streams never claim processing.",NOT_RUN,
+NW138-S08,Lifecycle and data,Close/reopen and process/session restart; saved choices survive original format; pending/unapplied drafts are not auto-applied; no wrong-session changes or feature loss.,NOT_RUN,

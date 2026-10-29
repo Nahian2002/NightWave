@@ -1,20 +1,20 @@
 # NightWave
 
-**Upcoming updates:** [hourly sequence and weekly usage reserve](docs/quality/UPCOMING_UPDATES.md). NW137 owned lyrics is locally verified; NW138 Sound Studio is next. One eligible batch per run with actual evidence recorded.
+**Upcoming updates:** [hourly sequence and both usage guards](docs/quality/UPCOMING_UPDATES.md). NW138 Sound Studio is locally verified; NW139 optional recovery is next. One eligible batch per run with actual evidence recorded.
 
-**Current review work:** [NW137 guided owned lyrics](docs/NW137_OWNED_LYRICS.md) on [update/nightwave-nw137-owned-lyrics](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw137-owned-lyrics), [draft PR #159](https://github.com/Nahian2002/NightWave/pull/159), stacked on SEARCH02 #158. Explicit LRC review/import/edit/timing/export supports exact local or public-video source identity. Original local/cloud data stays unchanged; public lyrics remain device-private, without provider fetching. Existing features/themes remain.
+**Current review work:** [NW138 Sound Studio](docs/NW138_SOUND_STUDIO.md) on [update/nightwave-nw138-sound-studio](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw138-sound-studio), stacked on [NW137 #159](https://github.com/Nahian2002/NightWave/pull/159). Current active EQ is distinct from an advanced manual draft; Apply/Discard remain outside the scrolling content. Existing features/themes, EQ engine, sources and stored data remain.
 
-**Current integrated source:** [`main`](https://github.com/Nahian2002/NightWave/tree/main), based on NW126 and the cumulative implementation. **Canonical `main` contains the reviewed cumulative source.**
+**Current integrated source:** [`main`](https://github.com/Nahian2002/NightWave/tree/main) remains the integrated baseline; newer cumulative changes are on the review branch above and are not automatically merged.
 
-**30 October 2026 verification:** **1,784 JVM tests / 220 suites**, **77 source checks**, full Android/Compose/APK/instrumentation-source build PASS. Lint: **0 errors / 322 warnings / 17 hints**, including three triaged style/localization additions without suppression. Build **FD80578F**, same signer. Controlled paced loopback: **2.12 Mbps serial / 8.83 Mbps parallel**, identical bytes. This is not a phone/provider speed guarantee. [Exact evidence and remaining gates](TEST_REPORT.md).
+**30 October 2026 verification:** **1,793 JVM tests / 221 suites**, **78 source checks**, full Android/Compose/APK/instrumentation-source build PASS. Sequential lint: **0 errors / 322 warnings / 17 hints**, unchanged notice inventory. Build **NW-debug-B4B205C1BB2D17BA**, same signer. Four new Compose methods compile only; phone/acoustic acceptance remains NOT_RUN. [Exact evidence and remaining gates](TEST_REPORT.md).
 
-**Active next-upgrade plan:** [NW126–NW145 roadmap](docs/PRODUCT_QUALITY_ROADMAP.md), [structured backlog](docs/quality/NW126_NW145_BACKLOG.json), [original audit](docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md). **Next source batch: NW137.** NW126–NW136 are locally verified with physical acceptance pending. The original 6.7 product baseline and latest recorded 8.8 visual rubric remain historical ratings; networking changes do not establish a new 9.5 score.
+**Active next-upgrade plan:** [NW126–NW145 roadmap](docs/PRODUCT_QUALITY_ROADMAP.md), [structured backlog](docs/quality/NW126_NW145_BACKLOG.json), [original audit](docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md). **Next source batch: NW139.** NW126–NW138 and the focused follow-ups are locally verified with physical acceptance pending. Historical ratings remain evidence; passing local checks does not establish a new 9.5 score.
 
 **Public release: NO-GO.** Installed-phone signer continuity, Samsung acceptance, production OAuth/Drive restore and source-rights review remain separate gates. A successful build does not authorize distribution or certify phone behavior.
 
 ## Start here
 
-- **[Current resumable transfer evidence and phone checks](docs/NW136_RESUMABLE_TRANSFERS.md)** · [safe upgrade guide](docs/BUILD_AND_RELEASE.md)
+- **[Current Sound Studio evidence and phone checks](docs/NW138_SOUND_STUDIO.md)** · [safe upgrade guide](docs/BUILD_AND_RELEASE.md)
 - **[Active quality roadmap and revised sequence](docs/PRODUCT_QUALITY_ROADMAP.md)** · [structured backlog](docs/quality/NW126_NW145_BACKLOG.json) · [80 new acceptance cases](docs/quality/NW126_NW145_ACCEPTANCE.csv)
 - [NW111–NW125 implementation history and remaining gates](docs/NW111_NW125_SPOTIFY_QUALITY_ROADMAP.md)
 - [Build and safe update instructions](docs/BUILD_AND_RELEASE.md)
