@@ -1,6 +1,6 @@
 # NW137 — guided user-owned lyrics
 
-30 October 2026. **LOCAL_VERIFIED / DEVICE_NOT_RUN** on `update/nightwave-nw137-owned-lyrics`, stacked on SEARCH02 #158. Protected parent `721ece36c9b9900cae4daa6936dd1caf77e8ac9c`; private checkpoint `20261030-nw137-lyrics` retains a baseline bundle. Weekly reserve checked before starting: 29% remaining, above the 10% stop threshold. NW138 Sound Studio follows this batch.
+30 October 2026. **LOCAL_VERIFIED / DEVICE_NOT_RUN** on `update/nightwave-nw137-owned-lyrics`, [draft PR #159](https://github.com/Nahian2002/NightWave/pull/159), stacked on SEARCH02 #158. Protected parent `721ece36c9b9900cae4daa6936dd1caf77e8ac9c`; private checkpoint `20261030-nw137-lyrics` retains a baseline bundle. Weekly reserve checked before starting: 29% remaining, above the 10% stop threshold. NW138 Sound Studio follows this batch.
 
 ## Committed implementation plan
 

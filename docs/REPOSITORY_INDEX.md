@@ -1,6 +1,6 @@
 # NightWave — repository navigation
 
-**Current implementation:** NW137 on [`update/nightwave-nw137-owned-lyrics`](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw137-owned-lyrics), stacked on #158. [Changes/evidence](NW137_OWNED_LYRICS.md), [hourly sequence](quality/UPCOMING_UPDATES.md), [verification](../TEST_REPORT.md). Eight new phone cases NOT_RUN. **NW138 is next.** Earlier reviews remain historical.
+**Current implementation:** NW137 on [`update/nightwave-nw137-owned-lyrics`](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw137-owned-lyrics), [draft PR #159](https://github.com/Nahian2002/NightWave/pull/159), stacked on #158. [Changes/evidence](NW137_OWNED_LYRICS.md), [hourly sequence](quality/UPCOMING_UPDATES.md), [verification](../TEST_REPORT.md). Eight new phone cases NOT_RUN. **NW138 is next.** Earlier reviews remain historical.
 
 ## Start here
 

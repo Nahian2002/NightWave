@@ -1,6 +1,6 @@
 # NightWave readiness
 
-**30 October 2026 — development candidate; app release NO-GO.** Integrated source is [NW132 plus maintenance](https://github.com/Nahian2002/NightWave/tree/main). Current cumulative NW137 is on `update/nightwave-nw137-owned-lyrics`, stacked on #158, locally verified with physical acceptance pending. [NW138 is next in the revised sequence](docs/quality/UPCOMING_UPDATES.md); six-hour follow-ups do not waive release gates.
+**30 October 2026 — development candidate; app release NO-GO.** Integrated source is [NW132 plus maintenance](https://github.com/Nahian2002/NightWave/tree/main). Current cumulative NW137 is on `update/nightwave-nw137-owned-lyrics`, [draft PR #159](https://github.com/Nahian2002/NightWave/pull/159), stacked on #158, locally verified with physical acceptance pending. [NW138 is next in the revised sequence](docs/quality/UPCOMING_UPDATES.md); six-hour follow-ups do not waive release gates.
 
 Exact local JVM, Android/Compose, instrumentation-source, assembly, source, lint and artifact/signing evidence: [TEST_REPORT](TEST_REPORT.md). Compiled screen tests are not executed phone acceptance. Hosted runner allocation is reported separately in the review.
 

@@ -2,7 +2,7 @@
 
 **Upcoming updates:** [hourly sequence and weekly usage reserve](docs/quality/UPCOMING_UPDATES.md). NW137 owned lyrics is locally verified; NW138 Sound Studio is next. One eligible batch per run with actual evidence recorded.
 
-**Current review work:** [NW137 guided owned lyrics](docs/NW137_OWNED_LYRICS.md) on [update/nightwave-nw137-owned-lyrics](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw137-owned-lyrics), stacked on SEARCH02 #158. Explicit LRC review/import/edit/timing/export supports exact local or public-video source identity. Original local/cloud data stays unchanged; public lyrics remain device-private, without provider fetching. Existing features/themes remain.
+**Current review work:** [NW137 guided owned lyrics](docs/NW137_OWNED_LYRICS.md) on [update/nightwave-nw137-owned-lyrics](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw137-owned-lyrics), [draft PR #159](https://github.com/Nahian2002/NightWave/pull/159), stacked on SEARCH02 #158. Explicit LRC review/import/edit/timing/export supports exact local or public-video source identity. Original local/cloud data stays unchanged; public lyrics remain device-private, without provider fetching. Existing features/themes remain.
 
 **Current integrated source:** [`main`](https://github.com/Nahian2002/NightWave/tree/main), based on NW126 and the cumulative implementation. **Canonical `main` contains the reviewed cumulative source.**
 
