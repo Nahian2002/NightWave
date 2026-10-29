@@ -1581,6 +1581,19 @@
     "cadence": "Every hour, Asia/Dhaka",
     "one_batch_per_run": true,
     "dates_are_target_slots_not_completion_promises": true,
-    "requires_local_app_host_available": true
+    "requires_local_app_host_available": true,
+    "weekly_allowance_guard": {
+      "minimum_remaining_percent": 10,
+      "comparison": "Stop when remaining is at most 10 percent; usedPercent at least 90",
+      "checks": [
+        "Before scheduled work",
+        "After implementation",
+        "Before validation and publishing",
+        "At least every 15 minutes during a long batch"
+      ],
+      "on_threshold": "Preserve work; record incomplete validation; delete nightwave-sequential-upgrades and notify; no automatic restart",
+      "on_unavailable": "Skip upgrades until weekly limit can be verified",
+      "scope": "Shared Codex seven-day allowance; periodic checkpoints, not an instantaneous account-wide cap"
+    }
   }
 }

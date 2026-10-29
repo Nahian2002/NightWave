@@ -25,6 +25,10 @@ The schedule is every hour. These are planned sequential slots, not deadlines or
 
 Codex heartbeat `nightwave-sequential-upgrades` is active in this chat, **every hour**, as requested by the owner (Asia/Dhaka host timezone). The local Codex app/host must be available. Each run reads the current backlog and checkout, skips overlapping active work, completes one eligible source batch and records its next step. Report completed work, meaningful failures or required input; remain quiet on unchanged state. The backlog carries the actual status; target dates never mark a batch complete.
 
+## Weekly allowance stop rule
+
+Before each scheduled batch, read the actual Codex weekly usage limit. Stop when **10% or less remains** (90% or more consumed), preserving work and honestly recording unfinished checks. Delete the hourly automation and notify the owner; do not restart automatically after reset. Check again after implementation, before expensive validation/publishing and at least every 15 minutes during long batches. If the weekly limit cannot be read, skip upgrades until it can be verified. These periodic checks are not an instantaneous account-wide cap; other chats share the allowance. This rule controls scheduled work and does not change the app.
+
 ## SEARCH02 results
 
 [Responsive public-search results and exact build](SEARCH02_RESPONSIVE_SEARCH.md). Two new screen tests compile only and eight new physical cases remain NOT_RUN. NW137 is next.

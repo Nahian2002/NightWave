@@ -18,6 +18,10 @@ Ratings are a subjective product-review rubric. Code changes, passing string che
 
 Use isolated checkpoints and a reviewable branch. Keep private recordings, extracted frames, accounts, credentials, APKs and generated logs outside Git. Retain historical roadmaps and the original 139-case matrix as evidence; the active plan extends them.
 
+## Scheduled weekly usage reserve
+
+Before scheduled upgrades, use get_usage_limits and identify the seven-day Codex window, preferring rateLimitsByLimitId.codex. usedPercent is consumed: stop at usedPercent >= 90 (remaining <= 10). Preserve work, mark incomplete checks honestly, delete automation nightwave-sequential-upgrades and notify; never automatically resume after reset. Recheck after implementation, before validation/publication and at least every 15 minutes of long work. If weekly usage is unavailable, skip scheduled upgrades. This is a periodic shared-account guard, not an instantaneous spending cap. See docs/quality/UPCOMING_UPDATES.md.
+
 ## Revised execution schedule — 29 October 2026
 
 Read docs/quality/UPCOMING_UPDATES.md and backlog execution_order first. Latest recorded review is docs/audits/2026-10-29_RECORDING_230548_REVIEW.md: about 8.4 demonstrated usability, 8.8 main visual, 9.0 offline journey; one 2,704,719-byte transfer reports 507ms (~42.678 Mbps), not a universal guarantee. FINISH02 on fix/nightwave-everyday-finish is locally verified from c932daaa (#155); NW137 is next. Hourly Asia/Dhaka thread heartbeat nightwave-sequential-upgrades runs at most one eligible batch and must not overlap unfinished work. Original NW137–NW145 and all physical gates remain. Update actual evidence before advancing; consult execution_order instead of historical next-batch notes below.
