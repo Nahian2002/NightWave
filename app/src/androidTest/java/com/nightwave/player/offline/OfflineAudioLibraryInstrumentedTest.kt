@@ -6,13 +6,15 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Assert.*
 import org.junit.Test
+import org.junit.After
 import org.junit.runner.RunWith
 import java.io.File
 
 @RunWith(AndroidJUnit4::class)
 class OfflineAudioLibraryInstrumentedTest {
-    private val app: Context = ApplicationProvider.getApplicationContext()
+    private val app = OfflineImportTestContext(ApplicationProvider.getApplicationContext())
     private val library = OfflineAudioLibrary(app)
+    @After fun closePrivateFixture() { app.close() }
 
     @Test fun malformedOfflineIndexReturnsMissingFileWithoutCrashingService() {
         val prefs = app.getSharedPreferences("nightwave_offline_v1", Context.MODE_PRIVATE)
@@ -32,18 +34,18 @@ class OfflineAudioLibraryInstrumentedTest {
     }
 
     @Test fun importsAndRetainsPrivateAudioAfterReaderRecreation() {
-        val source = File.createTempFile("nightwave-offline", ".mp3", app.cacheDir)
-        source.writeBytes(ByteArray(128) { 0x42 })
+        val source = File.createTempFile("nightwave-offline", ".wav", app.cacheDir)
+        source.writeBytes(OfflineImportTestFixtures.wav())
         var id: String? = null
         try {
             val song = library.import(Uri.fromFile(source))
             id = song.id
             assertTrue(song.title.isNotBlank())
-            assertEquals(128L, song.bytes)
+            assertEquals(source.length(), song.bytes)
             assertTrue(library.fileFor(song)?.exists() == true)
             val restored = OfflineAudioLibrary(app).find(song.id)
             assertEquals(song, restored)
-            assertEquals(128L, OfflineAudioLibrary(app).fileFor(song)?.length())
+            assertEquals(source.length(), OfflineAudioLibrary(app).fileFor(song)?.length())
         } finally {
             id?.let { library.find(it)?.let(library::delete) }
             source.delete()
@@ -65,8 +67,8 @@ class OfflineAudioLibraryInstrumentedTest {
     }
 
     @Test fun deletingImportedFileRemovesIndexAndPrivateCopyOnly() {
-        val source = File.createTempFile("nightwave-delete", ".ogg", app.cacheDir)
-        source.writeBytes(ByteArray(64) { 0x10 })
+        val source = File.createTempFile("nightwave-delete", ".wav", app.cacheDir)
+        source.writeBytes(OfflineImportTestFixtures.wav())
         try {
             val song = library.import(Uri.fromFile(source))
             val saved = library.fileFor(song)

@@ -6,7 +6,7 @@ package com.nightwave.player.offline
  */
 internal object OfflineLibraryRecoveryGuide {
     fun title(health: OfflineFileHealth): String = when (health) {
-        OfflineFileHealth.AVAILABLE -> "Ready offline"
+        OfflineFileHealth.AVAILABLE -> "Local audio available"
         OfflineFileHealth.MISSING -> "Original audio file missing"
         OfflineFileHealth.SIZE_CHANGED -> "Saved audio size changed"
         OfflineFileHealth.UNREADABLE -> "Saved audio cannot be read"
@@ -15,8 +15,8 @@ internal object OfflineLibraryRecoveryGuide {
 
     fun help(health: OfflineFileHealth): String = when (health) {
         OfflineFileHealth.AVAILABLE ->
-            "This indexed copy is available for local playback. " +
-                "You can open it without an internet connection."
+            "This indexed copy is present, readable and matches its recorded size. " +
+                "Use Check audio to probe its audio track and sample; actual playback and seeking depend on device support."
         OfflineFileHealth.MISSING ->
             "The saved index still has this entry, but its local audio file is missing. " +
                 "If you have the original authorized recording, import it again. " +
@@ -26,8 +26,8 @@ internal object OfflineLibraryRecoveryGuide {
                 "until checked. Preserve the current file and your backup; " +
                 "re-import a trusted copy rather than forcing playback."
         OfflineFileHealth.UNREADABLE ->
-            "The audio file is not readable as regular private audio. " +
-                "Check device storage and file accessibility, then recheck. " +
+            "NightWave could not read usable audio from this copy. " +
+                "Check device storage and file accessibility, then check the audio again. " +
                 "The index and any existing file remain untouched."
         OfflineFileHealth.UNSAFE_METADATA ->
             "The saved file's index metadata is inconsistent or unsafe. " +

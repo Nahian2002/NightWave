@@ -2185,12 +2185,28 @@ class NightWaveStudioActivity : ComponentActivity() {
                     }
             }
             .setNeutralButton("Other audio sources") { _, _ ->
-                startActivity(Intent(this, FreeAudioCatalogActivity::class.java)
-                    .putExtra(FreeAudioCatalogActivity.EXTRA_QUERY, video.title.take(100))
-                    .putExtra(FreeAudioCatalogActivity.EXTRA_ARTIST, video.author.take(100)))
+                showOfflineSources(video)
             }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+
+    private fun showOfflineSources(video: VideoPreview) {
+        AlertDialog.Builder(this).setTitle("Choose an offline source")
+            .setItems(arrayOf("Import owned audio · Copy files from this device",
+                "Browse supported catalog · Eligible licensed audio only",
+                "Direct audio link · Authorized HTTPS files only",
+                "Open Offline Library · Check saved copies")) { _, choice ->
+                when (choice) {
+                    0 -> startActivity(Intent(this, OfflineLibraryActivity::class.java)
+                        .putExtra(OfflineLibraryActivity.EXTRA_IMPORT_OWNED, true))
+                    1 -> startActivity(Intent(this, FreeAudioCatalogActivity::class.java)
+                        .putExtra(FreeAudioCatalogActivity.EXTRA_QUERY, video.title.take(100))
+                        .putExtra(FreeAudioCatalogActivity.EXTRA_ARTIST, video.author.take(100)))
+                    2 -> startActivity(Intent(this, com.nightwave.player.offline.PermittedAudioDownloadActivity::class.java))
+                    3 -> startActivity(Intent(this, OfflineLibraryActivity::class.java))
+                }
+            }.setNegativeButton("Cancel", null).show()
     }
 
     private fun saveCurrentOffline() {

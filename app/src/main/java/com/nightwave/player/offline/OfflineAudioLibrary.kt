@@ -170,7 +170,15 @@ class OfflineAudioLibrary(private val context: Context) {
 
     fun find(id: String): OfflineSong? = songs().firstOrNull { it.id == id }
 
-    fun import(uri: Uri): OfflineSong = synchronized(OfflineLibraryIndexLock.monitor) {
+    /** Explicit read-only audio check; callers must run this away from the UI thread. */
+    fun verifyAudio(song: OfflineSong) {
+        val file = requireNotNull(fileFor(song)) { "Local audio unavailable. Entry retained." }
+        OfflineAudioVerifier.verify(file)
+        require(fileFor(song) == file) { "Library changed during audio check. Recheck saved files." }
+    }
+
+    fun import(uri: Uri, onPhase: (OfflineImportPhase) -> Unit = {}): OfflineSong = synchronized(OfflineLibraryIndexLock.monitor) {
+        onPhase(OfflineImportPhase.COPYING)
         val previous = songs()
         val displayName = runCatching {
             context.contentResolver.query(
@@ -181,7 +189,7 @@ class OfflineAudioLibrary(private val context: Context) {
         }.getOrNull()?.take(180)
             ?: uri.lastPathSegment?.substringAfterLast('/')?.take(180) ?: "Audio file"
         val extension = displayName.substringAfterLast('.', "").lowercase()
-        require(extension in extensions) { "Supported formats: MP3, M4A, AAC, FLAC, WAV, OGG, OPUS, MP4 and WebM" }
+        require(extension in extensions) { "Supported formats: " + OfflineImportJourneyPolicy.FORMAT_HELP }
         val total = previous.sumOf(OfflineSong::bytes)
         require(total in 0..MAX_LIBRARY_BYTES) { "Offline index reports invalid total size" }
         val id = UUID.randomUUID().toString() + "." + extension
@@ -216,6 +224,8 @@ class OfflineAudioLibrary(private val context: Context) {
                 }
             }
             require(count > 0L) { "Empty audio file" }
+            onPhase(OfflineImportPhase.CHECKING_AUDIO)
+            OfflineAudioVerifier.verify(pending)
             // Identical authorized imports reuse the existing ID, preserving lyrics,
             // playlists and cloud references. Duplicate discovery precedes the cap.
             val hash = audioSha256(pending)
@@ -233,6 +243,7 @@ class OfflineAudioLibrary(private val context: Context) {
             require(OfflineLibraryCapacity.acceptsNew(previous.size, total, count)) {
                 "Offline Library capacity reached (5,000 songs / 32 GiB)"
             }
+            onPhase(OfflineImportPhase.SAVING)
             require(pending.renameTo(finalFile)) { "Could not finish offline file import" }
             val song = OfflineSong(id, title, mime, count)
             require(prefs.edit().putString("items", encode(previous + song)).commit()) {

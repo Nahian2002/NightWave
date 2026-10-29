@@ -23,7 +23,7 @@ class OfflineLibraryViewPolicyTest {
         val p = OfflineLibraryViewPolicy
         assertTrue(p.label(OfflineLibraryViewPolicy.Filter.ATTENTION) == "Issues")
         assertTrue(p.accessibilityLabel(OfflineLibraryViewPolicy.Filter.ATTENTION) == "Needs attention")
-        assertTrue(p.accessibilityLabel(OfflineLibraryViewPolicy.Filter.READY) == "Ready offline")
+        assertTrue(p.accessibilityLabel(OfflineLibraryViewPolicy.Filter.READY) == "Available local files (size checked)")
     }
 
     @Test fun summaryRemainsReadableAndDoesNotLeakInternalIndexDetails() {
@@ -37,7 +37,7 @@ class OfflineLibraryViewPolicyTest {
     @Test fun emptyMessagesDistinguishLostFilesFromNoSavedSongs() {
         val p = OfflineLibraryViewPolicy
         assertTrue(p.emptyMessage(OfflineLibraryViewPolicy.Filter.ALL, false, false).contains("Import audio"))
-        assertTrue(p.emptyMessage(OfflineLibraryViewPolicy.Filter.READY, true, false).contains("No verified"))
+        assertTrue(p.emptyMessage(OfflineLibraryViewPolicy.Filter.READY, true, false).contains("No available"))
         assertTrue(p.emptyMessage(OfflineLibraryViewPolicy.Filter.ATTENTION, true, false).contains("All indexed"))
         assertTrue(p.emptyMessage(OfflineLibraryViewPolicy.Filter.ATTENTION, true, true).contains("search and filter"))
         assertFalse(p.emptyMessage(OfflineLibraryViewPolicy.Filter.ATTENTION, true, false).contains("delete"))
