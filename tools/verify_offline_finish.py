@@ -12,7 +12,7 @@ REQUIRED={
   'range.start == start && range.end <= end','range.total != state.total','require(range.end == end)',
   'validator != state.validator || type != state.type','parts.sortedBy { it.end }',
   'abortRequests()','executor.shutdownNow()','file.fd.sync()','persist(meta, temp, state)'],
- 'offline/CatalogDownloadsActivity.kt':['DownloadRateWindow()', 'canEstimate(now)',
+ 'offline/CatalogDownloadsActivity.kt':['DownloadRateWindow()', 'canEstimate(now)', 'rateWindows.keys.retainAll(runningIds)',
   'recoveryOnly(destinations)','received >= total','Finishing save · Checking audio',
   'OfflineTransferRatePolicy.preciseDisplay(rate)'],
  'offline/OfflineLibraryActivity.kt':['recoveryOnly(downloadsShortcut)',

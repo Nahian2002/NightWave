@@ -342,7 +342,7 @@ Assert-NW59Has $downloads 'private fun requestObserverRefresh()' 'latest-state c
 Assert-NW59Has $downloads 'uiHandler.postDelayed(coalescedRefresh, delay)' 'eventual deferred repaint'
 Assert-NW59Has $downloads 'uiHandler.removeCallbacks(coalescedRefresh)' 'discard stale pending paints'
 Assert-NW59Has $downloads 'progressSamples.keys.retainAll(runningIds)' 'prune obsolete transfer samples'
-Assert-NW59Has $downloads 'observedSpeed.keys.retainAll(runningIds)' 'prune obsolete speed samples'
+Assert-NW59Has $downloads 'rateWindows.keys.retainAll(runningIds)' 'prune obsolete rolling speed windows'
 Assert-NW59Has $downloads 'if (displayedFilter != currentFilter) {' 'do not rebuild filter chips for each tick'
 Assert-NW59Has $downloads 'val visibleJobs = filteredJobs.subList(' 'no extra copying for page slicing'
 Assert-NW59Has $downloads 'scrollTicket == scrollRestoreGeneration' 'no stale scroll correction after new render'

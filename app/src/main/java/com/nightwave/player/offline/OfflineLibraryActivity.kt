@@ -169,7 +169,7 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
             setPadding(0, 0, 0, dp(10))
             contentDescription = "Offline music storage and device free space"
         }
-        
+
         // If a user restores a backup or frees disk space while this screen
         // stays open, let them recheck without deleting or rewriting metadata.
         val recheck = label(OfflineLibraryRecoveryGuide.recheckActionLabel(),
