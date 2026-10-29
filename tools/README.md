@@ -1,8 +1,10 @@
 # NightWave tools — current use and historical checks
 
-**Current implementation baseline:** NW134 on `update/nightwave-nw134-queue-finish`; **1,682 JVM tests / 209 suites** and **69 source checks** pass. See [current verification](../TEST_REPORT.md) and [queue/transport evidence](../docs/NW134_QUEUE_TRANSPORT.md). Sequential lint is 0/313/17; theme matrix612 plus new queue3 cases compile only. Hosted/device evidence remains separate; Actions stays disabled.
+**Current implementation baseline:** NW135 on `update/nightwave-nw135-offline-journey`; **1,688 JVM tests / 210 suites** and **70 source checks** pass. See [current verification](../TEST_REPORT.md) and [offline evidence](../docs/NW135_OFFLINE_IMPORT_READINESS.md). Lint 0/313/17; five new import/probe and existing 612 theme cases compile only. Actions stays disabled; device/hosted evidence remains separate.
 
 ## Recommended entrypoints
+
+- **NW135 import/readiness fences:** `python tools/verify_nw135_offline.py --self-test` checks pre-commit audio probe, cleanup, cached background health, index listener and source routes with nine broken-caller fixtures. Included in the current runner; actual SAF/audio/device proof is separate.
 
 - **NW134 queue fences:** `python tools/verify_nw134_queue.py --self-test` checks actual UI/bridge/service guards and seven broken-caller fixtures. Included in the current runner; no runtime/audio certification.
 

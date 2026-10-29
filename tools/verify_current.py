@@ -16,6 +16,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 PYTHON_CHECKS = (
+    ("verify_nw135_offline.py", "--self-test"),
     ("verify_nw134_queue.py", "--self-test"),
     ("audit_repo_nw22.py", "--self-test"),
     ("audit_repo_nw22.py",),

@@ -6,6 +6,7 @@ import com.nightwave.player.v2.ui.NightWaveNativeMattePolicy
 
 import android.app.AlertDialog
 import android.content.Intent
+import android.content.SharedPreferences
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
@@ -37,12 +38,18 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
     override val offlineRoute = NightWaveOfflineRoute.LIBRARY
     companion object {
         const val EXTRA_SEARCH_QUERY = "com.nightwave.player.offline.SEARCH_QUERY"
+        const val EXTRA_IMPORT_OWNED = "com.nightwave.player.offline.IMPORT_OWNED"
     }
     private lateinit var library: OfflineAudioLibrary
     private val lyrics by lazy { PrivateLyricsStore(applicationContext) }
     private lateinit var tracks: LinearLayout
     private lateinit var trackScroll: ScrollView
     private lateinit var state: TextView
+    private lateinit var importNotice: TextView
+    private var importPending = false
+    private val browseControls = mutableListOf<View>()
+    private val audioCheckFailures = mutableSetOf<String>()
+    private val audioChecked = mutableSetOf<String>()
     private lateinit var storageSummary: TextView
     private lateinit var resumeControl: TextView
     private lateinit var sortControl: TextView
@@ -64,20 +71,40 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
     private var playableIds: Set<String> = emptySet()
     // NW90: disk/index verification must never block the Activity's UI thread.
     private var healthCheckPending = false
+    private var healthRecheckRequested = false
     private var healthCheckGeneration = 0L
+    private val offlinePreferences by lazy {
+        applicationContext.getSharedPreferences("nightwave_offline_v1", MODE_PRIVATE)
+    }
+    private val indexListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        if (key == "items") uiHandler.post {
+            if (!isFinishing && !isDestroyed) {
+                cachedReport = null
+                if (healthCheckPending) healthRecheckRequested = true else requestHealthCheck()
+            }
+        }
+    }
     private val sortLabels = arrayOf("Recently imported", "Title A–Z", "Smallest first", "Largest first")
     private val worker = Executors.newSingleThreadExecutor()
     private val pick = registerForActivityResult(
         ActivityResultContracts.OpenMultipleDocuments()
     ) { selected ->
         if (selected.isEmpty()) return@registerForActivityResult
-        status("Importing " + selected.size + " audio files…")
+        if (importPending) return@registerForActivityResult
+        importPending = true
+        val batch = selected.take(OfflineImportJourneyPolicy.MAX_BATCH)
+        importMessage("Preparing ${batch.size} audio files · Original files stay in place")
         worker.execute {
             var imported = 0
             val failures = mutableListOf<String>()
-            selected.take(100).forEach { uri ->
+            batch.forEachIndexed { index, uri ->
                 try {
-                    library.import(uri)
+                    library.import(uri) { phase ->
+                        runOnUiThread {
+                            if (!isFinishing && !isDestroyed) importMessage(
+                                OfflineImportJourneyPolicy.progress(index + 1, batch.size, phase))
+                        }
+                    }
                     imported++
                 } catch (e: Exception) {
                     failures.add(e.message ?: "Unknown import error")
@@ -85,11 +112,18 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
             }
             runOnUiThread {
                 if (!isFinishing && !isDestroyed) {
+                    importPending = false
+                    if (imported > 0) {
+                        availabilityFilter = OfflineLibraryViewPolicy.Filter.ALL
+                        page = 0
+                        searchInput.setText("")
+                    }
                     cachedReport = null
                     refresh()
-                    status(imported.toString() + " imported" +
-                        if (failures.isNotEmpty()) " · " + failures.size +
-                            " failed: " + failures.first().take(100) else "")
+                    importMessage(OfflineImportJourneyPolicy.result(imported, failures.size,
+                        selected.size - batch.size) + if (failures.isNotEmpty())
+                        "\n" + failures.first().take(160) + " Original files and existing entries are retained." else
+                        "\nAudio track and sample checked. Playback and seeking still depend on device support.")
                 }
             }
         }
@@ -137,7 +171,7 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
         root.addView(storageSummary, LinearLayout.LayoutParams(-1, -2))
         // If a user restores a backup or frees disk space while this screen
         // stays open, let them recheck without deleting or rewriting metadata.
-        root.addView(label(OfflineLibraryRecoveryGuide.recheckActionLabel(),
+        val recheck = label(OfflineLibraryRecoveryGuide.recheckActionLabel(),
             13f, 0xFF91E2D7.toInt(), true).apply {
             gravity = Gravity.CENTER_VERTICAL
             contentDescription = "Recheck saved local audio files and index"
@@ -149,7 +183,9 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
                 cachedReport = null
                 requestHealthCheck("Offline audio rechecked · No files or entries changed")
             }
-        }, LinearLayout.LayoutParams(-1, dp(44)).apply {
+        }
+        browseControls += recheck
+        root.addView(recheck, LinearLayout.LayoutParams(-1, dp(48)).apply {
             bottomMargin = dp(7)
         })
         val search = EditText(this).apply {
@@ -184,6 +220,7 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
             })
         }
         searchInput = search
+        browseControls += search
         root.addView(search, LinearLayout.LayoutParams(-1, dp(49)).apply {
             topMargin = dp(6); bottomMargin = dp(10)
         })
@@ -207,7 +244,7 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
             startActivity(Intent(this@OfflineLibraryActivity, CatalogDownloadsActivity::class.java))
         }, LinearLayout.LayoutParams(0, dp(48), 1f).apply { rightMargin = dp(5) })
         quickActions.addView(quickAction("Import files", "Import audio from your device", true) {
-            pick.launch(arrayOf("audio/*", "application/ogg", "application/octet-stream"))
+            openImportPicker()
         }, LinearLayout.LayoutParams(0, dp(48), 1f).apply { leftMargin = dp(5) })
         root.addView(quickActions, LinearLayout.LayoutParams(-1, dp(48)).apply {
             bottomMargin = dp(4)
@@ -308,12 +345,14 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
         }
         controls.addView(shuffleAllControl, LinearLayout.LayoutParams(dp(99), dp(49)))
         root.addView(controls)
+        browseControls += controls
         // Read-only file health filter: missing or damaged audio is still
         // indexed and accessible for manual recovery, never auto-cleaned.
         availabilityFilters = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
         }
+        browseControls += availabilityFilters
         root.addView(availabilityFilters, LinearLayout.LayoutParams(-1, dp(52)).apply {
             topMargin = dp(5)
             bottomMargin = dp(4)
@@ -375,6 +414,7 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
                 }
             }
         }
+        browseControls += paging
         paging.addView(nextPage, LinearLayout.LayoutParams(0, dp(49), 1f))
         root.addView(paging)
         resumeControl = label("", 13f, 0xFF91E2D7.toInt(), true).apply {
@@ -405,6 +445,14 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
             setPadding(dp(2), dp(15), 0, dp(12))
         }
         root.addView(state)
+        importNotice = label(savedInstanceState?.getString("nw135-import-notice").orEmpty(),
+            13f, 0xFFB7CAD4.toInt()).apply {
+            visibility = if (text.isBlank()) View.GONE else View.VISIBLE
+            setPadding(dp(2), dp(6), dp(2), dp(6))
+            accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
+            tag = "nw135-import-notice"
+        }
+        root.addView(importNotice, LinearLayout.LayoutParams(-1, -2))
         tracks = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         trackScroll = ScrollView(this).apply { addView(tracks) }
         root.addView(trackScroll, LinearLayout.LayoutParams(-1, 0, 1f))
@@ -419,10 +467,16 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
         frame.addView(root, FrameLayout.LayoutParams(contentWidth, -1,
             Gravity.TOP or Gravity.CENTER_HORIZONTAL))
         setOfflineContent(frame, header)
+        if (savedInstanceState == null && intent.getBooleanExtra(EXTRA_IMPORT_OWNED, false)) {
+            intent.removeExtra(EXTRA_IMPORT_OWNED)
+            root.post { if (!isFinishing && !isDestroyed) openImportPicker() }
+        }
         // onResume schedules a fresh health scan on the existing worker.
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
+        if (::importNotice.isInitialized && !importPending)
+            outState.putString("nw135-import-notice", importNotice.text.toString())
         outState.putString("nw48-offline-filter", availabilityFilter.name)
         outState.putString("nw128-query", NightWaveOfflineNavigationPolicy.query(searchText))
         outState.putInt("nw128-page", page)
@@ -447,6 +501,16 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
         requestHealthCheck()
     }
 
+    override fun onStart() {
+        super.onStart()
+        offlinePreferences.registerOnSharedPreferenceChangeListener(indexListener)
+    }
+
+    override fun onStop() {
+        offlinePreferences.unregisterOnSharedPreferenceChangeListener(indexListener)
+        super.onStop()
+    }
+
     /** Read-only scan. No file I/O occurs on the main thread. */
     private fun requestHealthCheck(successMessage: String? = null) {
         if (!::tracks.isInitialized || !::library.isInitialized ||
@@ -461,6 +525,11 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
                 if (generation != healthCheckGeneration || isFinishing || isDestroyed)
                     return@runOnUiThread
                 healthCheckPending = false
+                if (healthRecheckRequested) {
+                    healthRecheckRequested = false
+                    requestHealthCheck(successMessage)
+                    return@runOnUiThread
+                }
                 if (result.isSuccess) {
                     cachedReport = result.getOrNull()
                     refresh()
@@ -484,10 +553,18 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
     private fun refresh() {
         // Search, sorting, import and deletion may invalidate the cache.
         // Never force a synchronous file-health check from those UI events.
-        val report = cachedReport ?: run {
+        val rawReport = cachedReport ?: run {
             requestHealthCheck()
             return
         }
+        // A failed explicit audio probe stays unavailable for this screen session.
+        // The cached metadata snapshot and every stored file/index remain unchanged.
+        val report = rawReport.copy(entries = rawReport.entries.map { entry ->
+            if (entry.song.id in audioCheckFailures && entry.health == OfflineFileHealth.AVAILABLE)
+                entry.copy(health = OfflineFileHealth.UNREADABLE) else entry
+        })
+        val trulyEmpty = OfflineImportJourneyPolicy.empty(report.indexReadable, report.entries.size)
+        browseControls.forEach { it.visibility = if (trulyEmpty) View.GONE else View.VISIBLE }
         if (!report.indexReadable) {
             storageSummary.text = "Storage totals unavailable · offline index needs attention"
             tracks.removeAllViews()
@@ -593,7 +670,16 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
                 bottomMargin = dp(8)
             })
         }
-        if (visibleSongs.isEmpty()) tracks.addView(label(
+        if (trulyEmpty) {
+            tracks.addView(label("Your music, even without a connection", 20f, Color.WHITE, true)
+                .apply { setPadding(dp(5), dp(20), dp(5), dp(8)) })
+            tracks.addView(label(OfflineImportJourneyPolicy.SOURCE_HELP, 14f, 0xFFB7CAD4.toInt())
+                .apply { setPadding(dp(5), 0, dp(5), dp(12)) })
+            tracks.addView(label(OfflineImportJourneyPolicy.FORMAT_HELP, 12f, 0xFFB7CAD4.toInt())
+                .apply { setPadding(dp(5), 0, dp(5), dp(8)) })
+            tracks.addView(label("Tap Import files above. The system picker lets you choose which files to copy.",
+                14f, 0xFF91E2D7.toInt()).apply { setPadding(dp(5), 0, dp(5), dp(8)) })
+        } else if (visibleSongs.isEmpty()) tracks.addView(label(
             OfflineLibraryViewPolicy.emptyMessage(
                 availabilityFilter, all.isNotEmpty(), searchText.isNotBlank()),
             14f, 0xFFABB8CC.toInt()
@@ -603,7 +689,8 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
             val health = healthById[song.id] ?: OfflineFileHealth.UNREADABLE
             val available = health == OfflineFileHealth.AVAILABLE
             val availability = when (health) {
-                OfflineFileHealth.AVAILABLE -> "Local file present · Size checked"
+                OfflineFileHealth.AVAILABLE -> if (song.id in audioChecked)
+                    "Audio track and sample checked" else "Local file present · Size checked"
                 OfflineFileHealth.MISSING -> "File missing · Entry retained"
                 OfflineFileHealth.SIZE_CHANGED -> "File size changed · Entry retained"
                 OfflineFileHealth.UNREADABLE -> "File unreadable · Entry retained"
@@ -651,7 +738,7 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
             }, LinearLayout.LayoutParams(dp(48), dp(48)))
             row.addView(label("⋮", 24f, 0xFFB9C9D6.toInt()).apply {
                 gravity = Gravity.CENTER
-                contentDescription = if (available) "Remove offline track " + song.title
+                contentDescription = if (available) "Offline options for " + song.title
                     else "Recovery options for " + song.title
                 setOnClickListener {
                     if (!available || library.fileFor(song) == null) {
@@ -662,22 +749,15 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
                                 "\n\nNightWave has not changed this entry or its file. " +
                                 "Re-importing creates a separate, verified copy.")
                             .setNeutralButton("Import trusted audio") { _, _ ->
-                                pick.launch(arrayOf("audio/*", "application/ogg",
-                                    "application/octet-stream"))
+                                openImportPicker()
                             }
+                            .setNegativeButton("Check audio") { _, _ -> checkAudio(song) }
                             .setPositiveButton("OK", null).show()
                     } else {
-                        AlertDialog.Builder(this@OfflineLibraryActivity)
-                            .setTitle("Remove offline song?")
-                            .setMessage("Delete " + song.title + " from NightWave offline storage?")
-                            .setNegativeButton("Cancel", null)
-                            .setPositiveButton("Remove") { _, _ ->
-                                if (library.delete(song)) {
-                                    cachedReport = null
-                                    refresh()
-                                }
-                                else status("Unable to delete offline copy; entry kept if unverified")
-                            }.show()
+                        AlertDialog.Builder(this@OfflineLibraryActivity).setTitle(song.title)
+                            .setItems(arrayOf("Check audio (read only)", "Remove offline copy")) { _, which ->
+                                if (which == 0) checkAudio(song) else confirmRemove(song)
+                            }.setNegativeButton("Cancel", null).show()
                     }
                 }
             }, LinearLayout.LayoutParams(dp(48), dp(48)))
@@ -721,6 +801,44 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
 
     private fun status(message: String) {
         if (::state.isInitialized) state.text = message
+    }
+
+    private fun openImportPicker() {
+        if (importPending) { status("An import is already in progress."); return }
+        pick.launch(arrayOf("audio/*", "application/ogg", "application/octet-stream"))
+    }
+
+    private fun importMessage(message: String) {
+        if (::importNotice.isInitialized) {
+            importNotice.visibility = View.VISIBLE
+            importNotice.text = message
+        }
+    }
+
+    private fun checkAudio(song: OfflineSong) {
+        status("Checking audio · " + song.title)
+        worker.execute {
+            val result = runCatching { library.verifyAudio(song) }
+            runOnUiThread {
+                if (isFinishing || isDestroyed) return@runOnUiThread
+                if (result.isSuccess) { audioChecked.add(song.id); audioCheckFailures.remove(song.id) }
+                else { audioCheckFailures.add(song.id); audioChecked.remove(song.id) }
+                cachedReport = null
+                refresh()
+                status(if (result.isSuccess) "Audio track and sample checked · No files changed. Test playback and seeking on this device."
+                    else "Audio unavailable for playback · Entry and file retained. Recheck storage or import a trusted copy.")
+            }
+        }
+    }
+
+    private fun confirmRemove(song: OfflineSong) {
+        AlertDialog.Builder(this).setTitle("Remove offline song?")
+            .setMessage("Delete " + song.title + " from NightWave offline storage?")
+            .setNegativeButton("Cancel", null)
+            .setPositiveButton("Remove") { _, _ ->
+                if (library.delete(song)) { cachedReport = null; refresh() }
+                else status("Unable to delete offline copy; entry kept if unverified")
+            }.show()
     }
 
     private fun label(value: String, size: Float, color: Int, bold: Boolean = false) =

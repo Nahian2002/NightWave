@@ -1,6 +1,6 @@
 # NightWave — repository navigation
 
-**Current implementation:** NW134 on [`update/nightwave-nw134-queue-finish`](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw134-queue-finish), [draft PR #151](https://github.com/Nahian2002/NightWave/pull/151) stacked on #150. [Architecture/preservation](NW134_QUEUE_TRANSPORT.md), [12-case supplement](quality/NW134_FINISH_ACCEPTANCE.csv), [current verification](../TEST_REPORT.md). Latest recorded visible UI is 8.8/10; build16B498CC physical acceptance is NOT_RUN. **NW135 is next.** Earlier design/audit documents remain historical evidence.
+**Current implementation:** NW135 on [`update/nightwave-nw135-offline-journey`](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw135-offline-journey), [draft PR #152](https://github.com/Nahian2002/NightWave/pull/152) stacked on #151. [Import/readiness evidence](NW135_OFFLINE_IMPORT_READINESS.md), [ten-case supplement](quality/NW135_OFFLINE_ACCEPTANCE.csv), [current verification](../TEST_REPORT.md). Build2D35C8B6 physical acceptance is NOT_RUN. **NW136 is next.** Earlier audit/design ratings remain historical evidence.
 
 ## Start here
 
@@ -19,6 +19,7 @@
 | Purposeful Home and latest evidence | [NW131 evidence](NW131_PURPOSEFUL_HOME.md) |
 | Clear Library identity and latest evidence | [NW132 evidence](NW132_CLEAR_LIBRARY.md) |
 | Four-theme matte design and acceptance | [DESIGN01](design/MATTE_DESIGN_SYSTEM.md), [336-case ledger](design/MATTE_DESIGN_ACCEPTANCE.csv) |
+| Owned import and offline readiness | [NW135 evidence](NW135_OFFLINE_IMPORT_READINESS.md) |
 | Queue/transport and UI finishing evidence | [NW134 evidence](NW134_QUEUE_TRANSPORT.md) |
 | Player artwork, state and seek evidence | [NW133 evidence](NW133_PLAYER_ARTWORK_METADATA.md) |
 | Detailed current product rating and source/video findings | [28 October audit](audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md) |
@@ -37,7 +38,7 @@
 - **JVM tests:** `app/src/test/`; **device tests:** `app/src/androidTest/`. Pure CLI smoke scripts are useful preflights, never substitutes for these suites.
 - **Build rules:** root `build.gradle.kts`, `settings.gradle.kts`, `gradle.properties`, and `app/build.gradle.kts`; **CI:** `.github/workflows/`. Do not delete or alter SDK/signing checks for cosmetic cleanup.
 - **Room schema/migrations and settings:** Treat all as migration evidence; never delete without a verified backwards-compatibility and restore audit.
-- **Current source wave:** NW134 follows DESIGN06 on its cumulative review branch. NW126–NW134 are locally verified with physical acceptance pending; NW135 is next for source work. See the structured backlog and current test report.
+- **Current source wave:** NW135 on its cumulative review branch; NW126-NW135 locally verified with physical acceptance pending. NW136 is next. See active backlog and current verification.
 
 Current automated workflow: `.github/workflows/current-android.yml`; `android.yml` remains a manual historical diagnostic. See [historic check inventory](HISTORICAL_CI_SOURCE_CHECKS_20261027.md).
 
