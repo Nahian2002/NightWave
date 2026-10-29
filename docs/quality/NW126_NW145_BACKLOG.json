@@ -1544,12 +1544,17 @@
       "depends_on": [
         "ART02"
       ],
-      "implementation_status": "PLANNED",
+      "implementation_status": "IMPLEMENTING",
       "device_status": "NOT_RUN",
       "implementation_commit": null,
       "local_evidence": [],
       "remaining_blockers": [
         "Actual phone task and regression acceptance"
+      ],
+      "protected_parent": "633b6f4f1a715378eb47a17c00ea0e9127dbe8c4",
+      "branch": "update/nightwave-search02-responsive",
+      "evidence": [
+        "docs/quality/SEARCH02_RESPONSIVE_SEARCH.md"
       ]
     }
   ],
