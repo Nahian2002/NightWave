@@ -70,6 +70,10 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
     private var sortMode = 0
     private var visibleSongs: List<OfflineSong> = emptyList()
     private var cachedReport: OfflineLibraryHealthReport? = null
+    private var artworkRecoveryPending = false
+    private val artworkRecoveryAttempted = mutableSetOf<String>()
+    private var artworkRecoveryWanted: List<OfflineSong> = emptyList()
+    @Volatile private var artworkRecoveryClosed = false
     private var playableIds: Set<String> = emptySet()
     // NW90: disk/index verification must never block the Activity's UI thread.
     private var healthCheckPending = false
@@ -604,6 +608,8 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
             return
         }
         val all = report.entries.map { it.song }
+        if (artworkRecoveryAttempted.size >= OfflineAudioLibrary.MAX_SONGS)
+            artworkRecoveryAttempted.retainAll(all.map { it.id }.toSet())
         val availableEntries = report.entries.filter {
             it.health == OfflineFileHealth.AVAILABLE
         }
@@ -730,6 +736,8 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
                 }, LinearLayout.LayoutParams(-1, -2))
             }
         }
+        requestArtworkRecovery((listOfNotNull(resumeSong) + pageSongs)
+            .filter { it.id in playableIds })
         pageSongs.forEach { song ->
             val importedLyrics = lyrics.hasImportedLrc(song.id)
             val health = healthById[song.id] ?: OfflineFileHealth.UNREADABLE
@@ -891,6 +899,27 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
         }
     }
 
+    /** Separate optional work: the read-only health scan never writes artwork. */
+    private fun requestArtworkRecovery(songs: List<OfflineSong>) {
+        artworkRecoveryWanted = songs
+        if (artworkRecoveryPending || artworkRecoveryClosed || isFinishing || isDestroyed) return
+        val batch = OfflineArtworkRecoveryPolicy.batch(songs, artworkRecoveryAttempted)
+        if (batch.isEmpty()) return
+        artworkRecoveryAttempted.addAll(batch.map { it.id })
+        artworkRecoveryPending = true
+        worker.execute {
+            val changed = runCatching {
+                OfflineTrackIdentityStore(applicationContext).recoverKnown(batch) { !artworkRecoveryClosed }
+            }.getOrDefault(false)
+            runOnUiThread {
+                if (artworkRecoveryClosed || isFinishing || isDestroyed) return@runOnUiThread
+                artworkRecoveryPending = false
+                if (changed) refresh()
+                requestArtworkRecovery(artworkRecoveryWanted)
+            }
+        }
+    }
+
     private fun confirmRemove(song: OfflineSong) {
         AlertDialog.Builder(this).setTitle("Remove offline song?")
             .setMessage("Delete " + OfflineTrackIdentityStore(this).display(song).title + " from NightWave offline storage?")
@@ -919,6 +948,7 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
 
     private fun dp(v: Int) = (resources.displayMetrics.density * v + .5f).toInt()
     override fun onDestroy() {
+        artworkRecoveryClosed = true
         pendingSearch?.let(uiHandler::removeCallbacks)
         worker.shutdown()
         super.onDestroy()

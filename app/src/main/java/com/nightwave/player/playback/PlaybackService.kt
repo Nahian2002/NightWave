@@ -47,6 +47,7 @@ import com.nightwave.player.widget.WidgetPlaybackSnapshot
 import com.nightwave.player.library.MusicLibrary
 import com.nightwave.player.net.YouTubeGateway
 import com.nightwave.player.offline.OfflineTrackIdentityStore
+import com.nightwave.player.offline.OfflineArtworkPlaybackFence
 import com.nightwave.player.offline.OfflineAudioLibrary
 import com.nightwave.player.offline.OfflinePlaybackQueue
 import com.nightwave.player.offline.OfflineGaplessPolicy
@@ -201,6 +202,56 @@ class PlaybackService : MediaLibraryService() {
                 }
             } }
         }
+    }
+
+    // Optional presentation has its own bounded worker; never evict index-removal work.
+    private val offlineArtworkWorker = java.util.concurrent.ThreadPoolExecutor(1, 1, 0L,
+        TimeUnit.MILLISECONDS, java.util.concurrent.ArrayBlockingQueue<Runnable>(1),
+        java.util.concurrent.ThreadPoolExecutor.DiscardOldestPolicy())
+    @Volatile private var offlineArtworkClosed = false
+    private val offlineArtworkPrefs by lazy {
+        getSharedPreferences(OfflineTrackIdentityStore.PREFS_NAME, Context.MODE_PRIVATE)
+    }
+    private val offlineArtworkChanged = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        if (key == OfflineTrackIdentityStore.REVISION_KEY) main.post { scheduleOfflineArtwork() }
+    }
+    private fun scheduleOfflineArtwork() {
+        if (offlineArtworkClosed || !offlinePlaying) return
+        main.removeCallbacks(recoverOfflineArtwork)
+        main.postDelayed(recoverOfflineArtwork, 80L)
+    }
+    private val recoverOfflineArtwork = Runnable {
+        val expectedMedia = exoPlayer?.currentMediaItem?.mediaId
+        val selected = offlineQueue.current
+        if (offlineArtworkClosed || !offlinePlaying || selected == null || expectedMedia != "offline:$selected") return@Runnable
+        val expectedGeneration = generation
+        val expectedIndex = offlineIndexPrefs.getString("items", null)
+        runCatching { offlineArtworkWorker.execute {
+            val answer = runCatching {
+                val library = OfflineAudioLibrary(this)
+                val song = library.find(selected) ?: return@runCatching null
+                if (library.fileFor(song) == null) return@runCatching null
+                val identities = OfflineTrackIdentityStore(this)
+                identities.recoverKnown(listOf(song)) { !offlineArtworkClosed }
+                identities.display(song) to OfflineTrackIdentityStore.revision(this)
+            }.getOrNull()
+            main.post {
+                if (offlineArtworkClosed || answer == null || !OfflineArtworkPlaybackFence.allows(
+                        expectedMedia, exoPlayer?.currentMediaItem?.mediaId, offlineQueue.current,
+                        expectedGeneration, generation, expectedIndex, offlineIndexPrefs.getString("items", null),
+                        answer.second, OfflineTrackIdentityStore.revision(this), offlinePlaying)) return@post
+                val player = exoPlayer ?: return@post
+                val item = player.currentMediaItem ?: return@post
+                val identity = answer.first
+                val metadata = item.mediaMetadata.buildUpon().setTitle(identity.title).setArtist(identity.creator)
+                    .setArtworkUri(identity.artwork.takeIf { it.isNotBlank() }?.let(Uri::parse)).build()
+                if (metadata != item.mediaMetadata) {
+                    // Same ID, URI and local configuration: metadata only; no prepare/seek/play.
+                    player.replaceMediaItem(player.currentMediaItemIndex,
+                        item.buildUpon().setMediaMetadata(metadata).build())
+                }
+            }
+        } }
     }
 
     private lateinit var sleepStatus: SleepTimerStatusStore
@@ -951,6 +1002,7 @@ class PlaybackService : MediaLibraryService() {
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             if (crossfadeHandoffInProgress) return
+            scheduleOfflineArtwork()
             publishWidgetState()
             if (crossfadeOutgoing === exoPlayer && crossfadeIncoming != null &&
                 reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK) {
@@ -1151,6 +1203,7 @@ class PlaybackService : MediaLibraryService() {
         savedQueue.clearLookup() // process restart must not leave a ghost spinner
         offlineSession = OfflineSessionStore(this)
         offlineIndexPrefs.registerOnSharedPreferenceChangeListener(offlineIndexChanged)
+        offlineArtworkPrefs.registerOnSharedPreferenceChangeListener(offlineArtworkChanged)
         offlineControls = OfflinePlaybackPreferencesStore(this)
         offlineQueue.setShuffle(offlineControls.shuffle())
         offlineQueue.setRepeat(offlineControls.repeat())
@@ -2394,6 +2447,10 @@ class PlaybackService : MediaLibraryService() {
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? = mediaSession
 
     override fun onDestroy() {
+        offlineArtworkClosed = true
+        offlineArtworkPrefs.unregisterOnSharedPreferenceChangeListener(offlineArtworkChanged)
+        main.removeCallbacks(recoverOfflineArtwork)
+        offlineArtworkWorker.shutdownNow()
         offlineIndexPrefs.unregisterOnSharedPreferenceChangeListener(offlineIndexChanged)
         offlineIndexEpoch++
         main.removeCallbacks(reconcileOfflineIndex)
