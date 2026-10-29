@@ -1,35 +1,33 @@
-# Current verification - NW134 queue edits and compact UI finish
+# Current verification - NW135 owned import and offline readiness
 
-29 October 2026. [Draft PR #151](https://github.com/Nahian2002/NightWave/pull/151), `update/nightwave-nw134-queue-finish`, stacked on DESIGN06 #150. Protected parent `b04248cd519a7dcc313e3a31443103c0e821a7be`; implementation/built revision `8a5a480f23308c772f5fcbf60e5d8af3f3cca2fc`. [Architecture/latest review](docs/NW134_QUEUE_TRANSPORT.md), [12-case supplement](docs/quality/NW134_FINISH_ACCEPTANCE.csv). [Previous verification](https://github.com/Nahian2002/NightWave/blob/b04248cd519a7dcc313e3a31443103c0e821a7be/TEST_REPORT.md), earlier matrices and the original audit remain evidence.
+29 October 2026. [Draft PR #152](https://github.com/Nahian2002/NightWave/pull/152), `update/nightwave-nw135-offline-journey`, stacked on NW134 #151. Protected parent `b7f0fad71604b601a5ea2e82f482229601fdf189`; built revision `fd47bcdf161427a1fabd8ae85ec15dfbc90a4212`. [Architecture/preservation](docs/NW135_OFFLINE_IMPORT_READINESS.md), [ten-case supplement](docs/quality/NW135_OFFLINE_ACCEPTANCE.csv). [Previous verification](https://github.com/Nahian2002/NightWave/blob/b7f0fad71604b601a5ea2e82f482229601fdf189/TEST_REPORT.md), earlier acceptance and frozen audits remain evidence.
 
-Latest recording 030542 scores **8.8/10 visible UI** on the same five equal dimensions: identity 8.5, color 9, hierarchy 9, observed coherence 9, perceived readability 8.5. Sequential decoding read 8,639 frames through 130.4267s with monotonic timestamps; review used 131 one-second samples, two overviews and six details. Exact recorded build is unknown; encoding rate is not app performance. No lasting stuck/blank page is observed in samples. No new candidate score is assigned; original whole-product 6.7 remains frozen.
-
-Statistics short actions now wrap to measured content; singular/plural labels, automatic collection category icons, compact save guidance and quieter selection address observed finish issues. NW134 adds service-owned snapshot-checked reordering within Play Next/Up Next and confirmed Clear Up Next, preserving current/earlier songs, stored music and transport. Undo restores original manual priority and rejects a changed remainder. Shuffle restrictions are explained; offline collections retain existing controls. All themes/features remain.
+Owned imports now require a real Android audio track and readable sample before the existing rename/index commit. Bounded copy/check/save stages and partial/limit/failure counts are explicit; originals, existing entries and duplicate IDs remain. Only a readable empty index simplifies the Library controls. Read-only Check audio/recovery, explicit source choices and lifecycle-bound index observation address the remaining offline journey. Metadata-only availability is labeled separately from media checks. This is not a full-file decode, checksum certificate, actual audible-playback or seek proof.
 
 | Executed or compiled check | Result and limit |
 | --- | --- |
-| Complete Windows builder | PASS: production Android/Compose, debug APK assembly and Android instrumentation-source compilation from final implementation. |
-| JVM suite | **1,682 tests / 209 suites**, zero failures/errors/skips. Ten new queue scenarios plus one plural regression execute; existing shuffle/repeat/history, queue/transport and source-selection regressions remain. |
-| Current source runner | **69/69 PASS**. Adds NW134 actual UI/bridge/service/queue checks with seven broken-caller fixtures. Earlier checks remain; no guard weakened. |
-| Android tests | **17 x 36 = 612 theme/width/font cases compiled only**, adding measured short-action bounds/callback coverage. Three new queue UI tests compile only: confirmation snapshot, absolute reorder identities and shuffle restriction. Device execution NOT_RUN. |
-| Sequential lint | **0 errors / 313 warnings / 17 hints**, unchanged counts; no suppression/baseline. Inherited Kotlin compiler warning for an unreachable Library description branch remains. |
-| Source preservation | **231 previously protected files byte-identical**, three intentional queue/service/bridge changes, nine callback inventories retained. Schemas, providers/dependencies, core identity, library/history storage and consent/accounts remain. Installed-data behavior is separate. |
-| Signer | PASS against delivered DESIGN06 0195B157 APK; same package/certificate. Installed-phone comparison NOT_RUN; no installation/reset. |
-| Acceptance preparation | 219-case source/APK-bound fixture pack PREPARED_NOT_EXECUTED. Original four NW134 rows and new 12-case supplement remain NOT_RUN. |
-| Device/hosted evidence | adb inventory has no connected device/emulator. No real audio/service/restart/notification/headset/Bluetooth/call/audio-focus tests performed. Actions stays disabled; no hosted CI pass or public binary/release. |
+| Complete Windows builder | PASS: production Android/Compose, debug APK and instrumentation-source compilation. First attempt halted before Gradle at the historical cache-variable marker; updated guard retains background scan requirements and checks the read-only failure overlay. |
+| JVM suite | **1,688 tests / 210 suites**, zero failures/errors/skips. Six added JVM cases cover unreadable-index/empty separation, bounded stages/results, ownership/formats and real audio-track/sample conditions. Existing regressions remain. |
+| Current source runner | **70/70 PASS**. New NW135 actual-caller checks include nine broken-caller fixtures. Existing guards/tests retained; no suppression. |
+| Android tests | Five new isolated file-URI/WAV import/probe cases compile only: phase order/reconstructed reader, spoofed audio, same-size damaged audio with retained index/bytes, missing/empty inputs and duplicate identity. Existing file imports now use valid WAVs and isolated data. These do not exercise the actual system SAF picker. Existing theme matrix remains **612 compiled-only cases**; NW134 three queue cases remain compiled only. All device execution NOT_RUN. |
+| Sequential lint | **0 errors / 313 warnings / 17 hints**, unchanged counts; no new suppression/baseline. Inherited unreachable Library description compiler warning remains. |
+| Source preservation | **230 previously protected files byte-identical**, four authorized offline library/UI/recovery/view-policy changes and nine retained callback inventories. Schemas, dependencies/providers, playback/queue, Search/source identity, account/consent and data stores remain. Installed data requires separate evidence. |
+| Signer | PASS against delivered NW134 16B498CC APK; same package/certificate. Installed-phone comparison NOT_RUN; no install/reset. |
+| Acceptance preparation | 219-case source/APK-bound fixture pack PREPARED_NOT_EXECUTED. Original four NW135 rows and ten-case supplement NOT_RUN; prior physical gates carried forward. |
+| Device/hosted evidence | No connected adb device/emulator. No system picker/grant, real storage/commit failure, airplane-mode audio/play/seek/skip/restart, full decoder, TalkBack or installed-data checks run. Actions stays disabled; no hosted CI pass, public binary or release. |
 
 | Artifact identity | Value |
 | --- | --- |
-| Build ID | `NW-debug-16B498CC3E7811BB` |
-| Canonical source SHA256 | `16B498CC3E7811BB3CA673A72007539865C5B43DFD898FA808F3D84786E2505B` |
-| Canonical inputs | `889` |
-| APK SHA256 | `5AFFF3445F6091CA1C6A9404575E3AB48CE9D766F357BF7A9B238C4B06B91D36` |
-| APK bytes | `29,026,015` |
-| Embedded revision context | `8a5a480f23308c772f5fcbf60e5d8af3f3cca2fc` |
-| Separate NW08 manifest SHA256 | `9281FFD5997BB3FFC0CF015D85F387DF6DCB40FF8DFC42370C84706332F55DF4`; independent ordering/encoding retained |
+| Build ID | `NW-debug-2D35C8B666C72659` |
+| Canonical source SHA256 | `2D35C8B666C72659F40B9A52B896B1BAC9AEC3F4B8BFFD5B4E861EE81AE72522` |
+| Canonical inputs | `895` |
+| APK SHA256 | `7F87CFD5426D4D1D421F0AC2AFB389EB1771B1F10A17C2213C09F2E2D549D6CA` |
+| APK bytes | `29,026,689` |
+| Embedded revision context | `fd47bcdf161427a1fabd8ae85ec15dfbc90a4212` |
+| Separate NW08 manifest SHA256 | `284D3F3EEC2F0705B7FB1F25AC293A89387CDDCB28A38AAFECE0AD6D83C82125`; independent ordering/encoding retained |
 | App identity | `com.nightwave.player`, `2.0.0-alpha5s`, code35; min26/compile-target36 unchanged |
 | Certificate SHA256 | `EA737A703B8F116EBC5C8C0A717DDBF3A2A5808ACC9079A8F79CD1B3CD860394` |
 
-Private checkpoint `C:/Users/jayed/NightWave-checkpoints/20261029-nw134-queue-finish` retains recovery bundles/source ZIP, raw JUnit/lint/build/source/signature receipts, source preservation, fixture pack and owner-only APK delivery proof. Drive permissions show only the verified owner; streamed download matches exact APK bytes/SHA256. Private media, binaries and account information stay outside Git. Documentation commits do not change canonical build inputs.
+Private checkpoint `C:/Users/jayed/NightWave-checkpoints/20261029-nw135-offline-journey` retains recovery bundles/source ZIP, original failed preflight, raw JUnit/lint/build/source/signature receipts, preservation, fixtures and owner-only APK delivery proof. Drive permissions show only the verified owner; streamed download matches exact APK bytes/SHA256. Recordings, extracted media, binaries and accounts remain outside Git. Documentation commits do not change canonical build inputs.
 
-Four themes, original metadata/URLs/Details, source art sizing/Fit containment, mood caption lanes, single-owner player transition, Search input ownership, shelf/pager recovery, classic/native, local music, queue/lyrics/offline, account/consent/recovery and signing remain. Source artwork limitations remain. Real rendering/contrast/large-text/TalkBack, audio/transport/restart, retained consent/data, performance/soak/recovery and release acceptance are pending. **No 9.5-10 score is claimed. Device acceptance NOT_RUN; public release NO-GO. Next independent source batch: NW135.**
+Four themes/features, original source metadata/URLs/Details, artwork/mood/pager/Search boundaries, single-owner player transition, NW134 queue edits/Undo, existing download restrictions, lyrics/offline/cloud/account/consent, schemas and signing remain. Probe results are session-local, and later corruption/device support still needs actual checks. Latest recorded visible UI stays **8.8/10** from 030542; original whole-product 6.7 stays frozen. No new score follows from tests. **Device acceptance NOT_RUN; public release NO-GO. Next independent source batch: NW136.**

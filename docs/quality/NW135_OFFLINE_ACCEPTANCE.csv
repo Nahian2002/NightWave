@@ -1,0 +1,11 @@
+case_id,area,scenario,status,evidence
+NW135-F01,Empty Library,Readable empty library shows one Import files action plus supported formats and guidance; unused filters search play and paging return after import,NOT_RUN,
+NW135-F02,Source choices,Player/result offline sources retain original permission Save and expose owned import catalog direct HTTPS and Library with honest capabilities,NOT_RUN,
+NW135-F03,Owned import,System picker imports eligible MP3 M4A AAC FLAC WAV OGG OPUS and supported containers; original files remain; actual audio checks precede index commit,NOT_RUN,
+NW135-F04,Import status,Copy check save partial failure and over-100 selection counts are accurate; duplicate imports reuse exact identity and lyrics references,NOT_RUN,
+NW135-F05,Recovery,Empty corrupt disguised audio missing source revoked access low storage and failed commit leave original files and existing index unchanged with actionable recovery,NOT_RUN,
+NW135-F06,Offline playback,On identified build disable connectivity stop and reopen app then play seek skip and resume imported audio; capture audible and selected identity evidence,NOT_RUN,
+NW135-F07,Audio check,Check audio is read only; same-length damaged fixture fails and leaves file/index intact; recovery and explicit retry remain reachable,NOT_RUN,
+NW135-F08,Index failure,Unreadable index cannot appear as empty library or mass missing audio; import cannot overwrite it and recheck remains available,NOT_RUN,
+NW135-F09,Lifecycle,Rotate or leave/reopen during import; picker is not relaunched and completion from prior Activity refreshes the current library without stale scan results,NOT_RUN,
+NW135-F10,Preservation,Four themes large text TalkBack shared shell navigation player lyrics offline controls and account boundaries remain; same-signer update retains installed data,NOT_RUN,

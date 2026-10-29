@@ -5,7 +5,7 @@
   "audit": "docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md",
   "implementation_base_revision": "61703c98238e762e59c049b6690853431f822884",
   "audit_branch": "audit/nightwave-post-nw125-quality-roadmap",
-  "next_batch": "NW135",
+  "next_batch": "NW136",
   "goal": "9.5+ within the declared NightWave music-player scope, conditional on actual product and acceptance evidence",
   "rating_kind": "Subjective comparative product review, not a measured Spotify score",
   "baseline_weighted_score": 6.655,
@@ -552,7 +552,7 @@
         "NW128",
         "NW132"
       ],
-      "implementation_status": "PLANNED",
+      "implementation_status": "LOCAL_VERIFIED",
       "device_status": "NOT_RUN",
       "finding_ids": [
         "Q18",
@@ -572,10 +572,31 @@
         "Corrupt/remove/revoke access or simulate storage failure; show repair/reimport/retry only where valid and never label an unreadable index as mass file deletion.",
         "Per-source capabilities explain import, download, stream-only and unsupported cases before action; user consent alone never fabricates provider capability or rights."
       ],
-      "implementation_commit": null,
-      "local_evidence": [],
+      "implementation_commit": "fd47bcdf161427a1fabd8ae85ec15dfbc90a4212",
+      "local_evidence": [
+        "docs/NW135_OFFLINE_IMPORT_READINESS.md",
+        "docs/quality/NW135_OFFLINE_ACCEPTANCE.csv",
+        "TEST_REPORT.md",
+        "Complete Windows Android/Compose/APK/instrumentation-source build PASS; 1688 JVM tests / 210 suites; zero failures/errors/skips",
+        "70 source checks PASS with nine NW135 broken-caller fixtures",
+        "NW-debug-2D35C8B666C72659; 895 canonical inputs verified; signer matches delivered NW134",
+        "Sequential lint 0 errors / 313 warnings / 17 hints; no suppression/baseline",
+        "Six added JVM cases executed; five added Android file-URI/WAV cases compiled only; existing imports use valid isolated WAV fixtures"
+      ],
       "device_evidence": [],
-      "remaining_blockers": []
+      "remaining_blockers": [
+        "All four original NW135 device rows and new ten-case supplement NOT_RUN",
+        "Actual system document picker/grants, storage/commit failure and source journey UI NOT_RUN",
+        "Airplane-mode stop/reopen/play/seek/skip and actual device decoder support NOT_RUN",
+        "Physical corrupted/missing/access-recovery/lifecycle/large-type/TalkBack/theme and installed-data checks NOT_RUN",
+        "Track/sample probe is not full-file decode or integrity evidence; session-only probe results are not persistent certificates",
+        "Retain NW134 and all prior transport/audio/recovery/performance/provider/release gates"
+      ],
+      "implementation_commits": [
+        "6e03ee5dcdfc5049f9a9fa5788d0d34f28807ea6",
+        "fd47bcdf161427a1fabd8ae85ec15dfbc90a4212"
+      ],
+      "pull_request": "https://github.com/Nahian2002/NightWave/pull/152"
     },
     {
       "id": "NW136",
@@ -1269,5 +1290,35 @@
     },
     "next_batch": "NW135",
     "next_branch_rule": "Base a new cumulative review branch on latest NW134; retain all pending physical acceptance."
+  },
+  "offline_journey": {
+    "batch": "NW135",
+    "branch": "update/nightwave-nw135-offline-journey",
+    "pull_request": "https://github.com/Nahian2002/NightWave/pull/152",
+    "protected_parent": "b7f0fad71604b601a5ea2e82f482229601fdf189",
+    "build_id": "NW-debug-2D35C8B666C72659",
+    "status": "LOCAL_VERIFIED",
+    "device_acceptance": "NOT_RUN",
+    "post_change_score": null,
+    "evidence": [
+      "docs/NW135_OFFLINE_IMPORT_READINESS.md",
+      "docs/quality/NW135_OFFLINE_ACCEPTANCE.csv",
+      "TEST_REPORT.md"
+    ],
+    "validation": {
+      "jvm_tests": 1688,
+      "jvm_suites": 210,
+      "source_checks": 70,
+      "new_android_cases_compiled_only": 5,
+      "theme_matrix_compiled_only": 612,
+      "protected_files_unchanged": 230,
+      "intentional_offline_files_changed": 4,
+      "callback_inventories_preserved": 9,
+      "lint_errors": 0,
+      "lint_warnings": 313,
+      "lint_hints": 17
+    },
+    "next_batch": "NW136",
+    "next_branch_rule": "Base a new cumulative review branch on latest NW135; carry all pending physical gates."
   }
 }
