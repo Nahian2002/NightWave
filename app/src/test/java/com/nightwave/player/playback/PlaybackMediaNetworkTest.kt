@@ -11,6 +11,7 @@ import org.junit.Test
 import java.io.IOException
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import androidx.media3.exoplayer.DefaultLoadControl
 
 class PlaybackMediaNetworkTest {
     @Test fun mediaUsesReusableHttp2CapableTransportWithoutCookiesCacheOrWholeStreamDeadline() {
@@ -47,7 +48,8 @@ class PlaybackMediaNetworkTest {
     @Test fun readAheadRemainsTimeAndMemoryBoundedWithUnchangedStartupThresholds() {
         assertTrue(PlaybackMediaNetwork.MAX_BUFFER_MS > PlaybackMediaNetwork.MIN_BUFFER_MS)
         assertTrue(PlaybackMediaNetwork.MIN_BUFFER_MS >= PlaybackMediaNetwork.REBUFFER_MS)
-        assertEquals(2500,PlaybackMediaNetwork.START_BUFFER_MS); assertEquals(5000,PlaybackMediaNetwork.REBUFFER_MS)
+        assertEquals(DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_MS,PlaybackMediaNetwork.START_BUFFER_MS)
+        assertEquals(DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS,PlaybackMediaNetwork.REBUFFER_MS)
         assertTrue(PlaybackMediaNetwork.TARGET_BYTES <= 16*1024*1024)
     }
 }

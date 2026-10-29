@@ -8,8 +8,8 @@ internal object PlaybackMediaNetwork {
     const val USER_AGENT = "Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 Chrome/121.0 Mobile Safari/537.36"
     const val MIN_BUFFER_MS = 50_000
     const val MAX_BUFFER_MS = 120_000
-    const val START_BUFFER_MS = 2_500
-    const val REBUFFER_MS = 5_000
+    const val START_BUFFER_MS = 1_000
+    const val REBUFFER_MS = 2_000
     const val TARGET_BYTES = 16 * 1024 * 1024
 
     // HTTP/2 negotiation with ordinary HTTP/1.1 fallback. No cookies, disk cache,
