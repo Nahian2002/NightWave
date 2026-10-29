@@ -1,6 +1,6 @@
 # NightWave — repository navigation
 
-**Current implementation:** ART02 on [`update/nightwave-art02-cached-artwork`](https://github.com/Nahian2002/NightWave/tree/update/nightwave-art02-cached-artwork), [draft PR #157](https://github.com/Nahian2002/NightWave/pull/157), stacked on #156. [Changes/evidence](quality/ART02_CACHED_ARTWORK.md), [hourly sequence](quality/UPCOMING_UPDATES.md), [verification](../TEST_REPORT.md). Eight new physical cases NOT_RUN. **SEARCH02 is next.** Earlier reviews remain historical.
+**Current implementation:** SEARCH02 on [`update/nightwave-search02-responsive`](https://github.com/Nahian2002/NightWave/tree/update/nightwave-search02-responsive), stacked on #157. [Changes/evidence](quality/SEARCH02_RESPONSIVE_SEARCH.md), [hourly sequence](quality/UPCOMING_UPDATES.md), [verification](../TEST_REPORT.md). Eight new phone cases NOT_RUN. **NW137 is next.** Earlier reviews remain historical.
 
 ## Start here
 

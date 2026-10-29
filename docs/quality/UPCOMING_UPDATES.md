@@ -8,8 +8,8 @@ Replanned 29 October 2026 from the [latest owner recording review](../audits/202
 | --- | --- | --- | --- |
 | 1 | FINISH02 | Locally verified, 29 Oct | Clean saved identity in Resume/options/Downloads; clear search and Show all; completed transfer duration/rate. |
 | 2 | ART02 | Locally verified, 30 Oct | Existing saved artwork continuity using known identity and existing cached images, with bounded background work and deletion fences. |
-| 3 | SEARCH02 | Next eligible scheduled run | Measured public-search phases, safe bounded result continuity, cancellation/retry and source/version preservation. |
-| 4 | NW137 | After SEARCH02 | Guided owned-LRC import, explicit binding and readable synchronized lyrics. |
+| 3 | SEARCH02 | Locally verified, 30 Oct | Measured public-search phases, safe bounded result continuity, cancellation/retry and source/version preservation. |
+| 4 | NW137 | Next eligible scheduled run | Guided owned-LRC import, explicit binding and readable synchronized lyrics. |
 | 5 | NW138 | After NW137 | Clear active versus draft sound, accessible advanced controls and reachable Apply. |
 | 6 | NW139 | After NW138 | Compact optional recovery and disposable backup/restore plan; live account operations require the owner's explicit scope. |
 | 7 | NW140 | After NW139 source work | Android measurement harness, trace-based improvements and real startup/search/playback evidence. |
@@ -25,9 +25,13 @@ The schedule is every hour. These are planned sequential slots, not deadlines or
 
 Codex heartbeat `nightwave-sequential-upgrades` is active in this chat, **every hour**, as requested by the owner (Asia/Dhaka host timezone). The local Codex app/host must be available. Each run reads the current backlog and checkout, skips overlapping active work, completes one eligible source batch and records its next step. Report completed work, meaningful failures or required input; remain quiet on unchanged state. The backlog carries the actual status; target dates never mark a batch complete.
 
+## SEARCH02 results
+
+[Responsive public-search results and exact build](SEARCH02_RESPONSIVE_SEARCH.md). Two new screen tests compile only and eight new physical cases remain NOT_RUN. NW137 is next.
+
 ## ART02 results
 
-[Cached-artwork results and exact build](ART02_CACHED_ARTWORK.md). Six new Android test methods compile only and eight new physical cases remain NOT_RUN. SEARCH02 is next.
+[Cached-artwork results and exact build](ART02_CACHED_ARTWORK.md). Six new Android test methods compile only and eight new physical cases remain NOT_RUN. SEARCH02 follows this historical stage and is locally verified above.
 
 ## FINISH02 committed implementation plan
 

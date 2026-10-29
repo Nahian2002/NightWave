@@ -1,8 +1,10 @@
 # NightWave tools — current use and historical checks
 
-**Current implementation baseline:** ART02 on `update/nightwave-art02-cached-artwork`, stacked on #156; 1,762 JVM / 218 suites, 75 source checks, lint 0 errors / 317 warnings / 17 hints. [Evidence](../docs/quality/ART02_CACHED_ARTWORK.md), [verification](../TEST_REPORT.md). Eight added JVM tests execute; six new Android methods compile only. Phone acceptance NOT_RUN; Actions stays disabled.
+**Current implementation baseline:** SEARCH02 on `update/nightwave-search02-responsive`, stacked on #157; 1,772 JVM / 219 suites, 76 source checks and lint 0 errors / 317 warnings / 17 hints. [Evidence](../docs/quality/SEARCH02_RESPONSIVE_SEARCH.md), [verification](../TEST_REPORT.md). Two new screen methods compile only; phone acceptance NOT_RUN. Actions remains disabled.
 
 ## Recommended entrypoints
+
+- **SEARCH02 continuity fences:** `python tools/verify_search_continuity.py --self-test` checks public-only cache bounds, matching visible refresh rows, explicit refresh bypass, phase deadlines, guarded cache commits and numeric diagnostics. Actual provider timing and phone behavior remain separate.
 
 - **ART02 cached-artwork fences:** `python tools/verify_artwork_recovery.py --self-test` protects bounded cache-only staging, source/deletion/lifecycle publication, metadata-only player updates and revision-based queue refresh. Runtime cache, notification and audible acceptance remain separate.
 
