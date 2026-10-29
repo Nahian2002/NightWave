@@ -3,6 +3,7 @@ package com.nightwave.player.playback
 import android.media.audiofx.Equalizer
 import android.app.PendingIntent
 import android.content.Intent
+import android.content.Context
 import android.net.Uri
 import android.view.KeyEvent
 import android.os.Handler
@@ -45,6 +46,7 @@ import com.nightwave.player.widget.NightWaveWidgetController
 import com.nightwave.player.widget.WidgetPlaybackSnapshot
 import com.nightwave.player.library.MusicLibrary
 import com.nightwave.player.net.YouTubeGateway
+import com.nightwave.player.offline.OfflineTrackIdentityStore
 import com.nightwave.player.offline.OfflineAudioLibrary
 import com.nightwave.player.offline.OfflinePlaybackQueue
 import com.nightwave.player.offline.OfflineGaplessPolicy
@@ -142,6 +144,65 @@ class PlaybackService : MediaLibraryService() {
     private val queue = PlaybackQueue()
     private lateinit var savedQueue: QueueStateStore
     private val main = Handler(Looper.getMainLooper())
+    private val offlineIndexWorker = java.util.concurrent.ThreadPoolExecutor(1, 1, 0L,
+        TimeUnit.MILLISECONDS, java.util.concurrent.ArrayBlockingQueue<Runnable>(1),
+        java.util.concurrent.ThreadPoolExecutor.DiscardOldestPolicy())
+    private var offlineIndexEpoch = 0L
+    private val offlineIndexPrefs by lazy {
+        getSharedPreferences("nightwave_offline_v1", Context.MODE_PRIVATE)
+    }
+    private val offlineIndexChanged = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        if (key == "items") main.post {
+            offlineIndexEpoch++
+            main.removeCallbacks(reconcileOfflineIndex)
+            main.postDelayed(reconcileOfflineIndex, 80L)
+        }
+    }
+    private val reconcileOfflineIndex = Runnable {
+        if (offlinePlaying) {
+            val ids = offlineQueue.snapshot()
+            val selected = offlineQueue.current
+            val epoch = offlineIndexEpoch
+            val expectedGeneration = generation
+            val expectedMedia = exoPlayer?.currentMediaItem?.mediaId
+            runCatching { offlineIndexWorker.execute {
+                // An unreadable index must not erase the current queue.
+                val known = runCatching { OfflineAudioLibrary(this).songs().map { it.id }.toSet() }.getOrNull()
+                main.post {
+                    if (known == null || epoch != offlineIndexEpoch || generation != expectedGeneration ||
+                        !offlinePlaying || offlineQueue.snapshot() != ids || offlineQueue.current != selected ||
+                        exoPlayer?.currentMediaItem?.mediaId != expectedMedia) return@post
+                    val player = exoPlayer ?: return@post
+                    if (selected !in known) {
+                        cancelCrossfade()
+                        generation++
+                        cancelPendingResolution()
+                        offlineQueue.reset()
+                        offlineGaplessActive = false
+                        offlinePlaying = false
+                        offlineSession.clearSelection()
+                        player.pause()
+                        player.stop()
+                        player.clearMediaItems()
+                    } else {
+                        cancelCrossfade()
+                        offlineQueue.retain(known)
+                        if (offlineGaplessActive) {
+                            // Update our ordered IDs first, then Media3's prepared timeline.
+                            for (i in player.mediaItemCount - 1 downTo 0) {
+                                val localId = player.getMediaItemAt(i).mediaId.removePrefix("offline:")
+                                if (localId !in known) player.removeMediaItem(i)
+                            }
+                        }
+                        selected?.let { offlineSession.saveSelection(offlineQueue.snapshot(), it,
+                            player.currentPosition.coerceAtLeast(0L)) }
+                        scheduleCrossfadeCheck()
+                    }
+                }
+            } }
+        }
+    }
+
     private lateinit var sleepStatus: SleepTimerStatusStore
     private lateinit var offlineSpeedStore: OfflinePlaybackSpeedStore
     private lateinit var listeningLevelStore: ListeningLevelStore
@@ -1089,6 +1150,7 @@ class PlaybackService : MediaLibraryService() {
             else "Waiting for a compatible playback audio session.")
         savedQueue.clearLookup() // process restart must not leave a ghost spinner
         offlineSession = OfflineSessionStore(this)
+        offlineIndexPrefs.registerOnSharedPreferenceChangeListener(offlineIndexChanged)
         offlineControls = OfflinePlaybackPreferencesStore(this)
         offlineQueue.setShuffle(offlineControls.shuffle())
         offlineQueue.setRepeat(offlineControls.repeat())
@@ -2010,16 +2072,19 @@ class PlaybackService : MediaLibraryService() {
         val selected = OfflineGaplessPolicy.selectedIndex(ids, selectedId) ?: return null
         val indexed = runCatching { library.songs().associateBy { it.id } }.getOrNull()
             ?: return null
+        val identities = OfflineTrackIdentityStore(this)
         val items = ArrayList<MediaItem>(ids.size)
         for (id in ids) {
             val song = indexed[id] ?: return null
             val file = library.fileFor(song) ?: return null
+            val identity = identities.display(song)
             items.add(MediaItem.Builder()
                 .setMediaId("offline:" + song.id)
                 .setUri(Uri.fromFile(file))
                 .setMimeType(song.mimeType)
                 .setMediaMetadata(MediaMetadata.Builder()
-                    .setTitle(song.title).setArtist("Offline · NightWave").build())
+                    .setTitle(identity.title).setArtist(identity.creator)
+                    .setArtworkUri(identity.artwork.takeIf { it.isNotBlank() }?.let(Uri::parse)).build())
                 .build())
         }
         return items to selected
@@ -2051,10 +2116,12 @@ class PlaybackService : MediaLibraryService() {
         // If the queue is missing a file or exceeds the bounded playlist cap,
         // preserve the existing per-track fallback rather than dropping songs.
         val timeline = preparedOfflineTimeline(localLibrary, id)
+        val identity = OfflineTrackIdentityStore(this).display(song)
         val item = MediaItem.Builder().setMediaId("offline:" + song.id)
             .setUri(Uri.fromFile(file)).setMimeType(song.mimeType)
             .setMediaMetadata(MediaMetadata.Builder()
-                .setTitle(song.title).setArtist("Offline · NightWave").build())
+                .setTitle(identity.title).setArtist(identity.creator)
+                    .setArtworkUri(identity.artwork.takeIf { it.isNotBlank() }?.let(Uri::parse)).build())
             .build()
         if (!offlineSession.saveSelection(offlineQueue.snapshot(), id, resumePositionMs)) {
             // Playback may still proceed, but no false promise of durable resume.
@@ -2327,6 +2394,10 @@ class PlaybackService : MediaLibraryService() {
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? = mediaSession
 
     override fun onDestroy() {
+        offlineIndexPrefs.unregisterOnSharedPreferenceChangeListener(offlineIndexChanged)
+        offlineIndexEpoch++
+        main.removeCallbacks(reconcileOfflineIndex)
+        offlineIndexWorker.shutdownNow()
         NightWaveWidgetProvider.publish(this, WidgetPlaybackSnapshot())
         cancelCrossfade()
         clearSleepTimer()

@@ -5,6 +5,7 @@ import com.nightwave.player.v2.ui.NightWaveNativeMattePolicy
 
 
 import android.app.AlertDialog
+import coil.load
 import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Color
@@ -168,7 +169,7 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
             setPadding(0, 0, 0, dp(10))
             contentDescription = "Offline music storage and device free space"
         }
-        root.addView(storageSummary, LinearLayout.LayoutParams(-1, -2))
+
         // If a user restores a backup or frees disk space while this screen
         // stays open, let them recheck without deleting or rewriting metadata.
         val recheck = label(OfflineLibraryRecoveryGuide.recheckActionLabel(),
@@ -185,9 +186,14 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
             }
         }
         browseControls += recheck
-        root.addView(recheck, LinearLayout.LayoutParams(-1, dp(48)).apply {
-            bottomMargin = dp(7)
-        })
+        val storageRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            addView(storageSummary, LinearLayout.LayoutParams(0, -2, 1f))
+            recheck.text = "Recheck"
+            addView(recheck, LinearLayout.LayoutParams(dp(80), dp(48)))
+        }
+        root.addView(storageRow)
         val search = EditText(this).apply {
             hint = "Search saved songs"
             setSingleLine(true)
@@ -239,10 +245,12 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
         val quickActions = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
         }
-        quickActions.addView(quickAction("Downloads", "Review download progress and history",
+        val downloadsShortcut = quickAction("Downloads", "Review download progress and history",
             false) {
             startActivity(Intent(this@OfflineLibraryActivity, CatalogDownloadsActivity::class.java))
-        }, LinearLayout.LayoutParams(0, dp(48), 1f).apply { rightMargin = dp(5) })
+        }
+        quickActions.addView(downloadsShortcut, LinearLayout.LayoutParams(0, dp(48), 1f))
+        recoveryOnly(downloadsShortcut)
         quickActions.addView(quickAction("Import files", "Import audio from your device", true) {
             openImportPicker()
         }, LinearLayout.LayoutParams(0, dp(48), 1f).apply { leftMargin = dp(5) })
@@ -270,8 +278,8 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
                 else "Expand music sources and offline playback controls"
             }
         }
-        root.addView(toolsToggle, LinearLayout.LayoutParams(-1, dp(48)).apply {
-            bottomMargin = dp(4)
+        quickActions.addView(toolsToggle, LinearLayout.LayoutParams(0, dp(48), 1f).apply {
+            marginStart = dp(5)
         })
         root.addView(extraTools)
         val otherSources = LinearLayout(this).apply {
@@ -642,6 +650,7 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
         playAllControl.alpha = if (visibleSongs.any { it.id in playableIds }) 1f else 0.45f
         page = OfflineLibraryCapacity.safePage(page, visibleSongs.size)
         val numberOfPages = OfflineLibraryCapacity.pageCount(visibleSongs.size)
+        (pageLabel.parent as? View)?.visibility = if (numberOfPages > 1) View.VISIBLE else View.GONE
         pageLabel.text = "Page " + (page + 1) + " / " + numberOfPages
         previousPage.isEnabled = page > 0
         nextPage.isEnabled = page + 1 < numberOfPages
@@ -649,6 +658,7 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
         nextPage.alpha = if (nextPage.isEnabled) 1f else 0.35f
         val pageSongs = visibleSongs.drop(page * OfflineLibraryCapacity.pageSize())
             .take(OfflineLibraryCapacity.pageSize())
+        val identities = OfflineTrackIdentityStore(this)
         tracks.removeAllViews()
         if (report.attentionCount > 0) {
             tracks.addView(label(
@@ -703,10 +713,13 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
                 background = cardBackground(0xFF172432.toInt())
             }
             val description = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-            description.addView(label(song.title, 14f, Color.WHITE, true).apply {
+            val identity = identities.display(song)
+            description.addView(label(identity.title, 16f, Color.WHITE, true).apply {
                 maxLines = if (resources.configuration.fontScale >= 1.3f) 2 else 1
                 ellipsize = android.text.TextUtils.TruncateAt.END
             })
+            if (identity.creator != "Saved audio") description.addView(
+                label(identity.creator, 13f, nativeMattePalette.secondary.toInt()))
             description.addView(label((song.bytes / 1024 / 1024).toString() +
                 " MB · " + availability +
                 (if (importedLyrics) " · LRC lyrics" else ""),
@@ -714,15 +727,26 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
                 maxLines = 2
             })
             row.addView(description, LinearLayout.LayoutParams(0, -2, 1f))
-            row.addView(label("▶", 21f, 0xFF91E2D7.toInt()).apply {
-                gravity = Gravity.CENTER
-                alpha = if (available) 1f else 0.35f
-                contentDescription = "Play " + song.title
+            val cover = android.widget.ImageView(this).apply {
+                contentDescription = "Play " + identity.title
+                scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
+                background = cardBackground(nativeMattePalette.surface.toInt())
+                clipToOutline = true
+                if (identity.artwork.isBlank()) {
+                    setImageResource(android.R.drawable.ic_media_play)
+                    imageTintList = android.content.res.ColorStateList.valueOf(nativeMattePalette.accent.toInt())
+                } else load(identity.artwork) {
+                    size(dp(56)); crossfade(false)
+                    placeholder(android.R.drawable.ic_media_play)
+                    error(android.R.drawable.ic_media_play)
+                }
+                alpha = if (available) 1f else .45f
                 setOnClickListener {
                     if (available) launchPlayback(song)
                     else status(availability + ". File was not removed.")
                 }
-            }, LinearLayout.LayoutParams(dp(48), dp(48)))
+            }
+            row.addView(cover, 0, LinearLayout.LayoutParams(dp(56), dp(56)).apply { marginEnd = dp(12) })
             row.addView(label("☁", 20f, 0xFF91E2D7.toInt()).apply {
                 gravity = Gravity.CENTER
                 alpha = if (available) 1f else 0.35f
@@ -836,7 +860,10 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
             .setMessage("Delete " + song.title + " from NightWave offline storage?")
             .setNegativeButton("Cancel", null)
             .setPositiveButton("Remove") { _, _ ->
-                if (library.delete(song)) { cachedReport = null; refresh() }
+                if (library.delete(song)) {
+                    OfflineTrackIdentityStore(this).remove(song.id)
+                    cachedReport = null; refresh()
+                }
                 else status("Unable to delete offline copy; entry kept if unverified")
             }.show()
     }

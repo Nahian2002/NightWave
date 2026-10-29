@@ -1397,5 +1397,51 @@
       "Heap/data/battery/soak and original NW134/NW135 data/recovery/release gates"
     ],
     "next_branch_rule": "Base next cumulative branch on NETWORK01; NW136 remains PLANNED until genuine range/checkpoint work."
+  },
+  "offline_finish": {
+    "status": "LOCAL_VERIFIED",
+    "device_acceptance": "NOT_RUN",
+    "branch": "fix/nightwave-offline-finish",
+    "pull_request": "https://github.com/Nahian2002/NightWave/pull/155",
+    "protected_parent": "981c6655577162fcfaf3612d36b51621891703d4",
+    "plan_commit": "c8f65557",
+    "timing_plan_commit": "54e02eeb",
+    "implementation_commit": "b4dc9486",
+    "final_built_revision": "336dc8c38aa0fdf6079e38bfc81d0ad606b69457",
+    "build_id": "NW-debug-FD80578F4DE7C202",
+    "pre_fix_main_ui_score": 8.8,
+    "pre_fix_recorded_offline_journey": 7.5,
+    "new_product_rating": null,
+    "owner_supplied_receive_mbps": 0.4477206035873588,
+    "owner_diagnostic_independently_captured": false,
+    "validation": {
+      "jvm_tests": 1747,
+      "jvm_suites": 216,
+      "new_jvm_methods": 21,
+      "source_checks": 73,
+      "lint_errors": 0,
+      "lint_warnings": 317,
+      "lint_hints": 17,
+      "unchanged_protected_files": 226,
+      "intentional_existing_files_changed": 14,
+      "callback_inventories_retained": 9
+    },
+    "host_benchmark": [
+      "OFFLINE_FINISH_CONTROLLED threads=1 bytes=2097171 nanos=7901540800 mbps=2.1233033435706616 scope=per-connection-paced-loopback-not-phone",
+      "OFFLINE_FINISH_CONTROLLED threads=4 bytes=2097171 nanos=1899911100 mbps=8.830606863657989 scope=per-connection-paced-loopback-not-phone"
+    ],
+    "device_speed_mbps": null,
+    "evidence": [
+      "docs/OFFLINE_FINISH_RECORDING_REVIEW.md",
+      "TEST_REPORT.md",
+      "docs/quality/OFFLINE_FINISH_ACCEPTANCE.csv"
+    ],
+    "remaining": [
+      "Fifteen new physical cases and all original gates remain NOT_RUN",
+      "Cached-only optional artwork can be unavailable; identity/art sidecar is local and not added to the cloud audio schema",
+      "Phone provider aggregate throughput may remain limited; no 1 Mbps minimum or fresh 9.5 rating",
+      "Two new UseKtx style notices and one short-label localization notice retained without suppression"
+    ],
+    "next_batch": "NW137"
   }
 }

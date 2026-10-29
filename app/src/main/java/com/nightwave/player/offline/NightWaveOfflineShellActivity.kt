@@ -39,6 +39,12 @@ abstract class NightWaveOfflineShellActivity : ComponentActivity() {
     private var nativeRecovery = false
     private var profile by mutableStateOf(ProfileSettings("offline-shell"))
     private var nativeContent: View? = null
+    private val recoveryControls = mutableListOf<View>()
+    /** Duplicate destinations remain available in the standalone recovery view. */
+    protected fun recoveryOnly(view: View) {
+        recoveryControls.add(view)
+        view.visibility = if (nativeRecovery) View.VISIBLE else View.GONE
+    }
     private var legacyHeader: View? = null
     private var viewport: ScrollView? = null
     private var restoredViewport: Int? = null
@@ -66,6 +72,7 @@ abstract class NightWaveOfflineShellActivity : ComponentActivity() {
         val content = nativeContent ?: return
         viewport?.let { restoredViewport = it.scrollY }
         legacyHeader?.visibility = if (nativeRecovery) View.VISIBLE else View.GONE
+        recoveryControls.forEach { it.visibility = if (nativeRecovery) View.VISIBLE else View.GONE }
         (content.parent as? ViewGroup)?.removeView(content)
         content.removeOnLayoutChangeListener(viewportLayoutListener)
         // Compose owns all insets in the normal shell, exactly once.

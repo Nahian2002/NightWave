@@ -107,6 +107,9 @@ class SearchTrackSaveWorker(
             else if (!SearchTrackOfflineIndex.linkVerified(applicationContext, canonical, saved)) {
                 fail("Audio was saved in Offline Library, but its search link was not recorded")
             } else {
+                // Original source metadata and already-cached art only. Failure
+                // is optional: it never changes verified audio readiness.
+                OfflineTrackIdentityStore(applicationContext).capture(saved, stream.video)
                 val verified = OfflineAudioLibrary(applicationContext)
                     .availableIds(setOf(saved.id))
                 if (!OfflineTransferCompletionPolicy.canCommit(isStopped, saved.id, verified))

@@ -55,7 +55,7 @@ class CatalogDownloadsActivity : NightWaveOfflineShellActivity() {
     private var directJobs: List<WorkInfo> = emptyList()
     private var searchedJobs: List<WorkInfo> = emptyList()
     private val progressSamples = HashMap<UUID, Pair<Long, Long>>()
-    private val observedSpeed = HashMap<UUID, Long>()
+    private val rateWindows = HashMap<UUID, DownloadRateWindow>()
     private val uiHandler = Handler(Looper.getMainLooper())
     // WorkManager can notify separately for each source/progress tick. Keep
     // only one pending UI paint and always read the newest lists when it runs.
@@ -182,7 +182,7 @@ class CatalogDownloadsActivity : NightWaveOfflineShellActivity() {
         refreshScheduled = false
         lastPaintedAtMs = -1L
         progressSamples.clear()
-        observedSpeed.clear()
+        rateWindows.clear()
         verificationGeneration++
         requestedSavedIds = null
         super.onPause()
@@ -248,6 +248,7 @@ class CatalogDownloadsActivity : NightWaveOfflineShellActivity() {
             leftMargin = dp(5)
         })
         root.addView(destinations)
+        recoveryOnly(destinations)
         overview = label("Loading your downloads…", 13f, 0xFFB7CAD4.toInt()).apply {
             setPadding(0, dp(13), 0, 0)
         }
@@ -439,7 +440,7 @@ class CatalogDownloadsActivity : NightWaveOfflineShellActivity() {
             .filter { it.state == WorkInfo.State.RUNNING }
             .map { it.id }.toSet()
         progressSamples.keys.retainAll(runningIds)
-        observedSpeed.keys.retainAll(runningIds)
+        rateWindows.keys.retainAll(runningIds)
         // NW63: the previous .take(60) permanently hid older history.
         // Page after filtering, preserving every WorkManager record without
         // inflating unbounded rows. A shrinking queue clamps the saved page.
@@ -498,7 +499,8 @@ class CatalogDownloadsActivity : NightWaveOfflineShellActivity() {
                     else -> CatalogDownloadQueue.KEY_VERIFYING
                 }, false)
             val verifyingTransfer = DownloadCenterViewPolicy.isVerifying(
-                info.state.name, verificationFlag)
+                info.state.name, verificationFlag) ||
+                (info.state == WorkInfo.State.RUNNING && total > 0L && received >= total)
             val progress = if (verifyingTransfer) "" else
                 DownloadCenterViewPolicy.percent(received, total)
                     ?.let { " · $it%" }
@@ -513,42 +515,27 @@ class CatalogDownloadsActivity : NightWaveOfflineShellActivity() {
                 info.state.name, markedPause)
             val now = SystemClock.elapsedRealtime()
             val previousSample = progressSamples[info.id]
-            if (verifyingTransfer) {
-                progressSamples.remove(info.id)
-                observedSpeed.remove(info.id)
-            } else if (info.state == WorkInfo.State.RUNNING) {
-                val resumedStart = info.progress.getLong(AudioTransferData.RESUMED, 0L)
+            val resumedStart = info.progress.getLong(AudioTransferData.RESUMED, 0L)
+            val rate = if (info.state == WorkInfo.State.RUNNING && !verifyingTransfer) {
                 if (previousSample == null || received < previousSample.first ||
-                    previousSample.first < resumedStart) {
+                    previousSample.first < resumedStart) rateWindows.remove(info.id)
+                if (previousSample == null || received != previousSample.first)
                     progressSamples[info.id] = received to now
-                    observedSpeed.remove(info.id)
-                } else if (received > previousSample.first) {
-                    // Do not discard a valid baseline when UI ticks under
-                    // 250ms: accumulate changes until we can calculate speed.
-                    val rate = OfflineTransferRatePolicy.bytesPerSecond(
-                        received - previousSample.first, now - previousSample.second)
-                    if (rate != null) {
-                        observedSpeed[info.id] = rate
-                        progressSamples[info.id] = received to now
-                    }
-                } else if (now - previousSample.second > 8000L) {
-                    observedSpeed.remove(info.id)
-                }
+                rateWindows.getOrPut(info.id) { DownloadRateWindow() }
+                    .observe(received, now, resumedStart)
             } else {
                 progressSamples.remove(info.id)
-                observedSpeed.remove(info.id)
+                rateWindows.remove(info.id)
+                null
             }
-            val rate = if (info.state == WorkInfo.State.RUNNING && !verifyingTransfer)
-                DownloadCenterViewPolicy.recentRate(observedSpeed[info.id],
-                    progressSamples[info.id]?.second, now)
-                else null
             val rateText = if (received > 0L && info.state == WorkInfo.State.RUNNING &&
                 !verifyingTransfer) {
                 " · " + (if (rate == null && previousSample != null &&
                     now - previousSample.second > 8_000L)
                     "No new bytes · Waiting for source"
                     else OfflineTransferRatePolicy.preciseDisplay(rate)) +
-                    (OfflineTransferRatePolicy.etaSeconds(received, total, rate)
+                    (OfflineTransferRatePolicy.etaSeconds(received, total,
+                        rate.takeIf { rateWindows[info.id]?.canEstimate(now) == true })
                         ?.takeIf { it in 1..86400L }
                         ?.let { " · about " + (it / 60L) + "m " + (it % 60L) + "s left" }
                         ?: "")
@@ -560,8 +547,10 @@ class CatalogDownloadsActivity : NightWaveOfflineShellActivity() {
                 WorkInfo.State.RUNNING -> if (pausePending)
                     "Pausing · Cancelling current transfer"
                     else if (verifyingTransfer)
-                    "Checking audio · Saving to Offline Library (not ready yet)"
-                    else "Downloading" + progress + rateText
+                    "Finishing save · Checking audio (not ready yet)"
+                    else "Downloading" + progress + rateText +
+                        (if (total > 0L) " · %.1f / %.1f MiB".format(java.util.Locale.US,
+                            received / 1048576.0, total / 1048576.0) else "")
                 WorkInfo.State.SUCCEEDED -> when {
                     verifyingFiles -> "Checking saved audio file…"
                     fileCheckFailed -> "Could not verify saved audio · Reopen Downloads"
@@ -593,7 +582,8 @@ class CatalogDownloadsActivity : NightWaveOfflineShellActivity() {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
             }
-            heading.addView(label(title, 16f, Color.WHITE, true).apply {
+            heading.addView(label(com.nightwave.player.net.MusicIdentity.display(title, "").title,
+                16f, Color.WHITE, true).apply {
                 maxLines = 2
                 ellipsize = android.text.TextUtils.TruncateAt.END
             }, LinearLayout.LayoutParams(0, -2, 1f))

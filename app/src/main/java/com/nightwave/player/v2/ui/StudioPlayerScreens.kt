@@ -285,8 +285,8 @@ fun StudioMiniPlayer(
                         hapticView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
                     actions.playPause()
                 }, modifier = Modifier.size(48.dp)) {
-                    Icon(if (state.playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                        contentDescription = if (state.playing) "Pause playback" else "Resume playback",
+                    Icon(if (state.canPause) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                        contentDescription = if (state.canPause) "Pause playback" else "Resume playback",
                         tint = colors.onSurface)
                 }
                 if (showNext) {
@@ -1007,8 +1007,8 @@ fun StudioNowPlayingOverlay(
                         modifier = Modifier.size(if (playerLayout.compact) 64.dp else 72.dp)
                             .testTag("nightwave-now-playing-play-pause")) {
                         Box(contentAlignment = Alignment.Center) {
-                            Icon(if (state.playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                                contentDescription = if (state.playing) "Pause" else "Play",
+                            Icon(if (state.canPause) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                                contentDescription = if (state.canPause) "Pause" else "Play",
                                 tint = paletteColor(NightWaveMattePolicy.transportInk(LocalNightWavePalette.current)),
                                 modifier = Modifier.size(33.dp))
                         }

@@ -46,4 +46,9 @@ class OfflineSessionStore(context: Context) {
             if (flush) update.commit() else { update.apply(); true }
         }.getOrDefault(false)
     }
+
+    /** Explicitly forget a removed selection, retaining unrelated preferences. */
+    @Synchronized
+    fun clearSelection(): Boolean = prefs.edit().remove("snapshot").remove("position_id")
+        .remove("position_ms").commit()
 }

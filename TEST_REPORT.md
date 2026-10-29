@@ -1,24 +1,24 @@
-# Current verification — NW136 resumable transfers
+# Current verification — recorded offline journey finish
 
-29 October 2026. [Draft PR #154](https://github.com/Nahian2002/NightWave/pull/154), `update/nightwave-nw136-resumable-transfers`, stacked on NETWORK01 #153. Protected parent `2f8b757c2141269245fa97389bbd7d4ff53caf8d`; researched plan `cb752250`; implementation `a0057c72f15f0fd3aafe4a56646fe9a5b4ed9f00`; final built revision `d04d514f51a8b2a2554c5dc7c316302c4a656959`. [Plan/architecture/results](docs/NW136_RESUMABLE_TRANSFERS.md), [physical supplement](docs/quality/NW136_TRANSPORT_ACCEPTANCE.csv), [previous verification](https://github.com/Nahian2002/NightWave/blob/2f8b757c2141269245fa97389bbd7d4ff53caf8d/TEST_REPORT.md). **NW137 is next.**
+29 October 2026. [Draft PR #155](https://github.com/Nahian2002/NightWave/pull/155), `fix/nightwave-offline-finish`, stacked on NW136 #154. Protected parent `981c6655577162fcfaf3612d36b51621891703d4`; pre-code review/plan `c8f65557`, timing extension `54e02eeb`, implementation `b4dc9486`, final built revision `336dc8c38aa0fdf6079e38bfc81d0ad606b69457`. [Detailed ratings, plan and results](docs/OFFLINE_FINISH_RECORDING_REVIEW.md), [15-case phone supplement](docs/quality/OFFLINE_FINISH_ACCEPTANCE.csv), [previous verification](https://github.com/Nahian2002/NightWave/blob/981c6655577162fcfaf3612d36b51621891703d4/TEST_REPORT.md). **NW137 is next.**
 
-Eligible sources now use guarded bounded ranges and durable hashed recovery; unsupported sources safely restart. Original source/quality, all features/themes, signer/package, data/account boundaries and playback remain. Private checkpoint validity is 24h with lazy owned-file cleanup at the next download; only completed synced segments resume. Manual searched Resume uses a new WorkRequest UUID for the same source; automatic recovery retains the job identity.
+Pre-fix main visual rubric **8.8**, recorded offline journey **7.5**; no post-fix 9.5 claim. Owner-supplied second-run timings identify receive wait (~0.448 Mbps), not disk, as dominant. The candidate adds guarded four-part transfer after a validated probe, optional known identity/existing cached art, indexed-removal playback reconciliation, buffering Pause, measured ETA and compact retained routes. Original source/quality, all themes/features, signing and original data formats remain.
 
-| Executed or compiled check | Result and limit |
+| Evidence | Final result and practical limit |
 | --- | --- |
-| Full Windows builder | PASS final Android/Compose/APK and instrumentation-source compilation; initial API-compatibility candidate superseded |
-| JVM | **1,726 / 214 suites**, zero failures/errors/skips; 29 added real HTTP/file/policy methods |
-| Current source gates | **72 PASS**, including broken-caller fixtures; structural evidence only |
-| Lint | **0 errors / 314 warnings / 17 hints**; warnings unchanged, no suppression/baseline |
-| Source preservation | 223 protected files identical, eleven intentional existing offline edits; nine callback inventories retained |
-| Source/quality/privacy | Gateway, bitrate selection, playback, public-address body, package/build inputs and account/schema files unchanged |
-| Controlled host transfer | Complete exact-byte loopback fixture measured; not phone/provider speed proof |
-| Signing | Same certificate as previous owner-delivered APK; no installation |
-| Android/theme/device | Existing instrumentation sources compile only; 612 theme cases and prior queue/import/local routing cases remain NOT_RUN |
-| Physical acceptance | Original NW136 four rows and fourteen supplemental phone cases NOT_RUN; no connected device |
-| History/recovery/delivery | All-ref secret scan and verified private recovery/owner-only streamed-hash receipt retained outside Git |
-| Hosted checks | Actions remains disabled; no hosted pass is claimed |
+| Complete Windows builder | Android/Compose/APK and instrumentation-source compilation PASS |
+| JVM execution | **1,747 tests / 216 suites**, zero failures/errors/skips; 21 new methods |
+| Source fences | **73 PASS**, including broken-caller fixtures; not runtime phone proof |
+| Lint | **0 errors / 317 warnings / 17 hints**; three added style/localization notices triaged without suppression |
+| Controlled HTTP comparison | Identical 2,097,171-byte file: ~2.12 Mbps serial / ~8.83 Mbps parallel under per-response pacing; not phone/provider speed |
+| Source preservation | 226 protected files identical; fourteen intended existing source changes and nine callback inventories retained |
+| Package/dependencies/quality | Manifest/build inputs/Gateway/public-address function remain identical |
+| Signing/provenance | Same signer as previously delivered NW136; canonical embedded source/bytes verified |
+| Android/theme/runtime | Existing test sources compile only, including 612 theme cases; no connected phone/emulator |
+| Phone acceptance | Fifteen new cases plus all prior physical/data/recovery/audio/accessibility/resource/release gates NOT_RUN |
+| Recovery/delivery | Private verified source ZIP/bundles, raw tests/lint/provenance/signature and owner-only streamed-hash delivery |
+| Hosted checks | Actions stays disabled; no hosted pass or merge |
 
-Build **NW-debug-CBD2E4D4E07D9BB4**, canonical source SHA256 **CBD2E4D4E07D9BB46E34E20F0929226C5355CBB984291259C55C4ECBE250225D**, **908 inputs**. APK SHA256 **2FDF1084FCF3C64E5DC94FCDC9FD3EC4B7C13DCF5DA2A16BD42ABA5A29586B07**; signer **EA737A703B8F116EBC5C8C0A717DDBF3A2A5808ACC9079A8F79CD1B3CD860394**. App `com.nightwave.player`, version `2.0.0-alpha5s` / code35, min26 / target36 remain.
+Build **NW-debug-FD80578F4DE7C202**, canonical source SHA256 **FD80578F4DE7C20251247DBEB81EAAAE298C8289CD02233680C8F9509C39D29D**, **914 inputs**. APK SHA256 **1451AFEF92B6DFDA50914602E2F0F3C8BF3F18C32DA9DDAECB165B4D4FC81F28**. Signer **EA737A703B8F116EBC5C8C0A717DDBF3A2A5808ACC9079A8F79CD1B3CD860394**; package/version `com.nightwave.player` / `2.0.0-alpha5s` / code35, min26/target36 unchanged.
 
-The recording's slow rate does not isolate a cause. Bounded requests and numerical DNS/connect/TLS/header/receive/write/sync details now enable a useful diagnosis, but no physical 1 Mbps minimum, ISP line rate or new visual/product score is certified. The original 6.7 product baseline and latest recorded 8.8 UI rubric remain. Preserve all previous audible transport, process/storage/data/recovery/accessibility and release gates. NW137–NW145 remain the active route to measured 9.5 acceptance.
+Cached artwork/identity are optional local additions, not a cloud schema migration; cache misses never make audio unavailable. Four connections can improve per-connection pacing but cannot promise throughput against an aggregate source/network limit. Concurrent read timings are cumulative; elapsed wall time is separate. Validate same-source quality, completed bytes, Wi-Fi/mobile and background playback, Pause/Cancel/process/storage, selected/queued deletion, four-theme rendering, offline audio/seek and resource soak on the actual phone. The original whole-product 6.7 baseline remains historical; no fresh overall certification is inferred.

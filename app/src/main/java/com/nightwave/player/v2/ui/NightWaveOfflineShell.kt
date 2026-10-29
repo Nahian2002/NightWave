@@ -88,7 +88,7 @@ fun NightWaveOfflineShell(
             NightWaveActionGroup {
                 TextButton(onClick = actions::previous, enabled = state.connected) { Text("Previous") }
                 TextButton(onClick = actions::playPause, enabled = state.connected) {
-                    Text(if (state.playing) "Pause" else "Play")
+                    Text(if (state.canPause) "Pause" else "Play")
                 }
                 TextButton(onClick = actions::next, enabled = state.connected) { Text("Next") }
             }

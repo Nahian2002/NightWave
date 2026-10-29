@@ -1,6 +1,6 @@
 # NightWave — repository navigation
 
-**Current implementation:** NW136 on [`update/nightwave-nw136-resumable-transfers`](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw136-resumable-transfers), [draft PR #154](https://github.com/Nahian2002/NightWave/pull/154) stacked on NETWORK01 #153. [Researched plan/evidence](NW136_RESUMABLE_TRANSFERS.md), [14-case physical supplement](quality/NW136_TRANSPORT_ACCEPTANCE.csv), [verification](../TEST_REPORT.md). Build CBD2E4D4; physical speed/audio/recovery NOT_RUN. **NW137 is next.** Earlier reviews/audits remain historical.
+**Current implementation:** OFFLINE_FINISH on [`fix/nightwave-offline-finish`](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-offline-finish), [draft PR #155](https://github.com/Nahian2002/NightWave/pull/155) stacked on NW136 #154. [Detailed rating, repair plan and results](OFFLINE_FINISH_RECORDING_REVIEW.md), [15-case physical supplement](quality/OFFLINE_FINISH_ACCEPTANCE.csv), [verification](../TEST_REPORT.md). Build FD80578F; phone acceptance NOT_RUN. **NW137 is next.** Earlier reviews remain historical.
 
 ## Start here
 

@@ -1,8 +1,10 @@
 # NightWave tools — current use and historical checks
 
-**Current implementation baseline:** NW136 on `update/nightwave-nw136-resumable-transfers`, [draft PR #154](https://github.com/Nahian2002/NightWave/pull/154); 1,726 JVM tests / 214 suites, 72 source checks, lint 0 errors / 314 warnings / 17 hints. [Verification](../TEST_REPORT.md), [research and transfer evidence](../docs/NW136_RESUMABLE_TRANSFERS.md). Twenty-nine new JVM methods execute; physical and existing Android/theme cases remain NOT_RUN. Actions stays disabled.
+**Current implementation baseline:** OFFLINE_FINISH on `fix/nightwave-offline-finish`, [draft PR #155](https://github.com/Nahian2002/NightWave/pull/155); 1,747 JVM tests / 216 suites, 73 source checks, lint 0 errors / 317 warnings / 17 hints. [Review/plan/results](../docs/OFFLINE_FINISH_RECORDING_REVIEW.md), [verification](../TEST_REPORT.md). Twenty-one new JVM methods execute; actual phone transfer/art/removal/accessibility tests remain NOT_RUN. Actions stays disabled.
 
 ## Recommended entrypoints
+
+- **Offline finish fences:** `python tools/verify_offline_finish.py --self-test` protects real parallel response/cancel/commit wiring, cached-only optional metadata, deletion reconciliation, buffering intent, ETA and retained routes with broken-caller fixtures. JVM HTTP/file tests and phone acceptance remain separate evidence.
 
 - **NW136 range/recovery fences:** `python tools/verify_nw136_transfer.py --self-test` checks the real worker/caller path, validators, sync-before-checkpoint, hashed recovery, bounds and diagnostics using broken-caller fixtures. Real HTTP/file behavior executes in the JVM suite; source checks do not certify phone performance.
 

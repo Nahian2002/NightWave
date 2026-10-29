@@ -32,9 +32,10 @@ class DownloadCenterDashboardPolicyTest {
         assertFalse(policy.overview(2, 0, 0, 10, false, true).contains("0 ready"))
     }
 
-    @Test fun sourceTruthDoesNotClaimByteResumeOrDeleteOnHide() {
+    @Test fun sourceTruthDistinguishesSupportedResumeAndSafeRestart() {
         val guidance = policy.helpLine()
-        assertTrue(guidance.contains("restarts from zero"))
+        assertTrue(guidance.contains("supported sources"))
+        assertTrue(guidance.contains("others restart safely"))
         assertTrue(guidance.contains("not its offline file"))
         assertFalse(guidance.contains("partial transfer preserved"))
     }
