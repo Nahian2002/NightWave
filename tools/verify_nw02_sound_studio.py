@@ -29,7 +29,7 @@ assert 'effect.getBandLevel(i.toShort()).toInt()' in capabilities
 assert "eqCapabilities.publish(candidate, sessionId)" in service
 assert "Sound Studio" in screen and "Frequency response" in screen
 assert "Visual guide for the manual bands; not a live audio spectrum." in screen
-assert "Device presets" in screen and "Apply manual EQ" in screen
+assert "Device presets" in screen and "Apply manual EQ" in source("app/src/main/java/com/nightwave/player/v2/ui/SoundStudioApplyBar.kt")
 assert "capabilities.centersHz.size" in screen
 assert "SoundStudioPolicy.updateLevel" in screen
 assert "SoundStudioPolicy.validLevels" in screen
