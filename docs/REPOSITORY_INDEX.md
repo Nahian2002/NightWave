@@ -1,6 +1,6 @@
 # NightWave — repository navigation
 
-**Current implementation:** OFFLINE_FINISH on [`fix/nightwave-offline-finish`](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-offline-finish), [draft PR #155](https://github.com/Nahian2002/NightWave/pull/155) stacked on NW136 #154. [Detailed rating, repair plan and results](OFFLINE_FINISH_RECORDING_REVIEW.md), [15-case physical supplement](quality/OFFLINE_FINISH_ACCEPTANCE.csv), [verification](../TEST_REPORT.md). Build FD80578F; phone acceptance NOT_RUN. **NW137 is next.** Earlier reviews remain historical.
+**Current implementation:** FINISH02 on [`fix/nightwave-everyday-finish`](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-everyday-finish), stacked on #155. [Changes/evidence](quality/FINISH02_EVERYDAY_CLARITY.md), [execution order and six-hour schedule](quality/UPCOMING_UPDATES.md), [verification](../TEST_REPORT.md). Build 9457716D; eight new physical cases NOT_RUN. **ART02 is next.** Earlier reviews remain historical.
 
 ## Start here
 

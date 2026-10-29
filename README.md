@@ -1,12 +1,12 @@
 # NightWave
 
-**Upcoming updates:** [revised roadmap and daily sequence](docs/quality/UPCOMING_UPDATES.md). FINISH02 is in progress; ART02 and SEARCH02 precede NW137–NW145. Daily follow-ups target 10 AM Bangladesh time; completion requires recorded checks.
+**Upcoming updates:** [revised roadmap and daily sequence](docs/quality/UPCOMING_UPDATES.md). FINISH02 is locally verified; ART02 and SEARCH02 precede NW137–NW145. Follow-ups run every six hours; completion requires recorded checks.
 
-**Current review work:** [recording review and offline finish](docs/OFFLINE_FINISH_RECORDING_REVIEW.md), [fix/nightwave-offline-finish](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-offline-finish), [draft PR #155](https://github.com/Nahian2002/NightWave/pull/155) stacked on NW136 #154. Guarded parallel ranges address measured receive wait; saved searched tracks retain known identity/cached artwork, removed offline selections stop, buffering keeps Pause, and offline controls/ETA are clearer. All themes/features, source quality, signing and original data formats remain.
+**Current review work:** [FINISH02 everyday clarity](docs/quality/FINISH02_EVERYDAY_CLARITY.md) on [fix/nightwave-everyday-finish](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-everyday-finish), stacked on #155. Known saved identity, clear library filters and a verified completed-transfer receipt; every existing theme/feature and data boundary remains. **ART02 is next**, then SEARCH02 and NW137–NW145.
 
 **Current integrated source:** [`main`](https://github.com/Nahian2002/NightWave/tree/main), based on NW126 and the cumulative implementation. **Canonical `main` contains the reviewed cumulative source.**
 
-**29 October 2026 verification:** **1,747 JVM tests / 216 suites**, **73 source checks**, full Android/Compose/APK/instrumentation-source build PASS. Lint: **0 errors / 317 warnings / 17 hints**, including three triaged style/localization additions without suppression. Build **FD80578F**, same signer. Controlled paced loopback: **2.12 Mbps serial / 8.83 Mbps parallel**, identical bytes. This is not a phone/provider speed guarantee. [Exact evidence and remaining gates](TEST_REPORT.md).
+**29 October 2026 verification:** **1,754 JVM tests / 217 suites**, **74 source checks**, full Android/Compose/APK/instrumentation-source build PASS. Lint: **0 errors / 317 warnings / 17 hints**, including three triaged style/localization additions without suppression. Build **FD80578F**, same signer. Controlled paced loopback: **2.12 Mbps serial / 8.83 Mbps parallel**, identical bytes. This is not a phone/provider speed guarantee. [Exact evidence and remaining gates](TEST_REPORT.md).
 
 **Active next-upgrade plan:** [NW126–NW145 roadmap](docs/PRODUCT_QUALITY_ROADMAP.md), [structured backlog](docs/quality/NW126_NW145_BACKLOG.json), [original audit](docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md). **Next source batch: NW137.** NW126–NW136 are locally verified with physical acceptance pending. The original 6.7 product baseline and latest recorded 8.8 visual rubric remain historical ratings; networking changes do not establish a new 9.5 score.
 
@@ -15,7 +15,7 @@
 ## Start here
 
 - **[Current resumable transfer evidence and phone checks](docs/NW136_RESUMABLE_TRANSFERS.md)** · [safe upgrade guide](docs/BUILD_AND_RELEASE.md)
-- **[Active NW126–NW145 roadmap](docs/PRODUCT_QUALITY_ROADMAP.md)** · [structured backlog](docs/quality/NW126_NW145_BACKLOG.json) · [80 new acceptance cases](docs/quality/NW126_NW145_ACCEPTANCE.csv)
+- **[Active quality roadmap and revised sequence](docs/PRODUCT_QUALITY_ROADMAP.md)** · [structured backlog](docs/quality/NW126_NW145_BACKLOG.json) · [80 new acceptance cases](docs/quality/NW126_NW145_ACCEPTANCE.csv)
 - [NW111–NW125 implementation history and remaining gates](docs/NW111_NW125_SPOTIFY_QUALITY_ROADMAP.md)
 - [Build and safe update instructions](docs/BUILD_AND_RELEASE.md)
 - [Repository navigation](docs/REPOSITORY_INDEX.md)

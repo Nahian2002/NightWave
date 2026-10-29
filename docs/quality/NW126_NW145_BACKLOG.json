@@ -5,7 +5,7 @@
   "audit": "docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md",
   "implementation_base_revision": "61703c98238e762e59c049b6690853431f822884",
   "audit_branch": "audit/nightwave-post-nw125-quality-roadmap",
-  "next_batch": "FINISH02",
+  "next_batch": "ART02",
   "goal": "9.5+ within the declared NightWave music-player scope, conditional on actual product and acceptance evidence",
   "rating_kind": "Subjective comparative product review, not a measured Spotify score",
   "baseline_weighted_score": 6.655,
@@ -1476,12 +1476,29 @@
       "depends_on": [
         "OFFLINE_FINISH"
       ],
-      "implementation_status": "IMPLEMENTING",
+      "implementation_status": "LOCAL_VERIFIED",
       "device_status": "NOT_RUN",
-      "implementation_commit": null,
-      "local_evidence": [],
+      "implementation_commit": "2718895ce0aaec837aa18781d37da00165f14049",
+      "local_evidence": [
+        "1754 JVM tests / 217 suites, zero failures/errors/skips",
+        "74 source checks PASS; full Android/Compose/APK and instrumentation sources compile",
+        "Lint 0 errors / 317 warnings / 17 hints; unchanged issue inventory",
+        "904 prior canonical inputs byte-identical, ten intentional existing edits, three new inputs; nine callback inventories retained",
+        "917 embedded source inputs and same signer independently verified; private owner-only APK bytes/hash read back",
+        "3539-commit all-ref Gitleaks scan no leaks; reviewed exclusions unchanged"
+      ],
       "remaining_blockers": [
-        "Actual phone task and regression acceptance"
+        "Eight new phone cases NOT_RUN; original and earlier physical/data/audio/recovery/accessibility/soak gates retained",
+        "ART02 cached artwork continuity and SEARCH02 public-search response work remain separate planned batches"
+      ],
+      "branch": "fix/nightwave-everyday-finish",
+      "build_id": "NW-debug-9457716D1AC24E2A",
+      "source_sha256": "9457716D1AC24E2AB3D8E1761124CA9DB34A65658120375654EBABDF1D0F8EF6",
+      "apk_sha256": "53BCF27946D7DC8938DD6A1FD093ECE0E51C1AFD4072D2CD821B9C0FD2F71C01",
+      "evidence": [
+        "docs/quality/FINISH02_EVERYDAY_CLARITY.md",
+        "docs/quality/FINISH02_ACCEPTANCE.csv",
+        "TEST_REPORT.md"
       ]
     },
     {
@@ -1518,7 +1535,7 @@
   "schedule": {
     "kind": "thread_heartbeat",
     "automation_id": "nightwave-sequential-upgrades",
-    "cadence": "Daily 10:00 Asia/Dhaka",
+    "cadence": "Every 6 hours, Asia/Dhaka",
     "one_batch_per_run": true,
     "dates_are_target_slots_not_completion_promises": true,
     "requires_local_app_host_available": true

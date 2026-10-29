@@ -6,26 +6,28 @@ Replanned 29 October 2026 from the [latest owner recording review](../audits/202
 
 | Order | Batch | Target slot | Reviewable outcome |
 | --- | --- | --- | --- |
-| 1 | FINISH02 | Start now, 29 Oct | Clean saved identity in Resume/options/Downloads; clear search and Show all; completed transfer duration/rate. |
-| 2 | ART02 | 30 Oct | Existing saved artwork continuity using known identity and existing cached images, with bounded background work and deletion fences. |
-| 3 | SEARCH02 | 31 Oct | Measured public-search phases, safe bounded result continuity, cancellation/retry and source/version preservation. |
-| 4 | NW137 | 1 Nov | Guided owned-LRC import, explicit binding and readable synchronized lyrics. |
-| 5 | NW138 | 2 Nov | Clear active versus draft sound, accessible advanced controls and reachable Apply. |
-| 6 | NW139 | 3 Nov | Compact optional recovery and disposable backup/restore plan; live account operations require the owner's explicit scope. |
-| 7 | NW140 | 4 Nov | Android measurement harness, trace-based improvements and real startup/search/playback evidence. |
-| 8 | NW141 | 5 Nov | Accessibility and Bangla/English primary flows; actual TalkBack/font/contrast acceptance. |
-| 9 | NW142 | 6 Nov | Narrow/large-text/landscape/tablet/input coverage and targeted layout fixes. |
-| 10 | NW143 | 7 Nov | Clear first-run/failure/privacy/recovery journeys with retained capabilities. |
-| 11 | NW144 | 8 Nov | Existing notification/widget/external controls and share roundtrips. |
+| 1 | FINISH02 | Locally verified, 29 Oct | Clean saved identity in Resume/options/Downloads; clear search and Show all; completed transfer duration/rate. |
+| 2 | ART02 | Next eligible scheduled run | Existing saved artwork continuity using known identity and existing cached images, with bounded background work and deletion fences. |
+| 3 | SEARCH02 | Following run | Measured public-search phases, safe bounded result continuity, cancellation/retry and source/version preservation. |
+| 4 | NW137 | After SEARCH02 | Guided owned-LRC import, explicit binding and readable synchronized lyrics. |
+| 5 | NW138 | After NW137 | Clear active versus draft sound, accessible advanced controls and reachable Apply. |
+| 6 | NW139 | After NW138 | Compact optional recovery and disposable backup/restore plan; live account operations require the owner's explicit scope. |
+| 7 | NW140 | After NW139 source work | Android measurement harness, trace-based improvements and real startup/search/playback evidence. |
+| 8 | NW141 | After NW140 source work | Accessibility and Bangla/English primary flows; actual TalkBack/font/contrast acceptance. |
+| 9 | NW142 | After NW141 | Narrow/large-text/landscape/tablet/input coverage and targeted layout fixes. |
+| 10 | NW143 | After NW142 | Clear first-run/failure/privacy/recovery journeys with retained capabilities. |
+| 11 | NW144 | After NW143 | Existing notification/widget/external controls and share roundtrips. |
 | 12 | NW145 | After blocking evidence closes | Consolidated physical acceptance, task study, two-hour soaks and defensible re-rating. |
 
-These are planned daily slots, not deadlines or automatic acceptance. One bounded eligible batch runs at a time; a build failure or unfinished batch moves the later slots. Independent source work can continue with recorded device checks pending. Phone/account gates wait for actual evidence and appropriate user authorization. No automatic install, reset, merge, public APK or repository setting change.
+The schedule is every six hours. These are planned sequential slots, not deadlines or automatic acceptance. One bounded eligible batch runs at a time; a build failure or unfinished batch moves the later slots. Independent source work can continue with recorded device checks pending. Phone/account gates wait for actual evidence and appropriate user authorization. No automatic install, reset, merge, public APK or repository setting change.
 
 ## Follow-up schedule
 
-Codex heartbeat `nightwave-sequential-upgrades` is active in this chat, daily at **10:00 AM Asia/Dhaka**. This is the proposed default cadence while the owner's cadence question remains open. The local Codex app/host must be available. Each run reads the current backlog and checkout, skips overlapping active work, completes one eligible source batch and records its next step. Report completed work, meaningful failures or required input; remain quiet on unchanged state. The backlog carries the actual status; target dates never mark a batch complete.
+Codex heartbeat `nightwave-sequential-upgrades` is active in this chat, **every six hours**, as requested by the owner (Asia/Dhaka host timezone). The local Codex app/host must be available. Each run reads the current backlog and checkout, skips overlapping active work, completes one eligible source batch and records its next step. Report completed work, meaningful failures or required input; remain quiet on unchanged state. The backlog carries the actual status; target dates never mark a batch complete.
 
 ## FINISH02 committed implementation plan
+
+Completed locally: [results and exact build](FINISH02_EVERYDAY_CLARITY.md). Eight physical cases remain NOT_RUN. Next: ART02.
 
 Protected parent: `c932daaa1b3ac2e3da87730b3d726659f1e74171`. Branch: `fix/nightwave-everyday-finish`, stacked on #155. Private checkpoint: `20261029-finish02` outside Git.
 
