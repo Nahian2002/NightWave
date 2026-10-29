@@ -1,4 +1,4 @@
-# Active NightWave quality roadmap — NW126–NW145
+# Active NightWave quality roadmap — revised execution plan
 
 Established **28 October 2026**, after the owner's post-NW125 recording review. **This is the active plan for future upgrade batches.** NW111–NW125 implementation history is retained in [the previous roadmap](NW111_NW125_SPOTIFY_QUALITY_ROADMAP.md); unresolved device/release gates carry forward.
 
@@ -6,14 +6,14 @@ Established **28 October 2026**, after the owner's post-NW125 recording review. 
 
 1. Read [the detailed audit and scorecard](audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md), [the structured batch backlog](quality/NW126_NW145_BACKLOG.json), and [current verification](../TEST_REPORT.md).
 2. Confirm checkout and newest cumulative remote. Latest review branch: **OFFLINE_FINISH** on `fix/nightwave-offline-finish`, [draft PR #155](https://github.com/Nahian2002/NightWave/pull/155) stacked on NW136 #154. Read the [recording rating, repair plan and results](OFFLINE_FINISH_RECORDING_REVIEW.md). Main remains the integrated baseline; the review branch contains newest unmerged work.
-3. **Next source batch: NW137.** NW126–NW136 are locally verified with physical acceptance pending. Original NW134/NW135/NW136 and prior physical rows remain NOT_RUN.
+3. **Current source batch: FINISH02; then ART02, SEARCH02 and NW137–NW145.** Read the [revised sequence and daily schedule](quality/UPCOMING_UPDATES.md). NW126–NW136 are locally verified with physical acceptance pending. Original NW134/NW135/NW136 and prior physical rows remain NOT_RUN.
 4. Update backlog status/evidence, this roadmap's progress ledger and the current test report after each batch. A source implementation is not device acceptance. Re-rate only with fresh product evidence.
 
-Root [AGENTS.md](../AGENTS.md) makes these continuity instructions discoverable to future coding sessions. The roadmap is persisted in Git/GitHub; it is not a background automation or a promise that a future model remembers private chat text.
+Root [AGENTS.md](../AGENTS.md) makes these continuity instructions discoverable to future coding sessions. The roadmap is persisted in Git/GitHub. A separate daily thread heartbeat now reads this plan; its cadence and operating limits are recorded in the upcoming-update schedule.
 
 ## Outcome and product boundaries
 
-Current provisional score is **6.7/10** on the fixed, weighted [16-area rubric](audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md#scorecard). The strongest area is Now Playing at 8.0; visual identity and account/personalization are around 7.5. Compactness, result/source identity, offline convenience and lyric availability are the main gaps.
+The frozen 28 October baseline is **6.7/10** on the fixed, weighted [16-area rubric](audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md#scorecard). The strongest area is Now Playing at 8.0; visual identity and account/personalization are around 7.5. Compactness, result/source identity, offline convenience and lyric availability are the main gaps.
 
 The goal is **9.5+ for a coherent, original NightWave music player**: immediate and predictable listening, readable compact screens, useful collections, complete local search, trustworthy offline readiness, capable lyrics, accessible controls and tested recovery. Preserve the midnight identity, owned/local-first strengths, optional account and manual control over consequential changes.
 
@@ -29,7 +29,11 @@ Spotify provides a task-quality reference. Its commercial catalog, artist/album 
 - **You/settings:** profile, appearance, sound, recovery and Help. Place Room/storage preview and detailed diagnostic tooling behind an explicit advanced disclosure while preserving their recovery purpose.
 - **Compact means less duplication and clearer hierarchy.** Keep minimum 48dp independent touch targets; preserve system font scaling, readable supporting text and reflow. Do not achieve density by shrinking all controls or truncating every title.
 
-## Ordered implementation batches
+## Revised execution order
+
+[29 October recording review](audits/2026-10-29_RECORDING_230548_REVIEW.md): demonstrated usability **about 8.4**, visual rubric **8.8**, offline journey **9.0**; one transfer **42.678 Mbps**. Exact recorded APK attribution and hidden correctness remain unverified. No universal speed or final 9.5 claim. Prioritize **FINISH02 → ART02 → SEARCH02 → NW137 → NW138 → NW139 → NW140–NW145**. See [scope, dates and scheduler](quality/UPCOMING_UPDATES.md). Historical batch numbers below remain unchanged.
+
+## Original implementation batches
 
 Detailed scope, dependencies, finding IDs, source areas and four acceptance criteria per batch are authoritative in [the backlog](quality/NW126_NW145_BACKLOG.json). [The acceptance CSV](quality/NW126_NW145_ACCEPTANCE.csv) starts all new cases NOT_RUN; the original 139 cases remain untouched.
 

@@ -1,5 +1,7 @@
 # NightWave
 
+**Upcoming updates:** [revised roadmap and daily sequence](docs/quality/UPCOMING_UPDATES.md). FINISH02 is in progress; ART02 and SEARCH02 precede NW137–NW145. Daily follow-ups target 10 AM Bangladesh time; completion requires recorded checks.
+
 **Current review work:** [recording review and offline finish](docs/OFFLINE_FINISH_RECORDING_REVIEW.md), [fix/nightwave-offline-finish](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-offline-finish), [draft PR #155](https://github.com/Nahian2002/NightWave/pull/155) stacked on NW136 #154. Guarded parallel ranges address measured receive wait; saved searched tracks retain known identity/cached artwork, removed offline selections stop, buffering keeps Pause, and offline controls/ETA are clearer. All themes/features, source quality, signing and original data formats remain.
 
 **Current integrated source:** [`main`](https://github.com/Nahian2002/NightWave/tree/main), based on NW126 and the cumulative implementation. **Canonical `main` contains the reviewed cumulative source.**

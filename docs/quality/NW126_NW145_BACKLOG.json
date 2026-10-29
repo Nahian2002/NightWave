@@ -5,7 +5,7 @@
   "audit": "docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md",
   "implementation_base_revision": "61703c98238e762e59c049b6690853431f822884",
   "audit_branch": "audit/nightwave-post-nw125-quality-roadmap",
-  "next_batch": "NW137",
+  "next_batch": "FINISH02",
   "goal": "9.5+ within the declared NightWave music-player scope, conditional on actual product and acceptance evidence",
   "rating_kind": "Subjective comparative product review, not a measured Spotify score",
   "baseline_weighted_score": 6.655,
@@ -1443,5 +1443,84 @@
       "Two new UseKtx style notices and one short-label localization notice retained without suppression"
     ],
     "next_batch": "NW137"
+  },
+  "execution_order": [
+    "FINISH02",
+    "ART02",
+    "SEARCH02",
+    "NW137",
+    "NW138",
+    "NW139",
+    "NW140",
+    "NW141",
+    "NW142",
+    "NW143",
+    "NW144",
+    "NW145"
+  ],
+  "execution_plan": "docs/quality/UPCOMING_UPDATES.md",
+  "latest_recorded_review": {
+    "evidence": "docs/audits/2026-10-29_RECORDING_230548_REVIEW.md",
+    "weighted_demonstrated_usability": 8.432,
+    "main_visual": 8.8,
+    "offline_journey": 9.0,
+    "speed_scope": "One recorded transfer: 2704719 bytes / 507 ms = 42.678 Mbps; not universal certification",
+    "exact_recorded_apk_attribution": false,
+    "historical_baseline_retained": true
+  },
+  "follow_up_batches": [
+    {
+      "id": "FINISH02",
+      "title": "Everyday offline clarity",
+      "scope": "Resume/dialog/download titles use known identity; one-tap query/filter recovery; completed numeric transfer receipt without parsing diagnostics.",
+      "depends_on": [
+        "OFFLINE_FINISH"
+      ],
+      "implementation_status": "IMPLEMENTING",
+      "device_status": "NOT_RUN",
+      "implementation_commit": null,
+      "local_evidence": [],
+      "remaining_blockers": [
+        "Actual phone task and regression acceptance"
+      ]
+    },
+    {
+      "id": "ART02",
+      "title": "Existing saved artwork continuity",
+      "scope": "Bounded background recovery from existing known metadata and cached art only; deletion/freshness fences, quota and no new network dependency.",
+      "depends_on": [
+        "FINISH02"
+      ],
+      "implementation_status": "PLANNED",
+      "device_status": "NOT_RUN",
+      "implementation_commit": null,
+      "local_evidence": [],
+      "remaining_blockers": [
+        "Actual phone task and regression acceptance"
+      ]
+    },
+    {
+      "id": "SEARCH02",
+      "title": "Responsive public search",
+      "scope": "Measure request phases; bounded source-aware cache and cancellation/retry continuity; preserve URLs, all versions, private/local isolation and provider limits.",
+      "depends_on": [
+        "ART02"
+      ],
+      "implementation_status": "PLANNED",
+      "device_status": "NOT_RUN",
+      "implementation_commit": null,
+      "local_evidence": [],
+      "remaining_blockers": [
+        "Actual phone task and regression acceptance"
+      ]
+    }
+  ],
+  "schedule": {
+    "kind": "thread_heartbeat",
+    "automation_id": "nightwave-sequential-upgrades",
+    "cadence": "Daily 10:00 Asia/Dhaka",
+    "one_batch_per_run": true,
+    "dates_are_target_slots_not_completion_promises": true,
+    "requires_local_app_host_available": true
   }
 }
