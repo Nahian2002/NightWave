@@ -21,7 +21,7 @@ class OwnedLyricsBindingTest {
         val second = "https://www.youtube.com/watch?v=12345678901"
         assertNotEquals(LyricsTrackBindingPolicy.storageId(publicMedia), LyricsTrackBindingPolicy.storageId(second))
         assertFalse(LyricsTrackBindingPolicy.matches("youtube:abcdefghijk", second))
-        assertFalse(LyricsTrackBindingPolicy.matches(local, public))
+        assertFalse(LyricsTrackBindingPolicy.matches(local, publicMedia))
     }
     @Test fun signedUrlsFilenamesAndNoncanonicalReferencesAreRejected() {
         for (id in listOf("", "Blue.lrc", "abcdefghijk", "https://media.example/audio?token=fixture",
@@ -30,7 +30,7 @@ class OwnedLyricsBindingTest {
             assertNull(id, LyricsTrackBindingPolicy.storageId(id))
     }
     @Test fun unsupportedStoredKeysCannotBecomeAPlaybackBinding() {
-        for (id in listOf("youtube:short", "youtube:../../foo", public, "offline:$local", "Title match"))
+        for (id in listOf("youtube:short", "youtube:../../foo", publicMedia, "offline:$local", "Title match"))
             assertNull(LyricsTrackBindingPolicy.mediaId(id))
     }
     @Test fun ownedNormalizationPreservesBanglaMarksAndSimultaneousCueOrder() {
