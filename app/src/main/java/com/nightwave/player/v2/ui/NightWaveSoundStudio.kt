@@ -13,12 +13,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import com.nightwave.player.v2.ui.NightWaveMatteButton as Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
@@ -38,11 +38,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -53,9 +56,11 @@ import com.nightwave.player.playback.CrossfadeSettingsStore
 import com.nightwave.player.playback.OfflineNormalizationStore
 import com.nightwave.player.playback.EqualizerCapabilities
 import com.nightwave.player.playback.EqualizerCommandPolicy
+import com.nightwave.player.playback.EqualizerSelectionStore
 import com.nightwave.player.playback.EqualizerStatusStore
 import com.nightwave.player.playback.PlaybackService
 import com.nightwave.player.playback.SoundStudioPolicy
+import com.nightwave.player.playback.SoundStudioDraftPolicy
 import com.nightwave.player.playback.SoundStudioTuningPolicy
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -78,6 +83,7 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
     val screenLifecycle = LocalView.current.findViewTreeLifecycleOwner()?.lifecycle
     val scope = rememberCoroutineScope()
     val capabilityStore = remember(context) { EqualizerCapabilities(context) }
+    val selectionStore = remember(context) { EqualizerSelectionStore(context) }
     val statusStore = remember(context) { EqualizerStatusStore(context) }
     val crossfadeStore = remember(context) { CrossfadeSettingsStore(context) }
     val normalizationStore = remember(context) { OfflineNormalizationStore(context) }
@@ -89,11 +95,13 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
     var pendingCommand by remember { mutableStateOf<String?>(null) }
     var notice by remember { mutableStateOf("") }
     var draftLevels by remember { mutableStateOf(emptyList<Int>()) }
+    var advanced by remember { mutableStateOf(false) }
     var selectedShape by remember { mutableStateOf<SoundStudioTuningPolicy.Shape?>(null) }
     var selectedCrossfade by remember { mutableStateOf(crossfadeStore.read()) }
     var balanceEnabled by remember { mutableStateOf(normalizationStore.enabled()) }
     var transitionBusy by remember { mutableStateOf(false) }
     var transitionNotice by remember { mutableStateOf("") }
+    val displayedToken = capabilities.commandToken
 
     fun applySnapshot(resetDraft: Boolean) {
         val latest = capabilityStore.read()
@@ -150,7 +158,7 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
         if (pendingCommand != null || loading || transitionBusy) return
         loading = true
         scope.launch {
-            refreshFromEngine(resetDraft = true)
+            refreshFromEngine(resetDraft = false)
             loading = false
         }
     }
@@ -158,16 +166,18 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
     fun issueCommand(action: String, configure: (Intent) -> Unit) {
         if (pendingCommand != null || transitionBusy) return
         val requestId = UUID.randomUUID().toString()
+        val requestedToken = displayedToken
+        val requestedLevels = draftLevels.toList()
         pendingCommand = requestId
         notice = ""
-        val result = runCatching {
-            context.startService(Intent(context, PlaybackService::class.java).apply {
-                this.action = action
-                putExtra(PlaybackService.EXTRA_EQ_COMMAND_ID, requestId)
-                putExtra(PlaybackService.EXTRA_EQ_SESSION_TOKEN, capabilities.commandToken)
-                configure(this)
-            })
+        val command = Intent(context, PlaybackService::class.java).apply {
+            this.action = action
+            putExtra(PlaybackService.EXTRA_EQ_COMMAND_ID, requestId)
+            putExtra(PlaybackService.EXTRA_EQ_SESSION_TOKEN, requestedToken)
+            configure(this)
         }
+        val requestedPreset = command.getIntExtra(PlaybackService.EXTRA_EQ_PRESET, -1)
+        val result = runCatching { context.startService(command) }
         if (result.isFailure) {
             pendingCommand = null
             notice = "Couldn't send the equalizer command to playback."
@@ -190,10 +200,21 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                         }
                         delay(300L)
                     }
-                    // Preset changes should show device-reported gains,
-                    // whereas manual edits keep the just-applied draft.
-                    applySnapshot(resetDraft = action == PlaybackService.ACTION_EQ_PRESET_SET ||
-                        action == PlaybackService.ACTION_EQ_BANDS_APPLY)
+                    // A rejected manual request keeps its draft on the same
+                    // identity. Only acknowledged verified/rounded readback
+                    // replaces it; changed identities always reset in applySnapshot.
+                    val readback = capabilityStore.read()
+                    val savedChoice = selectionStore.read()
+                    applySnapshot(resetDraft = action == PlaybackService.ACTION_EQ_PRESET_SET &&
+                        savedChoice?.preset == requestedPreset && latest.selected == requestedPreset &&
+                        (requestedPreset == 0 || latest.active) ||
+                        (action == PlaybackService.ACTION_EQ_BANDS_APPLY &&
+                            SoundStudioDraftPolicy.adoptManualReadback(requestedToken,
+                                readback.commandToken, latest.selected, latest.active,
+                                requestedLevels, readback.levelsMb,
+                                committedRequested = savedChoice?.preset == 21 &&
+                                    savedChoice.centersHz == readback.centersHz &&
+                                    savedChoice.levelsMb == requestedLevels)))
                     pendingCommand = null
                     liveConfirmed = true
                     notice = latest.message
@@ -358,8 +379,14 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                                         modifier = Modifier.size(17.dp),
                                         strokeWidth = 2.dp)
                                 }
+                                Text(SoundStudioDraftPolicy.activeLabel(liveConfirmed && !loading,
+                                    capabilities.sessionReady, verifiedActive, status.selected,
+                                    capabilities.presetNames),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    modifier = Modifier.testTag("nw138-active-state"))
                                 Text(if (liveConfirmed) status.message else "Waiting for current playback status.",
-                                    style = MaterialTheme.typography.bodyMedium)
+                                    style = MaterialTheme.typography.bodySmall, color = muted)
                                 Text(tuningStatus, style = MaterialTheme.typography.labelMedium,
                                     color = if (draftEdited) primary else muted,
                                     fontWeight = FontWeight.SemiBold)
@@ -375,6 +402,239 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                             }
                         }
                     }
+
+                    item {
+                        Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                            Column {
+                                Text("Device presets",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.SemiBold)
+                                OutlinedButton(modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp), enabled = !busy, onClick = {
+                                    issueCommand(PlaybackService.ACTION_EQ_PRESET_SET) {
+                                        it.putExtra(PlaybackService.EXTRA_EQ_PRESET, 0)
+                                    }
+                                }) { Text("Turn off") }
+                            }
+                            Text("Off and device presets apply immediately. Advanced curves stay as drafts until Apply.",
+                                style = MaterialTheme.typography.bodySmall, color = muted)
+                            if (capabilities.presetNames.isEmpty()) {
+                                Text("No compatible presets reported. You can still test " +
+                                    "manual bands if the active session supports them.",
+                                    style = MaterialTheme.typography.bodySmall, color = muted)
+                            } else {
+                                Row(
+                                    Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    capabilities.presetNames.forEachIndexed { index, preset ->
+                                        FilterChip(
+                                            selected = verifiedActive &&
+                                                status.selected == index + 1,
+                                            enabled = !busy && liveConfirmed && capabilities.sessionReady &&
+                                                SoundStudioPolicy.validPreset(
+                                                    index + 1, capabilities.presetNames.size),
+                                            onClick = {
+                                                issueCommand(PlaybackService.ACTION_EQ_PRESET_SET) {
+                                                    it.putExtra(PlaybackService.EXTRA_EQ_PRESET, index + 1)
+                                                }
+                                            },
+                                            label = { Text(preset) }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    item(key = "nw138-advanced") {
+                        OutlinedButton(onClick = { advanced = !advanced },
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                                .testTag("nw138-advanced")) {
+                            Text(if (advanced) "Hide advanced equalizer" else "Advanced equalizer")
+                        }
+                        if (!advanced && draftEdited) Text("Unapplied manual draft retained. Open Advanced to review.",
+                            style = MaterialTheme.typography.bodySmall, color = primary)
+                    }
+                    if (advanced) {
+                        item {
+                            Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text("Frequency response",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.SemiBold)
+                                    Spacer(Modifier.weight(1f))
+                                    Text("Preview", style = MaterialTheme.typography.labelSmall,
+                                        color = muted)
+                                }
+                                Surface(shape = RoundedCornerShape(15.dp),
+                                    color = MaterialTheme.colorScheme.background) {
+                                    Canvas(Modifier.fillMaxWidth().height(105.dp).padding(12.dp)) {
+                                        // Persisted capability data is untrusted after
+                                        // process recreation; never draw an invalid range.
+                                        val minLevel = minOf(capabilities.minimumMb,
+                                            capabilities.maximumMb)
+                                        val maxLevel = maxOf(capabilities.minimumMb,
+                                            capabilities.maximumMb)
+                                        val range = (maxLevel - minLevel).coerceAtLeast(1).toFloat()
+                                        val baseline = (1f - ((0.coerceIn(minLevel,
+                                            maxLevel) - minLevel) / range)) * size.height
+                                        drawLine(
+                                            color = muted.copy(alpha = .32f),
+                                            start = androidx.compose.ui.geometry.Offset(0f, baseline),
+                                            end = androidx.compose.ui.geometry.Offset(size.width, baseline),
+                                            strokeWidth = 1.dp.toPx()
+                                        )
+                                        if (draftLevels.isNotEmpty()) {
+                                            val path = Path()
+                                            draftLevels.forEachIndexed { i, level ->
+                                                val x = size.width * (i + .5f) / draftLevels.size
+                                                val y = (1f - ((level - minLevel) / range)) * size.height
+                                                if (i == 0) path.moveTo(x, y)
+                                                else path.lineTo(x, y)
+                                            }
+                                            drawPath(path, color = primary,
+                                                style = Stroke(width = 3.dp.toPx()))
+                                        }
+                                    }
+                                }
+                                Text("Visual guide for the manual bands; not a live audio spectrum.",
+                                    style = MaterialTheme.typography.labelSmall, color = muted)
+                            }
+                        }
+
+                        item {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("Manual bands", style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.SemiBold)
+                                Spacer(Modifier.weight(1f))
+                                TextButton(enabled = !busy && liveConfirmed && capabilities.sessionReady &&
+                                    manualRange != null, onClick = {
+                                        manualRange?.let { range ->
+                                            draftLevels = SoundStudioPolicy.flatLevels(
+                                                capabilities.centersHz.size,
+                                                range.first, range.last)
+                                            selectedShape = SoundStudioTuningPolicy.Shape.FLAT
+                                        }
+                                    }) { Text("Reset flat") }
+                            }
+                        }
+
+                        item(key = "nw49-guided-eq") {
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text("Guided tuning",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.SemiBold)
+                                Text("Select a real device-band curve, then apply it to hear the change.",
+                                    style = MaterialTheme.typography.bodySmall, color = muted)
+                                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                                    horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                                    SoundStudioTuningPolicy.Shape.entries.forEach { shape ->
+                                        FilterChip(
+                                            selected = selectedShape == shape,
+                                            enabled = !busy && liveConfirmed && capabilities.sessionReady &&
+                                                manualRange != null &&
+                                                capabilities.centersHz.isNotEmpty(),
+                                            onClick = {
+                                                val updated = SoundStudioTuningPolicy.draft(
+                                                    shape, capabilities.centersHz,
+                                                    capabilities.minimumMb, capabilities.maximumMb)
+                                                if (updated != null) {
+                                                    draftLevels = updated
+                                                    selectedShape = shape
+                                                } else notice = "This audio device cannot use that tuning."
+                                            },
+                                            label = { Text(SoundStudioTuningPolicy.label(shape)) }
+                                        )
+                                    }
+                                }
+                                selectedShape?.let { shape ->
+                                    Text(SoundStudioTuningPolicy.hint(shape),
+                                        style = MaterialTheme.typography.labelSmall, color = muted)
+                                }
+                                if (draftEdited) Text("Preview only · Apply manual EQ to hear changes.",
+                                    style = MaterialTheme.typography.labelSmall, color = primary)
+                            }
+                        }
+
+                        if (!capabilities.sessionReady || capabilities.centersHz.isEmpty()) {
+                            item {
+                                Text(
+                                    "Manual control is unavailable until an Android playback " +
+                                        "session reports supported frequency bands.",
+                                    style = MaterialTheme.typography.bodyMedium, color = muted)
+                            }
+                        } else {
+                            items(capabilities.centersHz.size, key = { it }) { index ->
+                                if (index < draftLevels.size) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Text(SoundStudioPolicy.frequencyLabel(
+                                                capabilities.centersHz[index]),
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                fontWeight = FontWeight.SemiBold)
+                                            Spacer(Modifier.weight(1f))
+                                            Text(SoundStudioPolicy.gainLabel(draftLevels[index]),
+                                                color = primary,
+                                                style = MaterialTheme.typography.bodyMedium)
+                                        }
+                                        if (manualRange != null &&
+                                            manualRange.first < manualRange.last) {
+                                            Slider(
+                                                value = draftLevels[index].toFloat(),
+                                                modifier = Modifier.testTag("nw138-band-$index").semantics {
+                                                    contentDescription = "Equalizer " + SoundStudioPolicy.frequencyLabel(capabilities.centersHz[index])
+                                                    stateDescription = SoundStudioPolicy.gainLabel(draftLevels[index])
+                                                },
+                                                enabled = !busy && liveConfirmed && capabilities.sessionReady,
+                                                onValueChange = { value ->
+                                                    if (!liveConfirmed || !EqualizerCommandPolicy.accepts(
+                                                            displayedToken, capabilities.commandToken)) return@Slider
+                                                    draftLevels = SoundStudioPolicy.updateLevel(
+                                                        draftLevels, index, value.toInt(),
+                                                        manualRange.first,
+                                                        manualRange.last)
+                                                    selectedShape = null
+                                                },
+                                                valueRange = (
+                                                    manualRange.first.toFloat()..
+                                                        manualRange.last.toFloat()
+                                                )
+                                            )
+                                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                                listOf(-100, 100).forEach { delta ->
+                                                    val adjusted = SoundStudioDraftPolicy.adjust(draftLevels[index], delta,
+                                                        manualRange.first, manualRange.last)
+                                                    OutlinedButton(
+                                                        modifier = Modifier.weight(1f).heightIn(min = 48.dp)
+                                                            .testTag("nw138-step-$index-$delta")
+                                                            .semantics { contentDescription =
+                                                                (if (delta < 0) "Decrease " else "Increase ") +
+                                                                    SoundStudioPolicy.frequencyLabel(capabilities.centersHz[index]) + " by 1 dB" },
+                                                        enabled = !busy && liveConfirmed && capabilities.sessionReady &&
+                                                            adjusted != null && adjusted != draftLevels[index],
+                                                        onClick = {
+                                                            if (adjusted != null && liveConfirmed &&
+                                                                EqualizerCommandPolicy.accepts(displayedToken, capabilities.commandToken)) {
+                                                                draftLevels = SoundStudioPolicy.updateLevel(draftLevels, index, adjusted,
+                                                                    manualRange.first, manualRange.last)
+                                                                selectedShape = null
+                                                            }
+                                                        }
+                                                    ) { Text(if (delta < 0) "−1 dB" else "+1 dB") }
+                                                }
+                                            }
+                                        } else {
+                                            Text("This device exposes a fixed band level.",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = muted)
+                                        }
+                                    }
+                                }
+                            }
+
+                        }
+
+                    } // Advanced draft content
 
                     item(key = "nw88-local-audio-transitions") {
                         Surface(color = MaterialTheme.colorScheme.surfaceVariant,
@@ -432,211 +692,6 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                     }
 
                     item {
-                        Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("Frequency response",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.SemiBold)
-                                Spacer(Modifier.weight(1f))
-                                Text("Preview", style = MaterialTheme.typography.labelSmall,
-                                    color = muted)
-                            }
-                            Surface(shape = RoundedCornerShape(15.dp),
-                                color = MaterialTheme.colorScheme.background) {
-                                Canvas(Modifier.fillMaxWidth().height(105.dp).padding(12.dp)) {
-                                    // Persisted capability data is untrusted after
-                                    // process recreation; never draw an invalid range.
-                                    val minLevel = minOf(capabilities.minimumMb,
-                                        capabilities.maximumMb)
-                                    val maxLevel = maxOf(capabilities.minimumMb,
-                                        capabilities.maximumMb)
-                                    val range = (maxLevel - minLevel).coerceAtLeast(1).toFloat()
-                                    val baseline = (1f - ((0.coerceIn(minLevel,
-                                        maxLevel) - minLevel) / range)) * size.height
-                                    drawLine(
-                                        color = muted.copy(alpha = .32f),
-                                        start = androidx.compose.ui.geometry.Offset(0f, baseline),
-                                        end = androidx.compose.ui.geometry.Offset(size.width, baseline),
-                                        strokeWidth = 1.dp.toPx()
-                                    )
-                                    if (draftLevels.isNotEmpty()) {
-                                        val path = Path()
-                                        draftLevels.forEachIndexed { i, level ->
-                                            val x = size.width * (i + .5f) / draftLevels.size
-                                            val y = (1f - ((level - minLevel) / range)) * size.height
-                                            if (i == 0) path.moveTo(x, y)
-                                            else path.lineTo(x, y)
-                                        }
-                                        drawPath(path, color = primary,
-                                            style = Stroke(width = 3.dp.toPx()))
-                                    }
-                                }
-                            }
-                            Text("Visual guide for the manual bands; not a live audio spectrum.",
-                                style = MaterialTheme.typography.labelSmall, color = muted)
-                        }
-                    }
-
-                    item {
-                        Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("Device presets",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.SemiBold)
-                                Spacer(Modifier.weight(1f))
-                                TextButton(enabled = !busy, onClick = {
-                                    issueCommand(PlaybackService.ACTION_EQ_PRESET_SET) {
-                                        it.putExtra(PlaybackService.EXTRA_EQ_PRESET, 0)
-                                    }
-                                }) { Text("Turn off") }
-                            }
-                            if (capabilities.presetNames.isEmpty()) {
-                                Text("No compatible presets reported. You can still test " +
-                                    "manual bands if the active session supports them.",
-                                    style = MaterialTheme.typography.bodySmall, color = muted)
-                            } else {
-                                Row(
-                                    Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    capabilities.presetNames.forEachIndexed { index, preset ->
-                                        FilterChip(
-                                            selected = status.active &&
-                                                status.selected == index + 1,
-                                            enabled = !busy && liveConfirmed && capabilities.sessionReady &&
-                                                SoundStudioPolicy.validPreset(
-                                                    index + 1, capabilities.presetNames.size),
-                                            onClick = {
-                                                issueCommand(PlaybackService.ACTION_EQ_PRESET_SET) {
-                                                    it.putExtra(PlaybackService.EXTRA_EQ_PRESET, index + 1)
-                                                }
-                                            },
-                                            label = { Text(preset) }
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    item {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("Manual bands", style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold)
-                            Spacer(Modifier.weight(1f))
-                            TextButton(enabled = !busy && liveConfirmed && capabilities.sessionReady &&
-                                manualRange != null, onClick = {
-                                    manualRange?.let { range ->
-                                        draftLevels = SoundStudioPolicy.flatLevels(
-                                            capabilities.centersHz.size,
-                                            range.first, range.last)
-                                        selectedShape = SoundStudioTuningPolicy.Shape.FLAT
-                                    }
-                                }) { Text("Reset flat") }
-                        }
-                    }
-
-                    item(key = "nw49-guided-eq") {
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("Guided tuning",
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.SemiBold)
-                            Text("Select a real device-band curve, then apply it to hear the change.",
-                                style = MaterialTheme.typography.bodySmall, color = muted)
-                            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                                horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                                SoundStudioTuningPolicy.Shape.entries.forEach { shape ->
-                                    FilterChip(
-                                        selected = selectedShape == shape,
-                                        enabled = !busy && liveConfirmed && capabilities.sessionReady &&
-                                            manualRange != null &&
-                                            capabilities.centersHz.isNotEmpty(),
-                                        onClick = {
-                                            val updated = SoundStudioTuningPolicy.draft(
-                                                shape, capabilities.centersHz,
-                                                capabilities.minimumMb, capabilities.maximumMb)
-                                            if (updated != null) {
-                                                draftLevels = updated
-                                                selectedShape = shape
-                                            } else notice = "This audio device cannot use that tuning."
-                                        },
-                                        label = { Text(SoundStudioTuningPolicy.label(shape)) }
-                                    )
-                                }
-                            }
-                            selectedShape?.let { shape ->
-                                Text(SoundStudioTuningPolicy.hint(shape),
-                                    style = MaterialTheme.typography.labelSmall, color = muted)
-                            }
-                            if (draftEdited) Text("Preview only · Apply manual EQ to hear changes.",
-                                style = MaterialTheme.typography.labelSmall, color = primary)
-                        }
-                    }
-
-                    if (!capabilities.sessionReady || capabilities.centersHz.isEmpty()) {
-                        item {
-                            Text(
-                                "Manual control is unavailable until an Android playback " +
-                                    "session reports supported frequency bands.",
-                                style = MaterialTheme.typography.bodyMedium, color = muted)
-                        }
-                    } else {
-                        items(capabilities.centersHz.size, key = { it }) { index ->
-                            if (index < draftLevels.size) {
-                                Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Text(SoundStudioPolicy.frequencyLabel(
-                                            capabilities.centersHz[index]),
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            fontWeight = FontWeight.SemiBold)
-                                        Spacer(Modifier.weight(1f))
-                                        Text(SoundStudioPolicy.gainLabel(draftLevels[index]),
-                                            color = primary,
-                                            style = MaterialTheme.typography.bodyMedium)
-                                    }
-                                    if (manualRange != null &&
-                                        manualRange.first < manualRange.last) {
-                                        Slider(
-                                            value = draftLevels[index].toFloat(),
-                                            enabled = !busy,
-                                            onValueChange = { value ->
-                                                draftLevels = SoundStudioPolicy.updateLevel(
-                                                    draftLevels, index, value.toInt(),
-                                                    manualRange.first,
-                                                    manualRange.last)
-                                                selectedShape = null
-                                            },
-                                            valueRange = (
-                                                manualRange.first.toFloat()..
-                                                    manualRange.last.toFloat()
-                                            )
-                                        )
-                                    } else {
-                                        Text("This device exposes a fixed band level.",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = muted)
-                                    }
-                                }
-                            }
-                        }
-                        item {
-                            Button(
-                                onClick = {
-                                    if (validManual) {
-                                        val requested = draftLevels.toIntArray()
-                                        issueCommand(PlaybackService.ACTION_EQ_BANDS_APPLY) {
-                                            it.putExtra(PlaybackService.EXTRA_EQ_LEVELS_MB,
-                                                requested)
-                                        }
-                                    }
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                enabled = !busy && validManual
-                            ) { Text("Apply manual EQ") }
-                        }
-                    }
-
-                    item {
                         Surface(color = MaterialTheme.colorScheme.surfaceVariant,
                             shape = RoundedCornerShape(15.dp)) {
                             Column(Modifier.fillMaxWidth().padding(14.dp),
@@ -660,6 +715,18 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                         }
                     }
                 }
+                if (advanced) SoundStudioApplyBar(
+                    edited = draftEdited, canApply = validManual, busy = busy,
+                    onApply = {
+                        if (validManual) {
+                            val requested = draftLevels.toIntArray()
+                            issueCommand(PlaybackService.ACTION_EQ_BANDS_APPLY) {
+                                it.putExtra(PlaybackService.EXTRA_EQ_LEVELS_MB, requested)
+                            }
+                        }
+                    },
+                    onDiscard = { applySnapshot(resetDraft = true) }
+                )
             }
         }
     }
