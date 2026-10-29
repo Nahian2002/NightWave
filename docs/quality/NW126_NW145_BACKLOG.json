@@ -5,7 +5,7 @@
   "audit": "docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md",
   "implementation_base_revision": "61703c98238e762e59c049b6690853431f822884",
   "audit_branch": "audit/nightwave-post-nw125-quality-roadmap",
-  "next_batch": "NW137",
+  "next_batch": "NW138",
   "goal": "9.5+ within the declared NightWave music-player scope, conditional on actual product and acceptance evidence",
   "rating_kind": "Subjective comparative product review, not a measured Spotify score",
   "baseline_weighted_score": 6.655,
@@ -668,7 +668,7 @@
         "NW133",
         "NW135"
       ],
-      "implementation_status": "IMPLEMENTING",
+      "implementation_status": "LOCAL_VERIFIED",
       "device_status": "NOT_RUN",
       "finding_ids": [
         "Q17",
@@ -679,7 +679,9 @@
         "v2/lyrics/PrivateLyricsStore.kt",
         "v2/lyrics/TimedLyrics.kt",
         "v2/ui/NightWaveLyricsEditorDialog.kt",
-        "v2/ui/StudioPlayerScreens.kt"
+        "v2/ui/StudioPlayerScreens.kt",
+        "v2/lyrics/BoundLyricsStore.kt",
+        "v2/lyrics/LyricsTrackBindingPolicy.kt"
       ],
       "acceptance_criteria": [
         "A listener imports an owned UTF-8 LRC through a guided preview and explicit track binding; stable source identity prevents lyrics attaching to a different recording.",
@@ -687,15 +689,36 @@
         "English/Bangla timed lines, repeated cues, offsets, manual scroll/follow, seek and rotation work; preserve strict parsing, lossless rejection and export.",
         "TalkBack and large-font lyric reading, selected-line contrast and measured seek/follow timing pass on the actual player without wrong-track updates."
       ],
-      "implementation_commit": null,
-      "local_evidence": [],
+      "implementation_commit": "a94328169b2cddad4669e9937296a8e90e1b0969",
+      "local_evidence": [
+        "1784 JVM tests / 220 suites, zero failures/errors/skips; twelve new binding/content/quota tests",
+        "77 current source checks PASS; historical local/import/editor/export guards adapted to the facade without removing their negative fixtures",
+        "Full Android/Compose/APK and instrumentation-source compilation; seven new Android store/player methods compile only",
+        "Lint 0 errors / 322 warnings / 17 hints; five added durable-preference style/performance notices triaged without suppression",
+        "905 prior source inputs byte-identical, twenty intended existing edits and five additions; nine callback inventories retained",
+        "Original parser/local lyric/offset/editor/export/cloud formats, network, source quality, signer/package/dependencies/themes unchanged",
+        "3556-commit implementation-stage all-ref Gitleaks scan without leaks; reviewed exclusions unchanged",
+        "Exact embedded source, previous signer, owner-only APK streamed SHA and private recovery readback verified"
+      ],
       "device_evidence": [],
-      "remaining_blockers": [],
-      "protected_parent": "721ece36",
+      "remaining_blockers": [
+        "Eight new physical cases, seven new Android methods and original NW137 cases NOT_RUN; all prior device/data/audio/cloud/account/accessibility/performance/soak/release gates retained",
+        "Public-reference LRC stays device-private and source-bound; no provider lyrics catalog, network fetching, automatic local/public aliasing or new cloud support",
+        "Picker waiting/review retained across configuration; an in-flight read or process death can cancel safely and require reselecting",
+        "Five new preference notices reflect background durable Boolean commits; no suppression. Existing unchanged Library compiler condition warning remains triaged."
+      ],
+      "protected_parent": "721ece36c9b9900cae4daa6936dd1caf77e8ac9c",
       "branch": "update/nightwave-nw137-owned-lyrics",
       "evidence": [
-        "docs/NW137_OWNED_LYRICS.md"
-      ]
+        "docs/NW137_OWNED_LYRICS.md",
+        "docs/quality/NW137_OWNED_LYRICS_ACCEPTANCE.csv",
+        "TEST_REPORT.md"
+      ],
+      "plan_commit": "5df404d6",
+      "initial_implementation_commit": "afbb1fe7",
+      "build_id": "NW-debug-7027DA65E2963716",
+      "source_sha256": "7027DA65E2963716F7F8CFC39E39BB69619D6CB2B957AB25231BF65FBE27ADFD",
+      "apk_sha256": "BB1144C07D7377CA4CF6E5F9EB0258356F7F87AB1326F1D6DCA931BB293F3E82"
     },
     {
       "id": "NW138",

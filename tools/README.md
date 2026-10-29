@@ -1,8 +1,10 @@
 # NightWave tools — current use and historical checks
 
-**Current implementation baseline:** SEARCH02 on `update/nightwave-search02-responsive`, stacked on #157; 1,772 JVM / 219 suites, 76 source checks and lint 0 errors / 317 warnings / 17 hints. [Evidence](../docs/quality/SEARCH02_RESPONSIVE_SEARCH.md), [verification](../TEST_REPORT.md). Two new screen methods compile only; phone acceptance NOT_RUN. Actions remains disabled.
+**Current implementation baseline:** NW137 on `update/nightwave-nw137-owned-lyrics`, stacked on #158; 1,784 JVM / 220 suites, 77 source checks, lint 0 errors / 322 warnings / 17 hints. [Evidence](../docs/NW137_OWNED_LYRICS.md), [verification](../TEST_REPORT.md). Five added preference notices triaged; seven Android methods compile only. Phone acceptance NOT_RUN; Actions remains disabled.
 
 ## Recommended entrypoints
+
+- **NW137 owned-LRC fences:** `python tools/verify_nw137_lyrics.py --self-test` checks exact binding, original local/cloud routing, bounded device-private public lyrics, explicit retained review and import/editor/export/offset/seek caller guards. Runtime synchronization and source-change/picker/rotation checks remain separate.
 
 - **SEARCH02 continuity fences:** `python tools/verify_search_continuity.py --self-test` checks public-only cache bounds, matching visible refresh rows, explicit refresh bypass, phase deadlines, guarded cache commits and numeric diagnostics. Actual provider timing and phone behavior remain separate.
 

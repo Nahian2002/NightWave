@@ -1,6 +1,6 @@
 # Current verification guide
 
-**30 October 2026.** Current cumulative SEARCH02 is locally verified; NW137 next. Exact evidence: [TEST_REPORT](../TEST_REPORT.md), [new eight-case supplement](quality/SEARCH02_ACCEPTANCE.csv).
+**30 October 2026.** Current cumulative NW137 is locally verified; NW138 next. Exact evidence: [TEST_REPORT](../TEST_REPORT.md), [new eight-case supplement](quality/NW137_OWNED_LYRICS_ACCEPTANCE.csv).
 
 | Evidence | Meaning | Limit |
 | --- | --- | --- |

@@ -1,6 +1,6 @@
 # NightWave — repository navigation
 
-**Current implementation:** SEARCH02 on [`update/nightwave-search02-responsive`](https://github.com/Nahian2002/NightWave/tree/update/nightwave-search02-responsive), [draft PR #158](https://github.com/Nahian2002/NightWave/pull/158), stacked on #157. [Changes/evidence](quality/SEARCH02_RESPONSIVE_SEARCH.md), [hourly sequence](quality/UPCOMING_UPDATES.md), [verification](../TEST_REPORT.md). Eight new phone cases NOT_RUN. **NW137 is next.** Earlier reviews remain historical.
+**Current implementation:** NW137 on [`update/nightwave-nw137-owned-lyrics`](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw137-owned-lyrics), stacked on #158. [Changes/evidence](NW137_OWNED_LYRICS.md), [hourly sequence](quality/UPCOMING_UPDATES.md), [verification](../TEST_REPORT.md). Eight new phone cases NOT_RUN. **NW138 is next.** Earlier reviews remain historical.
 
 ## Start here
 
