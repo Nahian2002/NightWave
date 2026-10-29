@@ -9,6 +9,7 @@ import okhttp3.Call
 import okhttp3.Dns
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import java.io.File
 import java.io.FileOutputStream
 import java.net.InetAddress
@@ -23,9 +24,13 @@ import java.util.concurrent.atomic.AtomicBoolean
  * Bounded, foreground user-initiated downloader for direct permitted audio
  * files. No YouTube extractor, stream URL caching, cookies or DRM workarounds.
  */
-class PermittedAudioDownloader(private val context: Context) {
+class PermittedAudioDownloader(private val context: Context,
+    private val retainOnStop: () -> Boolean = { false }) {
     private val cancelled = AtomicBoolean(false)
     @Volatile private var currentCall: Call? = null
+    private val metrics = AudioTransferMetrics()
+    fun transferDetails(): String = metrics.summary()
+    fun resumedBytes(): Long = metrics.resumedBytes
 
     companion object {
         private val client = OkHttpClient.Builder()
@@ -37,6 +42,9 @@ class PermittedAudioDownloader(private val context: Context) {
             .callTimeout(AudioDownloadNetworkPolicy.MAX_TRANSFER_MINUTES, TimeUnit.MINUTES)
             .followRedirects(false)
             .followSslRedirects(false)
+            .eventListenerFactory { call ->
+                call.request().tag(AudioTransferMetrics::class.java) ?: okhttp3.EventListener.NONE
+            }
             .dns(object : Dns {
                 override fun lookup(hostname: String): List<InetAddress> {
                     val resolved = Dns.SYSTEM.lookup(hostname)
@@ -80,8 +88,8 @@ class PermittedAudioDownloader(private val context: Context) {
     }
 
     /**
-     * Clean-start bounded retry rather than appending unknown partial ranges.
-     * On any failure/cancellation, only this private staging file is deleted.
+     * Eligible ranges resume only validated, durable source-bound segments.
+     * Full-transfer fallback still starts clean; staging never counts as Ready.
      */
     fun download(
         source: PermittedAudioSource,
@@ -104,7 +112,8 @@ class PermittedAudioDownloader(private val context: Context) {
                     "Could not reset partial audio transfer"
                 }
                 val fileName = try {
-                    transferOnce(source, pending, progress)
+                    transferWithRecovery(source, pending, progress,
+                        AudioRangePolicy.key(source.url + "\n" + source.fileName + "\n" + expectedSourceSha1.orEmpty()))
                 } catch (network: IOException) {
                     // Retry-After is source-controlled and must not be copied
                     // blindly. WorkManager applies its own persisted backoff.
@@ -150,6 +159,7 @@ class PermittedAudioDownloader(private val context: Context) {
     fun downloadResolvedSearchAudio(
         sourceUrl: String, title: String,
         onVerifying: () -> Unit = {},
+        canonicalTrack: String? = null,
         progress: (downloaded: Long, total: Long?) -> Unit
     ): OfflineSong {
         require(SearchTrackSavePolicy.safeAudioEndpoint(sourceUrl)) {
@@ -168,7 +178,17 @@ class PermittedAudioDownloader(private val context: Context) {
                 check(!cancelled.get()) { "Download cancelled" }
                 require(!pending.exists() || pending.delete()) { "Partial audio could not be reset" }
                 val filename = try {
-                    transferOnce(spec, pending, progress, searchAudioOnly = true)
+                    if (canonicalTrack == null) transferOnce(spec, pending, progress, searchAudioOnly = true)
+                    else {
+                        require(SearchTrackSavePolicy.canonicalTrack(canonicalTrack) == canonicalTrack)
+                        // Only a hash of canonical identity and representation fields
+                        // survives. Re-resolve the signed address on every worker run.
+                        val parsed = sourceUrl.toHttpUrl()
+                        val representation = listOf("itag", "clen", "lmt", "mime", "xtags")
+                            .joinToString("\n") { it + "=" + parsed.queryParameter(it).orEmpty() }
+                        transferWithRecovery(spec, pending, progress,
+                            AudioRangePolicy.key(canonicalTrack + "\n" + representation), true)
+                    }
                 } catch (network: IOException) {
                     if (network is RetryableAudioSourceResponse ||
                         cancelled.get() || attempt == 1) throw network
@@ -187,6 +207,66 @@ class PermittedAudioDownloader(private val context: Context) {
             currentCall = null
             pending.delete()
         }
+    }
+
+    private fun transferWithRecovery(source: PermittedAudioSource, pending: File,
+        progress: (Long, Long?) -> Unit, key: String, searchAudioOnly: Boolean = false): String {
+        val home = context.applicationContext.filesDir.canonicalFile
+        val start = System.nanoTime()
+        val engine = AudioRangeTransfer(File(home, "audio_transfer_checkpoints"), metrics,
+            execute = { offset, end, validator ->
+                if (System.nanoTime() - start > TimeUnit.MINUTES.toNanos(
+                        AudioDownloadNetworkPolicy.MAX_TRANSFER_MINUTES))
+                    throw IOException("Audio transfer timed out")
+                var url = source.url
+                var answer: okhttp3.Response? = null
+                for (hop in 0 until 5) {
+                    if (cancelled.get()) throw IOException("Download cancelled")
+                    url = if (searchAudioOnly) {
+                        require(SearchTrackSavePolicy.safeAudioEndpoint(url)) { "Untrusted audio redirect" }
+                        url
+                    } else PermittedAudioDownloadPolicy.prepare(url, "").url
+                    val request = Request.Builder().url(url)
+                        .tag(AudioTransferMetrics::class.java, metrics)
+                        .header("Accept", "audio/*,application/octet-stream")
+                        .header("Accept-Encoding", "identity")
+                        .header("Cache-Control", "no-store")
+                        .header("Range", "bytes=$offset-$end")
+                        .apply { if (validator != null) header("If-Range", validator) }
+                        .get().build()
+                    val call = client.newCall(request)
+                    currentCall = call
+                    val response = call.execute()
+                    if (response.code !in 300..399) { answer = response; break }
+                    val target = response.header("Location")
+                    response.close()
+                    require(hop < 4 && !target.isNullOrBlank()) { "Too many audio redirects" }
+                    url = URI(url).resolve(target).toString()
+                }
+                requireNotNull(answer) { "Audio redirect limit exceeded" }
+            }, stopped = { cancelled.get() }, space = { total, staged ->
+                val free = StatFs(home.absolutePath).availableBytes
+                require(OfflineSaveStoragePolicy.canStart(free + staged, total) &&
+                    (staged == 0L || OfflineSaveStoragePolicy.canContinue(free, staged))) {
+                    "Not enough device storage for this offline audio file."
+                }
+            }, progress = progress)
+        val mime = engine.transfer(key, pending, retainOnStop)
+        if (mime == null) {
+            progress(0, null)
+            return transferOnce(source, pending, progress, searchAudioOnly)
+        }
+        val prefix = pending.inputStream().use { input ->
+            val bytes = ByteArray(64)
+            val n = input.read(bytes)
+            bytes.copyOf(n.coerceAtLeast(0))
+        }
+        val format = PermittedAudioDownloadPolicy.detectAudioExtension(mime, prefix, source.extension)
+        require(format != null && PermittedAudioDownloadPolicy.supportedContentType(mime, format) &&
+            PermittedAudioDownloadPolicy.audioSignatureMatches(prefix, format)) { "Invalid audio range content" }
+        val stem = if (source.extension.isBlank()) source.fileName
+            else source.fileName.removeSuffix("." + source.extension)
+        return "$stem.$format"
     }
 
     /**
@@ -209,6 +289,7 @@ class PermittedAudioDownloader(private val context: Context) {
                 url
             } else PermittedAudioDownloadPolicy.prepare(url, "").url
             val request = Request.Builder().url(url)
+                .tag(AudioTransferMetrics::class.java, metrics)
                 .header("Accept", "audio/*,application/octet-stream")
                 .header("Cache-Control", "no-store")
                 .get().build()
@@ -269,7 +350,9 @@ class PermittedAudioDownloader(private val context: Context) {
                             val buffer = ByteArray(MediaTransferIo.BUFFER_BYTES)
                             while (true) {
                                 check(!cancelled.get()) { "Download cancelled" }
-                                val n = input.read(buffer)
+                                val readAt = System.nanoTime()
+                                val n = try { input.read(buffer) }
+                                    finally { metrics.readNanos += System.nanoTime() - readAt }
                                 if (n < 0) break
                                 if (n == 0) continue
                                 received += n
@@ -281,7 +364,10 @@ class PermittedAudioDownloader(private val context: Context) {
                                     buffer.copyInto(prefix, prefixCount, 0, copy)
                                     prefixCount += copy
                                 }
+                                val writeAt = System.nanoTime()
                                 buffered.write(buffer, 0, n)
+                                metrics.writeNanos += System.nanoTime() - writeAt
+                                metrics.wireBytes += n
                                 if (received % (4L * 1024L * 1024L) < n ||
                                     (length > 0L && received == length)) {
                                     val freeNow = runCatching {
@@ -295,7 +381,9 @@ class PermittedAudioDownloader(private val context: Context) {
                                 progress(received, length.takeIf { it > 0 })
                             }
                         } // Flush every buffered byte before durable sync and validation.
+                        val syncAt = System.nanoTime()
                         output.fd.sync()
+                        metrics.syncNanos += System.nanoTime() - syncAt
                     }
                 }
                 check(!cancelled.get()) { "Download cancelled" }

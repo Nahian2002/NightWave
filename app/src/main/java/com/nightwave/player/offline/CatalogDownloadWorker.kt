@@ -14,6 +14,7 @@ import androidx.core.app.NotificationCompat
 import androidx.work.Data
 import androidx.work.ForegroundInfo
 import androidx.work.Worker
+import androidx.work.WorkInfo
 import androidx.work.WorkerParameters
 import androidx.work.WorkManager
 import java.io.IOException
@@ -62,7 +63,10 @@ class CatalogDownloadWorker(
             if (isStopped) return failed("Download cancelled")
             val source = PermittedAudioDownloadPolicy.prepare(
                 candidate.sourceUrl, candidate.saveName)
-            val transfer = PermittedAudioDownloader(applicationContext)
+            val transfer = PermittedAudioDownloader(applicationContext, retainOnStop = {
+                (stopReason != WorkInfo.STOP_REASON_CANCELLED_BY_APP &&
+                    stopReason != WorkInfo.STOP_REASON_USER)
+            })
             currentDownload = transfer
             var lastUi = 0L
             var lastBytes = -1L
@@ -75,6 +79,8 @@ class CatalogDownloadWorker(
                         .putLong(CatalogDownloadQueue.KEY_RECEIVED, latestReceived)
                         .putLong(CatalogDownloadQueue.KEY_TOTAL, latestTotal)
                         .putBoolean(CatalogDownloadQueue.KEY_VERIFYING, true)
+                        .putString(AudioTransferData.DETAILS, transfer.transferDetails())
+                        .putLong(AudioTransferData.RESUMED, transfer.resumedBytes())
                         .build())
                     setForegroundAsync(foreground(candidate.title,
                         latestReceived, latestTotal.takeIf { it > 0L }, verifying = true))
@@ -95,6 +101,8 @@ class CatalogDownloadWorker(
                         .putLong(CatalogDownloadQueue.KEY_RECEIVED, received)
                         .putLong(CatalogDownloadQueue.KEY_TOTAL, total ?: -1L)
                         .putBoolean(CatalogDownloadQueue.KEY_VERIFYING, false)
+                        .putString(AudioTransferData.DETAILS, transfer.transferDetails())
+                        .putLong(AudioTransferData.RESUMED, transfer.resumedBytes())
                         .build())
                     setForegroundAsync(foreground(candidate.title, received, total))
                 }
@@ -107,6 +115,7 @@ class CatalogDownloadWorker(
                 failed(OfflineTransferCompletionPolicy.NOT_VERIFIED)
             } else Result.success(Data.Builder()
                 .putString(CatalogDownloadQueue.KEY_DONE, saved.id)
+                    .putString(AudioTransferData.DETAILS, transfer.transferDetails())
                 .putString(CatalogDownloadQueue.KEY_SAVED_TITLE, saved.title)
                 .build())
         } catch (error: Exception) {
@@ -124,7 +133,8 @@ class CatalogDownloadWorker(
     }
 
     private fun failed(reason: String): Result = Result.failure(
-        Data.Builder().putString(CatalogDownloadQueue.KEY_ERROR, reason).build()
+        Data.Builder().putString(CatalogDownloadQueue.KEY_ERROR, reason)
+            .putString(AudioTransferData.DETAILS, currentDownload?.transferDetails().orEmpty()).build()
     )
 
     private fun ensureNotificationChannel() {

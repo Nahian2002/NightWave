@@ -4,8 +4,8 @@ import android.content.Context
 import java.util.UUID
 
 /**
- * Tracks user-initiated stop-and-restart of a searched audio WorkRequest.
- * WorkManager does not retain resumable partial audio bytes in NightWave.
+ * Tracks user-initiated Pause of a searched audio WorkRequest. NW136 retains
+ * separately validated private byte checkpoints only for eligible servers.
  * No streaming URL, credentials, file paths or song titles are stored.
  */
 object SearchOfflinePauseState {

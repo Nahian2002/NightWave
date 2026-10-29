@@ -49,6 +49,7 @@ object DirectAudioDownloadQueue {
                 .setRequiredNetworkType(NetworkType.CONNECTED).build())
             .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
             .addTag(TAG)
+            .addTag(AudioTransferData.TAG)
             .addTag(TITLE_TAG + verified.fileName.take(72))
             .addTag(OfflineSaveRetryPolicy.CREATED_TAG_PREFIX + System.currentTimeMillis())
             .build()

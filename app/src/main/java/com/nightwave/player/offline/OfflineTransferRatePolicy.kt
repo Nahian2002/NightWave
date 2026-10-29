@@ -2,6 +2,12 @@ package com.nightwave.player.offline
 
 /** UI-only estimate derived from actual WorkManager bytes received over time. */
 object OfflineTransferRatePolicy {
+    /** Binary byte units plus decimal network units; no advertised line rate. */
+    fun preciseDisplay(rate: Long?): String {
+        val bytes = display(rate).replace(" MB/s", " MiB/s").replace(" KB/s", " KiB/s")
+        return if (rate == null || rate <= 0) bytes else bytes + " · " +
+            "%.2f Mbps".format(java.util.Locale.US, rate.toDouble() * 8.0 / 1_000_000.0)
+    }
     fun bytesPerSecond(deltaBytes: Long, elapsedMs: Long): Long? {
         if (deltaBytes <= 0L || elapsedMs < 250L || elapsedMs > 60_000L) return null
         return ((deltaBytes.toDouble() * 1000.0) / elapsedMs.toDouble())

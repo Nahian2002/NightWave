@@ -36,6 +36,7 @@ object SearchTrackSaveQueue {
                 .setRequiredNetworkType(NetworkType.CONNECTED).build())
             .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
             .addTag(TAG)
+            .addTag(AudioTransferData.TAG)
             .addTag(TITLE_TAG + safeTitle.take(70))
             .addTag(OfflineSaveRetryPolicy.sourceTag(canonical))
             .addTag(OfflineSaveRetryPolicy.CREATED_TAG_PREFIX + System.currentTimeMillis())

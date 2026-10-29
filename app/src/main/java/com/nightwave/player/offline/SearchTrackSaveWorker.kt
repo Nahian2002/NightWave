@@ -13,6 +13,7 @@ import androidx.core.app.NotificationCompat
 import androidx.work.Data
 import androidx.work.ForegroundInfo
 import androidx.work.Worker
+import androidx.work.WorkInfo
 import androidx.work.WorkerParameters
 import androidx.work.WorkManager
 import com.nightwave.player.net.YouTubeGateway
@@ -43,7 +44,7 @@ class SearchTrackSaveWorker(
         }
         return try {
             ensureChannel()
-            // Resolve and restart cleanly on WorkManager retries.
+            // Resolve afresh; the transfer validates any retained checkpoint.
             setProgressAsync(Data.Builder()
                 .putLong(SearchTrackSaveQueue.KEY_RECEIVED, 0L)
                 .putLong(SearchTrackSaveQueue.KEY_TOTAL, -1L)
@@ -54,7 +55,10 @@ class SearchTrackSaveWorker(
             // must not be queued, cached or persisted for a later worker run.
             val stream = YouTubeGateway().resolveAudioOnlyForOffline(canonical)
             if (isStopped) return fail("Cancelled")
-            val downloader = PermittedAudioDownloader(applicationContext)
+            val downloader = PermittedAudioDownloader(applicationContext, retainOnStop = {
+                SearchOfflinePauseState.isMarked(applicationContext, id) || (stopReason != WorkInfo.STOP_REASON_CANCELLED_BY_APP &&
+                    stopReason != WorkInfo.STOP_REASON_USER)
+            })
             transfer = downloader
             var lastRefresh = 0L
             var lastReported = -1L
@@ -62,11 +66,14 @@ class SearchTrackSaveWorker(
             var latestTotal = -1L
             val saved = downloader.downloadResolvedSearchAudio(
                 stream.audioUrl, stream.video.title.ifBlank { title },
+                canonicalTrack = canonical,
                 onVerifying = {
                     setProgressAsync(Data.Builder()
                         .putLong(SearchTrackSaveQueue.KEY_RECEIVED, latestReceived)
                         .putLong(SearchTrackSaveQueue.KEY_TOTAL, latestTotal)
                         .putBoolean(SearchTrackSaveQueue.KEY_VERIFYING, true)
+                        .putString(AudioTransferData.DETAILS, downloader.transferDetails())
+                        .putLong(AudioTransferData.RESUMED, downloader.resumedBytes())
                         .build())
                     setForegroundAsync(foreground(title,
                         latestReceived, latestTotal.takeIf { it > 0L }, verifying = true))
@@ -87,6 +94,8 @@ class SearchTrackSaveWorker(
                         .putLong(SearchTrackSaveQueue.KEY_RECEIVED, received)
                         .putLong(SearchTrackSaveQueue.KEY_TOTAL, total ?: -1L)
                         .putBoolean(SearchTrackSaveQueue.KEY_VERIFYING, false)
+                        .putString(AudioTransferData.DETAILS, downloader.transferDetails())
+                        .putLong(AudioTransferData.RESUMED, downloader.resumedBytes())
                         .build())
                     setForegroundAsync(foreground(title, received, total))
                 }
@@ -100,7 +109,8 @@ class SearchTrackSaveWorker(
                 if (!OfflineTransferCompletionPolicy.canCommit(isStopped, saved.id, verified))
                     fail(OfflineTransferCompletionPolicy.NOT_VERIFIED)
                 else Result.success(Data.Builder()
-                    .putString(SearchTrackSaveQueue.KEY_ID, saved.id).build())
+                    .putString(SearchTrackSaveQueue.KEY_ID, saved.id)
+                    .putString(AudioTransferData.DETAILS, downloader.transferDetails()).build())
             }
         } catch (error: Exception) {
             if (isStopped) fail("Cancelled")
@@ -118,7 +128,8 @@ class SearchTrackSaveWorker(
     }
 
     private fun fail(reason: String): Result = Result.failure(Data.Builder()
-        .putString(SearchTrackSaveQueue.KEY_ERROR, reason).build())
+        .putString(SearchTrackSaveQueue.KEY_ERROR, reason)
+            .putString(AudioTransferData.DETAILS, transfer?.transferDetails().orEmpty()).build())
 
     private fun ensureChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

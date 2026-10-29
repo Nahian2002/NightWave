@@ -31,7 +31,10 @@ def verify(src):
     for text in (download,library):
         assert text.index('MediaTransferIo.bufferedWrite(output)') < text.index('output.fd.sync()')
     assert 'MediaTransferIo.bufferedWrite(output) { buffered ->' in library
-    for forbidden in ('dispatcher.cancelAll', 'Range",', 'Thread.sleep(', 'requestNetwork(', 'setRate('):
+    # NW136 introduces Range only through its independently guarded checkpoint
+    # engine; the original full-start response policy remains the fallback.
+    assert 'AudioRangeTransfer(File(home, "audio_transfer_checkpoints"), metrics' in download
+    for forbidden in ('dispatcher.cancelAll', 'Thread.sleep(', 'requestNetwork(', 'setRate('):
         assert forbidden not in download and forbidden not in network,forbidden
 
 if __name__=='__main__':

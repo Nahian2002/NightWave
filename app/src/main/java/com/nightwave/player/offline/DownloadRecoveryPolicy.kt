@@ -68,8 +68,10 @@ internal object DownloadRecoveryPolicy {
     }
 
     /** A retry is a new clean transfer, never persisted partial bytes. */
-    fun queuedLabel(previousAttempts: Int): String =
-        if (previousAttempts > 0)
+    fun queuedLabel(previousAttempts: Int, checkpointAware: Boolean = false): String =
+        if (previousAttempts > 0 && checkpointAware)
+            "Retry scheduled · Waiting for network · Checking retained bytes"
+        else if (previousAttempts > 0)
             "Retry scheduled · Waiting for network/backoff · Starts from zero"
         else "Queued · Waiting for network"
 
@@ -87,7 +89,8 @@ internal object DownloadRecoveryPolicy {
             state in setOf("ENQUEUED", "RUNNING", "BLOCKED")
 
     /** The user may retry only after the old attempt has actually finished. */
-    fun retryLabel(state: String, pauseMarked: Boolean): String =
-        if (isPaused(state, pauseMarked)) "Resume (restarts from zero)"
+    fun retryLabel(state: String, pauseMarked: Boolean, checkpointAware: Boolean = false): String =
+        if (isPaused(state, pauseMarked) && checkpointAware) "Resume saving"
+        else if (isPaused(state, pauseMarked)) "Resume (restarts from zero)"
         else "Retry saving this song"
 }
