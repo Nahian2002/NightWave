@@ -1,0 +1,11 @@
+case_id,area,scenario,status,evidence
+NW139-S01,Compact account,"All themes narrow/large fonts: local profile, exact backup/access state, one contextual primary and metadata/audio scope; every original action remains reachable.",NOT_RUN,
+NW139-S02,Busy phases/help,"Google permission, identity, preparation, upload/readback, list/download, merge/restore/options display actual phase; busy cannot duplicate writes; Close and informational help remain available.",NOT_RUN,
+NW139-S03,Disposable roundtrip,"Explicitly authorized disposable account and empty test Android profile only: create synthetic library, backup/readback, preview, restore/merge and compare exact contents; no owner data touched.",NOT_RUN,
+NW139-S04,Receipt races,"Newer access revision at identical timestamp, account reconnect/switch, consent/network changes and revoked access reject older preview/commit/status/success.",NOT_RUN,
+NW139-S05,Local changes,Modify favorites/playlist/profile after preview; archive checkpoint rejects replacement and optional profile CAS rejects stale overwrite; recovery preserves original IDs/formats.,NOT_RUN,
+NW139-S06,Cancellation/restart,"Cancel picker; rotate while permission open; preserve matching proof; process death without retained receipt requires restarting explicit action, never silently applies.",NOT_RUN,
+NW139-S07,Failures,"401/403 needs review versus transient 503/network/storage failure; old backup receipt retained, no false verified success; retry explicit and background bounded.",NOT_RUN,
+NW139-S08,Original options,History/local LRC/playback preferences/Wi-Fi opt-ins retain defaults and exact cloud formats; public-video LRC/audio/account permissions never included.,NOT_RUN,
+NW139-S09,Disconnect,"Separate confirmation; saved local disconnect stops scheduling, local data remains, Drive copies not deleted; saved-write failure remains truthful.",NOT_RUN,
+NW139-S10,Accessibility,"TalkBack/Switch Access and 1x/2x/3x font expose clear primary, independent options, phase announcements and help with no unreachable confirmation.",NOT_RUN,

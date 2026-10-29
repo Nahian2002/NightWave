@@ -43,7 +43,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.liveRegion
@@ -65,6 +64,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.nightwave.player.v2.cloud.CloudOperationPhase
+import com.nightwave.player.v2.cloud.CloudRecoveryUiPolicy
 import com.nightwave.player.v2.cloud.CloudAccountPresentation
 import com.nightwave.player.v2.cloud.CloudBackupStatus
 import com.nightwave.player.v2.cloud.CloudAccessPolicy
@@ -79,6 +80,7 @@ internal fun NightWaveAccountHubDialog(
     profile: ProfileSettings,
     cloud: CloudBackupStatus,
     busy: Boolean,
+    phase: CloudOperationPhase = CloudOperationPhase.IDLE,
     onDismiss: () -> Unit,
     onConnect: () -> Unit,
     onBackUp: () -> Unit,
@@ -93,6 +95,8 @@ internal fun NightWaveAccountHubDialog(
 ) {
     var confirmDisconnect by remember { mutableStateOf(false) }
     var confirmChangeAccount by remember { mutableStateOf(false) }
+    var showBackupOptions by remember { mutableStateOf(false) }
+    var showConnectionHelp by remember { mutableStateOf(false) }
     var showSetupDetails by remember { mutableStateOf(false) }
     // File pickers and native restore previews must not stack beneath a
     // second persistent dialog window; close this hub before opening them.
@@ -145,7 +149,7 @@ internal fun NightWaveAccountHubDialog(
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 LazyColumn(
-                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    modifier = Modifier.weight(1f).fillMaxWidth().testTag("nw139-hub-content"),
                     contentPadding = androidx.compose.foundation.layout.PaddingValues(
                         horizontal = layout.paddingDp.dp, vertical = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(13.dp)
@@ -179,21 +183,8 @@ internal fun NightWaveAccountHubDialog(
                                             style = MaterialTheme.typography.bodySmall)
                                     }
                                 }
-                                Text("Your music. Your library.",
-                                    style = MaterialTheme.typography.headlineSmall,
-                                    fontWeight = FontWeight.Bold)
-                                Text("Favorites, playlists and your profile stay on this device. " +
-                                    "Add an optional recovery copy whenever you're ready.",
-                                    color = muted,
-                                    style = MaterialTheme.typography.bodySmall)
-                                OutlinedButton(enabled = !busy,
-                                    modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
-                                    onClick = { openExternalFlow(onExportLocal) }) {
-                                    Icon(Icons.Outlined.LibraryMusic, contentDescription = null,
-                                        modifier = Modifier.size(17.dp))
-                                    Spacer(Modifier.size(7.dp))
-                                    Text("Export local library")
-                                }
+                                Text("Local listening works without a Google account.",
+                                    color = muted, style = MaterialTheme.typography.bodySmall)
                             }
                         }
                     }
@@ -210,12 +201,10 @@ internal fun NightWaveAccountHubDialog(
                                         contentDescription = null, tint = primary,
                                         modifier = Modifier.size(24.dp))
                                     Column(Modifier.weight(1f)) {
-                                        Text(AccountRecoveryPresentationPolicy.protectionTitle(
-                                            connected, needsReview, cloud.lastSuccessMs > 0L,
-                                            stage == CloudAccountPresentation.BackupStage.PREVIOUS_BACKUP_NEEDS_REFRESH),
+                                        Text(if (needsReview) "Drive needs attention" else CloudAccountPresentation.title(stage),
                                             style = MaterialTheme.typography.titleMedium,
                                             fontWeight = FontWeight.SemiBold)
-                                        Text(CloudAccountPresentation.details(stage),
+                                        Text("Library metadata backup · audio files stay on this device",
                                             color = muted,
                                             style = MaterialTheme.typography.bodySmall)
                                     }
@@ -258,18 +247,22 @@ internal fun NightWaveAccountHubDialog(
                                         color = muted,
                                         style = MaterialTheme.typography.bodySmall)
                                 }
-                                Text(cloud.lastResult.ifBlank { "No backup activity recorded." },
+                                Text(if (busy) CloudRecoveryUiPolicy.busyLabel(phase)
+                                    else cloud.lastResult.ifBlank { "No backup activity recorded." },
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = muted)
+                                    color = muted,
+                                    modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
+                                        .testTag("nw139-operation-status"))
                                 Button(
                                     onClick = {
                                         if (connected && !needsReview) openExternalFlow(onBackUp)
                                         else openExternalFlow(onConnect)
                                     },
-                                    modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp),
+                                    modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp)
+                                        .testTag("nw139-primary-recovery"),
                                     enabled = !busy
                                 ) {
-                                    Text(if (busy) "Please wait…" else
+                                    Text(if (busy) CloudRecoveryUiPolicy.busyLabel(phase) else
                                         AccountRecoveryPresentationPolicy.primaryAction(
                                             connected, needsReview, cloud.lastSuccessMs > 0L))
                                 }
@@ -297,37 +290,64 @@ internal fun NightWaveAccountHubDialog(
                             }
                         }
                     }
-                    item {
-                        Text("Backup preferences", style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold)
+                    item(key = "nw139-local-export") {
+                        OutlinedButton(enabled = !busy,
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                            onClick = { openExternalFlow(onExportLocal) }) {
+                            Icon(Icons.Outlined.LibraryMusic, contentDescription = null, modifier = Modifier.size(17.dp))
+                            Spacer(Modifier.size(7.dp))
+                            Text("Export local library")
+                        }
+                        Text("Library metadata and selected options only. Audio files are not included; every restore starts with a review.",
+                            style = MaterialTheme.typography.bodySmall, color = muted)
                     }
-                    item {
-                        AccountBackupToggle("Listening history",
-                            "Optional · off by default", cloud.includeHistory,
-                            connected && !busy, onHistory)
+                    item(key = "nw139-backup-options") {
+                        OutlinedButton(onClick = { showBackupOptions = !showBackupOptions },
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("nw139-backup-options")) {
+                            Text(if (showBackupOptions) "Hide backup options" else "Backup options")
+                        }
+                        Text("History, imported lyrics, playback preferences and automatic backup network choice",
+                            style = MaterialTheme.typography.bodySmall, color = muted)
                     }
-                    item {
-                        AccountBackupToggle("Imported lyrics",
-                            "Private LRC files, not audio recordings", cloud.includeLyrics,
-                            connected && !busy, onLyrics)
+                    if (showBackupOptions) {
+                        item {
+                            Text("Backup preferences", style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold)
+                        }
+                        item {
+                            AccountBackupToggle("Listening history",
+                                "Optional · off by default", cloud.includeHistory,
+                                connected && !busy, onHistory)
+                        }
+                        item {
+                            AccountBackupToggle("Imported lyrics",
+                                "Matched local LRC only · public-video lyrics stay on this device", cloud.includeLyrics,
+                                connected && !busy, onLyrics)
+                        }
+                        item {
+                            AccountBackupToggle("Playback preferences",
+                                "Does not restore account permissions or privacy decisions",
+                                cloud.includePreferences, connected && !busy, onPreferences)
+                        }
+                        item {
+                            AccountBackupToggle("Automatic backups on Wi-Fi",
+                                "After a verified backup; scheduling is approximate",
+                                cloud.wifiOnly, connected && !busy, onWifiOnly)
+                        }
+                        item {
+                            Text("This backup contains library metadata and the options you choose. " +
+                                "Audio files are not included. Every restore starts with a review.",
+                                color = muted,
+                                style = MaterialTheme.typography.bodySmall)
+                        }
                     }
-                    item {
-                        AccountBackupToggle("Playback preferences",
-                            "Does not restore account permissions or privacy decisions",
-                            cloud.includePreferences, connected && !busy, onPreferences)
+                    item(key = "nw139-connection-help") {
+                        TextButton(onClick = { showConnectionHelp = !showConnectionHelp },
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("nw139-connection-help")) {
+                            Text(if (showConnectionHelp) "Hide connection help" else "Connection help")
+                        }
                     }
-                    item {
-                        AccountBackupToggle("Automatic backups on Wi-Fi",
-                            "After a verified backup; scheduling is approximate",
-                            cloud.wifiOnly, connected && !busy, onWifiOnly)
-                    }
-                    item {
-                        Text("This backup contains library metadata and the options you choose. " +
-                            "Audio files are not included. Every restore starts with a review.",
-                            color = muted,
-                            style = MaterialTheme.typography.bodySmall)
-                    }
-                    if (CloudAccessPolicy.needsHelp(connected, cloud.accessState, lastGoogleFailure != null)) {
+                    if (showConnectionHelp || CloudAccessPolicy.needsHelp(connected, cloud.accessState, lastGoogleFailure != null)) {
                         item(key = "google-connection-help") {
                             Card(shape = RoundedCornerShape(NightWavePremiumDesignTokens.CARD_CORNER_DP.dp),
                                 colors = CardDefaults.cardColors(
@@ -338,7 +358,9 @@ internal fun NightWaveAccountHubDialog(
                                         "Set up Google Drive backup" else "Google connection help",
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.SemiBold)
-                                    Text(if (lastGoogleFailure == null && connected)
+                                    Text(if (lastGoogleFailure == null && connected && cloud.accessState == CloudAccessState.CHECKED)
+                                        "Drive access was checked. Review setup details if a later connection fails."
+                                    else if (lastGoogleFailure == null && connected)
                                         "Your saved Drive account needs an access check. Reconnect or review connection details."
                                     else if (lastGoogleFailure == null)
                                         "Connect your Google account to back up library metadata. " +

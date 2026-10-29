@@ -19,11 +19,15 @@ class GuestProfileStore(context: Context) {
     private val prefs = context.applicationContext
         .getSharedPreferences("nightwave_v2_guest_profile_1", Context.MODE_PRIVATE)
 
+    companion object { private val guard = Any() }
+
     private fun <T : Enum<T>> enumValue(raw: String?, fallback: T, values: Array<T>): T =
         values.firstOrNull { it.name == raw } ?: fallback
 
     /** Wrong-typed historical preferences must not crash app startup. */
-    fun load(): ProfileSettings {
+    fun load(): ProfileSettings = synchronized(guard) { loadLocked() }
+
+    private fun loadLocked(): ProfileSettings {
         val values = prefs.all
         fun string(key: String, fallback: String) = values[key] as? String ?: fallback
         fun boolean(key: String, fallback: Boolean) = values[key] as? Boolean ?: fallback
@@ -54,7 +58,15 @@ class GuestProfileStore(context: Context) {
         ).normalized()
     }
 
-    fun save(settings: ProfileSettings): Boolean {
+    fun save(settings: ProfileSettings): Boolean = synchronized(guard) { saveLocked(settings) }
+
+    /** Optional recovery cannot overwrite a profile edited after its preview. */
+    fun saveIfUnchanged(expected: ProfileSettings, updated: ProfileSettings): Boolean = synchronized(guard) {
+        if (loadLocked() != expected) return@synchronized false
+        saveLocked(updated)
+    }
+
+    private fun saveLocked(settings: ProfileSettings): Boolean {
         val clean = settings.normalized()
         // Never overwrite an unexpected identity or corrupted source key.
         val existingId = prefs.all["local_id"] as? String ?: return false

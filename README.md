@@ -1,20 +1,20 @@
 # NightWave
 
-**Upcoming updates:** [hourly sequence and both usage guards](docs/quality/UPCOMING_UPDATES.md). NW138 Sound Studio is locally verified; NW139 optional recovery is next. One eligible batch per run with actual evidence recorded.
+**Upcoming updates:** [hourly sequence and both usage guards](docs/quality/UPCOMING_UPDATES.md). NW139 recovery source is locally verified; NW140 Android performance is next. One eligible batch per run with actual evidence recorded.
 
-**Current review work:** [NW138 Sound Studio](docs/NW138_SOUND_STUDIO.md) on [update/nightwave-nw138-sound-studio](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw138-sound-studio), [draft PR #160](https://github.com/Nahian2002/NightWave/pull/160), stacked on [NW137 #159](https://github.com/Nahian2002/NightWave/pull/159). Current active EQ is distinct from an advanced manual draft; Apply/Discard remain outside the scrolling content. Existing features/themes, EQ engine, sources and stored data remain.
+**Current review work:** [NW139 optional recovery](docs/NW139_RECOVERY.md) on [update/nightwave-nw139-recovery](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw139-recovery), [draft PR #161](https://github.com/Nahian2002/NightWave/pull/161), stacked on [NW138 #160](https://github.com/Nahian2002/NightWave/pull/160). Compact account flow, clearer progress, exact access/consent fences and a fix for extra uploads after failed backup comparisons. Existing features/themes, scopes, archive formats, source quality, package and signer remain.
 
 **Current integrated source:** [`main`](https://github.com/Nahian2002/NightWave/tree/main) remains the integrated baseline; newer cumulative changes are on the review branch above and are not automatically merged.
 
-**30 October 2026 verification:** **1,793 JVM tests / 221 suites**, **78 source checks**, full Android/Compose/APK/instrumentation-source build PASS. Sequential lint: **0 errors / 322 warnings / 17 hints**, unchanged notice inventory. Build **NW-debug-B4B205C1BB2D17BA**, same signer. Four new Compose methods compile only; phone/acoustic acceptance remains NOT_RUN. [Exact evidence and remaining gates](TEST_REPORT.md).
+**30 October 2026 verification:** **1,803 JVM tests / 222 suites**, **79 source checks**, full Android/Compose/APK/instrumentation-source build PASS. Sequential lint: **0 errors / 322 warnings / 17 hints**, unchanged notice inventory. Build **NW-debug-238C337491E75208**, same signer. Ten new Android methods compile only. Actual disposable-account recovery and phone acceptance remain NOT_RUN; [prepared live procedure](docs/NW139_RECOVERY_LIVE_PROCEDURE.md). [Exact evidence and remaining gates](TEST_REPORT.md).
 
-**Active next-upgrade plan:** [NW126–NW145 roadmap](docs/PRODUCT_QUALITY_ROADMAP.md), [structured backlog](docs/quality/NW126_NW145_BACKLOG.json), [original audit](docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md). **Next source batch: NW139.** NW126–NW138 and the focused follow-ups are locally verified with physical acceptance pending. Historical ratings remain evidence; passing local checks does not establish a new 9.5 score.
+**Active next-upgrade plan:** [NW126–NW145 roadmap](docs/PRODUCT_QUALITY_ROADMAP.md), [structured backlog](docs/quality/NW126_NW145_BACKLOG.json), [original audit](docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md). **Next source batch: NW140.** NW126–NW139 and focused follow-ups are locally verified with physical acceptance pending. Historical ratings remain evidence; passing local checks does not establish a new 9.5 score.
 
 **Public release: NO-GO.** Installed-phone signer continuity, Samsung acceptance, production OAuth/Drive restore and source-rights review remain separate gates. A successful build does not authorize distribution or certify phone behavior.
 
 ## Start here
 
-- **[Current Sound Studio evidence and phone checks](docs/NW138_SOUND_STUDIO.md)** · [safe upgrade guide](docs/BUILD_AND_RELEASE.md)
+- **[Current recovery evidence and phone/account checks](docs/NW139_RECOVERY.md)** · [safe upgrade guide](docs/BUILD_AND_RELEASE.md)
 - **[Active quality roadmap and revised sequence](docs/PRODUCT_QUALITY_ROADMAP.md)** · [structured backlog](docs/quality/NW126_NW145_BACKLOG.json) · [80 new acceptance cases](docs/quality/NW126_NW145_ACCEPTANCE.csv)
 - [NW111–NW125 implementation history and remaining gates](docs/NW111_NW125_SPOTIFY_QUALITY_ROADMAP.md)
 - [Build and safe update instructions](docs/BUILD_AND_RELEASE.md)

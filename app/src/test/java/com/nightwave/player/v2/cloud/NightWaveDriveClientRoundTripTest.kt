@@ -118,4 +118,48 @@ class NightWaveDriveClientRoundTripTest {
         assertThrows(Exception::class.java) { fake.client.backUpIfChangedVerified("{}".toByteArray()) }
         assertEquals(0, fake.writes)
     }
+
+    @Test fun actualClientReadbackFeedsNonDestructiveMergeAndOriginalLocalCheckpoint() {
+        val fake = FakeDrive(payload)
+        val uploaded = fake.client.backUpIfChangedVerified(payload)
+        val remote = CloudBackupCodec.decode(fake.client.download(uploaded.snapshot.id))
+        val localTrack = track.copy(title = "Local fixture", url = "https://www.youtube.com/watch?v=00000000001")
+        val local = archive.copy(displayName = "Local profile", favorites = listOf(localTrack),
+            playlists = listOf("Test playlist" to listOf(localTrack)))
+        val localBytes = LibraryBackupCodec.encode(local)
+        val plan = CloudLibraryMerger.preview(localBytes, remote.archive)
+        assertArrayEquals(localBytes, plan.expectedLocalBackup)
+        assertEquals("Local profile", plan.mergedArchive.displayName)
+        assertEquals(listOf(localTrack), plan.mergedArchive.playlists.first().second)
+        assertEquals(listOf("Test playlist"), plan.conflictingPlaylistNames)
+        assertEquals(listOf(localTrack, track), plan.mergedArchive.favorites)
+        val again = CloudLibraryMerger.preview(LibraryBackupCodec.encode(plan.mergedArchive), remote.archive)
+        assertFalse(again.hasChanges)
+        assertEquals(1, fake.writes)
+        assertFalse(fake.methods.any { it == "DELETE" || it == "PATCH" })
+    }
+
+    @Test fun transientReadbackFailureCannotInventAnotherVerifiedUploadOrDeleteOldCopy() {
+        val fake = FakeDrive(payload)
+        assertTrue(fake.client.backUpIfChangedVerified(payload).created)
+        val saved = fake.stored!!.copyOf()
+        fake.downloadStatus = 503
+        val failure = assertThrows(DriveHttpFailure::class.java) { fake.client.backUpIfChangedVerified(payload) }
+        assertEquals(503, failure.statusCode)
+        assertEquals(1, fake.writes)
+        assertArrayEquals(saved, fake.stored)
+        fake.downloadStatus = 200
+        assertEquals(archive, CloudBackupCodec.decode(fake.client.download("snapshot_00001")).archive)
+    }
+
+    @Test fun deniedOrRateLimitedComparisonNeverStartsAnotherUpload() {
+        for (code in listOf(401, 403, 429)) {
+            val fake = FakeDrive(payload)
+            assertTrue(fake.client.backUpIfChangedVerified(payload).created)
+            fake.downloadStatus = code
+            val failure = assertThrows(DriveHttpFailure::class.java) { fake.client.backUpIfChangedVerified(payload) }
+            assertEquals(code, failure.statusCode)
+            assertEquals(1, fake.writes)
+        }
+    }
 }

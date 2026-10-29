@@ -146,13 +146,17 @@ class NightWaveDriveClient internal constructor(
      * Smart, no-deletion upload. Compare with the latest *verified* Drive
      * snapshot, not a local checksum/cache that could survive remote deletion.
      * Network/validation failures during the comparison cannot claim success.
-     * A new copy-on-write snapshot is still uploaded and read back.
+     * Changed/corrupt content or a remotely deleted copy can create a new
+     * copy-on-write snapshot. Permission and transport failures stop before
+     * another upload; an unavailable comparison is not proof of changed data.
      */
     fun backUpIfChangedVerified(bytes: ByteArray): DriveBackupOutcome {
         CloudBackupCodec.decode(bytes)
         val latest = listSnapshots().firstOrNull()
         if (latest != null) {
-            val remote = runCatching { download(latest.id) }.getOrNull()
+            val remote = try { download(latest.id) } catch (error: DriveHttpFailure) {
+                if (error.statusCode == 404) null else throw error
+            }
             if (remote != null && CloudSnapshotPolicy.sameVerifiedContent(bytes, remote)) {
                 return DriveBackupOutcome(latest, created = false)
             }

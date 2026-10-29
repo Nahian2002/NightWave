@@ -48,7 +48,7 @@ assert "NightWaveCloudSchedule.update(this@NightWaveStudioActivity)" in activity
 assert "NightWaveDriveClient(token).backUpIfChangedVerified(payload)" in worker
 assert "CloudBackupConsentPolicy.same(consent," in worker
 assert "beforeUpload.consentSnapshot()" in worker
-assert "store.successIfCurrent(consent, System.currentTimeMillis(), outcome.created)" in worker
+assert "store.successIfCurrent(consent, System.currentTimeMillis(), outcome.created," in worker
 assert "store.statusIfCurrent(consent," in worker
 assert "expected.history == current.history" in consent_policy
 assert "expected.wifiOnly == current.wifiOnly" in consent_policy
