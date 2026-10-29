@@ -56,8 +56,11 @@ class SearchTrackSaveWorker(
             val stream = YouTubeGateway().resolveAudioOnlyForOffline(canonical)
             if (isStopped) return fail("Cancelled")
             val downloader = PermittedAudioDownloader(applicationContext, retainOnStop = {
-                SearchOfflinePauseState.isMarked(applicationContext, id) || (stopReason != WorkInfo.STOP_REASON_CANCELLED_BY_APP &&
-                    stopReason != WorkInfo.STOP_REASON_USER)
+                SearchOfflinePauseState.isMarked(applicationContext, id) ||
+                    if (Build.VERSION.SDK_INT >= 31)
+                        stopReason != WorkInfo.STOP_REASON_CANCELLED_BY_APP &&
+                            stopReason != WorkInfo.STOP_REASON_USER
+                    else AudioTransferData.legacyMayRetain(applicationContext, id)
             })
             transfer = downloader
             var lastRefresh = 0L

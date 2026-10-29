@@ -64,8 +64,10 @@ class CatalogDownloadWorker(
             val source = PermittedAudioDownloadPolicy.prepare(
                 candidate.sourceUrl, candidate.saveName)
             val transfer = PermittedAudioDownloader(applicationContext, retainOnStop = {
-                (stopReason != WorkInfo.STOP_REASON_CANCELLED_BY_APP &&
-                    stopReason != WorkInfo.STOP_REASON_USER)
+                if (Build.VERSION.SDK_INT >= 31)
+                    stopReason != WorkInfo.STOP_REASON_CANCELLED_BY_APP &&
+                        stopReason != WorkInfo.STOP_REASON_USER
+                else AudioTransferData.legacyMayRetain(applicationContext, id)
             })
             currentDownload = transfer
             var lastUi = 0L
