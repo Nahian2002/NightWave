@@ -36,6 +36,10 @@ import com.nightwave.player.v2.cloud.CloudAuthorizationFailurePolicy
 import com.nightwave.player.v2.cloud.CloudAuthorizationFailureStore
 import com.nightwave.player.v2.cloud.CloudBackupStatus
 import com.nightwave.player.v2.cloud.CloudAccountSessionPolicy
+import com.nightwave.player.v2.cloud.CloudRecoverySession
+import com.nightwave.player.v2.cloud.CloudRecoverySessionPolicy
+import com.nightwave.player.v2.cloud.CloudOperationPhase
+import com.nightwave.player.v2.cloud.CloudRecoveryUiPolicy
 import com.nightwave.player.v2.cloud.CloudAccessState
 import com.nightwave.player.v2.cloud.CloudAccessPolicy
 import com.nightwave.player.v2.cloud.CloudFailureCausePolicy
@@ -307,6 +311,12 @@ internal data class PlaylistUndoState(
     val message: String
 )
 
+/** Retain only the pre-picker receipt across rotation, never tokens or Drive IDs. */
+internal class CloudAuthorizationReceiptRetainedState : ViewModel() {
+    var start: CloudBackupStatus? = null
+    override fun onCleared() { start = null }
+}
+
 private sealed interface CloudActionResult {
     data class Backup(val created: Boolean) : CloudActionResult
     data class Snapshots(val items: List<DriveSnapshot>) : CloudActionResult
@@ -405,7 +415,14 @@ class NightWaveStudioActivity : ComponentActivity() {
     private var cloudInfo by mutableStateOf(CloudBackupStatus())
     private var cloudStatusSubscription: AutoCloseable? = null
     private var cloudBusy by mutableStateOf(false)
+    private var cloudPhase by mutableStateOf(CloudOperationPhase.IDLE)
     private var cloudPendingAction = ""
+    private val cloudAuthorizationRetained by lazy {
+        ViewModelProvider(this)[CloudAuthorizationReceiptRetainedState::class.java]
+    }
+    private var cloudRequestStart: CloudBackupStatus?
+        get() = cloudAuthorizationRetained.start
+        set(value) { cloudAuthorizationRetained.start = value }
     private var cloudAwaitingResolution = false
     private var cloudRequestGeneration = 0
     private val cloudActionSavedKey = "nw09_cloud_pending_action"
@@ -461,7 +478,9 @@ class NightWaveStudioActivity : ComponentActivity() {
             if (code == null && result.resultCode != RESULT_OK) {
                 // A real user dismissal isn't necessarily an OAuth failure.
                 cloudFailureStore.clear()
-                cloudStore.status("Google permission was not completed; local music unchanged")
+                val prior = cloudRequestStart ?: cloudStore.read()
+                cloudStore.statusIfCurrent(prior.consentSnapshot(),
+                    "Google permission was not completed; local music unchanged", prior.accessRevision)
                 refreshCloud()
                 showMessage("Google permission not completed. Your library is safe.")
             } else {
@@ -819,6 +838,7 @@ class NightWaveStudioActivity : ComponentActivity() {
             cloudPendingAction = restoredCloudAction.orEmpty()
             cloudAwaitingResolution = true
             cloudBusy = true
+            cloudPhase = CloudOperationPhase.AWAITING_PERMISSION
         }
         // Room/DataStore are read-only previews at this phase. A failure
         // opening the optional shadow must not take down the classic library
@@ -1214,7 +1234,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                     onImportGuest = { importFile.launch(arrayOf("application/json", "application/octet-stream")) },
                     onRecoverLastChange = { confirmLastWriteRecovery() },
                     cloud = cloudInfo,
-                    cloudBusy = cloudBusy,
+                    cloudBusy = cloudBusy, cloudPhase = cloudPhase,
                     onCloudConnect = { requestCloudAction("connect") },
                     onCloudBackup = { requestCloudAction("backup") },
                     onCloudPreviewRestore = { requestCloudAction("preview") },
@@ -1396,12 +1416,18 @@ class NightWaveStudioActivity : ComponentActivity() {
     private fun cloudAuthorizationFailed(
         stage: CloudAuthorizationFailurePolicy.Stage, code: Int?
     ) {
-        cloudFailureStore.record(stage, code)
         val message = CloudAuthorizationFailurePolicy.shortMessage(code, stage)
-        val current = cloudStore.read()
-        cloudStore.accessIfCurrent(current.consentSnapshot(),
-            CloudAccessPolicy.afterFailure(current.accessState, stage, code))
-        cloudStore.status(message)
+        val current = cloudRequestStart ?: cloudStore.read()
+        val cancelled = stage != CloudAuthorizationFailurePolicy.Stage.DRIVE_CHECK && code in setOf(16, 12501)
+        val receipt = if (cancelled) current.accessRevision else cloudStore.recordAccessIfCurrent(
+            current.consentSnapshot(), CloudAccessPolicy.afterFailure(current.accessState, stage, code),
+            expectedAccessRevision = current.accessRevision)
+        if (receipt == null || !cloudStore.statusIfCurrent(current.consentSnapshot(), message, receipt)) {
+            refreshCloud()
+            showMessage("A newer Drive access check is available. Start the action again.")
+            return
+        }
+        cloudFailureStore.record(stage, code)
         refreshCloud()
         showMessage(message)
     }
@@ -1431,7 +1457,9 @@ class NightWaveStudioActivity : ComponentActivity() {
             showMessage("Connect Google Drive first.")
             return
         }
+        cloudRequestStart = cloudStore.read()
         cloudPendingAction = action
+        cloudPhase = CloudOperationPhase.AUTHORIZING
         cloudBusy = true
         cloudAwaitingResolution = false
         val attempt = ++cloudRequestGeneration
@@ -1470,6 +1498,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                         cloudAuthorizationFailed(CloudAuthorizationFailurePolicy.Stage.REQUEST, null)
                     } else {
                         cloudAwaitingResolution = true
+                        cloudPhase = CloudOperationPhase.AWAITING_PERMISSION
                         runCatching {
                             cloudResolution.launch(IntentSenderRequest.Builder(pending.intentSender).build())
                         }.onFailure {
@@ -1520,6 +1549,14 @@ class NightWaveStudioActivity : ComponentActivity() {
         // Google permission chooser. Resolve the email from Drive itself.
         // Invalidate only the pre-picker timeout; verification has HTTP limits.
         val verificationGeneration = ++cloudRequestGeneration
+        val verificationState = cloudRequestStart
+        if (verificationState == null) {
+            cloudBusy = false
+            refreshCloud()
+            showMessage("The permission request expired. Start the Drive action again.")
+            return
+        }
+        cloudPhase = CloudOperationPhase.CHECKING_ACCOUNT
         lifecycleScope.launch {
             val verified = withContext(Dispatchers.IO) {
                 runCatching { NightWaveDriveClient(token).authorizedEmailAddress() }
@@ -1531,26 +1568,40 @@ class NightWaveStudioActivity : ComponentActivity() {
                 (legacyAccount != null && !account.equals(legacyAccount, ignoreCase = true))) {
                 cloudBusy = false
                 val code = (verified.exceptionOrNull() as? DriveHttpFailure)?.statusCode
-                cloudFailureStore.record(
-                    CloudAuthorizationFailurePolicy.Stage.DRIVE_CHECK, code)
                 val message = if (code != null) DriveHttpFailurePolicy.message(code)
                     else "Google permitted access, but Drive account verification failed. Retry later."
-                val current = cloudStore.read()
-                cloudStore.accessIfCurrent(current.consentSnapshot(), CloudAccessPolicy.afterFailure(
-                    current.accessState, CloudAuthorizationFailurePolicy.Stage.DRIVE_CHECK, code))
-                cloudStore.status(message)
+                val failureRevision = cloudStore.recordAccessIfCurrent(verificationState.consentSnapshot(),
+                    CloudAccessPolicy.afterFailure(verificationState.accessState,
+                        CloudAuthorizationFailurePolicy.Stage.DRIVE_CHECK, code),
+                    expectedAccessRevision = verificationState.accessRevision)
+                if (failureRevision == null) {
+                    refreshCloud()
+                    showMessage("A newer account check is available. Start the action again.")
+                    return@launch
+                }
+                cloudStore.statusIfCurrent(verificationState.consentSnapshot(), message, failureRevision)
+                cloudFailureStore.record(CloudAuthorizationFailurePolicy.Stage.DRIVE_CHECK, code)
                 refreshCloud()
                 showMessage(message)
                 return@launch
             }
-            finishVerifiedCloudAuthorization(action, token, account)
+            val current = cloudStore.read()
+            if (!CloudBackupConsentPolicy.same(verificationState.consentSnapshot(), current.consentSnapshot()) ||
+                verificationState.accessRevision != current.accessRevision) {
+                cloudBusy = false
+                refreshCloud()
+                showMessage("Drive access or backup choices changed. Start the action again.")
+                return@launch
+            }
+            finishVerifiedCloudAuthorization(action, token, account, verificationState)
         }
     }
 
-    private fun finishVerifiedCloudAuthorization(action: String, token: String, account: String) {
+    private fun finishVerifiedCloudAuthorization(action: String, token: String, account: String,
+        verifiedState: CloudBackupStatus) {
         if (action == "connect") {
             cloudBusy = false
-            if (cloudStore.connect(account)) {
+            if (cloudStore.connect(account, expected = verifiedState)) {
                 cloudFailureStore.clear()
                 runCatching { NightWaveCloudSchedule.stop(this) }
                 refreshCloud()
@@ -1566,7 +1617,17 @@ class NightWaveStudioActivity : ComponentActivity() {
             return
         }
         val operationConsent = cloudStore.read().consentSnapshot()
-        cloudStore.accessIfCurrent(operationConsent, CloudAccessState.CHECKED)
+        val accessRevision = cloudStore.recordAccessIfCurrent(operationConsent, CloudAccessState.CHECKED,
+            expectedAccessRevision = verifiedState.accessRevision)
+        if (accessRevision == null) {
+            cloudBusy = false
+            refreshCloud()
+            showMessage("Drive access could not be confirmed locally. Try again.")
+            return
+        }
+        val recoverySession = CloudRecoverySession(operationConsent, accessRevision)
+        cloudPhase = if (action == "backup") CloudOperationPhase.PREPARING_BACKUP
+            else CloudOperationPhase.LISTING_BACKUPS
         cloudFailureStore.clear()
         refreshCloud()
         lifecycleScope.launch {
@@ -1589,6 +1650,8 @@ class NightWaveStudioActivity : ComponentActivity() {
                                 latestSettings.consentSnapshot())) {
                                 "Google account or backup privacy settings changed during upload"
                             }
+                            check(CloudRecoverySessionPolicy.matches(recoverySession, cloudStore.read()))
+                            withContext(Dispatchers.Main) { cloudPhase = CloudOperationPhase.TRANSFERRING_BACKUP }
                             val outcome = drive.backUpIfChangedVerified(bytes)
                             CloudActionResult.Backup(outcome.created)
                         }
@@ -1612,7 +1675,8 @@ class NightWaveStudioActivity : ComponentActivity() {
                             return@onSuccess
                         }
                         if (cloudStore.successIfCurrent(
-                                operationConsent, System.currentTimeMillis(), outcome.created)) {
+                                operationConsent, System.currentTimeMillis(), outcome.created,
+                                expectedAccessRevision = accessRevision)) {
                             runCatching {
                                 NightWaveCloudSchedule.update(this@NightWaveStudioActivity)
                             }.onFailure {
@@ -1633,13 +1697,14 @@ class NightWaveStudioActivity : ComponentActivity() {
                         // A late Drive response must not display snapshots from
                         // an old account or privacy revision after reconnection.
                         if (!CloudAccountSessionPolicy.same(
-                                operationConsent, cloudStore.read().consentSnapshot())) {
+                                operationConsent, cloudStore.read().consentSnapshot()) ||
+                            !CloudRecoverySessionPolicy.matches(recoverySession, cloudStore.read())) {
                             refreshCloud()
                             showMessage("Google account session changed. Preview again.")
                         } else {
                             showCloudSnapshotPicker(outcome.items, token,
                                 forMerge = action == "merge",
-                                expectedSession = operationConsent)
+                                expectedSession = recoverySession)
                         }
                     }
                 }
@@ -1654,14 +1719,22 @@ class NightWaveStudioActivity : ComponentActivity() {
                         "No cloud backups found in this Google account"
                     else -> "Drive operation unsuccessful; local library unchanged"
                 }
+                var failureAccessRevision = accessRevision
                 if (error is DriveHttpFailure) {
                     val current = cloudStore.read()
-                    cloudStore.accessIfCurrent(operationConsent, CloudAccessPolicy.afterFailure(
-                        current.accessState, CloudAuthorizationFailurePolicy.Stage.DRIVE_CHECK, error.statusCode))
+                    val failureRevision = cloudStore.recordAccessIfCurrent(operationConsent, CloudAccessPolicy.afterFailure(
+                        current.accessState, CloudAuthorizationFailurePolicy.Stage.DRIVE_CHECK, error.statusCode),
+                        expectedAccessRevision = accessRevision)
+                    if (failureRevision == null) {
+                        refreshCloud()
+                        showMessage("A newer Drive access check is available. Start the action again.")
+                        return@onFailure
+                    }
+                    failureAccessRevision = failureRevision
                     if (DriveHttpFailurePolicy.needsAccountAttention(error.statusCode))
                         cloudFailureStore.record(CloudAuthorizationFailurePolicy.Stage.DRIVE_CHECK, error.statusCode)
                 }
-                if (cloudStore.statusIfCurrent(operationConsent, message)) {
+                if (cloudStore.statusIfCurrent(operationConsent, message, failureAccessRevision)) {
                     refreshCloud()
                     showMessage(message)
                 } else {
@@ -1674,7 +1747,7 @@ class NightWaveStudioActivity : ComponentActivity() {
 
     private fun showCloudSnapshotPicker(
         snapshots: List<DriveSnapshot>, token: String,
-        forMerge: Boolean, expectedSession: CloudBackupConsent
+        forMerge: Boolean, expectedSession: CloudRecoverySession
     ) {
         val options = snapshots.take(50)
         val labels = options.mapIndexed { index, snapshot ->
@@ -1692,8 +1765,8 @@ class NightWaveStudioActivity : ComponentActivity() {
             .setTitle(if (forMerge) "Compare backups (${options.size} of ${snapshots.size})"
                 else "Choose a cloud backup (${options.size} of ${snapshots.size})")
             .setItems(labels) { _, which ->
-                if (!CloudAccountSessionPolicy.mayApply(
-                        expectedSession, cloudStore.read().consentSnapshot(), cloudBusy)) {
+                if (!CloudRecoverySessionPolicy.mayApply(
+                        expectedSession, cloudStore.read(), cloudBusy)) {
                     showMessage("Google account session changed. Reconnect and preview again.")
                     return@setItems
                 }
@@ -1702,12 +1775,13 @@ class NightWaveStudioActivity : ComponentActivity() {
                     showMessage("Drive snapshot list changed. Preview again.")
                     return@setItems
                 }
+                cloudPhase = CloudOperationPhase.OPENING_BACKUP
                 cloudBusy = true
                 lifecycleScope.launch {
                     val outcome = withContext(Dispatchers.IO) {
                         runCatching {
-                            check(CloudAccountSessionPolicy.same(
-                                expectedSession, cloudStore.read().consentSnapshot())) {
+                            check(CloudRecoverySessionPolicy.matches(
+                                expectedSession, cloudStore.read())) {
                                 "Google account session changed during cloud preview"
                             }
                             val remote = CloudBackupCodec.decode(
@@ -1722,8 +1796,8 @@ class NightWaveStudioActivity : ComponentActivity() {
                     }
                     cloudBusy = false
                     outcome.onSuccess { (remote, plan, comparison) ->
-                        if (!CloudAccountSessionPolicy.same(
-                                expectedSession, cloudStore.read().consentSnapshot())) {
+                        if (!CloudRecoverySessionPolicy.matches(
+                                expectedSession, cloudStore.read())) {
                             showMessage("Google account session changed; preview again.")
                         } else if (plan != null) showCloudMergePreview(plan, expectedSession)
                         else if (comparison != null) {
@@ -1731,7 +1805,8 @@ class NightWaveStudioActivity : ComponentActivity() {
                         }
                     }
                         .onFailure {
-                            cloudStore.status("Selected backup unavailable or failed validation")
+                            cloudStore.statusIfCurrent(expectedSession.consent,
+                                "Selected backup unavailable or failed validation", expectedSession.accessRevision)
                             refreshCloud()
                             showMessage("Selected backup could not be opened; local data unchanged.")
                         }
@@ -1747,7 +1822,7 @@ class NightWaveStudioActivity : ComponentActivity() {
      * may be overwritten by the merge.
      */
     private fun showCloudMergePreview(
-        plan: CloudMergePlan, expectedSession: CloudBackupConsent
+        plan: CloudMergePlan, expectedSession: CloudRecoverySession
     ) {
         val conflicts = if (plan.conflictingPlaylistNames.isEmpty()) ""
             else "\n\nPlaylist name conflicts: " +
@@ -1764,22 +1839,24 @@ class NightWaveStudioActivity : ComponentActivity() {
             .setNegativeButton("Close", null)
         if (plan.hasChanges) {
             dialog.setPositiveButton("Merge into this device") { _, _ ->
-                if (!CloudAccountSessionPolicy.mayApply(
-                        expectedSession, cloudStore.read().consentSnapshot(), cloudBusy)) {
+                if (!CloudRecoverySessionPolicy.mayApply(
+                        expectedSession, cloudStore.read(), cloudBusy)) {
                     showMessage("Google account session changed or busy; compare again.")
                     return@setPositiveButton
                 }
+                cloudPhase = CloudOperationPhase.MERGING
                 cloudBusy = true
                 lifecycleScope.launch {
                     val result = withContext(Dispatchers.IO) {
                         runCatching {
-                            check(CloudAccountSessionPolicy.same(
-                                expectedSession, cloudStore.read().consentSnapshot()))
-                            archiveManager.mergeIfUnchanged(plan)
+                            cloudStore.withRecoverySession(expectedSession) {
+                                archiveManager.mergeIfUnchanged(plan)
+                            }
                         }.getOrDefault(CloudMergeApplyResult.FAILED)
                     }
                     cloudBusy = false
                     when (result) {
+                        null -> showMessage("Drive access changed. Compare again before merging.")
                         CloudMergeApplyResult.APPLIED -> {
                             profile = profiles.load()
                             refresh()
@@ -1800,7 +1877,7 @@ class NightWaveStudioActivity : ComponentActivity() {
 
     private fun showCloudRestorePreview(
         preview: CloudBackupPreview, report: CloudRecoveryReport,
-        expectedSession: CloudBackupConsent
+        expectedSession: CloudRecoverySession
     ) {
         val message = buildString {
             append("IN GOOGLE DRIVE\n")
@@ -1844,26 +1921,28 @@ class NightWaveStudioActivity : ComponentActivity() {
 
     private fun restoreCloudAfterConfirmation(
         preview: CloudBackupPreview, report: CloudRecoveryReport,
-        withHistory: Boolean, expectedSession: CloudBackupConsent
+        withHistory: Boolean, expectedSession: CloudRecoverySession
     ) {
-        if (!CloudAccountSessionPolicy.mayApply(
-                expectedSession, cloudStore.read().consentSnapshot(), cloudBusy)) {
+        if (!CloudRecoverySessionPolicy.mayApply(
+                expectedSession, cloudStore.read(), cloudBusy)) {
             showMessage("Google account session changed or backup is busy; review again.")
             return
         }
+        cloudPhase = CloudOperationPhase.RESTORING
         cloudBusy = true
         val history = if (withHistory) preview.history else null
         lifecycleScope.launch {
             val outcome = withContext(Dispatchers.IO) {
                 runCatching {
-                    check(CloudAccountSessionPolicy.same(
-                        expectedSession, cloudStore.read().consentSnapshot()))
-                    archiveManager.restoreCloudIfUnchanged(
-                        report.expectedLocalBackup, preview.archive, history)
+                    cloudStore.withRecoverySession(expectedSession) {
+                        archiveManager.restoreCloudIfUnchanged(
+                            report.expectedLocalBackup, preview.archive, history)
+                    }
                 }.getOrDefault(CloudRestoreApplyResult.FAILED)
             }
             cloudBusy = false
             when (outcome) {
+                null -> showMessage("Drive access changed. Review the backup again before restoring.")
                 CloudRestoreApplyResult.APPLIED -> {
                     profile = profiles.load()
                     refresh()
@@ -1881,8 +1960,9 @@ class NightWaveStudioActivity : ComponentActivity() {
     }
 
     private fun showCloudOptionalRestorePrompt(
-        backup: CloudBackupPreview, expectedSession: CloudBackupConsent
+        backup: CloudBackupPreview, expectedSession: CloudRecoverySession
     ) {
+        val expectedProfile = profiles.load()
         val options = buildString {
             append("This cloud backup also contains ")
             append(if (backup.preferences == null) "no preferences"
@@ -1899,27 +1979,27 @@ class NightWaveStudioActivity : ComponentActivity() {
             .setMessage(options)
             .setNegativeButton("Keep local options", null)
             .setPositiveButton("Apply optional data") { _, _ ->
-                if (!CloudAccountSessionPolicy.mayApply(
-                        expectedSession, cloudStore.read().consentSnapshot(), cloudBusy)) {
+                if (!CloudRecoverySessionPolicy.mayApply(
+                        expectedSession, cloudStore.read(), cloudBusy)) {
                     showMessage("Google account session changed or busy. Open backup again.")
                     return@setPositiveButton
                 }
+                cloudPhase = CloudOperationPhase.APPLYING_OPTIONS
                 cloudBusy = true
                 lifecycleScope.launch {
                     val outcome = withContext(Dispatchers.IO) {
                         runCatching {
-                            check(CloudAccountSessionPolicy.same(
-                                expectedSession, cloudStore.read().consentSnapshot()))
-                            val restoredLyrics = if (backup.includesLyrics)
-                                lyricsStore.restoreCloudMissing(backup.lyrics) else 0
-                            val changedPreferences = backup.preferences?.let { restored ->
-                                val current = profiles.load()
-                                check(profiles.save(restored.applyTo(current))) {
-                                    "Playback preferences could not be saved"
-                                }
-                                true
-                            } ?: false
-                            Pair(restoredLyrics, changedPreferences)
+                            checkNotNull(cloudStore.withRecoverySession(expectedSession) {
+                                val changedPreferences = backup.preferences?.let { restored ->
+                                    check(profiles.saveIfUnchanged(expectedProfile, restored.applyTo(expectedProfile))) {
+                                        "Playback preferences could not be saved"
+                                    }
+                                    true
+                                } ?: false
+                                val restoredLyrics = if (backup.includesLyrics)
+                                    lyricsStore.restoreCloudMissing(backup.lyrics) else 0
+                                Pair(restoredLyrics, changedPreferences)
+                            })
                         }
                     }
                     cloudBusy = false
@@ -3037,6 +3117,7 @@ private fun StudioRoot(
     onRecoverLastChange: () -> Unit,
     cloud: CloudBackupStatus,
     cloudBusy: Boolean,
+    cloudPhase: CloudOperationPhase = CloudOperationPhase.IDLE,
     onCloudConnect: () -> Unit,
     onCloudBackup: () -> Unit,
     onCloudPreviewRestore: () -> Unit,
@@ -3403,7 +3484,7 @@ private fun StudioRoot(
                         modifier = Modifier, profile = profile, save = onSaveProfile,
                         onExport = onExportGuest, onImport = onImportGuest,
                         onRecoverLastChange = onRecoverLastChange,
-                        cloud = cloud, cloudBusy = cloudBusy,
+                        cloud = cloud, cloudBusy = cloudBusy, cloudPhase = cloudPhase,
                         onCloudConnect = onCloudConnect,
                         onCloudBackup = onCloudBackup,
                         onCloudPreviewRestore = onCloudPreviewRestore,
@@ -3479,7 +3560,7 @@ private fun StudioRoot(
         onDismiss = { showSoundStudio = false }
     )
     if (showAccountHub) NightWaveAccountHubDialog(
-        profile = profile, cloud = cloud, busy = cloudBusy,
+        profile = profile, cloud = cloud, busy = cloudBusy, phase = cloudPhase,
         onDismiss = { showAccountHub = false },
         onConnect = onCloudConnect,
         onBackUp = onCloudBackup,
@@ -5186,6 +5267,7 @@ private fun StudioProfile(
     onExport: () -> Unit, onImport: () -> Unit, onRecoverLastChange: () -> Unit,
     cloud: CloudBackupStatus,
     cloudBusy: Boolean,
+    cloudPhase: CloudOperationPhase = CloudOperationPhase.IDLE,
     onCloudConnect: () -> Unit,
     onCloudBackup: () -> Unit,
     onCloudPreviewRestore: () -> Unit,
@@ -5330,7 +5412,7 @@ private fun StudioProfile(
             StudioProfileGroup("Google Drive · optional") {
                 StudioProfileRow(
                     "Backup connection",
-                    if (cloudBusy) "Backup or authorization in progress"
+                    if (cloudBusy) CloudRecoveryUiPolicy.busyLabel(cloudPhase)
                     else if (cloud.account.isNotBlank() && cloud.accessState != CloudAccessState.CHECKED)
                         CloudAccessPolicy.label(true, cloud.accessState, cloud.lastAccessCheckMs)
                     else CloudAccountPresentation.title(CloudAccountPresentation.stage(cloud)),
@@ -5532,7 +5614,7 @@ private fun StudioProfile(
                         StudioProfileRow("Disconnect or change Drive", "Review the effect on your local library",
                             Icons.AutoMirrored.Outlined.ArrowBack, onOpenAccount)
                     }
-                    if (cloudBusy) Text("Connecting or transferring backup…",
+                    if (cloudBusy) Text(CloudRecoveryUiPolicy.busyLabel(cloudPhase),
                         modifier = Modifier.padding(horizontal = 14.dp),
                         style = MaterialTheme.typography.bodySmall, color = muted)
                     Text("Backups contain metadata, never offline audio or passwords. " +

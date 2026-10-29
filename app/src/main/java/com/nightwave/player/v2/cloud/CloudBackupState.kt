@@ -58,6 +58,15 @@ class CloudBackupState(context: Context) {
 
     fun read(): CloudBackupStatus = synchronized(guard) { readLocked() }
 
+    /** Local commits only. Lock order is cloud guard then legacy library/lyrics.
+     * No network, account UI or suspension is allowed inside this block. The
+     * existing archive transaction still checks the exact previewed local bytes. */
+    internal fun <T> withRecoverySession(expected: CloudRecoverySession, commit: () -> T): T? =
+        synchronized(guard) {
+            if (!CloudRecoverySessionPolicy.matches(expected, readLocked())) return@synchronized null
+            commit()
+        }
+
     /** A foreground screen can observe worker results without polling/network access. */
     fun observe(onChange: (CloudBackupStatus) -> Unit): AutoCloseable {
         val active = java.util.concurrent.atomic.AtomicBoolean(true)
@@ -82,9 +91,11 @@ class CloudBackupState(context: Context) {
     }
 
     /** Called only after interactive authorization confirms a specific account. */
-    fun connect(account: String): Boolean = synchronized(guard) {
+    fun connect(account: String, expected: CloudBackupStatus? = null): Boolean = synchronized(guard) {
         if (account.isBlank() || !account.contains('@')) return@synchronized false
         val previous = readLocked()
+        if (expected != null && (expected.accessRevision != previous.accessRevision ||
+                expected.consentSnapshot() != previous.consentSnapshot())) return@synchronized false
         // Switching accounts MUST require a new first successful upload.
         val switched = !previous.account.equals(account, ignoreCase = true)
         prefs.edit()
@@ -163,9 +174,12 @@ class CloudBackupState(context: Context) {
 
     /** Atomically accept a worker's result only while its exact consent is current. */
     fun successIfCurrent(
-        consent: CloudBackupConsent, whenMs: Long, created: Boolean
+        consent: CloudBackupConsent, whenMs: Long, created: Boolean,
+        expectedAccessRevision: Long? = null
     ): Boolean = synchronized(guard) {
-        if (whenMs <= 0L || !CloudBackupConsentPolicy.same(consent, readLocked().consentSnapshot())) {
+        val current = readLocked()
+        if (whenMs <= 0L || !CloudBackupConsentPolicy.same(consent, current.consentSnapshot()) ||
+            (expectedAccessRevision != null && expectedAccessRevision != current.accessRevision)) {
             return@synchronized false
         }
         prefs.edit().putBoolean("enabled", true)
@@ -180,9 +194,12 @@ class CloudBackupState(context: Context) {
     }
 
     /** Old or cancelled workers cannot replace the current account's status. */
-    fun statusIfCurrent(consent: CloudBackupConsent, message: String): Boolean =
+    fun statusIfCurrent(consent: CloudBackupConsent, message: String,
+        expectedAccessRevision: Long? = null): Boolean =
         synchronized(guard) {
-            if (!CloudBackupConsentPolicy.same(consent, readLocked().consentSnapshot())) {
+            val current = readLocked()
+            if (!CloudBackupConsentPolicy.same(consent, current.consentSnapshot()) ||
+                (expectedAccessRevision != null && expectedAccessRevision != current.accessRevision)) {
                 return@synchronized false
             }
             prefs.edit().putString("last_result", message.take(130)).commit()
