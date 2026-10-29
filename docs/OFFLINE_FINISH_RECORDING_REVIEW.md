@@ -39,3 +39,9 @@ Main-screen visual rubric remains **8.8/10** (identity 8.5, colors 9.0, hierarch
 ## Results and remaining acceptance
 
 Pending implementation. No post-fix score is awarded before reviewing the resulting app.
+
+### Owner-provided transfer evidence, before concurrency implementation
+
+The owner supplies a second download without background music: bounded ranges, HTTP/1.1 / 206, three requests, 2,948,520 received bytes, zero retained-start bytes; DNS 9ms, connect 1,072ms (including TLS 54ms), headers 300ms, receive 52,685ms, write 5ms, sync 20ms. This is owner-supplied diagnostic text, not an independently captured phone trace. Receive-only average is approximately **0.448 Mbps**. Storage and DNS are not the dominant measured phases; background playback is not necessary to reproduce this run. Per-connection versus aggregate source pacing remains unproven.
+
+Plan extension: test **at most four parallel 512 KiB ranges after a validated 64 KiB probe**, retaining strong-validator/Content-Range/type/byte checks, original quality, storage bounds and ordered durable commit. Buffer at most 2 MiB across the batch, cancel only this transfer's active calls, validate every part before combining, retain only synced receipt-backed segments, and safely restart if the source changes or ignores Range. Record a matched controlled server comparison; phone/source minimum speed remains unverified. This experiment is justified by the new receive-bound HTTP/1.1 evidence, not a promise that concurrency defeats every server limit.
