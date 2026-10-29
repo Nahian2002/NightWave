@@ -22,7 +22,7 @@ fun ListeningInsightsPanel(insights: ListeningInsights) {
             insights.distinctRecentCreators.toString() to "Creators",
             insights.likedTracks.toString() to "Liked songs"
         ))
-        Text("${insights.playlists} saved playlists",
+        Text(NightWaveListeningPresentationPolicy.count(insights.playlists, "saved playlist"),
             style = MaterialTheme.typography.bodySmall,
             color = colors.onSurfaceVariant)
         if (insights.creators.isNotEmpty()) {
@@ -34,7 +34,7 @@ fun ListeningInsightsPanel(insights: ListeningInsights) {
                     Text(creator.name, modifier = Modifier.weight(1f),
                         style = MaterialTheme.typography.bodyMedium,
                         color = colors.onSurface, maxLines = 1)
-                    Text("${creator.distinctRecentTracks} tracks",
+                    Text(NightWaveListeningPresentationPolicy.count(creator.distinctRecentTracks, "track"),
                         style = MaterialTheme.typography.bodySmall,
                         color = colors.onSurfaceVariant)
                 }

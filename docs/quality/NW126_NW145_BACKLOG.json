@@ -5,7 +5,7 @@
   "audit": "docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md",
   "implementation_base_revision": "61703c98238e762e59c049b6690853431f822884",
   "audit_branch": "audit/nightwave-post-nw125-quality-roadmap",
-  "next_batch": "NW134",
+  "next_batch": "NW135",
   "goal": "9.5+ within the declared NightWave music-player scope, conditional on actual product and acceptance evidence",
   "rating_kind": "Subjective comparative product review, not a measured Spotify score",
   "baseline_weighted_score": 6.655,
@@ -503,7 +503,7 @@
         "NW132",
         "NW133"
       ],
-      "implementation_status": "PLANNED",
+      "implementation_status": "LOCAL_VERIFIED",
       "device_status": "NOT_RUN",
       "finding_ids": [
         "Q14",
@@ -523,10 +523,26 @@
         "Background, process-recreate and reconnect around a queue edit; accepted commands and persisted selection remain coherent without stale UI overwrites.",
         "Test notification, headset/Bluetooth and call/audio-focus transports on declared devices; collect timing and wrong-track/error evidence."
       ],
-      "implementation_commit": null,
-      "local_evidence": [],
+      "implementation_commit": "8a5a480f23308c772f5fcbf60e5d8af3f3cca2fc",
+      "local_evidence": [
+        "docs/NW134_QUEUE_TRANSPORT.md",
+        "docs/quality/NW134_FINISH_ACCEPTANCE.csv",
+        "TEST_REPORT.md",
+        "Complete Windows Android/Compose/APK/instrumentation-source build PASS; 1682 JVM tests / 209 suites; zero failures/errors/skips",
+        "69/69 source checks PASS with seven new broken-caller fixtures",
+        "NW-debug-16B498CC3E7811BB; 889 canonical inputs verified",
+        "Sequential lint 0 errors / 313 warnings / 17 hints; signer matches previous owner APK",
+        "10 queue JVM scenarios and one plural regression executed; 612 theme-matrix and three queue UI cases compiled only"
+      ],
       "device_evidence": [],
-      "remaining_blockers": []
+      "remaining_blockers": [
+        "All four original NW134 device rows and 12-case supplement NOT_RUN",
+        "Real multi-item Play Next/reorder/remove/Undo/confirmed clear and source-to-audible state NOT_RUN",
+        "Actual background/process/reconnect and persisted command/selection acceptance NOT_RUN",
+        "Notification/headset/Bluetooth/call/audio-focus/timing, TalkBack and physical controls NOT_RUN",
+        "Retain previous signer/data/recovery/performance/provider/public-release gates"
+      ],
+      "pull_request": "https://github.com/Nahian2002/NightWave/pull/151"
     },
     {
       "id": "NW135",
@@ -1221,5 +1237,37 @@
     ],
     "next_batch": "NW134",
     "next_branch_rule": "Base a new cumulative review branch on latest DESIGN06; retain pending physical checks."
+  },
+  "queue_finish": {
+    "batch": "NW134",
+    "branch": "update/nightwave-nw134-queue-finish",
+    "pull_request": "https://github.com/Nahian2002/NightWave/pull/151",
+    "protected_parent": "b04248cd519a7dcc313e3a31443103c0e821a7be",
+    "build_id": "NW-debug-16B498CC3E7811BB",
+    "latest_recorded_ui_score": 8.8,
+    "post_change_score": null,
+    "rating_limit": "Same five-part visual rubric; original whole-product audit unchanged. No new score from tests.",
+    "status": "LOCAL_VERIFIED",
+    "device_acceptance": "NOT_RUN",
+    "evidence": [
+      "docs/NW134_QUEUE_TRANSPORT.md",
+      "docs/quality/NW134_FINISH_ACCEPTANCE.csv",
+      "TEST_REPORT.md"
+    ],
+    "validation": {
+      "jvm_tests": 1682,
+      "jvm_suites": 209,
+      "source_checks": 69,
+      "theme_matrix_compiled_only": 612,
+      "new_queue_ui_compiled_only": 3,
+      "unchanged_protected_files": 231,
+      "intentional_queue_files_changed": 3,
+      "callback_inventories_retained": 9,
+      "lint_errors": 0,
+      "lint_warnings": 313,
+      "lint_hints": 17
+    },
+    "next_batch": "NW135",
+    "next_branch_rule": "Base a new cumulative review branch on latest NW134; retain all pending physical acceptance."
   }
 }

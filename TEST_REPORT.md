@@ -1,35 +1,35 @@
-# Current verification - DESIGN06 player continuity and readable listening
+# Current verification - NW134 queue edits and compact UI finish
 
-29 October 2026. [Draft PR #150](https://github.com/Nahian2002/NightWave/pull/150), `design/nightwave-continuity-finish`, stacked on #149. Protected parent `b6c6b066cfb9052c74d83b63a5e3233e4cd92392`; UI implementation `5722f71bf40d4dab578bd876d0dab9ccdea0d2b1`, built with guard update at `cc10cff5f07d6434a9570dc38f3d16593c257bb5`. [Architecture and latest recorded review](docs/design/CONTINUITY_FINISH.md), [24-case supplement](docs/design/CONTINUITY_FINISH_ACCEPTANCE.csv). [Previous verification](https://github.com/Nahian2002/NightWave/blob/b6c6b066cfb9052c74d83b63a5e3233e4cd92392/TEST_REPORT.md) and earlier matrices remain historical evidence.
+29 October 2026. [Draft PR #151](https://github.com/Nahian2002/NightWave/pull/151), `update/nightwave-nw134-queue-finish`, stacked on DESIGN06 #150. Protected parent `b04248cd519a7dcc313e3a31443103c0e821a7be`; implementation/built revision `8a5a480f23308c772f5fcbf60e5d8af3f3cca2fc`. [Architecture/latest review](docs/NW134_QUEUE_TRANSPORT.md), [12-case supplement](docs/quality/NW134_FINISH_ACCEPTANCE.csv). [Previous verification](https://github.com/Nahian2002/NightWave/blob/b04248cd519a7dcc313e3a31443103c0e821a7be/TEST_REPORT.md), earlier matrices and the original audit remain evidence.
 
-Latest owner recording 023412 scores **8.7/10 visible UI** on the same five equal dimensions: identity 8.5, color 9, hierarchy 9, observed coherence 8.5, perceived legibility 8.5. Sequential decoding read 11,577 frames with monotonic timestamps through 198.2001s; review used 199 one-second samples, four-second overviews and details. An empty viewport sample near 01:50 is between settings and player, without proof of duration or a persistent freeze. A matching verified source gap is corrected: immediate backdrop plus effect-delayed alpha-zero content. Exact recorded binary identity is unavailable. No new candidate or whole-product rating follows from these tests; original 6.7 audit stays frozen.
+Latest recording 030542 scores **8.8/10 visible UI** on the same five equal dimensions: identity 8.5, color 9, hierarchy 9, observed coherence 9, perceived readability 8.5. Sequential decoding read 8,639 frames through 130.4267s with monotonic timestamps; review used 131 one-second samples, two overviews and six details. Exact recorded build is unknown; encoding rate is not app performance. No lasting stuck/blank page is observed in samples. No new candidate score is assigned; original whole-product 6.7 remains frozen.
 
-Player/backdrop now share one synchronous transition, with translation and running-state retention through an interrupted enter. Stats show real recorded duration/UTC periods, reflow metrics, accessible flat comparison bars and simpler privacy/completeness wording. Home roles and representative actual covers are distinct without queue changes. Settings have aligned insets and readable sentence-case headings. All themes/features, source identities and data contracts remain.
+Statistics short actions now wrap to measured content; singular/plural labels, automatic collection category icons, compact save guidance and quieter selection address observed finish issues. NW134 adds service-owned snapshot-checked reordering within Play Next/Up Next and confirmed Clear Up Next, preserving current/earlier songs, stored music and transport. Undo restores original manual priority and rejects a changed remainder. Shuffle restrictions are explained; offline collections retain existing controls. All themes/features remain.
 
 | Executed or compiled check | Result and limit |
 | --- | --- |
-| Complete Windows builder | PASS: production Android/Compose, debug APK and instrumentation-source compilation. First attempt stopped at the superseded NW59 source pattern before Gradle; the updated guard passed before the successful fresh attempt. |
-| JVM suite | **1,671 tests / 208 suites**, zero failures/errors/skips. Fourteen added methods cover interrupted backdrop lifetime, duration/calendar/UTC/reflow, actual cover selection and honest distinct mix roles. |
-| Current source runner | **68/68 PASS**. Adds updated NW58 and continuity caller checks; earlier fixtures retained, with ten new continuity negatives and expanded NW58/NW59 alpha/delay/interruption checks. |
-| Android theme/layout matrix | **16 x 36 = 576 compiled cases, NOT_RUN**. Two new methods check first-frame/reversed-exit pixels against an underlay and actual stats windows/consent/Refresh/Erase callbacks at narrow/large type. Compilation does not establish rendered outcomes. |
-| Sequential lint | **0 errors / 313 warnings / 17 hints**, unchanged; no suppression/baseline added. |
-| Source feature preservation | **234 protected nonpresentation source/schema/build files byte-identical**, nine feature-callback inventories retained; exact six shortcuts, core MusicIdentity, listening storage and trend engine unchanged. Installed-data acceptance is separate. |
-| Signer | PASS against previous delivered A2F02AA0 APK; same package/certificate. No installed-phone comparison or installation. |
-| Acceptance | 219-case source/APK-bound fixture pack PREPARED_NOT_EXECUTED. New 24-case supplement NOT_RUN; earlier matrices retained. |
-| Device/publication | Current adb inventory has no connected device/emulator. No install/reset/account/data operation. Actions remains disabled; no public binary/release or hosted CI pass. |
+| Complete Windows builder | PASS: production Android/Compose, debug APK assembly and Android instrumentation-source compilation from final implementation. |
+| JVM suite | **1,682 tests / 209 suites**, zero failures/errors/skips. Ten new queue scenarios plus one plural regression execute; existing shuffle/repeat/history, queue/transport and source-selection regressions remain. |
+| Current source runner | **69/69 PASS**. Adds NW134 actual UI/bridge/service/queue checks with seven broken-caller fixtures. Earlier checks remain; no guard weakened. |
+| Android tests | **17 x 36 = 612 theme/width/font cases compiled only**, adding measured short-action bounds/callback coverage. Three new queue UI tests compile only: confirmation snapshot, absolute reorder identities and shuffle restriction. Device execution NOT_RUN. |
+| Sequential lint | **0 errors / 313 warnings / 17 hints**, unchanged counts; no suppression/baseline. Inherited Kotlin compiler warning for an unreachable Library description branch remains. |
+| Source preservation | **231 previously protected files byte-identical**, three intentional queue/service/bridge changes, nine callback inventories retained. Schemas, providers/dependencies, core identity, library/history storage and consent/accounts remain. Installed-data behavior is separate. |
+| Signer | PASS against delivered DESIGN06 0195B157 APK; same package/certificate. Installed-phone comparison NOT_RUN; no installation/reset. |
+| Acceptance preparation | 219-case source/APK-bound fixture pack PREPARED_NOT_EXECUTED. Original four NW134 rows and new 12-case supplement remain NOT_RUN. |
+| Device/hosted evidence | adb inventory has no connected device/emulator. No real audio/service/restart/notification/headset/Bluetooth/call/audio-focus tests performed. Actions stays disabled; no hosted CI pass or public binary/release. |
 
 | Artifact identity | Value |
 | --- | --- |
-| Build ID | `NW-debug-0195B157AA19F1B1` |
-| Canonical source SHA256 | `0195B157AA19F1B1429DEEBE353A97C554EBEE169BCEE346FEAAB3D513FE2CB7` |
-| Source inputs | `885` |
-| APK SHA256 | `3AF4D21FC525D43383EDCB681B311F84F83D5B2989C7986CB74498ED8234B8F8` |
-| APK bytes | `29,008,848` |
-| Embedded revision context | `cc10cff5f07d6434a9570dc38f3d16593c257bb5` |
-| Separate NW08 manifest SHA256 | `DFDC9DA7C6308D24C5D688694E8F5B33F78003E749F98AB933F4771CAD94F7F4`; independent encoding/ordering retained |
+| Build ID | `NW-debug-16B498CC3E7811BB` |
+| Canonical source SHA256 | `16B498CC3E7811BB3CA673A72007539865C5B43DFD898FA808F3D84786E2505B` |
+| Canonical inputs | `889` |
+| APK SHA256 | `5AFFF3445F6091CA1C6A9404575E3AB48CE9D766F357BF7A9B238C4B06B91D36` |
+| APK bytes | `29,026,015` |
+| Embedded revision context | `8a5a480f23308c772f5fcbf60e5d8af3f3cca2fc` |
+| Separate NW08 manifest SHA256 | `9281FFD5997BB3FFC0CF015D85F387DF6DCB40FF8DFC42370C84706332F55DF4`; independent ordering/encoding retained |
 | App identity | `com.nightwave.player`, `2.0.0-alpha5s`, code35; min26/compile-target36 unchanged |
-| Signing certificate SHA256 | `EA737A703B8F116EBC5C8C0A717DDBF3A2A5808ACC9079A8F79CD1B3CD860394` |
+| Certificate SHA256 | `EA737A703B8F116EBC5C8C0A717DDBF3A2A5808ACC9079A8F79CD1B3CD860394` |
 
-Private checkpoint `C:\Users\jayed\NightWave-checkpoints\20261029-continuity-finish` retains protected recovery, unsuccessful preflight evidence, current raw receipts, source/APK and owner-only delivery proof. Recordings, frames, accounts, credentials and binaries remain outside Git. Documentation follow-up does not alter canonical inputs.
+Private checkpoint `C:/Users/jayed/NightWave-checkpoints/20261029-nw134-queue-finish` retains recovery bundles/source ZIP, raw JUnit/lint/build/source/signature receipts, source preservation, fixture pack and owner-only APK delivery proof. Drive permissions show only the verified owner; streamed download matches exact APK bytes/SHA256. Private media, binaries and account information stay outside Git. Documentation commits do not change canonical build inputs.
 
-Four palettes, original metadata/URLs/Details, art candidates and Fit containment, mood art/caption lanes, Search input ownership, shelf/pager recovery, native/classic, queues, local music, library, account/consent/recovery, dependencies and package/signing remain. Cover selection can reduce repeated source previews but cannot recover missing resolution or remove embedded promotional graphics. Physical rendering/gesture/accessibility, retained consent/data, audio/performance/recovery and release gates remain pending. **No post-change 9.5-10 score is claimed. Device acceptance NOT_RUN; public release NO-GO. NW134 remains next.**
+Four themes, original metadata/URLs/Details, source art sizing/Fit containment, mood caption lanes, single-owner player transition, Search input ownership, shelf/pager recovery, classic/native, local music, queue/lyrics/offline, account/consent/recovery and signing remain. Source artwork limitations remain. Real rendering/contrast/large-text/TalkBack, audio/transport/restart, retained consent/data, performance/soak/recovery and release acceptance are pending. **No 9.5-10 score is claimed. Device acceptance NOT_RUN; public release NO-GO. Next independent source batch: NW135.**

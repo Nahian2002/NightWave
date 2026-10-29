@@ -37,6 +37,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.PersonOutline
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -361,6 +365,7 @@ fun MusicCollectionTile(
     name: String,
     subtitle: String,
     cover: VideoPreview?,
+    collectionKind: String? = null,
     onClick: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
@@ -378,7 +383,19 @@ fun MusicCollectionTile(
         Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            if (cover != null) {
+            if (collectionKind != null) {
+                Box(Modifier.size(NightWaveCollectionChrome.COLLECTION_ARTWORK_DP.dp)
+                    .clip(RoundedCornerShape(12.dp)).background(colors.primaryContainer),
+                    contentAlignment = Alignment.Center) {
+                    Icon(when (collectionKind) {
+                        "recent" -> Icons.Outlined.History
+                        "liked" -> Icons.Outlined.FavoriteBorder
+                        "long" -> Icons.Outlined.Schedule
+                        else -> Icons.Outlined.PersonOutline
+                    }, contentDescription = null, tint = colors.onPrimaryContainer,
+                        modifier = Modifier.size(28.dp))
+                }
+            } else if (cover != null) {
                 TrackArtwork(cover, Modifier.size(NightWaveCollectionChrome.COLLECTION_ARTWORK_DP.dp))
             } else {
                 Box(Modifier.size(NightWaveCollectionChrome.COLLECTION_ARTWORK_DP.dp)

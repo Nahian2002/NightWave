@@ -74,6 +74,12 @@ class PlaybackService : MediaLibraryService() {
         const val ACTION_PLAY_NEXT = "com.nightwave.player.PLAY_NEXT"
         const val ACTION_REMOVE_UPCOMING = "com.nightwave.player.REMOVE_UPCOMING"
         const val ACTION_UNDO_REMOVE_UPCOMING = "com.nightwave.player.UNDO_REMOVE_UPCOMING"
+        const val ACTION_MOVE_UPCOMING = "com.nightwave.player.MOVE_UPCOMING"
+        const val ACTION_CLEAR_UPCOMING = "com.nightwave.player.CLEAR_UPCOMING"
+        const val EXTRA_QUEUE_EDIT_URLS = "queue_edit_urls"
+        const val EXTRA_QUEUE_EDIT_PLAYING = "queue_edit_playing"
+        const val EXTRA_QUEUE_EDIT_PRIORITIES = "queue_edit_priorities"
+        const val EXTRA_QUEUE_EDIT_TARGET = "queue_edit_target"
         const val EXTRA_QUEUE_TOKEN = "queue_token"
         const val EXTRA_EXPECTED_URL = "expected_queue_url"
         const val ACTION_TOGGLE_OFFLINE_PLAY_PAUSE = "com.nightwave.player.TOGGLE_OFFLINE_PLAY_PAUSE"
@@ -1507,6 +1513,20 @@ class PlaybackService : MediaLibraryService() {
                         exoPlayer?.pause()
                         queue.current?.let { resolveAndPlay(it) }
                     }
+                }
+            }
+            ACTION_MOVE_UPCOMING, ACTION_CLEAR_UPCOMING -> {
+                val expected = QueueEditSnapshot(
+                    intent.getStringArrayListExtra(EXTRA_QUEUE_EDIT_URLS).orEmpty(),
+                    intent.getStringExtra(EXTRA_QUEUE_EDIT_PLAYING).orEmpty(),
+                    intent.getStringArrayListExtra(EXTRA_QUEUE_EDIT_PRIORITIES).orEmpty())
+                if (!offlinePlaying && !queue.shuffle && expected.urls.size in 1..100 &&
+                    expected.urls.all(QueueRestorePolicy::isCanonicalPublicWatchUrl)) {
+                    val changed = if (intent.action == ACTION_MOVE_UPCOMING)
+                        queue.moveUpcoming(intent.getIntExtra(EXTRA_INDEX, -1),
+                            intent.getIntExtra(EXTRA_QUEUE_EDIT_TARGET, -1), expected)
+                    else queue.clearUpcoming(expected)
+                    if (changed) savedQueue.save(queue)
                 }
             }
             ACTION_REMOVE_UPCOMING -> {

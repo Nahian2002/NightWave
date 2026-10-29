@@ -131,6 +131,7 @@ import com.nightwave.player.v2.lyrics.LyricsSyncPolicy
 import com.nightwave.player.v2.lyrics.LyricsPresentationPolicy
 import com.nightwave.player.v2.lyrics.LyricsReadingPolicy
 import com.nightwave.player.playback.PlaybackQueue
+import com.nightwave.player.playback.QueueEditSnapshot
 import com.nightwave.player.playback.SleepTimerPolicy
 import com.nightwave.player.playback.CrossfadePolicy
 import com.nightwave.player.playback.AudioTransitionUiPolicy
@@ -1470,10 +1471,37 @@ fun StudioQueueSheet(
     onSelect: (Int) -> Unit,
     onRemoveUpcoming: (Int, String) -> String?,
     onUndoRemoval: (String) -> Unit,
-    reduceMotion: Boolean
+    reduceMotion: Boolean,
+    onMoveUpcoming: ((Int, Int, QueueEditSnapshot) -> Boolean)? = null,
+    onClearUpcoming: ((QueueEditSnapshot) -> Boolean)? = null
 ) {
     val snackbarHost = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    var editingOrder by remember { mutableStateOf(false) }
+    var clearRequest by remember { mutableStateOf<QueueEditSnapshot?>(null) }
+    val editSnapshot = QueueEditSnapshot(state.queue.map { it.url }, state.videoUrl, state.manualNextUrls)
+    fun move(from: Int, to: Int) {
+        if (onMoveUpcoming?.invoke(from, to, editSnapshot) != true) scope.launch {
+            snackbarHost.showSnackbar("Queue changed. Reopen it and try again.")
+        }
+    }
+    clearRequest?.let { reviewed ->
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { clearRequest = null },
+            title = { Text("Clear Up Next?") },
+            text = { Text("Remove the upcoming songs from this queue. Your current song, saved music and files stay in place.") },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = {
+                    clearRequest = null
+                    if (onClearUpcoming?.invoke(reviewed) != true) scope.launch {
+                        snackbarHost.showSnackbar("Queue changed. Review it before clearing.")
+                    }
+                }, modifier = Modifier.heightIn(min = 48.dp).testTag("nw134-confirm-clear")) { Text("Clear Up Next") }
+            }, dismissButton = {
+                androidx.compose.material3.TextButton(onClick = { clearRequest = null },
+                    modifier = Modifier.heightIn(min = 48.dp)) { Text("Cancel") }
+            })
+    }
     fun requestRemove(index: Int, url: String) {
         val token = onRemoveUpcoming(index, url) ?: return
         scope.launch {
@@ -1521,6 +1549,23 @@ fun StudioQueueSheet(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            if (removable && upcoming.isNotEmpty()) {
+                NightWaveCompactActions {
+                    if (onMoveUpcoming != null && upcoming.size > 1) NightWaveMatteTextButton(
+                        onClick = { editingOrder = !editingOrder },
+                        modifier = Modifier.heightIn(min = 48.dp).testTag("nw134-edit-order")) {
+                        Text(if (editingOrder) "Done editing" else "Edit order")
+                    }
+                    if (onClearUpcoming != null) NightWaveMatteTextButton(
+                        onClick = { clearRequest = editSnapshot },
+                        modifier = Modifier.heightIn(min = 48.dp).testTag("nw134-clear-upcoming")) { Text("Clear Up Next") }
+                }
+                if (editingOrder) Text("Use song options to move within Play Next or Up Next.",
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            } else if (!state.offline && state.shuffle) {
+                Text("Turn Shuffle off to reorder, remove or clear upcoming songs.",
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             Spacer(Modifier.height(13.dp))
             if (state.queue.isEmpty() || currentIndex == null) {
                 EmptyMusicCard("Your queue is empty", "Play a song to begin listening.",
@@ -1582,7 +1627,13 @@ fun StudioQueueSheet(
                                     video.url.startsWith("https://www.youtube.com/watch?v="),
                                 reduceMotion = reduceMotion,
                                 onSelect = { onSelect(index) },
-                                onRemove = { requestRemove(index, video.url) }
+                                onRemove = { requestRemove(index, video.url) },
+                                onMoveEarlier = if (editingOrder && removable && pos > 0 &&
+                                    ((video.url in pendingUrls) == (upcoming[pos - 1].value.url in pendingUrls)))
+                                    ({ move(index, upcoming[pos - 1].index) }) else null,
+                                onMoveLater = if (editingOrder && removable && pos < upcoming.lastIndex &&
+                                    ((video.url in pendingUrls) == (upcoming[pos + 1].value.url in pendingUrls)))
+                                    ({ move(index, upcoming[pos + 1].index) }) else null
                             )
                         }
                     }
@@ -1621,7 +1672,9 @@ private fun SwipeUpcomingRow(
     canRemove: Boolean,
     reduceMotion: Boolean,
     onSelect: () -> Unit,
-    onRemove: () -> Unit
+    onRemove: () -> Unit,
+    onMoveEarlier: (() -> Unit)? = null,
+    onMoveLater: (() -> Unit)? = null
 ) {
     val display = remember(title, subtitle) {
         NightWaveEditorialPresentationPolicy.identity(title, subtitle)
@@ -1699,6 +1752,21 @@ private fun SwipeUpcomingRow(
             if (isPlaying) {
                 Text("PLAYING", style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary)
+            } else if (canRemove && (onMoveEarlier != null || onMoveLater != null)) {
+                var optionsOpen by remember { mutableStateOf(false) }
+                Box {
+                    IconButton(onClick = { optionsOpen = true }, modifier = Modifier.size(48.dp)) {
+                        Icon(Icons.Outlined.MoreVert, contentDescription = "Queue options for ${display.title}")
+                    }
+                    DropdownMenu(expanded = optionsOpen, onDismissRequest = { optionsOpen = false }) {
+                        if (onMoveEarlier != null) DropdownMenuItem(text = { Text("Move earlier") },
+                            onClick = { optionsOpen = false; onMoveEarlier() })
+                        if (onMoveLater != null) DropdownMenuItem(text = { Text("Move later") },
+                            onClick = { optionsOpen = false; onMoveLater() })
+                        DropdownMenuItem(text = { Text("Remove from Up Next") },
+                            onClick = { optionsOpen = false; onRemove() })
+                    }
+                }
             } else if (canRemove) {
                 IconButton(onClick = onRemove, modifier = Modifier.size(48.dp)) {
                     Icon(Icons.Outlined.DeleteOutline,

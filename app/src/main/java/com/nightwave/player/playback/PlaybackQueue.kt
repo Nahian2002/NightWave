@@ -4,6 +4,10 @@ import kotlin.random.Random
 
 data class QueueEntry(val url: String, val title: String, val creator: String, val artwork: String)
 
+/** The displayed public identities, not stream addresses or optimistic UI order. */
+data class QueueEditSnapshot(val urls: List<String>, val playingUrl: String,
+    val priorityUrls: List<String>)
+
 /** A URL-only queue. Streams are resolved just-in-time so signed links aren't stored or reused. */
 class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
     enum class Repeat { OFF, ALL, ONE }
@@ -47,6 +51,32 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
     val size: Int get() = entries.size
     val current: QueueEntry? get() = entries.getOrNull(index)
     fun snapshot(): List<QueueEntry> = entries.toList()
+
+    fun editSnapshot() = QueueEditSnapshot(entries.map { it.url },
+        current?.url.orEmpty(), priorityNextUrls())
+
+    /** Reorder within a section; explicit Play Next stays ahead of ordinary upcoming songs. */
+    fun moveUpcoming(from: Int, to: Int, expected: QueueEditSnapshot): Boolean {
+        if (shuffle || current == null || editSnapshot() != expected || from == to ||
+            from <= index || to <= index || from !in entries.indices || to !in entries.indices) return false
+        val priorities = priorityNextUrls().toSet()
+        if ((entries[from].url in priorities) != (entries[to].url in priorities)) return false
+        val moved = entries.removeAt(from)
+        entries.add(to, moved)
+        remapForMove(from, to)
+        forwardVisits.clear()
+        restoreNextPriorities(entries.drop(index + 1).map { it.url }.filter { it in priorities })
+        return true
+    }
+
+    /** An explicit, snapshot-bound clear leaves current/earlier entries and transport state alone. */
+    fun clearUpcoming(expected: QueueEditSnapshot): Boolean {
+        if (shuffle || current == null || editSnapshot() != expected || index >= entries.lastIndex) return false
+        entries.subList(index + 1, entries.size).clear()
+        manualNext.clear()
+        forwardVisits.clear()
+        return true
+    }
 
     /**
      * Save actual shuffled listening history as public IDs, not volatile list
@@ -106,17 +136,19 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
      * different song after Next/Jump/replacement. Never remove the playing
      * item, a previously played item, or shuffled future entries.
      */
-    data class RemovedUpcoming(val entry: QueueEntry, val at: Int, val playingUrl: String)
+    data class RemovedUpcoming(val entry: QueueEntry, val at: Int, val playingUrl: String,
+        val remainingUrls: List<String>, val priorityBefore: List<String>)
 
     fun removeUpcoming(at: Int, expectedUrl: String): RemovedUpcoming? {
         val playing = current?.url ?: return null
         if (shuffle || at <= index || at !in entries.indices ||
             entries[at].url != expectedUrl) return null
+        val priorityBefore = priorityNextUrls()
         val removed = entries.removeAt(at)
         forwardVisits.clear()
         manualNext.remove(removed.url)
         remapForRemoval(at)
-        return RemovedUpcoming(removed, at, playing)
+        return RemovedUpcoming(removed, at, playing, entries.map { it.url }, priorityBefore)
     }
 
     /**
@@ -125,12 +157,13 @@ class PlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it) }) {
      * invalidates undo when another queue operation runs.
      */
     fun restoreUpcoming(removed: RemovedUpcoming): Boolean {
-        if (shuffle || current?.url != removed.playingUrl ||
+        if (shuffle || current?.url != removed.playingUrl || entries.map { it.url } != removed.remainingUrls ||
             removed.at <= index || removed.at !in 0..entries.size ||
             entries.size >= 100 || entries.any { it.url == removed.entry.url }) return false
         entries.add(removed.at, removed.entry)
         forwardVisits.clear()
         remapForInsertion(removed.at)
+        restoreNextPriorities(removed.priorityBefore)
         return true
     }
 

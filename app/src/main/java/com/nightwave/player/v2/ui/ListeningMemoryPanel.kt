@@ -66,12 +66,11 @@ fun ListeningMemoryPanel(
                 }
             }
         }
-        NightWaveActionGroup {
+        NightWaveCompactActions {
             OutlinedButton(onClick = onRefresh, modifier = Modifier.heightIn(min = 48.dp)) { Text("Refresh") }
             OutlinedButton(onClick = onErase, modifier = Modifier.heightIn(min = 48.dp)) { Text("Erase & turn off") }
         }
-        Text("Recorded listening can be incomplete, especially after interruptions. " +
-            "These statistics stay on this phone and do not transfer when you change devices.",
+        Text("Interruptions can leave gaps. Statistics stay on this phone and do not transfer to another device.",
             style = MaterialTheme.typography.bodySmall,
             color = colors.onSurfaceVariant)
     }

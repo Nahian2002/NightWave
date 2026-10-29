@@ -70,6 +70,8 @@ interface StudioPlayerActions {
     fun jumpTo(index: Int)
     fun removeUpcoming(index: Int, expectedUrl: String): String?
     fun undoUpcoming(token: String)
+    fun moveUpcoming(from: Int, to: Int, expected: com.nightwave.player.playback.QueueEditSnapshot): Boolean = false
+    fun clearUpcoming(expected: com.nightwave.player.playback.QueueEditSnapshot): Boolean = false
     fun refreshQueue()
 }
 
@@ -675,6 +677,32 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
             scheduleQueueRefresh()
         } catch (error: Exception) {
             state = state.copy(error = "Could not restore this Up Next entry.")
+        }
+    }
+
+    override fun moveUpcoming(from: Int, to: Int, expected: com.nightwave.player.playback.QueueEditSnapshot): Boolean =
+        sendQueueEdit(PlaybackService.ACTION_MOVE_UPCOMING, expected, from, to)
+
+    override fun clearUpcoming(expected: com.nightwave.player.playback.QueueEditSnapshot): Boolean =
+        sendQueueEdit(PlaybackService.ACTION_CLEAR_UPCOMING, expected)
+
+    private fun sendQueueEdit(actionName: String, expected: com.nightwave.player.playback.QueueEditSnapshot,
+        from: Int = -1, to: Int = -1): Boolean {
+        val actual = com.nightwave.player.playback.QueueEditSnapshot(
+            state.queue.map { it.url }, state.videoUrl, state.manualNextUrls)
+        if (released || !state.connected || state.offline || state.shuffle || actual != expected) return false
+        return try {
+            context.startService(Intent(context, PlaybackService::class.java).setAction(actionName)
+                .putStringArrayListExtra(PlaybackService.EXTRA_QUEUE_EDIT_URLS, ArrayList(expected.urls))
+                .putExtra(PlaybackService.EXTRA_QUEUE_EDIT_PLAYING, expected.playingUrl)
+                .putStringArrayListExtra(PlaybackService.EXTRA_QUEUE_EDIT_PRIORITIES, ArrayList(expected.priorityUrls))
+                .putExtra(PlaybackService.EXTRA_INDEX, from)
+                .putExtra(PlaybackService.EXTRA_QUEUE_EDIT_TARGET, to))
+            scheduleQueueRefresh()
+            true // Sent only; authoritative state is refreshed from the service.
+        } catch (_: Exception) {
+            state = state.copy(error = "Could not update Up Next. Reopen the queue and try again.")
+            false
         }
     }
 
