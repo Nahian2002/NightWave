@@ -1,8 +1,10 @@
 # NightWave tools — current use and historical checks
 
-**Current implementation baseline:** OFFLINE_FINISH on `fix/nightwave-offline-finish`, [draft PR #155](https://github.com/Nahian2002/NightWave/pull/155); 1,747 JVM tests / 216 suites, 73 source checks, lint 0 errors / 317 warnings / 17 hints. [Review/plan/results](../docs/OFFLINE_FINISH_RECORDING_REVIEW.md), [verification](../TEST_REPORT.md). Twenty-one new JVM methods execute; actual phone transfer/art/removal/accessibility tests remain NOT_RUN. Actions stays disabled.
+**Current implementation baseline:** FINISH02 on `fix/nightwave-everyday-finish`, stacked on #155; 1,754 JVM / 217 suites, 74 source checks, lint 0 errors / 317 warnings / 17 hints. [Evidence](../docs/quality/FINISH02_EVERYDAY_CLARITY.md), [verification](../TEST_REPORT.md). Seven added tests execute; eight new phone cases remain NOT_RUN. Actions stays disabled.
 
 ## Recommended entrypoints
+
+- **FINISH02 caller fences:** `python tools/verify_everyday_offline.py --self-test` checks filter recovery, known saved identity, frozen numeric receipt boundaries and verified-file display with broken-caller fixtures. Phone acceptance remains separate.
 
 - **Offline finish fences:** `python tools/verify_offline_finish.py --self-test` protects real parallel response/cancel/commit wiring, cached-only optional metadata, deletion reconciliation, buffering intent, ETA and retained routes with broken-caller fixtures. JVM HTTP/file tests and phone acceptance remain separate evidence.
 

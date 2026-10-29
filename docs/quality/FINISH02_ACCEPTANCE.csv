@@ -1,0 +1,9 @@
+case_id,area,scenario,pass_criterion,status,evidence
+FINISH02-01,Library,Clear query while Issues filter and custom sort are selected,Only query clears; filter and sort remain; paging resets; entries unchanged,NOT_RUN,
+FINISH02-02,Library,Delete last Blue match while another song remains behind query,Show all reveals remaining saved songs and resets query and availability filter without changing audio or selected playback,NOT_RUN,
+FINISH02-03,Library,Truly empty library and unreadable index,No misleading Show all recovery; existing import and unreadable-index guidance remain,NOT_RUN,
+FINISH02-04,Identity,Resume options removal confirmation and completed Downloads with known Bangla and live/remix identity,Consistent display-only title and known creator; raw records IDs files URLs and editions unchanged,NOT_RUN,
+FINISH02-05,Downloads,Fresh subsecond verified save,Ready retains a frozen transfer duration and average received Mbps; later reopening does not age the receipt,NOT_RUN,
+FINISH02-06,Downloads,Resumed transfer legacy job already-saved reuse and failed verification,Retained bytes never inflate speed; unknown or reused receipts omitted; missing or unchecked audio never shows a Ready receipt,NOT_RUN,
+FINISH02-07,Accessibility,Four themes with TalkBack and 2x or 3x type on narrow phone,Clear search and Show all remain reachable at least 48dp; labels wrap without hiding independent actions,NOT_RUN,
+FINISH02-08,Regression,Pause cancel retry delete during completion rotate Back and airplane-mode playback,Existing source queue cancellation verification state and playback behavior preserved without hidden features or data reset,NOT_RUN,

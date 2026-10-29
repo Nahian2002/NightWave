@@ -31,6 +31,7 @@ class PermittedAudioDownloader(private val context: Context,
     private val activeCalls = java.util.concurrent.CopyOnWriteArraySet<Call>()
     private val metrics = AudioTransferMetrics().apply { finished = { activeCalls.remove(it) } }
     fun transferDetails(): String = metrics.summary()
+    internal fun completedTransfer(): CompletedAudioTransfer? = metrics.completedTransfer()
     fun resumedBytes(): Long = metrics.resumedBytes
 
     companion object {
@@ -125,6 +126,7 @@ class PermittedAudioDownloader(private val context: Context,
                     return@repeat
                 }
                 check(!cancelled.get()) { "Download cancelled" }
+                metrics.markTransferComplete()
                 onVerifying() // Network bytes != verified playable offline audio.
                 if (expectedSourceBytes != null) {
                     require(expectedSourceBytes in 1..PermittedAudioDownloadPolicy.MAX_BYTES &&
@@ -198,6 +200,7 @@ class PermittedAudioDownloader(private val context: Context,
                     return@repeat
                 }
                 check(!cancelled.get()) { "Download cancelled" }
+                metrics.markTransferComplete()
                 onVerifying() // Still not offline-ready until import and index check.
                 inspectAudioOnly(pending)
                 check(!cancelled.get()) { "Download cancelled" }

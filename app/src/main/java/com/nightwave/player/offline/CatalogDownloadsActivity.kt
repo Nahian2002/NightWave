@@ -77,6 +77,7 @@ class CatalogDownloadsActivity : NightWaveOfflineShellActivity() {
     )
     private var requestedSavedIds: Set<String>? = null
     private var verifiedAvailableIds: Set<String> = emptySet()
+    private var verifiedIdentities: Map<String, OfflineDisplayIdentity> = emptyMap()
     private var verifiedFileHealth: Map<String, OfflineFileHealth> = emptyMap()
     private var verificationGeneration = 0
     private var verifyingFiles = false
@@ -100,6 +101,7 @@ class CatalogDownloadsActivity : NightWaveOfflineShellActivity() {
         if (!DownloadFileVerificationPolicy.needsRead(ids, requestedSavedIds)) return
         requestedSavedIds = ids
         verifiedAvailableIds = emptySet()
+        verifiedIdentities = emptyMap()
         verifiedFileHealth = emptyMap()
         fileCheckFailed = false
         verifyingFiles = ids.isNotEmpty()
@@ -107,14 +109,20 @@ class CatalogDownloadsActivity : NightWaveOfflineShellActivity() {
         if (ids.isEmpty()) return
         fileVerifier.execute {
             val answer = runCatching {
-                OfflineAudioLibrary(applicationContext).availabilitySnapshot(ids)
+                val snapshot = OfflineAudioLibrary(applicationContext).availabilitySnapshot(ids)
+                val identities = OfflineTrackIdentityStore(applicationContext)
+                val display = if (snapshot.indexReadable) runCatching { OfflineAudioLibrary(applicationContext).songs().asSequence()
+                    .filter { it.id in ids }.associate { it.id to identities.display(it) }
+                }.getOrDefault(emptyMap()) else emptyMap()
+                snapshot to display
             }
             uiHandler.post {
                 if (!DownloadFileVerificationPolicy.canPublish(
                         ticket, verificationGeneration, isFinishing, isDestroyed))
                     return@post
                 verifyingFiles = false
-                val snapshot = answer.getOrNull()
+                val snapshot = answer.getOrNull()?.first
+                verifiedIdentities = answer.getOrNull()?.second.orEmpty()
                 // An unreadable index means UNKNOWN, not a collection of
                 // missing files. Show verification failure without data writes.
                 fileCheckFailed = snapshot?.indexReadable != true
@@ -582,7 +590,10 @@ class CatalogDownloadsActivity : NightWaveOfflineShellActivity() {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
             }
-            heading.addView(label(com.nightwave.player.net.MusicIdentity.display(title, "").title,
+            val savedIdentity = verifiedIdentities[savedId(info)]
+            val displayTitle = savedIdentity?.title
+                ?: com.nightwave.player.net.MusicIdentity.display(title, "").title
+            heading.addView(label(displayTitle,
                 16f, Color.WHITE, true).apply {
                 maxLines = 2
                 ellipsize = android.text.TextUtils.TruncateAt.END
@@ -605,6 +616,9 @@ class CatalogDownloadsActivity : NightWaveOfflineShellActivity() {
                 }, LinearLayout.LayoutParams(dp(48), dp(48)))
             }
             card.addView(heading)
+            savedIdentity?.creator?.takeIf { it != "Saved audio" && it.isNotBlank() }?.let {
+                card.addView(label(it, 13f, nativeMattePalette.secondary.toInt()))
+            }
             card.addView(label(state, 13f,
                 if (info.state == WorkInfo.State.FAILED ||
                     (info.state == WorkInfo.State.SUCCEEDED && !actuallySaved &&
@@ -613,6 +627,17 @@ class CatalogDownloadsActivity : NightWaveOfflineShellActivity() {
                 setPadding(0, dp(5), 0, dp(7))
                 maxLines = 3
             })
+            if (info.state == WorkInfo.State.SUCCEEDED && actuallySaved &&
+                !verifyingFiles && !fileCheckFailed &&
+                verifiedFileHealth[savedId(info)] == OfflineFileHealth.AVAILABLE) {
+                AudioTransferData.completion(info.outputData)?.label()?.let { receipt ->
+                    card.addView(label(receipt, 13f, nativeMattePalette.secondary.toInt()).apply {
+                        contentDescription = receipt +
+                            ". Average received network bytes, excluding retained bytes. " +
+                            "Transfer interval includes connection, resume checks and retry waits; excludes queue, source lookup and file import."
+                    })
+                }
+            }
             val transferDetails = info.progress.getString(AudioTransferData.DETAILS)
                 ?: info.outputData.getString(AudioTransferData.DETAILS)
             if (checkpointAware && !transferDetails.isNullOrBlank()) {

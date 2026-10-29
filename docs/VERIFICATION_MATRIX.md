@@ -1,6 +1,6 @@
 # Current verification guide
 
-**28 October 2026.** Cumulative scope: NW132 plus maintenance; NW133 next. Exact build/test totals and artifact identities: [TEST_REPORT](../TEST_REPORT.md).
+**29 October 2026.** Current cumulative FINISH02 is locally verified; ART02 next. Exact evidence: [TEST_REPORT](../TEST_REPORT.md), [new eight-case supplement](quality/FINISH02_ACCEPTANCE.csv).
 
 | Evidence | Meaning | Limit |
 | --- | --- | --- |
@@ -9,7 +9,7 @@
 | Android and test compilation | Production/Compose and instrumentation sources compile; APK assembles | Screen tests are not executed |
 | APK/source/certificate | Built bytes match source inputs and protected candidate certificate | Installed signer requires a phone comparison |
 | Device acceptance | NOT_RUN for current batches | No inferred rendering, picker, account recovery or audible behavior |
-| Hosted CI | Exact final-head annotations in the review | Billing may prevent jobs from starting |
+| Hosted CI | Exact final-head annotations in the review | Actions intentionally disabled; no hosted pass claimed |
 
 The [original 139 cases](NW90_EXPANDED_139_CASE_MATRIX.csv) are unchanged. [80 additional cases](quality/NW126_NW145_ACCEPTANCE.csv) record partial local evidence and unrun phone work. Prepared 219-case packs are not executed acceptance runs and do not populate the installed app.
 

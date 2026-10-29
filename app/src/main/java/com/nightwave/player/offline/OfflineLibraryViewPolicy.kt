@@ -7,6 +7,9 @@ package com.nightwave.player.offline
 object OfflineLibraryViewPolicy {
     enum class Filter { ALL, READY, ATTENTION }
 
+    fun canShowAll(filter: Filter, hasIndexedSongs: Boolean, hasQuery: Boolean): Boolean =
+        hasIndexedSongs && (hasQuery || filter != Filter.ALL)
+
     fun includes(filter: Filter, health: OfflineFileHealth): Boolean = when (filter) {
         Filter.ALL -> true
         Filter.READY -> health == OfflineFileHealth.AVAILABLE
