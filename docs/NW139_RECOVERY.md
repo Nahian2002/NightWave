@@ -42,3 +42,5 @@ Final built implementation `c212789ff8935ad4e2de626732e74b9e71c34f63` follows co
 The private comparison helper initially compared CRLF baseline source to normalized LF text when checking unchanged HTTP/upload sections. Normalizing line endings only in that evidence comparison confirmed the same methods; exact canonical byte comparisons remain unchanged. This was an evidence-helper issue, not a product test result.
 
 Sequential lint PASS: **0 errors / 322 warnings / 17 hints**, unchanged ID/severity/message/location inventory after ignoring line movement. No suppression/baseline added. Private owner-only APK permission and streamed bytes/SHA readback verified; exact working-byte recovery archive and Git bundle retained. NW140 is next; live recovery acceptance is still NOT_RUN.
+
+Cumulative [draft PR #161](https://github.com/Nahian2002/NightWave/pull/161) targets NW138 #160; no merge is performed.

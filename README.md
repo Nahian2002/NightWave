@@ -2,7 +2,7 @@
 
 **Upcoming updates:** [hourly sequence and both usage guards](docs/quality/UPCOMING_UPDATES.md). NW139 recovery source is locally verified; NW140 Android performance is next. One eligible batch per run with actual evidence recorded.
 
-**Current review work:** [NW139 optional recovery](docs/NW139_RECOVERY.md) on [update/nightwave-nw139-recovery](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw139-recovery), stacked on [NW138 #160](https://github.com/Nahian2002/NightWave/pull/160). Compact account flow, clearer progress, exact access/consent fences and a fix for extra uploads after failed backup comparisons. Existing features/themes, scopes, archive formats, source quality, package and signer remain.
+**Current review work:** [NW139 optional recovery](docs/NW139_RECOVERY.md) on [update/nightwave-nw139-recovery](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw139-recovery), [draft PR #161](https://github.com/Nahian2002/NightWave/pull/161), stacked on [NW138 #160](https://github.com/Nahian2002/NightWave/pull/160). Compact account flow, clearer progress, exact access/consent fences and a fix for extra uploads after failed backup comparisons. Existing features/themes, scopes, archive formats, source quality, package and signer remain.
 
 **Current integrated source:** [`main`](https://github.com/Nahian2002/NightWave/tree/main) remains the integrated baseline; newer cumulative changes are on the review branch above and are not automatically merged.
 
