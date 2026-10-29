@@ -5,7 +5,7 @@
   "audit": "docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md",
   "implementation_base_revision": "61703c98238e762e59c049b6690853431f822884",
   "audit_branch": "audit/nightwave-post-nw125-quality-roadmap",
-  "next_batch": "NW139",
+  "next_batch": "NW140",
   "goal": "9.5+ within the declared NightWave music-player scope, conditional on actual product and acceptance evidence",
   "rating_kind": "Subjective comparative product review, not a measured Spotify score",
   "baseline_weighted_score": 6.655,
@@ -784,7 +784,7 @@
         "NW126",
         "NW132"
       ],
-      "implementation_status": "PLANNED",
+      "implementation_status": "LOCAL_VERIFIED",
       "device_status": "NOT_RUN",
       "finding_ids": [
         "Q23",
@@ -795,7 +795,10 @@
         "v2/ui/NightWaveAccountHub.kt",
         "v2/cloud/CloudBackupState.kt",
         "v2/cloud/NightWaveDriveClient.kt",
-        "cloud restore/merge policies"
+        "cloud restore/merge policies",
+        "v2/cloud/CloudRecoverySessionPolicy.kt",
+        "v2/cloud/NightWaveCloudWorker.kt",
+        "v2/data/GuestProfileStore.kt"
       ],
       "acceptance_criteria": [
         "With a disposable account/archive, actually upload/read back, preview and restore/merge; compare contents and prove no silent overwrite of the listener library.",
@@ -803,10 +806,35 @@
         "Revoke access or inject transient network/storage failure; account state, old backup receipt, progress/retry and saved disconnect remain truthful.",
         "A compact account flow offers one contextual primary action, useful busy phases and reachable recovery/help; metadata backup and audio-file scope are explicit."
       ],
-      "implementation_commit": null,
-      "local_evidence": [],
+      "implementation_commit": "c212789ff8935ad4e2de626732e74b9e71c34f63",
+      "local_evidence": [
+        "1803 JVM tests / 222 suites, zero failures/errors/skips; ten new receipt/phase/actual-client merge and failed-comparison methods",
+        "79 current source checks PASS_SOURCE_ONLY with negative caller fixtures; full Android/Compose/APK and instrumentation-source build",
+        "Sequential lint 0 errors / 322 warnings / 17 hints; unchanged notice inventory without suppression",
+        "925 prior canonical inputs identical; ten intended edits and five additions; exact persisted key sets/callback inventories retained",
+        "Original codecs/archive transaction, scopes/endpoints/HTTP options and verified copy-on-write retained; transport/permission comparison failure no longer starts extra upload",
+        "3565-commit all-ref Gitleaks no leaks; exact source/signer, private recovery and owner-only streamed APK SHA verified"
+      ],
       "device_evidence": [],
-      "remaining_blockers": []
+      "remaining_blockers": [
+        "Actual disposable-account upload/readback/preview/restore/merge and account-switch/revocation/storage cases NOT_RUN; no live app account operation performed",
+        "Six isolated preference/profile methods and four actual hub Compose methods compile only; ten supplemental/original/prior physical cases NOT_RUN",
+        "Native picker receipt retained across rotation only; process death without receipt requires restarting explicit action; no tokens or new account data saved",
+        "Optional profile/LRC stores remain separate commits; partial optional failure is truthful, not a cross-store transaction",
+        "Rendered font/theme/TalkBack, local commit timing/performance, data-preserving update and final rating/release gates remain pending"
+      ],
+      "protected_parent": "4520a961497a438a76a1904ed52d4ce0d2337202",
+      "branch": "update/nightwave-nw139-recovery",
+      "plan_commit": "ba3b9ce25ed63f8e13b54130721ee708840757a9",
+      "build_id": "NW-debug-238C337491E75208",
+      "source_sha256": "238C337491E75208F04909F0F80990F876CCED743CAA5E4EC0628D469BEB31E7",
+      "apk_sha256": "D71A2B4A3C61763473C4D129388276F0E984B45BF67285D032E2A569F894839F",
+      "evidence": [
+        "docs/NW139_RECOVERY.md",
+        "docs/NW139_RECOVERY_LIVE_PROCEDURE.md",
+        "docs/quality/NW139_RECOVERY_ACCEPTANCE.csv",
+        "TEST_REPORT.md"
+      ]
     },
     {
       "id": "NW140",

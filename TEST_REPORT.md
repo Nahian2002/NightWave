@@ -1,22 +1,24 @@
-# Current verification — NW138 Sound Studio
+# Current verification — NW139 optional recovery
 
-30 October 2026. `update/nightwave-nw138-sound-studio`, [draft PR #160](https://github.com/Nahian2002/NightWave/pull/160), stacked on [NW137 #159](https://github.com/Nahian2002/NightWave/pull/159). Protected parent `9f05a0d5dda60ceeb22d184b24669a0ce842242f`; plan `4a474fbd`; implementation `d91b659cb16925fd9b21cd7026c7bb861ef0d222`. [Exact changes/evidence](docs/NW138_SOUND_STUDIO.md), [eight new phone cases](docs/quality/NW138_SOUND_STUDIO_ACCEPTANCE.csv), [hourly sequence and both budget guards](docs/quality/UPCOMING_UPDATES.md), [previous report](https://github.com/Nahian2002/NightWave/blob/9f05a0d5dda60ceeb22d184b24669a0ce842242f/TEST_REPORT.md). **NW139 is next**, then NW140–NW145.
+30 October 2026. `update/nightwave-nw139-recovery`, stacked on [NW138 #160](https://github.com/Nahian2002/NightWave/pull/160). Protected parent `4520a961497a438a76a1904ed52d4ce0d2337202`; plan `ba3b9ce25ed63f8e13b54130721ee708840757a9`; implementation `c212789ff8935ad4e2de626732e74b9e71c34f63`. [Changes/evidence](docs/NW139_RECOVERY.md), [ten supplemental cases](docs/quality/NW139_RECOVERY_ACCEPTANCE.csv), [prepared disposable live procedure](docs/NW139_RECOVERY_LIVE_PROCEDURE.md), [hourly schedule/budget guards](docs/quality/UPCOMING_UPDATES.md), [previous report](https://github.com/Nahian2002/NightWave/blob/4520a961497a438a76a1904ed52d4ce0d2337202/TEST_REPORT.md). **NW140 is next**, then NW141–NW145.
 
-Current verified EQ identity appears before simple Off/device presets. Advanced explicitly contains the original manual draft/graph/guided curves and every band, with frequency/gain semantics and bounded 1 dB step controls. Apply/Discard stay outside the scrolling content. Failed requests retain the same-identity draft; exact acknowledgement, durable requested choice and matching active verified/rounded readback govern adoption. Changed/unavailable identities still invalidate drafts. The original service, data formats, transition/normalization/speed behavior and theme tokens are unchanged.
+The account hub is compact with meaningful work phases and retained export/preview/merge/options/help/confirmation. Recovery commits bind exact consent and access revision, including same-timestamp newer proof; original local-byte archive checks and a profile compare-and-save prevent stale overwrites. Interactive/worker result receipts reject newer proof. A real-client regression caught an extra upload after a failed existing-copy comparison; permission/rate/transport failures now abort, while missing/changed copies retain verified copy-on-write. No remote deletion or patch was added.
 
 | Evidence | Final result / limit |
 | --- | --- |
 | Windows builder | Android/Compose/APK and instrumentation-source compilation PASS |
-| JVM | **1,793 tests / 221 suites**, zero failures/errors/skips; nine new policy methods |
-| Current source | **78 PASS**, including caller-negative fixtures and retained prior contracts |
+| JVM | **1,803 tests / 222 suites**, zero failures/errors/skips; ten new methods |
+| Current source | **79 PASS_SOURCE_ONLY**, including negative caller fixtures and retained historical checks |
 | Sequential lint | **0 errors / 322 warnings / 17 hints**; unchanged ID/severity/message/location inventory, ignoring line movement |
-| Preservation | **927 prior canonical inputs identical**, three intended existing edits and five additions; all five commands and exact local transition UI block retained |
-| Original contracts | Service/capabilities/command/readback/selection stores and policies, network/quality, themes, identity/signing, dependencies and data formats unchanged |
-| Secrets | Implementation-stage all-ref Gitleaks **3,561 commits**, no leaks; reviewed exclusions unchanged |
-| APK/recovery/delivery | Exact embedded source, previous NW137 signer, private recovery and owner-only permission plus streamed SHA/size verified |
-| Android/physical | Four new Apply-component runtime methods compile only; eight new supplement/original NW138/prior gates **NOT_RUN** |
-| Hosted/release | Actions remains disabled; no hosted pass, install/reset, account operation, merge or public binary |
+| Preservation | **925 prior canonical inputs identical**, ten intended existing edits and five additions; callback inventories and cloud/profile key sets retained |
+| Original contracts | Archive/LRC codecs, local-byte transaction, scopes/endpoints/HTTP options, source quality, themes, dependencies/package/signer retained |
+| Secrets | Implementation-stage all-ref Gitleaks **3,565 commits**, no leaks; reviewed exclusions unchanged |
+| APK/recovery/delivery | Embedded source, actual previous NW138 signer, private recovery and owner-only streamed SHA/bytes verified |
+| Runtime/live account | Six isolated preference/profile methods plus four actual hub Compose methods compile only; ten new/original/prior gates **NOT_RUN** |
+| Hosted/release | Actions remains disabled; no hosted pass, install/reset, live app account action, merge or public binary |
 
-Build **NW-debug-B4B205C1BB2D17BA**; source **B4B205C1BB2D17BA11E1334EB5E322DD59B513E1CAF7C85A1A6AB17B94BE6D9E**, **935 inputs**. APK **E9117263EA0B0F20FDC9218E8F6F8A0111EF0D30133738932D367D5B6308052C**, **33,844,842 bytes**. Signer **EA737A703B8F116EBC5C8C0A717DDBF3A2A5808ACC9079A8F79CD1B3CD860394**. Package/version `com.nightwave.player` / `2.0.0-alpha5s` / code35 unchanged. Existing unchanged Library compiler condition warning remains triaged. No new acoustic, accessibility, performance, final rating or release certification is inferred. Closing the dialog discards unsubmitted ephemeral drafts; the existing saved EQ choice format remains. Full-dialog font/theme/reachability and route evidence remain physical cases.
+Build **NW-debug-238C337491E75208**; source **238C337491E75208F04909F0F80990F876CCED743CAA5E4EC0628D469BEB31E7**, **940 inputs**. APK **D71A2B4A3C61763473C4D129388276F0E984B45BF67285D032E2A569F894839F**, **33,844,842 bytes**. Signer **EA737A703B8F116EBC5C8C0A717DDBF3A2A5808ACC9079A8F79CD1B3CD860394**. Package/version `com.nightwave.player` / `2.0.0-alpha5s` / code35 unchanged. Existing unchanged Library compiler condition warning remains triaged. No final rating, live recovery, rendered accessibility or Android performance certification is inferred.
 
-The schedule requires a full-completion estimate plus reserve before starting and periodic checks of both account windows. Five-hour shortage waits for reset with hourly checks active; weekly remaining at most 10% stops/deletes the automation. Actual shared allowance observations are private.
+The in-memory picker receipt survives rotation without persisting tokens/Drive IDs; process death without it requires restarting the explicit action. Local cloud commit guard contains no network/suspension. Optional profile and LRC remain separate commits with truthful partial-failure handling. Actual appData backup/readback/restore/merge needs an owner-approved disposable Google account and isolated empty test profile/device. Private APK delivery is separate from app backup testing. The prepared cases and original history remain NOT_RUN until actual evidence.
+
+Full-completion budget admission and periodic shared five-hour/weekly checks remain required. Five-hour shortage waits with hourly checks active; weekly at most 10% remaining stops/deletes the automation. Actual account allowance observations stay private.
