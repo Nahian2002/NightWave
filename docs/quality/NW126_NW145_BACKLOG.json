@@ -1618,11 +1618,35 @@
         "Before scheduled work",
         "After implementation",
         "Before validation and publishing",
-        "At least every 15 minutes during a long batch"
+        "At least every 10 minutes during a long batch"
       ],
       "on_threshold": "Preserve work; record incomplete validation; delete nightwave-sequential-upgrades and notify; no automatic restart",
       "on_unavailable": "Skip upgrades until weekly limit can be verified",
       "scope": "Shared Codex seven-day allowance; periodic checkpoints, not an instantaneous account-wide cap"
+    },
+    "five_hour_admission_guard": {
+      "window_duration_mins": 300,
+      "requires_full_completion_estimate": true,
+      "estimate_scope": [
+        "Inspection",
+        "Implementation",
+        "Tests and repairs",
+        "Sequential build and lint",
+        "Recovery",
+        "Review and private delivery"
+      ],
+      "reserve": "At least 5 percentage points or 25 percent of estimated work, whichever is larger",
+      "default_admission_floor_remaining_percent": 30,
+      "floor_scope": "Conservative project estimate for a normal full batch until better comparable evidence; increase for complexity and uncertainty; not an OpenAI product limit",
+      "on_insufficient": "Skip this run; retain hourly schedule; wait for fresh allowance check after reset; never reduce scope or validation to fit",
+      "on_unavailable_or_disallowed": "Skip when either window is unreadable or ordinaryUsageAllowed is false",
+      "rechecks": [
+        "After implementation",
+        "Before expensive validation and delivery",
+        "At least every 10 minutes during long work"
+      ],
+      "on_mid_batch_shortage": "Preserve safe checkpoint and truthful incomplete validation; stop further upgrade work and wait for reset; never deliver unfinished builds",
+      "scope": "Periodic shared-account safeguard; observations are not exact per-batch costs or a guaranteed instantaneous cutoff"
     }
   }
 }

@@ -18,9 +18,15 @@ Ratings are a subjective product-review rubric. Code changes, passing string che
 
 Use isolated checkpoints and a reviewable branch. Keep private recordings, extracted frames, accounts, credentials, APKs and generated logs outside Git. Retain historical roadmaps and the original 139-case matrix as evidence; the active plan extends them.
 
+## Scheduled five-hour completion budget
+
+Before admitting a scheduled batch, read both Codex windows and conservatively estimate the entire remaining update: inspection, implementation, tests and repairs, sequential build/lint, recovery, review and private delivery. Add a reserve of at least 5 percentage points or 25% of estimated work, whichever is larger. Until comparable evidence supports a better estimate, require at least 30% five-hour allowance remaining for a normal full batch, and more for complex or uncertain work. This is a project planning floor, not an OpenAI product limit or a completion guarantee.
+
+Start only when the full completion envelope fits. Insufficient five-hour allowance means skip this run and keep the hourly schedule active for a fresh check after reset; never weaken scope or validation to fit. If either window is unreadable or ordinaryUsageAllowed is false, skip work. Recheck both windows after implementation, before expensive validation/delivery and at least every 10 minutes; re-estimate remaining work and safely checkpoint if it no longer fits. Shared-account changes are observations, not exact per-batch costs. The weekly reserve below still permanently stops the automation at 10% remaining.
+
 ## Scheduled weekly usage reserve
 
-Before scheduled upgrades, use get_usage_limits and identify the seven-day Codex window, preferring rateLimitsByLimitId.codex. usedPercent is consumed: stop at usedPercent >= 90 (remaining <= 10). Preserve work, mark incomplete checks honestly, delete automation nightwave-sequential-upgrades and notify; never automatically resume after reset. Recheck after implementation, before validation/publication and at least every 15 minutes of long work. If weekly usage is unavailable, skip scheduled upgrades. This is a periodic shared-account guard, not an instantaneous spending cap. See docs/quality/UPCOMING_UPDATES.md.
+Before scheduled upgrades, use get_usage_limits and identify the seven-day Codex window, preferring rateLimitsByLimitId.codex. usedPercent is consumed: stop at usedPercent >= 90 (remaining <= 10). Preserve work, mark incomplete checks honestly, delete automation nightwave-sequential-upgrades and notify; never automatically resume after reset. Recheck after implementation, before validation/publication and at least every 10 minutes of long work. If weekly usage is unavailable, skip scheduled upgrades. This is a periodic shared-account guard, not an instantaneous spending cap. See docs/quality/UPCOMING_UPDATES.md.
 
 ## Revised execution schedule — 29 October 2026
 
