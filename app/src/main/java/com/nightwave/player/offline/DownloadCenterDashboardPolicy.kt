@@ -35,6 +35,6 @@ internal object DownloadCenterDashboardPolicy {
     }
 
     fun helpLine(): String =
-        "Pause requests stop the current attempt; Resume restarts from zero. " +
+        "Resume reuses checked bytes on supported sources; others restart safely. " +
         "Hide removes a history card, not its offline file."
 }

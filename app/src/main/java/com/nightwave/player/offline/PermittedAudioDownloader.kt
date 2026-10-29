@@ -28,7 +28,8 @@ class PermittedAudioDownloader(private val context: Context,
     private val retainOnStop: () -> Boolean = { false }) {
     private val cancelled = AtomicBoolean(false)
     @Volatile private var currentCall: Call? = null
-    private val metrics = AudioTransferMetrics()
+    private val activeCalls = java.util.concurrent.CopyOnWriteArraySet<Call>()
+    private val metrics = AudioTransferMetrics().apply { finished = { activeCalls.remove(it) } }
     fun transferDetails(): String = metrics.summary()
     fun resumedBytes(): Long = metrics.resumedBytes
 
@@ -43,7 +44,7 @@ class PermittedAudioDownloader(private val context: Context,
             .followRedirects(false)
             .followSslRedirects(false)
             .eventListenerFactory { call ->
-                call.request().tag(AudioTransferMetrics::class.java) ?: okhttp3.EventListener.NONE
+                call.request().tag(AudioTransferMetrics::class.java)?.listener() ?: okhttp3.EventListener.NONE
             }
             .dns(object : Dns {
                 override fun lookup(hostname: String): List<InetAddress> {
@@ -85,6 +86,7 @@ class PermittedAudioDownloader(private val context: Context,
     fun cancel() {
         cancelled.set(true)
         currentCall?.cancel()
+        activeCalls.forEach { it.cancel() }
     }
 
     /**
@@ -236,6 +238,10 @@ class PermittedAudioDownloader(private val context: Context,
                         .get().build()
                     val call = client.newCall(request)
                     currentCall = call
+                    activeCalls.add(call)
+                    if (cancelled.get() || Thread.currentThread().isInterrupted) {
+                        call.cancel(); activeCalls.remove(call); throw IOException("Download cancelled")
+                    }
                     val response = call.execute()
                     if (response.code !in 300..399) { answer = response; break }
                     val target = response.header("Location")
@@ -250,7 +256,8 @@ class PermittedAudioDownloader(private val context: Context,
                     (staged == 0L || OfflineSaveStoragePolicy.canContinue(free, staged))) {
                     "Not enough device storage for this offline audio file."
                 }
-            }, progress = progress)
+            }, progress = progress, parallelism = 4,
+            abortRequests = { activeCalls.forEach { it.cancel() } })
         val mime = engine.transfer(key, pending, retainOnStop)
         if (mime == null) {
             progress(0, null)
@@ -352,7 +359,7 @@ class PermittedAudioDownloader(private val context: Context,
                                 check(!cancelled.get()) { "Download cancelled" }
                                 val readAt = System.nanoTime()
                                 val n = try { input.read(buffer) }
-                                    finally { metrics.readNanos += System.nanoTime() - readAt }
+                                    finally { metrics.addRead(System.nanoTime() - readAt) }
                                 if (n < 0) break
                                 if (n == 0) continue
                                 received += n
@@ -366,8 +373,8 @@ class PermittedAudioDownloader(private val context: Context,
                                 }
                                 val writeAt = System.nanoTime()
                                 buffered.write(buffer, 0, n)
-                                metrics.writeNanos += System.nanoTime() - writeAt
-                                metrics.wireBytes += n
+                                metrics.addWrite(System.nanoTime() - writeAt)
+                                metrics.addReceived(n.toLong())
                                 if (received % (4L * 1024L * 1024L) < n ||
                                     (length > 0L && received == length)) {
                                     val freeNow = runCatching {
@@ -383,7 +390,7 @@ class PermittedAudioDownloader(private val context: Context,
                         } // Flush every buffered byte before durable sync and validation.
                         val syncAt = System.nanoTime()
                         output.fd.sync()
-                        metrics.syncNanos += System.nanoTime() - syncAt
+                        metrics.addSync(System.nanoTime() - syncAt)
                     }
                 }
                 check(!cancelled.get()) { "Download cancelled" }

@@ -133,6 +133,26 @@ class OfflinePlaybackQueue(private val pick: (Int) -> Int = { Random.nextInt(it)
 
     fun snapshot(): List<String> = ids.toList()
 
+    /** Remove unavailable IDs without rerolling shuffle or starting another song. */
+    fun retain(available: Set<String>) {
+        val selected = current
+        if (selected == null || selected !in available) { reset(); return }
+        val old = ids.toList()
+        val kept = old.filter(available::contains)
+        val positions = kept.withIndex().associate { it.value to it.index }
+        fun remap(values: Collection<Int>): List<Int> = values.mapNotNull {
+            old.getOrNull(it)?.let(positions::get)
+        }
+        val previous = remap(visited)
+        val forward = remap(forwardVisits)
+        val pending = remap(unplayed)
+        ids.clear(); ids.addAll(kept)
+        index = positions.getValue(selected)
+        visited.clear(); visited.addAll(previous)
+        forwardVisits.clear(); forwardVisits.addAll(forward)
+        unplayed.clear(); unplayed.addAll(pending)
+    }
+
     fun jump(to: Int): String? {
         if (to !in ids.indices) return null
         if (to != index) {

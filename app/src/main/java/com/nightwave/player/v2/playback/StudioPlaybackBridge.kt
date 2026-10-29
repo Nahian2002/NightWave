@@ -22,6 +22,7 @@ import com.nightwave.player.core.VideoLink
 import com.nightwave.player.playback.PlaybackService
 import com.nightwave.player.playback.QueueStateStore
 import com.nightwave.player.playback.PlaybackQueue
+import com.nightwave.player.offline.OfflineTrackIdentityStore
 import com.nightwave.player.offline.OfflineAudioLibrary
 import com.nightwave.player.offline.OfflineSessionStore
 import com.nightwave.player.offline.OfflinePlaybackPreferencesStore
@@ -47,10 +48,13 @@ data class StudioPlayerState(
     val queueIndex: Int = -1,
     /** Public IDs explicitly selected via Play Next, in priority order. */
     val manualNextUrls: List<String> = emptyList(),
-    val error: String? = null
+    val error: String? = null,
+    /** Desired transport state, independent of whether buffered audio is audible. */
+    val playRequested: Boolean = false
 ) {
     val hasTrack: Boolean get() = videoUrl.isNotBlank()
     val offline: Boolean get() = videoUrl.startsWith("offline:")
+    val canPause: Boolean get() = playing || (playRequested && hasTrack && error == null)
 }
 
 interface StudioPlayerActions {
@@ -364,9 +368,12 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
         if (checkpoint.ids != cachedOfflineIds) {
             val known = runCatching { OfflineAudioLibrary(context).songs().associateBy { it.id } }
                 .getOrDefault(emptyMap())
+            val identities = OfflineTrackIdentityStore(context)
             cachedOfflineQueue = checkpoint.ids.mapNotNull { savedId ->
                 known[savedId]?.let {
-                    VideoPreview(it.title, "Offline · NightWave", "offline:" + it.id, "", 0L)
+                    identities.display(it).let { identity ->
+                        VideoPreview(identity.title, identity.creator, "offline:" + it.id, identity.artwork, 0L)
+                    }
                 }
             }
             cachedOfflineIds = checkpoint.ids
@@ -395,14 +402,16 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
         }
         val duration = liveDuration ?: state.durationMs
         val playing = player.isPlaying
+        val wantsPlayback = player.playWhenReady && player.playbackState != Player.STATE_ENDED &&
+            player.playerError == null
         val buffering = player.playbackState == Player.STATE_BUFFERING
         if (state.positionMs != position || state.durationMs != duration ||
             state.playing != playing || state.buffering != buffering ||
-            state.resolving
+            state.resolving || state.playRequested != wantsPlayback
         ) {
             state = state.copy(positionMs = position, durationMs = duration,
                 playing = playing, buffering = buffering, resolving = false,
-                connected = true)
+                connected = true, playRequested = wantsPlayback)
         }
     }
 
@@ -426,7 +435,7 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
                 else metadata?.title?.toString()?.takeIf { it.isNotBlank() }
                     ?: savedTrack?.title.orEmpty(),
             artist = if (offlineId != null) metadata?.artist?.toString().orEmpty()
-                .ifBlank { "Offline · NightWave" }
+                .ifBlank { "Saved audio" }
                 else metadata?.artist?.toString()?.takeIf { it.isNotBlank() }
                     ?: savedTrack?.creator.orEmpty(),
             videoUrl = offlineId ?: media?.mediaId.orEmpty()
@@ -436,6 +445,8 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
                 else metadata?.artworkUri?.toString()?.takeIf { it.isNotBlank() }
                     ?: savedTrack?.artwork.orEmpty(),
             playing = player.isPlaying,
+            playRequested = player.playWhenReady && player.playbackState != Player.STATE_ENDED &&
+                player.playerError == null,
             buffering = player.playbackState == Player.STATE_BUFFERING || resolving,
             resolving = resolving,
             positionMs = if (media != null) player.currentPosition.coerceAtLeast(0L)
@@ -611,7 +622,8 @@ class StudioPlaybackBridge(private val context: Context) : StudioPlayerActions {
     override fun playPause() {
         try {
             controller?.let {
-                if (it.isPlaying ||
+                if (it.isPlaying || (it.playWhenReady &&
+                        (it.playbackState == Player.STATE_BUFFERING || state.resolving)) ||
                     (it.currentMediaItem == null && !state.offline && state.queueIndex >= 0 &&
                         it.playWhenReady)) it.pause()
                 else if (it.playerError != null) action(PlaybackService.ACTION_RETRY_CURRENT)
