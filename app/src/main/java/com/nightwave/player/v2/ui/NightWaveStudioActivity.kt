@@ -3408,6 +3408,8 @@ private fun StudioRoot(
         onSelect = { index -> playerActions.jumpTo(index); showQueue = false },
         onRemoveUpcoming = { index, url -> playerActions.removeUpcoming(index, url) },
         onUndoRemoval = { token -> playerActions.undoUpcoming(token) },
+        onMoveUpcoming = { from, to, expected -> playerActions.moveUpcoming(from, to, expected) },
+        onClearUpcoming = { expected -> playerActions.clearUpcoming(expected) },
         reduceMotion = profile.motion == MotionPreference.REDUCED
     )
     }
@@ -4664,7 +4666,8 @@ internal fun StudioLibrary(
                 if (automaticCollectionsOpen) items(smartCollections, key = { it.id }) { collection ->
                     MusicCollectionTile(collection.title,
                         NightWaveContentPresentationPolicy.automaticSummary(automaticDetails[collection.id].orEmpty()),
-                        cover = collection.songs.firstOrNull()) {
+                        cover = collection.songs.firstOrNull(),
+                        collectionKind = collection.id.removePrefix(SmartLibraryPolicy.PREFIX).substringBefore('/')) {
                         onSelectPlaylist(collection.id)
                     }
                 }

@@ -26,10 +26,10 @@ internal fun NightWaveLibraryOverviewHeader(summary: String) {
 internal fun NightWaveLibraryStartCard(hasHistory: Boolean, onFindMusic: () -> Unit) {
     Surface(Modifier.fillMaxWidth().testTag("composition-library-start"),
         shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surface) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Make room for your favourites", style = MaterialTheme.typography.titleMedium)
-            Text(if (hasHistory) "Like a song or add it to a playlist to keep it beyond your history."
-                else "Find a song to like, or open Offline music to bring your own audio.",
+        Column(Modifier.padding(horizontal = 14.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text("Keep your favourites", style = MaterialTheme.typography.titleSmall)
+            Text(if (hasHistory) "Like or playlist a song to save it beyond history."
+                else "Find a song to save, or import your own in Offline music.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
             NightWaveMatteTextButton(onClick = onFindMusic,

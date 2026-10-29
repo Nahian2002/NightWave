@@ -33,7 +33,7 @@ fun ListeningTrendPanel(memory: ListeningMemorySummary, todayUtc: Long) {
 
     Column(Modifier.fillMaxWidth().testTag("listening-trends"), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text("Listening trends", style = MaterialTheme.typography.titleSmall)
-        NightWaveActionGroup {
+        NightWaveCompactActions {
             FilterChip(selected = window == 7, onClick = { window = 7 },
                 modifier = Modifier.heightIn(min = 48.dp).testTag("listening-window-7"),
                 label = { Text("7 days") })
@@ -41,7 +41,8 @@ fun ListeningTrendPanel(memory: ListeningMemorySummary, todayUtc: Long) {
                 modifier = Modifier.heightIn(min = 48.dp).testTag("listening-window-30"),
                 label = { Text("30 days") })
         }
-        Text(NightWaveListeningPresentationPolicy.duration(total) + " recorded · $sessions sessions (30s+)",
+        Text(NightWaveListeningPresentationPolicy.duration(total) + " recorded · " +
+            NightWaveListeningPresentationPolicy.count(sessions, "session") + " (30s+)",
             style = MaterialTheme.typography.bodyMedium, color = colors.onSurface)
         Text(NightWaveListeningPresentationPolicy.periodLabel(points),
             style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant)
@@ -69,8 +70,7 @@ fun ListeningTrendPanel(memory: ListeningMemorySummary, todayUtc: Long) {
                 }
             }
         }
-        Text("Only listening recorded while statistics are on appears here. " +
-            "Days are grouped in the 30-day view; recent listening may be incomplete.",
+        Text("Recorded while statistics are on. The 30-day view groups days into weeks.",
             style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant)
     }
 }

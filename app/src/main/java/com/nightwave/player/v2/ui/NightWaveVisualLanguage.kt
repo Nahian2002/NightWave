@@ -151,8 +151,7 @@ fun NightWaveMixCard(
             .semantics { this.selected = selected },
         shape = RoundedCornerShape(NightWavePremiumDesignTokens.CARD_CORNER_DP.dp),
         colors = CardDefaults.cardColors(containerColor = if (selected || emphasized) scheme.primaryContainer else scheme.surface),
-        border = BorderStroke(1.dp, if (selected) scheme.primary else
-            scheme.onSurface.copy(alpha = NightWaveMattePolicy.BORDER_ALPHA))) {
+        border = BorderStroke(1.dp, scheme.onSurface.copy(alpha = NightWaveMattePolicy.BORDER_ALPHA))) {
         // Single-column cards use a real thumbnail beside the caption rather
         // than a wide empty banner. Large text receives the whole row width.
         if ((featured && fontScale < 1.3f) || (compact && fontScale < 1.3f)) {
@@ -218,7 +217,7 @@ private fun NightWaveMixCaption(
                 modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodySmall,
                 color = scheme.onSurfaceVariant)
             Icon(if (selected) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
-                contentDescription = trackLabel, modifier = Modifier.size(20.dp), tint = scheme.primary)
+                contentDescription = trackLabel, modifier = Modifier.size(20.dp), tint = scheme.onSurfaceVariant)
         }
     }
 }

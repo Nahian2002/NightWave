@@ -7,6 +7,8 @@ import java.util.Locale
 
 /** Read-only labels for the existing UTC aggregates; never changes collection, consent or totals. */
 internal object NightWaveListeningPresentationPolicy {
+    fun count(value: Int, singular: String, plural: String = singular + "s"): String =
+        "$value " + if (value == 1) singular else plural
     private val day = DateTimeFormatter.ofPattern("d MMM", Locale.ENGLISH)
     private val dated = DateTimeFormatter.ofPattern("d MMM uuuu", Locale.ENGLISH)
     fun duration(milliseconds: Long): String {

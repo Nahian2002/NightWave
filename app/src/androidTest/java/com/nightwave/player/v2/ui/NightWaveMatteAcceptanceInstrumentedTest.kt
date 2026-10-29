@@ -36,7 +36,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
-/** 36 configurations × 16 actual UI cases. Blank source art and in-memory callbacks only.
+/** 36 configurations × 17 actual UI cases. Blank source art and in-memory callbacks only.
  * Does not install data, start playback, connect accounts or contact providers.
  * Captures exist only when these cases actually execute on Android.
  */
@@ -55,6 +55,26 @@ class NightWaveMatteAcceptanceInstrumentedTest(
         "https://www.youtube.com/watch?v=" + n.toString().padStart(11, '0'), "", 120L)
     private val songs = (1..24).map(::song)
     private var action = ""
+    @Test fun shortStatisticsActionsUseMeasuredWidthAndKeepIndependentTargets() {
+        fixture {
+            Column(Modifier.fillMaxWidth().padding(14.dp)) {
+                NightWaveCompactActions {
+                    NightWaveMatteOutlinedButton(onClick = { action = "7" },
+                        modifier = Modifier.heightIn(min = 48.dp).testTag("compact-seven")) { Text("7 days") }
+                    NightWaveMatteOutlinedButton(onClick = { action = "30" },
+                        modifier = Modifier.heightIn(min = 48.dp).testTag("compact-thirty")) { Text("30 days") }
+                }
+            }
+        }
+        val first=compose.onNodeWithTag("compact-seven").fetchSemanticsNode().boundsInRoot
+        val second=compose.onNodeWithTag("compact-thirty").fetchSemanticsNode().boundsInRoot
+        assertTrue(first.height >= 48f && second.height >= 48f)
+        if (scale == 1f) assertEquals(first.top,second.top,1f)
+        assertTrue(second.left >= first.right || second.top >= first.bottom)
+        compose.onNodeWithTag("compact-thirty").performClick(); assertEquals("30",action)
+        compose.onNodeWithTag("compact-seven").performClick(); assertEquals("7",action)
+        capture("compact-statistics-actions")
+    }
     private fun fixture(reduceMotion: Boolean = true, content: @Composable () -> Unit) {
         compose.setContent {
             val configuration = Configuration(LocalConfiguration.current).apply { screenWidthDp = width }

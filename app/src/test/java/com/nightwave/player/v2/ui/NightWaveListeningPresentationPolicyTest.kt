@@ -6,6 +6,12 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class NightWaveListeningPresentationPolicyTest {
+    @Test fun actualCountsUseSingularOnlyForOne() {
+        assertEquals("1 track", NightWaveListeningPresentationPolicy.count(1,"track"))
+        assertEquals("0 tracks", NightWaveListeningPresentationPolicy.count(0,"track"))
+        assertEquals("2 saved playlists", NightWaveListeningPresentationPolicy.count(2,"saved playlist"))
+        assertEquals("1 session", NightWaveListeningPresentationPolicy.count(1,"session"))
+    }
     private val p = NightWaveListeningPresentationPolicy
     private fun point(start: String, end: String = start) = ListeningTrendPoint(
         LocalDate.parse(start).toEpochDay(), LocalDate.parse(end).toEpochDay(), 60_000, 1)
