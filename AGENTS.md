@@ -6,7 +6,7 @@ Before choosing or implementing an upgrade, read:
 2. `docs/quality/NW126_NW145_BACKLOG.json` — batch status, dependencies and acceptance criteria.
 3. `docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md` and `TEST_REPORT.md` — baseline findings and verification limits.
 
-Current cumulative review branch is `fix/nightwave-everyday-finish`, FINISH02 stacked on #155. Read docs/quality/FINISH02_EVERYDAY_CLARITY.md, docs/quality/UPCOMING_UPDATES.md and TEST_REPORT.md. Build 9457716D: 1,754 JVM tests / 217 suites, 74 source checks, lint 0 errors / 317 warnings / 17 hints. All eight new phone cases and prior physical gates remain NOT_RUN. Latest recorded usability is about 8.4, main visual 8.8 and offline journey 9.0; no new score is inferred from source checks.
+Current cumulative review branch is `fix/nightwave-everyday-finish`, FINISH02 [draft PR #156](https://github.com/Nahian2002/NightWave/pull/156) stacked on #155. Read docs/quality/FINISH02_EVERYDAY_CLARITY.md, docs/quality/UPCOMING_UPDATES.md and TEST_REPORT.md. Build 9457716D: 1,754 JVM tests / 217 suites, 74 source checks, lint 0 errors / 317 warnings / 17 hints. All eight new phone cases and prior physical gates remain NOT_RUN. Latest recorded usability is about 8.4, main visual 8.8 and offline journey 9.0; no new score is inferred from source checks.
 
 When the owner says "next", select the first eligible incomplete source batch in backlog execution_order. **ART02 is next**, then SEARCH02 and NW137–NW145, on a cumulative branch based on the newest reviewed tip. FINISH02 is locally verified. Check checkout, remote and latest ledger first; retain original physical rows and historical evidence. Main remains the integrated baseline. Do not overlap another active batch or restart a broad redesign.
 

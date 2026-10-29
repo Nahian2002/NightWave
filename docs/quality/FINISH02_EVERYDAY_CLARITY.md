@@ -1,6 +1,6 @@
 # FINISH02 — everyday offline clarity
 
-29 October 2026. **LOCAL_VERIFIED / DEVICE_NOT_RUN** on `fix/nightwave-everyday-finish`, stacked on OFFLINE_FINISH #155. Protected parent `c932daaa1b3ac2e3da87730b3d726659f1e74171`; pre-code plan `78a57c0db60bd8d8b88fa88e30c560e7f003c0e6`; implementation `2718895ce0aaec837aa18781d37da00165f14049`. [Revised schedule](UPCOMING_UPDATES.md), [latest recorded review](../audits/2026-10-29_RECORDING_230548_REVIEW.md), [eight phone cases](FINISH02_ACCEPTANCE.csv).
+29 October 2026. **LOCAL_VERIFIED / DEVICE_NOT_RUN** on `fix/nightwave-everyday-finish`, [draft PR #156](https://github.com/Nahian2002/NightWave/pull/156), stacked on OFFLINE_FINISH #155. Protected parent `c932daaa1b3ac2e3da87730b3d726659f1e74171`; pre-code plan `78a57c0db60bd8d8b88fa88e30c560e7f003c0e6`; implementation `2718895ce0aaec837aa18781d37da00165f14049`. [Revised schedule](UPCOMING_UPDATES.md), [latest recorded review](../audits/2026-10-29_RECORDING_230548_REVIEW.md), [eight phone cases](FINISH02_ACCEPTANCE.csv).
 
 ## User-visible changes
 

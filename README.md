@@ -2,7 +2,7 @@
 
 **Upcoming updates:** [revised roadmap and daily sequence](docs/quality/UPCOMING_UPDATES.md). FINISH02 is locally verified; ART02 and SEARCH02 precede NW137–NW145. Follow-ups run every six hours; completion requires recorded checks.
 
-**Current review work:** [FINISH02 everyday clarity](docs/quality/FINISH02_EVERYDAY_CLARITY.md) on [fix/nightwave-everyday-finish](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-everyday-finish), stacked on #155. Known saved identity, clear library filters and a verified completed-transfer receipt; every existing theme/feature and data boundary remains. **ART02 is next**, then SEARCH02 and NW137–NW145.
+**Current review work:** [FINISH02 everyday clarity](docs/quality/FINISH02_EVERYDAY_CLARITY.md) on [fix/nightwave-everyday-finish](https://github.com/Nahian2002/NightWave/tree/fix/nightwave-everyday-finish), [draft PR #156](https://github.com/Nahian2002/NightWave/pull/156), stacked on #155. Known saved identity, clear library filters and a verified completed-transfer receipt; every existing theme/feature and data boundary remains. **ART02 is next**, then SEARCH02 and NW137–NW145.
 
 **Current integrated source:** [`main`](https://github.com/Nahian2002/NightWave/tree/main), based on NW126 and the cumulative implementation. **Canonical `main` contains the reviewed cumulative source.**
 

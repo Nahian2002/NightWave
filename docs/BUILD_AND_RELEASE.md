@@ -1,8 +1,8 @@
 # Build and safe update
 
-**Current evidence:** DESIGN02 expressive-theme finish on `design/nightwave-expressive-themes`, stacked on DESIGN01. [TEST_REPORT](../TEST_REPORT.md) records exact build, JVM/Android/source/lint/signing results and limits. Read the [active roadmap](PRODUCT_QUALITY_ROADMAP.md) for future batches. Installed-phone signer and physical/release acceptance remain separate.
+**Current evidence:** FINISH02 on `fix/nightwave-everyday-finish`, [draft PR #156](https://github.com/Nahian2002/NightWave/pull/156) stacked on #155. [TEST_REPORT](../TEST_REPORT.md) records exact build, JVM/Android/source/lint/signing results and limits. Read the [revised sequence and six-hour schedule](quality/UPCOMING_UPDATES.md). Installed-phone signer and physical/release acceptance remain separate.
 
-**Reviewed source: `main`**, based on cumulative NW132. `main` is the canonical cumulative source; old tags/branches remain historical. Follow the procedure below and retained [phone instructions](NW125_FINAL_CANDIDATE.md); require fresh receipts for the exact source built. NW133 is locally verified on `update/nightwave-nw133-player-artwork`, pending review; NW134 is next. The newer DESIGN02 candidate is `design/nightwave-expressive-themes`; use that exact branch for its build and theme acceptance.
+**Integrated source: `main`**, based on cumulative NW132. Later cumulative review work is on the exact branch above; old tags/branches remain historical. Follow the procedure below and retained [phone instructions](NW125_FINAL_CANDIDATE.md); require fresh receipts for the exact source built. FINISH02 is locally verified, physical acceptance pending; ART02 is next. Use the named review branch for the newest candidate.
 
 ## Local Windows build
 
