@@ -1,0 +1,14 @@
+# ART02 — existing saved artwork continuity
+
+30 October 2026. **IMPLEMENTING / DEVICE_NOT_RUN**. Protected parent `941922ed`; branch `update/nightwave-art02-cached-artwork`, stacked on FINISH02 #156. Private checkpoint `20261030-art02` contains the pre-change recovery bundle. SEARCH02 follows this bounded batch.
+
+## Committed implementation plan
+
+1. Recover optional identity and artwork only for an existing, readable, exactly matching offline song. Accept authoritative existing sidecar metadata or an unambiguous canonical source link corroborated by stored public queue metadata. Never infer an album/artist from filename text or choose between conflicting links.
+2. Check existing Coil disk snapshots only, with the existing per-image/type/dimension/path/quota checks and same-video thumbnail variants. Skip known tiny missing-image placeholders. No new HTTP, credentials, signed-media URL persistence, audio/index/cloud schema mutation or required network. Missing cached art remains an honest placeholder.
+3. Stage at most one image at a time off the UI thread, in batches of at most 24 candidates with a cooperative time budget. Recheck exact index membership, file health, metadata/link freshness and lifecycle before atomic publication under the existing index monitor; serialize sidecar removal/publication so deleting a song cannot resurrect its cover or metadata. Do not hold the index monitor while copying/decoding an image.
+4. Schedule visible/selected saved items through bounded lifecycle-owned background work. Publish one optional sidecar revision after a changed identity/cover. Refresh offline queue display and selected Media3 metadata only behind generation/index/media/revision fences, preserving media ID, URI, transport, position and queue. Keep service workers/listeners owned and released. Audio readiness must not depend on artwork success.
+5. Test ambiguous links, bounded selection, missing/corrupt cache and stale/deleted/replaced identity fences, source-preserving metadata updates and playback publication fences. Retain all prior regression tests and broken-caller fixtures. Run current source checks, full Windows builder, then lint; verify signer/canonical bytes, private recovery and owner-only APK hash readback. Save a stacked draft PR.
+6. Keep phone cache/rendering, offline notification/current/queued art, deletion races, process/rotation, large-font/four-theme, airplane-mode and playback-soak cases NOT_RUN until actually executed. No new product rating is inferred from compilation.
+
+Media3 permits metadata-only playlist replacement when playback-relevant properties are unchanged; see [official playlist modification guidance](https://developer.android.com/media/media3/exoplayer/playlists#modifying_the_playlist). Actual audible continuity and notification image loading still require device evidence.

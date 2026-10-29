@@ -1509,12 +1509,17 @@
       "depends_on": [
         "FINISH02"
       ],
-      "implementation_status": "PLANNED",
+      "implementation_status": "IMPLEMENTING",
       "device_status": "NOT_RUN",
       "implementation_commit": null,
       "local_evidence": [],
       "remaining_blockers": [
         "Actual phone task and regression acceptance"
+      ],
+      "protected_parent": "941922ed",
+      "branch": "update/nightwave-art02-cached-artwork",
+      "evidence": [
+        "docs/quality/ART02_CACHED_ARTWORK.md"
       ]
     },
     {
