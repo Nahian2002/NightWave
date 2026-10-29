@@ -5,7 +5,7 @@
   "audit": "docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md",
   "implementation_base_revision": "61703c98238e762e59c049b6690853431f822884",
   "audit_branch": "audit/nightwave-post-nw125-quality-roadmap",
-  "next_batch": "NW136",
+  "next_batch": "NW137",
   "goal": "9.5+ within the declared NightWave music-player scope, conditional on actual product and acceptance evidence",
   "rating_kind": "Subjective comparative product review, not a measured Spotify score",
   "baseline_weighted_score": 6.655,
@@ -605,7 +605,7 @@
       "depends_on": [
         "NW135"
       ],
-      "implementation_status": "PLANNED",
+      "implementation_status": "LOCAL_VERIFIED",
       "device_status": "NOT_RUN",
       "finding_ids": [
         "Q18",
@@ -624,10 +624,41 @@
         "With a stable job ID, progress/readiness and retained bytes remain truthful through navigation, process death, network drop, cancellation and low storage.",
         "Completed audio passes real integrity/readback and offline playback; partial/cancelled/corrupt data never appears Ready, and abandoned partial files are cleaned by a tested policy."
       ],
-      "implementation_commit": null,
-      "local_evidence": [],
+      "implementation_commit": "a0057c72f15f0fd3aafe4a56646fe9a5b4ed9f00",
+      "local_evidence": [
+        "docs/NW136_RESUMABLE_TRANSFERS.md",
+        "TEST_REPORT.md"
+      ],
       "device_evidence": [],
-      "remaining_blockers": []
+      "remaining_blockers": [
+        "Physical Wi-Fi/mobile controlled and original-source completed throughput; no 1 Mbps guarantee",
+        "Installed signer/data, Pause/Cancel/process-death/network/storage and actual offline audio acceptance",
+        "Four-theme narrow/large-text Downloads and resource soak; original prior batch/release gates"
+      ],
+      "final_built_revision": "d04d514f51a8b2a2554c5dc7c316302c4a656959",
+      "pull_request": "https://github.com/Nahian2002/NightWave/pull/154",
+      "branch": "update/nightwave-nw136-resumable-transfers",
+      "build_id": "NW-debug-CBD2E4D4E07D9BB4",
+      "validation": {
+        "jvm_tests": 1726,
+        "jvm_suites": 214,
+        "new_jvm_methods": 29,
+        "source_checks": 72,
+        "lint_errors": 0,
+        "lint_warnings": 314,
+        "lint_hints": 17,
+        "protected_files_unchanged": 223,
+        "intentional_existing_offline_files_changed": 11,
+        "physical_supplement_not_run": 14
+      },
+      "physical_supplement": "docs/quality/NW136_TRANSPORT_ACCEPTANCE.csv",
+      "next_batch": "NW137",
+      "limitations": [
+        "Only completed synced segments resume; interrupted tail restarts at the preceding segment",
+        "Resume validity 24h; stale owned checkpoint cleanup is lazy at next transfer",
+        "Manual searched-track Resume uses a new WorkRequest UUID with the same unique source identity; automatic retries preserve job UUID",
+        "API 26-30 stop retention uses a bounded persisted-state lookup; real device cancellation remains NOT_RUN"
+      ]
     },
     {
       "id": "NW137",
