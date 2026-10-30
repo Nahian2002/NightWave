@@ -5,7 +5,7 @@
   "audit": "docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md",
   "implementation_base_revision": "61703c98238e762e59c049b6690853431f822884",
   "audit_branch": "audit/nightwave-post-nw125-quality-roadmap",
-  "next_batch": "NW141",
+  "next_batch": "NW142",
   "goal": "9.5+ within the declared NightWave music-player scope, conditional on actual product and acceptance evidence",
   "rating_kind": "Subjective comparative product review, not a measured Spotify score",
   "baseline_weighted_score": 6.655,
@@ -914,7 +914,7 @@
         "NW138",
         "NW139"
       ],
-      "implementation_status": "PLANNED",
+      "implementation_status": "LOCAL_VERIFIED",
       "device_status": "NOT_RUN",
       "finding_ids": [
         "Q26",
@@ -933,10 +933,38 @@
         "Move primary-flow strings/plurals/status units into resources; English/Bangla UI, Bangla combining marks, mixed-script titles and locale dates/numbers render correctly.",
         "Reduced motion removes unnecessary transitions while preserving static loading/playing feedback; no meaning relies solely on color, animation or a gesture."
       ],
-      "implementation_commit": null,
-      "local_evidence": [],
+      "implementation_commit": "959a4efcf9b94882b56107fa6bd2efa237b353a6",
+      "local_evidence": [
+        "442 string and four quantity resources with matched Bangla; original six also localized; active-locale digits/durations/account dates",
+        "1808 JVM / 223 suites, zero failures/errors/skips; five new boundary cases",
+        "82 current source checks PASS_SOURCE_ONLY; eleven new negative resource/caller fixtures",
+        "Full Windows builder PASS; four new Android methods compile only",
+        "Sequential lint 0 errors / 322 warnings / 17 hints; unchanged inventory, no suppression",
+        "332 prior main files byte-identical; twelve UI changes; engine/store/source/account/build/signer identities preserved",
+        "3574-commit implementation-stage Gitleaks no leaks; owner-only Drive streamed bytes/hash match"
+      ],
       "device_evidence": [],
-      "remaining_blockers": []
+      "remaining_blockers": [
+        "Actual TalkBack/Switch Access core tasks, traversal/headings/selected state and independent actions NOT_RUN",
+        "1x/2x/3x all-theme rendered Bangla/mixed-script glyphs, required action reachability, measured contrast and nonoverlapping 48dp targets NOT_RUN",
+        "Four new Android methods, ten supplemental cases and all original/prior physical/performance/account/release gates NOT_RUN",
+        "Native-speaker review, locale/configuration recreation and installed signer/data continuity NOT_RUN",
+        "Legacy native import/recovery/advanced/provider details retain original text; complete-app translation is not claimed; NW143 native/failure-copy review carries forward"
+      ],
+      "implementation_scope": "PRIMARY_COMPOSE_RESOURCES_AND_ACCESSIBILITY_READINESS; not full-app translation or physical certification",
+      "protected_parent": "6f767c92452a22394396081c9c47b17863cc393c",
+      "branch": "update/nightwave-nw141-accessibility",
+      "plan_commit": "7c454a77",
+      "repair_commit": "ba709e2ea5b6a00e8c43c773835430b0399566a2",
+      "build_id": "NW-debug-C4D430224921F123",
+      "source_sha256": "C4D430224921F123F14D2E5ED80E7E9724D82242BC763F103DD46CF77D227C35",
+      "apk_sha256": "AC566E55078292380D3EB6405EDF5AB5BF6D77E1A99C0436F54C21FBAAA46F4C",
+      "evidence": [
+        "docs/NW141_ACCESSIBILITY_BILINGUAL.md",
+        "docs/NW141_DEVICE_RUNBOOK.md",
+        "docs/quality/NW141_ACCESSIBILITY_ACCEPTANCE.csv",
+        "TEST_REPORT.md"
+      ]
     },
     {
       "id": "NW142",
@@ -1006,7 +1034,10 @@
       "implementation_commit": null,
       "local_evidence": [],
       "device_evidence": [],
-      "remaining_blockers": []
+      "remaining_blockers": [],
+      "carried_forward_from_NW141": [
+        "Review inherited native import/recovery/failure copy and retained English diagnostics; preserve raw source/user text and all account/consent boundaries."
+      ]
     },
     {
       "id": "NW144",

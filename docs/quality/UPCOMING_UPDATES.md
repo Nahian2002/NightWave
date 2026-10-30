@@ -13,8 +13,8 @@ Replanned 29 October 2026 from the [latest owner recording review](../audits/202
 | 5 | NW138 | Locally verified, 30 Oct | Clear active versus draft sound, accessible advanced controls and reachable Apply. |
 | 6 | NW139 | Locally verified source, 30 Oct | Compact optional recovery and disposable backup/restore plan; live account operations require the owner's explicit scope. |
 | 7 | NW140 | Measurement tools locally verified, 30 Oct | Opt-in Android diagnostics and strict evidence analysis; actual traces/performance and any justified production optimization remain NOT_RUN. |
-| 8 | NW141 | Next eligible scheduled run | Accessibility and Bangla/English primary flows; actual TalkBack/font/contrast acceptance. |
-| 9 | NW142 | After NW141 | Narrow/large-text/landscape/tablet/input coverage and targeted layout fixes. |
+| 8 | NW141 | Locally verified source, 30 Oct | Accessibility and Bangla/English primary flows; actual TalkBack/font/contrast acceptance. |
+| 9 | NW142 | Next eligible run | Narrow/large-text/landscape/tablet/input coverage and targeted layout fixes. |
 | 10 | NW143 | After NW142 | Clear first-run/failure/privacy/recovery journeys with retained capabilities. |
 | 11 | NW144 | After NW143 | Existing notification/widget/external controls and share roundtrips. |
 | 12 | NW145 | After blocking evidence closes | Consolidated physical acceptance, task study, two-hour soaks and defensible re-rating. |
@@ -34,6 +34,10 @@ Start only when the full completion envelope fits. Insufficient five-hour allowa
 ## Weekly allowance stop rule
 
 Before each scheduled batch, read the actual Codex weekly usage limit. Stop when **10% or less remains** (90% or more consumed), preserving work and honestly recording unfinished checks. Delete the hourly automation and notify the owner; do not restart automatically after reset. Check again after implementation, before expensive validation/publishing and at least every 10 minutes during long batches. If the weekly limit cannot be read, skip upgrades until it can be verified. These periodic checks are not an instantaneous account-wide cap; other chats share the allowance. This rule controls scheduled work and does not change the app.
+
+## NW141 results
+
+[Accessible bilingual primary flows](../NW141_ACCESSIBILITY_BILINGUAL.md), [device runbook](../NW141_DEVICE_RUNBOOK.md). 442 strings/four quantities, actual resource/caller and Unicode/locale regressions; four new Android methods compile only. Actual TalkBack, Switch Access, all-theme font/contrast, native-speaker review and every prior physical gate remain NOT_RUN. Legacy/native/advanced/provider copy is not claimed fully translated; NW143 reviews the remaining native/failure copy. **NW142 is next**, then NW143–NW145. The owner explicitly authorized this manual run despite the saved scheduled admission estimate; scheduled guards remain unchanged.
 
 ## NW140 results
 
