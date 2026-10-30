@@ -76,3 +76,5 @@ Protected parent: `c932daaa1b3ac2e3da87730b3d726659f1e74171`. Branch: `fix/night
 5. Keep physical theme/font/input, fresh-versus-reused/resumed transfer, deletion, airplane-mode and previous acceptance cases NOT_RUN until performed. No score increase follows from test counts.
 
 ART02, SEARCH02 and NW137 onward retain separate implementation plans and checks; unfinished artwork/search work is explicit rather than claimed by this first batch.
+
+Cumulative [NW141 draft PR #163](https://github.com/Nahian2002/NightWave/pull/163) is attached for review; unmerged.

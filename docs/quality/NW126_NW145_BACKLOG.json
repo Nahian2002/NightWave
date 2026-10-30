@@ -954,7 +954,7 @@
       "implementation_scope": "PRIMARY_COMPOSE_RESOURCES_AND_ACCESSIBILITY_READINESS; not full-app translation or physical certification",
       "protected_parent": "6f767c92452a22394396081c9c47b17863cc393c",
       "branch": "update/nightwave-nw141-accessibility",
-      "plan_commit": "7c454a77",
+      "plan_commit": "7c454a773ac2840808dbdf91d62b978ab8707f46",
       "repair_commit": "ba709e2ea5b6a00e8c43c773835430b0399566a2",
       "build_id": "NW-debug-C4D430224921F123",
       "source_sha256": "C4D430224921F123F14D2E5ED80E7E9724D82242BC763F103DD46CF77D227C35",
@@ -964,7 +964,8 @@
         "docs/NW141_DEVICE_RUNBOOK.md",
         "docs/quality/NW141_ACCESSIBILITY_ACCEPTANCE.csv",
         "TEST_REPORT.md"
-      ]
+      ],
+      "pull_request": "https://github.com/Nahian2002/NightWave/pull/163"
     },
     {
       "id": "NW142",

@@ -2,7 +2,7 @@
 
 **Upcoming updates:** [hourly sequence and usage guards](docs/quality/UPCOMING_UPDATES.md). NW141 accessible bilingual primary flows are locally verified; **NW142 responsive-layout coverage is next**, then NW143–NW145. Physical and Android performance acceptance remain open.
 
-**Current review work:** [NW141 results](docs/NW141_ACCESSIBILITY_BILINGUAL.md) on [update/nightwave-nw141-accessibility](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw141-accessibility), stacked on [NW140 draft #162](https://github.com/Nahian2002/NightWave/pull/162). English/Bangla primary resources, locale-aware quantities/times/account dates, full Unicode announcements, headings and Bangla glyph spacing. Features, themes, sources/quality, data and account/signing boundaries are preserved. Legacy native/advanced/provider copy remains; complete-app translation is not claimed.
+**Current review work:** [draft PR #163](https://github.com/Nahian2002/NightWave/pull/163). [NW141 results](docs/NW141_ACCESSIBILITY_BILINGUAL.md) on [update/nightwave-nw141-accessibility](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw141-accessibility), stacked on [NW140 draft #162](https://github.com/Nahian2002/NightWave/pull/162). English/Bangla primary resources, locale-aware quantities/times/account dates, full Unicode announcements, headings and Bangla glyph spacing. Features, themes, sources/quality, data and account/signing boundaries are preserved. Legacy native/advanced/provider copy remains; complete-app translation is not claimed.
 
 **Current integrated source:** [`main`](https://github.com/Nahian2002/NightWave/tree/main) remains the integrated baseline. Cumulative review work is not automatically merged.
 

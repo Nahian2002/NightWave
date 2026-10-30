@@ -53,3 +53,5 @@ Legacy native import/recovery previews, advanced diagnostic policy details, sour
 **Next independent source batch: NW142**, then NW143–NW145. Source work is separate from physical acceptance. No automatic device install/reset/uninstall, account action, merge, Actions/settings change or public binary occurred.
 
 Implementation references: [Android localization](https://developer.android.com/guide/topics/resources/localization), [Compose semantics](https://developer.android.com/develop/ui/compose/accessibility/semantics), [paragraph/glyph spacing](https://developer.android.com/develop/ui/compose/text/style-paragraph). These inform implementation; they do not supply physical acceptance evidence.
+
+Cumulative [NW141 draft PR #163](https://github.com/Nahian2002/NightWave/pull/163) is attached for review; unmerged.
