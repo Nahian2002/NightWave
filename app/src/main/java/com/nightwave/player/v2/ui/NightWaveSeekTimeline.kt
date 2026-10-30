@@ -1,5 +1,7 @@
 package com.nightwave.player.v2.ui
 
+import com.nightwave.player.R
+
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -48,6 +50,7 @@ internal fun NightWaveSeekTimeline(
     modifier: Modifier = Modifier,
     positionDescription: String? = null
 ) {
+    val strings = rememberNightWaveStrings()
     val colors = MaterialTheme.colorScheme
     val dark = LocalNightWavePalette.current.isDark
     val shown = if (fraction.isFinite()) fraction.coerceIn(0f, 1f) else 0f
@@ -129,7 +132,7 @@ internal fun NightWaveSeekTimeline(
         modifier.fillMaxWidth().height(48.dp)
             .testTag("nightwave-player-seek")
             .semantics {
-                contentDescription = "Seek playback"
+                contentDescription = strings.get(R.string.nw141_empty_permission)
                 positionDescription?.let { stateDescription = it }
                 if (!enabled) disabled()
                 progressBarRangeInfo = ProgressBarRangeInfo(shown, 0f..1f)

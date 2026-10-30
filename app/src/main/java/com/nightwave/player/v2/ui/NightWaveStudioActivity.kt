@@ -1,5 +1,7 @@
 package com.nightwave.player.v2.ui
 
+import com.nightwave.player.R
+
 import android.app.AlertDialog
 import android.app.Dialog
 import android.widget.EditText
@@ -3196,6 +3198,7 @@ private fun StudioRoot(
     mainNavigationRequest: NightWaveMainNavigationRequest?,
     onMainNavigationApplied: (String) -> Unit
 ) {
+    val strings = rememberNightWaveStrings()
     // The pager is the single source of truth for swipes, tabs and Back.
     // Pager state survives rotation and process recreation through Compose Saver.
     val studioContext = androidx.compose.ui.platform.LocalContext.current
@@ -3311,7 +3314,7 @@ private fun StudioRoot(
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.error)
                             OutlinedButton(onClick = { playerActions.retry() }) {
-                                Text(if (!playerState.connected) "Reconnect" else "Retry")
+                                Text(if (!playerState.connected) strings.get(R.string.nw141_reconnect_bf8a9) else strings.get(R.string.nw141_retry_94208))
                             }
                         }
                     }
@@ -3328,7 +3331,7 @@ private fun StudioRoot(
                             Icon(Icons.Outlined.PlayArrow,
                                 contentDescription = null, modifier = Modifier.size(17.dp))
                             Spacer(Modifier.width(7.dp))
-                            Text("Now playing · Tap to show",
+                            Text(strings.get(R.string.nw141_now_playing_tap_to_show_4f2db),
                                 style = MaterialTheme.typography.labelLarge)
                         }
                     }
@@ -3433,11 +3436,11 @@ private fun StudioRoot(
                         onClearSearch = {
                             if (searchHistory.isNotEmpty()) {
                                 AlertDialog.Builder(studioContext)
-                                    .setTitle("Clear recent searches?")
+                                    .setTitle(strings.get(R.string.nw141_clear_recent_searches_7c4fe))
                                     .setMessage("Only searches on this device are removed. " +
-                                        "Your songs, playlists and downloads stay untouched.")
+                                        strings.get(R.string.nw141_label_32e8296fdf))
                                     .setNegativeButton("Keep", null)
-                                    .setPositiveButton("Clear searches") { _, _ ->
+                                    .setPositiveButton(strings.get(R.string.nw141_clear_searches_e1781)) { _, _ ->
                                         searchHistory = searchHistoryStore.clear()
                                         removedSearchSnapshot = null
                                     }.show()
@@ -3600,6 +3603,7 @@ internal fun StudioHome(
     openLikedSongs: () -> Unit, openOffline: () -> Unit,
     openSearch: () -> Unit
 ) {
+    val strings = rememberNightWaveStrings()
     val dayNumber = java.time.LocalDate.now().toEpochDay()
     val recentShelfState = rememberLazyListState()
     val nextShelfState = rememberLazyListState()
@@ -3669,7 +3673,7 @@ internal fun StudioHome(
     ) {
         item(key = "nightwave-premium-home-header") {
             NightWaveHomeHero(
-                greeting = NightWaveChromePolicy.greeting(java.time.LocalTime.now().hour),
+                greeting = strings.greeting(java.time.LocalTime.now().hour),
                 displayName = profile.displayName,
                 lastTrack = recentShelf.firstOrNull(),
                 onContinue = recentShelf.firstOrNull()?.let { last ->
@@ -3685,11 +3689,11 @@ internal fun StudioHome(
             Row(Modifier.fillMaxWidth().nightWaveShelfBoundary().horizontalScroll(rememberScrollState())
                     .testTag("nw47-home-quick-access"),
                 horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                NightWaveQuickActionPill("Offline",
+                NightWaveQuickActionPill(strings.get(R.string.nw141_offline_a1794),
                     Icons.Outlined.LibraryMusic, "nw47-home-offline", openOffline)
-                if (entry.showLikedShortcut) NightWaveQuickActionPill("Liked songs",
+                if (entry.showLikedShortcut) NightWaveQuickActionPill(strings.get(R.string.nw141_liked_songs_5daa6),
                     Icons.Outlined.FavoriteBorder, "nw47-home-liked", openLikedSongs)
-                if (entry.showSearchShortcut) NightWaveQuickActionPill("Find music",
+                if (entry.showSearchShortcut) NightWaveQuickActionPill(strings.get(R.string.nw141_find_music_0a757),
                     Icons.Outlined.Search, "nw47-home-search", openSearch)
             }
         }
@@ -3697,10 +3701,10 @@ internal fun StudioHome(
         if (recentShelf.isNotEmpty()) {
             item(key = "recent-heading") {
                 NightWaveSectionActions(heading = {
-                    SectionHeading("Recently played",
+                    SectionHeading(strings.get(R.string.nw141_recently_played_452ec),
                         (if (recentWindow.hasMore)
-                            "${recentShelf.size}+ tracks"
-                        else "${recentShelf.size} tracks"))
+                            strings.quantity(R.plurals.nw141_tracks, recentShelf.size) + "+"
+                        else strings.quantity(R.plurals.nw141_tracks, recentShelf.size)))
                 }, action = {
                     if (recentBrowseActions.showExpansion) {
                         TextButton(onClick = { showAllRecent = !showAllRecent },
@@ -3711,7 +3715,7 @@ internal fun StudioHome(
                 })
             }
             if (entry.kind == NightWaveHomePresentationPolicy.Kind.HISTORY_ONLY) item(key = "nw131-history-save-hint") {
-                Text("Like or add to a playlist from track options.",
+                Text(strings.get(R.string.nw141_like_or_add_to_a_playlist_from_track_options_4681b),
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             item(key = "nw47-recent-shelf") {
@@ -3739,7 +3743,7 @@ internal fun StudioHome(
                         modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
                             .testTag("nw117-open-full-recent-history")
                     ) {
-                        Text("Browse full history")
+                        Text(strings.get(R.string.nw141_browse_full_history_38eac))
                     }
                 }
             }
@@ -3747,28 +3751,27 @@ internal fun StudioHome(
                 OutlinedButton(onClick = { confirmClearHistory = true },
                     modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
                         .testTag("nw86-clear-recent-request")) {
-                    Text("Clear listening history")
+                    Text(strings.get(R.string.nw141_clear_listening_history_0d8c7))
                 }
                 if (confirmClearHistory) {
                     androidx.compose.material3.AlertDialog(
                         onDismissRequest = { confirmClearHistory = false },
-                        title = { Text("Clear Recently Played?") },
+                        title = { Text(strings.get(R.string.nw141_clear_recently_played_74111)) },
                         text = {
-                            Text("This removes history entries only. Liked songs, " +
-                                "playlists and downloaded music stay saved.")
+                            Text(strings.get(R.string.nw141_explanation_c6f15710c6))
                         },
                         confirmButton = {
                             androidx.compose.material3.TextButton(onClick = {
                                 confirmClearHistory = false
                                 onClearRecent()
                             }, modifier = Modifier.testTag("nw86-clear-recent-confirm")) {
-                                Text("Clear history")
+                                Text(strings.get(R.string.nw141_clear_history_49612))
                             }
                         },
                         dismissButton = {
                             androidx.compose.material3.TextButton(
                                 onClick = { confirmClearHistory = false }) {
-                                Text("Cancel")
+                                Text(strings.get(R.string.nw141_cancel_19766))
                             }
                         }
                     )
@@ -3779,7 +3782,7 @@ internal fun StudioHome(
         // shelf: no fabricated suggestions or duplicate "Continue" cards.
         if (homePlan.nextListens.isNotEmpty()) {
             item(key = "nw84-next-listens-heading") {
-                SectionHeading("For your next listen",
+                SectionHeading(strings.get(R.string.nw141_for_your_next_listen_5f706),
                     "Liked and playlist tracks beyond your recent rotation")
             }
             item(key = "nw84-next-listens-shelf") {
@@ -3806,7 +3809,7 @@ internal fun StudioHome(
         // Lead with actual music before accounting-style counters.
         if (mixes.isNotEmpty()) {
             item {
-                SectionHeading("Your mixes", "Choose a mix to preview")
+                SectionHeading(strings.get(R.string.nw141_your_mixes_a1ada), strings.get(R.string.nw141_choose_a_mix_to_preview_61187))
             }
             // Keep every existing mix and preview action. One full-width feature leads
             // into measured paired cells; narrow/large text stacks the same reading order.
@@ -3857,7 +3860,7 @@ internal fun StudioHome(
                     }, action = {
                         OutlinedButton(onClick = {
                             chosenMix.tracks.firstOrNull()?.let { onPlay(it, chosenMix.tracks) }
-                        }, modifier = Modifier.heightIn(min = 48.dp).testTag("nw131-play-mix")) { Text("Play mix") }
+                        }, modifier = Modifier.heightIn(min = 48.dp).testTag("nw131-play-mix")) { Text(strings.get(R.string.nw141_play_mix_52c1e)) }
                     })
                 }
                 items(chosenMix.tracks.take(if (showAllMixTracks) 12 else 3),
@@ -3870,14 +3873,14 @@ internal fun StudioHome(
                     item(key = "mix-more-tracks") {
                         OutlinedButton(onClick = { showAllMixTracks = !showAllMixTracks },
                             modifier = Modifier.fillMaxWidth()) {
-                            Text(if (showAllMixTracks) "Show fewer tracks"
-                                else "See all ${chosenMix.tracks.size} tracks")
+                            Text(if (showAllMixTracks) strings.get(R.string.nw141_show_fewer_tracks_4f897)
+                                else strings.get(R.string.nw141_see_mix, strings.number(chosenMix.tracks.size)))
                         }
                     }
                 }
             }
         }
-        item { SectionHeading("Search by mood", "Choose a mood to explore") }
+        item { SectionHeading(strings.get(R.string.nw141_search_by_mood_9a04e), strings.get(R.string.nw141_choose_a_mood_to_explore_c313d)) }
         // One horizontally scrollable shelf instead of three oversized rows.
         // Uses existing real mood shortcuts and unchanged search actions.
         item(key = "discovery-shelf") {
@@ -3922,6 +3925,7 @@ internal fun StudioSearch(
     onClearSearch: () -> Unit,
     onCancelSearch: () -> Unit = {}
 ) {
+    val strings = rememberNightWaveStrings()
     var query by rememberSaveable { mutableStateOf("") }
     var mode by rememberSaveable { mutableStateOf(SearchMode.SONGS) }
     var selectedCreator by rememberSaveable { mutableStateOf<String?>(null) }
@@ -3992,9 +3996,9 @@ internal fun StudioSearch(
     if (showSearchDetails && responseMatchesQuery && state.details.isNotBlank()) {
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { showSearchDetails = false },
-            title = { Text("Search details") },
+            title = { Text(strings.get(R.string.nw141_search_details_98cbc)) },
             text = { Text(state.details) },
-            confirmButton = { TextButton(onClick = { showSearchDetails = false }) { Text("Done") } }
+            confirmButton = { TextButton(onClick = { showSearchDetails = false }) { Text(strings.get(R.string.nw141_done_11a67)) } }
         )
     }
     LazyColumn(
@@ -4017,10 +4021,10 @@ internal fun StudioSearch(
                 },
                 modifier = Modifier.fillMaxWidth().testTag("nw129-search-query")
                     .onFocusChanged { queryFocused = it.isFocused }
-                    .semantics { contentDescription = "Search songs, artists or links" },
+                    .semantics { contentDescription = strings.get(R.string.nw141_search_songs_artists_or_links_92331) },
                 shape = RoundedCornerShape(17.dp),
                 singleLine = true, placeholder = {
-                    if (!queryFocused) Text("Search songs, artists or links",
+                    if (!queryFocused) Text(strings.get(R.string.nw141_search_songs_artists_or_links_92331),
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 },
                 colors = OutlinedTextFieldDefaults.colors(
@@ -4035,7 +4039,7 @@ internal fun StudioSearch(
                         if (state.loading) onCancelSearch()
                         query = ""
                     }) {
-                        Icon(Icons.Outlined.Close, contentDescription = "Clear search")
+                        Icon(Icons.Outlined.Close, contentDescription = strings.get(R.string.nw141_clear_search_3b7ea))
                     }
                 },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
@@ -4043,15 +4047,15 @@ internal fun StudioSearch(
             )
         }
         if (localPending) item(key = "nw129-local-loading") {
-            Text(if (index == null) "Updating your music…" else "Searching your music…",
+            Text(if (index == null) strings.get(R.string.nw141_updating_your_music_37fc6) else strings.get(R.string.nw141_searching_your_music_047f6),
                 modifier = Modifier.testTag("nw129-local-loading"),
                 style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         if (corpus.failed) item(key = "nw129-local-error") {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("Local music could not be read. Your music has not been changed; public search is still available.",
+                Text(strings.get(R.string.nw141_local_music_could_not_be_read_your_music_has_not_e685b),
                     style = MaterialTheme.typography.bodyMedium)
-                TextButton(onClick = onRetryCorpus, modifier = Modifier.heightIn(min = 48.dp)) { Text("Retry local music") }
+                TextButton(onClick = onRetryCorpus, modifier = Modifier.heightIn(min = 48.dp)) { Text(strings.get(R.string.nw141_retry_local_music_a4b1b)) }
             }
         }
         if (query.isNotBlank()) {
@@ -4064,14 +4068,14 @@ internal fun StudioSearch(
                                 mode = SearchMode.SONGS
                                 onNativeSearch(query.trim(), SearchMode.SONGS)
                             }
-                        }, label = { Text("Songs") })
+                        }, label = { Text(strings.get(R.string.nw141_songs_bc676)) })
                     FilterChip(selected = mode == SearchMode.VIDEOS,
                         onClick = {
                             if (mode != SearchMode.VIDEOS) {
                                 mode = SearchMode.VIDEOS
                                 onNativeSearch(query.trim(), SearchMode.VIDEOS)
                             }
-                        }, label = { Text("Videos") })
+                        }, label = { Text(strings.get(R.string.nw141_videos_c9a96)) })
                 }
             }
         }
@@ -4079,7 +4083,7 @@ internal fun StudioSearch(
             (localSuggestions.isNotEmpty() || offlineSuggestions.isNotEmpty())) {
             item(key = "local-search-suggestions") {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text("Suggestions from your library",
+                    Text(strings.get(R.string.nw141_suggestions_from_your_library_a1d65),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Row(Modifier.fillMaxWidth().nightWaveShelfBoundary().horizontalScroll(rememberScrollState()),
@@ -4124,16 +4128,16 @@ internal fun StudioSearch(
                         selectedCreator = null
                         showAllCreators = false
                     }, modifier = Modifier.heightIn(min = 48.dp)) {
-                        Text("Back to discovery")
+                        Text(strings.get(R.string.nw141_back_to_discovery_3e00c))
                     }
                     SectionHeading(selectedCreatorGroup.name,
-                        "${selectedCreatorGroup.trackCount} songs from your music")
-                    Text("Creator names come from liked songs, playlists and history; they are not verified artist profiles.",
+                        strings.get(R.string.nw141_creator_count, strings.quantity(R.plurals.nw141_songs, selectedCreatorGroup.trackCount)))
+                    Text(strings.get(R.string.nw141_explanation_faafd289db),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                     if (selectedCreatorGroup.hasMore) {
                         Text("Showing the first 100 local references for this creator. " +
-                            "Search your library to find more.",
+                            strings.get(R.string.nw141_search_your_library_to_find_more_9097d),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
@@ -4142,7 +4146,7 @@ internal fun StudioSearch(
                         onRecordSearch(selectedCreatorGroup.name)
                         onPrimarySearch(selectedCreatorGroup.name, SearchMode.SONGS)
                     }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
-                        Text("Search this creator on YouTube")
+                        Text(strings.get(R.string.nw141_search_this_creator_on_youtube_1e72c))
                     }
                 }
             }
@@ -4168,7 +4172,7 @@ internal fun StudioSearch(
                         Icon(Icons.Outlined.Search, contentDescription = null,
                             modifier = Modifier.size(19.dp))
                         Spacer(Modifier.width(7.dp))
-                        Text(if (searching) "Finding music…" else "Find music",
+                        Text(if (searching) strings.get(R.string.nw141_finding_music_77304) else strings.get(R.string.nw141_find_music_0a757),
                             maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                     OutlinedButton(
@@ -4185,8 +4189,8 @@ internal fun StudioSearch(
         if (query.isBlank() && !searching) {
             if (savedTracks.isNotEmpty()) {
                 item {
-                    SectionHeading("From your music",
-                        "Liked, playlists and recent plays")
+                    SectionHeading(strings.get(R.string.nw141_from_your_music_1e542),
+                        strings.get(R.string.nw141_label_7a98245ef7))
                 }
                 items(savedTracks.take(3), key = { "search-starter:" + it.url }) { song ->
                     MusicTrackTile(song, isPlaying = playingUrl == song.url,
@@ -4197,7 +4201,7 @@ internal fun StudioSearch(
                 }
             } else {
                 item {
-                    Text("Your liked songs, playlists and recent music will appear here.",
+                    Text(strings.get(R.string.nw141_your_liked_songs_playlists_and_recent_music_will_3f067),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
@@ -4207,10 +4211,10 @@ internal fun StudioSearch(
                     Row(Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("Recent searches", style = MaterialTheme.typography.titleSmall)
+                        Text(strings.get(R.string.nw141_recent_searches_228c8), style = MaterialTheme.typography.titleSmall)
                         TextButton(onClick = onClearSearch,
                             modifier = Modifier.heightIn(min = 48.dp)) {
-                            Text("Clear all")
+                            Text(strings.get(R.string.nw141_clear_all_29a39))
                         }
                     }
                 }
@@ -4241,7 +4245,7 @@ internal fun StudioSearch(
                         IconButton(onClick = { onRemoveSearch(previous) },
                             modifier = Modifier.size(48.dp)) {
                             Icon(Icons.Outlined.Close,
-                                contentDescription = "Remove " + previous + " from search history")
+                                contentDescription = strings.get(R.string.nw141_remove_history, previous))
                         }
                     }
                 }
@@ -4250,15 +4254,15 @@ internal fun StudioSearch(
                 item(key = "search-history-undo") {
                     TextButton(onClick = onUndoSearchRemoval,
                         modifier = Modifier.heightIn(min = 48.dp)) {
-                        Text("Undo last search-history removal")
+                        Text(strings.get(R.string.nw141_undo_last_search_history_removal_fd31a))
                     }
                 }
             }
             item(key = "search-offline-quick-access") {
-                NightWaveSectionActions(heading = { NightWaveMicroLabel("Explore") }, action = {
+                NightWaveSectionActions(heading = { NightWaveMicroLabel(strings.get(R.string.nw141_explore_3b739)) }, action = {
                     TextButton(onClick = { onOfflineSearch("") }, modifier = Modifier.heightIn(min = 48.dp)) {
                         Icon(Icons.Outlined.LibraryMusic, contentDescription = null, modifier = Modifier.size(19.dp))
-                        Spacer(Modifier.width(8.dp)); Text("Offline songs")
+                        Spacer(Modifier.width(8.dp)); Text(strings.get(R.string.nw141_offline_songs_6ff04))
                     }
                 })
                 val moodFilters = rememberLazyListState()
@@ -4280,7 +4284,7 @@ internal fun StudioSearch(
             if (knownCreators.isNotEmpty()) {
                 item(key = "local-creators") {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        SectionHeading("Creators", "From your music")
+                        SectionHeading(strings.get(R.string.nw141_creators_c6b6a), strings.get(R.string.nw141_from_your_music_1e542))
                         Row(Modifier.fillMaxWidth().nightWaveShelfBoundary().horizontalScroll(rememberScrollState()),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             knownCreators.forEach { creator ->
@@ -4307,8 +4311,8 @@ internal fun StudioSearch(
                         modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
                         shape = RoundedCornerShape(14.dp)
                     ) {
-                        Text(if (showAllCreators) "Hide creators"
-                            else "All creators · " + creatorGroups.size)
+                        Text(if (showAllCreators) strings.get(R.string.nw141_hide_creators_247ff)
+                            else strings.get(R.string.nw141_all_creators_0b9db) + creatorGroups.size)
                     }
                 }
                 if (showAllCreators) {
@@ -4342,7 +4346,7 @@ internal fun StudioSearch(
         }
         if (savedMatches.isNotEmpty()) {
             item {
-                SectionHeading("From your music",
+                SectionHeading(strings.get(R.string.nw141_from_your_music_1e542),
                     savedMatches.size.toString() + " matches in your music")
             }
             items(savedMatches.take(savedVisible), key = { "saved:" + it.url }) { song ->
@@ -4355,7 +4359,7 @@ internal fun StudioSearch(
         }
         if (savedMatches.size > savedVisible) item(key = "nw129-more-saved") {
             TextButton(onClick = { savedVisible += 24 }, modifier = Modifier.heightIn(min = 48.dp)) {
-                Text("Show more music matches")
+                Text(strings.get(R.string.nw141_show_more_music_matches_39fe3))
             }
         }
         if (offlineMatches.isNotEmpty()) {
@@ -4371,13 +4375,13 @@ internal fun StudioSearch(
                 ) {
                     Text("♫  " + song.title, modifier = Modifier.weight(1f),
                         maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text("Offline", style = MaterialTheme.typography.labelSmall)
+                    Text(strings.get(R.string.nw141_offline_a1794), style = MaterialTheme.typography.labelSmall)
                 }
             }
         }
         if (offlineMatches.size > offlineVisible) item(key = "nw129-more-offline") {
             TextButton(onClick = { offlineVisible += 60 }, modifier = Modifier.heightIn(min = 48.dp)) {
-                Text("Show more on-device matches")
+                Text(strings.get(R.string.nw141_show_more_on_device_matches_88d10))
             }
         }
         if (searching) {
@@ -4395,9 +4399,9 @@ internal fun StudioSearch(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                         TextButton(onClick = onCancelSearch, modifier = Modifier.heightIn(min = 48.dp)
-                            .testTag("nw130-cancel-search")) { Text("Cancel search") }
+                            .testTag("nw130-cancel-search")) { Text(strings.get(R.string.nw141_cancel_search_b5456)) }
                         TextButton(onClick = { onCancelSearch(); onWebSearch(query.trim()) },
-                            modifier = Modifier.heightIn(min = 48.dp)) { Text("Open YouTube search") }
+                            modifier = Modifier.heightIn(min = 48.dp)) { Text(strings.get(R.string.nw141_open_youtube_search_027b5)) }
                     }
                 }
             }
@@ -4410,14 +4414,14 @@ internal fun StudioSearch(
                         else SearchConsumerCopyPolicy.Mode.SONGS),
                     SearchConsumerCopyPolicy.resultCount(state.videos.size))
                 if (searching || state.fromCache) Text(
-                    if (searching) "Recent results · Updating…" else "Recent results",
+                    if (searching) strings.get(R.string.nw141_recent_results_updating_0c5f7) else strings.get(R.string.nw141_recent_results_1ac3d),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (!searching) Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     TextButton(onClick = { onNativeSearch(query.trim(), mode) },
-                        modifier = Modifier.weight(1f).heightIn(min = 48.dp).testTag("search02-refresh")) { Text("Refresh results") }
+                        modifier = Modifier.weight(1f).heightIn(min = 48.dp).testTag("search02-refresh")) { Text(strings.get(R.string.nw141_refresh_results_04cc9)) }
                     if (state.details.isNotBlank()) TextButton(onClick = { showSearchDetails = true },
-                        modifier = Modifier.weight(1f).heightIn(min = 48.dp)) { Text("Search details") }
+                        modifier = Modifier.weight(1f).heightIn(min = 48.dp)) { Text(strings.get(R.string.nw141_search_details_98cbc)) }
                 }
             }
             if (state.error.isNotBlank()) {
@@ -4427,13 +4431,13 @@ internal fun StudioSearch(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                         TextButton(onClick = { onNativeSearch(query.trim(), mode) },
-                            modifier = Modifier.heightIn(min = 48.dp)) { Text("Retry search") }
+                            modifier = Modifier.heightIn(min = 48.dp)) { Text(strings.get(R.string.nw141_retry_search_f468e)) }
                     }
                 }
             }
             if (publicGroups.bestMatches.isNotEmpty()) {
                 item(key = "public-best-heading") {
-                    SectionHeading("Best matches",
+                    SectionHeading(strings.get(R.string.nw141_best_matches_05b8b),
                         SearchConsumerCopyPolicy.bestMatchesSubtitle())
                 }
                 items(publicGroups.bestMatches, key = { "public:" + it.url }) { song ->
@@ -4448,7 +4452,7 @@ internal fun StudioSearch(
             }
             if (publicGroups.otherVersions.isNotEmpty()) {
                 item(key = "nw82-alternate-recordings-heading") {
-                    SectionHeading("Other versions",
+                    SectionHeading(strings.get(R.string.nw141_other_versions_a61c7),
                         "Version labels come from video titles · each source stays selectable")
                 }
                 items(publicGroups.otherVersions, key = { "alternate:" + it.url }) { song ->
@@ -4464,7 +4468,7 @@ internal fun StudioSearch(
                 if (publicGroups.bestMatches.isNotEmpty() ||
                     publicGroups.otherVersions.isNotEmpty()) {
                     item(key = "public-more-heading") {
-                        SectionHeading("More results",
+                        SectionHeading(strings.get(R.string.nw141_more_results_750ec),
                             SearchConsumerCopyPolicy.moreResultsSubtitle())
                     }
                 }
@@ -4489,7 +4493,7 @@ internal fun StudioSearch(
                         style = MaterialTheme.typography.titleSmall)
                     Text(state.error, style = MaterialTheme.typography.bodyMedium)
                     if (state.details.isNotBlank()) TextButton(onClick = { showSearchDetails = true },
-                        modifier = Modifier.heightIn(min = 48.dp)) { Text("Search details") }
+                        modifier = Modifier.heightIn(min = 48.dp)) { Text(strings.get(R.string.nw141_search_details_98cbc)) }
                     Text(SearchConsumerCopyPolicy.fallbackHint(
                         savedMatches.isNotEmpty() || offlineMatches.isNotEmpty()),
                         style = MaterialTheme.typography.bodySmall,
@@ -4497,7 +4501,7 @@ internal fun StudioSearch(
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         OutlinedButton(onClick = { onNativeSearch(query.trim(), mode) },
                             enabled = query.isNotBlank()) {
-                            Text("Retry search")
+                            Text(strings.get(R.string.nw141_retry_search_f468e))
                         }
                         OutlinedButton(onClick = { onWebSearch(query.trim()) },
                             enabled = query.isNotBlank()) {
@@ -4514,7 +4518,7 @@ internal fun StudioSearch(
         } else if (query.isNotBlank() && savedMatches.isEmpty() &&
             offlineMatches.isEmpty() && !searching && !localPending && !corpus.failed) {
             item {
-                Text("No saved matches yet. Search public music, or try a different title or artist.",
+                Text(strings.get(R.string.nw141_no_saved_matches_yet_search_public_music_or_try_d1b5d),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
@@ -4558,6 +4562,7 @@ internal fun StudioLibrary(
     onDismissPlaylistUndo: () -> Unit,
     onImportSharedPlaylist: () -> Unit
 ) {
+    val strings = rememberNightWaveStrings()
     // The library's name/order and song lists are read-only. Cache snapshots
     // by a real library/preview revision, not the per-750ms playback UI ticker.
     val playlistPreviews = remember(names, libraryRevision, roomPreviewActive) {
@@ -4659,10 +4664,10 @@ internal fun StudioLibrary(
                             maxLines = 2, overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.weight(1f))
                         TextButton(onClick = onUndoPlaylistEdit,
-                            modifier = Modifier.heightIn(min = 48.dp)) { Text("Undo") }
+                            modifier = Modifier.heightIn(min = 48.dp)) { Text(strings.get(R.string.nw141_undo_a8283)) }
                         IconButton(onClick = onDismissPlaylistUndo,
                             modifier = Modifier.size(48.dp)) {
-                            Icon(Icons.Outlined.Close, contentDescription = "Dismiss playlist Undo")
+                            Icon(Icons.Outlined.Close, contentDescription = strings.get(R.string.nw141_dismiss_playlist_undo_fceaa))
                         }
                     }
                 }
@@ -4671,25 +4676,25 @@ internal fun StudioLibrary(
         item {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (selectedPlaylist != null) IconButton(onClick = { onSelectPlaylist(null) }) {
-                    Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back to Library")
+                    Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = strings.get(R.string.nw141_back_to_library_0bd66))
                 }
                 Column(Modifier.weight(1f)) {
                     if (selectedPlaylist == null) {
                         NightWaveLibraryOverviewHeader(overview.summary)
                     } else NightWaveCollectionHeader(
                         name = when {
-                            selectedPlaylist == LIKED_COLLECTION -> "Liked Songs"
-                            selectedPlaylist == RECENT_COLLECTION -> "Recently Played"
+                            selectedPlaylist == LIKED_COLLECTION -> strings.get(R.string.nw141_liked_songs_286f8)
+                            selectedPlaylist == RECENT_COLLECTION -> strings.get(R.string.nw141_recently_played_2344d)
                             selectedSmart != null -> selectedSmart.title
-                            else -> selectedPlaylist ?: "Your library"
+                            else -> selectedPlaylist ?: strings.get(R.string.nw141_your_library_1ad84)
                         },
                         description = when {
-                            selectedPlaylist == null -> "Liked songs, playlists and listening history"
+                            selectedPlaylist == null -> strings.get(R.string.nw141_label_f9c60d06bd)
                             selectedPlaylist == RECENT_COLLECTION ->
-                                "${overview.historySongs} songs · ${overview.historyEntries} history entries · History only"
+                                strings.get(R.string.nw141_history_count, strings.quantity(R.plurals.nw141_songs, overview.historySongs), strings.number(overview.historyEntries))
                             selectedSmart != null -> automaticDetails[selectedSmart.id].orEmpty()
-                            selectedPlaylist == LIKED_COLLECTION -> "${overview.likedCount} liked songs · Chosen by you"
-                            else -> "${tracks.size} songs · Your playlist"
+                            selectedPlaylist == LIKED_COLLECTION -> strings.get(R.string.nw141_liked_count, strings.quantity(R.plurals.nw141_songs, overview.likedCount))
+                            else -> strings.get(R.string.nw141_playlist_count, strings.quantity(R.plurals.nw141_songs, tracks.size))
                         }
                     )
                 }
@@ -4700,28 +4705,27 @@ internal fun StudioLibrary(
                 OutlinedButton(onClick = { confirmClearHistory = true },
                     modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
                         .testTag("nw86-library-clear-recent-request")) {
-                    Text("Clear listening history")
+                    Text(strings.get(R.string.nw141_clear_listening_history_0d8c7))
                 }
                 if (confirmClearHistory) {
                     androidx.compose.material3.AlertDialog(
                         onDismissRequest = { confirmClearHistory = false },
-                        title = { Text("Clear Recently Played?") },
+                        title = { Text(strings.get(R.string.nw141_clear_recently_played_74111)) },
                         text = {
-                            Text("Only your listening history is cleared. " +
-                                "Liked songs, playlists and offline audio stay saved.")
+                            Text(strings.get(R.string.nw141_explanation_ced7683e4b))
                         },
                         confirmButton = {
                             androidx.compose.material3.TextButton(onClick = {
                                 confirmClearHistory = false
                                 onClearRecent()
                             }, modifier = Modifier.testTag("nw86-library-clear-recent-confirm")) {
-                                Text("Clear history")
+                                Text(strings.get(R.string.nw141_clear_history_49612))
                             }
                         },
                         dismissButton = {
                             androidx.compose.material3.TextButton(
                                 onClick = { confirmClearHistory = false }) {
-                                Text("Cancel")
+                                Text(strings.get(R.string.nw141_cancel_19766))
                             }
                         }
                     )
@@ -4743,7 +4747,7 @@ internal fun StudioLibrary(
                             modifier = Modifier.weight(1f).heightIn(min = 48.dp),
                             shape = RoundedCornerShape(14.dp)
                         ) {
-                            Text("Play list", maxLines = 1)
+                            Text(strings.get(R.string.nw141_play_list_45624), maxLines = 1)
                         }
                         OutlinedButton(
                             onClick = {
@@ -4755,11 +4759,11 @@ internal fun StudioLibrary(
                             modifier = Modifier.weight(1f).heightIn(min = 48.dp),
                             shape = RoundedCornerShape(14.dp)
                         ) {
-                            Text("Shuffle play", maxLines = 1)
+                            Text(strings.get(R.string.nw141_shuffle_play_d8ba1), maxLines = 1)
                         }
                     }
                     if (orderedTracks.size > LibraryQuickPlayPolicy.MAX_QUEUE) {
-                        Text("Playback queues up to 100 visible tracks. Your saved collection stays intact.",
+                        Text(strings.get(R.string.nw141_playback_queues_up_to_100_visible_tracks_your_sa_c1e21),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
@@ -4769,17 +4773,17 @@ internal fun StudioLibrary(
         if (canSelectPlaylistTracks) item(key = "nw132-playlist-tools") {
             val name = requireNotNull(selectedPlaylist)
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                NightWaveLibraryOptions("Playlist options", "nw132-playlist-options", buildList {
+                NightWaveLibraryOptions(strings.get(R.string.nw141_label_ffd3c2db5e), "nw132-playlist-options", buildList {
                     if (tracks.isNotEmpty()) {
-                        add("Share playlist" to { onSharePlaylist(name, tracks) })
-                        add("Export playlist .txt" to { onExportPlaylist(name, tracks) })
+                        add(strings.get(R.string.nw141_label_d22d42b23c) to { onSharePlaylist(name, tracks) })
+                        add(strings.get(R.string.nw141_label_c2fea456fa) to { onExportPlaylist(name, tracks) })
                     }
-                    add((if (name in pinnedPlaylistNames) "Unpin playlist" else "Pin playlist to top") to { onTogglePinPlaylist(name) })
-                    add("Change folder" to { onMovePlaylist(name) })
-                    add("Rename or delete playlists" to onManage)
+                    add((if (name in pinnedPlaylistNames) strings.get(R.string.nw141_label_d00c9fd4a2) else strings.get(R.string.nw141_label_09f02c9152)) to { onTogglePinPlaylist(name) })
+                    add(strings.get(R.string.nw141_label_0eb4a70f00) to { onMovePlaylist(name) })
+                    add(strings.get(R.string.nw141_label_8097baebba) to onManage)
                 })
                 Text((if (name in pinnedPlaylistNames) "Pinned · " else "") +
-                    (folderSnapshot.folderOf(name) ?: "Unfiled"),
+                    (folderSnapshot.folderOf(name) ?: strings.get(R.string.nw141_unfiled_d64dc)),
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
@@ -4788,12 +4792,12 @@ internal fun StudioLibrary(
                 NightWaveActionGroup {
                     OutlinedButton(onClick = onCreatePlaylist,
                         modifier = Modifier.heightIn(min = 48.dp).testTag("nw47-library-new-playlist")) {
-                        Text("New playlist")
+                        Text(strings.get(R.string.nw141_new_playlist_b5db7))
                     }
                     if (!overview.showSaveHint) TextButton(onClick = onSearch, modifier = Modifier.heightIn(min = 48.dp)) {
-                        Text("Find music")
+                        Text(strings.get(R.string.nw141_find_music_0a757))
                     }
-                    NightWaveLibraryOptions("Library options", "nw132-library-options", listOf(
+                    NightWaveLibraryOptions(strings.get(R.string.nw141_label_d7cd25137f), "nw132-library-options", listOf(
                         "Import playlist (.txt or pasted links)" to onImportSharedPlaylist,
                         "Organize playlist folders" to onManageFolders,
                         "Manage playlists" to onManage
@@ -4808,12 +4812,12 @@ internal fun StudioLibrary(
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                         Column(Modifier.padding(18.dp),
                             verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Text("CONTINUE LISTENING · OFFLINE",
+                            Text(strings.get(R.string.nw141_continue_listening_offline_348de),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.primary)
                             Text(offlineResumeTitle, style = MaterialTheme.typography.titleMedium,
                                 maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            Text("Resume on this device" +
+                            Text(strings.get(R.string.nw141_resume_on_this_device_6c75c) +
                                 (if (offlineResumePositionMs >= 60_000)
                                     " · " + (offlineResumePositionMs / 60_000) + " min" else "") +
                                 "  ›", style = MaterialTheme.typography.bodySmall,
@@ -4823,19 +4827,19 @@ internal fun StudioLibrary(
                 }
             }
             item {
-                MusicCollectionTile("Offline music",
+                MusicCollectionTile(strings.get(R.string.nw141_offline_music_a8f6a),
                     "Your imported audio · listen without Wi-Fi",
                     cover = null, onClick = onOffline)
             }
             if (overview.likedCount > 0) item {
-                MusicCollectionTile("Liked songs",
-                    overview.likedCount.toString() + " liked songs · Chosen by you",
+                MusicCollectionTile(strings.get(R.string.nw141_liked_songs_5daa6),
+                    strings.get(R.string.nw141_liked_count, strings.quantity(R.plurals.nw141_songs, overview.likedCount)),
                     cover = likedTracks.firstOrNull()) {
                     onSelectPlaylist(LIKED_COLLECTION)
                 }
             }
             if (overview.historyEntries > 0) item(key = "library-recent-collection") {
-                MusicCollectionTile("Recently played",
+                MusicCollectionTile(strings.get(R.string.nw141_recently_played_452ec),
                     NightWaveContentPresentationPolicy.historySummary(overview.historySongs, overview.historyEntries),
                     cover = historyTracks.firstOrNull()) {
                     onSelectPlaylist(RECENT_COLLECTION)
@@ -4847,11 +4851,11 @@ internal fun StudioLibrary(
             if (smartCollections.isNotEmpty()) {
                 item(key = "smart-collections-section") {
                     NightWaveSectionActions(heading = {
-                        SectionHeading("Automatic collections", "Grouped from likes, playlists and history")
+                        SectionHeading(strings.get(R.string.nw141_automatic_collections_28fec), strings.get(R.string.nw141_label_97c51d444f))
                     }, action = {
                         TextButton(onClick = { automaticCollectionsOpen = !automaticCollectionsOpen },
                             modifier = Modifier.heightIn(min = 48.dp).testTag("nw132-automatic-toggle")) {
-                            Text(if (automaticCollectionsOpen) "Hide collections" else "Show ${smartCollections.size}")
+                            Text(if (automaticCollectionsOpen) strings.get(R.string.nw141_hide_collections_e8af9) else strings.get(R.string.nw141_show_collections, strings.number(smartCollections.size)))
                         }
                     })
                 }
@@ -4867,18 +4871,18 @@ internal fun StudioLibrary(
             if (names.isNotEmpty()) {
                 item(key = "playlist-section") {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        SectionHeading("Your playlists",
+                        SectionHeading(strings.get(R.string.nw141_your_playlists_73f91),
                             visiblePlaylists.size.toString() + " of " + names.size + " collections")
                         if (folderSnapshot.folders.isNotEmpty()) {
                             Row(Modifier.nightWaveShelfBoundary().horizontalScroll(rememberScrollState()),
                                 horizontalArrangement = Arrangement.spacedBy(7.dp)) {
                                 FilterChip(selected = validFolder == null,
                                     onClick = { selectedFolder = null },
-                                    label = { Text("All folders") })
+                                    label = { Text(strings.get(R.string.nw141_all_folders_226fd)) })
                                 FilterChip(
                                     selected = validFolder == "nightwave://folder/unfiled",
                                     onClick = { selectedFolder = "nightwave://folder/unfiled" },
-                                    label = { Text("Unfiled") })
+                                    label = { Text(strings.get(R.string.nw141_unfiled_d64dc)) })
                                 folderSnapshot.folders.forEach { folder ->
                                     FilterChip(selected = validFolder == folder,
                                         onClick = { selectedFolder = folder },
@@ -4889,8 +4893,8 @@ internal fun StudioLibrary(
                         OutlinedButton(onClick = { playlistToolsOpen = !playlistToolsOpen },
                             modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
                             shape = RoundedCornerShape(14.dp)) {
-                            Text(if (playlistToolsOpen) "Hide sorting & filters"
-                                else "Sort & filter playlists")
+                            Text(if (playlistToolsOpen) strings.get(R.string.nw141_hide_sorting_filters_7bd0a)
+                                else strings.get(R.string.nw141_sort_filter_playlists_1cc95))
                         }
                     }
                 }
@@ -4902,7 +4906,7 @@ internal fun StudioLibrary(
                             modifier = Modifier.fillMaxWidth().testTag("nw132-playlist-filter"),
                             shape = RoundedCornerShape(15.dp),
                             singleLine = true,
-                            placeholder = { Text("Search playlists or their songs") },
+                            placeholder = { Text(strings.get(R.string.nw141_search_playlists_or_their_songs_a19bc)) },
                             leadingIcon = {
                                 Icon(Icons.Outlined.Search, contentDescription = null)
                             },
@@ -4910,7 +4914,7 @@ internal fun StudioLibrary(
                                 if (playlistFilter.isNotBlank()) {
                                     IconButton(onClick = { playlistFilter = "" }) {
                                         Icon(Icons.Outlined.Close,
-                                            contentDescription = "Clear playlist search")
+                                            contentDescription = strings.get(R.string.nw141_clear_playlist_search_c1587))
                                     }
                                 }
                             }
@@ -4922,7 +4926,7 @@ internal fun StudioLibrary(
                             FilterChip(
                                 selected = playlistSort == LibraryBrowsePolicy.SORT_SAVED,
                                 onClick = { playlistSort = LibraryBrowsePolicy.SORT_SAVED },
-                                label = { Text("Saved order") })
+                                label = { Text(strings.get(R.string.nw141_saved_order_adc7b)) })
                             FilterChip(
                                 selected = playlistSort == LibraryBrowsePolicy.SORT_NAME,
                                 onClick = { playlistSort = LibraryBrowsePolicy.SORT_NAME },
@@ -4934,18 +4938,18 @@ internal fun StudioLibrary(
                             FilterChip(
                                 selected = playlistSort == LibraryBrowsePolicy.SORT_MOST_TRACKS,
                                 onClick = { playlistSort = LibraryBrowsePolicy.SORT_MOST_TRACKS },
-                                label = { Text("Most songs") })
+                                label = { Text(strings.get(R.string.nw141_most_songs_80f80)) })
                             FilterChip(
                                 selected = showFilledOnly,
                                 onClick = { showFilledOnly = !showFilledOnly },
-                                label = { Text("Hide empty") })
+                                label = { Text(strings.get(R.string.nw141_hide_empty_1d0ee)) })
                         }
                     }
                 }
                 if (visiblePlaylists.isEmpty()) {
                     item(key = "no-matching-playlists") {
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("No playlists match these filters.",
+                            Text(strings.get(R.string.nw141_no_playlists_match_these_filters_ba568),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
                             OutlinedButton(onClick = {
@@ -4953,7 +4957,7 @@ internal fun StudioLibrary(
                                 playlistSort = LibraryBrowsePolicy.SORT_SAVED
                                 showFilledOnly = false
                                 selectedFolder = null
-                            }) { Text("Show all playlists") }
+                            }) { Text(strings.get(R.string.nw141_show_all_playlists_d27d0)) }
                         }
                     }
                 } else {
@@ -4966,7 +4970,7 @@ internal fun StudioLibrary(
                                 MusicCollectionTile(collection.name,
                                     (if (isPinned) "Pinned · " else "") +
                                         collection.size.toString() + " tracks · " +
-                                        (folderSnapshot.folderOf(collection.name) ?: "Unfiled"),
+                                        (folderSnapshot.folderOf(collection.name) ?: strings.get(R.string.nw141_unfiled_d64dc)),
                                     cover = collection.cover) {
                                     onSelectPlaylist(collection.name)
                                 }
@@ -4993,7 +4997,7 @@ internal fun StudioLibrary(
             SectionHeading(LibraryCollectionPresentationPolicy.songSection(
                 overview = selectedPlaylist == null, history = selectedPlaylist == RECENT_COLLECTION,
                 automatic = selectedSmart != null, liked = selectedPlaylist == LIKED_COLLECTION),
-                if (selectedPlaylist == null) "Your latest five liked songs" else null)
+                if (selectedPlaylist == null) strings.get(R.string.nw141_your_latest_five_liked_songs_ba9b2) else null)
         }
         if (selectedPlaylist != null && tracks.isNotEmpty()) {
             if (canSelectPlaylistTracks) {
@@ -5007,7 +5011,7 @@ internal fun StudioLibrary(
                                 selectedTrackUrls = emptySet()
                             },
                             modifier = Modifier.weight(1f).heightIn(min = 48.dp)) {
-                            Text(if (selectingTracks) "Cancel selection" else "Select songs")
+                            Text(if (selectingTracks) strings.get(R.string.nw141_cancel_selection_ea08f) else strings.get(R.string.nw141_select_songs_76426))
                         }
                         if (!selectingTracks) {
                             OutlinedButton(
@@ -5017,7 +5021,7 @@ internal fun StudioLibrary(
                                     localFilter = ""
                                 },
                                 modifier = Modifier.weight(1f).heightIn(min = 48.dp)) {
-                                Text(if (reorderingTracks) "Done ordering" else "Reorder")
+                                Text(if (reorderingTracks) strings.get(R.string.nw141_done_ordering_61524) else strings.get(R.string.nw141_reorder_14ac2))
                             }
                         } else {
                             OutlinedButton(
@@ -5039,11 +5043,8 @@ internal fun StudioLibrary(
                             Row(Modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text("${selectedTracks.size} / " +
-                                    LibraryBulkSelectionPolicy.MAX_SELECTED +
-                                    " selected" +
-                                    (if (hiddenSelectedCount > 0)
-                                        " · $hiddenSelectedCount hidden by filter" else ""),
+                                Text(strings.get(R.string.nw141_selected_count, strings.number(selectedTracks.size), strings.number(LibraryBulkSelectionPolicy.MAX_SELECTED)).let { summary ->
+                                        if (hiddenSelectedCount > 0) strings.get(R.string.nw141_hidden_count, summary, strings.number(hiddenSelectedCount)) else summary },
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.weight(1f))
@@ -5051,7 +5052,7 @@ internal fun StudioLibrary(
                                     selectedTrackUrls = emptySet()
                                 }, enabled = selectedTrackUrls.isNotEmpty(),
                                     modifier = Modifier.testTag("nw86-clear-selection")) {
-                                    Text("Clear")
+                                    Text(strings.get(R.string.nw141_clear_83b12))
                                 }
                             }
                             Row(Modifier.fillMaxWidth(),
@@ -5062,7 +5063,7 @@ internal fun StudioLibrary(
                                     },
                                     enabled = selectedTracks.isNotEmpty(),
                                     modifier = Modifier.weight(1f).heightIn(min = 48.dp)) {
-                                    Text("Copy to…", maxLines = 1)
+                                    Text(strings.get(R.string.nw141_copy_to_323b6), maxLines = 1)
                                 }
                                 OutlinedButton(
                                     onClick = {
@@ -5070,7 +5071,7 @@ internal fun StudioLibrary(
                                     },
                                     enabled = selectedTracks.isNotEmpty(),
                                     modifier = Modifier.weight(1f).heightIn(min = 48.dp)) {
-                                    Text("Remove", maxLines = 1)
+                                    Text(strings.get(R.string.nw141_remove_c3812), maxLines = 1)
                                 }
                             }
                             Row(Modifier.fillMaxWidth(),
@@ -5079,13 +5080,13 @@ internal fun StudioLibrary(
                                     onClick = { onBulkShareLinks(selectedTracks, true) },
                                     enabled = selectedTracks.isNotEmpty(),
                                     modifier = Modifier.weight(1f).heightIn(min = 48.dp)) {
-                                    Text("Copy links")
+                                    Text(strings.get(R.string.nw141_copy_links_5dc00))
                                 }
                                 OutlinedButton(
                                     onClick = { onBulkShareLinks(selectedTracks, false) },
                                     enabled = selectedTracks.isNotEmpty(),
                                     modifier = Modifier.weight(1f).heightIn(min = 48.dp)) {
-                                    Text("Share links")
+                                    Text(strings.get(R.string.nw141_share_links_16ce9))
                                 }
                             }
                         }
@@ -5099,11 +5100,11 @@ internal fun StudioLibrary(
                     modifier = Modifier.fillMaxWidth().testTag("nw132-track-filter"),
                     shape = RoundedCornerShape(15.dp),
                     singleLine = true,
-                    placeholder = { Text("Filter this collection") },
+                    placeholder = { Text(strings.get(R.string.nw141_filter_this_collection_18012)) },
                     leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
                     trailingIcon = {
                         if (localFilter.isNotBlank()) IconButton(onClick = { localFilter = "" }) {
-                            Icon(Icons.Outlined.Close, contentDescription = "Clear library filter")
+                            Icon(Icons.Outlined.Close, contentDescription = strings.get(R.string.nw141_clear_library_filter_6de4d))
                         }
                     }
                 )
@@ -5115,30 +5116,29 @@ internal fun StudioLibrary(
                         selected = sortMode == LibraryBrowsePolicy.SORT_SAVED,
                         onClick = { sortMode = LibraryBrowsePolicy.SORT_SAVED },
                         label = { Text(if (selectedPlaylist == RECENT_COLLECTION)
-                            "Newest first" else "Saved order") })
+                            strings.get(R.string.nw141_newest_first_ffb6f) else strings.get(R.string.nw141_saved_order_adc7b)) })
                     if (selectedPlaylist == RECENT_COLLECTION) {
                         FilterChip(
                             selected = sortMode == LibraryBrowsePolicy.SORT_OLDEST,
                             onClick = { sortMode = LibraryBrowsePolicy.SORT_OLDEST },
-                            label = { Text("Oldest first") })
+                            label = { Text(strings.get(R.string.nw141_oldest_first_6e2eb)) })
                     }
                     FilterChip(
                         selected = sortMode == LibraryBrowsePolicy.SORT_TITLE,
                         onClick = { sortMode = LibraryBrowsePolicy.SORT_TITLE },
-                        label = { Text("Title A–Z") })
+                        label = { Text(strings.get(R.string.nw141_title_a_z_ab217)) })
                     FilterChip(
                         selected = sortMode == LibraryBrowsePolicy.SORT_TITLE_DESC,
                         onClick = { sortMode = LibraryBrowsePolicy.SORT_TITLE_DESC },
-                        label = { Text("Title Z–A") })
+                        label = { Text(strings.get(R.string.nw141_title_z_a_a69e8)) })
                     FilterChip(
                         selected = sortMode == LibraryBrowsePolicy.SORT_CREATOR,
                         onClick = { sortMode = LibraryBrowsePolicy.SORT_CREATOR },
-                        label = { Text("Creator") })
+                        label = { Text(strings.get(R.string.nw141_creator_88447)) })
                 }
             }
             } else item(key = "playlist-order-help") {
-                Text("Drag the ⠿ handle to move multiple rows, or tap ↑ and ↓. " +
-                    "Only the saved playlist order changes; audio playback continues.",
+                Text(strings.get(R.string.nw141_reorder_help),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
@@ -5146,13 +5146,13 @@ internal fun StudioLibrary(
         if (visibleTracks.isEmpty() && selectedPlaylist != null) item {
             EmptyMusicCard(
                 if (selectedPlaylist == RECENT_COLLECTION && tracks.isEmpty())
-                    "No recent plays" else if (tracks.isEmpty()) "Nothing here yet"
-                    else "No matching tracks",
+                    strings.get(R.string.nw141_no_recent_plays_415b1) else if (tracks.isEmpty()) strings.get(R.string.nw141_nothing_here_yet_49aba)
+                    else strings.get(R.string.nw141_no_matching_tracks_fa0ef),
                 if (selectedPlaylist == RECENT_COLLECTION && tracks.isEmpty())
                     "Songs you play appear here. Liked and downloaded music stays saved."
-                else if (tracks.isEmpty()) "Save a song to build your collection."
-                else "Try another title or artist.",
-                if (tracks.isEmpty()) "Find music" else "Clear filter") {
+                else if (tracks.isEmpty()) strings.get(R.string.nw141_save_a_song_to_build_your_collection_1495a)
+                else strings.get(R.string.nw141_try_another_title_or_artist_90b4d),
+                if (tracks.isEmpty()) strings.get(R.string.nw141_find_music_0a757) else "Clear filter") {
                 if (tracks.isEmpty()) onSearch() else localFilter = ""
             }
         } else items(visibleTracks, key = { it.url }) { song ->
@@ -5177,7 +5177,7 @@ internal fun StudioLibrary(
                                 }
                             }
                         ).semantics {
-                            contentDescription = "Drag " + song.title + " to reorder"
+                            contentDescription = strings.get(R.string.nw141_drag_track, song.title)
                         },
                         contentAlignment = Alignment.Center) {
                         Text("⠿", style = MaterialTheme.typography.titleLarge,
@@ -5192,7 +5192,7 @@ internal fun StudioLibrary(
                                 selectedTrackUrls, song.url, tracks)
                         },
                         modifier = Modifier.size(48.dp).semantics {
-                            contentDescription = "Select " + song.title
+                            contentDescription = strings.get(R.string.nw141_select_track, song.title)
                         })
                 }
                 Box(Modifier.weight(1f)) {
@@ -5233,7 +5233,7 @@ internal fun StudioLibrary(
                             },
                             enabled = index > 0,
                             modifier = Modifier.size(48.dp).semantics {
-                                contentDescription = "Move " + song.title + " up"
+                                contentDescription = strings.get(R.string.nw141_move_up, song.title)
                             }) {
                             Text("↑", style = MaterialTheme.typography.titleLarge,
                                 color = if (index > 0) MaterialTheme.colorScheme.primary
@@ -5247,7 +5247,7 @@ internal fun StudioLibrary(
                             },
                             enabled = index >= 0 && index < tracks.lastIndex,
                             modifier = Modifier.size(48.dp).semantics {
-                                contentDescription = "Move " + song.title + " down"
+                                contentDescription = strings.get(R.string.nw141_move_down, song.title)
                             }) {
                             Text("↓", style = MaterialTheme.typography.titleLarge,
                                 color = if (index >= 0 && index < tracks.lastIndex)
@@ -5293,6 +5293,7 @@ private fun StudioProfile(
     onManageHistory: () -> Unit,
     onOffline: () -> Unit
 ) {
+    val strings = rememberNightWaveStrings()
     var name by rememberSaveable(profile.localId) { mutableStateOf(profile.displayName) }
     var showBuildDetails by rememberSaveable { mutableStateOf(false) }
     if (showBuildDetails) NightWaveBuildDetailsDialog { showBuildDetails = false }
@@ -5319,7 +5320,7 @@ private fun StudioProfile(
     ) {
         item {
             NightWaveSectionActions(heading = {
-                Text("You", style = MaterialTheme.typography.headlineSmall)
+                Text(strings.get(R.string.nw141_you_08b04), style = MaterialTheme.typography.headlineSmall)
             }, action = {
                 Surface(shape = RoundedCornerShape(12.dp),
                     color = MaterialTheme.colorScheme.primary.copy(alpha = .13f)) {
@@ -5361,14 +5362,14 @@ private fun StudioProfile(
                             verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             Text(profile.displayName, style = MaterialTheme.typography.titleMedium,
                                 maxLines = 2, overflow = TextOverflow.Ellipsis)
-                            Text("Local profile · Your music stays on this device",
+                            Text(strings.get(R.string.nw141_local_profile_your_music_stays_on_this_device_10d47),
                                 style = MaterialTheme.typography.bodySmall, color = muted)
                         }
                         TextButton(onClick = {
                             name = profile.displayName
                             editing = !editing
                         }) {
-                            Text(if (editing) "Close" else "Edit")
+                            Text(if (editing) strings.get(R.string.nw141_close_7d9eb) else strings.get(R.string.nw141_edit_464c4))
                         }
                     }
                     if (editing) {
@@ -5376,7 +5377,7 @@ private fun StudioProfile(
                         OutlinedTextField(
                             value = name, onValueChange = { name = it.take(40) },
                             modifier = Modifier.fillMaxWidth(), singleLine = true,
-                            label = { Text("Display name") }
+                            label = { Text(strings.get(R.string.nw141_display_name_2b7f6)) }
                         )
                         Button(onClick = {
                             val updated = name.trim()
@@ -5387,7 +5388,7 @@ private fun StudioProfile(
                         }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
                             enabled = name.trim().isNotEmpty() &&
                                 name.trim() != profile.displayName) {
-                            Text("Save profile")
+                            Text(strings.get(R.string.nw141_save_profile_0c820))
                         }
                     }
                 }
@@ -5397,9 +5398,9 @@ private fun StudioProfile(
         item(key = "nw47-you-quick-access") {
             Column(Modifier.fillMaxWidth().testTag("nw47-you-quick-access")) {
                 NightWaveActionGroup {
-                NightWaveQuickActionPill("Account & backup",
+                NightWaveQuickActionPill(strings.get(R.string.nw141_account_backup_008a1),
                     Icons.Outlined.Cloud, "nw47-you-account", onOpenAccount)
-                NightWaveQuickActionPill("Offline music",
+                NightWaveQuickActionPill(strings.get(R.string.nw141_offline_music_a8f6a),
                     Icons.Outlined.LibraryMusic, "nw128-you-offline", onOffline)
                 }
             }
@@ -5409,22 +5410,22 @@ private fun StudioProfile(
             // Keep Google connection transparent but not a second oversized
             // account dashboard. The quick action above and Manage backups
             // below both retain every existing authorization/recovery control.
-            StudioProfileGroup("Google Drive · optional") {
+            StudioProfileGroup(strings.get(R.string.nw141_google_drive_optional_f6458)) {
                 StudioProfileRow(
-                    "Backup connection",
-                    if (cloudBusy) CloudRecoveryUiPolicy.busyLabel(cloudPhase)
+                    strings.get(R.string.nw141_backup_connection_9a9cd),
+                    if (cloudBusy) strings.cloudBusy(cloudPhase)
                     else if (cloud.account.isNotBlank() && cloud.accessState != CloudAccessState.CHECKED)
                         CloudAccessPolicy.label(true, cloud.accessState, cloud.lastAccessCheckMs)
                     else CloudAccountPresentation.title(CloudAccountPresentation.stage(cloud)),
                     Icons.Outlined.Cloud, onOpenAccount,
                     trailing = {
-                        Text(if (cloudBusy) "Busy" else "Manage",
+                        Text(if (cloudBusy) strings.get(R.string.nw141_busy_2b9cf) else strings.get(R.string.nw141_manage_5a234),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary)
                     }
                 )
                 if (cloud.lastResult.isNotBlank() &&
-                    cloud.lastResult != "Not connected" && cloud.account.isBlank()) {
+                    cloud.lastResult != strings.get(R.string.nw141_not_connected_0303e) && cloud.account.isBlank()) {
                     Text(cloud.lastResult,
                         modifier = Modifier.padding(horizontal = 14.dp, vertical = 5.dp),
                         style = MaterialTheme.typography.bodySmall, color = muted)
@@ -5433,17 +5434,17 @@ private fun StudioProfile(
         }
 
         item {
-            StudioProfileGroup("Appearance & playback") {
+            StudioProfileGroup(strings.get(R.string.nw141_appearance_playback_b9524)) {
                 StudioProfileRow(
-                    "Sound Studio", "Equalizer · presets and manual frequency bands",
+                    strings.get(R.string.nw141_sound_studio_e8e35), strings.get(R.string.nw141_label_5a94f455fc),
                     Icons.Outlined.GraphicEq, onEqualizer,
                     modifier = Modifier.testTag("nw47-you-sound")
                 )
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 StudioProfileRow(
-                    "Theme", profile.theme.name.lowercase().replaceFirstChar { it.titlecase() },
+                    strings.get(R.string.nw141_theme_efb52), profile.theme.name.lowercase().replaceFirstChar { it.titlecase() },
                     Icons.Outlined.AutoAwesome, { showAppearance = !showAppearance },
-                    trailing = { Text(if (showAppearance) "Hide" else "Change",
+                    trailing = { Text(if (showAppearance) strings.get(R.string.nw141_hide_ac20a) else strings.get(R.string.nw141_change_c0bf7),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary) }
                 )
@@ -5451,7 +5452,7 @@ private fun StudioProfile(
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     Column(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 9.dp),
                         verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("Colour theme", style = MaterialTheme.typography.labelSmall,
+                        Text(strings.get(R.string.nw141_colour_theme_8484a), style = MaterialTheme.typography.labelSmall,
                             color = muted)
                         for (options in NightWaveTheme.entries.chunked(2)) {
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -5466,7 +5467,7 @@ private fun StudioProfile(
                                 }
                             }
                         }
-                        Text("Profile icon", style = MaterialTheme.typography.labelSmall,
+                        Text(strings.get(R.string.nw141_profile_icon_e9014), style = MaterialTheme.typography.labelSmall,
                             color = muted)
                         Row(Modifier.fillMaxWidth().nightWaveShelfBoundary().horizontalScroll(rememberScrollState()),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -5482,7 +5483,7 @@ private fun StudioProfile(
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 StudioProfileRow(
-                    "Reduced motion", "Minimize screen transitions",
+                    strings.get(R.string.nw141_reduced_motion_1fd51), strings.get(R.string.nw141_minimize_screen_transitions_b67f9),
                     Icons.Outlined.Settings,
                     { save(profile.copy(motion =
                         if (profile.motion == MotionPreference.REDUCED)
@@ -5499,12 +5500,12 @@ private fun StudioProfile(
         }
 
         item {
-            StudioProfileGroup("Your listening") {
-                StudioProfileRow("Recent listening",
-                    "Artists and songs in your recent history",
+            StudioProfileGroup(strings.get(R.string.nw141_your_listening_284d7)) {
+                StudioProfileRow(strings.get(R.string.nw141_recent_listening_2c529),
+                    strings.get(R.string.nw141_label_efb8415a2c),
                     Icons.Outlined.LibraryMusic, { showSnapshot = !showSnapshot },
                     trailing = {
-                        Text(if (showSnapshot) "Hide" else "View",
+                        Text(if (showSnapshot) strings.get(R.string.nw141_hide_ac20a) else strings.get(R.string.nw141_view_dcc83),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary)
                     })
@@ -5515,7 +5516,7 @@ private fun StudioProfile(
                     }
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                StudioProfileRow("Manage Recently Played",
+                StudioProfileRow(strings.get(R.string.nw141_manage_recently_played_fd987),
                     "Remove one entry or clear history · Saved music stays",
                     Icons.Outlined.LibraryMusic, onManageHistory,
                     modifier = Modifier.testTag("nw47-you-history"))
@@ -5523,14 +5524,14 @@ private fun StudioProfile(
         }
 
         item {
-            StudioProfileGroup("Listening memory · optional") {
-                StudioProfileRow("Listening statistics",
-                    if (memory.enabled) "On · Stored privately on this device"
-                    else "Off · Opt in only if you choose",
+            StudioProfileGroup(strings.get(R.string.nw141_listening_memory_optional_63462)) {
+                StudioProfileRow(strings.get(R.string.nw141_listening_statistics_7d087),
+                    if (memory.enabled) strings.get(R.string.nw141_label_851c63c069)
+                    else strings.get(R.string.nw141_label_fea182c3b3),
                     Icons.Outlined.AutoAwesome,
                     { showListeningMemory = !showListeningMemory },
                     trailing = {
-                        Text(if (showListeningMemory) "Hide" else "View",
+                        Text(if (showListeningMemory) strings.get(R.string.nw141_hide_ac20a) else strings.get(R.string.nw141_view_dcc83),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary)
                     })
@@ -5544,25 +5545,25 @@ private fun StudioProfile(
         }
 
         item {
-            StudioProfileGroup("Library & backup") {
-                StudioProfileRow("Manage backups", "Export, restore and undo edits",
+            StudioProfileGroup(strings.get(R.string.nw141_library_backup_1e2c2)) {
+                StudioProfileRow(strings.get(R.string.nw141_manage_backups_cd78b), "Export, restore and undo edits",
                     Icons.Outlined.LibraryMusic, { showBackup = !showBackup },
-                    trailing = { Text(if (showBackup) "Hide" else "Open",
+                    trailing = { Text(if (showBackup) strings.get(R.string.nw141_hide_ac20a) else strings.get(R.string.nw141_open_ed077),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary) })
                 if (showBackup) {
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                    StudioProfileRow("Export music library", "Profile, favorites and playlists",
+                    StudioProfileRow(strings.get(R.string.nw141_label_d66d487ba9), strings.get(R.string.nw141_label_bf8c01ef07),
                         Icons.Outlined.LibraryMusic, onExport)
-                    StudioProfileRow("Restore from backup", "Replaces collections after confirmation",
+                    StudioProfileRow(strings.get(R.string.nw141_label_b8903550fe), strings.get(R.string.nw141_label_5be804796a),
                         Icons.Outlined.LibraryMusic, onImport)
-                    StudioProfileRow("Undo most recent library edit", "Restore last protected change",
+                    StudioProfileRow(strings.get(R.string.nw141_label_c1b676dde5), strings.get(R.string.nw141_label_541341cdd1),
                         Icons.AutoMirrored.Outlined.ArrowBack, onRecoverLastChange)
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                    Text("GOOGLE DRIVE BACKUP", style = MaterialTheme.typography.labelSmall,
+                    Text(strings.get(R.string.nw141_label_e790f6f996), style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(start = 14.dp, top = 6.dp))
-                    Text(if (cloud.account.isBlank()) "Not connected"
+                    Text(if (cloud.account.isBlank()) strings.get(R.string.nw141_not_connected_0303e)
                         else "Connected: " +
                             CloudAccountPresentation.maskedAccount(cloud.account),
                         modifier = Modifier.padding(horizontal = 14.dp),
@@ -5572,10 +5573,10 @@ private fun StudioProfile(
                             .format(java.util.Date(cloud.lastSuccessMs)) else "",
                         modifier = Modifier.padding(horizontal = 14.dp),
                         style = MaterialTheme.typography.bodySmall, color = muted)
-                    StudioProfileRow("Open account & backup", "Connection, backup status and privacy",
+                    StudioProfileRow(strings.get(R.string.nw141_label_16b7be951b), strings.get(R.string.nw141_label_d8b404681b),
                         Icons.Outlined.Settings, onOpenAccount)
                     if (cloud.account.isNotBlank()) {
-                        StudioProfileRow("Back up now", "Verified, versioned Google Drive snapshot",
+                        StudioProfileRow(strings.get(R.string.nw141_back_up_now_02a28), "Verified, versioned Google Drive snapshot",
                             Icons.Outlined.LibraryMusic, onCloudBackup)
                         StudioProfileRow("Preview cloud restore", "Browse recovery points and review what changes",
                             Icons.Outlined.LibraryMusic, onCloudPreviewRestore)
@@ -5614,19 +5615,17 @@ private fun StudioProfile(
                         StudioProfileRow("Disconnect or change Drive", "Review the effect on your local library",
                             Icons.AutoMirrored.Outlined.ArrowBack, onOpenAccount)
                     }
-                    if (cloudBusy) Text(CloudRecoveryUiPolicy.busyLabel(cloudPhase),
+                    if (cloudBusy) Text(strings.cloudBusy(cloudPhase),
                         modifier = Modifier.padding(horizontal = 14.dp),
                         style = MaterialTheme.typography.bodySmall, color = muted)
-                    Text("Backups contain metadata, never offline audio or passwords. " +
-                        "Google consent is optional. Manual compare is not live device sync. " +
-                        "Automatic backup may run later than scheduled.",
+                    Text(strings.get(R.string.nw141_explanation_acc4b006d8),
                         modifier = Modifier.padding(start = 14.dp, end = 14.dp, bottom = 12.dp),
                         style = MaterialTheme.typography.bodySmall, color = muted)
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                StudioProfileRow("Advanced storage", "Check storage without changing your music",
+                StudioProfileRow(strings.get(R.string.nw141_advanced_storage_e966b), "Check storage without changing your music",
                     Icons.Outlined.Settings, { showAdvanced = !showAdvanced },
-                    trailing = { Text(if (showAdvanced) "Hide" else "Details",
+                    trailing = { Text(if (showAdvanced) strings.get(R.string.nw141_hide_ac20a) else strings.get(R.string.nw141_details_45989),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary) })
                 if (showAdvanced) {
@@ -5636,8 +5635,7 @@ private fun StudioProfile(
                         Text(storageStatus, style = MaterialTheme.typography.bodySmall)
                         Text(roomReadStatus, style = MaterialTheme.typography.bodySmall,
                             color = muted)
-                        Text("Room and DataStore are optional read-only mirrors. " +
-                            "Your existing saved library stays in use.",
+                        Text(strings.get(R.string.nw141_explanation_664b2913b4),
                             style = MaterialTheme.typography.bodySmall, color = muted)
                         OutlinedButton(onClick = onCheckStorage,
                             modifier = Modifier.fillMaxWidth()) {
@@ -5651,8 +5649,7 @@ private fun StudioProfile(
                             Text(if (roomPreviewActive) "RETURN TO ORIGINAL LIBRARY"
                                 else "TRY VERIFIED ROOM READS")
                         }
-                        Text("Cloud recovery requires a Google-authorized, validated snapshot and " +
-                            "always asks before replacing local collections.",
+                        Text(strings.get(R.string.nw141_explanation_2de3312c31),
                             style = MaterialTheme.typography.bodySmall, color = muted)
                     }
                 }
@@ -5660,15 +5657,15 @@ private fun StudioProfile(
         }
 
         item {
-            StudioProfileGroup("App health") {
-                StudioProfileRow("Playback health",
+            StudioProfileGroup(strings.get(R.string.nw141_app_health_efdab)) {
+                StudioProfileRow(strings.get(R.string.nw141_playback_health_1ea6a),
                     if (!playbackState.error.isNullOrBlank() || !playbackState.connected)
                         "Action may be needed · Tap to inspect"
                     else "Current status and recovery controls",
                     Icons.Outlined.Settings,
                     { showPlaybackHealth = !showPlaybackHealth },
                     trailing = {
-                        Text(if (showPlaybackHealth) "Hide" else "View",
+                        Text(if (showPlaybackHealth) strings.get(R.string.nw141_hide_ac20a) else strings.get(R.string.nw141_view_dcc83),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary)
                     })
@@ -5676,20 +5673,20 @@ private fun StudioProfile(
                     !playbackState.error.isNullOrBlank()) {
                     PlaybackHealthPanel(playbackState, onRecoverPlayback)
                 }
-                StudioProfileRow("Crash diagnostics", "Preview before sharing any report",
+                StudioProfileRow(strings.get(R.string.nw141_crash_diagnostics_663f1), strings.get(R.string.nw141_preview_before_sharing_any_report_39ca7),
                     Icons.Outlined.Settings, onShareDiagnostics)
-                StudioProfileRow("App details", "Version and build ID for support",
+                StudioProfileRow(strings.get(R.string.nw141_app_details_2945d), strings.get(R.string.nw141_version_and_build_id_for_support_74bfa),
                     Icons.Outlined.Settings, { showBuildDetails = true })
             }
         }
         item {
-            StudioProfileGroup("Interface") {
-                StudioProfileRow("Open classic interface", "Temporary fallback · Shared library",
+            StudioProfileGroup(strings.get(R.string.nw141_interface_c26b3)) {
+                StudioProfileRow(strings.get(R.string.nw141_open_classic_interface_35eb7), "Temporary fallback · Shared library",
                     Icons.AutoMirrored.Outlined.ArrowBack, onOpenClassic)
             }
         }
         item {
-            Text("NightWave · Your music stays on this device unless you choose to export it.",
+            Text(strings.get(R.string.nw141_nightwave_your_music_stays_on_this_device_unless_2e81a),
                 modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 10.dp),
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                 style = MaterialTheme.typography.labelSmall, color = muted)

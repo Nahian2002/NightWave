@@ -1,5 +1,7 @@
 package com.nightwave.player.v2.ui
 
+import com.nightwave.player.R
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -71,8 +73,6 @@ import com.nightwave.player.v2.cloud.CloudBackupStatus
 import com.nightwave.player.v2.cloud.CloudAccessPolicy
 import com.nightwave.player.v2.cloud.CloudAccessState
 import com.nightwave.player.v2.model.ProfileSettings
-import java.text.DateFormat
-import java.util.Date
 
 /** Local-first account overview. Drive scope authorization is not Google identity sign-in. */
 @Composable
@@ -93,6 +93,7 @@ internal fun NightWaveAccountHubDialog(
     onPreferences: (Boolean) -> Unit,
     onWifiOnly: (Boolean) -> Unit
 ) {
+    val strings = rememberNightWaveStrings()
     var confirmDisconnect by remember { mutableStateOf(false) }
     var confirmChangeAccount by remember { mutableStateOf(false) }
     var showBackupOptions by remember { mutableStateOf(false) }
@@ -142,10 +143,10 @@ internal fun NightWaveAccountHubDialog(
                         Text("NIGHTWAVE", color = primary,
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.SemiBold)
-                        Text("Account & backup", style = MaterialTheme.typography.headlineSmall,
+                        Text(strings.get(R.string.nw141_account_backup_008a1), style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold)
                     }
-                    TextButton(onClick = onDismiss) { Text("Close") }
+                    TextButton(onClick = onDismiss) { Text(strings.get(R.string.nw141_close_7d9eb)) }
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 LazyColumn(
@@ -178,12 +179,12 @@ internal fun NightWaveAccountHubDialog(
                                             style = MaterialTheme.typography.titleMedium,
                                             fontWeight = FontWeight.SemiBold,
                                             maxLines = 2, overflow = TextOverflow.Ellipsis)
-                                        Text("Your listening profile · on this device",
+                                        Text(strings.get(R.string.nw141_your_listening_profile_on_this_device_bfd75),
                                             color = muted,
                                             style = MaterialTheme.typography.bodySmall)
                                     }
                                 }
-                                Text("Local listening works without a Google account.",
+                                Text(strings.get(R.string.nw141_local_listening_works_without_a_google_account_af362),
                                     color = muted, style = MaterialTheme.typography.bodySmall)
                             }
                         }
@@ -201,10 +202,10 @@ internal fun NightWaveAccountHubDialog(
                                         contentDescription = null, tint = primary,
                                         modifier = Modifier.size(24.dp))
                                     Column(Modifier.weight(1f)) {
-                                        Text(if (needsReview) "Drive needs attention" else CloudAccountPresentation.title(stage),
+                                        Text(if (needsReview) strings.get(R.string.nw141_drive_needs_attention_ead38) else CloudAccountPresentation.title(stage),
                                             style = MaterialTheme.typography.titleMedium,
                                             fontWeight = FontWeight.SemiBold)
-                                        Text("Library metadata backup · audio files stay on this device",
+                                        Text(strings.get(R.string.nw141_library_metadata_backup_audio_files_stay_on_this_a80a5),
                                             color = muted,
                                             style = MaterialTheme.typography.bodySmall)
                                     }
@@ -221,12 +222,10 @@ internal fun NightWaveAccountHubDialog(
                                             color = if (needsReview) MaterialTheme.colorScheme.onErrorContainer else primary,
                                             style = MaterialTheme.typography.labelMedium)
                                     }
-                                    Text("Saved Google account: " +
-                                        CloudAccountPresentation.maskedAccount(cloud.account),
+                                    Text(strings.get(R.string.nw141_saved_account, CloudAccountPresentation.maskedAccount(cloud.account)),
                                         style = MaterialTheme.typography.bodyMedium)
                                     if (cloud.lastAccessCheckMs > 0L) Text(
-                                        "Last account check · " + DateFormat.getDateTimeInstance().format(
-                                            Date(cloud.lastAccessCheckMs)),
+                                        strings.get(R.string.nw141_checked_date, strings.date(cloud.lastAccessCheckMs)),
                                         color = muted, style = MaterialTheme.typography.bodySmall)
                                 }
                                 if (cloud.lastSuccessMs > 0L &&
@@ -235,20 +234,16 @@ internal fun NightWaveAccountHubDialog(
                                         CloudAccountPresentation.BackupStage.PREVIOUS_BACKUP_NEEDS_REFRESH)) {
                                     val prior = stage ==
                                         CloudAccountPresentation.BackupStage.PREVIOUS_BACKUP_NEEDS_REFRESH
-                                    Text((if (prior) "Previous verified backup · "
-                                        else "Last verified backup · ") +
-                                        DateFormat.getDateTimeInstance().format(
-                                            Date(cloud.lastSuccessMs)),
+                                    Text(strings.get(if (prior) R.string.nw141_prior_date else R.string.nw141_verified_date, strings.date(cloud.lastSuccessMs)),
                                         color = muted,
                                         style = MaterialTheme.typography.bodySmall)
                                     if (prior) Text(
-                                        "New privacy or backup settings aren't verified in that snapshot. " +
-                                            "Choose Back up library now to refresh it.",
+                                        strings.get(R.string.nw141_backup_stale),
                                         color = muted,
                                         style = MaterialTheme.typography.bodySmall)
                                 }
-                                Text(if (busy) CloudRecoveryUiPolicy.busyLabel(phase)
-                                    else cloud.lastResult.ifBlank { "No backup activity recorded." },
+                                Text(if (busy) strings.cloudBusy(phase)
+                                    else cloud.lastResult.ifBlank { strings.get(R.string.nw141_no_backup_activity_recorded_c39fa) },
                                     style = MaterialTheme.typography.bodySmall,
                                     color = muted,
                                     modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
@@ -262,8 +257,8 @@ internal fun NightWaveAccountHubDialog(
                                         .testTag("nw139-primary-recovery"),
                                     enabled = !busy
                                 ) {
-                                    Text(if (busy) CloudRecoveryUiPolicy.busyLabel(phase) else
-                                        AccountRecoveryPresentationPolicy.primaryAction(
+                                    Text(if (busy) strings.cloudBusy(phase) else
+                                        strings.recoveryAction(
                                             connected, needsReview, cloud.lastSuccessMs > 0L))
                                 }
                                 if (connected) {
@@ -271,21 +266,21 @@ internal fun NightWaveAccountHubDialog(
                                         modifier = Modifier.fillMaxWidth(),
                                         onClick = { openExternalFlow(onPreviewRestore) },
                                         enabled = canBackUp
-                                    ) { Text("Preview a restore") }
+                                    ) { Text(strings.get(R.string.nw141_preview_a_restore_96277)) }
                                     OutlinedButton(
                                         modifier = Modifier.fillMaxWidth(),
                                         onClick = { openExternalFlow(onCompare) },
                                         enabled = canBackUp
-                                    ) { Text("Compare & merge libraries") }
-                                    if (needsReview) Text("Reconnect to use Drive recovery. Your local library is ready.",
+                                    ) { Text(strings.get(R.string.nw141_compare_merge_libraries_7e0d2)) }
+                                    if (needsReview) Text(strings.get(R.string.nw141_reconnect_to_use_drive_recovery_your_local_libra_4248a),
                                         style = MaterialTheme.typography.bodySmall, color = muted)
                                     TextButton(enabled = !busy,
                                         modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
-                                        onClick = { confirmChangeAccount = true }) { Text("Change Drive account") }
+                                        onClick = { confirmChangeAccount = true }) { Text(strings.get(R.string.nw141_change_drive_account_2acb6)) }
                                     TextButton(
                                         enabled = !busy,
                                         onClick = { confirmDisconnect = true }
-                                    ) { Text("Disconnect Drive on this device") }
+                                    ) { Text(strings.get(R.string.nw141_disconnect_drive_on_this_device_1072e)) }
                                 }
                             }
                         }
@@ -296,47 +291,46 @@ internal fun NightWaveAccountHubDialog(
                             onClick = { openExternalFlow(onExportLocal) }) {
                             Icon(Icons.Outlined.LibraryMusic, contentDescription = null, modifier = Modifier.size(17.dp))
                             Spacer(Modifier.size(7.dp))
-                            Text("Export local library")
+                            Text(strings.get(R.string.nw141_export_local_library_28753))
                         }
-                        Text("Library metadata and selected options only. Audio files are not included; every restore starts with a review.",
+                        Text(strings.get(R.string.nw141_library_metadata_and_selected_options_only_audio_51ad4),
                             style = MaterialTheme.typography.bodySmall, color = muted)
                     }
                     item(key = "nw139-backup-options") {
                         OutlinedButton(onClick = { showBackupOptions = !showBackupOptions },
                             modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("nw139-backup-options")) {
-                            Text(if (showBackupOptions) "Hide backup options" else "Backup options")
+                            Text(if (showBackupOptions) strings.get(R.string.nw141_hide_backup_options_20eff) else strings.get(R.string.nw141_backup_options_42799))
                         }
-                        Text("History, imported lyrics, playback preferences and automatic backup network choice",
+                        Text(strings.get(R.string.nw141_history_imported_lyrics_playback_preferences_and_778e0),
                             style = MaterialTheme.typography.bodySmall, color = muted)
                     }
                     if (showBackupOptions) {
                         item {
-                            Text("Backup preferences", style = MaterialTheme.typography.titleMedium,
+                            Text(strings.get(R.string.nw141_backup_preferences_d06bb), style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold)
                         }
                         item {
-                            AccountBackupToggle("Listening history",
-                                "Optional · off by default", cloud.includeHistory,
+                            AccountBackupToggle(strings.get(R.string.nw141_listening_history_efe6b),
+                                strings.get(R.string.nw141_optional_off_by_default_f230e), cloud.includeHistory,
                                 connected && !busy, onHistory)
                         }
                         item {
-                            AccountBackupToggle("Imported lyrics",
-                                "Matched local LRC only · public-video lyrics stay on this device", cloud.includeLyrics,
+                            AccountBackupToggle(strings.get(R.string.nw141_imported_lyrics_53d8c),
+                                strings.get(R.string.nw141_matched_local_lrc_only_public_video_lyrics_stay_ab9b2), cloud.includeLyrics,
                                 connected && !busy, onLyrics)
                         }
                         item {
-                            AccountBackupToggle("Playback preferences",
-                                "Does not restore account permissions or privacy decisions",
+                            AccountBackupToggle(strings.get(R.string.nw141_playback_preferences_1969a),
+                                strings.get(R.string.nw141_does_not_restore_account_permissions_or_privacy_42ead),
                                 cloud.includePreferences, connected && !busy, onPreferences)
                         }
                         item {
-                            AccountBackupToggle("Automatic backups on Wi-Fi",
-                                "After a verified backup; scheduling is approximate",
+                            AccountBackupToggle(strings.get(R.string.nw141_automatic_backups_on_wi_fi_f66af),
+                                strings.get(R.string.nw141_after_a_verified_backup_scheduling_is_approximat_38a54),
                                 cloud.wifiOnly, connected && !busy, onWifiOnly)
                         }
                         item {
-                            Text("This backup contains library metadata and the options you choose. " +
-                                "Audio files are not included. Every restore starts with a review.",
+                            Text(strings.get(R.string.nw141_explanation_453e36e6df),
                                 color = muted,
                                 style = MaterialTheme.typography.bodySmall)
                         }
@@ -344,7 +338,7 @@ internal fun NightWaveAccountHubDialog(
                     item(key = "nw139-connection-help") {
                         TextButton(onClick = { showConnectionHelp = !showConnectionHelp },
                             modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("nw139-connection-help")) {
-                            Text(if (showConnectionHelp) "Hide connection help" else "Connection help")
+                            Text(if (showConnectionHelp) strings.get(R.string.nw141_hide_connection_help_dcf0f) else strings.get(R.string.nw141_connection_help_b2814))
                         }
                     }
                     if (showConnectionHelp || CloudAccessPolicy.needsHelp(connected, cloud.accessState, lastGoogleFailure != null)) {
@@ -364,7 +358,7 @@ internal fun NightWaveAccountHubDialog(
                                         "Your saved Drive account needs an access check. Reconnect or review connection details."
                                     else if (lastGoogleFailure == null)
                                         "Connect your Google account to back up library metadata. " +
-                                            "Your local music stays available without Google."
+                                            strings.get(R.string.nw141_your_local_music_stays_available_without_google_452fb)
                                     else CloudAuthorizationFailurePolicy.shortMessage(
                                         lastGoogleFailure.code, lastGoogleFailure.stage),
                                         style = MaterialTheme.typography.bodyMedium,
@@ -390,25 +384,23 @@ internal fun NightWaveAccountHubDialog(
                                                 modifier = Modifier.fillMaxWidth(),
                                                 onClick = { openExternalFlow(onConnect) }
                                             ) {
-                                                Text("Retry Google connection")
+                                                Text(strings.get(R.string.nw141_retry_google_connection_ee5a8))
                                             }
                                         }
                                     }
                                     TextButton(onClick = { showSetupDetails = !showSetupDetails },
                                         modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
-                                        Text(if (showSetupDetails) "Hide connection details" else "Connection details")
+                                        Text(if (showSetupDetails) strings.get(R.string.nw141_hide_connection_details_4376e) else strings.get(R.string.nw141_connection_details_51bff))
                                     }
                                     if (showSetupDetails) {
-                                        Text("Installed APK signing SHA-1",
+                                        Text(strings.get(R.string.nw141_installed_apk_signing_sha_1_3a846),
                                             style = MaterialTheme.typography.labelLarge)
                                         Text(apkFingerprint?.chunked(29)?.joinToString("\n")
-                                                ?: "Not available on this device",
+                                                ?: strings.get(R.string.nw141_not_available_on_this_device_01c75),
                                             style = MaterialTheme.typography.bodySmall.copy(
                                                 fontFamily = FontFamily.Monospace),
                                             color = primary)
-                                        Text("If the error repeats, compare this APK's package and " +
-                                            "SHA-1 with the Android OAuth client. Check Drive API, " +
-                                            "Google Play services and OAuth test users.",
+                                        Text(strings.get(R.string.nw141_explanation_6053dac6e7),
                                             style = MaterialTheme.typography.bodySmall,
                                             color = muted)
                                         OutlinedButton(
@@ -423,7 +415,7 @@ internal fun NightWaveAccountHubDialog(
                                                 }.isSuccess
                                             }) {
                                             Text(if (oauthCopied)
-                                                "Setup report copied" else "Copy Google setup report")
+                                                strings.get(R.string.nw141_setup_report_copied_7e002) else strings.get(R.string.nw141_copy_google_setup_report_66068))
                                         }
                                         TextButton(
                                             modifier = Modifier.fillMaxWidth(),
@@ -435,7 +427,7 @@ internal fun NightWaveAccountHubDialog(
                                                     )
                                                 }
                                             }) {
-                                            Text("Open Google OAuth settings")
+                                            Text(strings.get(R.string.nw141_open_google_oauth_settings_eec0c))
                                         }
                                     }
                                 }
@@ -450,36 +442,32 @@ internal fun NightWaveAccountHubDialog(
     if (confirmDisconnect) {
         AlertDialog(
             onDismissRequest = { confirmDisconnect = false },
-            title = { Text("Disconnect Google Drive?") },
-            text = { Text("Your guest profile, offline music and local playlists stay " +
-                "on this phone. Existing Drive backups are not deleted. " +
-                "Automatic backup is stopped.") },
+            title = { Text(strings.get(R.string.nw141_disconnect_google_drive_ec257)) },
+            text = { Text(strings.get(R.string.nw141_disconnect_explain)) },
             confirmButton = {
                 TextButton(onClick = {
                     confirmDisconnect = false
                     onDisconnect()
-                }) { Text("Disconnect") }
+                }) { Text(strings.get(R.string.nw141_disconnect_acfc5)) }
             },
             dismissButton = {
-                TextButton(onClick = { confirmDisconnect = false }) { Text("Cancel") }
+                TextButton(onClick = { confirmDisconnect = false }) { Text(strings.get(R.string.nw141_cancel_19766)) }
             }
         )
     }
     if (confirmChangeAccount) {
         AlertDialog(
             onDismissRequest = { confirmChangeAccount = false },
-            title = { Text("Change the Drive account?") },
-            text = { Text("A different Google Drive account requires its own first " +
-                "verified backup. Your guest library stays unchanged, and " +
-                "existing backups remain in the previous account.") },
+            title = { Text(strings.get(R.string.nw141_change_the_drive_account_f7d95)) },
+            text = { Text(strings.get(R.string.nw141_change_explain)) },
             confirmButton = {
                 TextButton(onClick = {
                     confirmChangeAccount = false
                     openExternalFlow(onConnect)
-                }) { Text("Continue") }
+                }) { Text(strings.get(R.string.nw141_continue_31fbe)) }
             },
             dismissButton = {
-                TextButton(onClick = { confirmChangeAccount = false }) { Text("Cancel") }
+                TextButton(onClick = { confirmChangeAccount = false }) { Text(strings.get(R.string.nw141_cancel_19766)) }
             }
         )
     }

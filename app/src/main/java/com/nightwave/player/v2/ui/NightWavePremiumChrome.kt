@@ -1,5 +1,7 @@
 package com.nightwave.player.v2.ui
 
+import com.nightwave.player.R
+
 import android.view.HapticFeedbackConstants
 
 import androidx.compose.animation.animateColorAsState
@@ -93,6 +95,7 @@ fun NightWaveSectionActions(heading: @Composable () -> Unit, action: @Composable
 
 @Composable
 fun NightWaveCompactTopBar(onSettings: () -> Unit) {
+    val strings = rememberNightWaveStrings()
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         val showName = maxWidth.value >= 100f + 172f * LocalDensity.current.fontScale
         Row(Modifier.fillMaxWidth().heightIn(min = NightWavePremiumDesignTokens.HEADER_MIN_HEIGHT_DP.dp)
@@ -103,7 +106,7 @@ fun NightWaveCompactTopBar(onSettings: () -> Unit) {
                 showName = showName)
             IconButton(onClick = onSettings, modifier = Modifier.size(48.dp)
                 .testTag("nw127-open-settings")) {
-                Icon(Icons.Outlined.Settings, contentDescription = "Open NightWave settings",
+                Icon(Icons.Outlined.Settings, contentDescription = strings.get(R.string.nw141_now_settings),
                     tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(21.dp))
             }
         }
@@ -122,6 +125,7 @@ fun NightWavePremiumNavigation(
     onReselect: (() -> Unit)? = null,
     onNavigate: (Int) -> Unit
 ) {
+    val strings = rememberNightWaveStrings()
     val colors = MaterialTheme.colorScheme
     val hapticView = LocalView.current
     val fontScale = LocalDensity.current.fontScale
@@ -133,7 +137,7 @@ fun NightWavePremiumNavigation(
         Icons.Outlined.LibraryMusic,
         Icons.Outlined.PersonOutline
     )
-    val names = listOf("Home", "Search", "Library", "You")
+    val names = listOf(strings.get(R.string.nw141_home_3a786), strings.get(R.string.nw141_search_49c26), strings.get(R.string.nw141_library_dc20b), strings.get(R.string.nw141_you_08b04))
     val tags = listOf("home", "search", "library", "profile")
     Surface(
         modifier = Modifier.fillMaxWidth()
@@ -189,7 +193,7 @@ fun NightWavePremiumNavigation(
                         .semantics {
                             selected = active
                             // Even truncated visual labels retain a full TalkBack name.
-                            contentDescription = NightWaveAccessibilityPolicy.navigationAnnouncement(label)
+                            contentDescription = label
                         }
                         .testTag("nightwave-tab-" + tags[index]),
                     contentAlignment = Alignment.Center
@@ -251,6 +255,7 @@ fun NightWaveHomeHero(
     emptyActionLabel: String? = null,
     onEmptyAction: (() -> Unit)? = null
 ) {
+    val strings = rememberNightWaveStrings()
     val firstName = NightWaveChromePolicy.displayFirstName(displayName)
     val colors = MaterialTheme.colorScheme
     val fontScale = LocalDensity.current.fontScale
@@ -274,13 +279,13 @@ fun NightWaveHomeHero(
         // Opaque surface under all captions: artwork cannot alter contrast.
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             NightWaveMicroLabel(
-                if (identity == null) "Your listening space" else "Continue listening")
+                if (identity == null) strings.get(R.string.nw141_home_space) else strings.get(R.string.nw141_home_continue))
             Text(if (identity == null) emptyTitle ?: greeting else identity.title,
                 style = MaterialTheme.typography.titleLarge,
                 color = colors.onSurface, maxLines = if (fontScale >= 1.3f) Int.MAX_VALUE else 2, overflow = TextOverflow.Ellipsis)
             Text(if (identity == null)
-                emptyDetail ?: ("Welcome, " + firstName + " · Your music, your pace")
-                else identity.artistOrCreator + " · Tap to continue",
+                emptyDetail ?: strings.get(R.string.nw141_home_welcome, firstName)
+                else strings.get(R.string.nw141_home_resume, identity.artistOrCreator),
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.onSurfaceVariant)
             if (identity == null && emptyActionLabel != null) Text(emptyActionLabel + " →",

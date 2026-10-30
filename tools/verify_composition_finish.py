@@ -17,7 +17,7 @@ def verify(src):
                    "if (automaticCollectionsOpen) items(smartCollections", "onSelectPlaylist(collection.id)"):
         assert marker in library, marker
     assert "Text(overview.summary" not in library, "Duplicate summary outside header"
-    for marker in ('NightWaveQuickActionPill("Account & backup"', 'NightWaveQuickActionPill("Offline music"',
+    for marker in ('NightWaveQuickActionPill(strings.get(R.string.nw141_account_backup_008a1)', 'NightWaveQuickActionPill(strings.get(R.string.nw141_offline_music_a8f6a)',
                    'Icons.Outlined.GraphicEq, onEqualizer,\n                    modifier = Modifier.testTag("nw47-you-sound")',
                    'Icons.Outlined.LibraryMusic, onManageHistory,\n                    modifier = Modifier.testTag("nw47-you-history")'):
         assert marker in profile, marker

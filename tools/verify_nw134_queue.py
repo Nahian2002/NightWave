@@ -26,7 +26,7 @@ def verify(src):
         assert marker in bridge, marker
     for marker in ('testTag("nw134-confirm-clear")', "clearRequest = editSnapshot",
                    "onClearUpcoming?.invoke(reviewed)", "onMoveUpcoming?.invoke(from, to, editSnapshot)",
-                   "requestRemove(index, video.url)", 'Text("Move earlier")', 'Text("Move later")'):
+                   "requestRemove(index, video.url)", 'Text(strings.get(R.string.nw141_move_earlier_73661))', 'Text(strings.get(R.string.nw141_move_later_d6e85))'):
         assert marker in ui, marker
     assert "playerActions.moveUpcoming(from, to, expected)" in activity
     assert "playerActions.clearUpcoming(expected)" in activity

@@ -10,7 +10,7 @@ def verify(src):
     ui, art, policy, seek = (src[n] for n in NAMES)
     for marker in ("requestCandidates(url, large)", ".size(pixels, pixels)", "CachePolicy.ENABLED",
                    "isUnavailableLargeStill(displayUrl", "candidateIndex == attempt", "trackIdentity = artwork.trackId",
-                   "large = true", "stateDescription = statusLabel", "statusLabel(playerHealth)",
+                   "large = true", "stateDescription = statusLabel", "playbackStatus(playerHealth)",
                    "NightWaveNowPlayingPresentationPolicy.canSeek(", "NightWaveNowPlayingPresentationPolicy.seekPosition(",
                    "actions.seekToForTrack(originatingTrack, it)", '"nightwave-now-playing-lyrics-action"',
                    '"nightwave-now-playing-queue-action"'):
@@ -24,7 +24,7 @@ def verify(src):
     for marker in ("remember(trackIdentity)", "pointerInput(enabled, trackIdentity)", "if (!enabled) disabled()",
                    "commitCallback(trackIdentity, mapped)", "positionDescription?.let"):
         assert marker in seek, marker
-    assert ui.count("statusLabel(") == 2
+    assert ui.count("playbackStatus(") == 2
     for bad in ("Http", ".edit()", "enqueue("):
         assert bad not in art and bad not in policy
 

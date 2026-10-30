@@ -12,6 +12,9 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.style.LineHeightStyle
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
@@ -61,12 +64,38 @@ private val premiumTypography = Typography(
         lineHeight = 17.sp, letterSpacing = (.15f).sp, fontWeight = FontWeight.SemiBold)
 )
 
+/** Bangla vowel/conjunct marks need full glyph extents and neutral tracking. */
+private fun TextStyle.forBangla() = copy(
+    letterSpacing = 0.sp,
+    platformStyle = PlatformTextStyle(includeFontPadding = true),
+    lineHeightStyle = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.None)
+)
+private val banglaTypography = premiumTypography.copy(
+    displayLarge = premiumTypography.displayLarge.forBangla(),
+    displayMedium = premiumTypography.displayMedium.forBangla(),
+    displaySmall = premiumTypography.displaySmall.forBangla(),
+    headlineLarge = premiumTypography.headlineLarge.forBangla(),
+    headlineMedium = premiumTypography.headlineMedium.forBangla(),
+    headlineSmall = premiumTypography.headlineSmall.forBangla(),
+    titleLarge = premiumTypography.titleLarge.forBangla(),
+    titleMedium = premiumTypography.titleMedium.forBangla(),
+    titleSmall = premiumTypography.titleSmall.forBangla(),
+    bodyLarge = premiumTypography.bodyLarge.forBangla(),
+    bodyMedium = premiumTypography.bodyMedium.forBangla(),
+    bodySmall = premiumTypography.bodySmall.forBangla(),
+    labelLarge = premiumTypography.labelLarge.forBangla(),
+    labelMedium = premiumTypography.labelMedium.forBangla(),
+    labelSmall = premiumTypography.labelSmall.forBangla()
+)
+
 @Composable
 fun NightWaveMaterialTheme(
     choice: ThemeChoice,
     reduceMotion: Boolean = false,
     content: @Composable () -> Unit
 ) {
+    val bangla = LocalConfiguration.current.locales[0]?.language == "bn"
+    val typography = if (bangla) banglaTypography else premiumTypography
     val palette = NightWaveDesign.palette(choice)
     val context = androidx.compose.ui.platform.LocalContext.current
     androidx.compose.runtime.DisposableEffect(context, choice) {
@@ -137,7 +166,7 @@ fun NightWaveMaterialTheme(
         LocalNightWavePalette provides palette,
         LocalNightWaveReduceMotion provides reduceMotion
     ) {
-        MaterialTheme(colorScheme = scheme, typography = premiumTypography,
+        MaterialTheme(colorScheme = scheme, typography = typography,
             shapes = Shapes(extraSmall = RoundedCornerShape(8.dp), small = RoundedCornerShape(12.dp),
                 medium = RoundedCornerShape(20.dp), large = RoundedCornerShape(20.dp),
                 extraLarge = RoundedCornerShape(24.dp)), content = content)

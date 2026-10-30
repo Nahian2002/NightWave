@@ -25,7 +25,7 @@ REQUIRED={
   'finally { searchDetails = searchRequest.details() }',
   'videos = carriedVideos, provider = carriedProvider',
   'request != nativeSearchGeneration', '}\n        if (responseMatchesQuery && state.videos.isNotEmpty())',
-  'Recent results · Updating…', 'testTag("search02-refresh")',
+  'R.string.nw141_recent_results_updating_0c5f7', 'testTag("search02-refresh")',
   'if (showSearchDetails && responseMatchesQuery && state.details.isNotBlank())',
   'fromCache = response.fromCache, details = searchDetails'],
 }

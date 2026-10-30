@@ -20,13 +20,13 @@ REQUIRED = {
   'if (advanced) {', 'if (advanced) SoundStudioApplyBar(', 'edited = draftEdited, canApply = validManual, busy = busy',
   'onDiscard = { applySnapshot(resetDraft = true) }', 'issueCommand(PlaybackService.ACTION_EQ_BANDS_APPLY)',
   'SoundStudioPolicy.updateLevel(', 'displayedToken, capabilities.commandToken)) return@Slider',
-  'contentDescription = "Equalizer "', 'stateDescription = SoundStudioPolicy.gainLabel(draftLevels[index])',
+  'contentDescription = strings.get(R.string.nw141_equalizer_band,', 'stateDescription = SoundStudioPolicy.gainLabel(draftLevels[index])',
   'SoundStudioDraftPolicy.adjust(draftLevels[index], delta,', 'SoundStudioTuningPolicy.Shape.entries',
-  'AudioTransitionUiPolicy.dialogDetail(selectedCrossfade)', 'not ReplayGain or streaming normalization',
+  'AudioTransitionUiPolicy.dialogDetail(selectedCrossfade)', 'R.string.nw141_explanation_f1c85f0e65',
   'repeatOnLifecycle(Lifecycle.State.STARTED)', 'refreshFromEngine(resetDraft = false)'],
  'bar': ['canApply && !busy', 'enabled = !busy', 'heightIn(min = 48.dp)',
-  'Draft changes · not applied', 'Manual EQ unavailable · check audio compatibility',
-  'Apply manual EQ', 'Discard draft changes', 'liveRegion = LiveRegionMode.Polite'],
+  'R.string.nw141_draft_changes_not_applied_47162', 'R.string.nw141_manual_eq_unavailable_check_audio_compatibility_e46e6',
+  'R.string.nw141_apply_manual_eq_bab04', 'R.string.nw141_discard_draft_changes_43a75', 'liveRegion = LiveRegionMode.Polite'],
  'draft': ['EqualizerCommandPolicy.accepts(requestedToken, currentToken)', 'committedRequested && active && selected == 21',
   'EqualizerReadbackPolicy.inspect(requested, actual)', 'EqualizerReadbackPolicy.Result.DEVICE_QUANTIZED',
   '!fresh -> "Checking current equalizer"', '!active -> if (selected == 0)',
@@ -44,11 +44,11 @@ def verify(s):
   for marker in markers:
    assert marker in s[key], (key, marker)
  ui=s['ui']
- assert ui.index('Text("Device presets"') < ui.index('if (advanced) {')
+ assert ui.index('Text(strings.get(R.string.nw141_device_presets_0530f)') < ui.index('if (advanced) {')
  assert ui.index('} // Advanced draft content') < ui.index('item(key = "nw88-local-audio-transitions")')
- assert ui.index('if (advanced) SoundStudioApplyBar(') > ui.index('Text("Refresh audio device")')
+ assert ui.index('if (advanced) SoundStudioApplyBar(') > ui.index('Text(strings.get(R.string.nw141_refresh_audio_device_a19d6))')
  # No in-scroll copy of the primary manual action; it lives in the sibling bar.
- assert 'Text("Apply manual EQ")' not in ui
+ assert 'Text(strings.get(R.string.nw141_apply_manual_eq_bab04))' not in ui
  assert 'draftLevels = SoundStudioTuningPolicy.draft(' not in ui
  for forbidden in ['startService', 'setBandLevel', 'getSharedPreferences', 'HttpURLConnection']:
   assert forbidden not in s['bar'] and forbidden not in s['draft']

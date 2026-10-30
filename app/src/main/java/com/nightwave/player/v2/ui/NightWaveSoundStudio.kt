@@ -1,5 +1,7 @@
 package com.nightwave.player.v2.ui
 
+import com.nightwave.player.R
+
 import android.content.Intent
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -79,6 +81,7 @@ import java.util.UUID
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @Composable
 internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
+    val strings = rememberNightWaveStrings()
     val context = LocalContext.current
     val screenLifecycle = LocalView.current.findViewTreeLifecycleOwner()?.lifecycle
     val scope = rememberCoroutineScope()
@@ -344,12 +347,12 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("NIGHTWAVE AUDIO", style = MaterialTheme.typography.labelSmall,
+                        Text(strings.get(R.string.nw141_nightwave_audio_3fff8), style = MaterialTheme.typography.labelSmall,
                             color = primary, fontWeight = FontWeight.SemiBold)
-                        Text("Sound Studio", style = MaterialTheme.typography.headlineSmall,
+                        Text(strings.get(R.string.nw141_sound_studio_e8e35), style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold)
                     }
-                    TextButton(onClick = onDismiss) { Text("Close") }
+                    TextButton(onClick = onDismiss) { Text(strings.get(R.string.nw141_close_7d9eb)) }
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
@@ -368,9 +371,9 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                                    Text(if (!liveConfirmed || !capabilities.sessionReady) "WAITING FOR AUDIO"
-                                        else if (verifiedActive) "ANDROID SESSION EQ"
-                                        else "EFFECT OFF",
+                                    Text(if (!liveConfirmed || !capabilities.sessionReady) strings.get(R.string.nw141_waiting_for_audio_77552)
+                                        else if (verifiedActive) strings.get(R.string.nw141_android_session_eq_d8caf)
+                                        else strings.get(R.string.nw141_effect_off_bbc6a),
                                         color = if (verifiedActive) primary else muted,
                                         style = MaterialTheme.typography.labelMedium,
                                         fontWeight = FontWeight.SemiBold)
@@ -385,7 +388,7 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.SemiBold,
                                     modifier = Modifier.testTag("nw138-active-state"))
-                                Text(if (liveConfirmed) status.message else "Waiting for current playback status.",
+                                Text(if (liveConfirmed) status.message else strings.get(R.string.nw141_waiting_for_current_playback_status_f73b5),
                                     style = MaterialTheme.typography.bodySmall, color = muted)
                                 Text(tuningStatus, style = MaterialTheme.typography.labelMedium,
                                     color = if (draftEdited) primary else muted,
@@ -406,20 +409,19 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                     item {
                         Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
                             Column {
-                                Text("Device presets",
+                                Text(strings.get(R.string.nw141_device_presets_0530f),
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.SemiBold)
                                 OutlinedButton(modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp), enabled = !busy, onClick = {
                                     issueCommand(PlaybackService.ACTION_EQ_PRESET_SET) {
                                         it.putExtra(PlaybackService.EXTRA_EQ_PRESET, 0)
                                     }
-                                }) { Text("Turn off") }
+                                }) { Text(strings.get(R.string.nw141_turn_off_06f0e)) }
                             }
-                            Text("Off and device presets apply immediately. Advanced curves stay as drafts until Apply.",
+                            Text(strings.get(R.string.nw141_off_and_device_presets_apply_immediately_advance_f57b3),
                                 style = MaterialTheme.typography.bodySmall, color = muted)
                             if (capabilities.presetNames.isEmpty()) {
-                                Text("No compatible presets reported. You can still test " +
-                                    "manual bands if the active session supports them.",
+                                Text(strings.get(R.string.nw141_explanation_0ed9b1899a),
                                     style = MaterialTheme.typography.bodySmall, color = muted)
                             } else {
                                 Row(
@@ -450,20 +452,20 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                         OutlinedButton(onClick = { advanced = !advanced },
                             modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
                                 .testTag("nw138-advanced")) {
-                            Text(if (advanced) "Hide advanced equalizer" else "Advanced equalizer")
+                            Text(if (advanced) strings.get(R.string.nw141_hide_advanced_equalizer_8bf3d) else strings.get(R.string.nw141_advanced_equalizer_05fcc))
                         }
-                        if (!advanced && draftEdited) Text("Unapplied manual draft retained. Open Advanced to review.",
+                        if (!advanced && draftEdited) Text(strings.get(R.string.nw141_unapplied_manual_draft_retained_open_advanced_to_e26e8),
                             style = MaterialTheme.typography.bodySmall, color = primary)
                     }
                     if (advanced) {
                         item {
                             Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text("Frequency response",
+                                    Text(strings.get(R.string.nw141_frequency_response_96d4f),
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.SemiBold)
                                     Spacer(Modifier.weight(1f))
-                                    Text("Preview", style = MaterialTheme.typography.labelSmall,
+                                    Text(strings.get(R.string.nw141_preview_324b1), style = MaterialTheme.typography.labelSmall,
                                         color = muted)
                                 }
                                 Surface(shape = RoundedCornerShape(15.dp),
@@ -497,14 +499,14 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                                         }
                                     }
                                 }
-                                Text("Visual guide for the manual bands; not a live audio spectrum.",
+                                Text(strings.get(R.string.nw141_visual_guide_for_the_manual_bands_not_a_live_aud_2c760),
                                     style = MaterialTheme.typography.labelSmall, color = muted)
                             }
                         }
 
                         item {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("Manual bands", style = MaterialTheme.typography.titleMedium,
+                                Text(strings.get(R.string.nw141_manual_bands_0a1a2), style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.SemiBold)
                                 Spacer(Modifier.weight(1f))
                                 TextButton(enabled = !busy && liveConfirmed && capabilities.sessionReady &&
@@ -515,16 +517,16 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                                                 range.first, range.last)
                                             selectedShape = SoundStudioTuningPolicy.Shape.FLAT
                                         }
-                                    }) { Text("Reset flat") }
+                                    }) { Text(strings.get(R.string.nw141_reset_flat_8e3b9)) }
                             }
                         }
 
                         item(key = "nw49-guided-eq") {
                             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Text("Guided tuning",
+                                Text(strings.get(R.string.nw141_guided_tuning_11bad),
                                     style = MaterialTheme.typography.titleSmall,
                                     fontWeight = FontWeight.SemiBold)
-                                Text("Select a real device-band curve, then apply it to hear the change.",
+                                Text(strings.get(R.string.nw141_select_a_real_device_band_curve_then_apply_it_to_0e10a),
                                     style = MaterialTheme.typography.bodySmall, color = muted)
                                 Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                                     horizontalArrangement = Arrangement.spacedBy(7.dp)) {
@@ -551,7 +553,7 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                                     Text(SoundStudioTuningPolicy.hint(shape),
                                         style = MaterialTheme.typography.labelSmall, color = muted)
                                 }
-                                if (draftEdited) Text("Preview only · Apply manual EQ to hear changes.",
+                                if (draftEdited) Text(strings.get(R.string.nw141_preview_only_apply_manual_eq_to_hear_changes_a4f2d),
                                     style = MaterialTheme.typography.labelSmall, color = primary)
                             }
                         }
@@ -582,7 +584,7 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                                             Slider(
                                                 value = draftLevels[index].toFloat(),
                                                 modifier = Modifier.testTag("nw138-band-$index").semantics {
-                                                    contentDescription = "Equalizer " + SoundStudioPolicy.frequencyLabel(capabilities.centersHz[index])
+                                                    contentDescription = strings.get(R.string.nw141_equalizer_band, SoundStudioPolicy.frequencyLabel(capabilities.centersHz[index]))
                                                     stateDescription = SoundStudioPolicy.gainLabel(draftLevels[index])
                                                 },
                                                 enabled = !busy && liveConfirmed && capabilities.sessionReady,
@@ -608,8 +610,7 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                                                         modifier = Modifier.weight(1f).heightIn(min = 48.dp)
                                                             .testTag("nw138-step-$index-$delta")
                                                             .semantics { contentDescription =
-                                                                (if (delta < 0) "Decrease " else "Increase ") +
-                                                                    SoundStudioPolicy.frequencyLabel(capabilities.centersHz[index]) + " by 1 dB" },
+                                                                strings.get(if (delta < 0) R.string.nw141_gain_decrease else R.string.nw141_gain_increase, SoundStudioPolicy.frequencyLabel(capabilities.centersHz[index])) },
                                                         enabled = !busy && liveConfirmed && capabilities.sessionReady &&
                                                             adjusted != null && adjusted != draftLevels[index],
                                                         onClick = {
@@ -624,7 +625,7 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                                                 }
                                             }
                                         } else {
-                                            Text("This device exposes a fixed band level.",
+                                            Text(strings.get(R.string.nw141_this_device_exposes_a_fixed_band_level_51847),
                                                 style = MaterialTheme.typography.bodySmall,
                                                 color = muted)
                                         }
@@ -641,15 +642,12 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                             shape = RoundedCornerShape(NightWavePremiumDesignTokens.CARD_CORNER_DP.dp)) {
                             Column(Modifier.fillMaxWidth().padding(15.dp),
                                 verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                                Text("Local playback quality",
+                                Text(strings.get(R.string.nw141_local_playback_quality_adb32),
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.SemiBold)
-                                Text("Gapless is preferred when crossfade is off. " +
-                                    "Crossfade uses verified local tracks only; " +
-                                    "it pauses for Shuffle, Repeat One or non-1× speed. " +
-                                    "Streaming sources are not reprocessed.",
+                                Text(strings.get(R.string.nw141_explanation_d7580987cf),
                                     style = MaterialTheme.typography.bodySmall, color = muted)
-                                Text("Crossfade · " +
+                                Text(strings.get(R.string.nw141_crossfade_4401d) +
                                     AudioTransitionUiPolicy.dialogDetail(selectedCrossfade),
                                     style = MaterialTheme.typography.titleSmall)
                                 Row(Modifier.fillMaxWidth()
@@ -660,7 +658,7 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                                             selected = selectedCrossfade == seconds,
                                             enabled = !transitionBusy && !busy,
                                             onClick = { setCrossfadeDuration(seconds) },
-                                            label = { Text(if (seconds == 0) "Off"
+                                            label = { Text(if (seconds == 0) strings.get(R.string.nw141_off_ca798)
                                                 else "${seconds}s") }
                                         )
                                     }
@@ -669,11 +667,9 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically) {
                                     Column(Modifier.weight(1f)) {
-                                        Text("Offline volume balancing",
+                                        Text(strings.get(R.string.nw141_offline_volume_balancing_d5e09),
                                             style = MaterialTheme.typography.titleSmall)
-                                        Text("Optional 12-second PCM sample. " +
-                                            "Attenuates louder local tracks only; " +
-                                            "not ReplayGain or streaming normalization.",
+                                        Text(strings.get(R.string.nw141_explanation_f1c85f0e65),
                                             style = MaterialTheme.typography.bodySmall,
                                             color = muted)
                                     }
@@ -696,7 +692,7 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                             shape = RoundedCornerShape(15.dp)) {
                             Column(Modifier.fillMaxWidth().padding(14.dp),
                                 verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Text("Playback compatibility",
+                                Text(strings.get(R.string.nw141_playback_compatibility_2ec06),
                                     fontWeight = FontWeight.SemiBold,
                                     style = MaterialTheme.typography.titleSmall)
                                 Text(
@@ -709,7 +705,7 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                                         color = primary)
                                 }
                                 OutlinedButton(enabled = !busy, onClick = { discover() }) {
-                                    Text("Refresh audio device")
+                                    Text(strings.get(R.string.nw141_refresh_audio_device_a19d6))
                                 }
                             }
                         }
