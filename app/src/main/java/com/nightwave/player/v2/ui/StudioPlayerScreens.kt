@@ -213,7 +213,7 @@ fun StudioMiniPlayer(
                 queueCount = state.queue.size)
             val showNext = miniLayout.showNext
             Row(
-                modifier = Modifier.fillMaxWidth().height(miniLayout.rowHeightDp.dp)
+                modifier = Modifier.fillMaxWidth().heightIn(min = miniLayout.rowHeightDp.dp)
                     .padding(start = 8.dp, end = 3.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -1260,34 +1260,13 @@ fun StudioNowPlayingOverlay(
                     }
                 }
                 Spacer(Modifier.height(10.dp))
-                Surface(
-                    onClick = { advancedAudioOpen = !advancedAudioOpen },
-                    modifier = Modifier.fillMaxWidth().height(50.dp),
-                    shape = RoundedCornerShape(15.dp),
-                    color = colors.surfaceVariant.copy(alpha = .58f)
-                ) {
-                    Row(Modifier.fillMaxSize().padding(horizontal = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween) {
-                        Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
-                            Text(strings.get(R.string.nw141_sound_playback_06fb2), style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.SemiBold,
-                                color = colors.onSurface)
-                            Text(strings.get(R.string.nw141_crossfade_sleep_timer_listening_level_73204),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = colors.onSurfaceVariant)
-                        }
-                        Text(if (advancedAudioOpen) strings.get(R.string.nw141_less_ae523) else strings.get(R.string.nw141_more_d47d7),
-                            color = colors.primary,
-                            style = MaterialTheme.typography.labelMedium)
-                    }
-                }
+                NightWaveAudioDetailsHeader(advancedAudioOpen) { advancedAudioOpen = !advancedAudioOpen }
                 if (advancedAudioOpen) {
                 Spacer(Modifier.height(11.dp))
                 Box(Modifier.fillMaxWidth()) {
                     OutlinedButton(
                         onClick = { listeningOptionsOpen = true },
-                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
                         shape = RoundedCornerShape(16.dp)
                     ) {
                         Text(strings.get(R.string.nw141_listening_level_46dec) +
@@ -1314,7 +1293,7 @@ fun StudioNowPlayingOverlay(
                         crossfadeDraft = crossfadeSeconds
                         crossfadeOptionsOpen = true
                     },
-                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Text(if (crossfadeSeconds == 0) strings.get(R.string.nw141_crossfade_off_9ccba)
@@ -1372,7 +1351,7 @@ fun StudioNowPlayingOverlay(
                 Box(Modifier.fillMaxWidth()) {
                     OutlinedButton(
                         onClick = { sleepOptionsOpen = true },
-                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
                         shape = RoundedCornerShape(16.dp)
                     ) {
                         Text(SleepTimerPolicy.label(sleepRemainingMs))
@@ -1423,7 +1402,7 @@ fun StudioNowPlayingOverlay(
                     Box(Modifier.fillMaxWidth()) {
                         OutlinedButton(
                             onClick = { speedOptionsOpen = true },
-                            modifier = Modifier.fillMaxWidth().height(48.dp),
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
                             shape = RoundedCornerShape(16.dp)
                         ) {
                             Text(strings.get(R.string.nw141_offline_playback_speed_e1ba8) +
@@ -1515,7 +1494,6 @@ fun StudioQueueSheet(
         containerColor = MaterialTheme.colorScheme.surface
     ) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 18.dp)) {
-            Text(strings.get(R.string.nw141_your_listening_queue_8e0b7), style = MaterialTheme.typography.headlineSmall)
             val removable = !state.offline && !state.shuffle && state.connected
             val currentIndex = state.queueIndex.takeIf { it in state.queue.indices }
             val pendingUrls = state.manualNextUrls
@@ -1531,6 +1509,13 @@ fun StudioQueueSheet(
             val upcoming = explicitNext + upcomingPool
             val earlier = if (state.shuffle || currentIndex == null) emptyList()
                 else state.queue.withIndex().filter { it.index < currentIndex }
+            LazyColumn(
+                modifier = Modifier.weight(1f, fill = false).fillMaxWidth().testTag("nw142-queue-content"),
+                contentPadding = PaddingValues(bottom = 22.dp),
+                verticalArrangement = Arrangement.spacedBy(7.dp)
+            ) {
+                item(key = "queue-summary") {
+            Text(strings.get(R.string.nw141_your_listening_queue_8e0b7), style = MaterialTheme.typography.headlineSmall)
             Text(
                 when {
                     state.offline -> strings.get(R.string.nw141_queue_offline)
@@ -1561,15 +1546,13 @@ fun StudioQueueSheet(
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Spacer(Modifier.height(13.dp))
-            if (state.queue.isEmpty() || currentIndex == null) {
+                }
+                if (state.queue.isEmpty() || currentIndex == null) {
+                    item(key = "queue-empty") {
                 EmptyMusicCard(strings.get(R.string.nw141_your_queue_is_empty_2d9ac), strings.get(R.string.nw141_play_a_song_to_begin_listening_fd4f7),
                     strings.get(R.string.nw141_close_queue_5433a), onDismiss)
-            } else {
-                LazyColumn(
-                    modifier = Modifier.weight(1f, fill = false),
-                    contentPadding = PaddingValues(bottom = 22.dp),
-                    verticalArrangement = Arrangement.spacedBy(7.dp)
-                ) {
+                    }
+                } else {
                     item(key = "queue-playing-header") {
                         Text(strings.get(R.string.nw141_playing_now_65e1d), style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary)

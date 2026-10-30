@@ -8,6 +8,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -335,12 +338,16 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
     Dialog(onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Surface(
-            modifier = Modifier.fillMaxWidth(.94f).fillMaxHeight(.87f),
+            modifier = Modifier.widthIn(max = NightWaveAdaptiveViewportPolicy.DIALOG_MAX_WIDTH_DP.dp).fillMaxWidth(.94f).fillMaxHeight(.87f),
             shape = RoundedCornerShape(26.dp),
             color = MaterialTheme.colorScheme.surface,
             tonalElevation = 0.dp
         ) {
+            BoxWithConstraints {
+            val headerLimit = NightWaveAdaptiveViewportPolicy.headerMaxHeightDp(maxHeight.value).dp
+            val footerLimit = NightWaveAdaptiveViewportPolicy.footerMaxHeightDp(maxHeight.value).dp
             Column {
+                Box(Modifier.heightIn(max = headerLimit).verticalScroll(rememberScrollState())) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(
                         start = 19.dp, end = 12.dp, top = 15.dp, bottom = 9.dp),
@@ -353,6 +360,7 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                             fontWeight = FontWeight.Bold)
                     }
                     TextButton(onClick = onDismiss) { Text(strings.get(R.string.nw141_close_7d9eb)) }
+                }
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
@@ -713,6 +721,7 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                 }
                 if (advanced) SoundStudioApplyBar(
                     edited = draftEdited, canApply = validManual, busy = busy,
+                    modifier = Modifier.heightIn(max = footerLimit).verticalScroll(rememberScrollState()),
                     onApply = {
                         if (validManual) {
                             val requested = draftLevels.toIntArray()
@@ -723,6 +732,7 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                     },
                     onDiscard = { applySnapshot(resetDraft = true) }
                 )
+            }
             }
         }
     }

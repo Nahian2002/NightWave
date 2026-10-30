@@ -21,11 +21,12 @@ import androidx.compose.ui.unit.dp
 @Composable
 internal fun SoundStudioApplyBar(
     edited: Boolean, canApply: Boolean, busy: Boolean,
-    onApply: () -> Unit, onDiscard: () -> Unit
+    onApply: () -> Unit, onDiscard: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val strings = rememberNightWaveStrings()
     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-    Column(Modifier.fillMaxWidth().padding(horizontal = 17.dp, vertical = 8.dp)
+    Column(modifier.fillMaxWidth().padding(horizontal = 17.dp, vertical = 8.dp)
         .testTag("nw138-apply-bar")) {
         Text(if (busy) strings.get(R.string.nw141_waiting_for_playback_confirmation_9371b)
             else if (!canApply) strings.get(R.string.nw141_manual_eq_unavailable_check_audio_compatibility_e46e6)
