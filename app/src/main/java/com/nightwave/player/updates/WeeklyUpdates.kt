@@ -84,7 +84,7 @@ internal object WeeklyUpdates {
 
     suspend fun download(c: Context, u: ApprovedUpdate, progress: (Int) -> Unit): File = withContext(Dispatchers.IO) {
         val folder = File(c.cacheDir, "approved-updates").apply { mkdirs() }
-        val part = File(folder, "download.part"); val apk = File(folder, "approved.apk")
+        val part = File(folder, "download.part.apk"); val apk = File(folder, "approved.apk")
         part.delete(); apk.delete()
         try {
             var url = u.url
