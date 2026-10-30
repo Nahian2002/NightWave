@@ -12,8 +12,8 @@ Replanned 29 October 2026 from the [latest owner recording review](../audits/202
 | 4 | NW137 | Locally verified, 30 Oct | Guided owned-LRC import, explicit binding and readable synchronized lyrics. |
 | 5 | NW138 | Locally verified, 30 Oct | Clear active versus draft sound, accessible advanced controls and reachable Apply. |
 | 6 | NW139 | Locally verified source, 30 Oct | Compact optional recovery and disposable backup/restore plan; live account operations require the owner's explicit scope. |
-| 7 | NW140 | Next eligible scheduled run | Android measurement harness, trace-based improvements and real startup/search/playback evidence. |
-| 8 | NW141 | After NW140 source work | Accessibility and Bangla/English primary flows; actual TalkBack/font/contrast acceptance. |
+| 7 | NW140 | Measurement tools locally verified, 30 Oct | Opt-in Android diagnostics and strict evidence analysis; actual traces/performance and any justified production optimization remain NOT_RUN. |
+| 8 | NW141 | Next eligible scheduled run | Accessibility and Bangla/English primary flows; actual TalkBack/font/contrast acceptance. |
 | 9 | NW142 | After NW141 | Narrow/large-text/landscape/tablet/input coverage and targeted layout fixes. |
 | 10 | NW143 | After NW142 | Clear first-run/failure/privacy/recovery journeys with retained capabilities. |
 | 11 | NW144 | After NW143 | Existing notification/widget/external controls and share roundtrips. |
@@ -35,9 +35,13 @@ Start only when the full completion envelope fits. Insufficient five-hour allowa
 
 Before each scheduled batch, read the actual Codex weekly usage limit. Stop when **10% or less remains** (90% or more consumed), preserving work and honestly recording unfinished checks. Delete the hourly automation and notify the owner; do not restart automatically after reset. Check again after implementation, before expensive validation/publishing and at least every 10 minutes during long batches. If the weekly limit cannot be read, skip upgrades until it can be verified. These periodic checks are not an instantaneous account-wide cap; other chats share the allowance. This rule controls scheduled work and does not change the app.
 
+## NW140 results
+
+[Measurement readiness and exact artifacts](../NW140_ANDROID_PERFORMANCE.md); [required device slot/protocol](../NW140_DEVICE_RUNBOOK.md). Production player bytes unchanged; no measured speedup. Two new Android diagnostics compile/assemble only, ten supplemental/original/prior physical/performance cases NOT_RUN. NW141 source is next under the independent-work rule.
+
 ## NW139 results
 
-[Recovery source and exact build](../NW139_RECOVERY.md); [disposable live procedure](../NW139_RECOVERY_LIVE_PROCEDURE.md). Ten new Android methods compile only; ten supplemental/original/prior phone and account cases remain NOT_RUN. No live app archive operation was performed. NW140 is next.
+[Recovery source and exact build](../NW139_RECOVERY.md); [disposable live procedure](../NW139_RECOVERY_LIVE_PROCEDURE.md). Ten new Android methods compile only; ten supplemental/original/prior phone and account cases remain NOT_RUN. No live app archive operation was performed. NW140 follows this historical stage and its source readiness is locally verified above.
 
 ## NW138 results
 

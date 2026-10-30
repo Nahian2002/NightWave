@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "protocol_id": "NW140_DEVICE_ACCEPTANCE_V1",
+  "status": "NOT_RUN",
+  "fixture": "Owner-approved isolated 10000-item corpus and owned/authorized local audio",
+  "evidence_identity": [
+    "source_sha256",
+    "apk_sha256",
+    "signer_sha256",
+    "device_model_android_build",
+    "runtime_compilation",
+    "display_refresh_font_theme",
+    "thermal_power_output_route",
+    "raw_artifact_hashes"
+  ],
+  "budgets": {
+    "flagship": {
+      "cold_fully_interactive_p95_ms": 2000,
+      "warm_resume_p95_ms": 300,
+      "local_input_to_display_p95_ms": 250
+    },
+    "midrange": {
+      "cold_fully_interactive_p95_ms": 3000,
+      "warm_resume_p95_ms": 500,
+      "local_input_to_display_p95_ms": 400
+    },
+    "minimum_startup_and_typing_samples_per_condition": 20,
+    "minimum_local_next_audible_samples": 100,
+    "warm_local_next_audible_p95_ms": 250,
+    "frame_deadline_misses_target_percent": 1,
+    "integration_soak_minutes": 60,
+    "final_mixed_soak_per_reference_minutes": 120,
+    "relative_cpu_memory_battery_regression_requires_investigation_percent": 10
+  },
+  "required_cases": [
+    "cold TTID and TTFD separately",
+    "warm resume separately",
+    "actual user input to correct displayed result including debounce",
+    "100 Next intent to independently measured audible start",
+    "Perfetto/frame/GC/allocation/startup-scroll-typing-route traces",
+    "retained-memory route cycles",
+    "matched-power CPU/memory/battery",
+    "60-minute integration playback"
+  ],
+  "diagnostic_limits": {
+    "art_runner": "Includes real production delay/dispatch/search; prepared index; excludes full UI, input/display and startup",
+    "compose_fixture": "Auto-advancing Compose clock and automation/scroll/debug overhead; no real keystroke-to-display budget pass",
+    "frames": "Entire diagnostic fixture including setup/warmups; first-draw exclusions explicit; missing deadlines/drops/truncation/low counts return unknown",
+    "identity": "Receipts are structurally checked; claimed execution is not authenticated by JSON alone"
+  },
+  "automation": "No device installation/reset/uninstall/launch/force-stop/instrumentation or account action is executed by preparation/analysis tools. Owner approves the actual device test slot separately.",
+  "rating": "NOT_ASSESSED"
+}

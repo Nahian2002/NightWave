@@ -1,20 +1,20 @@
 # NightWave
 
-**Upcoming updates:** [hourly sequence and both usage guards](docs/quality/UPCOMING_UPDATES.md). NW139 recovery source is locally verified; NW140 Android performance is next. One eligible batch per run with actual evidence recorded.
+**Upcoming updates:** [hourly sequence and both usage guards](docs/quality/UPCOMING_UPDATES.md). NW140 measurement tools are locally verified; NW141 accessibility/Bangla-English source work is next. Actual Android performance remains unmeasured.
 
-**Current review work:** [NW139 optional recovery](docs/NW139_RECOVERY.md) on [update/nightwave-nw139-recovery](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw139-recovery), [draft PR #161](https://github.com/Nahian2002/NightWave/pull/161), stacked on [NW138 #160](https://github.com/Nahian2002/NightWave/pull/160). Compact account flow, clearer progress, exact access/consent fences and a fix for extra uploads after failed backup comparisons. Existing features/themes, scopes, archive formats, source quality, package and signer remain.
+**Current review work:** [NW140 measurement readiness](docs/NW140_ANDROID_PERFORMANCE.md) on [update/nightwave-nw140-performance](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw140-performance), stacked on [NW139 #161](https://github.com/Nahian2002/NightWave/pull/161). Explicit isolated Android diagnostics, exact app/test artifact identity and strict evidence analysis. All 344 production app/src/main files are unchanged; no player feature/theme/data/source/signing change or measured speedup is claimed.
 
 **Current integrated source:** [`main`](https://github.com/Nahian2002/NightWave/tree/main) remains the integrated baseline; newer cumulative changes are on the review branch above and are not automatically merged.
 
-**30 October 2026 verification:** **1,803 JVM tests / 222 suites**, **79 source checks**, full Android/Compose/APK/instrumentation-source build PASS. Sequential lint: **0 errors / 322 warnings / 17 hints**, unchanged notice inventory. Build **NW-debug-238C337491E75208**, same signer. Ten new Android methods compile only. Actual disposable-account recovery and phone acceptance remain NOT_RUN; [prepared live procedure](docs/NW139_RECOVERY_LIVE_PROCEDURE.md). [Exact evidence and remaining gates](TEST_REPORT.md).
+**30 October 2026 verification:** **1,803 JVM tests / 222 suites**, **81 source checks**, full Windows Android/Compose/APK/instrumentation-source build and separate diagnostic test APK assembly PASS. Sequential lint: **0 errors / 322 warnings / 17 hints**, unchanged notice inventory. Build **NW-debug-2B3F3E0DD6C787B1**, same signer. Two new Android diagnostics compile/assemble only; no phone test executed. [Device runbook](docs/NW140_DEVICE_RUNBOOK.md), [exact evidence](TEST_REPORT.md).
 
-**Active next-upgrade plan:** [NW126–NW145 roadmap](docs/PRODUCT_QUALITY_ROADMAP.md), [structured backlog](docs/quality/NW126_NW145_BACKLOG.json), [original audit](docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md). **Next source batch: NW140.** NW126–NW139 and focused follow-ups are locally verified with physical acceptance pending. Historical ratings remain evidence; passing local checks does not establish a new 9.5 score.
+**Active next-upgrade plan:** [NW126–NW145 roadmap](docs/PRODUCT_QUALITY_ROADMAP.md), [structured backlog](docs/quality/NW126_NW145_BACKLOG.json), [original audit](docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md). **Next source batch: NW141.** NW140 completes source measurement readiness; original startup/search/audio/frame/memory/battery/soak acceptance remains NOT_RUN. Historical ratings remain evidence; passing local checks does not establish a new 9.5 score.
 
 **Public release: NO-GO.** Installed-phone signer continuity, Samsung acceptance, production OAuth/Drive restore and source-rights review remain separate gates. A successful build does not authorize distribution or certify phone behavior.
 
 ## Start here
 
-- **[Current recovery evidence and phone/account checks](docs/NW139_RECOVERY.md)** · [safe upgrade guide](docs/BUILD_AND_RELEASE.md)
+- **[Current measurement readiness and device checks](docs/NW140_ANDROID_PERFORMANCE.md)** · [safe upgrade guide](docs/BUILD_AND_RELEASE.md)
 - **[Active quality roadmap and revised sequence](docs/PRODUCT_QUALITY_ROADMAP.md)** · [structured backlog](docs/quality/NW126_NW145_BACKLOG.json) · [80 new acceptance cases](docs/quality/NW126_NW145_ACCEPTANCE.csv)
 - [NW111–NW125 implementation history and remaining gates](docs/NW111_NW125_SPOTIFY_QUALITY_ROADMAP.md)
 - [Build and safe update instructions](docs/BUILD_AND_RELEASE.md)

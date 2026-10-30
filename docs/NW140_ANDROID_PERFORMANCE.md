@@ -1,4 +1,4 @@
-# NW140 Android performance measurement plan
+# NW140 Android performance measurement readiness
 
 Protected parent `923d7f8179efe1c6445e68dc199522504de50657`, cumulative NW139 #161. Private checkpoint `20261030-nw140-performance` contains the baseline bundle and exact working bytes. No overlapping process, uncommitted work or connected device was present at admission.
 
@@ -11,3 +11,29 @@ Protected parent `923d7f8179efe1c6445e68dc199522504de50657`, cumulative NW139 #1
 Research: Android recommends external Macrobenchmark for controlled app-wide startup/UI measurement; the isolated diagnostic here is deliberately labeled separately. TTID and fully interactive TTFD are distinct. Frame deadline data and Perfetto traces must retain their capture context. Primary references: https://developer.android.com/topic/performance/benchmarking/benchmarking-overview ; https://developer.android.com/topic/performance/issues/launch-time ; https://developer.android.com/tools/perfetto ; https://developer.android.com/reference/android/view/FrameMetrics .
 
 The admission estimate remains 60% plus 15% reserve, not lowered to fit the prior window. Recheck both shared limits after implementation/before expensive phases and at least every ten minutes. Physical measurement, not source completion, governs performance claims.
+
+## Source delivery and limits
+
+This delivery prepares opt-in Android diagnostics and a strict private receipt analyzer. **It does not optimize the production player or certify Android performance.** The original NW140 startup, real input/display, audible Next, Perfetto/memory/power/soak acceptance stays NOT_RUN. No baseline profile or speculative cache/IO change is included. Independent NW141 source work follows under the existing roadmap rule.
+
+The ART diagnostic uses the real snapshot/index/query runner with a wall-clock runBlocking event loop, including its 120ms delay but excluding index construction and full UI. The second diagnostic uses the actual Search screen/controller/index and verifies the correct last-corpus row after scrolling; the auto-advancing Compose clock and test-driver/debug/scroll overhead are explicit, so it cannot pass a real input-to-display budget. Both require explicit nw140Measure=true and unique isolated stores, with no external search/media/account actions.
+
+Frame snapshots are copied and bounded at 10,000 observations for the whole fixture, including setup/warmups. First-draw exclusions and missing deadlines/dropped callbacks/truncation are retained; fewer than 100 eligible complete observations yield an unknown rate. Diagnostic frame data never certifies app-wide jank. Receipt samples/hashes/environments/harness must match; raw values and nearest-rank p50/p95 remain, without timing assertions or rating authority. JSON structure alone does not authenticate device execution.
+
+[Device runbook](NW140_DEVICE_RUNBOOK.md), [frozen protocol/targets](quality/NW140_DEVICE_PROTOCOL.json), [ten supplemental cases](quality/NW140_PERFORMANCE_ACCEPTANCE.csv). The private kit contains the app APK, separately signed/identified test APK, analyzer, prepared identity and instructions. Nothing installs or executes automatically. Actual device work needs an owner-approved physical target/profile and measurement slot.
+
+## Exact local verification
+
+- Protected parent `923d7f8179efe1c6445e68dc199522504de50657`; committed plan `90acd22bf6d306d1c53b7dfe6fe462befa00f6dc`; implementation `3c9f7781153ce126d5117029b39e15374e775581`.
+- Full Windows builder PASS: **1,803 JVM tests / 222 suites**, zero failures/errors/skips, Android/Compose/APK and instrumentation-source compilation. JVM inventory unchanged; new evidence self-tests reject **20** identity/sample/runtime/environment fixtures and exercise positive/partial-frame math.
+- **81 current source checks PASS_SOURCE_ONLY**, including the new evidence and negative caller checks. Diagnostic test APK separately assembled. **Two new Android diagnostic methods compile/assemble only, NOT_RUN**.
+- Sequential lint PASS: **0 errors / 322 warnings / 17 hints**, unchanged notice inventory, no suppression. Existing unchanged Library compiler condition warning remains historical.
+- **939 prior canonical inputs byte-identical**, only the current-check runner edited, three additions, **943 final inputs**. All **344 app/src/main files** are byte-identical; dependency/build/manifest/package/data/source-quality/theme/account/signing contracts unchanged. No production optimization or measured speedup inferred.
+- Implementation-stage all-ref Gitleaks: **3,569 commits**, no leaks; reviewed exclusions unchanged. Private recovery, package/target/signers and owner-only app/kit permission plus streamed bytes/SHA readback verified.
+- Build **NW-debug-2B3F3E0DD6C787B1**; canonical source **2B3F3E0DD6C787B1EFF0071979C60F5033BF6A4CF974A6316AB1FA9AF1943EBE**. App APK **82ABC29DB2D91B46D31C0CBD801E464E7F4E52BD46AAC98ABB6B1019FBC12F87**, **33,844,842 bytes**.
+- Diagnostic APK `com.nightwave.player.test`, target `com.nightwave.player`: **55B9187A957AA37160C601F87663AE6EAE2D5C14B5530974A54D637F1F54A652**, **1904636 bytes**. Both signer SHA256 **EA737A703B8F116EBC5C8C0A717DDBF3A2A5808ACC9079A8F79CD1B3CD860394**, matching the actual previous NW139 app APK. App `2.0.0-alpha5s` / code35 unchanged.
+- Private kit **0DF9CB0A50C15C0DAC2E6BB614EEA08D8700FC2522E0CAEAE79171541F7D78FE**, **27,093,544 bytes**, eight entries individually byte/CRC verified. Original 219-case pack and measurement identity are PREPARED_NOT_EXECUTED; all supplemental/original/prior physical cases remain NOT_RUN.
+
+An initial successful build/test-APK/lint set is retained privately before review tightened listener cleanup to avoid double removal and made fixture-name tracking concurrent. All final identities/checks above use the refined source. No Android benchmark or physical performance value was manufactured from either build.
+
+Primary measurement references: [Android benchmarking](https://developer.android.com/topic/performance/benchmarking/benchmarking-overview), [startup timing](https://developer.android.com/topic/performance/issues/launch-time), [Perfetto](https://developer.android.com/tools/perfetto), [FrameMetrics](https://developer.android.com/reference/android/view/FrameMetrics). Their app-wide guidance is separate from this isolated diagnostic's limited scope.
