@@ -5,7 +5,7 @@
   "audit": "docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md",
   "implementation_base_revision": "61703c98238e762e59c049b6690853431f822884",
   "audit_branch": "audit/nightwave-post-nw125-quality-roadmap",
-  "next_batch": "NW140",
+  "next_batch": "NW141",
   "goal": "9.5+ within the declared NightWave music-player scope, conditional on actual product and acceptance evidence",
   "rating_kind": "Subjective comparative product review, not a measured Spotify score",
   "baseline_weighted_score": 6.655,
@@ -846,7 +846,7 @@
         "NW134",
         "NW136"
       ],
-      "implementation_status": "PLANNED",
+      "implementation_status": "LOCAL_VERIFIED",
       "device_status": "NOT_RUN",
       "finding_ids": [
         "Q03",
@@ -858,7 +858,9 @@
         "v2/ui/NightWaveStudioActivity.kt",
         "library/MusicLibrary.kt",
         "search indexing",
-        "Android benchmark/profile configuration"
+        "Android benchmark/profile configuration",
+        "androidTest/v2/ui/NW140PerformanceDiagnostic.kt",
+        "tools/nw140_measurements.py"
       ],
       "acceptance_criteria": [
         "Measure reference-device cold fully drawn/warm resume and 10k input-to-results p50/p95 including debounce; compare matched before/after and the declared budgets.",
@@ -866,10 +868,40 @@
         "Capture Perfetto/frame, allocation/GC and retained-memory evidence for startup, scroll, rapid typing and route cycles; prioritize actual main-thread IO/index hotspots.",
         "Run matched-power playback/battery and at least 60-minute integration soak; baseline profiles or caching have measured benefit without stale data or unbounded retained memory."
       ],
-      "implementation_commit": null,
-      "local_evidence": [],
+      "implementation_commit": "3c9f7781153ce126d5117029b39e15374e775581",
+      "local_evidence": [
+        "1803 JVM tests / 222 suites, zero failures/errors/skips; unchanged JVM inventory",
+        "81 current source checks PASS_SOURCE_ONLY; new strict receipt math/identity/sample/environment negatives (20 rejected) and caller fixtures",
+        "Full Windows Android/Compose/APK/instrumentation-source build; diagnostic test APK separately assembled and signer/target verified",
+        "Sequential lint 0 errors / 322 warnings / 17 hints; unchanged inventory without suppression",
+        "939 prior canonical inputs identical, current-check runner only edited, three additions; all 344 app/src/main bytes and build/dependency/manifest contracts unchanged",
+        "3569-commit all-ref Gitleaks no leaks; exact APK/test/source, private recovery and owner-only streamed app/kit bytes/hash verified"
+      ],
       "device_evidence": [],
-      "remaining_blockers": []
+      "remaining_blockers": [
+        "Two new opt-in Android diagnostic methods, ten supplemental/original/prior physical cases NOT_RUN; no device attached or instrumented",
+        "Controlled cold TTID/TTFD/warm resume, real input-to-display, 100 local Next-to-audible, Perfetto/allocations/memory/power and 60-minute integration/final two-hour soaks remain required",
+        "ART query runner is a prepared-index diagnostic; Compose auto clock/test-driver/scroll/debug overhead does not certify production latency",
+        "Frame scope includes setup/warmups; partial/unknown/dropped/truncated/low-count data stays unknown; no production jank grade",
+        "Actual production optimization/baseline profile changes need measured evidence; source readiness earns no speedup or final rating"
+      ],
+      "implementation_scope": "MEASUREMENT_READINESS_ONLY; no production optimization or device performance certification",
+      "performance_status": "NOT_RUN",
+      "protected_parent": "923d7f8179efe1c6445e68dc199522504de50657",
+      "branch": "update/nightwave-nw140-performance",
+      "plan_commit": "90acd22bf6d306d1c53b7dfe6fe462befa00f6dc",
+      "build_id": "NW-debug-2B3F3E0DD6C787B1",
+      "source_sha256": "2B3F3E0DD6C787B1EFF0071979C60F5033BF6A4CF974A6316AB1FA9AF1943EBE",
+      "apk_sha256": "82ABC29DB2D91B46D31C0CBD801E464E7F4E52BD46AAC98ABB6B1019FBC12F87",
+      "evidence": [
+        "docs/NW140_ANDROID_PERFORMANCE.md",
+        "docs/NW140_DEVICE_RUNBOOK.md",
+        "docs/quality/NW140_DEVICE_PROTOCOL.json",
+        "docs/quality/NW140_PERFORMANCE_ACCEPTANCE.csv",
+        "TEST_REPORT.md"
+      ],
+      "test_apk_sha256": "55B9187A957AA37160C601F87663AE6EAE2D5C14B5530974A54D637F1F54A652",
+      "pull_request": "https://github.com/Nahian2002/NightWave/pull/162"
     },
     {
       "id": "NW141",

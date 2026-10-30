@@ -16,6 +16,8 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 PYTHON_CHECKS = (
+    ("nw140_measurements.py", "--self-test"),
+    ("verify_nw140_performance.py", "--self-test"),
     ("verify_nw139_recovery.py", "--self-test"),
     ("verify_nw138_sound_studio.py", "--self-test"),
     ("verify_offline_finish.py", "--self-test"),

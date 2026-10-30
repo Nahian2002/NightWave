@@ -1,0 +1,11 @@
+case_id,area,scenario,status,evidence
+NW140-S01,Identity/setup,Bind real baseline/candidate APK/source/signer and test APK/harness hash; approved device/profile; installed data preserved; exact comparable environment.,NOT_RUN,
+NW140-S02,ART diagnostic,"Explicit nw140Measure=true only: real runner over isolated 10k corpus, four warmups and 20 samples per language case; raw source-bound receipts; no production budgets inferred.",NOT_RUN,
+NW140-S03,Compose/frame diagnostic,Actual screen/controller/index with isolated stores; correct last-corpus row; auto clock/scroll overhead explicit; bounded copied frame data/drop/unknown/first-draw handling; no app-wide jank claim.,NOT_RUN,
+NW140-S04,Startup,At least 20 owner-controlled cold/warm runs per condition; independently distinguish initial display from fully interactive UI; compare distributions and frozen reference targets.,NOT_RUN,
+NW140-S05,Actual input/search,10k actual listener-task fixture; at least 20 correct input-to-visible-result measurements including real debounce; rapid typing/cancellation/local edit and selected-song invariants.,NOT_RUN,
+NW140-S06,Next-to-audio,At least 100 owned local Next intents to independently captured audible start; separate network/cold decode/natural transitions and output route; wrong-song check.,NOT_RUN,
+NW140-S07,Trace/retention,Perfetto/frame/GC/allocation and retained-memory receipts for startup/scroll/typing/route cycles; matched controls and no observer overhead hidden.,NOT_RUN,
+NW140-S08,Power/soak,Matched power/volume/route/thermal CPU/memory/battery plus 60-minute integration playback; no crash/ANR/queue defect; two-hour final reference soaks remain separate.,NOT_RUN,
+NW140-S09,Evidence negatives,"Reject wrong artifacts, missing/duplicate/incorrect samples, host-vs-ART clock confusion and unmatched environment/harness; unknown frame data never becomes zero jank.",NOT_RUN,
+NW140-S10,Optimization admission,Change production IO/cache/profile only after a reproducible trace identifies a hotspot and matched evidence supports benefit; preserve fresh data and all product boundaries.,NOT_RUN,
