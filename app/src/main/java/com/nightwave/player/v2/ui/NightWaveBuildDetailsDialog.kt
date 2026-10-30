@@ -69,11 +69,17 @@ fun NightWaveBuildDetailsDialog(onDismiss: () -> Unit) {
 @Composable
 internal fun NightWaveBuildDetailsContent(identity: BuildIdentity?, text: String?,
     onDismiss: () -> Unit, onCopy: (String) -> Unit) {
+    val updateContext = LocalContext.current
     AlertDialog(onDismissRequest = onDismiss,
         title = { Text("App details") },
         text = {
             Column(Modifier.heightIn(max = 440.dp).verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                TextButton(onClick = {
+                    updateContext.startActivity(android.content.Intent(updateContext,
+                        com.nightwave.player.updates.WeeklyUpdateActivity::class.java))
+                    onDismiss()
+                }) { Text(updateContext.getString(com.nightwave.player.R.string.weekly_check)) }
                 Text("Use this build ID when reporting an issue or recording a test.")
                 if (identity != null) Text(identity.displayId, fontFamily = FontFamily.Monospace,
                     modifier = Modifier.testTag("nw126-build-id"))

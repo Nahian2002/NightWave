@@ -855,6 +855,7 @@ class NightWaveStudioActivity : ComponentActivity() {
             roomReadStatus = "Original library reads remain active."
         }
         profile = profiles.load()
+        com.nightwave.player.updates.WeeklyUpdates.onOpen(this)
         refresh()
         setContent {
             // Display only. The media service remains the single timer owner,

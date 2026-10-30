@@ -73,7 +73,7 @@ Assert-NW52Marker $activity 'openSearch = { navigateToTab(StudioTab.SEARCH) }' '
 Assert-NW52Marker $activity 'NightWaveHomeLayoutPolicy.EmptyRecentDestination.SEARCH ->' 'Home empty-state Search routing'
 Assert-NW52Marker $activity 'openSearch()' 'Home empty-state real Search navigation'
 Assert-NW52Marker $activity 'Icons.Outlined.Search, "nw47-home-search", openSearch)' 'Home Search shortcut'
-Assert-NW52Marker $activity '.height(48.dp)) {' 'restorable mini-player tap targets'
+Assert-NW52Marker $activity '.heightIn(min = 48.dp)) {' 'restorable mini-player tap targets'
 # NW127 preserves removal behind explicit overflow; do not require the old permanent X row.
 Assert-NW52Marker $recentCard 'onClick = { showActions = false; onRemove() }' 'recent removal distinct from playback'
 Assert-NW52Marker $recentCard 'DropdownMenu(expanded = showActions' 'explicit recent management disclosure'
