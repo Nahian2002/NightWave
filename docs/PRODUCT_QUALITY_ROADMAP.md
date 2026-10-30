@@ -2,6 +2,10 @@
 
 Established **28 October 2026**, after the owner's post-NW125 recording review. **This is the active plan for future upgrade batches.** NW111–NW125 implementation history is retained in [the previous roadmap](NW111_NW125_SPOTIFY_QUALITY_ROADMAP.md); unresolved device/release gates carry forward.
 
+## NW142 interruption
+
+Hourly upgrades stopped and the automation was deleted at the weekly10% reserve. NW142 is checkpointed locally, validation incomplete; explicit owner resumption is required. See [pending work](NW142_ADAPTIVE_LAYOUTS.md). Last completed review is NW141 #163.
+
 ## Start here in every future chat
 
 1. Read [the detailed audit and scorecard](audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md), [the structured batch backlog](quality/NW126_NW145_BACKLOG.json), and [current verification](../TEST_REPORT.md).
@@ -149,3 +153,7 @@ All NW126–NW145 acceptance rows originally began NOT_RUN; the current CSV reco
 [Exact results/source/APK](NW141_ACCESSIBILITY_BILINGUAL.md), [device runbook](NW141_DEVICE_RUNBOOK.md), [supplemental cases](quality/NW141_ACCESSIBILITY_ACCEPTANCE.csv). 442 strings/four quantities with matched Bangla; locale presentation/full Unicode/headings/independent-action callers. Full builder, 1,808 JVM / 223 suites, 82 current source checks; sequential lint 0 errors / 322 warnings / 17 hints, unchanged inventory. Same package/signer; no feature/theme/source/data/account boundary removal. Four new Android methods compile only; ten supplemental/original/prior physical gates NOT_RUN. Native-speaker and complete native/advanced copy acceptance remain open. No new rating. Next NW142, then NW143–NW145.
 
 Cumulative [NW141 draft PR #163](https://github.com/Nahian2002/NightWave/pull/163) is attached for review; unmerged.
+
+## 31 October owner override result
+
+Preserved NW142 source is now cumulatively host-verified with the [weekly updater](WEEKLY_UPDATER.md) (see TEST_REPORT.md):1817 JVM/226 suites,84 source checks,full Windows builder and serial lint PASS. All physical cases remain NOT_RUN. Updater stable feed disabled pending explicit public-release/main approval. The one-time allowance override does not restart hourly automation. Next independent roadmap source batch NW143.

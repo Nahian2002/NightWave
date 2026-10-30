@@ -5,7 +5,7 @@
   "audit": "docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md",
   "implementation_base_revision": "61703c98238e762e59c049b6690853431f822884",
   "audit_branch": "audit/nightwave-post-nw125-quality-roadmap",
-  "next_batch": "NW142",
+  "next_batch": "NW143",
   "goal": "9.5+ within the declared NightWave music-player scope, conditional on actual product and acceptance evidence",
   "rating_kind": "Subjective comparative product review, not a measured Spotify score",
   "baseline_weighted_score": 6.655,
@@ -975,7 +975,7 @@
         "NW128",
         "NW141"
       ],
-      "implementation_status": "PLANNED",
+      "implementation_status": "LOCAL_VERIFIED",
       "device_status": "NOT_RUN",
       "finding_ids": [
         "Q03",
@@ -994,10 +994,26 @@
         "Use navigation/gesture Back, hardware keyboard focus and external input; independent actions and focus order remain predictable.",
         "Default and compact density use available space intentionally; large-type/tablet reflow adapts structure rather than shrinking labels to fit."
       ],
-      "implementation_commit": null,
-      "local_evidence": [],
+      "implementation_commit": "1556d0d610800e8e85aab0d3eb5e9c770e73385c",
+      "local_evidence": [
+        "Cumulative weekly-updater code36 full Windows build;1817 JVM/226 suites;84 source checks;serial lint0 errors/324 warnings/17 hints(two updater style suggestions)",
+        "Final queue method and144 profile cases compile only; all physical cases remainNOT_RUN"
+      ],
       "device_evidence": [],
-      "remaining_blockers": []
+      "remaining_blockers": [
+        "145 new Android cases compile only; actual profile/IME/picker/rotation/Back/hardware input/contrast/data checks NOT_RUN",
+        "Original and prior physical/release gates remain open"
+      ],
+      "branch": "update/nightwave-nw142-adaptive",
+      "protected_parent": "e400a8b15cefcd8d56ef8e99dbd225edeec9d680",
+      "evidence": [
+        "docs/NW142_ADAPTIVE_LAYOUTS.md",
+        "docs/WEEKLY_UPDATER.md",
+        "TEST_REPORT.md"
+      ],
+      "execution_status": "SOURCE_VERIFIED_WITH_WEEKLY_UPDATER_OVERRIDE",
+      "validation_status": "HOST_PASS_DEVICE_NOT_RUN",
+      "plan_commit": "7007a50da9b822cd7ca96a5568e40b55130a50d1"
     },
     {
       "id": "NW143",
@@ -1765,5 +1781,17 @@
       "on_mid_batch_shortage": "Preserve safe checkpoint and truthful incomplete validation; stop further upgrade work and wait for reset; never deliver unfinished builds",
       "scope": "Periodic shared-account safeguard; observations are not exact per-batch costs or a guaranteed instantaneous cutoff"
     }
+  },
+  "weekly_updater": {
+    "implementation_status": "LOCAL_VERIFIED",
+    "activation_status": "DISABLED_PENDING_PUBLICATION_APPROVAL",
+    "branch": "update/nightwave-weekly-updater",
+    "evidence": [
+      "docs/WEEKLY_UPDATER.md",
+      "TEST_REPORT.md"
+    ],
+    "build_id": "NW-debug-4085DB540B6787AA",
+    "version_code": 36,
+    "pull_request": "https://github.com/Nahian2002/NightWave/pull/164"
   }
 }

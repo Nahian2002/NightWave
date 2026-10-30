@@ -3,6 +3,10 @@ package com.nightwave.player.v2.ui
 import com.nightwave.player.R
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -134,7 +138,10 @@ internal fun NightWaveAccountHubDialog(
             color = MaterialTheme.colorScheme.surface,
             tonalElevation = 0.dp
         ) {
+            BoxWithConstraints {
+            val headerLimit = NightWaveAdaptiveViewportPolicy.headerMaxHeightDp(maxHeight.value).dp
             Column {
+                Box(Modifier.heightIn(max = headerLimit).verticalScroll(rememberScrollState())) {
                 Row(Modifier.fillMaxWidth().padding(
                     start = 19.dp, end = 11.dp, top = 17.dp, bottom = 11.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -147,6 +154,7 @@ internal fun NightWaveAccountHubDialog(
                             fontWeight = FontWeight.Bold)
                     }
                     TextButton(onClick = onDismiss) { Text(strings.get(R.string.nw141_close_7d9eb)) }
+                }
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 LazyColumn(
@@ -435,6 +443,7 @@ internal fun NightWaveAccountHubDialog(
                         }
                     }
                 }
+            }
             }
         }
     }

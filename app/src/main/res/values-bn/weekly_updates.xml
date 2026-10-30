@@ -1,0 +1,15 @@
+<resources>
+    <string name="weekly_updates_title">NightWave আপডেট</string>
+    <string name="weekly_update_available">আপডেট পাওয়া গেছে</string>
+    <string name="weekly_checking">অনুমোদিত আপডেট খোঁজা হচ্ছে…</string>
+    <string name="weekly_weekly_notice">প্রতি সাত দিনে সর্বোচ্চ একবার শুধু সর্বশেষ অনুমোদিত সংস্করণের প্রস্তাব দেখানো হয়।</string>
+    <string name="weekly_latest">আপনার কাছে সর্বশেষ অনুমোদিত সংস্করণ আছে।</string>
+    <string name="weekly_ready">যাচাই করা হয়েছে ও প্রস্তুত। Android আপনাকে NightWave থেকে আপডেটের অনুমতি দিতে এবং ইনস্টল নিশ্চিত করতে বলতে পারে।</string>
+    <string name="weekly_failed">আপডেট শেষ করা যায়নি। ইনস্টল করা অ্যাপ ও গান অপরিবর্তিত আছে। আবার চেষ্টা করুন।</string>
+    <string name="weekly_install">আপডেট ইনস্টল করুন</string>
+    <string name="weekly_update_now">এখন আপডেট করুন</string>
+    <string name="weekly_retry">আবার চেষ্টা করুন</string>
+    <string name="weekly_later">পরে</string>
+    <string name="weekly_check">আপডেট খুঁজুন</string>
+    <string name="weekly_downloading">ডাউনলোড হচ্ছে · %1$d%%</string>
+</resources>

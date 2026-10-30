@@ -1,5 +1,16 @@
 # NightWave continuity instructions
 
+## Current owner-requested weekly updater
+
+Read docs/WEEKLY_UPDATER.md and TEST_REPORT.md first. Current cumulative branch `update/nightwave-weekly-updater` includes preserved NW142 plus the weekly updater. One-time weekly reserve override authorized this task only; hourly automation stays deleted. Code36 build NW-debug-4085DB540B6787AA:1817 JVM/226 suites,84 source checks,lint0 errors/324 warnings/17 hints(two new style suggestions). Same package/signer; private APK readback verified,17 old Drive APKs deleted with local recovery retained. Signed stable feed remains disabled; no public APK or main merge. Activation requires explicit owner approval. All phone/physical tests NOT_RUN. Historical interruption notes below retain what was incomplete at that time; their host checks are now superseded by this cumulative verification.
+
+## Weekly reserve stop — 30 October 2026
+
+Hourly automation `nightwave-sequential-upgrades` was **deleted** when the verified weekly window reached **10% remaining**. Do not restart after reset without a new owner request. Preserve and resume the unfinished NW142 batch before advancing: branch `update/nightwave-nw142-adaptive`, plan `7007a50da9b822cd7ca96a5568e40b55130a50d1`, implementation `1556d0d610800e8e85aab0d3eb5e9c770e73385c`. Private recovery/evidence: `20261030-nw142-adaptive` outside Git. No NW142 APK, PR, push, merge or delivery was performed.
+
+Initial JVM/Android compilation passed (1,812 JVM / 224 suites, zero failures/errors/skips), before the final queue test was added. The initial current-source runner **FAILED one of 83 checks**: `check-nw52-integration.ps1`, “restorable mini-player tap targets” marker, following the fixed-height-to-minimum-height change. This is not repaired or re-verified. The final queue test has not compiled. Full Windows builder, final source checks, sequential lint, APK/source/signer/delivery verification and all physical/input/profile cases are **NOT_RUN / pending**. No new rating or acceptance is earned. Last fully verified delivery remains NW141, draft #163.
+
+
 Before choosing or implementing an upgrade, read:
 
 1. `docs/PRODUCT_QUALITY_ROADMAP.md` — active product plan and next batch.
@@ -43,3 +54,5 @@ Source is public on canonical `main` after explicit owner authorization. Read SO
 ## Historical repository publication preparation
 
 The owner explicitly requires no app changes for public-repository preparation. On `audit/nightwave-public-source-preparation`, preserve all `app/`, `tools/`, Gradle/build inputs, package/signing identity and installed data at NW130 parent `fb8f0455c6903249ab85299a76566153a2b8d2a7`. Read [SOURCE_PUBLICATION.md](SOURCE_PUBLICATION.md). Work is limited to repository workflows, documentation and publication controls. Dependency advisories and provider/rights issues must be recorded without silently changing features or libraries. Do not switch visibility, delete/rewrite history or publish binaries as an incidental cleanup step. The preparation ended unchanged at `e476a979491dcb09fa4734e2763c0f357b6c2cd9`. Separately authorized NW131–NW132 product changes follow on their own branches; the active next source batch is NW141 after locally verified NW140 measurement readiness; physical acceptance remains pending.
+
+[Draft updater PR #164](https://github.com/Nahian2002/NightWave/pull/164) is unmerged; stable activation remains disabled pending owner approval.

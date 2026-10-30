@@ -33,7 +33,7 @@ def inspect(root: Path) -> list[str]:
         (r"\btargetSdk\s*=\s*36\b", "target-sdk"),
         (r'applicationId\s*=\s*"com\.nightwave\.player"', "package"),
         (r"\bminSdk\s*=\s*26\b", "min-sdk"),
-        (r"\bversionCode\s*=\s*35\b", "version-code"),
+        (r"\bversionCode\s*=\s*(?:35|36)\b", "version-code"),
         (r'\bversionName\s*=\s*"2\.0\.0-alpha5s"', "version-name"),
     ):
         if not re.search(marker, app): errors.append(name)
@@ -72,8 +72,17 @@ def inspect(root: Path) -> list[str]:
         required = {"android.permission.INTERNET",
                     "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"}
         prohibited = {"android.permission.MANAGE_EXTERNAL_STORAGE",
-                      "android.permission.READ_SMS", "android.permission.QUERY_ALL_PACKAGES",
-                      "android.permission.REQUEST_INSTALL_PACKAGES"}
+                      "android.permission.READ_SMS", "android.permission.QUERY_ALL_PACKAGES"}
+        if "android.permission.REQUEST_INSTALL_PACKAGES" in permissions:
+            updater = application.find("activity[@" + ANDROID + "name='.updates.WeeklyUpdateActivity']")
+            providers = [n for n in application.findall("provider") if n.get(ANDROID + "authorities") == "${applicationId}.updates"]
+            if updater is None or updater.get(ANDROID + "exported") != "false" or len(providers) != 1:
+                errors.append("weekly-updater-private-components")
+            elif providers[0].get(ANDROID + "exported") != "false" or providers[0].get(ANDROID + "name") != "androidx.core.content.FileProvider":
+                errors.append("weekly-updater-provider")
+            paths = read("app/src/main/res/xml/weekly_update_paths.xml")
+            if 'path="approved-updates/"' not in paths or "root-path" in paths or 'path="."' in paths:
+                errors.append("weekly-updater-file-scope")
         if not required.issubset(permissions) or permissions.intersection(prohibited):
             errors.append("permission-surface")
         services = [node for node in application.findall("service")

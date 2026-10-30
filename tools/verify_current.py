@@ -16,6 +16,8 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 PYTHON_CHECKS = (
+    ("verify_weekly_updater.py", "--self-test"),
+    ("verify_nw142_adaptive.py", "--self-test"),
     ("verify_nw141_bilingual.py", "--self-test"),
     ("nw140_measurements.py", "--self-test"),
     ("verify_nw140_performance.py", "--self-test"),

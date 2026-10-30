@@ -20,6 +20,7 @@ def resources(folder):
     return result
 
 def formats(value):
+    value = value.replace("%%", "")
     assert not re.search(r'%(?![1-9][0-9]*\$[sd]|%)', value), 'Unnumbered/invalid placeholder'
     return sorted(re.findall(r'%[1-9][0-9]*\$[sd]', value))
 
@@ -72,6 +73,7 @@ def main():
     source = {p.name: p.read_text(encoding='utf-8') for p in UI.glob('*.kt')}
     verify(en, bn, source)
     if args.self_test:
+        assert formats("%1$d%%") == ["%1$d"]
         def rejected(a, b, s):
             try: verify(a, b, s)
             except (AssertionError, ValueError): return

@@ -1,0 +1,11 @@
+case_id,area,scenario,status,evidence
+NW142-S01,Profile matrix,320/360/412dp portrait; 640x320 landscape; 840x600 tablet; 240x400 split-screen; 1x/2x/3x text and all four themes. Actual primary tasks and long mixed-script titles.,NOT_RUN,
+NW142-S02,Actions,"Expanded audio details, listening level/crossfade/timer/speed and collapsed mini restore grow without clipping; every action retained.",NOT_RUN,
+NW142-S03,Queue,"At large text/short height scroll summary/edit/help and reach last song, independent options/remove/Undo and Clear confirmation; exact snapshot and selected track retained.",NOT_RUN,
+NW142-S04,Dialogs,"Landscape/split-screen header Close, body settings/recovery choices and EQ Apply/Discard are independently reachable; tablet width remains readable.",NOT_RUN,
+NW142-S05,IME,Open/close keyboard during Search and playlist filters; safeDrawing insets applied once; focus changes on settled tab only and query/selection retained.,NOT_RUN,
+NW142-S06,Rotation,"Rotate/recreate while query/result, local picker/import review, queue edit and lyrics follow/timing; retained destination/transient review boundaries remain.",NOT_RUN,
+NW142-S07,Back,Gesture/system Back and hardware Escape/Back retain dialog/player/collection/home precedence and never issue playback commands.,NOT_RUN,
+NW142-S08,Keyboard,"Tab/Shift-Tab/Enter/Space traversal and activation; search IME submit, timeline arrow/Home/End; no focus trap or swallowed text-edit shortcuts.",NOT_RUN,
+NW142-S09,Privacy/data,"No source URL/quality, installed data, file/schema/package/signer or account/consent change; disposable local fixture only.",NOT_RUN,
+NW142-S10,Acceptance,"Capture actual fonts/glyphs, 48dp independent bounds, focus order/contrast and configuration; synthetic profile compilation does not certify device behavior.",NOT_RUN,

@@ -855,6 +855,7 @@ class NightWaveStudioActivity : ComponentActivity() {
             roomReadStatus = "Original library reads remain active."
         }
         profile = profiles.load()
+        com.nightwave.player.updates.WeeklyUpdates.onOpen(this)
         refresh()
         setContent {
             // Display only. The media service remains the single timer owner,
@@ -3325,7 +3326,7 @@ private fun StudioRoot(
                         color = MaterialTheme.colorScheme.surfaceVariant,
                         shape = RoundedCornerShape(13.dp),
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp)
-                            .height(48.dp)) {
+                            .heightIn(min = 48.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center) {
                             Icon(Icons.Outlined.PlayArrow,
@@ -4370,7 +4371,7 @@ internal fun StudioSearch(
             items(offlineMatches.take(offlineVisible), key = { "offline-search:" + it.id }) { song ->
                 OutlinedButton(
                     onClick = { onOfflineSearch(song.title) },
-                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
                     shape = RoundedCornerShape(15.dp)
                 ) {
                     Text("♫  " + song.title, modifier = Modifier.weight(1f),

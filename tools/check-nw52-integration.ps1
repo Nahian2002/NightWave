@@ -61,7 +61,7 @@ $recentCard = [IO.File]::ReadAllText((Join-Path $root 'app/src/main/java/com/nig
 $player = [IO.File]::ReadAllText((Join-Path $root 'app/src/main/java/com/nightwave/player/v2/ui/StudioPlayerScreens.kt'))
 $readme = [IO.File]::ReadAllText((Join-Path $root 'docs/NW52_FINAL_INTEGRATION.md'))
 Assert-NW52Marker $gradle 'applicationId = "com.nightwave.player"' 'unchanged package ID'
-Assert-NW52Marker $gradle 'versionCode = 35' 'private candidate versionCode'
+Assert-NW52Marker $gradle 'versionCode = 36' 'private candidate versionCode'
 # NW109: Android 16 privacy and edge-to-edge target replaces the old API 35 assertion.
 Assert-NW52Marker $gradle 'compileSdk = 36' 'Android 16 compile SDK'
 Assert-NW52Marker $gradle 'targetSdk = 36' 'Android 16 privacy target SDK'
@@ -73,7 +73,7 @@ Assert-NW52Marker $activity 'openSearch = { navigateToTab(StudioTab.SEARCH) }' '
 Assert-NW52Marker $activity 'NightWaveHomeLayoutPolicy.EmptyRecentDestination.SEARCH ->' 'Home empty-state Search routing'
 Assert-NW52Marker $activity 'openSearch()' 'Home empty-state real Search navigation'
 Assert-NW52Marker $activity 'Icons.Outlined.Search, "nw47-home-search", openSearch)' 'Home Search shortcut'
-Assert-NW52Marker $activity '.height(48.dp)) {' 'restorable mini-player tap targets'
+Assert-NW52Marker $activity '.heightIn(min = 48.dp)) {' 'restorable mini-player tap targets'
 # NW127 preserves removal behind explicit overflow; do not require the old permanent X row.
 Assert-NW52Marker $recentCard 'onClick = { showActions = false; onRemove() }' 'recent removal distinct from playback'
 Assert-NW52Marker $recentCard 'DropdownMenu(expanded = showActions' 'explicit recent management disclosure'
