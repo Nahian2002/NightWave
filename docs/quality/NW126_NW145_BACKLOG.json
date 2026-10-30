@@ -975,7 +975,7 @@
         "NW128",
         "NW141"
       ],
-      "implementation_status": "PLANNED",
+      "implementation_status": "IMPLEMENTING",
       "device_status": "NOT_RUN",
       "finding_ids": [
         "Q03",
@@ -997,7 +997,12 @@
       "implementation_commit": null,
       "local_evidence": [],
       "device_evidence": [],
-      "remaining_blockers": []
+      "remaining_blockers": [],
+      "branch": "update/nightwave-nw142-adaptive",
+      "protected_parent": "e400a8b15cefcd8d56ef8e99dbd225edeec9d680",
+      "evidence": [
+        "docs/NW142_ADAPTIVE_LAYOUTS.md"
+      ]
     },
     {
       "id": "NW143",
