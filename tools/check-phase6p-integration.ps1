@@ -46,7 +46,7 @@ $a = @{
     windows = (Source 'tools/build-windows.ps1')
 }
 Require-Token $a.gradle 'applicationId = "com.nightwave.player"' 'app identity'
-Require-Token $a.gradle 'versionCode = 35' 'app version code'
+Require-Token $a.gradle 'versionCode = 36' 'app version code'
 Require-Token $a.svc 'playWhenReady = false' 'no-start-autoplay rule'
 Require-Token $a.svc 'PlaybackTransitionPolicy' 'transition fence'
 Require-Token $a.svc 'EXTRA_QUEUE_DISPLAY_ORDER' 'Library queue-order command'

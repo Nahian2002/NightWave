@@ -61,7 +61,7 @@ $recentCard = [IO.File]::ReadAllText((Join-Path $root 'app/src/main/java/com/nig
 $player = [IO.File]::ReadAllText((Join-Path $root 'app/src/main/java/com/nightwave/player/v2/ui/StudioPlayerScreens.kt'))
 $readme = [IO.File]::ReadAllText((Join-Path $root 'docs/NW52_FINAL_INTEGRATION.md'))
 Assert-NW52Marker $gradle 'applicationId = "com.nightwave.player"' 'unchanged package ID'
-Assert-NW52Marker $gradle 'versionCode = 35' 'private candidate versionCode'
+Assert-NW52Marker $gradle 'versionCode = 36' 'private candidate versionCode'
 # NW109: Android 16 privacy and edge-to-edge target replaces the old API 35 assertion.
 Assert-NW52Marker $gradle 'compileSdk = 36' 'Android 16 compile SDK'
 Assert-NW52Marker $gradle 'targetSdk = 36' 'Android 16 privacy target SDK'
