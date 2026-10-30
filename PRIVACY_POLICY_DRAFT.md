@@ -46,3 +46,7 @@ A stable public policy URL, actual response/deletion procedures and runtime veri
 - Third-party Invidious instances: individual instance terms/privacy practices must be assessed independently.
 
 **Release gate:** This draft must **not** be treated as a completed, legally reviewed, published privacy policy. It must be placed at a publicly accessible stable URL and linked from the app and Play Console, with accurate final disclosures, before any general-release APK or Play Store submission.
+
+## Weekly update checks
+
+When the approved stable feed is activated, app-opening checks request public release metadata from GitHub at most once per seven-day successful check (failed checks retry at most daily). No library/account identifiers are included; the server receives ordinary network connection information such as IP address. Manual checks and user-approved APK downloads also contact GitHub. Installer approval is handled by Android. Update preferences and verified APK cache are stored privately on device, outside library/Drive backup formats.

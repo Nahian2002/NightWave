@@ -1,14 +1,10 @@
 # NightWave
 
-**Upcoming updates:** [hourly sequence and usage guards](docs/quality/UPCOMING_UPDATES.md). NW141 accessible bilingual primary flows are locally verified; **NW142 responsive-layout coverage is next**, then NW143–NW145. Physical and Android performance acceptance remain open.
+**Current review:** [weekly in-app updater](docs/WEEKLY_UPDATER.md), branch `update/nightwave-weekly-updater`. App-opening checks offer only the latest owner-approved version at most once every seven days. Downloads stay in the app and are verified before Android installation confirmation. Manual checks: You → App details → Check for updates. The signed stable feed is **disabled pending public-release/main approval**; no automatic publication or installation.
 
-**Current review work:** [draft PR #163](https://github.com/Nahian2002/NightWave/pull/163). [NW141 results](docs/NW141_ACCESSIBILITY_BILINGUAL.md) on [update/nightwave-nw141-accessibility](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw141-accessibility), stacked on [NW140 draft #162](https://github.com/Nahian2002/NightWave/pull/162). English/Bangla primary resources, locale-aware quantities/times/account dates, full Unicode announcements, headings and Bangla glyph spacing. Features, themes, sources/quality, data and account/signing boundaries are preserved. Legacy native/advanced/provider copy remains; complete-app translation is not claimed.
+**Verification:**1,817 JVM tests/226 suites,84 source checks,full Windows build PASS; lint0 errors/324 warnings/17 hints(two new style suggestions). Build NW-debug-4085DB540B6787AA,code36,same package/signer. Phone installation, actual seven-day lifecycle and prior physical gates NOT_RUN. [Exact evidence](TEST_REPORT.md). Current integrated main remains older; this cumulative review includes the preserved NW142 layout work and is unmerged.
 
-**Current integrated source:** [`main`](https://github.com/Nahian2002/NightWave/tree/main) remains the integrated baseline. Cumulative review work is not automatically merged.
-
-**30 October 2026 verification:** **1,808 JVM tests / 223 suites**, **82 source checks**, full Windows Android/Compose/APK/instrumentation-source build PASS. Sequential lint **0 errors / 322 warnings / 17 hints**, unchanged notice inventory. Build **NW-debug-C4D430224921F123**, same signer as NW140. Four new Android UI methods compile only; no phone test executed. [Current evidence](TEST_REPORT.md), [required device checks](docs/NW141_DEVICE_RUNBOOK.md).
-
-**Active plan:** [NW126–NW145 roadmap](docs/PRODUCT_QUALITY_ROADMAP.md), [structured backlog](docs/quality/NW126_NW145_BACKLOG.json), [original audit](docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md). TalkBack/Switch Access, all-theme 1x–3x layout/contrast, native-speaker review, original performance/data/recovery/release gates remain NOT_RUN. No new 9.5 rating follows from local checks.
+**Schedule:** the hourly automation remains deleted. The owner's allowance override covered this updater only. [Roadmap](docs/PRODUCT_QUALITY_ROADMAP.md), [backlog](docs/quality/NW126_NW145_BACKLOG.json), [upcoming work](docs/quality/UPCOMING_UPDATES.md). No new9.5 rating is inferred.
 
 **Public release: NO-GO.** Installed-phone signer continuity, Samsung acceptance, production OAuth/Drive restore and source-rights review remain separate gates. A successful build does not authorize distribution or certify phone behavior.
 
@@ -46,7 +42,7 @@ Developers can run `python tools/verify_current.py` for structural and Windows p
 | Build identity | Value |
 | --- | --- |
 | Application ID | `com.nightwave.player` |
-| Version | `2.0.0-alpha5s`, code `35` |
+| Version | `2.0.0-alpha5s`, code `36` |
 | Android | API 26 minimum, compile/target API 36 |
 | Toolchain | AGP 8.10.1, Gradle 8.11.1, Kotlin 2.0.21, Java 17 target |
 

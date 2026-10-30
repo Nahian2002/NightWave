@@ -153,3 +153,7 @@ All NW126–NW145 acceptance rows originally began NOT_RUN; the current CSV reco
 [Exact results/source/APK](NW141_ACCESSIBILITY_BILINGUAL.md), [device runbook](NW141_DEVICE_RUNBOOK.md), [supplemental cases](quality/NW141_ACCESSIBILITY_ACCEPTANCE.csv). 442 strings/four quantities with matched Bangla; locale presentation/full Unicode/headings/independent-action callers. Full builder, 1,808 JVM / 223 suites, 82 current source checks; sequential lint 0 errors / 322 warnings / 17 hints, unchanged inventory. Same package/signer; no feature/theme/source/data/account boundary removal. Four new Android methods compile only; ten supplemental/original/prior physical gates NOT_RUN. Native-speaker and complete native/advanced copy acceptance remain open. No new rating. Next NW142, then NW143–NW145.
 
 Cumulative [NW141 draft PR #163](https://github.com/Nahian2002/NightWave/pull/163) is attached for review; unmerged.
+
+##31 October owner override result
+
+Preserved NW142 source is now cumulatively host-verified with the [weekly updater](WEEKLY_UPDATER.md) (see TEST_REPORT.md):1817 JVM/226 suites,84 source checks,full Windows builder and serial lint PASS. All physical cases remain NOT_RUN. Updater stable feed disabled pending explicit public-release/main approval. The one-time allowance override does not restart hourly automation. Next independent roadmap source batch NW143.

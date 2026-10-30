@@ -26,3 +26,7 @@ Initial JVM/Android compilation passed (1,812 JVM / 224 suites, zero failures/er
 - Four pure viewport tests passed. Two parameterized real-component methods span 72 width/height/font/theme combinations (144 compile-only cases) in the initial successful compile. A separate actual long-title/3x queue-scroll test was added afterward and is NOT_COMPILED. No Android case executed.
 - Next authorized run must inspect this checkpoint, repair/strengthen the existing NW52 guard for the actual minimum-height callback path, compile the final tests, run all current checks, the complete Windows builder and then serial lint. Compare notices, source/data/callback boundaries, real previous APK signer and final artifact identity. Prepare/attach the cumulative draft PR and verify owner-only Drive streamed bytes/hash only after successful validation.
 - Ten supplemental cases in `quality/NW142_ADAPTIVE_ACCEPTANCE.csv` retain the full original profile, IME/picker/rotation/Back/hardware-input/data scope. They and every prior physical gate stay NOT_RUN.
+
+##31 October owner override result
+
+Preserved NW142 source is now cumulatively host-verified with the [weekly updater](WEEKLY_UPDATER.md) (see TEST_REPORT.md):1817 JVM/226 suites,84 source checks,full Windows builder and serial lint PASS. All physical cases remain NOT_RUN. Updater stable feed disabled pending explicit public-release/main approval. The one-time allowance override does not restart hourly automation. Next independent roadmap source batch NW143.

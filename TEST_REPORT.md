@@ -1,3 +1,13 @@
+# Current verification — weekly updater bootstrap, code36
+
+31 October 2026. [Implementation, exact identity and activation steps](docs/WEEKLY_UPDATER.md). Cumulative branch `update/nightwave-weekly-updater`, based on NW141 #163 with the preserved NW142 checkpoint. The one-time owner allowance override does not restart the hourly automation.
+
+**Full Windows build PASS; 1,817 JVM / 226 suites; 84 current source checks PASS_SOURCE_ONLY.** Zero JVM failures/errors/skips. Sequential lint **0 errors / 324 warnings / 17 hints**: two new UseKtx suggestions, original notices otherwise retained; no suppression. Gitleaks implementation-stage3,584 commits, no leaks. NW142 final queue/profile instrumentation sources now compile; all145 added cases remain NOT_RUN. Five new updater JVM methods cover cadence, bad URLs, signature/tamper and actual stable-feed trust anchor. Offline disabled signer matches checked-in feed.
+
+Build **NW-debug-4085DB540B6787AA**, source **4085DB540B6787AA99500BCD7782448C189E0D7ED22B8B7AE10333315C0B1D88**,968 inputs, revision `c4c88177ae23922bcc974e19b79d6aa0810b1f03`. APK **B874E2A0650EEE5354D329EBBC8258C2341FBB71C2E5FA77A57886035CB74802**,26,745,552 bytes. Same package/signing certificate as NW141; code36/name2.0.0-alpha5s. Owner-only remote bytes/hash verified. Seventeen obsolete Drive APKs deleted only after replacement verification; local recovery copies and measurement kit retained.
+
+**NOT_RUN:** phone update/install/settings denial-return, signed newer release download and failure/cancellation/rotation/process-death, actual seven-day lifecycle, installed data, physical/input/performance/recovery and native-speaker gates. No public APK/main merge/enabled feed or repository settings change. The stable feed is signed but disabled, activation needs explicit owner approval. No product re-rating. All earlier evidence below is historical and superseded only by the specific host results above.
+
 # NW142 checkpoint — validation incomplete
 
 ## Weekly reserve stop — 30 October 2026

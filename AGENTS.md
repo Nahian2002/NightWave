@@ -1,5 +1,9 @@
 # NightWave continuity instructions
 
+## Current owner-requested weekly updater
+
+Read docs/WEEKLY_UPDATER.md and TEST_REPORT.md first. Current cumulative branch `update/nightwave-weekly-updater` includes preserved NW142 plus the weekly updater. One-time weekly reserve override authorized this task only; hourly automation stays deleted. Code36 build NW-debug-4085DB540B6787AA:1817 JVM/226 suites,84 source checks,lint0 errors/324 warnings/17 hints(two new style suggestions). Same package/signer; private APK readback verified,17 old Drive APKs deleted with local recovery retained. Signed stable feed remains disabled; no public APK or main merge. Activation requires explicit owner approval. All phone/physical tests NOT_RUN. Historical interruption notes below retain what was incomplete at that time; their host checks are now superseded by this cumulative verification.
+
 ## Weekly reserve stop — 30 October 2026
 
 Hourly automation `nightwave-sequential-upgrades` was **deleted** when the verified weekly window reached **10% remaining**. Do not restart after reset without a new owner request. Preserve and resume the unfinished NW142 batch before advancing: branch `update/nightwave-nw142-adaptive`, plan `7007a50da9b822cd7ca96a5568e40b55130a50d1`, implementation `1556d0d610800e8e85aab0d3eb5e9c770e73385c`. Private recovery/evidence: `20261030-nw142-adaptive` outside Git. No NW142 APK, PR, push, merge or delivery was performed.
