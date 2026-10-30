@@ -154,6 +154,6 @@ All NW126–NW145 acceptance rows originally began NOT_RUN; the current CSV reco
 
 Cumulative [NW141 draft PR #163](https://github.com/Nahian2002/NightWave/pull/163) is attached for review; unmerged.
 
-##31 October owner override result
+## 31 October owner override result
 
 Preserved NW142 source is now cumulatively host-verified with the [weekly updater](WEEKLY_UPDATER.md) (see TEST_REPORT.md):1817 JVM/226 suites,84 source checks,full Windows builder and serial lint PASS. All physical cases remain NOT_RUN. Updater stable feed disabled pending explicit public-release/main approval. The one-time allowance override does not restart hourly automation. Next independent roadmap source batch NW143.
