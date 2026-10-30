@@ -5,8 +5,8 @@ Established **28 October 2026**, after the owner's post-NW125 recording review. 
 ## Start here in every future chat
 
 1. Read [the detailed audit and scorecard](audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md), [the structured batch backlog](quality/NW126_NW145_BACKLOG.json), and [current verification](../TEST_REPORT.md).
-2. Confirm checkout and newest cumulative remote. Latest review branch: **NW140 measurement readiness** [draft PR #162](https://github.com/Nahian2002/NightWave/pull/162) on `update/nightwave-nw140-performance`, stacked on [NW139 #161](https://github.com/Nahian2002/NightWave/pull/161). Read [current evidence](NW140_ANDROID_PERFORMANCE.md) and [unrun device protocol](NW140_DEVICE_RUNBOOK.md). Read the [recording rating, repair plan and results](OFFLINE_FINISH_RECORDING_REVIEW.md). Main remains the integrated baseline; the review branch contains newest unmerged work.
-3. **NW140 measurement tools locally verified; actual Android performance unmeasured. Next NW141, then NW142–NW145.** Read the [revised sequence and hourly schedule](quality/UPCOMING_UPDATES.md). NW126–NW136 are locally verified with physical acceptance pending. Original NW134/NW135/NW136 and prior physical rows remain NOT_RUN.
+2. Confirm checkout and newest cumulative remote. Latest review branch is **NW141 accessible bilingual primary flows**, `update/nightwave-nw141-accessibility`, stacked on [NW140 draft #162](https://github.com/Nahian2002/NightWave/pull/162). Read [current evidence](NW141_ACCESSIBILITY_BILINGUAL.md), [device runbook](NW141_DEVICE_RUNBOOK.md) and [recording evidence](OFFLINE_FINISH_RECORDING_REVIEW.md). Main remains the integrated baseline; the cumulative branch contains unmerged work.
+3. **NW141 source locally verified; NW142 is next, then NW143–NW145.** Read the [sequence and hourly schedule](quality/UPCOMING_UPDATES.md). Actual accessibility/language/layout/performance/offline/data/account/release acceptance stays separate. Legacy native/advanced/provider copy remains and NW143 carries a native/failure-copy review; this is not a full-app translation claim.
 4. Update backlog status/evidence, this roadmap's progress ledger and the current test report after each batch. A source implementation is not device acceptance. Re-rate only with fresh product evidence.
 
 Root [AGENTS.md](../AGENTS.md) makes these continuity instructions discoverable to future coding sessions. The roadmap is persisted in Git/GitHub. A separate hourly thread heartbeat now reads this plan; its cadence and operating limits are recorded in the upcoming-update schedule.
@@ -143,3 +143,9 @@ Each batch should be a reviewable change with a clear user problem. Refactor scr
 | Next | NW137 useful user-owned lyrics | PLANNED | New cumulative branch from latest `update/nightwave-nw136-resumable-transfers`; carry all physical/release gates. Actions stays disabled; no public APK/release. |
 
 All NW126–NW145 acceptance rows originally began NOT_RUN; the current CSV records executed evidence and remaining limits. Update this ledger and the structured backlog after real work. Do not interpret the audit's repaired gate or new documents as completion of twenty upgrade batches.
+
+## 30 October — NW141 primary bilingual and accessibility readiness
+
+[Exact results/source/APK](NW141_ACCESSIBILITY_BILINGUAL.md), [device runbook](NW141_DEVICE_RUNBOOK.md), [supplemental cases](quality/NW141_ACCESSIBILITY_ACCEPTANCE.csv). 442 strings/four quantities with matched Bangla; locale presentation/full Unicode/headings/independent-action callers. Full builder, 1,808 JVM / 223 suites, 82 current source checks; sequential lint 0 errors / 322 warnings / 17 hints, unchanged inventory. Same package/signer; no feature/theme/source/data/account boundary removal. Four new Android methods compile only; ten supplemental/original/prior physical gates NOT_RUN. Native-speaker and complete native/advanced copy acceptance remain open. No new rating. Next NW142, then NW143–NW145.
+
+Cumulative [NW141 draft PR #163](https://github.com/Nahian2002/NightWave/pull/163) is attached for review; unmerged.

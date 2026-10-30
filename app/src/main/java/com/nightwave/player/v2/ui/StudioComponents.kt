@@ -1,5 +1,8 @@
 package com.nightwave.player.v2.ui
 
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -53,7 +56,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.stateDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
@@ -109,7 +111,7 @@ fun NightWaveWordmark(modifier: Modifier = Modifier, showName: Boolean = true) {
 @Composable
 fun SectionHeading(title: String, hint: String? = null) {
     Column(verticalArrangement = Arrangement.spacedBy(NightWavePremiumDesignTokens.CAPTION_GAP_DP.dp)) {
-        Text(title, style = MaterialTheme.typography.titleLarge,
+        Text(title, modifier = Modifier.semantics { heading() }, style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onBackground,
         )
         if (!hint.isNullOrBlank()) Text(hint,

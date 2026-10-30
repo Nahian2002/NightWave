@@ -1,0 +1,13 @@
+# NW141 device acceptance — not executed
+
+Use only an owner-approved device/profile and explicit test slot. Attribute the APK to `NW-debug-C4D430224921F123` and independently compare the installed signer before any owner-performed in-place update. Preserve data; never reset storage or reinstall to force acceptance. No device command was executed by this batch.
+
+1. Record Android/device/display/input profile, app build/source/APK/signer, current language and font scale. Keep account addresses, private titles and recordings outside Git. Use disposable authorized local fixtures and synthetic mixed-script/emoji titles.
+2. Exercise English and a Bangla Android/application resource locale. The current app follows that locale; this update adds no language preference or account requirement. Verify route, selection, typed search and playback state after a normal configuration change. Do not overwrite the current user's device language automatically.
+3. With TalkBack and then Switch Access, complete Home → search → selected song → queue/options/reorder/remove/Undo → seek → lyrics follow toggle → Sound Studio Apply/Discard. Confirm focus order, headings, selected/state descriptions and independent actions. A gesture hint alone never proves an accessible action.
+4. At 320/360/412dp, 1x/2x/3x type and each existing theme, capture required actions/titles and Bangla vowel/conjunct extents. Measure real rendered contrast and independent nonoverlapping 48dp action bounds. Inspect Pearl as carefully as dark themes. Keep any failure and its exact configuration.
+5. Check zero/one/multiple quantities, Bangla/English digits, playback durations, backup dates and full Unicode queue/lyric descriptions. A resource locale must not rewrite user names, URLs, playlist IDs, file bytes, persisted numbers or export schemas.
+6. Review Bangla safety/action copy with a fluent speaker. Record untranslated native/advanced/provider details explicitly; they must remain understandable and truthful. Review inherited native import/recovery/failure copy in NW143 rather than labeling the app fully translated.
+7. Record each actual result/evidence in `quality/NW141_ACCESSIBILITY_ACCEPTANCE.csv` and the original matrix. The four new Android tests compile only; authorized execution is a separate step. Compile/test counts do not change NOT_RUN rows or product ratings.
+
+No Google operation is needed for the core language/semantics cases. Live backup/restore still needs the separate approved disposable account/profile procedure. Carry all prior data-preservation/performance/offline/account/release gates forward. NW142 may proceed as independent source work while these cases remain open.

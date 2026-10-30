@@ -1,5 +1,10 @@
 package com.nightwave.player.v2.ui
 
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+
+import com.nightwave.player.R
+
 import android.content.Intent
 import com.nightwave.player.offline.FreeAudioCatalogActivity
 
@@ -34,13 +39,14 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun NightWaveDiscoveryHeader(searchQuery: String = "") {
+    val strings = rememberNightWaveStrings()
     val palette = MaterialTheme.colorScheme
     val context = LocalContext.current
     // Artwork and results carry the screen. Do not spend a third of the
     // viewport on another large generic discovery card.
     Column(Modifier.fillMaxWidth().testTag("nightwave-discovery-header")) {
     NightWaveSectionActions(heading = {
-        Text("Search", style = MaterialTheme.typography.headlineSmall,
+        Text(strings.get(R.string.nw141_search_49c26), modifier = Modifier.semantics { heading() }, style = MaterialTheme.typography.headlineSmall,
             color = palette.onBackground)
     }, action = {
         Surface(
@@ -61,7 +67,7 @@ fun NightWaveDiscoveryHeader(searchQuery: String = "") {
                 horizontalArrangement = Arrangement.spacedBy(7.dp)) {
                 Icon(Icons.Outlined.Download, contentDescription = null,
                     tint = palette.primary, modifier = Modifier.size(19.dp))
-                Text("Offline",
+                Text(strings.get(R.string.nw141_offline_a1794),
                     style = MaterialTheme.typography.labelLarge,
                     color = palette.primary)
             }

@@ -22,7 +22,7 @@ function Get-ExactDuplicateImports([string[]]$Names) {
 function Test-NightWaveGreeting([string]$Body) {
     # ASCII-only PowerShell 5.1 safeguard for the actual NW21 Home Kotlin
     # string syntax error. Gradle remains the authoritative Kotlin checker.
-    return ($Body.Contains('"Welcome, " + firstName + "') -and -not $Body.Contains('"Welcome,  + firstName + "'))
+    return (($Body.Contains('"Welcome, " + firstName + "') -or $Body.Contains('strings.get(R.string.nw141_home_welcome, firstName)')) -and -not $Body.Contains('"Welcome,  + firstName + "'))
 }
 
 function Test-ComposeAnimatedDelegate([string]$Body) {
@@ -71,6 +71,8 @@ if ($SelfTest) {
     if (Test-NightWaveGreeting '"Welcome,  + firstName + "bad"') {
         throw 'Broken NW21 Home greeting Kotlin literal was not rejected.'
     }
+    if (-not (Test-NightWaveGreeting 'strings.get(R.string.nw141_home_welcome, firstName)')) { throw 'Valid resource-backed greeting rejected.' }
+    if (Test-NightWaveGreeting 'strings.get(R.string.nw141_home_welcome firstName)') { throw 'Malformed resource greeting accepted.' }
     $validCompose = @(
         'androidx.compose.ui.semantics.ProgressBarRangeInfo',
         'androidx.compose.ui.semantics.progressBarRangeInfo'

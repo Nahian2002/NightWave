@@ -1,20 +1,20 @@
 # NightWave
 
-**Upcoming updates:** [hourly sequence and both usage guards](docs/quality/UPCOMING_UPDATES.md). NW140 measurement tools are locally verified; NW141 accessibility/Bangla-English source work is next. Actual Android performance remains unmeasured.
+**Upcoming updates:** [hourly sequence and usage guards](docs/quality/UPCOMING_UPDATES.md). NW141 accessible bilingual primary flows are locally verified; **NW142 responsive-layout coverage is next**, then NW143–NW145. Physical and Android performance acceptance remain open.
 
-**Current review work:** [NW140 measurement readiness](docs/NW140_ANDROID_PERFORMANCE.md) on [update/nightwave-nw140-performance](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw140-performance), [draft PR #162](https://github.com/Nahian2002/NightWave/pull/162), stacked on [NW139 #161](https://github.com/Nahian2002/NightWave/pull/161). Explicit isolated Android diagnostics, exact app/test artifact identity and strict evidence analysis. All 344 production app/src/main files are unchanged; no player feature/theme/data/source/signing change or measured speedup is claimed.
+**Current review work:** [draft PR #163](https://github.com/Nahian2002/NightWave/pull/163). [NW141 results](docs/NW141_ACCESSIBILITY_BILINGUAL.md) on [update/nightwave-nw141-accessibility](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw141-accessibility), stacked on [NW140 draft #162](https://github.com/Nahian2002/NightWave/pull/162). English/Bangla primary resources, locale-aware quantities/times/account dates, full Unicode announcements, headings and Bangla glyph spacing. Features, themes, sources/quality, data and account/signing boundaries are preserved. Legacy native/advanced/provider copy remains; complete-app translation is not claimed.
 
-**Current integrated source:** [`main`](https://github.com/Nahian2002/NightWave/tree/main) remains the integrated baseline; newer cumulative changes are on the review branch above and are not automatically merged.
+**Current integrated source:** [`main`](https://github.com/Nahian2002/NightWave/tree/main) remains the integrated baseline. Cumulative review work is not automatically merged.
 
-**30 October 2026 verification:** **1,803 JVM tests / 222 suites**, **81 source checks**, full Windows Android/Compose/APK/instrumentation-source build and separate diagnostic test APK assembly PASS. Sequential lint: **0 errors / 322 warnings / 17 hints**, unchanged notice inventory. Build **NW-debug-2B3F3E0DD6C787B1**, same signer. Two new Android diagnostics compile/assemble only; no phone test executed. [Device runbook](docs/NW140_DEVICE_RUNBOOK.md), [exact evidence](TEST_REPORT.md).
+**30 October 2026 verification:** **1,808 JVM tests / 223 suites**, **82 source checks**, full Windows Android/Compose/APK/instrumentation-source build PASS. Sequential lint **0 errors / 322 warnings / 17 hints**, unchanged notice inventory. Build **NW-debug-C4D430224921F123**, same signer as NW140. Four new Android UI methods compile only; no phone test executed. [Current evidence](TEST_REPORT.md), [required device checks](docs/NW141_DEVICE_RUNBOOK.md).
 
-**Active next-upgrade plan:** [NW126–NW145 roadmap](docs/PRODUCT_QUALITY_ROADMAP.md), [structured backlog](docs/quality/NW126_NW145_BACKLOG.json), [original audit](docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md). **Next source batch: NW141.** NW140 completes source measurement readiness; original startup/search/audio/frame/memory/battery/soak acceptance remains NOT_RUN. Historical ratings remain evidence; passing local checks does not establish a new 9.5 score.
+**Active plan:** [NW126–NW145 roadmap](docs/PRODUCT_QUALITY_ROADMAP.md), [structured backlog](docs/quality/NW126_NW145_BACKLOG.json), [original audit](docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md). TalkBack/Switch Access, all-theme 1x–3x layout/contrast, native-speaker review, original performance/data/recovery/release gates remain NOT_RUN. No new 9.5 rating follows from local checks.
 
 **Public release: NO-GO.** Installed-phone signer continuity, Samsung acceptance, production OAuth/Drive restore and source-rights review remain separate gates. A successful build does not authorize distribution or certify phone behavior.
 
 ## Start here
 
-- **[Current measurement readiness and device checks](docs/NW140_ANDROID_PERFORMANCE.md)** · [safe upgrade guide](docs/BUILD_AND_RELEASE.md)
+- **[Current bilingual/accessibility work and device checks](docs/NW141_ACCESSIBILITY_BILINGUAL.md)** · [safe upgrade guide](docs/BUILD_AND_RELEASE.md)
 - **[Active quality roadmap and revised sequence](docs/PRODUCT_QUALITY_ROADMAP.md)** · [structured backlog](docs/quality/NW126_NW145_BACKLOG.json) · [80 new acceptance cases](docs/quality/NW126_NW145_ACCEPTANCE.csv)
 - [NW111–NW125 implementation history and remaining gates](docs/NW111_NW125_SPOTIFY_QUALITY_ROADMAP.md)
 - [Build and safe update instructions](docs/BUILD_AND_RELEASE.md)

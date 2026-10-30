@@ -62,7 +62,7 @@ Require $activity 'editor.requestId == lyricsEditorEpoch' 'Old save generation n
 Require $activity 'fun undoLyricsEditorDraft()' 'Undo not implemented'
 Require $activity 'fun discardLyricsEditorDraft()' 'No discard path'
 Require $screen 'onEditLyrics: () -> Unit = {}' 'Now Playing editor link missing'
-Require $screen 'Edit lyric lines & timestamps' 'Editor entry button missing'
+Require $screen 'R.string.nw141_edit_lyric_lines_timestamps_18fd5' 'Editor entry button missing'
 Require $build 'check-phase6v6c-integration.ps1' '6V6C Windows source gate not connected'
 Require $build ':app:testDebugUnitTest :app:assembleDebug :app:compileDebugAndroidTestKotlin' 'Actual Android build/test tasks missing'
 Require $ci 'python3 tools/verify_v2_phase6v6c.py' 'GitHub source check not connected'

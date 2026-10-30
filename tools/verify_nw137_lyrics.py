@@ -28,7 +28,7 @@ REQUIRED={
   'playback.state.videoUrl == LyricsTrackBindingPolicy.mediaId(pending.songId)'],
  'ui/StudioPlayerScreens.kt':['val lyricsSupported = LyricsTrackBindingPolicy.storageId(state.videoUrl) != null',
   'lyricsImmersive && lyricsSupported && lyrics != null', 'if (lyricsSupported)',
-  'Public-video lyrics stay on this device.', 'actions.seekToForTrack(cueOriginTrack,',
+  'R.string.nw141_attach_your_own_timestamped_lrc_to_this_exact_vi_bf4e8', 'actions.seekToForTrack(cueOriginTrack,',
   'onEditLyrics', 'onImportLyrics', 'onRemoveLyrics', 'LyricsSyncPolicy.seekPosition('],
 }
 def verify(source):

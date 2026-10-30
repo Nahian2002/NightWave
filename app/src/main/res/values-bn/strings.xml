@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">NightWave</string>
+    <string name="widget_description">NightWave-এর সংক্ষিপ্ত প্লেব্যাক নিয়ন্ত্রণ</string>
+    <string name="nw128_restore_navigation">মূল নেভিগেশন ফেরান</string>
+    <string name="nw128_transfer_interrupted">স্থানান্তর বাধাপ্রাপ্ত হয়েছে। আবার চেষ্টা করার আগে উৎস দেখুন ও অনুমতি নিশ্চিত করুন।</string>
+    <string name="nw128_search_interrupted">পর্দা পুনরায় তৈরি হওয়ায় অনুসন্ধান থেমেছে। আবার চেষ্টা করতে বিনামূল্যের অডিও খুঁজুন চাপুন।</string>
+    <string name="nw128_transfer_busy">ডাউনলোড চলছে। অন্য অনুসন্ধান শুরুর আগে এটি শেষ বা বাতিল করুন।</string>
+</resources>

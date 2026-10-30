@@ -1,0 +1,11 @@
+case_id,area,scenario,status,evidence
+NW141-S01,Identity,Approved in-place validation build attribution and signer; original installed data preserved.,NOT_RUN,
+NW141-S02,Navigation,"English/Bangla actual Home/Search/Library/You; locale change retains route, query, selected track and callbacks.",NOT_RUN,
+NW141-S03,TalkBack,Read headings/selected tabs/playback states; independently activate row/options/remove/Undo without unintended actions.,NOT_RUN,
+NW141-S04,Switch Access,Complete search/play/queue/reorder/remove/seek/EQ Apply/Discard with no gesture-only operation.,NOT_RUN,
+NW141-S05,Typography,1x/2x/3x Bangla vowel/conjunct marks and mixed-script/emoji titles; no clipped required actions at 320/360/412dp and all themes.,NOT_RUN,
+NW141-S06,Contrast,Measure actual rendered primary/secondary/error/control contrast over all themes and artwork; 48dp disjoint action bounds.,NOT_RUN,
+NW141-S07,Locale quantities,"Zero/one/multiple counts; Bangla/English digits, durations and account dates; user titles and persisted keys remain unchanged.",NOT_RUN,
+NW141-S08,Lyrics,"Long full Unicode cue descriptions, selected cue/time, follow on/off, no compulsory gesture, reduced-motion static feedback.",NOT_RUN,
+NW141-S09,Sound/recovery,Separate EQ actions at large text; original command readback and account/consent verification; no unintended upload or disconnect.,NOT_RUN,
+NW141-S10,Copy review,Native-speaker review of Bangla action/safety copy; exercise retained English technical/provider details and unsupported-language fallback.,NOT_RUN,

@@ -1,5 +1,7 @@
 package com.nightwave.player.v2.ui
 
+import com.nightwave.player.R
+
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -86,6 +88,7 @@ fun NightWaveRecentShelfTile(
     onOptions: () -> Unit,
     onRemove: () -> Unit
 ) {
+    val strings = rememberNightWaveStrings()
     val colors = MaterialTheme.colorScheme
     val fontScale = LocalDensity.current.fontScale
     val identity = remember(song.title, song.author) { NightWaveEditorialPresentationPolicy.identity(song.title, song.author) }
@@ -100,7 +103,7 @@ fun NightWaveRecentShelfTile(
                 if (isPlaying) Surface(
                     Modifier.align(Alignment.BottomStart).padding(7.dp),
                     color = colors.primary, shape = RoundedCornerShape(7.dp)) {
-                    Text("PLAYING", Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
+                    Text(strings.get(R.string.nw141_playing_86042), Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
                         color = colors.onPrimary, style = MaterialTheme.typography.labelSmall)
                 }
             }
@@ -123,13 +126,13 @@ fun NightWaveRecentShelfTile(
                 IconButton(onClick = { showActions = true }, modifier = Modifier.size(48.dp)
                     .testTag("nw47-recent-options")) {
                     Icon(Icons.Outlined.MoreVert,
-                        contentDescription = "Actions for " + identity.title, tint = colors.onSurface)
+                        contentDescription = strings.get(R.string.nw141_actions_track, identity.title), tint = colors.onSurface)
                 }
                 DropdownMenu(expanded = showActions, onDismissRequest = { showActions = false }) {
-                    DropdownMenuItem(text = { Text("Track options") },
+                    DropdownMenuItem(text = { Text(strings.get(R.string.nw141_track_options_c4b0a)) },
                         modifier = Modifier.heightIn(min = 48.dp).testTag("nw127-recent-details"),
                         onClick = { showActions = false; onOptions() })
-                    DropdownMenuItem(text = { Text("Remove from Recently Played") },
+                    DropdownMenuItem(text = { Text(strings.get(R.string.nw141_remove_from_recently_played_79a97)) },
                         modifier = Modifier.heightIn(min = 48.dp).testTag("nw47-recent-remove"),
                         onClick = { showActions = false; onRemove() })
                 }
@@ -153,6 +156,7 @@ fun NightWaveNextListenTile(
     onPlay: () -> Unit,
     onOptions: () -> Unit
 ) {
+    val strings = rememberNightWaveStrings()
     val scheme = MaterialTheme.colorScheme
     val identity = remember(song.title, song.author) {
         NightWaveEditorialPresentationPolicy.identity(song.title, song.author)
@@ -188,7 +192,7 @@ fun NightWaveNextListenTile(
                             color = scheme.primary,
                             shape = RoundedCornerShape(8.dp)
                         ) {
-                            Text("PLAYING",
+                            Text(strings.get(R.string.nw141_playing_86042),
                                 modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = scheme.onPrimary)
@@ -223,7 +227,7 @@ fun NightWaveNextListenTile(
                     NightWavePremiumDesignTokens.MIN_TOUCH_TARGET_DP.dp)
                     .testTag("nw84-next-listen-options")) {
                 Icon(Icons.Outlined.MoreVert,
-                    contentDescription = "Options for " + identity.title,
+                    contentDescription = strings.get(R.string.nw141_options_track, identity.title),
                     tint = scheme.onSurfaceVariant)
             }
         }

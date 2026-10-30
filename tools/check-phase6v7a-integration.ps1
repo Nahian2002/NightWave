@@ -21,7 +21,7 @@ function Need([string]$body, [string]$term, [string]$reason) {
 # Locate the actual Close button and inspect its own callback rather than
 # checking that the old "onClick = onHide" syntax still exists.
 function Test-MiniHideDoesNotControlPlayback([string]$body) {
-    $marker = '"Hide mini-player; music keeps playing"'
+    $marker = 'strings.get(R.string.nw141_hide_mini_player_music_keeps_playing_047d6)'
     $desc = $body.IndexOf($marker, [StringComparison]::Ordinal)
     if ($desc -lt 0) { return $false }
     $start = $body.LastIndexOf('IconButton(onClick = {', $desc, [StringComparison]::Ordinal)
@@ -34,7 +34,7 @@ function Test-MiniHideDoesNotControlPlayback([string]$body) {
 }
 
 if ($SelfTest) {
-    $safe = 'IconButton(onClick = { onHide() }, modifier = Modifier.size(48.dp)) { Icon(Icons.Outlined.Close, contentDescription = "Hide mini-player; music keeps playing") }'
+    $safe = 'IconButton(onClick = { onHide() }, modifier = Modifier.size(48.dp)) { Icon(Icons.Outlined.Close, contentDescription = strings.get(R.string.nw141_hide_mini_player_music_keeps_playing_047d6)) }'
     $unsafe = $safe.Replace('onHide()', 'onHide(); actions.playPause()')
     $missing = $safe.Replace('onHide()', 'actions.playPause()')
     if (-not (Test-MiniHideDoesNotControlPlayback $safe) -or

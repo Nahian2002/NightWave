@@ -34,7 +34,7 @@ def verify(src):
     assert "if (Build.VERSION.SDK_INT >= 29) window.isNavigationBarContrastEnforced = false" in bars
     assert "LaunchedEffect(state.prefillToken)" in home
     assert "SearchDraftPolicy.shouldApply(state.prefillToken, consumedPrefill)" in home
-    assert 'if (!queryFocused) Text("Search songs, artists or links"' in home
+    assert 'if (!queryFocused) Text(strings.get(R.string.nw141_search_songs_artists_or_links_92331)' in home
     assert "LaunchedEffect(state.query)" not in home
     for marker in ("tertiary = paletteColor(palette.secondaryAccent)",
                    "tertiaryContainer = paletteColor(palette.secondarySoft)"):
@@ -52,7 +52,7 @@ if __name__ == "__main__":
                              (FILES[4], 'testTag("mood-art-header")'),
                              (FILES[5], "Theme_NightWave_Aurora"), (FILES[6], "Theme_NightWave_AMOLED"),
                              (FILES[3], "SearchDraftPolicy.shouldApply(state.prefillToken, consumedPrefill)"),
-                             (FILES[3], 'if (!queryFocused) Text("Search songs, artists or links"'),
+                             (FILES[3], 'if (!queryFocused) Text(strings.get(R.string.nw141_search_songs_artists_or_links_92331)'),
                              (FILES[5], "surfaceContainerHigh = paletteColor("),
                              (FILES[7], "if (Build.VERSION.SDK_INT >= 29) window.isNavigationBarContrastEnforced = false")):
             broken = dict(src); broken[name] = broken[name].replace(marker, "BROKEN_FIXTURE")

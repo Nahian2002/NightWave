@@ -16,6 +16,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 PYTHON_CHECKS = (
+    ("verify_nw141_bilingual.py", "--self-test"),
     ("nw140_measurements.py", "--self-test"),
     ("verify_nw140_performance.py", "--self-test"),
     ("verify_nw139_recovery.py", "--self-test"),
@@ -107,6 +108,8 @@ WINDOWS_CHECKS = (
 
 
 def main() -> int:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     parser = argparse.ArgumentParser()
     parser.add_argument("--report", type=Path, default=ROOT / "build/current-source-checks.json")
     args = parser.parse_args()

@@ -1,5 +1,7 @@
 package com.nightwave.player.v2.ui
 
+import com.nightwave.player.R
+
 import android.view.HapticFeedbackConstants
 
 import androidx.compose.animation.AnimatedVisibility
@@ -140,13 +142,6 @@ import kotlin.math.roundToInt
 import com.nightwave.player.playback.OfflinePlaybackSpeedPolicy
 import com.nightwave.player.playback.ListeningLevelPolicy
 
-private fun timeLabel(ms: Long): String {
-    val secs = (ms.coerceAtLeast(0L) / 1000L)
-    return if (secs >= 3600) {
-        (secs / 3600).toString() + ":" + ((secs / 60) % 60).toString().padStart(2, '0') +
-            ":" + (secs % 60).toString().padStart(2, '0')
-    } else (secs / 60).toString() + ":" + (secs % 60).toString().padStart(2, '0')
-}
 
 @Composable
 fun StudioMiniPlayer(
@@ -156,12 +151,13 @@ fun StudioMiniPlayer(
     onHide: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val strings = rememberNightWaveStrings()
     if (!state.hasTrack) return
     val fontScale = LocalDensity.current.fontScale
     val colors = MaterialTheme.colorScheme
     val health = PlaybackHealthPolicy.classify(state.hasTrack, state.connected,
         state.offline, state.playing, state.buffering, state.resolving, state.error)
-    val statusLabel = NightWaveNowPlayingPresentationPolicy.statusLabel(health)
+    val statusLabel = strings.playbackStatus(health)
     val identity = NightWaveEditorialPresentationPolicy.identity(state.title, state.artist)
     val reducedMotion = LocalNightWaveReduceMotion.current
     val hapticView = LocalView.current
@@ -262,7 +258,7 @@ fun StudioMiniPlayer(
                     }
                     Column(Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text(if (state.title.isBlank()) "Restoring your last track…"
+                        Text(if (state.title.isBlank()) strings.get(R.string.nw141_restoring_your_last_track_8de2e)
                             else identity.title,
                             style = MaterialTheme.typography.titleSmall.copy(
                                 fontWeight = FontWeight.SemiBold),
@@ -287,7 +283,7 @@ fun StudioMiniPlayer(
                     actions.playPause()
                 }, modifier = Modifier.size(48.dp)) {
                     Icon(if (state.canPause) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                        contentDescription = if (state.canPause) "Pause playback" else "Resume playback",
+                        contentDescription = if (state.canPause) strings.get(R.string.nw141_pause_playback_65a4a) else strings.get(R.string.nw141_resume_playback_b1982),
                         tint = colors.onSurface)
                 }
                 if (showNext) {
@@ -297,7 +293,7 @@ fun StudioMiniPlayer(
                         actions.next()
                     }, modifier = Modifier.size(48.dp),
                         enabled = state.connected && !state.buffering) {
-                        Icon(Icons.Outlined.SkipNext, contentDescription = "Next track",
+                        Icon(Icons.Outlined.SkipNext, contentDescription = strings.get(R.string.nw141_next_track_f930a),
                             tint = colors.onSurface)
                     }
                 }
@@ -309,7 +305,7 @@ fun StudioMiniPlayer(
                     onHide()
                 }, modifier = Modifier.size(48.dp)) {
                     Icon(Icons.Outlined.Close,
-                        contentDescription = "Hide mini-player; music keeps playing",
+                        contentDescription = strings.get(R.string.nw141_hide_mini_player_music_keeps_playing_047d6),
                         tint = colors.onSurfaceVariant,
                         modifier = Modifier.size(20.dp))
                 }
@@ -332,6 +328,7 @@ internal fun CoverArt(
     description: String? = "Song artwork", trackIdentity: String = "", large: Boolean = false,
     onResolved: ((android.graphics.drawable.Drawable) -> Unit)? = null
 ) {
+    val strings = rememberNightWaveStrings()
     val context = LocalContext.current
     val artworkColors = MaterialTheme.colorScheme
     val candidates = remember(url, large) { NightWaveArtworkPolicy.requestCandidates(url, large) }
@@ -346,7 +343,7 @@ internal fun CoverArt(
         .clip(shape).background(artworkColors.surfaceVariant)
         .semantics {
             description?.let { contentDescription = if (failed || displayUrl == null)
-                "$it · image unavailable" else it }
+                strings.get(R.string.nw141_artwork_missing, it) else it }
         }, contentAlignment = Alignment.Center) {
         if (!imageLoaded) Canvas(Modifier.fillMaxSize(.64f)) {
             drawCircle(artworkColors.onSurface.copy(alpha = .12f), radius = size.minDimension * .44f)
@@ -410,6 +407,7 @@ fun StudioNowPlayingOverlay(
     onEditLyrics: () -> Unit = {},
     onRemoveLyrics: () -> Unit = {}
 ) {
+    val strings = rememberNightWaveStrings()
     // One transition owns backdrop and content from the same requested frame.
     // Translation alone keeps the player visible throughout; no blank alpha-zero viewport.
     val enter = if (reduceMotion) EnterTransition.None else
@@ -484,7 +482,7 @@ fun StudioNowPlayingOverlay(
             } ?: queuePreview.subtitle
             val playerHealth = PlaybackHealthPolicy.classify(state.hasTrack, state.connected,
                 state.offline, state.playing, state.buffering, state.resolving, state.error)
-            val playerStatus = NightWaveNowPlayingPresentationPolicy.statusLabel(playerHealth)
+            val playerStatus = strings.playbackStatus(playerHealth)
             val canSwipeArtwork = state.connected && !state.buffering && state.queue.size > 1
             var horizontalTravel by remember(state.videoUrl) { mutableStateOf(0f) }
             val playingArtworkScale by animateFloatAsState(
@@ -537,14 +535,14 @@ fun StudioNowPlayingOverlay(
                     ) {
                         IconButton(onClick = { lyricsImmersive = false }) {
                             Icon(Icons.Outlined.ArrowDownward,
-                                contentDescription = "Return to now playing",
+                                contentDescription = strings.get(R.string.nw141_return_to_now_playing_84835),
                                 tint = colors.onBackground)
                         }
                         Column(
                             Modifier.weight(1f),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Text("NIGHTWAVE LYRICS",
+                            Text(strings.get(R.string.nw141_nightwave_lyrics_a3ea8),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = colors.primary)
                             Text(playerIdentity.title,
@@ -562,14 +560,14 @@ fun StudioNowPlayingOverlay(
                             onDismiss()
                         }) {
                             Icon(Icons.Outlined.Close,
-                                contentDescription = "Minimize lyrics and player",
+                                contentDescription = strings.get(R.string.nw141_minimize_lyrics_and_player_d24f9),
                                 tint = colors.onBackground)
                         }
                     }
                     Row(Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(LyricsReadingPolicy.followHint(lyricsAutoFollow),
+                        Text(strings.get(if (lyricsAutoFollow) R.string.nw141_follow_hint_on else R.string.nw141_follow_hint_off),
                             modifier = Modifier.weight(1f).padding(vertical = 8.dp),
                             color = colors.onSurfaceVariant,
                             style = MaterialTheme.typography.labelSmall)
@@ -585,19 +583,17 @@ fun StudioNowPlayingOverlay(
                                 .testTag("lyrics-follow-toggle")
                                 .semantics {
                                     contentDescription =
-                                        LyricsReadingPolicy.followActionDescription(
-                                            lyricsAutoFollow)
+                                        strings.get(if (lyricsAutoFollow) R.string.nw141_follow_action_on else R.string.nw141_follow_action_off)
                                     stateDescription =
-                                        LyricsReadingPolicy.followStateDescription(
-                                            lyricsAutoFollow)
+                                        strings.get(if (lyricsAutoFollow) R.string.nw141_follow_state_on else R.string.nw141_follow_state_off)
                                 }
                         ) {
-                            Text(LyricsReadingPolicy.followActionLabel(lyricsAutoFollow))
+                            Text(strings.get(if (lyricsAutoFollow) R.string.nw141_pause_858e4 else R.string.nw141_follow))
                         }
                         Spacer(Modifier.width(7.dp))
                         OutlinedButton(onClick = onEditLyrics,
                             modifier = Modifier.heightIn(min = 48.dp)) {
-                            Text("Edit")
+                            Text(strings.get(R.string.nw141_edit_464c4))
                         }
                     }
                     LazyColumn(
@@ -625,10 +621,9 @@ fun StudioNowPlayingOverlay(
                                     .heightIn(min = 56.dp)
                                     .testTag("lyrics-cue-$index")
                                     .semantics(mergeDescendants = true) {
-                                        contentDescription = LyricsReadingPolicy.cueDescription(
-                                            cue, lyricsOffsetMs, state.durationMs)
+                                        contentDescription = strings.get(R.string.nw141_cue_seek, strings.duration(LyricsSyncPolicy.seekPosition(cue, lyricsOffsetMs, state.durationMs)), cue.text)
                                         stateDescription =
-                                            LyricsReadingPolicy.currentLineState(current)
+                                            strings.get(if (current) R.string.nw141_current_lyric else R.string.nw141_other_lyric)
                                     },
                                 shape = RoundedCornerShape(14.dp),
                                 color = if (current) colors.primaryContainer
@@ -644,7 +639,7 @@ fun StudioNowPlayingOverlay(
                                         color = if (current) colors.onPrimaryContainer
                                             else colors.onSurfaceVariant)
                                     if (current) {
-                                        Text(timeLabel(LyricsSyncPolicy.seekPosition(
+                                        Text(strings.duration(LyricsSyncPolicy.seekPosition(
                                             cue, lyricsOffsetMs, state.durationMs)),
                                             style = MaterialTheme.typography.labelSmall,
                                             color = colors.onPrimaryContainer)
@@ -678,9 +673,9 @@ fun StudioNowPlayingOverlay(
                     ) {
                         Column(Modifier.padding(14.dp),
                             horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("Lyric timing · " + LyricsSyncPolicy.label(lyricsOffsetMs),
+                            Text(strings.get(R.string.nw141_lyric_timing_4b33a) + LyricsSyncPolicy.label(lyricsOffsetMs),
                                 style = MaterialTheme.typography.labelLarge)
-                            Text("Positive timing delays lines; negative timing moves them earlier.",
+                            Text(strings.get(R.string.nw141_positive_timing_delays_lines_negative_timing_mov_c9b3b),
                                 color = colors.onSurfaceVariant,
                                 style = MaterialTheme.typography.labelSmall)
                             OutlinedButton(
@@ -688,8 +683,8 @@ fun StudioNowPlayingOverlay(
                                 modifier = Modifier.fillMaxWidth().padding(top = 9.dp)
                                     .testTag("lyrics-fine-timing-toggle")
                             ) {
-                                Text(if (lyricsFineTiming) "Fine timing · 50 ms"
-                                    else "Timing step · 250 ms")
+                                Text(if (lyricsFineTiming) strings.get(R.string.nw141_fine_timing_50_ms_3c74a)
+                                    else strings.get(R.string.nw141_timing_step_250_ms_e517b))
                             }
                             Row(Modifier.fillMaxWidth().padding(top = 10.dp),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -708,7 +703,7 @@ fun StudioNowPlayingOverlay(
                                     onClick = { onLyricsOffsetChange(0) },
                                     enabled = lyricsOffsetMs != 0,
                                     modifier = Modifier.weight(1f)
-                                ) { Text("Reset") }
+                                ) { Text(strings.get(R.string.nw141_reset_daee7)) }
                                 OutlinedButton(
                                     onClick = {
                                         onLyricsOffsetChange(
@@ -750,7 +745,7 @@ fun StudioNowPlayingOverlay(
                     },
                     verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = onDismiss, modifier = Modifier.size(48.dp)) {
-                        Icon(Icons.Outlined.ArrowDownward, contentDescription = "Minimize player",
+                        Icon(Icons.Outlined.ArrowDownward, contentDescription = strings.get(R.string.nw141_minimize_player_3fbf2),
                             tint = colors.onBackground)
                     }
                     Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -758,13 +753,13 @@ fun StudioNowPlayingOverlay(
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = colors.onBackground)
-                        Text(if (state.offline) "FROM YOUR OFFLINE LIBRARY" else "NOW PLAYING",
+                        Text(if (state.offline) strings.get(R.string.nw141_from_your_offline_library_4ddd6) else strings.get(R.string.nw141_now_playing_e6a95),
                             style = MaterialTheme.typography.labelSmall,
                             color = colors.onSurfaceVariant)
                     }
                     IconButton(onClick = onSaveToPlaylist, enabled = !state.offline,
                         modifier = Modifier.size(48.dp)) {
-                        Icon(Icons.AutoMirrored.Outlined.PlaylistAdd, contentDescription = "Save track to playlist",
+                        Icon(Icons.AutoMirrored.Outlined.PlaylistAdd, contentDescription = strings.get(R.string.nw141_save_track_to_playlist_ac985),
                             tint = colors.onBackground)
                     }
                 }
@@ -842,7 +837,7 @@ fun StudioNowPlayingOverlay(
                             if (reduceMotion) {
                                 // A genuinely static buffering cue; the
                                 // indeterminate spinner itself is animation.
-                                Text("Loading",
+                                Text(strings.get(R.string.nw141_loading_dc380),
                                     modifier = Modifier.testTag(
                                         "nightwave-now-playing-static-loading"),
                                     style = MaterialTheme.typography.labelSmall,
@@ -873,7 +868,7 @@ fun StudioNowPlayingOverlay(
                     .useFullWidthMetadata(playerWidthDp, fontScale)
                 val songMetadata: @Composable (Modifier) -> Unit = { detailModifier ->
                     Column(detailModifier) {
-                        Text(if (state.title.isBlank()) "Choose a track"
+                        Text(if (state.title.isBlank()) strings.get(R.string.nw141_choose_a_track_2457e)
                             else playerIdentity.title,
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.ExtraBold,
@@ -889,7 +884,7 @@ fun StudioNowPlayingOverlay(
                             overflow = TextOverflow.Ellipsis)
                     }
                 }
-                val likeStatus = NightWaveNowPlayingPresentationPolicy.likeStatusLabel(
+                val likeStatus = strings.likeStatus(
                     liked, state.offline)
                 val likeControl: @Composable () -> Unit = {
                     IconButton(onClick = onLike, enabled = !state.offline,
@@ -898,7 +893,7 @@ fun StudioNowPlayingOverlay(
                             .semantics { stateDescription = likeStatus
                         }) {
                         Icon(if (liked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-                            contentDescription = if (liked) "Unlike song" else "Like song",
+                            contentDescription = if (liked) strings.get(R.string.nw141_unlike_song_1f8d1) else strings.get(R.string.nw141_like_song_f8d08),
                             tint = if (liked) colors.primary else colors.onBackground)
                     }
                 }
@@ -932,11 +927,11 @@ fun StudioNowPlayingOverlay(
                     if (playerHealth.needsUserAction) {
                         IconButton(onClick = actions::retry, modifier = Modifier.size(48.dp)) {
                             Icon(Icons.Outlined.Refresh, contentDescription = if (state.connected)
-                                "Retry playback" else "Reconnect player", tint = colors.primary)
+                                strings.get(R.string.nw141_retry_playback_090c8) else strings.get(R.string.nw141_reconnect_player_6146a), tint = colors.primary)
                         }
                     }
                     NightWaveMatteTextButton(onClick = { showSourceDetails = true },
-                        modifier = Modifier.heightIn(min = 48.dp).testTag("editorial-track-details")) { Text("Details") }
+                        modifier = Modifier.heightIn(min = 48.dp).testTag("editorial-track-details")) { Text(strings.get(R.string.nw141_details_45989)) }
                 }
                 // A scrub in progress belongs to exactly one track. Changing tracks
                 // clears the pending drag so an old percentage cannot seek the next.
@@ -956,14 +951,13 @@ fun StudioNowPlayingOverlay(
                         dragFraction = null
                     },
                     onCancel = { dragFraction = null },
-                    positionDescription = timeLabel(PlayerProgressRules.requestedPosition(
-                        state.durationMs, fraction) ?: 0L) + " of " + timeLabel(state.durationMs)
+                    positionDescription = strings.get(R.string.nw141_seek_position, strings.duration(PlayerProgressRules.requestedPosition(state.durationMs, fraction) ?: 0L), strings.duration(state.durationMs))
                 )
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(timeLabel(PlayerProgressRules.requestedPosition(
+                    Text(strings.duration(PlayerProgressRules.requestedPosition(
                         state.durationMs, fraction) ?: 0L), style = MaterialTheme.typography.labelSmall,
                         color = colors.onSurfaceVariant)
-                    Text(timeLabel(state.durationMs), style = MaterialTheme.typography.labelSmall,
+                    Text(strings.duration(state.durationMs), style = MaterialTheme.typography.labelSmall,
                         color = colors.onSurfaceVariant)
                 }
                 Spacer(Modifier.height(9.dp))
@@ -975,7 +969,7 @@ fun StudioNowPlayingOverlay(
                     IconButton(onClick = actions::toggleShuffle,
                         modifier = Modifier.size(48.dp)) {
                         Icon(Icons.Outlined.Shuffle,
-                            contentDescription = if (state.shuffle) "Shuffle on" else "Shuffle off",
+                            contentDescription = if (state.shuffle) strings.get(R.string.nw141_shuffle_on_631b7) else strings.get(R.string.nw141_shuffle_off_ed772),
                             modifier = Modifier.size(25.dp),
                             tint = if (state.shuffle) colors.primary else colors.onSurfaceVariant)
                     }
@@ -986,11 +980,11 @@ fun StudioNowPlayingOverlay(
                         Icon(if (state.repeat == PlaybackQueue.Repeat.ONE) Icons.Outlined.RepeatOne
                             else Icons.Outlined.Repeat,
                             modifier = Modifier.size(25.dp),
-                            contentDescription = "Repeat mode: " + when (state.repeat) {
-                                PlaybackQueue.Repeat.OFF -> "Off"
-                                PlaybackQueue.Repeat.ALL -> "All songs"
-                                PlaybackQueue.Repeat.ONE -> "Current song"
-                            },
+                            contentDescription = strings.get(R.string.nw141_repeat_mode, when (state.repeat) {
+                                PlaybackQueue.Repeat.OFF -> strings.get(R.string.nw141_off_ca798)
+                                PlaybackQueue.Repeat.ALL -> strings.get(R.string.nw141_all_songs_8627a)
+                                PlaybackQueue.Repeat.ONE -> strings.get(R.string.nw141_current_song_6dbbe)
+                            }),
                             tint = if (state.repeat == PlaybackQueue.Repeat.OFF)
                                 colors.onSurfaceVariant else colors.primary)
                     }
@@ -1000,7 +994,7 @@ fun StudioNowPlayingOverlay(
                 // Android presents an ultra-narrow multiwindow viewport.
                 val previousControl: @Composable () -> Unit = {
                     IconButton(onClick = actions::previous, modifier = Modifier.size(48.dp)) {
-                        Icon(Icons.Outlined.SkipPrevious, contentDescription = "Previous track",
+                        Icon(Icons.Outlined.SkipPrevious, contentDescription = strings.get(R.string.nw141_previous_track_c50a8),
                             modifier = Modifier.size(34.dp), tint = colors.onBackground)
                     }
                 }
@@ -1010,7 +1004,7 @@ fun StudioNowPlayingOverlay(
                             .testTag("nightwave-now-playing-play-pause")) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(if (state.canPause) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                                contentDescription = if (state.canPause) "Pause" else "Play",
+                                contentDescription = if (state.canPause) strings.get(R.string.nw141_pause_858e4) else strings.get(R.string.nw141_play_436e6),
                                 tint = paletteColor(NightWaveMattePolicy.transportInk(LocalNightWavePalette.current)),
                                 modifier = Modifier.size(33.dp))
                         }
@@ -1018,7 +1012,7 @@ fun StudioNowPlayingOverlay(
                 }
                 val nextControl: @Composable () -> Unit = {
                     IconButton(onClick = actions::next, modifier = Modifier.size(48.dp)) {
-                        Icon(Icons.Outlined.SkipNext, contentDescription = "Next track",
+                        Icon(Icons.Outlined.SkipNext, contentDescription = strings.get(R.string.nw141_next_track_f930a),
                             modifier = Modifier.size(34.dp), tint = colors.onBackground)
                     }
                 }
@@ -1099,11 +1093,11 @@ fun StudioNowPlayingOverlay(
                             horizontal = 12.dp, vertical = 9.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            Text(if (lyricsOpen) "Hide lyrics" else "Lyrics",
+                            Text(if (lyricsOpen) strings.get(R.string.nw141_hide_lyrics_54b04) else strings.get(R.string.nw141_lyrics_e73a4),
                                 style = MaterialTheme.typography.titleSmall,
                                 maxLines = 1, overflow = TextOverflow.Ellipsis,
                                 color = colors.onSurface)
-                            Text(NightWaveNowPlayingPresentationPolicy.lyricsSubtitle(
+                            Text(strings.lyricsSubtitle(
                                 state.offline, lyrics != null),
                                 style = MaterialTheme.typography.labelSmall,
                                 maxLines = 2, overflow = TextOverflow.Ellipsis,
@@ -1167,7 +1161,7 @@ fun StudioNowPlayingOverlay(
                             }
                         }
                         Icon(Icons.AutoMirrored.Outlined.QueueMusic,
-                            contentDescription = "Open queue", tint = colors.primary)
+                            contentDescription = strings.get(R.string.nw141_open_queue_976eb), tint = colors.primary)
                     }
                 }
                 if (lyricsOpen) {
@@ -1177,8 +1171,8 @@ fun StudioNowPlayingOverlay(
                             onClick = { lyricsGuideOpen = !lyricsGuideOpen },
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text(if (lyricsGuideOpen) "Hide LRC import guide"
-                                else "How to import synchronized lyrics")
+                            Text(if (lyricsGuideOpen) strings.get(R.string.nw141_hide_lrc_import_guide_5f8c7)
+                                else strings.get(R.string.nw141_how_to_import_synchronized_lyrics_511ec))
                         }
                         if (lyricsGuideOpen) {
                             Surface(
@@ -1191,7 +1185,7 @@ fun StudioNowPlayingOverlay(
                                     Modifier.padding(14.dp),
                                     verticalArrangement = Arrangement.spacedBy(7.dp)
                                 ) {
-                                    Text("TIMESTAMPED LRC · QUICK GUIDE",
+                                    Text(strings.get(R.string.nw141_timestamped_lrc_quick_guide_a7b03),
                                         style = MaterialTheme.typography.labelSmall,
                                         color = colors.primary)
                                     Text("[00:12.50] First lyric line",
@@ -1200,13 +1194,10 @@ fun StudioNowPlayingOverlay(
                                     Text("[00:15.25] Next lyric line",
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = colors.onSurface)
-                                    Text("Choose a UTF-8 .lrc file under 64 KB. " +
-                                        "NightWave reviews song-name hints, timestamp problems " +
-                                        "and an optional replacement before saving.",
+                                    Text(strings.get(R.string.nw141_lyrics_guide),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = colors.onSurfaceVariant)
-                                    Text("LRC files must be supplied by you. " +
-                                        "Matching filenames do not prove matching lyrics.",
+                                    Text(strings.get(R.string.nw141_lyrics_owned),
                                         style = MaterialTheme.typography.labelSmall,
                                         color = colors.onSurfaceVariant)
                                 }
@@ -1214,23 +1205,22 @@ fun StudioNowPlayingOverlay(
                         }
                     }
                     if (!lyricsSupported) {
-                        Text("Choose a local song or supported public video to attach your own LRC. " +
-                            "NightWave does not fetch lyrics from streaming sites.",
+                        Text(strings.get(R.string.nw141_lyrics_choose),
                             style = MaterialTheme.typography.bodySmall,
                             color = colors.onSurfaceVariant)
                     } else if (lyrics == null) {
-                        Text(if (state.offline) "Import your own timestamped .lrc file for this on-device copy."
-                            else "Attach your own timestamped LRC to this exact video. Public-video lyrics stay on this device.",
+                        Text(if (state.offline) strings.get(R.string.nw141_import_your_own_timestamped_lrc_file_for_this_on_af713)
+                            else strings.get(R.string.nw141_attach_your_own_timestamped_lrc_to_this_exact_vi_bf4e8),
                             style = MaterialTheme.typography.bodyMedium,
                             color = colors.onSurfaceVariant)
                         Spacer(Modifier.height(8.dp))
                         OutlinedButton(onClick = onImportLyrics,
-                            modifier = Modifier.fillMaxWidth()) { Text("Import synchronized lyrics") }
+                            modifier = Modifier.fillMaxWidth()) { Text(strings.get(R.string.nw141_import_synchronized_lyrics_6995a)) }
                     } else {
                         val active = LyricsSyncPolicy.activeIndex(
                             lyrics, state.positionMs, lyricsOffsetMs)
                         val start = (active - 2).coerceAtLeast(0)
-                        Text(if (state.offline) "Your lyrics · This on-device copy" else "Your lyrics · This video",
+                        Text(if (state.offline) strings.get(R.string.nw141_your_lyrics_this_on_device_copy_d65ed) else strings.get(R.string.nw141_your_lyrics_this_video_22708),
                             style = MaterialTheme.typography.labelSmall,
                             color = colors.onSurfaceVariant)
                         Spacer(Modifier.height(8.dp))
@@ -1248,24 +1238,24 @@ fun StudioNowPlayingOverlay(
                         Spacer(Modifier.height(9.dp))
                         OutlinedButton(onClick = { lyricsImmersive = true },
                             modifier = Modifier.fillMaxWidth()) {
-                            Text("Open full-screen synchronized lyrics")
+                            Text(strings.get(R.string.nw141_open_full_screen_synchronized_lyrics_dd54c))
                         }
-                        Text("Lyric timing · " + LyricsSyncPolicy.label(lyricsOffsetMs),
+                        Text(strings.get(R.string.nw141_lyric_timing_4b33a) + LyricsSyncPolicy.label(lyricsOffsetMs),
                             style = MaterialTheme.typography.labelSmall,
                             color = colors.onSurfaceVariant)
                         Spacer(Modifier.height(9.dp))
                         OutlinedButton(onClick = onEditLyrics,
                             modifier = Modifier.fillMaxWidth()
                                 .testTag("lyrics-open-editor")) {
-                            Text("Edit lyric lines & timestamps")
+                            Text(strings.get(R.string.nw141_edit_lyric_lines_timestamps_18fd5))
                         }
                         Spacer(Modifier.height(7.dp))
                         Row(Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(9.dp)) {
                             OutlinedButton(onClick = onImportLyrics,
-                                modifier = Modifier.weight(1f)) { Text("Replace .lrc") }
+                                modifier = Modifier.weight(1f)) { Text(strings.get(R.string.nw141_replace_lrc_e21b3)) }
                             OutlinedButton(onClick = onRemoveLyrics,
-                                modifier = Modifier.weight(1f)) { Text("Remove lyrics") }
+                                modifier = Modifier.weight(1f)) { Text(strings.get(R.string.nw141_remove_lyrics_5dc1b)) }
                         }
                     }
                 }
@@ -1280,14 +1270,14 @@ fun StudioNowPlayingOverlay(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween) {
                         Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
-                            Text("Sound & playback", style = MaterialTheme.typography.titleSmall,
+                            Text(strings.get(R.string.nw141_sound_playback_06fb2), style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.SemiBold,
                                 color = colors.onSurface)
-                            Text("Crossfade · Sleep timer · Listening level",
+                            Text(strings.get(R.string.nw141_crossfade_sleep_timer_listening_level_73204),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = colors.onSurfaceVariant)
                         }
-                        Text(if (advancedAudioOpen) "Less" else "More",
+                        Text(if (advancedAudioOpen) strings.get(R.string.nw141_less_ae523) else strings.get(R.string.nw141_more_d47d7),
                             color = colors.primary,
                             style = MaterialTheme.typography.labelMedium)
                     }
@@ -1300,7 +1290,7 @@ fun StudioNowPlayingOverlay(
                         modifier = Modifier.fillMaxWidth().height(48.dp),
                         shape = RoundedCornerShape(16.dp)
                     ) {
-                        Text("Listening level · " +
+                        Text(strings.get(R.string.nw141_listening_level_46dec) +
                             ListeningLevelPolicy.label(listeningLevelPercent))
                     }
                     DropdownMenu(
@@ -1327,8 +1317,8 @@ fun StudioNowPlayingOverlay(
                     modifier = Modifier.fillMaxWidth().height(48.dp),
                     shape = RoundedCornerShape(16.dp)
                 ) {
-                    Text(if (crossfadeSeconds == 0) "Crossfade · Off"
-                        else "Crossfade · " + crossfadeSeconds + " sec")
+                    Text(if (crossfadeSeconds == 0) strings.get(R.string.nw141_crossfade_off_9ccba)
+                        else strings.get(R.string.nw141_crossfade_4401d) + crossfadeSeconds + " sec")
                 }
                 Text(AudioTransitionUiPolicy.description(
                     offline = state.offline,
@@ -1344,10 +1334,10 @@ fun StudioNowPlayingOverlay(
                 if (crossfadeOptionsOpen) {
                     androidx.compose.material3.AlertDialog(
                         onDismissRequest = { crossfadeOptionsOpen = false },
-                        title = { Text("Crossfade") },
+                        title = { Text(strings.get(R.string.nw141_crossfade_d5fe5)) },
                         text = {
                             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                Text("Overlap two locally imported songs. Streaming tracks use normal playback.",
+                                Text(strings.get(R.string.nw141_overlap_two_locally_imported_songs_streaming_tra_34cf7),
                                     style = MaterialTheme.typography.bodyMedium)
                                 Text(AudioTransitionUiPolicy.dialogDetail(crossfadeDraft),
                                     style = MaterialTheme.typography.titleMedium,
@@ -1360,7 +1350,7 @@ fun StudioNowPlayingOverlay(
                                     steps = CrossfadePolicy.MAX_SECONDS - 1,
                                     modifier = Modifier.testTag("crossfade-seconds-slider")
                                 )
-                                Text("Off by default. Applies only to eligible offline queues at 1× speed.",
+                                Text(strings.get(R.string.nw141_off_by_default_applies_only_to_eligible_offline_4e851),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
@@ -1369,12 +1359,12 @@ fun StudioNowPlayingOverlay(
                             androidx.compose.material3.TextButton(onClick = {
                                 crossfadeOptionsOpen = false
                                 onCrossfade(crossfadeDraft)
-                            }) { Text("Apply") }
+                            }) { Text(strings.get(R.string.nw141_apply_31e39)) }
                         },
                         dismissButton = {
                             androidx.compose.material3.TextButton(
                                 onClick = { crossfadeOptionsOpen = false }
-                            ) { Text("Cancel") }
+                            ) { Text(strings.get(R.string.nw141_cancel_19766)) }
                         }
                     )
                 }
@@ -1416,9 +1406,9 @@ fun StudioNowPlayingOverlay(
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             Column(Modifier.weight(1f)) {
-                                Text("Volume balance · " + if (normalizationEnabled) "On" else "Off",
+                                Text(strings.get(R.string.nw141_volume_balance_ec25c) + if (normalizationEnabled) strings.get(R.string.nw141_on_13001) else strings.get(R.string.nw141_off_ca798),
                                     style = MaterialTheme.typography.titleSmall)
-                                Text("Analyzes imported music locally and reduces loud tracks. No boosts.",
+                                Text(strings.get(R.string.nw141_analyzes_imported_music_locally_and_reduces_loud_1d727),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
@@ -1436,7 +1426,7 @@ fun StudioNowPlayingOverlay(
                             modifier = Modifier.fillMaxWidth().height(48.dp),
                             shape = RoundedCornerShape(16.dp)
                         ) {
-                            Text("Offline playback speed · " +
+                            Text(strings.get(R.string.nw141_offline_playback_speed_e1ba8) +
                                 OfflinePlaybackSpeedPolicy.label(offlineSpeedPercent))
                         }
                         DropdownMenu(
@@ -1478,6 +1468,7 @@ fun StudioQueueSheet(
     onMoveUpcoming: ((Int, Int, QueueEditSnapshot) -> Boolean)? = null,
     onClearUpcoming: ((QueueEditSnapshot) -> Boolean)? = null
 ) {
+    val strings = rememberNightWaveStrings()
     val snackbarHost = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var editingOrder by remember { mutableStateOf(false) }
@@ -1485,24 +1476,24 @@ fun StudioQueueSheet(
     val editSnapshot = QueueEditSnapshot(state.queue.map { it.url }, state.videoUrl, state.manualNextUrls)
     fun move(from: Int, to: Int) {
         if (onMoveUpcoming?.invoke(from, to, editSnapshot) != true) scope.launch {
-            snackbarHost.showSnackbar("Queue changed. Reopen it and try again.")
+            snackbarHost.showSnackbar(strings.get(R.string.nw141_queue_changed_reopen_it_and_try_again_29c38))
         }
     }
     clearRequest?.let { reviewed ->
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { clearRequest = null },
-            title = { Text("Clear Up Next?") },
-            text = { Text("Remove the upcoming songs from this queue. Your current song, saved music and files stay in place.") },
+            title = { Text(strings.get(R.string.nw141_clear_up_next_d4dec)) },
+            text = { Text(strings.get(R.string.nw141_remove_the_upcoming_songs_from_this_queue_your_c_c96bd)) },
             confirmButton = {
                 androidx.compose.material3.TextButton(onClick = {
                     clearRequest = null
                     if (onClearUpcoming?.invoke(reviewed) != true) scope.launch {
-                        snackbarHost.showSnackbar("Queue changed. Review it before clearing.")
+                        snackbarHost.showSnackbar(strings.get(R.string.nw141_queue_changed_review_it_before_clearing_61e7d))
                     }
-                }, modifier = Modifier.heightIn(min = 48.dp).testTag("nw134-confirm-clear")) { Text("Clear Up Next") }
+                }, modifier = Modifier.heightIn(min = 48.dp).testTag("nw134-confirm-clear")) { Text(strings.get(R.string.nw141_clear_up_next_c7598)) }
             }, dismissButton = {
                 androidx.compose.material3.TextButton(onClick = { clearRequest = null },
-                    modifier = Modifier.heightIn(min = 48.dp)) { Text("Cancel") }
+                    modifier = Modifier.heightIn(min = 48.dp)) { Text(strings.get(R.string.nw141_cancel_19766)) }
             })
     }
     fun requestRemove(index: Int, url: String) {
@@ -1510,8 +1501,8 @@ fun StudioQueueSheet(
         scope.launch {
             snackbarHost.currentSnackbarData?.dismiss()
             val result = snackbarHost.showSnackbar(
-                message = "Removed from Up Next",
-                actionLabel = "Undo",
+                message = strings.get(R.string.nw141_removed_from_up_next_de6e8),
+                actionLabel = strings.get(R.string.nw141_undo_a8283),
                 withDismissAction = true,
                 duration = SnackbarDuration.Short
             )
@@ -1524,7 +1515,7 @@ fun StudioQueueSheet(
         containerColor = MaterialTheme.colorScheme.surface
     ) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 18.dp)) {
-            Text("Your listening queue", style = MaterialTheme.typography.headlineSmall)
+            Text(strings.get(R.string.nw141_your_listening_queue_8e0b7), style = MaterialTheme.typography.headlineSmall)
             val removable = !state.offline && !state.shuffle && state.connected
             val currentIndex = state.queueIndex.takeIf { it in state.queue.indices }
             val pendingUrls = state.manualNextUrls
@@ -1542,12 +1533,12 @@ fun StudioQueueSheet(
                 else state.queue.withIndex().filter { it.index < currentIndex }
             Text(
                 when {
-                    state.offline -> "Offline collection · private audio files stay on device"
+                    state.offline -> strings.get(R.string.nw141_queue_offline)
                     state.shuffle && explicitNext.isNotEmpty() ->
-                        "${explicitNext.size} Play Next choices · remaining tracks shuffled"
-                    state.shuffle -> "Shuffle on · order varies until you choose Play next"
-                    upcoming.isEmpty() -> "No tracks after this song · choose Play next to add one"
-                    else -> "${upcoming.size} upcoming · swipe left to remove a queued track"
+                        strings.get(R.string.nw141_queue_next, strings.quantity(R.plurals.nw141_play_next_count, explicitNext.size))
+                    state.shuffle -> strings.get(R.string.nw141_queue_shuffle)
+                    upcoming.isEmpty() -> strings.get(R.string.nw141_queue_end)
+                    else -> strings.get(R.string.nw141_queue_upcoming, strings.quantity(R.plurals.nw141_upcoming, upcoming.size))
                 },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -1557,22 +1548,22 @@ fun StudioQueueSheet(
                     if (onMoveUpcoming != null && upcoming.size > 1) NightWaveMatteTextButton(
                         onClick = { editingOrder = !editingOrder },
                         modifier = Modifier.heightIn(min = 48.dp).testTag("nw134-edit-order")) {
-                        Text(if (editingOrder) "Done editing" else "Edit order")
+                        Text(if (editingOrder) strings.get(R.string.nw141_done_editing_058f2) else strings.get(R.string.nw141_edit_order_6e635))
                     }
                     if (onClearUpcoming != null) NightWaveMatteTextButton(
                         onClick = { clearRequest = editSnapshot },
-                        modifier = Modifier.heightIn(min = 48.dp).testTag("nw134-clear-upcoming")) { Text("Clear Up Next") }
+                        modifier = Modifier.heightIn(min = 48.dp).testTag("nw134-clear-upcoming")) { Text(strings.get(R.string.nw141_clear_up_next_c7598)) }
                 }
-                if (editingOrder) Text("Use song options to move within Play Next or Up Next.",
+                if (editingOrder) Text(strings.get(R.string.nw141_use_song_options_to_move_within_play_next_or_up_89671),
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             } else if (!state.offline && state.shuffle) {
-                Text("Turn Shuffle off to reorder, remove or clear upcoming songs.",
+                Text(strings.get(R.string.nw141_turn_shuffle_off_to_reorder_remove_or_clear_upco_0495a),
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Spacer(Modifier.height(13.dp))
             if (state.queue.isEmpty() || currentIndex == null) {
-                EmptyMusicCard("Your queue is empty", "Play a song to begin listening.",
-                    "Close queue", onDismiss)
+                EmptyMusicCard(strings.get(R.string.nw141_your_queue_is_empty_2d9ac), strings.get(R.string.nw141_play_a_song_to_begin_listening_fd4f7),
+                    strings.get(R.string.nw141_close_queue_5433a), onDismiss)
             } else {
                 LazyColumn(
                     modifier = Modifier.weight(1f, fill = false),
@@ -1580,7 +1571,7 @@ fun StudioQueueSheet(
                     verticalArrangement = Arrangement.spacedBy(7.dp)
                 ) {
                     item(key = "queue-playing-header") {
-                        Text("PLAYING NOW", style = MaterialTheme.typography.labelSmall,
+                        Text(strings.get(R.string.nw141_playing_now_65e1d), style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary)
                     }
                     item(key = "queue-playing-item") {
@@ -1593,16 +1584,16 @@ fun StudioQueueSheet(
                         )
                     }
                     item(key = "queue-upcoming-header") {
-                        Text(if (explicitNext.isNotEmpty()) "PLAY NEXT"
-                            else if (state.shuffle) "SHUFFLE POOL · ORDER VARIES"
-                            else "UP NEXT",
+                        Text(if (explicitNext.isNotEmpty()) strings.get(R.string.nw141_play_next_62301)
+                            else if (state.shuffle) strings.get(R.string.nw141_shuffle_pool_order_varies_03f7b)
+                            else strings.get(R.string.nw141_up_next_56746),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(top = 10.dp))
                     }
                     if (upcoming.isEmpty()) {
                         item(key = "queue-no-upcoming") {
-                            Text("Nothing else in your queue.",
+                            Text(strings.get(R.string.nw141_nothing_else_in_your_queue_64883),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
@@ -1614,8 +1605,8 @@ fun StudioQueueSheet(
                         val video = slot.value
                         Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
                             if (explicitNext.isNotEmpty() && pos == explicitNext.size) {
-                                Text(if (state.shuffle) "SHUFFLE POOL · ORDER VARIES"
-                                    else "UP NEXT",
+                                Text(if (state.shuffle) strings.get(R.string.nw141_shuffle_pool_order_varies_03f7b)
+                                    else strings.get(R.string.nw141_up_next_56746),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.padding(top = 9.dp))
@@ -1642,7 +1633,7 @@ fun StudioQueueSheet(
                     }
                     if (earlier.isNotEmpty()) {
                         item(key = "queue-earlier-header") {
-                            Text("EARLIER IN THIS QUEUE",
+                            Text(strings.get(R.string.nw141_earlier_in_this_queue_d9740),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(top = 12.dp))
@@ -1679,6 +1670,7 @@ private fun SwipeUpcomingRow(
     onMoveEarlier: (() -> Unit)? = null,
     onMoveLater: (() -> Unit)? = null
 ) {
+    val strings = rememberNightWaveStrings()
     val display = remember(title, subtitle) {
         NightWaveEditorialPresentationPolicy.identity(title, subtitle)
     }
@@ -1703,7 +1695,7 @@ private fun SwipeUpcomingRow(
                 Icon(Icons.Outlined.DeleteOutline, contentDescription = null,
                     tint = MaterialTheme.colorScheme.onErrorContainer)
                 Spacer(Modifier.width(5.dp))
-                Text("Remove", style = MaterialTheme.typography.labelMedium,
+                Text(strings.get(R.string.nw141_remove_c3812), style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onErrorContainer)
             }
         }
@@ -1731,16 +1723,16 @@ private fun SwipeUpcomingRow(
                 } else Modifier)
                 .clickable(role = Role.Button, onClick = onSelect)
                 .semantics {
-                    contentDescription = NightWaveAccessibilityPolicy.queueAnnouncement(
+                    contentDescription = strings.queueAnnouncement(
                         number, display.title, display.artistOrCreator, isPlaying)
-                    if (isPlaying) stateDescription = "Playing"
+                    if (isPlaying) stateDescription = strings.get(R.string.nw141_playing_deaf6)
                 }
                 .testTag("nightwave-upcoming-$number")
                 .padding(horizontal = 9.dp, vertical = 5.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Text(number.toString(), modifier = Modifier.width(19.dp),
+            Text(strings.number(number), modifier = Modifier.widthIn(min = 19.dp),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.labelMedium)
             CoverArt(artwork, Modifier.size(45.dp), 10)
@@ -1753,27 +1745,27 @@ private fun SwipeUpcomingRow(
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             if (isPlaying) {
-                Text("PLAYING", style = MaterialTheme.typography.labelSmall,
+                Text(strings.get(R.string.nw141_playing_86042), style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary)
             } else if (canRemove && (onMoveEarlier != null || onMoveLater != null)) {
                 var optionsOpen by remember { mutableStateOf(false) }
                 Box {
                     IconButton(onClick = { optionsOpen = true }, modifier = Modifier.size(48.dp)) {
-                        Icon(Icons.Outlined.MoreVert, contentDescription = "Queue options for ${display.title}")
+                        Icon(Icons.Outlined.MoreVert, contentDescription = strings.get(R.string.nw141_queue_options, display.title))
                     }
                     DropdownMenu(expanded = optionsOpen, onDismissRequest = { optionsOpen = false }) {
-                        if (onMoveEarlier != null) DropdownMenuItem(text = { Text("Move earlier") },
+                        if (onMoveEarlier != null) DropdownMenuItem(text = { Text(strings.get(R.string.nw141_move_earlier_73661)) },
                             onClick = { optionsOpen = false; onMoveEarlier() })
-                        if (onMoveLater != null) DropdownMenuItem(text = { Text("Move later") },
+                        if (onMoveLater != null) DropdownMenuItem(text = { Text(strings.get(R.string.nw141_move_later_d6e85)) },
                             onClick = { optionsOpen = false; onMoveLater() })
-                        DropdownMenuItem(text = { Text("Remove from Up Next") },
+                        DropdownMenuItem(text = { Text(strings.get(R.string.nw141_remove_from_up_next_357fc)) },
                             onClick = { optionsOpen = false; onRemove() })
                     }
                 }
             } else if (canRemove) {
                 IconButton(onClick = onRemove, modifier = Modifier.size(48.dp)) {
                     Icon(Icons.Outlined.DeleteOutline,
-                        contentDescription = "Remove ${title.take(36)} from Up Next",
+                        contentDescription = strings.get(R.string.nw141_remove_track, display.title),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
