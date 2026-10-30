@@ -659,7 +659,7 @@ try {
         'SUCCESS - NightWave Android debug APK locally verified',
         'Package: com.nightwave.player',
         'Version: 2.0.0-alpha5s',
-        'Version code: 35',
+        'Version code: 36',
         $signerLine,
         $continuityLine,
         "SHA256: $hash",
