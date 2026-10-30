@@ -37,3 +37,5 @@ Frame snapshots are copied and bounded at 10,000 observations for the whole fixt
 An initial successful build/test-APK/lint set is retained privately before review tightened listener cleanup to avoid double removal and made fixture-name tracking concurrent. All final identities/checks above use the refined source. No Android benchmark or physical performance value was manufactured from either build.
 
 Primary measurement references: [Android benchmarking](https://developer.android.com/topic/performance/benchmarking/benchmarking-overview), [startup timing](https://developer.android.com/topic/performance/issues/launch-time), [Perfetto](https://developer.android.com/tools/perfetto), [FrameMetrics](https://developer.android.com/reference/android/view/FrameMetrics). Their app-wide guidance is separate from this isolated diagnostic's limited scope.
+
+Cumulative [draft PR #162](https://github.com/Nahian2002/NightWave/pull/162) targets NW139 #161; no merge is performed.

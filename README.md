@@ -2,7 +2,7 @@
 
 **Upcoming updates:** [hourly sequence and both usage guards](docs/quality/UPCOMING_UPDATES.md). NW140 measurement tools are locally verified; NW141 accessibility/Bangla-English source work is next. Actual Android performance remains unmeasured.
 
-**Current review work:** [NW140 measurement readiness](docs/NW140_ANDROID_PERFORMANCE.md) on [update/nightwave-nw140-performance](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw140-performance), stacked on [NW139 #161](https://github.com/Nahian2002/NightWave/pull/161). Explicit isolated Android diagnostics, exact app/test artifact identity and strict evidence analysis. All 344 production app/src/main files are unchanged; no player feature/theme/data/source/signing change or measured speedup is claimed.
+**Current review work:** [NW140 measurement readiness](docs/NW140_ANDROID_PERFORMANCE.md) on [update/nightwave-nw140-performance](https://github.com/Nahian2002/NightWave/tree/update/nightwave-nw140-performance), [draft PR #162](https://github.com/Nahian2002/NightWave/pull/162), stacked on [NW139 #161](https://github.com/Nahian2002/NightWave/pull/161). Explicit isolated Android diagnostics, exact app/test artifact identity and strict evidence analysis. All 344 production app/src/main files are unchanged; no player feature/theme/data/source/signing change or measured speedup is claimed.
 
 **Current integrated source:** [`main`](https://github.com/Nahian2002/NightWave/tree/main) remains the integrated baseline; newer cumulative changes are on the review branch above and are not automatically merged.
 
