@@ -1,3 +1,13 @@
+# NW142 checkpoint — validation incomplete
+
+## Weekly reserve stop — 30 October 2026
+
+Hourly automation `nightwave-sequential-upgrades` was **deleted** when the verified weekly window reached **10% remaining**. Do not restart after reset without a new owner request. Preserve and resume the unfinished NW142 batch before advancing: branch `update/nightwave-nw142-adaptive`, plan `7007a50da9b822cd7ca96a5568e40b55130a50d1`, implementation `1556d0d610800e8e85aab0d3eb5e9c770e73385c`. Private recovery/evidence: `20261030-nw142-adaptive` outside Git. No NW142 APK, PR, push, merge or delivery was performed.
+
+Initial JVM/Android compilation passed (1,812 JVM / 224 suites, zero failures/errors/skips), before the final queue test was added. The initial current-source runner **FAILED one of 83 checks**: `check-nw52-integration.ps1`, “restorable mini-player tap targets” marker, following the fixed-height-to-minimum-height change. This is not repaired or re-verified. The final queue test has not compiled. Full Windows builder, final source checks, sequential lint, APK/source/signer/delivery verification and all physical/input/profile cases are **NOT_RUN / pending**. No new rating or acceptance is earned. Last fully verified delivery remains NW141, draft #163.
+
+## Last completed verification
+
 # Current verification — NW141 accessible bilingual primary flows
 
 30 October 2026. [Draft PR #163](https://github.com/Nahian2002/NightWave/pull/163). Branch `update/nightwave-nw141-accessibility`, stacked on [NW140 draft #162](https://github.com/Nahian2002/NightWave/pull/162). Protected parent `6f767c92452a22394396081c9c47b17863cc393c`; plan `7c454a77`; implementation `959a4efcf9b94882b56107fa6bd2efa237b353a6`; final quantity/reference repair and build revision `ba709e2ea5b6a00e8c43c773835430b0399566a2`. [Results](docs/NW141_ACCESSIBILITY_BILINGUAL.md), [device runbook](docs/NW141_DEVICE_RUNBOOK.md), [ten cases](docs/quality/NW141_ACCESSIBILITY_ACCEPTANCE.csv), [schedule](docs/quality/UPCOMING_UPDATES.md), [previous report](https://github.com/Nahian2002/NightWave/blob/6f767c92452a22394396081c9c47b17863cc393c/TEST_REPORT.md).

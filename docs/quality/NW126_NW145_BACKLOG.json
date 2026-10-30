@@ -994,15 +994,29 @@
         "Use navigation/gesture Back, hardware keyboard focus and external input; independent actions and focus order remain predictable.",
         "Default and compact density use available space intentionally; large-type/tablet reflow adapts structure rather than shrinking labels to fit."
       ],
-      "implementation_commit": null,
-      "local_evidence": [],
+      "implementation_commit": "1556d0d610800e8e85aab0d3eb5e9c770e73385c",
+      "local_evidence": [
+        "Initial1812 JVM /224 suites, zero failures/errors/skips; production/instrumentation-source compile PASS before final queue test addition",
+        "Initial current source runner FAIL: one of83, check-nw52 restorable mini-player marker; not repaired/reverified",
+        "Private recovery checkpoint and stop receipt retained; no NW142 build/delivery or remote PR"
+      ],
       "device_evidence": [],
-      "remaining_blockers": [],
+      "remaining_blockers": [
+        "Owner must explicitly request resumption; hourly automation deleted at weekly10%; never auto-restart after reset",
+        "Repair and verify actual NW52 minimum-height callback guard; compile final queue test",
+        "Final current checks, full Windows builder, serial lint, source/APK/signer/recovery/owner-only delivery and attached draft PR pending",
+        "144 initial profile cases compile only; final queue test not compiled; ten supplemental/all original/prior physical input/layout/device cases NOT_RUN"
+      ],
       "branch": "update/nightwave-nw142-adaptive",
       "protected_parent": "e400a8b15cefcd8d56ef8e99dbd225edeec9d680",
       "evidence": [
-        "docs/NW142_ADAPTIVE_LAYOUTS.md"
-      ]
+        "docs/NW142_ADAPTIVE_LAYOUTS.md",
+        "docs/quality/NW142_ADAPTIVE_ACCEPTANCE.csv",
+        "TEST_REPORT.md"
+      ],
+      "execution_status": "STOPPED_WEEKLY_RESERVE",
+      "validation_status": "INCOMPLETE",
+      "plan_commit": "7007a50da9b822cd7ca96a5568e40b55130a50d1"
     },
     {
       "id": "NW143",

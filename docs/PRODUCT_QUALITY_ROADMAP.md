@@ -2,6 +2,10 @@
 
 Established **28 October 2026**, after the owner's post-NW125 recording review. **This is the active plan for future upgrade batches.** NW111–NW125 implementation history is retained in [the previous roadmap](NW111_NW125_SPOTIFY_QUALITY_ROADMAP.md); unresolved device/release gates carry forward.
 
+## NW142 interruption
+
+Hourly upgrades stopped and the automation was deleted at the weekly10% reserve. NW142 is checkpointed locally, validation incomplete; explicit owner resumption is required. See [pending work](NW142_ADAPTIVE_LAYOUTS.md). Last completed review is NW141 #163.
+
 ## Start here in every future chat
 
 1. Read [the detailed audit and scorecard](audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md), [the structured batch backlog](quality/NW126_NW145_BACKLOG.json), and [current verification](../TEST_REPORT.md).

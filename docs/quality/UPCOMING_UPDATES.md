@@ -14,16 +14,16 @@ Replanned 29 October 2026 from the [latest owner recording review](../audits/202
 | 6 | NW139 | Locally verified source, 30 Oct | Compact optional recovery and disposable backup/restore plan; live account operations require the owner's explicit scope. |
 | 7 | NW140 | Measurement tools locally verified, 30 Oct | Opt-in Android diagnostics and strict evidence analysis; actual traces/performance and any justified production optimization remain NOT_RUN. |
 | 8 | NW141 | Locally verified source, 30 Oct | Accessibility and Bangla/English primary flows; actual TalkBack/font/contrast acceptance. |
-| 9 | NW142 | Next eligible run | Narrow/large-text/landscape/tablet/input coverage and targeted layout fixes. |
+| 9 | NW142 | Interrupted at weekly reserve; explicit owner resume required | Narrow/large-text/landscape/tablet/input coverage and targeted layout fixes. |
 | 10 | NW143 | After NW142 | Clear first-run/failure/privacy/recovery journeys with retained capabilities. |
 | 11 | NW144 | After NW143 | Existing notification/widget/external controls and share roundtrips. |
 | 12 | NW145 | After blocking evidence closes | Consolidated physical acceptance, task study, two-hour soaks and defensible re-rating. |
 
 The schedule is every hour. These are planned sequential slots, not deadlines or automatic acceptance. One bounded eligible batch runs at a time; a build failure or unfinished batch moves the later slots. Independent source work can continue with recorded device checks pending. Phone/account gates wait for actual evidence and appropriate user authorization. No automatic install, reset, merge, public APK or repository setting change.
 
-## Follow-up schedule
+## Follow-up schedule — stopped at weekly reserve
 
-Codex heartbeat `nightwave-sequential-upgrades` is active in this chat, **every hour**, as requested by the owner (Asia/Dhaka host timezone). The local Codex app/host must be available. Each run reads the current backlog and checkout, skips overlapping active work, completes one eligible source batch and records its next step. Report completed work, meaningful failures or required input; remain quiet on unchanged state. The backlog carries the actual status; target dates never mark a batch complete.
+The hourly heartbeat `nightwave-sequential-upgrades` was deleted on 30 October 2026 when the weekly reserve reached 10% remaining. It must not restart automatically after reset; a new owner request is required. NW142 implementation is checkpointed locally with incomplete validation. Read [the exact pending work](../NW142_ADAPTIVE_LAYOUTS.md) and TEST_REPORT.md before resuming. NW143 cannot advance past this unfinished batch. Prior schedule/budget rules below remain the policy for a separately authorized restart.
 
 ## Five-hour completion-budget check
 
