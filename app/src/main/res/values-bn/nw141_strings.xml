@@ -457,4 +457,8 @@
     <string name="nw141_reorder_help">একাধিক সারি সরাতে ⠿ হ্যান্ডেল টানুন, অথবা ↑ ও ↓ চাপুন। শুধু সংরক্ষিত প্লেলিস্টের ক্রম বদলায়; অডিও চলতে থাকে।</string>
     <string name="nw141_gain_decrease">%1$s এক dB কমান</string>
     <string name="nw141_gain_increase">%1$s এক dB বাড়ান</string>
+    <plurals name="nw141_songs">
+        <item quantity="one">%1$sটি গান</item>
+        <item quantity="other">%1$sটি গান</item>
+    </plurals>
 </resources>

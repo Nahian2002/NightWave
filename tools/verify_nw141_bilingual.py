@@ -26,6 +26,10 @@ def formats(value):
 def verify(en, bn, source):
     assert en.keys() == bn.keys(), 'English/Bangla resource parity'
     assert len(en) >= 300, 'Primary resource catalog unexpectedly reduced'
+    for body in source.values():
+        for kind, key in re.findall(r'R\.(string|plurals)\.(nw141_\w+)', body):
+            assert key in en, ('missing resource caller', key)
+            assert en[key][0] == kind, ('resource kind', key)
     for key, (kind, value) in en.items():
         other_kind, translated = bn[key]
         assert kind == other_kind
@@ -73,6 +77,9 @@ def main():
             except (AssertionError, ValueError): return
             raise AssertionError('Accepted corrupt localization fixture')
         broken = dict(bn); broken.pop('nw141_queue_play'); rejected(en, broken, source)
+        broken_en = dict(en); broken_bn = dict(bn)
+        broken_en.pop('nw141_songs'); broken_bn.pop('nw141_songs')
+        rejected(broken_en, broken_bn, source)
         broken = copy.deepcopy(bn); broken['nw141_queue_play'] = ('string', '%2$s only'); rejected(en, broken, source)
         broken = copy.deepcopy(bn); broken['nw141_queue_play'] = ('string', ''); rejected(en, broken, source)
         broken = copy.deepcopy(bn); broken['nw141_tracks'] = ('plurals', {'other': '%1$s'}); rejected(en, broken, source)

@@ -457,4 +457,8 @@
     <string name="nw141_reorder_help">Drag the ⠿ handle to move multiple rows, or tap ↑ and ↓. Only the saved playlist order changes; audio playback continues.</string>
     <string name="nw141_gain_decrease">Decrease %1$s by 1 dB</string>
     <string name="nw141_gain_increase">Increase %1$s by 1 dB</string>
+    <plurals name="nw141_songs">
+        <item quantity="one">%1$s song</item>
+        <item quantity="other">%1$s songs</item>
+    </plurals>
 </resources>
