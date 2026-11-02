@@ -3,6 +3,7 @@ package com.nightwave.player.library
 import android.content.Context
 import com.nightwave.player.core.VideoLink
 import com.nightwave.player.net.VideoPreview
+import com.nightwave.player.v2.backup.MusicCollection
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -85,6 +86,41 @@ class MusicLibrary(context: Context) {
         return true
     }
 
+    /**
+     * Captures all legacy library metadata for portable backup. No signed media
+     * URLs or Google credentials live in this SharedPreferences namespace.
+     */
+    fun snapshotForBackup(): MusicCollection {
+        val names = playlistNames()
+        val lists = LinkedHashMap<String, List<VideoPreview>>()
+        names.forEach { lists[it] = playlist(it) }
+        return MusicCollection(favorites(), recent(), lists)
+    }
+
+    /**
+     * Transactional replacement of library preferences using ONE synchronous
+     * SharedPreferences commit. No partial per-playlist apply() operations.
+     * Import/merge content is prevalidated before this method is called.
+     */
+    @Synchronized
+    fun commitImportedLibrary(imported: MusicCollection): Boolean {
+        if (imported.favorites.size > 500 || imported.recent.size > 100 ||
+            imported.playlists.size > 50 ||
+            imported.playlists.any { (name, tracks) ->
+                name.isBlank() || name.length > 60 || tracks.size > 300
+            }) return false
+        val previous = playlistNames()
+        val editor = prefs.edit()
+            .putString("favorites", encode(imported.favorites))
+            .putString("recent", encode(imported.recent))
+            .putString("playlist_names", JSONArray(imported.playlists.keys.toList()).toString())
+        previous.filter { it !in imported.playlists.keys }.forEach { editor.remove("list_" + it) }
+        for ((name, tracks) in imported.playlists) {
+            editor.putString("list_" + name, encode(tracks))
+        }
+        return editor.commit()
+    }
+
     private fun read(key: String): List<VideoPreview> = try {
         val arr = JSONArray(prefs.getString(key, "[]") ?: "[]")
         (0 until arr.length()).mapNotNull { i ->
@@ -100,13 +136,17 @@ class MusicLibrary(context: Context) {
         }
     } catch (_: Exception) { emptyList() }
 
-    private fun write(key: String, videos: List<VideoPreview>) {
+    private fun encode(videos: List<VideoPreview>): String {
         val arr = JSONArray()
         videos.forEach { v ->
             arr.put(JSONObject().put("url", v.url).put("title", v.title)
                 .put("creator", v.author).put("artwork", v.thumbnail)
                 .put("duration", v.durationSeconds))
         }
-        prefs.edit().putString(key, arr.toString()).apply()
+        return arr.toString()
+    }
+
+    private fun write(key: String, videos: List<VideoPreview>) {
+        prefs.edit().putString(key, encode(videos)).apply()
     }
 }

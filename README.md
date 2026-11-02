@@ -1,5 +1,15 @@
 # NightWave
 
+> **NightWave 2.0 Alpha 3 — Guest backup & migration preview**
+>
+> This branch contains Phases 1, 2, and **3**. It adds manual export/import of guest favorites, playlists and profile preferences; checksummed backup validation, merge/replace confirmation, recovery journal and a versioned Room/DataStore *staging* copy. The existing legacy library and Media3 service remain the live source of truth. **Google sign-in/automatic cloud restore are NOT implemented.**
+>
+> **Download Phase 3:** [ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase3-data-recovery.zip) · [Recovery QA & limitations](docs/NIGHTWAVE_V2_PHASE3_QA.md) · [All phases](docs/NIGHTWAVE_2_PHASES.md)
+>
+> Build from a fresh ZIP using \`build-windows.cmd\` (local Windows, no GitHub billing). Only after **BUILD SUCCESS** install \`dist\NightWave-debug.apk\` over the current debug app without uninstalling. Open **Home → Explore the new premium interface → You** for **Export Guest Backup** / **Import Saved Backup**. Verify exports in a location outside the app. **This branch is not an APK-verified release; full Gradle and phone tests are pending.**
+>
+> Export files are **unencrypted JSON** and should be stored privately. The checksum detects accidental corruption, not malicious modification. Exporting is manual; signing into Google after reinstall does not restore these backups yet.
+>
 > **NightWave 2.0 Phase 2 — opt-in developer preview**: A new native Compose music player is available on this branch. It adds a Media3-connected mini-player, full-screen artwork player, track queue, shuffle/repeat, usable playlists and on-screen actions. YouTube website song searches now return to the Compose player. The legacy launch screen and playback service remain intact. **This is NOT a verified Android build or stable release yet.**
 >
 > **Download Phase 2:** [Source ZIP](https://github.com/Nahian2002/NightWave/archive/refs/heads/feature/nightwave-v2-phase2-player-ui.zip) · [Phase 2 QA guide](docs/NIGHTWAVE_V2_PHASE2_QA.md) · [Overall phased plan](docs/NIGHTWAVE_2_PHASES.md)
