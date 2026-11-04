@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "date": "2026-11-04",
+  "status": "PREPARED_AWAITING_DEVICE_EVIDENCE",
+  "candidate": {
+    "version_code": 39,
+    "source_sha256": "AE25B5B1EADF6B3107956E5FFB73134B437CF414E7110E93EFA87B142D15D869",
+    "input_count": 974,
+    "apk_sha256": "679208F040B70799EEA6AC9F4FBF19960247BB7073C899BC400965BC44A51423",
+    "apk_bytes": 26749120,
+    "current_min_sdk": 26
+  },
+  "adb_connected_devices": 0,
+  "physical_acceptance": "NOT_RUN",
+  "candidate_rating": "NOT_ASSESSED",
+  "release_decision": "NO_GO_PENDING_EVIDENCE_AND_APPROVALS",
+  "host_evidence": "Inherited verified NW144:1819 JVM/226 suites,86 source checks,lint0 errors/324 warnings/17 hints. Not rerun for documentation-only preparation.",
+  "this_run_checks": [
+    "APK bytes/hash and actual signer continuity rechecked",
+    "Canonical source974 unchanged",
+    "219-case mapping self-test PASS",
+    "NW110 fail-closed ten-case self-test PASS"
+  ],
+  "expanded_owner_target": {
+    "planned_min_sdk": 23,
+    "status": "NOT_IMPLEMENTED",
+    "plan": "docs/ANDROID_COMPATIBILITY_PLAN.md",
+    "next_source_batch": "COMPAT01"
+  },
+  "required_device_gates": [
+    "Approved reference profiles",
+    "219 cases plus supplemental acceptance",
+    "Eight-listener study preregistration and outcomes",
+    "Two-hour mixed playback/route soaks",
+    "Matched performance/audio/frame/battery traces",
+    "In-place installed-data/update continuity"
+  ],
+  "runbook": "docs/NW145_ACCEPTANCE_RUNBOOK.md"
+}

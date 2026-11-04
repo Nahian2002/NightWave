@@ -5,7 +5,7 @@
   "audit": "docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md",
   "implementation_base_revision": "61703c98238e762e59c049b6690853431f822884",
   "audit_branch": "audit/nightwave-post-nw125-quality-roadmap",
-  "next_batch": "NW145",
+  "next_batch": "COMPAT01",
   "goal": "9.5+ within the declared NightWave music-player scope, conditional on actual product and acceptance evidence",
   "rating_kind": "Subjective comparative product review, not a measured Spotify score",
   "baseline_weighted_score": 6.655,
@@ -1126,7 +1126,7 @@
         "NW143",
         "NW144"
       ],
-      "implementation_status": "PLANNED",
+      "implementation_status": "ACCEPTANCE_PREPARED",
       "device_status": "NOT_RUN",
       "finding_ids": [
         "Q29",
@@ -1146,9 +1146,14 @@
         "Build/sign/attest the final artifact, verify installed update continuity and all applicable privacy/source/distribution approvals; record release GO or specific NO-GO independently of the product score."
       ],
       "implementation_commit": null,
-      "local_evidence": [],
+      "local_evidence": [
+        "docs/NW145_ACCEPTANCE_RUNBOOK.md",
+        "docs/quality/NW145_RELEASE_EVIDENCE.json"
+      ],
       "device_evidence": [],
-      "remaining_blockers": []
+      "remaining_blockers": [
+        "No approved/connected device or physical results; user expanded compatibility target to roughly last10 years, API23 evaluation planned in COMPAT01."
+      ]
     }
   ],
   "design_refresh": {
@@ -1823,5 +1828,12 @@
     "lint_warnings": 324,
     "lint_hints": 17,
     "review": "https://github.com/Nahian2002/NightWave/pull/165"
+  },
+  "compatibility_extension": {
+    "id": "COMPAT01",
+    "status": "PLANNED",
+    "minimum_api_target": 23,
+    "current_minimum_api": 26,
+    "plan": "docs/ANDROID_COMPATIBILITY_PLAN.md"
   }
 }
