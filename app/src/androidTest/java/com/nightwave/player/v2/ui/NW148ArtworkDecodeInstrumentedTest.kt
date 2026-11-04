@@ -58,12 +58,16 @@ class NW148ArtworkDecodeInstrumentedTest {
     private inner class FixtureFetcher : Fetcher.Factory<Uri> {
         override fun create(data: Uri, options: Options, imageLoader: ImageLoader): Fetcher? {
             val fallback = data.host == "i.ytimg.com" && data.path?.startsWith("/vi/00000000001/") == true
-            if (data.host != "art.fixture.invalid" && !fallback) return null
+            val sharp = data.host == "i.ytimg.com" && data.path?.startsWith("/vi/00000000002/") == true
+            if (data.host != "art.fixture.invalid" && !fallback && !sharp)
+                return Fetcher { throw IOException("Unregistered synthetic image") }
             return Fetcher {
                 fetches.incrementAndGet()
                 if (data.path == "/slow.png") { started.complete(Unit); release.await() }
                 if (fallback && data.path?.endsWith("sddefault.jpg") == true) throw IOException("Synthetic missing still")
-                val bytes = if (fallback && data.path?.endsWith("maxresdefault.jpg") == true) png(120, 90, Color.GRAY)
+                val bytes = if (sharp && data.query == null) png(1280, 720, Color.BLUE)
+                    else if (sharp) png(168, 94, Color.GRAY)
+                    else if (fallback && data.path?.endsWith("maxresdefault.jpg") == true) png(120, 90, Color.GRAY)
                     else if (fallback) png(480, 360, Color.GREEN)
                     else png(1280, 720, if (data.path == "/slow.png") Color.RED else Color.BLUE)
                 SourceResult(ImageSource(Buffer().write(bytes), context), "image/png", DataSource.NETWORK)
@@ -124,6 +128,53 @@ class NW148ArtworkDecodeInstrumentedTest {
         }
         compose.waitUntil(10_000) { reports.isNotEmpty() }
         assertEquals(2, reports.last().candidate); assertEquals(3, fetches.get())
+    }
+    @Test fun boundPublicThumbnailMetadataSelectsSharpStillInProductionCover() {
+        val reports = Collections.synchronizedList(mutableListOf<ArtworkDecodeReport>())
+        val loader = loader()
+        compose.setContent {
+            CompositionLocalProvider(LocalDensity provides Density(1f)) {
+                NightWaveMaterialTheme(NightWaveTheme.MIDNIGHT, reduceMotion = true) {
+                    Box(Modifier.requiredSize(512.dp, 288.dp)) {
+                        CoverArt("https://i.ytimg.com/vi/00000000002/hqdefault.jpg?sqp=public&rs=metadata",
+                            Modifier.fillMaxSize(), trackIdentity = "https://www.youtube.com/watch?v=00000000002",
+                            large = true, imageLoader = loader, onDecode = { reports.add(it) })
+                    }
+                }
+            }
+        }
+        compose.waitUntil(10_000) { reports.isNotEmpty() }
+        assertEquals(0, reports.last().candidate)
+        assertTrue(reports.last().decodedWidth >= 511 && reports.last().decodedHeight >= 287)
+        assertEquals(1, fetches.get())
+    }
+    @Test fun exhaustedBoundVariantsRetainExactQueriedOriginal() {
+        val reports = Collections.synchronizedList(mutableListOf<ArtworkDecodeReport>())
+        val original = "https://i.ytimg.com/vi/00000000003/hqdefault.jpg?sqp=public&rs=metadata"
+        val calls = Collections.synchronizedList(mutableListOf<String>())
+        val loader = ImageLoader.Builder(context).diskCache(null).memoryCache(null).components {
+            add(object : Fetcher.Factory<Uri> {
+                override fun create(data: Uri, options: Options, imageLoader: ImageLoader): Fetcher = Fetcher {
+                calls.add(data.toString())
+                if (data.toString() != original) throw IOException("Synthetic absent variant")
+                SourceResult(ImageSource(Buffer().write(png(168, 94, Color.GREEN)), context), "image/png", DataSource.NETWORK)
+                }
+            })
+        }.build().also { loaders.add(it) }
+        compose.setContent {
+            CompositionLocalProvider(LocalDensity provides Density(1f)) {
+                NightWaveMaterialTheme(NightWaveTheme.MIDNIGHT, reduceMotion = true) {
+                    Box(Modifier.requiredSize(512.dp, 288.dp)) {
+                        CoverArt(original, Modifier.fillMaxSize(), trackIdentity = "https://www.youtube.com/watch?v=00000000003",
+                            large = true, imageLoader = loader, onDecode = { reports.add(it) })
+                    }
+                }
+            }
+        }
+        compose.waitUntil(10_000) { reports.isNotEmpty() }
+        assertEquals(3, reports.last().candidate)
+        assertEquals(168, reports.last().decodedWidth)
+        assertEquals(4, calls.size); assertEquals(original, calls.last())
     }
     @Test fun supersededSourceAndRemovedCoverCannotPublishDelayedRedBitmap() {
         val colors = Collections.synchronizedList(mutableListOf<Int>())

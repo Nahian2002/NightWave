@@ -13,7 +13,8 @@ MARKERS={
   'session.accepts(ticket, currentTicket) && candidateIndex == attempt', 'key(ticket)',
   '!loaded.result.isSampled && NightWaveArtworkPolicy.isUnavailableLargeStill(displayUrl',
   '.memoryCachePolicy(CachePolicy.ENABLED).diskCachePolicy(CachePolicy.ENABLED)',
-  'imageLoader ?: context.imageLoader', 'ApplicationInfo.FLAG_DEBUGGABLE', 'Log.d("NightWaveArt", report.toString())'],
+  'imageLoader ?: context.imageLoader', 'ApplicationInfo.FLAG_DEBUGGABLE', 'Log.d("NightWaveArt", report.toString())',
+  'remember(url, trackIdentity, large)', 'NightWaveArtworkPolicy.trackCandidates(url, trackIdentity, large)'],
  FILES[1]: ['MAX_EDGE = 1280', 'width <= 0 || height <= 0', 'MAX_EDGE.toDouble() / maxOf(width, height)',
   'active && expected.session === this && current.session === this && expected == current',
   'fun close() { active = false }', 'data class ArtworkDecodeReport']}

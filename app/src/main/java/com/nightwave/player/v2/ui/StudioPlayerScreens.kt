@@ -340,7 +340,9 @@ internal fun CoverArt(
     val strings = rememberNightWaveStrings()
     val context = LocalContext.current
     val artworkColors = MaterialTheme.colorScheme
-    val candidates = remember(url, large) { NightWaveArtworkPolicy.requestCandidates(url, large) }
+    val candidates = remember(url, trackIdentity, large) {
+        NightWaveArtworkPolicy.trackCandidates(url, trackIdentity, large)
+    }
     val session = remember(trackIdentity, url, large) { ArtworkRequestSession() }
     DisposableEffect(session) { onDispose { session.close() } }
     val resolvedCallback by rememberUpdatedState(onResolved)
