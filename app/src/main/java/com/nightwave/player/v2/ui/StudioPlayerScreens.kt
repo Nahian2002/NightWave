@@ -219,7 +219,9 @@ fun StudioMiniPlayer(
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Row(
-                    modifier = Modifier.weight(1f).fillMaxHeight()
+                    // The Scaffold supplies a screen-height upper bound, not the
+                    // measured row height. Filling it hides the page after restore.
+                    modifier = Modifier.weight(1f).heightIn(min = miniLayout.rowHeightDp.dp)
                         .clip(RoundedCornerShape(10.dp))
                         .clickable {
                             if (!reducedMotion)

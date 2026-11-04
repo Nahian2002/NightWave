@@ -11,5 +11,6 @@
     <string name="weekly_retry">Retry</string>
     <string name="weekly_later">Later</string>
     <string name="weekly_check">Check for updates</string>
+    <string name="weekly_manual_notice">Get the latest approved version now. Automatic prompts are seven days apart.</string>
     <string name="weekly_downloading">Downloading · %1$d%%</string>
 </resources>

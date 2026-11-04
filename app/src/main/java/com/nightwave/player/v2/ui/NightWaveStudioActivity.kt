@@ -855,7 +855,6 @@ class NightWaveStudioActivity : ComponentActivity() {
             roomReadStatus = "Original library reads remain active."
         }
         profile = profiles.load()
-        com.nightwave.player.updates.WeeklyUpdates.onOpen(this)
         refresh()
         setContent {
             // Display only. The media service remains the single timer owner,
@@ -2171,6 +2170,7 @@ class NightWaveStudioActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+        com.nightwave.player.updates.WeeklyUpdates.onOpen(this)
         if (::library.isInitialized) refresh()
         if (::folderStore.isInitialized) folderSnapshot = folderStore.snapshot()
         if (::pinStore.isInitialized && ::library.isInitialized) {
@@ -5678,6 +5678,12 @@ private fun StudioProfile(
                     Icons.Outlined.Settings, onShareDiagnostics)
                 StudioProfileRow(strings.get(R.string.nw141_app_details_2945d), strings.get(R.string.nw141_version_and_build_id_for_support_74bfa),
                     Icons.Outlined.Settings, { showBuildDetails = true })
+                val updateContext = androidx.compose.ui.platform.LocalContext.current
+                StudioProfileRow(strings.get(R.string.weekly_check), strings.get(R.string.weekly_manual_notice),
+                    Icons.Outlined.Settings, {
+                        updateContext.startActivity(Intent(updateContext,
+                            com.nightwave.player.updates.WeeklyUpdateActivity::class.java))
+                    })
             }
         }
         item {

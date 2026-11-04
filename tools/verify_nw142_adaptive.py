@@ -30,6 +30,8 @@ REQUIRED = {
 }
 
 def verify(source):
+    mini = source['StudioPlayerScreens.kt'].split('fun StudioMiniPlayer(', 1)[1].split('fun CoverArt', 1)[0]
+    assert '.fillMaxHeight()' not in mini, 'Mini-player must wrap content inside Scaffold bottomBar'
     for name, markers in REQUIRED.items():
         for marker in markers: assert marker in source[name], (name, marker)
     queue = source['StudioPlayerScreens.kt'].split('fun StudioQueueSheet(', 1)[1].split('private fun SwipeUpcomingRow', 1)[0]

@@ -30,11 +30,12 @@ internal data class UpdateScreen(val loading: Boolean = true, val update: Approv
 
 internal class WeeklyUpdateModel(app: Application) : AndroidViewModel(app) {
     val state = MutableStateFlow(UpdateScreen())
+    private var checkJob: Job? = null
     init { check() }
     fun check() {
-        if (state.value.progress != null) return
+        if (state.value.progress != null || checkJob?.isActive == true) return
         state.value = UpdateScreen()
-        viewModelScope.launch {
+        checkJob = viewModelScope.launch {
             try { state.value = UpdateScreen(loading = false, update = WeeklyUpdates.latest(getApplication())) }
             catch (e: CancellationException) { throw e }
             catch (_: Exception) { state.value = UpdateScreen(loading = false, failed = true) }
@@ -48,6 +49,8 @@ internal class WeeklyUpdateModel(app: Application) : AndroidViewModel(app) {
             try {
                 val file = withTimeout(10 * 60 * 1000L) { WeeklyUpdates.download(getApplication(), update) { p -> state.value = state.value.copy(progress = p) } }
                 state.value = state.value.copy(file = file, progress = null)
+            } catch (_: TimeoutCancellationException) {
+                state.value = state.value.copy(progress = null, failed = true)
             } catch (e: CancellationException) { throw e }
             catch (_: Exception) { state.value = state.value.copy(progress = null, failed = true) }
         }
