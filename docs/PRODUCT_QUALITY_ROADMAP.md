@@ -1,6 +1,6 @@
 # Active NightWave product quality roadmap
 
-4 November2026. **Next source batch: NW149.** Read the [code40 review](audits/2026-11-04_CODE40_PRODUCT_REVIEW.md), [new upgrade sequence](UPGRADE_ROADMAP_NW146_NW153.md) and [NW146–NW153 backlog](quality/NW146_NW153_BACKLOG.json).
+4 November2026. **Next source batch: NW148 repair.** Read the [code40 review](audits/2026-11-04_CODE40_PRODUCT_REVIEW.md), [new upgrade sequence](UPGRADE_ROADMAP_NW146_NW153.md) and [NW146–NW153 backlog](quality/NW146_NW153_BACKLOG.json).
 
 The original NW126–NW144 and COMPAT01 source batches are locally verified. Newly observed findings create this successor plan; local verification never meant no more improvements. Provisional presentation index7.83/10, full product overall unscored. NW145 device acceptance is PARTIAL and remains the umbrella for original219 cases, supplemental tests, participant study and long soaks. Retain [original backlog](quality/NW126_NW145_BACKLOG.json), [current phone evidence](NW145_SAMSUNG_CODE40_SMOKE.md) and [test report](../TEST_REPORT.md).
 

@@ -3,7 +3,7 @@
   "created_date": "2026-11-04",
   "review": "docs/audits/2026-11-04_CODE40_PRODUCT_REVIEW.md",
   "scorecard": "docs/quality/CODE40_REVIEW_SCORECARD.json",
-  "next_source_batch": "NW149",
+  "next_source_batch": "NW148",
   "acceptance_umbrella": "NW145",
   "execution_order": [
     "NW146",
@@ -80,8 +80,8 @@
       "finding_ids": [
         "R02"
       ],
-      "implementation_status": "LOCAL_VERIFIED",
-      "device_status": "NOT_RUN",
+      "implementation_status": "NEEDS_REPAIR",
+      "device_status": "PARTIAL_FINDINGS_OPEN",
       "acceptance_criteria": [
         "Measure requested/cached/decoded/displayed art sizes; recover sharper legitimate same-source imagery where available.",
         "No audio URL/quality/recording changes, invented album identity or unbounded network/decode work.",
@@ -89,7 +89,9 @@
       ],
       "evidence": "docs/quality/NW148_SOURCE_EVIDENCE.json",
       "source_revision": "6c58534f0281cfea1e5ab1e18f17ed1bc61dbe99",
-      "notes": "Rectangular measured artwork requests and request-session/size/lifecycle fences verified in source/JVM. Four actual Coil/Compose methods compile only; sharpness/device cases NOT_RUN."
+      "notes": "Code43 installed with29 unchanged prelaunch hashes. Actual source is queried168x94 while same-video1280x720 exists; canonical binding repair required. Initial blank captures recovered after relaunch, cause unknown. Repair budget23 including reserve exceeds22 remaining; checkpoint, no new implementation.",
+      "host_status": "LOCAL_VERIFIED_CODE43",
+      "phone_evidence": "docs/NW148_SAMSUNG_CODE43_FINDINGS.md"
     },
     {
       "id": "NW149",
