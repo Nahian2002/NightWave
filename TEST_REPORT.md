@@ -1,3 +1,7 @@
+## NW145 first physical smoke — 4 November 2026
+
+Owner explicitly approved installing code40 over36 and non-destructive tests on connected Samsung SM-S928B (reports Android17/API37). Actual installed hash/signature match and29 pre-launch preference/database hashes unchanged. Scoped navigation, empty-search return, compact/full-player, play/pause UI, Help and10-second background return observed; manual update request unavailable. See `docs/NW145_SAMSUNG_CODE40_SMOKE.md`. NW145 is PARTIAL; original matrices, long-absence/older-device/audio/soak/study/release acceptance remain pending. Raw device content stays private outside Git. Phone left Home/paused. This approval covers version40 only; no reset/uninstall/new APK/account/settings action authorized. Historical no-device/deferred-testing notes below are superseded only by this scoped session.
+
 # Current verification — COMPAT01 Android6 candidate
 
 ## COMPAT01 verified source result — 4 November 2026
