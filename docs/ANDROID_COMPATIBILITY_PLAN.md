@@ -1,3 +1,7 @@
+# Current result
+
+Android6/API23 candidate is now host-verified as code40; actual device support is NOT_RUN. See [implementation](COMPAT01_IMPLEMENTATION.md). The original plan below is historical; runtime cases remain pending.
+
 # Android compatibility target — owner request, 4 November 2026
 
 Target to evaluate: Android6/API23 and newer, covering Android6/7 software on roughly 2016-era phones as well as modern devices. This is a planned target, not current support or a guarantee for every model. Existing version39 declares minimum Android8/API26 and remains unchanged. Preserve all features, original sources/quality, installed data, account/consent and package/signing boundaries; OS-specific implementations may differ while preserving the task.

@@ -5,7 +5,7 @@
   "audit": "docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md",
   "implementation_base_revision": "61703c98238e762e59c049b6690853431f822884",
   "audit_branch": "audit/nightwave-post-nw125-quality-roadmap",
-  "next_batch": "COMPAT01",
+  "next_batch": "NW145",
   "goal": "9.5+ within the declared NightWave music-player scope, conditional on actual product and acceptance evidence",
   "rating_kind": "Subjective comparative product review, not a measured Spotify score",
   "baseline_weighted_score": 6.655,
@@ -1831,9 +1831,14 @@
   },
   "compatibility_extension": {
     "id": "COMPAT01",
-    "status": "PLANNED",
+    "status": "LOCAL_VERIFIED",
     "minimum_api_target": 23,
-    "current_minimum_api": 26,
-    "plan": "docs/ANDROID_COMPATIBILITY_PLAN.md"
-  }
+    "current_minimum_api": 23,
+    "plan": "docs/ANDROID_COMPATIBILITY_PLAN.md",
+    "implementation_commit": "a2bed05c61356c2bc1217d37bc14504fe16758ff",
+    "version_code": 40,
+    "details": "docs/COMPAT01_IMPLEMENTATION.md",
+    "runtime_acceptance": "NOT_RUN"
+  },
+  "owner_testing_preference": "Finish planned source upgrades first; owner will test afterward."
 }
