@@ -1,3 +1,7 @@
+## Current COMPAT01 source result — 4 November 2026
+
+COMPAT01 locally verified on `update/nightwave-compat01-android6`, based on acceptance preparation #168. Code40 declares API23/Android6+,target36; six initial API errors fixed,1821 JVM/226 suites,87 source checks,full builder and sequential lint0 errors/326 warnings/17 hints. See `docs/COMPAT01_IMPLEMENTATION.md`. Owner defers device checking until source work is finished; do not ask for interim phone tests. Planned source upgrades through COMPAT01 are complete; NW145 physical acceptance remains NOT_RUN, rating NOT_ASSESSED/release NO_GO. No universal device-support claim. Feed disabled; automation deleted. Historical notes below preserve earlier states.
+
 ## NW145 acceptance preparation and compatibility target — 4 November 2026
 
 NW145 is prepared, not certified; no connected Android device or approved reference profiles. Code39/source974/APK identity unchanged and signer rechecked. See `docs/NW145_ACCEPTANCE_RUNBOOK.md` and `docs/quality/NW145_RELEASE_EVIDENCE.json`. Owner requests roughly ten-year phone coverage: next source batch COMPAT01 evaluates Android6/API23+, currently NOT_IMPLEMENTED; code39 still requires Android8/API26. See `docs/ANDROID_COMPATIBILITY_PLAN.md`. All physical gates NOT_RUN; rating NOT_ASSESSED, release NO_GO. No app changes/new APK, full rebuild/lint repeat, device actions, publication, merge or schedule restart.
@@ -78,3 +82,5 @@ The owner explicitly requires no app changes for public-repository preparation. 
 [Draft NW143 review #166](https://github.com/Nahian2002/NightWave/pull/166), stacked on #165; unmerged.
 
 [Draft NW144 review #167](https://github.com/Nahian2002/NightWave/pull/167), stacked on #166; unmerged.
+
+[Draft COMPAT01 review #169](https://github.com/Nahian2002/NightWave/pull/169), stacked on acceptance preparation #168; unmerged.

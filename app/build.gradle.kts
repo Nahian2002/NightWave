@@ -56,9 +56,9 @@ android {
 
     defaultConfig {
         applicationId = "com.nightwave.player"
-        minSdk = 26
+        minSdk = 23
         targetSdk = 36
-        versionCode = 39
+        versionCode = 40
         versionName = "2.0.0-alpha5s"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

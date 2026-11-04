@@ -94,7 +94,7 @@ fun NightWaveMaterialTheme(
     reduceMotion: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val bangla = LocalConfiguration.current.locales[0]?.language == "bn"
+    val bangla = androidx.core.os.ConfigurationCompat.getLocales(LocalConfiguration.current)[0]?.language == "bn"
     val typography = if (bangla) banglaTypography else premiumTypography
     val palette = NightWaveDesign.palette(choice)
     val context = androidx.compose.ui.platform.LocalContext.current

@@ -1,3 +1,17 @@
+# Current verification — COMPAT01 Android6 candidate
+
+## COMPAT01 verified source result — 4 November 2026
+
+Android6/API23 is now the declared minimum on the cumulative review branch, code40; compile/target36 remain. All six initial API23 lint errors were fixed without suppressions. Installer, locale, typography and thumbnail paths were backported; APK/source/signing guards now enforce the reviewed floor. Features, source URLs/quality, data/backup formats, package/signer, dependencies and consent remain. Signed release metadata adds optional minSdk from the actual verified APK; API23 requires it, modern clients retain actual-archive/legacy-feed checks. Offline publisher signature/minSdk23/APK hash readback verified; REVIEW_ONLY metadata was not published.
+
+Full Windows builder PASS; **1,821 JVM /226 suites**, zero failures/errors/skips; Android test sources compile. **87 current source checks PASS_SOURCE_ONLY** with caller-negative fixtures. Final sequential lint **0 errors /326 warnings /17 hints**. Relative to code39: one inlined PCM format-key warning and four legacy XML auto-size warnings added; three now-valid API26 guards no longer obsolete, three widget warnings reflect the new minimum. Inlined key is a constant with existing PCM16 fallback; legacy platform auto-size attributes apply only on26+ and older classic-header layout needs device review. No warning suppression. Raw audit failure/final inventories retained. Gitleaks implementation-stage3,607 commits no leaks.
+
+Build **NW-debug-3674B2BE4F6ADE0D**; canonical source **3674B2BE4F6ADE0D25EC676186A941F64809ABE0D911A4BD1E1D32914690E406**,975 inputs. Build revision `a2bed05c61356c2bc1217d37bc14504fe16758ff`. APK **7BACDEE3421D3E8093985D3602467295433F569C6D5FE26830EFD184B45615D3**,28,062,382 bytes. Package `com.nightwave.player`,name`2.0.0-alpha5s`,code40,min23/target36. Signer **EA737A703B8F116EBC5C8C0A717DDBF3A2A5808ACC9079A8F79CD1B3CD860394**,compared with actual code39. API23-specific signature verification reports v1/v2 true. APK includes native libraries for armeabi-v7a,arm64-v8a,x86,x86_64; packaging does not prove every CPU/OEM works. Owner-only Drive permissions and complete remote byte/hash readback verified.
+
+Original219-case pack PREPARED_NOT_EXECUTED. All emulator/physical API23/24/26/modern/OEM/low-memory, file/NIO, WebView/TLS/provider, Google-service, accessibility/theme/font, audio/notification/widget, performance/battery, updater/install/data-preservation and long-absence cases remain NOT_RUN. Host success establishes a compatibility candidate, not universal support or a9.5 rating. Owner explicitly defers checking until source upgrades are done; no device request is required between independent source work. No additional planned source batch remains after COMPAT01; NW145 acceptance stays pending. No app install/reset, account/device/settings action, main merge, public binary/feed activation or automation restart. Raw receipts/recovery remain outside Git.
+
+Earlier results below are historical.
+
 ## NW145 acceptance preparation and compatibility target — 4 November 2026
 
 NW145 is prepared, not certified; no connected Android device or approved reference profiles. Code39/source974/APK identity unchanged and signer rechecked. See `docs/NW145_ACCEPTANCE_RUNBOOK.md` and `docs/quality/NW145_RELEASE_EVIDENCE.json`. Owner requests roughly ten-year phone coverage: next source batch COMPAT01 evaluates Android6/API23+, currently NOT_IMPLEMENTED; code39 still requires Android8/API26. See `docs/ANDROID_COMPATIBILITY_PLAN.md`. All physical gates NOT_RUN; rating NOT_ASSESSED, release NO_GO. No app changes/new APK, full rebuild/lint repeat, device actions, publication, merge or schedule restart.
@@ -94,3 +108,5 @@ Private baseline/final bundles and exact working-byte ZIPs, raw JUnit/lint/build
 [Draft NW143 review #166](https://github.com/Nahian2002/NightWave/pull/166), stacked on #165; unmerged.
 
 [Draft NW144 review #167](https://github.com/Nahian2002/NightWave/pull/167), stacked on #166; unmerged.
+
+[Draft COMPAT01 review #169](https://github.com/Nahian2002/NightWave/pull/169), stacked on acceptance preparation #168; unmerged.

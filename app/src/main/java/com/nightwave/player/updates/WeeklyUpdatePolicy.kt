@@ -10,6 +10,12 @@ internal object WeeklyUpdatePolicy {
     const val WEEK_MS = 7L * 24 * 60 * 60 * 1000
     const val RETRY_MS = 24L * 60 * 60 * 1000
     const val MAX_APK_BYTES = 150L * 1024 * 1024
+    fun minimumSdkAccepted(device: Int, archive: Int?, approved: Int?): Boolean {
+        if (device < 23 || (approved != null && approved <= 0)) return false
+        val minimum = if (device >= 24) archive else approved
+        if (minimum == null || minimum <= 0 || minimum > device) return false
+        return device < 24 || approved == null || approved == archive
+    }
     fun due(now: Long, last: Long, interval: Long = WEEK_MS): Boolean =
         now > 0 && (last <= 0 || (now >= last && now - last >= interval))
     fun allowedApk(url: String): Boolean = runCatching {

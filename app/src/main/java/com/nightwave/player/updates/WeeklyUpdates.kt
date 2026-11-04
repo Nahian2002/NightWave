@@ -16,7 +16,7 @@ import java.net.URL
 import java.security.MessageDigest
 
 internal data class ApprovedUpdate(val code: Long, val name: String, val url: String,
-    val bytes: Long, val sha: String, val notes: String)
+    val bytes: Long, val sha: String, val notes: String, val minSdk: Int? = null)
 
 internal object WeeklyUpdates {
     private const val FEED = "https://raw.githubusercontent.com/Nahian2002/NightWave/main/updates/stable.json"
@@ -68,10 +68,15 @@ internal object WeeklyUpdates {
         require(m.getInt("schema") == 1 && m.getString("channel") == "stable")
         if (!m.getBoolean("enabled")) return@withContext null
         val update = ApprovedUpdate(m.getLong("versionCode"), m.getString("versionName").take(80),
-            m.getString("url"), m.getLong("bytes"), m.getString("sha256"), m.optString("notes").take(3000))
+            m.getString("url"), m.getLong("bytes"), m.getString("sha256"), m.optString("notes").take(3000),
+            if (m.has("minSdk")) m.getInt("minSdk") else null)
+        require(update.minSdk == null || update.minSdk > 0)
+        // API23 cannot expose the archive minimum. Only authenticated publisher
+        // metadata, derived from the actual APK, can supply that check there.
+        require(Build.VERSION.SDK_INT >= 24 || update.minSdk != null)
         require(WeeklyUpdatePolicy.allowedApk(update.url) && update.bytes in 1..WeeklyUpdatePolicy.MAX_APK_BYTES)
         require(update.sha.matches(Regex("[A-Fa-f0-9]{64}")))
-        update.takeIf { it.code > code(c) }
+        update.takeIf { it.code > code(c) && (it.minSdk == null || it.minSdk <= Build.VERSION.SDK_INT) }
     }
 
     @Suppress("DEPRECATION")
@@ -121,7 +126,9 @@ internal object WeeklyUpdates {
             val installed = c.packageManager.getPackageInfo(c.packageName, flags)
             require(candidate.packageName == c.packageName && version(candidate) == u.code && u.code > version(installed))
             require(certificates(candidate).isNotEmpty() && certificates(candidate) == certificates(installed))
-            require(requireNotNull(candidate.applicationInfo).minSdkVersion <= Build.VERSION.SDK_INT)
+            val archiveMinimum = if (Build.VERSION.SDK_INT >= 24)
+                requireNotNull(candidate.applicationInfo).minSdkVersion else null
+            require(WeeklyUpdatePolicy.minimumSdkAccepted(Build.VERSION.SDK_INT, archiveMinimum, u.minSdk))
             require(part.renameTo(apk)); apk
         } catch (e: Exception) { part.delete(); apk.delete(); throw e }
     }

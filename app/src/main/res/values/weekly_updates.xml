@@ -3,7 +3,7 @@
     <string name="weekly_update_available">Update available</string>
     <string name="weekly_checking">Checking approved updates…</string>
     <string name="weekly_weekly_notice">Only the latest approved version is offered automatically, at most once every seven days.</string>
-    <string name="weekly_latest">You have the latest approved version.</string>
+    <string name="weekly_latest">No newer compatible approved version is available.</string>
     <string name="weekly_ready">Verified and ready. Android may ask you to allow updates from NightWave, then confirm installation.</string>
     <string name="weekly_failed">Update could not be completed. Your installed app and music are unchanged. Try again.</string>
     <string name="weekly_install">Install update</string>

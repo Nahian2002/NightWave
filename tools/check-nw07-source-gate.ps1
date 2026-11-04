@@ -97,7 +97,7 @@ try {
     Check-Marker $ui 'SearchResultPresentationPolicy.matches(' 'NW06 search filter state'
     Check-Marker $gateway 'CommunityVideoSearch()' 'NW06 independent search fallback'
 
-    Check-Marker $gradle 'minSdk = 26' 'Android minimum SDK'
+    Check-Marker $gradle 'minSdk = 23' 'Android minimum SDK'
     Check-Marker $gradle 'applicationId = "com.nightwave.player"' 'Android package identity'
     foreach ($name in @(
         'NW01', 'NW02', 'NW03', 'NW04', 'NW05', 'NW06'

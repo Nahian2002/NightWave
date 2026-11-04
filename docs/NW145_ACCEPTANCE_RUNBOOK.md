@@ -1,19 +1,23 @@
+## Current candidate and owner preference
+
+COMPAT01 code40 replaces code39 for future acceptance. Source upgrades are host-verified; actual devices remain NOT_RUN. Owner will check after source work, so no interim device approval/test is requested. Original preparation plan below is historical; use the updated exact candidate identity.
+
 # NW145 — Device acceptance and re-rating
 
 ## Plan — 4 November 2026
 
-Start from cumulative NW144 #167. Preserve all app/source/APK bytes, data, package/signer and account/consent boundaries. Check current evidence, attach the exact code39 artifact and existing prepared 219-case kit, consolidate the required device/user-study/soak/release gates, and provide a short first-session checklist. Record missing evidence honestly. No connected Android device was found by a read-only ADB inventory (zero devices); no app/device action was performed.
+Start from cumulative NW144 #167. Preserve all app/source/APK bytes, data, package/signer and account/consent boundaries. Check current evidence, attach the exact code40 artifact and existing prepared 219-case kit, consolidate the required device/user-study/soak/release gates, and provide a short first-session checklist. Record missing evidence honestly. No connected Android device was found by a read-only ADB inventory (zero devices); no app/device action was performed.
 
 This is acceptance preparation, not another app build. No implementation change or new APK is needed without a demonstrated failure. Keep physical cases NOT_RUN, rating NOT_ASSESSED and release NO_GO until evidence and approvals close. Do not run tests on an unapproved personal profile, install/reset/uninstall, change language/settings/account, merge, activate feed, publish binaries or restart automation. A device profile and explicit test slot are required by the existing NW141 device runbook. Ask for the first phone model/Android version while preparing the checklist independently.
 
 ## Exact candidate
 
-- Version39 / `2.0.0-alpha5s`, package `com.nightwave.player`.
-- Build `NW-debug-AE25B5B1EADF6B31`; canonical source `AE25B5B1EADF6B3107956E5FFB73134B437CF414E7110E93EFA87B142D15D869`, 974 inputs.
-- APK `679208F040B70799EEA6AC9F4FBF19960247BB7073C899BC400965BC44A51423`, 26,749,120 bytes.
+- Version40 / `2.0.0-alpha5s`, package `com.nightwave.player`.
+- Build `NW-debug-3674B2BE4F6ADE0D`; canonical source `3674B2BE4F6ADE0D25EC676186A941F64809ABE0D911A4BD1E1D32914690E406`, 975 inputs.
+- APK `7BACDEE3421D3E8093985D3602467295433F569C6D5FE26830EFD184B45615D3`, 28,062,382 bytes.
 - Certificate `EA737A703B8F116EBC5C8C0A717DDBF3A2A5808ACC9079A8F79CD1B3CD860394`.
 - The previously delivered owner-only Drive APK remains the candidate. No new binary is produced by these documentation changes.
-- Original [139-case matrix](NW90_EXPANDED_139_CASE_MATRIX.csv), [80-case extension](quality/NW126_NW145_ACCEPTANCE.csv), and prior supplemental device cases remain authoritative. Historical host PASS/PARTIAL rows do not establish physical acceptance. The existing private code39 device kit maps all 219 cases and is PREPARED_NOT_EXECUTED.
+- Original [139-case matrix](NW90_EXPANDED_139_CASE_MATRIX.csv), [80-case extension](quality/NW126_NW145_ACCEPTANCE.csv), and prior supplemental device cases remain authoritative. Historical host PASS/PARTIAL rows do not establish physical acceptance. The existing private code40 device kit maps all 219 cases and is PREPARED_NOT_EXECUTED.
 
 ## First owner-run session — about 15 minutes
 

@@ -91,7 +91,7 @@ try {
         throw 'The selected APK does not match the last SUCCESSFUL build. Do not use a previous APK or report.'
     }
     $tools = Find-NightWaveBuildTools
-    $signOutput = (& $tools.Signer verify --min-sdk-version 26 --print-certs $ApkPath 2>&1 | Out-String)
+    $signOutput = (& $tools.Signer verify --print-certs $ApkPath 2>&1 | Out-String)
     if ($LASTEXITCODE -ne 0) { throw 'Android APK signature verification failed.' }
     if ($signOutput -match '(?m)^Signer #2 certificate') {
         throw 'Unexpected multiple APK signers. Google OAuth identity is inconclusive.'

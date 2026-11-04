@@ -13,7 +13,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 function Read-Signer([string]$File, [string]$Apksigner) {
-    $output = (& $Apksigner verify --min-sdk-version 26 --verbose --print-certs $File 2>&1 | Out-String)
+    $output = (& $Apksigner verify --verbose --print-certs $File 2>&1 | Out-String)
     if ($LASTEXITCODE -ne 0) {
         throw "APK signature verification failed: $([IO.Path]::GetFileName($File))"
     }
@@ -57,6 +57,9 @@ try {
         throw "Wrong APK package/version: $package, code=$code, name=$version."
     }
 
+    if ($badging -notmatch "(?m)^sdkVersion:'23'\s*$") {
+        throw 'Candidate must declare the reviewed Android6/API23 minimum.'
+    }
     $newSigner = Read-Signer $ApkPath $apksigner
     if (-not [string]::IsNullOrWhiteSpace($TrustedSignerSHA256)) {
         $trusted = $TrustedSignerSHA256.Trim()
