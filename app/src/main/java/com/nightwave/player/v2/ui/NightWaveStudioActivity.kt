@@ -1,5 +1,7 @@
 package com.nightwave.player.v2.ui
 
+import androidx.compose.foundation.verticalScroll
+
 import com.nightwave.player.R
 
 import android.app.AlertDialog
@@ -484,7 +486,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                 cloudStore.statusIfCurrent(prior.consentSnapshot(),
                     "Google permission was not completed; local music unchanged", prior.accessRevision)
                 refreshCloud()
-                showMessage("Google permission not completed. Your library is safe.")
+                showMessage(getString(R.string.nw143_permission_cancelled))
             } else {
                 cloudAuthorizationFailed(
                     CloudAuthorizationFailurePolicy.Stage.ACCOUNT_PICKER, code)
@@ -733,7 +735,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                         profile = profiles.load()
                         refresh()
                         showMessage("Guest library restored.")
-                    } else showMessage("Import could not complete. Your previous library is retained.")
+                    } else showMessage(getString(R.string.nw143_import_failed))
                 }.show()
         }.onFailure { showMessage("Invalid backup: " + (it.message ?: "cannot read file")) }
     }
@@ -2013,7 +2015,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                             if (changedPreferences) "; playback preferences applied."
                             else "; phone preferences unchanged.")
                     }.onFailure {
-                        showMessage("Optional data could not fully restore. " +
+                        showMessage(getString(R.string.nw143_optional_restore_failed) + " " +
                             "Existing lyrics were not overwritten; review local settings.")
                     }
                 }
@@ -3681,7 +3683,8 @@ internal fun StudioHome(
                     { onResumeSpotlight(last, recentShelf) }
                 },
                 emptyTitle = entry.primary?.title,
-                emptyDetail = entry.primary?.detail,
+                emptyDetail = if (entry.kind == NightWaveHomePresentationPolicy.Kind.NEW)
+                    strings.get(R.string.nw143_first_listen) else entry.primary?.detail,
                 emptyActionLabel = entry.primary?.actionLabel,
                 onEmptyAction = if (entry.primary != null) openPrimary else null
             )
@@ -3993,12 +3996,15 @@ internal fun StudioSearch(
     }
     val nw83PageGutter = NightWavePremiumDesignTokens.pageGutterDp(
         androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.toFloat()).dp
-    var showSearchDetails by remember(state.query, state.mode, state.details) { mutableStateOf(false) }
-    if (showSearchDetails && responseMatchesQuery && state.details.isNotBlank()) {
+    var showSearchDetails by remember(state.query, state.mode, state.details, state.error) { mutableStateOf(false) }
+    if (showSearchDetails && responseMatchesQuery && (state.details.isNotBlank() || state.error.isNotBlank())) {
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { showSearchDetails = false },
             title = { Text(strings.get(R.string.nw141_search_details_98cbc)) },
-            text = { Text(state.details) },
+            text = { Column(Modifier.heightIn(max = 400.dp).verticalScroll(rememberScrollState())) {
+                if (state.error.isNotBlank()) Text(state.error)
+                if (state.details.isNotBlank()) Text(state.details)
+            } },
             confirmButton = { TextButton(onClick = { showSearchDetails = false }) { Text(strings.get(R.string.nw141_done_11a67)) } }
         )
     }
@@ -4421,14 +4427,14 @@ internal fun StudioSearch(
                 if (!searching) Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     TextButton(onClick = { onNativeSearch(query.trim(), mode) },
                         modifier = Modifier.weight(1f).heightIn(min = 48.dp).testTag("search02-refresh")) { Text(strings.get(R.string.nw141_refresh_results_04cc9)) }
-                    if (state.details.isNotBlank()) TextButton(onClick = { showSearchDetails = true },
+                    if (state.details.isNotBlank() || state.error.isNotBlank()) TextButton(onClick = { showSearchDetails = true },
                         modifier = Modifier.weight(1f).heightIn(min = 48.dp)) { Text(strings.get(R.string.nw141_search_details_98cbc)) }
                 }
             }
             if (state.error.isNotBlank()) {
                 item {
                     Column {
-                        Text(state.error + " Showing previous results.",
+                        Text(strings.get(R.string.nw143_previous_results),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                         TextButton(onClick = { onNativeSearch(query.trim(), mode) },
@@ -4490,13 +4496,13 @@ internal fun StudioSearch(
                     .background(MaterialTheme.colorScheme.surface)
                     .padding(horizontal = 14.dp, vertical = 13.dp),
                     verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                    Text(SearchConsumerCopyPolicy.unavailableTitle(),
+                    Text(strings.get(R.string.nw143_search_title),
                         style = MaterialTheme.typography.titleSmall)
-                    Text(state.error, style = MaterialTheme.typography.bodyMedium)
-                    if (state.details.isNotBlank()) TextButton(onClick = { showSearchDetails = true },
+                    Text(strings.get(R.string.nw143_search_failed), style = MaterialTheme.typography.bodyMedium)
+                    if (state.details.isNotBlank() || state.error.isNotBlank()) TextButton(onClick = { showSearchDetails = true },
                         modifier = Modifier.heightIn(min = 48.dp)) { Text(strings.get(R.string.nw141_search_details_98cbc)) }
-                    Text(SearchConsumerCopyPolicy.fallbackHint(
-                        savedMatches.isNotEmpty() || offlineMatches.isNotEmpty()),
+                    Text(strings.get(if (savedMatches.isNotEmpty() || offlineMatches.isNotEmpty())
+                        R.string.nw143_saved_available else R.string.nw143_search_retry),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -5297,6 +5303,20 @@ private fun StudioProfile(
     val strings = rememberNightWaveStrings()
     var name by rememberSaveable(profile.localId) { mutableStateOf(profile.displayName) }
     var showBuildDetails by rememberSaveable { mutableStateOf(false) }
+    var showTrustHelp by rememberSaveable { mutableStateOf(false) }
+    if (showTrustHelp) androidx.compose.material3.AlertDialog(
+        onDismissRequest = { showTrustHelp = false },
+        title = { Text(strings.get(R.string.nw143_help_title)) },
+        text = { Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(strings.get(R.string.nw143_first_listen))
+            Text(strings.get(R.string.nw143_online_privacy))
+            Text(strings.get(R.string.nw143_backup_help))
+            Text(strings.get(R.string.nw143_recovery_help))
+            Text(strings.get(R.string.nw143_report_help))
+        } },
+        confirmButton = { TextButton(onClick = { showTrustHelp = false }) {
+            Text(strings.get(R.string.nw141_done_11a67)) } })
     if (showBuildDetails) NightWaveBuildDetailsDialog { showBuildDetails = false }
     var editing by rememberSaveable { mutableStateOf(false) }
     var showAppearance by rememberSaveable { mutableStateOf(false) }
@@ -5624,7 +5644,7 @@ private fun StudioProfile(
                         style = MaterialTheme.typography.bodySmall, color = muted)
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                StudioProfileRow(strings.get(R.string.nw141_advanced_storage_e966b), "Check storage without changing your music",
+                StudioProfileRow(strings.get(R.string.nw141_advanced_storage_e966b), strings.get(R.string.nw143_storage_summary),
                     Icons.Outlined.Settings, { showAdvanced = !showAdvanced },
                     trailing = { Text(if (showAdvanced) strings.get(R.string.nw141_hide_ac20a) else strings.get(R.string.nw141_details_45989),
                         style = MaterialTheme.typography.labelMedium,
@@ -5640,7 +5660,7 @@ private fun StudioProfile(
                             style = MaterialTheme.typography.bodySmall, color = muted)
                         OutlinedButton(onClick = onCheckStorage,
                             modifier = Modifier.fillMaxWidth()) {
-                            Text("RECHECK NEW STORAGE")
+                            Text(strings.get(R.string.nw143_storage_check))
                         }
                         OutlinedButton(
                             onClick = if (roomPreviewActive) onUseLegacyReads
@@ -5659,6 +5679,8 @@ private fun StudioProfile(
 
         item {
             StudioProfileGroup(strings.get(R.string.nw141_app_health_efdab)) {
+                StudioProfileRow(strings.get(R.string.nw143_help_title), strings.get(R.string.nw143_help_summary),
+                    Icons.Outlined.Settings, { showTrustHelp = true })
                 StudioProfileRow(strings.get(R.string.nw141_playback_health_1ea6a),
                     if (!playbackState.error.isNullOrBlank() || !playbackState.connected)
                         "Action may be needed · Tap to inspect"

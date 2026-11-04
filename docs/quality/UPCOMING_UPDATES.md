@@ -1,3 +1,7 @@
+## Current NW143 source result — 4 November 2026
+
+NW143 is locally verified on `update/nightwave-nw143-trust`, based on reopen fix #165. First-use/help/failure copy and retained diagnostics; code38, build NW-debug-515F3474BA50AE1F. Full builder,1817 JVM/226 suites,85 source checks and lint0 errors/324 warnings/17 hints pass. Physical and release cases remain NOT_RUN; see `docs/NW143_FIRST_RUN_TRUST.md`. Next independent source batch NW144. Stable feed disabled; hourly automation deleted. Historical notes below are superseded only by these specific results.
+
 # Upcoming NightWave updates
 
 Replanned 29 October 2026 from the [latest owner recording review](../audits/2026-10-29_RECORDING_230548_REVIEW.md). The original NW126–NW145 IDs, audit, dependencies and physical cases remain evidence. This execution order adds focused follow-ups before the remaining original batches; it does not repeat a broad redesign.

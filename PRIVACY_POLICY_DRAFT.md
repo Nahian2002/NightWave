@@ -49,4 +49,6 @@ A stable public policy URL, actual response/deletion procedures and runtime veri
 
 ## Weekly update checks
 
+NW143 adds an in-app Help and privacy explanation in You → App health, covering public-source requests, optional Drive backup, separate audio copies and private reporting. It is a short explanation, not a substitute for the complete published policy or legal review. Diagnostics still require preview and an explicit share action. This batch changes presentation resources and help entrypoints; it does not add telemetry, permissions, account scopes or backup fields.
+
 When the approved stable feed is activated, app-opening checks request public release metadata from GitHub at most once per seven-day successful check (failed checks retry at most daily). No library/account identifiers are included; the server receives ordinary network connection information such as IP address. Manual checks and user-approved APK downloads also contact GitHub. Installer approval is handled by Android. Update preferences and verified APK cache are stored privately on device, outside library/Drive backup formats.

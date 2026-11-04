@@ -26,7 +26,7 @@ REQUIRED={
   'videos = carriedVideos, provider = carriedProvider',
   'request != nativeSearchGeneration', '}\n        if (responseMatchesQuery && state.videos.isNotEmpty())',
   'R.string.nw141_recent_results_updating_0c5f7', 'testTag("search02-refresh")',
-  'if (showSearchDetails && responseMatchesQuery && state.details.isNotBlank())',
+  'if (showSearchDetails && responseMatchesQuery && (state.details.isNotBlank() || state.error.isNotBlank()))',
   'fromCache = response.fromCache, details = searchDetails'],
 }
 def verify(source):
