@@ -23,7 +23,14 @@ MARKERS={
   'val reducedMotion = LocalNightWaveReduceMotion.current',
   'StudioTab.entries.size, reducedMotion))', 'reducedMotion = reducedMotion,',
   'reduceMotion = LocalNightWaveReduceMotion.current,', 'reduceMotion = reducedMotion',
-  'focus.clearFocus()', 'keyboard?.hide()', 'NightWavePagerRecovery(pagerState, shelfGestures.active)']}
+  'focus.clearFocus()', 'keyboard?.hide()', 'NightWavePagerRecovery(pagerState, shelfGestures.active)'],
+ 'offline/NightWaveOfflineShellActivity.kt':['followSystemMotion = profile.motion != MotionPreference.FULL',
+  'reducedMotion = LocalNightWaveReduceMotion.current,'],
+ 'updates/WeeklyUpdateActivity.kt':['val profile = GuestProfileStore(this).load()',
+  'reduceMotion = profile.motion == MotionPreference.REDUCED,',
+  'followSystemMotion = profile.motion != MotionPreference.FULL']}
+def path(name):
+ return ROOT/'app/src/main/java/com/nightwave/player'/name if '/' in name else BASE/name
 def verify(src):
  for name,markers in MARKERS.items():
   for marker in markers:assert marker in src[name],(name,marker)
@@ -37,7 +44,7 @@ def verify(src):
  assert 'lifecycle.removeObserver(listener)\n            observation.stop()' in observer
 if __name__=='__main__':
  p=argparse.ArgumentParser();p.add_argument('--self-test',action='store_true');args=p.parse_args()
- src={f:(BASE/f).read_text(encoding='utf-8') for f in MARKERS};verify(src)
+ src={f:path(f).read_text(encoding='utf-8') for f in MARKERS};verify(src)
  if args.self_test:
   for name,markers in MARKERS.items():
    for marker in markers:

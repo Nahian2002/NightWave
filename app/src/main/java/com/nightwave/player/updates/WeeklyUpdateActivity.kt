@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.nightwave.player.v2.ui.NightWaveMaterialTheme
 import com.nightwave.player.v2.data.GuestProfileStore
+import com.nightwave.player.v2.model.MotionPreference
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.io.File
@@ -68,10 +69,12 @@ class WeeklyUpdateActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val model = ViewModelProvider(this)[WeeklyUpdateModel::class.java]
-        val theme = GuestProfileStore(this).load().theme
+        val profile = GuestProfileStore(this).load()
         setContent {
             val state by model.state.collectAsState()
-            NightWaveMaterialTheme(theme) {
+            NightWaveMaterialTheme(profile.theme,
+                reduceMotion = profile.motion == MotionPreference.REDUCED,
+                followSystemMotion = profile.motion != MotionPreference.FULL) {
                 AlertDialog(onDismissRequest = { finish() },
                     title = { Text(if (state.update != null) getString(R.string.weekly_update_available) else getString(R.string.weekly_updates_title)) },
                     text = { Column(Modifier.heightIn(max = 450.dp).verticalScroll(rememberScrollState()),
