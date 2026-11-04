@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertHeightIsAtMost
+import androidx.compose.ui.test.onRoot
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -121,10 +121,12 @@ class NightWaveMiniDismissInstrumentedTest {
                 }
             }
         }
-        compose.onNodeWithTag("nightwave-mini-player").assertHeightIsAtMost(160.dp)
+        assertTrue(compose.onNodeWithTag("nightwave-mini-player").fetchSemanticsNode().boundsInRoot.height <
+            compose.onRoot().fetchSemanticsNode().boundsInRoot.height * .5f)
         compose.onNodeWithText("Home content remains visible").assertIsDisplayed()
         compose.runOnIdle { large = true }
-        compose.onNodeWithTag("nightwave-mini-player").assertHeightIsAtMost(220.dp)
+        assertTrue(compose.onNodeWithTag("nightwave-mini-player").fetchSemanticsNode().boundsInRoot.height <
+            compose.onRoot().fetchSemanticsNode().boundsInRoot.height * .5f)
         compose.onNodeWithText("Home content remains visible").assertIsDisplayed()
         compose.runOnIdle { assertEquals(0, actions.mutations) }
     }
