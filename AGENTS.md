@@ -1,3 +1,7 @@
+## Reopening / manual updater fix — 4 November 2026
+
+Current review branch `fix/nightwave-reopen-weekly-updates` is based on updater #164. The restored mini-player wraps its content; automatic checks run on resume, and direct You → App health → Check for updates bypasses the automatic cooldown. Code37, same package/signer; stable feed remains disabled and hourly automation remains deleted. Phone acceptance is NOT_RUN. Original roadmap next batch remains NW143. See `docs/UPDATER_REOPEN_FIX.md`.
+
 # NightWave continuity instructions
 
 ## Current owner-requested weekly updater

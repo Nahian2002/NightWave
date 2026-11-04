@@ -1,5 +1,9 @@
 # NightWave
 
+## Reopening / manual updater fix — 4 November 2026
+
+Current review branch `fix/nightwave-reopen-weekly-updates` is based on updater #164. The restored mini-player wraps its content; automatic checks run on resume, and direct You → App health → Check for updates bypasses the automatic cooldown. Code37, same package/signer; stable feed remains disabled and hourly automation remains deleted. Phone acceptance is NOT_RUN. Original roadmap next batch remains NW143. See `docs/UPDATER_REOPEN_FIX.md`.
+
 **Current review:** [weekly in-app updater](docs/WEEKLY_UPDATER.md), branch `update/nightwave-weekly-updater`. App-opening checks offer only the latest owner-approved version at most once every seven days. Downloads stay in the app and are verified before Android installation confirmation. Manual checks: You → App details → Check for updates. The signed stable feed is **disabled pending public-release/main approval**; no automatic publication or installation.
 
 **Verification:**1,817 JVM tests/226 suites,84 source checks,full Windows build PASS; lint0 errors/324 warnings/17 hints(two new style suggestions). Build NW-debug-4085DB540B6787AA,code36,same package/signer. Phone installation, actual seven-day lifecycle and prior physical gates NOT_RUN. [Exact evidence](TEST_REPORT.md). Current integrated main remains older; this cumulative review includes the preserved NW142 layout work and is unmerged.

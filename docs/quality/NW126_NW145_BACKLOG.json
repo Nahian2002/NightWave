@@ -1793,5 +1793,22 @@
     "build_id": "NW-debug-4085DB540B6787AA",
     "version_code": 36,
     "pull_request": "https://github.com/Nahian2002/NightWave/pull/164"
+  },
+  "updater_reopen_fix": {
+    "date": "2026-11-04",
+    "branch": "fix/nightwave-reopen-weekly-updates",
+    "status": "LOCAL_VERIFIED",
+    "version_code": 37,
+    "physical_acceptance": "NOT_RUN",
+    "stable_activation": "DISABLED_PENDING_PUBLICATION_APPROVAL",
+    "next_original_batch": "NW143",
+    "details": "docs/UPDATER_REOPEN_FIX.md",
+    "build_id": "NW-debug-40A67A50656ED77A",
+    "source_sha256": "40A67A50656ED77ADEF6AC436532EEF94262360E12099342E8510196BC27AAE1",
+    "jvm_tests": 1817,
+    "current_source_checks": 84,
+    "lint_errors": 0,
+    "lint_warnings": 324,
+    "lint_hints": 17
   }
 }

@@ -1,3 +1,17 @@
+# Current verification — reopening and on-demand updates
+
+See [fix and remaining phone cases](docs/UPDATER_REOPEN_FIX.md).
+
+## Verified result — 4 November 2026
+
+Full Windows builder PASS: 1,817 JVM tests / 226 suites, zero failures/errors/skips; Android instrumentation sources including the new restored-track Scaffold case compile. All 84 current checks PASS_SOURCE_ONLY. Sequential lint PASS: 0 errors / 324 warnings / 17 hints, unchanged ID/severity/message/path inventory from code36. All-ref Gitleaks scanned 3,589 commits with no leaks. Initial test-helper compilation failure and stale version guard were repaired; failed logs retained privately. Final build revision `bc3b579d2cc5ae232ebdf448473e19d14f0a00b4`.
+
+Build **NW-debug-40A67A50656ED77A**; canonical source **40A67A50656ED77ADEF6AC436532EEF94262360E12099342E8510196BC27AAE1**, 968 inputs. APK SHA256 **257D549286D1F38508EF2E9C915B4748B6AF181B2C5A5F5CBBEE5FA591572953**, 26,716,582 bytes. Package `com.nightwave.player`, version name `2.0.0-alpha5s`, code37. Signer **EA737A703B8F116EBC5C8C0A717DDBF3A2A5808ACC9079A8F79CD1B3CD860394**, compared against the actual previous code36 APK. Embedded canonical source independently matches current inputs. Owner-only Drive permissions and full remote byte/hash readback verified.
+
+Original 219-case pack PREPARED_NOT_EXECUTED for this exact APK. New UI regression, actual long-absence/process-death/resume behavior, all-theme/large-font acceptance, manual/weekly timing, live approved-feed download, timeout/rotation/Android permission/install and installed-data acceptance remain NOT_RUN. No new rating, public APK, main merge, stable activation, device action or schedule restart. Private recovery and raw evidence are outside Git; next original source batch remains NW143.
+
+Earlier results below are historical.
+
 # Current verification — weekly updater bootstrap, code36
 
 31 October 2026. [Implementation, exact identity and activation steps](docs/WEEKLY_UPDATER.md). Cumulative branch `update/nightwave-weekly-updater`, based on NW141 #163 with the preserved NW142 checkpoint. The one-time owner allowance override does not restart the hourly automation.
