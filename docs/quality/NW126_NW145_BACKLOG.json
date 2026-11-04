@@ -1098,7 +1098,8 @@
       "device_evidence": [],
       "remaining_blockers": [
         "Physical external-control and share/provider/picker return cases NOT_RUN; no expanded car compatibility claim."
-      ]
+      ],
+      "review": "https://github.com/Nahian2002/NightWave/pull/167"
     },
     {
       "id": "NW145",
