@@ -7,3 +7,5 @@ Plan: extend the existing first-use Home hero rather than add redundant empty ca
 Before claiming completion: meaningful caller/resource regressions, current source checks, full Windows builder then sequential lint, exact source/APK/signer evidence and private verified delivery, draft PR, roadmap/backlog update. Physical state journeys, native-speaker review and all previous device gates remain NOT_RUN until executed. Next original batch NW144 only after NW143 source validation; no source-only 9.5 rating.
 
 Status: IN_PROGRESS. The source implementation, verification and release evidence are not complete yet.
+
+Checkpoint: `96abf6e3` adds English/Bangla first-use hero guidance and clearer storage action copy. NW141 bilingual and NW131 Home positive/negative source regressions pass. Android compilation, full checks, lint, native/failure/trust review and APK delivery remain pending. This is not a completed NW143 release; retain code37 as the last verified delivery.

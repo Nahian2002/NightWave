@@ -1025,7 +1025,7 @@
         "NW139",
         "NW141"
       ],
-      "implementation_status": "PLANNED",
+      "implementation_status": "IN_PROGRESS",
       "device_status": "NOT_RUN",
       "finding_ids": [
         "Q11",
@@ -1049,9 +1049,13 @@
         "Review actual data flows, permissions, support export redaction, dependencies/history and applicable source/provider/release approvals; unresolved issues remain explicit release blockers."
       ],
       "implementation_commit": null,
-      "local_evidence": [],
+      "local_evidence": [
+        "docs/NW143_FIRST_RUN_TRUST.md"
+      ],
       "device_evidence": [],
-      "remaining_blockers": [],
+      "remaining_blockers": [
+        "Primary failure/native recovery and trust review incomplete; full current checks, Windows builder, sequential lint, identity/delivery and phone acceptance pending."
+      ],
       "carried_forward_from_NW141": [
         "Review inherited native import/recovery/failure copy and retained English diagnostics; preserve raw source/user text and all account/consent boundaries."
       ]
