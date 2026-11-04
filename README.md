@@ -1,5 +1,7 @@
 # NightWave
 
+**First device evidence:** owner-approved code40 in-place update and scoped Samsung phone smoke recorded in [review #170](https://github.com/Nahian2002/NightWave/pull/170). Installed APK identity/signature and29 pre-launch data-file hashes verified; basic UI checks observed. NW145 is PARTIAL, not a full219-case pass or9.5 rating. [Exact scope and pending cases](docs/NW145_SAMSUNG_CODE40_SMOKE.md).
+
 ## Current COMPAT01 source result — 4 November 2026
 
 COMPAT01 locally verified on `update/nightwave-compat01-android6`, based on acceptance preparation #168. Code40 declares API23/Android6+,target36; six initial API errors fixed,1821 JVM/226 suites,87 source checks,full builder and sequential lint0 errors/326 warnings/17 hints. See `docs/COMPAT01_IMPLEMENTATION.md`. Owner defers device checking until source work is finished; do not ask for interim phone tests. Planned source upgrades through COMPAT01 are complete; NW145 physical acceptance remains NOT_RUN, rating NOT_ASSESSED/release NO_GO. No universal device-support claim. Feed disabled; automation deleted. Historical notes below preserve earlier states.

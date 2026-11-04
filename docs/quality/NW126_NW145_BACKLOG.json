@@ -1127,7 +1127,7 @@
         "NW144"
       ],
       "implementation_status": "ACCEPTANCE_PREPARED",
-      "device_status": "NOT_RUN",
+      "device_status": "PARTIAL",
       "finding_ids": [
         "Q29",
         "Q30",
@@ -1150,9 +1150,11 @@
         "docs/NW145_ACCEPTANCE_RUNBOOK.md",
         "docs/quality/NW145_RELEASE_EVIDENCE.json"
       ],
-      "device_evidence": [],
+      "device_evidence": [
+        "docs/NW145_SAMSUNG_CODE40_SMOKE.md"
+      ],
       "remaining_blockers": [
-        "No approved/connected device or physical results; user expanded compatibility target to roughly last10 years, API23 evaluation planned in COMPAT01."
+        "One scoped Samsung/API37 code40 smoke session completed; original219 cases, supplemental matrices, other devices/older APIs, study, soaks, release and automatic updater delivery still pending."
       ]
     }
   ],
@@ -1841,5 +1843,5 @@
     "runtime_acceptance": "NOT_RUN",
     "review": "https://github.com/Nahian2002/NightWave/pull/169"
   },
-  "owner_testing_preference": "Finish planned source upgrades first; owner will test afterward."
+  "owner_testing_preference": "Owner approved version40 in-place update and non-destructive checks on connected phone; NW145 smoke partial, no full matrix certification."
 }

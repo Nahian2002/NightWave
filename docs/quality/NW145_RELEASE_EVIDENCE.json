@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "date": "2026-11-04",
-  "status": "PREPARED_AWAITING_DEVICE_EVIDENCE",
+  "status": "PARTIAL_DEVICE_SMOKE",
   "candidate": {
     "version_code": 40,
     "source_sha256": "3674B2BE4F6ADE0D25EC676186A941F64809ABE0D911A4BD1E1D32914690E406",
@@ -10,8 +10,8 @@
     "apk_bytes": 28062382,
     "current_min_sdk": 23
   },
-  "adb_connected_devices": 0,
-  "physical_acceptance": "NOT_RUN",
+  "adb_connected_devices": 1,
+  "physical_acceptance": "PARTIAL",
   "candidate_rating": "NOT_ASSESSED",
   "release_decision": "NO_GO_PENDING_EVIDENCE_AND_APPROVALS",
   "host_evidence": "COMPAT01 full Windows builder,1821 JVM/226 suites,87 source checks,sequential lint0 errors/326 warnings/17 hints.",
@@ -33,5 +33,21 @@
     "In-place installed-data/update continuity"
   ],
   "runbook": "docs/NW145_ACCEPTANCE_RUNBOOK.md",
-  "owner_testing_preference": "Device tests deferred until after source upgrades; no interim device request."
+  "owner_testing_preference": "Owner authorized connected-phone version40 installation and non-destructive tests; no reset/uninstall/new APK or account/settings action authorized.",
+  "first_phone_smoke": {
+    "date": "2026-11-04",
+    "device_model": "SM-S928B",
+    "reported_android": "17",
+    "reported_api": 37,
+    "installed_code": 40,
+    "installed_sha256": "7BACDEE3421D3E8093985D3602467295433F569C6D5FE26830EFD184B45615D3",
+    "install_authorization": "Explicit owner approval for version40 in-place installation and non-destructive tests",
+    "pre_first_launch_identical_preference_database_hashes": 29,
+    "result": "SCOPED_PASS_WITH_UPDATE_REQUEST_UNAVAILABLE",
+    "details": "docs/NW145_SAMSUNG_CODE40_SMOKE.md",
+    "original219_cases": "NOT_PROMOTED_FROM_SMOKE",
+    "private_raw_evidence": "Stored outside Git",
+    "final_state": "Home, selected track paused",
+    "review": "https://github.com/Nahian2002/NightWave/pull/170"
+  }
 }
