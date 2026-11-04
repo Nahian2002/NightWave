@@ -1,3 +1,5 @@
+Current device follow-up: owner-approved45 installed,17 prelaunch saved-file hashes unchanged; six AMOLED static viewports observed,30 matrix slots/other-theme/app Reduced checks pending. See [Poco45 evidence](NW149_POCO_CODE45_SMOKE.md). Earlier not-installed statements below are historical.
+
 # NW149 — theme and motion consistency
 
 4 November2026. Source **LOCAL_VERIFIED**, code45 phone tests **NOT_RUN**. Cumulative branch update/nightwave-nw149-theme-motion, based on verified draft174. [Committed plan](NW149_THEME_MOTION_PLAN.md), [exact source receipt](quality/NW149_SOURCE_EVIDENCE.json), [36 theme/surface review slots](quality/NW149_THEME_SCREEN_REVIEW.csv).

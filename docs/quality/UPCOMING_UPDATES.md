@@ -1,3 +1,5 @@
+Poco45 installed under explicit approval:17 unchanged prelaunch files; six AMOLED static surfaces observed,30 rendered slots/other-theme/app Reduced checks pending owner Aurora selection. OriginalAMOLED/System unchanged. Read ../NW149_POCO_CODE45_SMOKE.md. Approval45 persists; next sourceNW150; no automatic score/release/schedule promotion.
+
 Current NW149 code45 source LOCAL_VERIFIED:1841 JVM/91 checks/build/sequential lint0/327/17 unchanged,56 opaque role pairs min5.086631,8 UI cases compiled only. Code45 install/36 rendered slots pending. Next source NW150. See ../NW149_THEME_MOTION.md. No rating/release/automation promotion. Earlier status below is historical.
 
 Current: NW148 source44 LOCAL_VERIFIED; approved Poco artwork/reopen scoped PASS, device PARTIAL. Actual queried168x94→same-video1280x720 source→828x466 decode, owner no stuck after requested reopen cycles; see ../NW148_POCO_CODE44_SMOKE.md. Next source NW149; no rating/release/automation promotion. Earlier pending statuses below historical.

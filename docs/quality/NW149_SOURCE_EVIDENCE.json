@@ -3,7 +3,7 @@
   "batch": "NW149",
   "date": "2026-11-04",
   "implementation_status": "LOCAL_VERIFIED",
-  "device_status": "PARTIAL_INSTALL_HOME",
+  "device_status": "PARTIAL_AMOLED_STATIC",
   "build": {
     "build_id": "NW-debug-356960B7755F6DC0",
     "revision": "3cc1e8a4c75fc1656ecca09ca4bc61e801919f23",
@@ -81,10 +81,10 @@
     "code45_install": "OWNER_APPROVED_PASS"
   },
   "remaining_device_cases": [
-    "36 theme/surface review slots: all actual code45 rendered/interaction states NOT_RUN until evidence",
-    "Manual tab/Back/player/queue/offline/dialog traversal with focus/keyboard/selected state and controlled frame evidence",
-    "Runtime System scale change/stop/resume observation, app Reduced and legacy Full; no device-setting write authorized",
-    "Other phones/API/font/language/accessibility/soak/audio and full NW145 gates"
+    "Select Aurora and remaining themes with approved manual taps, then restore AMOLED/System;30 of36 rendered matrix slots remain NOT_RUN",
+    "Manual app Reduced Motion toggle/return, real gesture/keyboard/focus/Back and controlled continuous transition evidence",
+    "Actual unavailable Undo/fallback cases without mutating personal data;8 Android synthetic cases remain COMPILED_NOT_RUN",
+    "Runtime System scale change and older-phone/font/language/accessibility/soak/audio/full NW145 gates; no Android setting write authorized"
   ],
   "rating": {
     "frozen_review_index": 7.83,
@@ -108,6 +108,35 @@
     "initial_theme": "AMOLED",
     "initial_motion": "SYSTEM",
     "android_animator_scale_read_only": "1.0",
-    "scope": "Install/Home only so far; manual route capture underway"
+    "scope": "Preserving install, six static AMOLED surfaces and selected destinations observed. Other themes/app Reduced checks awaiting owner input."
+  },
+  "phone_evidence": "docs/NW149_POCO_CODE45_SMOKE.md",
+  "phone_observations": {
+    "theme": "AMOLED",
+    "motion": "SYSTEM",
+    "android_animator_scale": 1.0,
+    "observed_static_surfaces": [
+      "Home",
+      "Library",
+      "Offline",
+      "Player",
+      "Search",
+      "You"
+    ],
+    "matrix_observed_static": 6,
+    "matrix_not_run": 30,
+    "owner_requested_route_reply": "done",
+    "owner_route_limit": "Later fresh screenshot was Offline. Bounded recording stayed Home; no recorded full traversal/no-stuck claim inferred from done.",
+    "main_capture_method": "Existing exported navigation-only intent, not injected taps or touch/animation acceptance",
+    "selected_navigation": "All four captured main destination indicators match observed target bounds",
+    "search": "Empty field observed; no query submitted",
+    "player": "Paused controls and sharp artwork visibly rendered",
+    "recording": "Private bounded180s capture; only Home and external notification change, not motion/performance evidence",
+    "current_pid_fatal_records": 0,
+    "initial_artwork_placeholder": "Resolved in subsequent Home recording/capture; no persistent failure observed",
+    "preferences_at_last_readback": "AMOLED/System and Android animator1.0 unchanged; no restore needed so far",
+    "pending_owner_action": "You \u2192 Theme \u2192 Change \u2192 Aurora, leave visible, reply Aurora. Then remaining theme and app Reduced checks, restore AMOLED/System.",
+    "private_recording_copy": "Full remote/local SHA verified; only owned temporary remote MP4 removed after verified copy",
+    "source_apk_changes": "None; host verification not rerun for documentation-only device observations"
   }
 }
