@@ -1,0 +1,262 @@
+{
+  "schema": 1,
+  "batch": "NW149",
+  "date": "2026-11-04",
+  "implementation_status": "LOCAL_VERIFIED",
+  "device_status": "PARTIAL_SCOPED_PASS_RESTORED",
+  "build": {
+    "build_id": "NW-debug-356960B7755F6DC0",
+    "revision": "3cc1e8a4c75fc1656ecca09ca4bc61e801919f23",
+    "source_sha256": "356960B7755F6DC04545E2597BE263AD831AC941F816FBE5F5181500524F40D8",
+    "source_input_count": 998,
+    "apk_sha256": "5F63200CEDBC4ECC755B971101246227DABF0CDB85F5FCEA51251E1979063B51",
+    "apk_bytes": 28362773,
+    "package": "com.nightwave.player",
+    "version_code": 45,
+    "version_name": "2.0.0-alpha5s",
+    "min_sdk": 23,
+    "target_sdk": 36,
+    "signer_sha256": "EA737A703B8F116EBC5C8C0A717DDBF3A2A5808ACC9079A8F79CD1B3CD860394",
+    "signer_comparison": "MATCH freshly pulled Poco code44"
+  },
+  "validation": {
+    "windows_builder": "PASS",
+    "jvm": {
+      "tests": 1841,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "suites": 230,
+    "current_source_checks": 91,
+    "source_status": "PASS_SOURCE_ONLY",
+    "android_methods": 2,
+    "android_parameterized_cases": 8,
+    "android_status": "COMPILED_NOT_RUN",
+    "contrast_pairs": 56,
+    "minimum_opaque_role_ratio": 5.086631,
+    "contrast_scope": "Configured opaque roles, not all screen pixels or disabled-state certification",
+    "lint": {
+      "errors": 0,
+      "warnings": 327,
+      "hints": 17,
+      "inventory_change": "None relative to44"
+    },
+    "gitleaks": {
+      "commits_scanned": 3640,
+      "leaks": 0,
+      "scope": "All refs at final implementation before result docs"
+    },
+    "private_delivery": "Owner-only metadata and complete remote byte/hash readback PASS",
+    "original219_pack": "PREPARED_NOT_EXECUTED",
+    "native_entries_unchanged": 8,
+    "other_assets_unchanged": 1,
+    "apk_inventory_change": 0
+  },
+  "changes": [
+    "Selected-theme inversePrimary for default queue Undo/snackbar actions",
+    "System motion setting read-only observation only while lifecycle STARTED; stop/disposal cleanup and safe unreadable handling",
+    "Single effective motion value for shell navigation/haptics, mini/full player, queue, lyrics and offline shell",
+    "Explicit stored Reduced/System/legacy Full intent at main/offline/updater theme entry points",
+    "No duration, palette identity, pager recovery, feature, source/audio quality, data format, signer or consent change"
+  ],
+  "phone_baseline": {
+    "code": 44,
+    "model": "M2007J20CI",
+    "android": "12",
+    "api": 31,
+    "screen_pixels": [
+      1080,
+      2400
+    ],
+    "density_dpi": 440,
+    "font_scale": 0.81,
+    "theme": "AMOLED",
+    "motion": "SYSTEM",
+    "animator_scale": "1.0",
+    "sound_ui_tree_nodes": 74,
+    "sound_snapshot_seconds": 5.67,
+    "sound_result": "Screenshot and fresh UI hierarchy succeeded; prior Samsung tool failure not reproduced; cause unknown",
+    "scope": "Owner manual read-only navigation; no EQ/account/system setting change",
+    "code45_install": "OWNER_APPROVED_PASS"
+  },
+  "remaining_device_cases": [
+    "15/36 secondary rendered slots remain NOT_RUN: Queue/Dialogs/Sound in AMOLED and Queue/Offline/Dialogs/Sound in each other theme",
+    "Actual Undo, keyboard/focus/gesture/continuous-frame/haptic/error/disabled/all-scroll/locale/font/accessibility acceptance",
+    "Runtime Android system-scale change/older-phone/soak/audio/transfer/full NW145 gates; no Android setting write authorized",
+    "Eight parameterized synthetic Android cases remain COMPILED_NOT_RUN; original219 cases not promoted"
+  ],
+  "rating": {
+    "frozen_review_index": 7.83,
+    "full_product": "NOT_ASSESSED",
+    "automatic_increase": false
+  },
+  "next_source_batch": "NW150",
+  "release_activation": "NOT_APPROVED",
+  "review": "https://github.com/Nahian2002/NightWave/pull/175",
+  "phone_install": {
+    "authorization": "Install version45 and test",
+    "approved_scope": "Preserving45 replacement and manual themes/navigation/motion, restore AMOLED/System; no system/EQ/account/library action",
+    "from_code": 44,
+    "to_code": 45,
+    "pre_first_launch_identical_preference_database_files": 17,
+    "backup": "Private TAR verified byte/hash against all17 saved files; no restore",
+    "installed_sha256": "5F63200CEDBC4ECC755B971101246227DABF0CDB85F5FCEA51251E1979063B51",
+    "installed_bytes": 28362773,
+    "cold_launch_adb_total_ms_single_sample": 3449,
+    "current_pid_fatal_records_observed": 0,
+    "initial_theme": "AMOLED",
+    "initial_motion": "SYSTEM",
+    "android_animator_scale_read_only": "1.0",
+    "scope": "Approved preserving install, four-theme representative static views, app Reduced on/off and verified original profile restoration"
+  },
+  "phone_evidence": "docs/NW149_POCO_CODE45_SMOKE.md",
+  "phone_observations": {
+    "theme": "AMOLED",
+    "motion": "SYSTEM",
+    "android_animator_scale": 1.0,
+    "observed_static_surfaces": [
+      "Home",
+      "Library",
+      "Offline",
+      "Player",
+      "Search",
+      "You"
+    ],
+    "matrix_observed_static": 6,
+    "matrix_not_run": 30,
+    "owner_requested_route_reply": "done",
+    "owner_route_limit": "Later fresh screenshot was Offline. Bounded recording stayed Home; no recorded full traversal/no-stuck claim inferred from done.",
+    "main_capture_method": "Existing exported navigation-only intent, not injected taps or touch/animation acceptance",
+    "selected_navigation": "All four captured main destination indicators match observed target bounds",
+    "search": "Empty field observed; no query submitted",
+    "player": "Paused controls and sharp artwork visibly rendered",
+    "recording": "Private bounded180s capture; only Home and external notification change, not motion/performance evidence",
+    "current_pid_fatal_records": 0,
+    "initial_artwork_placeholder": "Resolved in subsequent Home recording/capture; no persistent failure observed",
+    "preferences_at_last_readback": "Initial AMOLED/System snapshot; latest captured/read Midnight/System in theme_followup, restoration pending",
+    "pending_owner_action": "None for this scoped phone pass;15 review slots and wider acceptance remain pending",
+    "private_recording_copy": "Full remote/local SHA verified; only owned temporary remote MP4 removed after verified copy",
+    "source_apk_changes": "None; host verification not rerun for documentation-only device observations",
+    "stage": "INITIAL_AMOLED_SNAPSHOT"
+  },
+  "theme_followup": {
+    "date": "2026-11-05",
+    "owner_selected_themes": [
+      "AURORA",
+      "PEARL",
+      "MIDNIGHT"
+    ],
+    "observations": {
+      "AURORA": {
+        "motion": "SYSTEM",
+        "static_surfaces": [
+          "Home",
+          "Search",
+          "Library",
+          "Player",
+          "You"
+        ],
+        "selected_destinations_match": [
+          "home",
+          "search",
+          "library",
+          "you"
+        ],
+        "empty_search": true,
+        "visual_review": "No blank or newly clipped controls seen in sampled viewports",
+        "scope": "Static representative views only; actual gestures/all states still pending"
+      },
+      "PEARL": {
+        "motion": "SYSTEM",
+        "static_surfaces": [
+          "Home",
+          "Search",
+          "Library",
+          "Player",
+          "You"
+        ],
+        "selected_destinations_match": [
+          "home",
+          "search",
+          "library",
+          "you"
+        ],
+        "empty_search": true,
+        "visual_review": "No blank or newly clipped controls seen in sampled viewports",
+        "scope": "Static representative views only; actual gestures/all states still pending"
+      },
+      "MIDNIGHT": {
+        "motion": "SYSTEM",
+        "static_surfaces": [
+          "Home",
+          "Search",
+          "Library",
+          "Player",
+          "You"
+        ],
+        "selected_destinations_match": [
+          "home",
+          "search",
+          "library",
+          "you"
+        ],
+        "empty_search": true,
+        "visual_review": "No blank or newly clipped controls seen in sampled viewports",
+        "scope": "Static representative views only; actual gestures/all states still pending"
+      }
+    },
+    "matrix_observed_static": 21,
+    "matrix_not_run": 15,
+    "latest_captured_preferences": "MIDNIGHT/SYSTEM",
+    "current_pending_action": "None for scoped preference restoration; wider acceptance pending",
+    "restore_status": "VERIFIED original AMOLED/System; see restoration",
+    "scope": "No source/APK changes, no timing/FPS/global product rating from static captures",
+    "stage": "FOUR_THEME_CAPTURE_SNAPSHOT"
+  },
+  "motion_followup": {
+    "date": "2026-11-05",
+    "theme": "AMOLED",
+    "stored_motion": "REDUCED",
+    "visible_switch": "CHECKED",
+    "owner_report": "done to requested Home/Search/You traversal; no explicit timing/no-stuck report inferred",
+    "static_surfaces": [
+      "Home",
+      "Search",
+      "Library",
+      "Player",
+      "You"
+    ],
+    "selected_navigation_matches": true,
+    "search_empty": true,
+    "motion_scope": "App preference/switch plus static rendering observed; no continuous motion/frame/haptic/system-scale certification",
+    "restore": "VERIFIED owner switched app Reduced off; original AMOLED/System profile fields match",
+    "pending_owner_action": "None for approved temporary preference checks"
+  },
+  "restoration": {
+    "date": "2026-11-05",
+    "theme": "AMOLED",
+    "motion": "SYSTEM",
+    "system_animator_scale": "1.0",
+    "font_scale": "0.81",
+    "non_test_profile_fields_changed": [],
+    "original_profile_fields_match": true,
+    "visible_checked_controls": [
+      "false",
+      "false",
+      "false",
+      "true",
+      "false",
+      "false",
+      "false",
+      "false",
+      "false",
+      "true",
+      "false"
+    ],
+    "paused_mini_resume_control_visible": true,
+    "current_pid_fatal_records": 0,
+    "scope": "Read-only restoration verification; no profile/system write, reset, account/library/EQ command",
+    "reduced_motion_switch": "UNCHECKED: unique checkable control beside Reduced motion label, confirmed screenshot"
+  }
+}

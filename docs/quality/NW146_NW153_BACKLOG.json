@@ -3,7 +3,7 @@
   "created_date": "2026-11-04",
   "review": "docs/audits/2026-11-04_CODE40_PRODUCT_REVIEW.md",
   "scorecard": "docs/quality/CODE40_REVIEW_SCORECARD.json",
-  "next_source_batch": "NW149",
+  "next_source_batch": "NW150",
   "acceptance_umbrella": "NW145",
   "execution_order": [
     "NW146",
@@ -15,7 +15,7 @@
     "NW152",
     "NW153"
   ],
-  "source_candidate_code": 44,
+  "source_candidate_code": 45,
   "phone_acceptance": "PARTIAL",
   "rating_policy": "No automatic score rise from builds/test counts; full product overall remains unscored until critical evidence exists.",
   "preservation": [
@@ -106,14 +106,18 @@
         "R03",
         "R06"
       ],
-      "implementation_status": "PLANNED",
-      "device_status": "NOT_RUN",
+      "implementation_status": "LOCAL_VERIFIED",
+      "device_status": "PARTIAL_SCOPED_PASS_RESTORED",
       "acceptance_criteria": [
         "Review every theme at Home/Search/Library/You/player/queue/offline/dialog states with measured contrast.",
         "Preserve matte identity, accessible selected/disabled/error states and reduced-motion/focus/keyboard behavior.",
         "Measure transitions/frame pacing before duration changes; investigate Sound Studio dump137 without labeling it an app crash."
       ],
-      "investigation_notes": "Retain Sound hierarchy nonzero on code41/42 and one unexplained You-to-Home state movement during test lookup. Cause unknown; controlled navigation/frame/semantics evidence before diagnosis."
+      "investigation_notes": "Retain Sound hierarchy nonzero on code41/42 and one unexplained You-to-Home state movement during test lookup. Cause unknown; controlled navigation/frame/semantics evidence before diagnosis.",
+      "evidence": "docs/quality/NW149_SOURCE_EVIDENCE.json",
+      "source_revision": "3cc1e8a4c75fc1656ecca09ca4bc61e801919f23",
+      "notes": "Approved Poco45 preserving install17 prelaunch files unchanged. Four-theme main static views21/36 observed; appAMOLED/REDUCED checked and five static views normal, owner reported requested task done. Owner switched off; originalAMOLED/SYSTEM and all profile fields restored, Android animation/font unchanged, paused and current-PID fatal0.15 slots/gestures/full acceptance pending; no9.5/100% certification.",
+      "phone_evidence": "docs/NW149_POCO_CODE45_SMOKE.md"
     },
     {
       "id": "NW150",
@@ -133,7 +137,16 @@
         "Exercise live public and saved/local queries, versions/cancellation/stale results and exact source identity.",
         "Align offline/import/download/error UI and actionable readiness/retry copy; measure network/receive/write separately without universal Mbps promise.",
         "Complete owned-LRC import/review/editor/follow guidance; preserve every supported source and exclude unauthorized lyrics/audio workflows."
-      ]
+      ],
+      "automation_preparation": "docs/PHONE_AUTOMATION_PLAN.md",
+      "admission_checkpoint": {
+        "date": "2026-11-05",
+        "five_hour_remaining_percent": 21,
+        "weekly_remaining_percent": 60,
+        "full_batch_planning_envelope": 44,
+        "result": "NOT_ADMITTED; plan only, no implementation",
+        "reason": "Full completion envelope and normal30-percent floor not met; recheck before start"
+      }
     },
     {
       "id": "NW151",

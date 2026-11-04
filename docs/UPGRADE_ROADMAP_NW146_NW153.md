@@ -1,3 +1,5 @@
+Current: NW149 source45 LOCAL_VERIFIED; next source batch NW150. See NW149_THEME_MOTION.md. Code45 phone/render/frame acceptance pending; no source-test rating promotion. Earlier current/status paragraphs below are historical.
+
 Current: NW148 code44 source repair LOCAL_VERIFIED_DEVICE_PENDING; next source batch NW149. Read NW148_CANONICAL_ARTWORK_REPAIR.md. Earlier repair-budget hold is historical; code44 phone installation and manual acceptance remain pending.
 
 # Upcoming upgrades NW146–NW153 — code40 review

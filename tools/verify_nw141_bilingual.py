@@ -65,7 +65,7 @@ def verify(en, bn, source):
     assert 'includeFontPadding = true' in source['NightWaveTheme.kt']
     assert 'LineHeightStyle.Trim.None' in source['NightWaveTheme.kt']
     assert 'letterSpacing = 0.sp' in source['NightWaveTheme.kt']
-    assert 'LocalNightWaveReduceMotion provides reduceMotion' in source['NightWaveTheme.kt']
+    assert 'LocalNightWaveReduceMotion provides effectiveReduceMotion' in source['NightWaveTheme.kt']
 
 def main():
     parser = argparse.ArgumentParser(); parser.add_argument('--self-test', action='store_true'); args = parser.parse_args()

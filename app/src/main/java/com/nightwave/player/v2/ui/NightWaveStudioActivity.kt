@@ -924,7 +924,8 @@ class NightWaveStudioActivity : ComponentActivity() {
             }
             NightWaveMaterialTheme(
                 choice = profile.theme,
-                reduceMotion = profile.motion == MotionPreference.REDUCED
+                reduceMotion = profile.motion == MotionPreference.REDUCED,
+                followSystemMotion = profile.motion != MotionPreference.FULL
             ) {
                 StudioRoot(
                     profile = profile, favorites = favorites, recent = recentlyPlayed,
@@ -1319,7 +1320,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                             saving = session.saving,
                             playbackMs = playback.state.positionMs,
                             offsetMs = currentLyricsOffsetMs,
-                            reduceMotion = profile.motion == MotionPreference.REDUCED,
+                            reduceMotion = LocalNightWaveReduceMotion.current,
                             onApply = { onLyricsEditorDraft(it) },
                             onUndo = { undoLyricsEditorDraft() },
                             onSave = { saveLyricsEditorDraft() },
@@ -3217,6 +3218,7 @@ private fun StudioRoot(
     onMainNavigationApplied: (String) -> Unit
 ) {
     val strings = rememberNightWaveStrings()
+    val reducedMotion = LocalNightWaveReduceMotion.current
     // The pager is the single source of truth for swipes, tabs and Back.
     // Pager state survives rotation and process recreation through Compose Saver.
     val studioContext = androidx.compose.ui.platform.LocalContext.current
@@ -3274,7 +3276,7 @@ private fun StudioRoot(
         tabNavigationJob = scope.launch {
             if (NightWaveMotionPolicy.animateTabChange(
                     pagerState.currentPage, destination.ordinal,
-                    StudioTab.entries.size, profile.motion == MotionPreference.REDUCED)) {
+                    StudioTab.entries.size, reducedMotion)) {
                 pagerState.animateScrollToPage(destination.ordinal,
                     animationSpec = tween(durationMillis = NightWaveMotionPolicy.NAV_MS))
             } else {
@@ -3360,7 +3362,7 @@ private fun StudioRoot(
                 }
                 NightWavePremiumNavigation(
                     selectedIndex = tab.ordinal,
-                    reducedMotion = profile.motion == MotionPreference.REDUCED,
+                    reducedMotion = reducedMotion,
                     onReselect = { navigateToTab(tab) },
                     onNavigate = { target ->
                         navigateToTab(StudioTab.entries[
@@ -3547,7 +3549,7 @@ private fun StudioRoot(
     StudioNowPlayingOverlay(
         expanded = expanded && playerState.hasTrack,
         state = playerState, actions = playerActions,
-        reduceMotion = profile.motion == MotionPreference.REDUCED,
+        reduceMotion = reducedMotion,
         liked = playerState.hasTrack && !playerState.offline &&
             isFavorite(playerState.videoUrl),
         onLike = {
@@ -3601,7 +3603,7 @@ private fun StudioRoot(
         onUndoRemoval = { token -> playerActions.undoUpcoming(token) },
         onMoveUpcoming = { from, to, expected -> playerActions.moveUpcoming(from, to, expected) },
         onClearUpcoming = { expected -> playerActions.clearUpcoming(expected) },
-        reduceMotion = profile.motion == MotionPreference.REDUCED
+        reduceMotion = reducedMotion
     )
     }
 }

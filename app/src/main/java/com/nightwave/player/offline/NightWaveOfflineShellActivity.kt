@@ -20,6 +20,7 @@ import com.nightwave.player.v2.model.MotionPreference
 import com.nightwave.player.v2.model.ProfileSettings
 import com.nightwave.player.v2.playback.StudioPlaybackBridge
 import com.nightwave.player.v2.ui.NightWaveMaterialTheme
+import com.nightwave.player.v2.ui.LocalNightWaveReduceMotion
 import com.nightwave.player.v2.ui.NightWaveOfflineShell
 import com.nightwave.player.R
 
@@ -101,9 +102,10 @@ abstract class NightWaveOfflineShellActivity : ComponentActivity() {
         content.addOnLayoutChangeListener(viewportLayoutListener)
         profile = GuestProfileStore(this).load()
         setContent {
-            NightWaveMaterialTheme(profile.theme, profile.motion == MotionPreference.REDUCED) {
+            NightWaveMaterialTheme(profile.theme, profile.motion == MotionPreference.REDUCED,
+                followSystemMotion = profile.motion != MotionPreference.FULL) {
                 NightWaveOfflineShell(offlineRoute, player.state, player,
-                    reducedMotion = profile.motion == MotionPreference.REDUCED,
+                    reducedMotion = LocalNightWaveReduceMotion.current,
                     onBack = { onBackPressedDispatcher.onBackPressed() },
                     onRoute = { NightWaveOfflineNavigator.open(this, it) },
                     onMain = { tab, expanded -> NightWaveOfflineNavigator.main(this, tab, expanded) },

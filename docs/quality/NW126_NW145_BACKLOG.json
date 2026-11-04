@@ -1845,5 +1845,5 @@
   },
   "owner_testing_preference": "Owner approved version40 in-place update and non-destructive checks on connected phone; NW145 smoke partial, no full matrix certification.",
   "active_successor_backlog": "docs/quality/NW146_NW153_BACKLOG.json",
-  "next_independent_source_batch": "NW149"
+  "next_independent_source_batch": "NW150"
 }

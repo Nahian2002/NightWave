@@ -33,7 +33,7 @@
     "In-place installed-data/update continuity"
   ],
   "runbook": "docs/NW145_ACCEPTANCE_RUNBOOK.md",
-  "owner_testing_preference": "Owner separately approved version40,41,42,43 and44 installation/tests,44 on replacement Poco. No subsequent APK/reset/uninstall/account/system-settings action authorized.",
+  "owner_testing_preference": "Owner separately approved40,41,42,43,44 and45 installation/tests;45 on Poco with manual temporary themes/app Reduced Motion and restore AMOLED/System. No later APK/reset/account/EQ/library/system-setting action authorized.",
   "first_phone_smoke": {
     "date": "2026-11-04",
     "device_model": "SM-S928B",
@@ -58,17 +58,17 @@
     "original219_cases": "NOT_PROMOTED_FROM_SMOKE"
   },
   "latest_successor_phone_smoke": {
-    "batch": "NW148",
-    "code": 44,
-    "evidence": "docs/NW148_POCO_CODE44_SMOKE.md",
-    "result": "PARTIAL_SCOPED_PASS",
+    "batch": "NW149",
+    "code": 45,
+    "evidence": "docs/NW149_POCO_CODE45_SMOKE.md",
+    "result": "PARTIAL_SCOPED_PASS_RESTORED",
     "original219_cases": "NOT_PROMOTED_FROM_SMOKE"
   },
   "latest_source_candidate": {
-    "batch": "NW148",
-    "code": 44,
-    "status": "LOCAL_VERIFIED",
-    "evidence": "docs/quality/NW148_SOURCE_EVIDENCE.json"
+    "batch": "NW149",
+    "code": 45,
+    "status": "LOCAL_VERIFIED_DEVICE_PENDING",
+    "evidence": "docs/quality/NW149_SOURCE_EVIDENCE.json"
   },
   "replacement_phone_baseline": {
     "reported_model": "M2007J20CI",

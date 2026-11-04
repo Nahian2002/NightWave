@@ -49,7 +49,7 @@ CHECKS = {
         "if (reduceMotion) 1f",
     ),
     MAIN + "NightWaveTheme.kt": (
-        "LocalNightWaveReduceMotion provides reduceMotion",
+        "LocalNightWaveReduceMotion provides effectiveReduceMotion",
     ),
     MAIN + "NightWaveStudioActivity.kt": (
         "private enum class StudioTab(",

@@ -1,0 +1,286 @@
+{
+  "scope": "Configured opaque text/state roles only; no whole-screen or disabled-state certification",
+  "source_sha256": "356960B7755F6DC04545E2597BE263AD831AC941F816FBE5F5181500524F40D8",
+  "measurements": [
+    {
+      "theme": "MIDNIGHT",
+      "role": "body_canvas",
+      "ratio": 17.994248
+    },
+    {
+      "theme": "MIDNIGHT",
+      "role": "body_card",
+      "ratio": 15.722381
+    },
+    {
+      "theme": "MIDNIGHT",
+      "role": "secondary_card",
+      "ratio": 10.097088
+    },
+    {
+      "theme": "MIDNIGHT",
+      "role": "secondary_raised",
+      "ratio": 8.411462
+    },
+    {
+      "theme": "MIDNIGHT",
+      "role": "action_raised",
+      "ratio": 8.460384
+    },
+    {
+      "theme": "MIDNIGHT",
+      "role": "selected_primary",
+      "ratio": 11.651755
+    },
+    {
+      "theme": "MIDNIGHT",
+      "role": "selected_secondary",
+      "ratio": 11.931661
+    },
+    {
+      "theme": "MIDNIGHT",
+      "role": "secondary_caption",
+      "ratio": 7.662645
+    },
+    {
+      "theme": "MIDNIGHT",
+      "role": "filled_primary",
+      "ratio": 11.573812
+    },
+    {
+      "theme": "MIDNIGHT",
+      "role": "filled_tertiary",
+      "ratio": 9.504674
+    },
+    {
+      "theme": "MIDNIGHT",
+      "role": "error_text",
+      "ratio": 9.952133
+    },
+    {
+      "theme": "MIDNIGHT",
+      "role": "error_action",
+      "ratio": 11.390205
+    },
+    {
+      "theme": "MIDNIGHT",
+      "role": "inverse_text",
+      "ratio": 17.994248
+    },
+    {
+      "theme": "MIDNIGHT",
+      "role": "inverse_action",
+      "ratio": 11.651755
+    },
+    {
+      "theme": "AURORA",
+      "role": "body_canvas",
+      "ratio": 17.517434
+    },
+    {
+      "theme": "AURORA",
+      "role": "body_card",
+      "ratio": 15.743397
+    },
+    {
+      "theme": "AURORA",
+      "role": "secondary_card",
+      "ratio": 10.00853
+    },
+    {
+      "theme": "AURORA",
+      "role": "secondary_raised",
+      "ratio": 8.35335
+    },
+    {
+      "theme": "AURORA",
+      "role": "action_raised",
+      "ratio": 6.57518
+    },
+    {
+      "theme": "AURORA",
+      "role": "selected_primary",
+      "ratio": 10.085819
+    },
+    {
+      "theme": "AURORA",
+      "role": "selected_secondary",
+      "ratio": 10.689114
+    },
+    {
+      "theme": "AURORA",
+      "role": "secondary_caption",
+      "ratio": 6.795377
+    },
+    {
+      "theme": "AURORA",
+      "role": "filled_primary",
+      "ratio": 8.898786
+    },
+    {
+      "theme": "AURORA",
+      "role": "filled_tertiary",
+      "ratio": 11.830534
+    },
+    {
+      "theme": "AURORA",
+      "role": "error_text",
+      "ratio": 10.486335
+    },
+    {
+      "theme": "AURORA",
+      "role": "error_action",
+      "ratio": 11.667983
+    },
+    {
+      "theme": "AURORA",
+      "role": "inverse_text",
+      "ratio": 17.517434
+    },
+    {
+      "theme": "AURORA",
+      "role": "inverse_action",
+      "ratio": 10.085819
+    },
+    {
+      "theme": "PEARL",
+      "role": "body_canvas",
+      "ratio": 14.587132
+    },
+    {
+      "theme": "PEARL",
+      "role": "body_card",
+      "ratio": 15.863371
+    },
+    {
+      "theme": "PEARL",
+      "role": "secondary_card",
+      "ratio": 6.346729
+    },
+    {
+      "theme": "PEARL",
+      "role": "secondary_raised",
+      "ratio": 5.409921
+    },
+    {
+      "theme": "PEARL",
+      "role": "action_raised",
+      "ratio": 7.008465
+    },
+    {
+      "theme": "PEARL",
+      "role": "selected_primary",
+      "ratio": 12.803097
+    },
+    {
+      "theme": "PEARL",
+      "role": "selected_secondary",
+      "ratio": 12.713813
+    },
+    {
+      "theme": "PEARL",
+      "role": "secondary_caption",
+      "ratio": 5.086631
+    },
+    {
+      "theme": "PEARL",
+      "role": "filled_primary",
+      "ratio": 7.67959
+    },
+    {
+      "theme": "PEARL",
+      "role": "filled_tertiary",
+      "ratio": 6.419343
+    },
+    {
+      "theme": "PEARL",
+      "role": "error_text",
+      "ratio": 6.540711
+    },
+    {
+      "theme": "PEARL",
+      "role": "error_action",
+      "ratio": 6.014498
+    },
+    {
+      "theme": "PEARL",
+      "role": "inverse_text",
+      "ratio": 14.587132
+    },
+    {
+      "theme": "PEARL",
+      "role": "inverse_action",
+      "ratio": 12.803097
+    },
+    {
+      "theme": "AMOLED",
+      "role": "body_canvas",
+      "ratio": 20.108316
+    },
+    {
+      "theme": "AMOLED",
+      "role": "body_card",
+      "ratio": 17.410414
+    },
+    {
+      "theme": "AMOLED",
+      "role": "secondary_card",
+      "ratio": 10.436567
+    },
+    {
+      "theme": "AMOLED",
+      "role": "secondary_raised",
+      "ratio": 8.587717
+    },
+    {
+      "theme": "AMOLED",
+      "role": "action_raised",
+      "ratio": 10.313534
+    },
+    {
+      "theme": "AMOLED",
+      "role": "selected_primary",
+      "ratio": 11.271205
+    },
+    {
+      "theme": "AMOLED",
+      "role": "selected_secondary",
+      "ratio": 11.902126
+    },
+    {
+      "theme": "AMOLED",
+      "role": "secondary_caption",
+      "ratio": 7.134657
+    },
+    {
+      "theme": "AMOLED",
+      "role": "filled_primary",
+      "ratio": 13.154686
+    },
+    {
+      "theme": "AMOLED",
+      "role": "filled_tertiary",
+      "ratio": 10.162482
+    },
+    {
+      "theme": "AMOLED",
+      "role": "error_text",
+      "ratio": 10.709088
+    },
+    {
+      "theme": "AMOLED",
+      "role": "error_action",
+      "ratio": 12.368558
+    },
+    {
+      "theme": "AMOLED",
+      "role": "inverse_text",
+      "ratio": 20.108316
+    },
+    {
+      "theme": "AMOLED",
+      "role": "inverse_action",
+      "ratio": 11.271205
+    }
+  ]
+}
