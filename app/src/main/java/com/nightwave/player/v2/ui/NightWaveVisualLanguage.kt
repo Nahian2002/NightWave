@@ -155,7 +155,7 @@ fun NightWaveMixCard(
         // Single-column cards use a real thumbnail beside the caption rather
         // than a wide empty banner. Large text receives the whole row width.
         if ((featured && fontScale < 1.3f) || (compact && fontScale < 1.3f)) {
-            Row(Modifier.fillMaxWidth().padding(12.dp),
+            Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = NightWaveSecondaryLayoutPolicy.MIX_VERTICAL_DP.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically) {
                 if (first != null) NightWaveMixMosaic(mix, Modifier.size(if (featured) 88.dp else 64.dp))
@@ -169,7 +169,7 @@ fun NightWaveMixCard(
                     NightWaveMixMosaic(mix, Modifier.fillMaxWidth().aspectRatio(1.6f))
                 }
                 Column(Modifier.fillMaxWidth().background(if (selected || emphasized) scheme.primaryContainer else scheme.surface)
-                    .padding(NightWavePremiumDesignTokens.CARD_PADDING_DP.dp)) {
+                    .padding(NightWaveSecondaryLayoutPolicy.MIX_CAPTION_DP.dp)) {
                     NightWaveMixCaption(mix, presentation, trackLabel, fontScale, selected)
                 }
             }

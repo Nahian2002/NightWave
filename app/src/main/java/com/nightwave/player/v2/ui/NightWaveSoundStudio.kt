@@ -367,15 +367,15 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                 LazyColumn(
                     modifier = Modifier.fillMaxWidth().weight(1f),
                     contentPadding = PaddingValues(
-                        horizontal = 17.dp, vertical = 15.dp),
-                    verticalArrangement = Arrangement.spacedBy(15.dp)
+                        horizontal = 17.dp, vertical = NightWaveSecondaryLayoutPolicy.SOUND_PADDING_DP.dp),
+                    verticalArrangement = Arrangement.spacedBy(NightWaveSecondaryLayoutPolicy.SOUND_GAP_DP.dp)
                 ) {
                     item {
                         Surface(shape = RoundedCornerShape(20.dp),
                             color = MaterialTheme.colorScheme.surfaceVariant) {
                             Column(
-                                Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant).padding(15.dp),
-                                verticalArrangement = Arrangement.spacedBy(9.dp)
+                                Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant).padding(NightWaveSecondaryLayoutPolicy.SOUND_PADDING_DP.dp),
+                                verticalArrangement = Arrangement.spacedBy(NightWaveSecondaryLayoutPolicy.STATUS_GAP_DP.dp)
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(9.dp)) {
@@ -401,15 +401,6 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                                 Text(tuningStatus, style = MaterialTheme.typography.labelMedium,
                                     color = if (draftEdited) primary else muted,
                                     fontWeight = FontWeight.SemiBold)
-                                Text(
-                                    if (liveConfirmed && capabilities.sessionReady)
-                                        "${capabilities.centersHz.size} bands · " +
-                                            "${capabilities.presetNames.size} device presets · " +
-                                            "${capabilities.minimumMb / 100.0} to " +
-                                            "${capabilities.maximumMb / 100.0} dB"
-                                    else "Play a song, then refresh to inspect what Android supports.",
-                                    color = muted, style = MaterialTheme.typography.bodySmall
-                                )
                             }
                         }
                     }
@@ -648,7 +639,7 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                     item(key = "nw88-local-audio-transitions") {
                         Surface(color = MaterialTheme.colorScheme.surfaceVariant,
                             shape = RoundedCornerShape(NightWavePremiumDesignTokens.CARD_CORNER_DP.dp)) {
-                            Column(Modifier.fillMaxWidth().padding(15.dp),
+                            Column(Modifier.fillMaxWidth().padding(NightWaveSecondaryLayoutPolicy.SOUND_PADDING_DP.dp),
                                 verticalArrangement = Arrangement.spacedBy(10.dp)) {
                                 Text(strings.get(R.string.nw141_local_playback_quality_adb32),
                                     style = MaterialTheme.typography.titleMedium,
@@ -700,14 +691,22 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                             shape = RoundedCornerShape(15.dp)) {
                             Column(Modifier.fillMaxWidth().padding(14.dp),
                                 verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Text(strings.get(R.string.nw141_playback_compatibility_2ec06),
-                                    fontWeight = FontWeight.SemiBold,
-                                    style = MaterialTheme.typography.titleSmall)
-                                Text(
-                                    "Effects depend on Android's audio session and the " +
-                                        "selected speaker or headphones. Enabled does not " +
-                                        "guarantee an audible change on every output route.",
-                                    style = MaterialTheme.typography.bodySmall, color = muted)
+                                NightWaveTechnicalDetails(strings.get(R.string.nw141_playback_compatibility_2ec06)) {
+                                    Text(
+                                        if (liveConfirmed && capabilities.sessionReady)
+                                            "${capabilities.centersHz.size} bands · " +
+                                                "${capabilities.presetNames.size} device presets · " +
+                                                "${capabilities.minimumMb / 100.0} to " +
+                                                "${capabilities.maximumMb / 100.0} dB"
+                                        else "Play a song, then refresh to inspect what Android supports.",
+                                        color = muted, style = MaterialTheme.typography.bodySmall
+                                    )
+                                    Text(
+                                        "Effects depend on Android's audio session and the " +
+                                            "selected speaker or headphones. Enabled does not " +
+                                            "guarantee an audible change on every output route.",
+                                        style = MaterialTheme.typography.bodySmall, color = muted)
+                                }
                                 if (notice.isNotBlank()) {
                                     Text(notice, style = MaterialTheme.typography.bodySmall,
                                         color = primary)

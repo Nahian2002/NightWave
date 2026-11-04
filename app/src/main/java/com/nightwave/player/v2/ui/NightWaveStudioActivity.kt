@@ -5745,7 +5745,7 @@ private fun StudioProfileGroup(
     // Settings are an editorial list, not a stack of oversized cards.
     Column(Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 0.dp)) {
         Text(title,
-            modifier = Modifier.padding(start = 12.dp, top = 4.dp, bottom = 8.dp),
+            modifier = Modifier.padding(start = 12.dp, top = 4.dp, bottom = NightWaveSecondaryLayoutPolicy.GROUP_CAPTION_BOTTOM_DP.dp),
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.primary)
         HorizontalDivider(
@@ -5761,29 +5761,5 @@ private fun StudioProfileRow(
     onClick: () -> Unit, modifier: Modifier = Modifier,
     trailing: @Composable (() -> Unit)? = null
 ) {
-    Row(
-        modifier.fillMaxWidth().heightIn(min = 64.dp)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(Modifier.size(36.dp).clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.primary.copy(alpha = .09f)),
-            contentAlignment = Alignment.Center) {
-            Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp),
-                tint = MaterialTheme.colorScheme.primary.copy(alpha = .90f))
-        }
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(title, style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.SemiBold)
-            Text(detail, style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = if (androidx.compose.ui.platform.LocalDensity.current.fontScale >= 1.3f) Int.MAX_VALUE else 2,
-                overflow = TextOverflow.Ellipsis)
-        }
-        if (trailing != null) trailing()
-        else Text("›", color = MaterialTheme.colorScheme.onSurfaceVariant,
-            style = MaterialTheme.typography.titleLarge)
-    }
+    NightWaveSettingsRow(title, detail, icon, onClick, modifier, trailing)
 }
