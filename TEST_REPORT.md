@@ -56,3 +56,5 @@ Build **NW-debug-C4D430224921F123**; source **C4D430224921F123F14D2E5ED80E7E9724
 Private baseline/final bundles and exact working-byte ZIPs, raw JUnit/lint/build/provenance/signature/source/delivery/remote receipts remain outside Git. Actual TalkBack/Switch Access, all-theme 1x/2x/3x clipping/contrast/touch bounds, native-speaker review, locale recreation, installed-data/signer, original performance and recovery acceptance are still required. No new numerical rating or 9.5 certification is awarded. **Next independent source batch: NW142**, then NW143–NW145. Saved schedule guards remain; this manual run was explicitly owner-authorized despite the earlier scheduled admission estimate.
 
 [Draft updater PR #164](https://github.com/Nahian2002/NightWave/pull/164) is unmerged; stable activation remains disabled pending owner approval.
+
+[Draft review #165](https://github.com/Nahian2002/NightWave/pull/165) is stacked on updater #164; both remain unmerged.
