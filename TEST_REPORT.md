@@ -1,3 +1,7 @@
+## NW146 approved phone follow-up — 4 November 2026
+
+Owner explicitly approved installing version41 and testing. In-place code40 →41 succeeded; actual installed APK hash matches the verified candidate, signer continuity passed and all29 collected saved-file hashes were unchanged before first launch. Queue Current track + Paused → Playing → Paused and manual unavailable-message/Retry/Back observed. Phone left Home/paused. See docs/NW146_SAMSUNG_CODE41_SMOKE.md; NW146 physical status PARTIAL, original NW145 gates/scores unchanged. This approval covers code41 only; no future installation/reset/account/settings/release action authorized. Next source batch NW147. Prior source-only NOT_RUN/pending-install headers below are historical.
+
 ## Current verification — NW146 playback and update state truth
 
 NW146 LOCAL_VERIFIED: queue selection no longer implies playing; badge/accessibility uses existing playback classification. Manual checks distinguish authenticated disabled/no-compatible/available from offline/unavailable/invalid metadata. HTTP404 cannot impersonate signed disabled metadata. All features, themes, URLs/quality, data, consent and signing boundaries retained.

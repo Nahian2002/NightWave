@@ -37,7 +37,7 @@
         "R04"
       ],
       "implementation_status": "LOCAL_VERIFIED",
-      "device_status": "NOT_RUN",
+      "device_status": "PARTIAL",
       "acceptance_criteria": [
         "Current/Playing/Paused/Buffering/Error labels agree across mini/full/queue and accessibility descriptions.",
         "Model authenticated Disabled/NoCompatible/Available separately from unavailable/offline/error; no unsigned404 treated as trusted disabled metadata.",
@@ -45,7 +45,8 @@
       ],
       "evidence": "docs/quality/NW146_SOURCE_EVIDENCE.json",
       "source_revision": "2dec1675858f0975fd74f56434fc712ae40f8f8d",
-      "notes": "Queue state and authenticated updater status implemented; scoped physical checks NOT_RUN, no rating increase."
+      "notes": "Owner-approved code41 installed with 29 unchanged prelaunch saved-file hashes. Queue Paused/Playing/Paused and unavailable-update Retry/return observed; other phases and full acceptance pending. No rating increase.",
+      "phone_evidence": "docs/NW146_SAMSUNG_CODE41_SMOKE.md"
     },
     {
       "id": "NW147",

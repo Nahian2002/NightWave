@@ -1,4 +1,4 @@
-# NW146 — Playback and update state truth
+# NW146 â€” Playback and update state truth
 
 Plan before implementation, 4 November2026. Start from code40 review #171; private recovery outside Git. Preserve every feature/theme, URLs/quality, installed data/format, package/signer, account/consent and private reporting boundary.
 
@@ -8,7 +8,7 @@ Distinguish authenticated disabled/no-compatible/available update results from o
 
 Phone can support read-only baseline review within prior authorization. New APK install requires explicit scope after a concrete verified artifact exists. No reset/uninstall, library/account changes, public feed activation, main merge/public binary, repository settings or automation restart. Keep physical acceptance and scores unchanged until evidence exists; next source batch NW147 after NW146 local validation.
 
-## Verified source result — 4 November 2026
+## Verified source result â€” 4 November 2026
 
 NW146 is LOCAL_VERIFIED. The queue now says Current track and derives its badge and accessibility state from the same playback-health classifier as the mini/full player. Selection highlighting and all queue actions remain. Manual update results distinguish authenticated Disabled/NoCompatible/Available from Offline/Unavailable/Invalid metadata. HTTP errors, including404 with a misleading enabled=false body, cannot become authenticated Disabled. Seven-day successful checks, daily failed-check retries and immediate manual checks remain; no release feed was activated.
 
@@ -18,4 +18,4 @@ Build **NW-debug-02427B19DA0B98EB**; source **02427B19DA0B98EB7DB65A928422C7C850
 
 See [exact identity receipt](quality/NW146_SOURCE_EVIDENCE.json). Original219-case pack is PREPARED_NOT_EXECUTED; the new isolated queue semantics test is COMPILED_NOT_RUN. Actual code41 install/data preservation, paused/playing/buffering/disconnected/error queue phases, manual unavailable/offline/signed-disabled/current/available/invalid cases, long absence, all themes/fonts and older devices remain NOT_RUN. Full NW145 acceptance remains PARTIAL; provisional presentation index7.83 and full-product NOT_ASSESSED are unchanged. Source readiness does not establish9.5. Next independent source batch NW147.
 
-[Draft review #172](https://github.com/Nahian2002/NightWave/pull/172), stacked on #171; unmerged. Code41 installation confirmation is pending; the connected phone remains on code40.
+[Draft review #172](https://github.com/Nahian2002/NightWave/pull/172), stacked on #171; unmerged. Owner subsequently approved code41 installation and targeted checks; see [scoped phone results](NW146_SAMSUNG_CODE41_SMOKE.md). Code41 is installed, with phone acceptance PARTIAL. Earlier NOT_RUN statements describe the source-only checkpoint and are superseded only for the checks explicitly observed in that report.

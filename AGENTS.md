@@ -1,3 +1,7 @@
+## NW146 approved phone follow-up — 4 November 2026
+
+Owner explicitly approved installing version41 and testing. In-place code40 →41 succeeded; actual installed APK hash matches the verified candidate, signer continuity passed and all29 collected saved-file hashes were unchanged before first launch. Queue Current track + Paused → Playing → Paused and manual unavailable-message/Retry/Back observed. Phone left Home/paused. See docs/NW146_SAMSUNG_CODE41_SMOKE.md; NW146 physical status PARTIAL, original NW145 gates/scores unchanged. This approval covers code41 only; no future installation/reset/account/settings/release action authorized. Next source batch NW147. Prior source-only NOT_RUN/pending-install headers below are historical.
+
 ## Current NW146 source result — 4 November 2026
 
 NW146 is LOCAL_VERIFIED on update/nightwave-nw146-state-truth. Read docs/NW146_STATE_TRUTH.md and docs/quality/NW146_SOURCE_EVIDENCE.json. Queue playback labels and authenticated update-result states corrected; code41, build NW-debug-02427B19DA0B98EB, 1,824 JVM tests/227 suites, 88 current checks, full Windows builder and sequential lint 0 errors/327 warnings/17 hints PASS. One unused historical resource warning retained. Owner-only APK readback and signer match to phone code40 verified. Code41 physical cases NOT_RUN; existing installation approval covers code40 only. No new rating or public activation. Next source batch NW147; NW145 remains PARTIAL. Earlier headers below are historical.
