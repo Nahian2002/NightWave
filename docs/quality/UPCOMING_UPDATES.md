@@ -82,3 +82,7 @@ Cumulative [NW141 draft PR #163](https://github.com/Nahian2002/NightWave/pull/16
 ## 31 October owner override result
 
 Preserved NW142 source is now cumulatively host-verified with the [weekly updater](../WEEKLY_UPDATER.md) (see TEST_REPORT.md):1817 JVM/226 suites,84 source checks,full Windows builder and serial lint PASS. All physical cases remain NOT_RUN. Updater stable feed disabled pending explicit public-release/main approval. The one-time allowance override does not restart hourly automation. Next independent roadmap source batch NW143.
+
+## Reopening and manual-check follow-up — 4 November 2026
+
+Owner-requested corrective patch on `fix/nightwave-reopen-weekly-updates`, based on #164: restored mini-player viewport sizing, resume checks, direct manual update access independent of cooldown and recoverable download timeout. Code37 preserves package/signer and existing data boundaries. See `docs/UPDATER_REOPEN_FIX.md`. Original next source batch NW143; automation stays deleted and signed stable feed disabled. Phone/runtime acceptance NOT_RUN.

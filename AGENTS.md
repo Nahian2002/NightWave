@@ -1,3 +1,7 @@
+## Reopening / manual updater fix — 4 November 2026
+
+Current review branch `fix/nightwave-reopen-weekly-updates` is based on updater #164. The restored mini-player wraps its content; automatic checks run on resume, and direct You → App health → Check for updates bypasses the automatic cooldown. Code37, same package/signer; stable feed remains disabled and hourly automation remains deleted. Phone acceptance is NOT_RUN. Original roadmap next batch remains NW143. See `docs/UPDATER_REOPEN_FIX.md`.
+
 # NightWave continuity instructions
 
 ## Current owner-requested weekly updater
@@ -56,3 +60,5 @@ Source is public on canonical `main` after explicit owner authorization. Read SO
 The owner explicitly requires no app changes for public-repository preparation. On `audit/nightwave-public-source-preparation`, preserve all `app/`, `tools/`, Gradle/build inputs, package/signing identity and installed data at NW130 parent `fb8f0455c6903249ab85299a76566153a2b8d2a7`. Read [SOURCE_PUBLICATION.md](SOURCE_PUBLICATION.md). Work is limited to repository workflows, documentation and publication controls. Dependency advisories and provider/rights issues must be recorded without silently changing features or libraries. Do not switch visibility, delete/rewrite history or publish binaries as an incidental cleanup step. The preparation ended unchanged at `e476a979491dcb09fa4734e2763c0f357b6c2cd9`. Separately authorized NW131–NW132 product changes follow on their own branches; the active next source batch is NW141 after locally verified NW140 measurement readiness; physical acceptance remains pending.
 
 [Draft updater PR #164](https://github.com/Nahian2002/NightWave/pull/164) is unmerged; stable activation remains disabled pending owner approval.
+
+[Draft review #165](https://github.com/Nahian2002/NightWave/pull/165) is stacked on updater #164; both remain unmerged.

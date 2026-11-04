@@ -1,0 +1,25 @@
+# Reopening and on-demand updates — 4 November 2026
+
+Plan before implementation: preserve the cumulative updater and NW142 work; fix the mini-player label's fillMaxHeight inside a minimum-height row, which consumes the Scaffold viewport when a restored track appears. Add a measured Scaffold regression for a restored track and large text. Keep growing text and all transport actions.
+
+Expose Check for updates directly in You / App health while retaining App details. Manual requests always fetch the newest approved stable release without reading or modifying the automatic cooldown. Keep automatic prompts at most once in seven days and bounded failed-check retry. Fix download timeout recovery so Retry is available rather than permanently showing progress. Prevent overlapping check requests. Retain signed metadata, APK hash/package/version/signer verification and explicit Android installation consent.
+
+Validate with targeted regressions, current source checks, Windows builder and sequential lint. Keep actual cold launch/long absence, font/profile, manual/weekly/network/install acceptance NOT_RUN until phone evidence exists. No automatic public APK, feed activation, merge, installation or schedule restart. Recovery and raw evidence stay outside Git.
+
+## Implementation and phone acceptance
+
+The screenshot's top grip and centered transport match StudioMiniPlayer. Its nested label Row used fillMaxHeight under an outer minimum-height Row: the maximum constraint comes from the entire Scaffold, so a restored track could consume the page. The label now shares the content's minimum height and wraps instead of filling that viewport. The new Android regression measures a disconnected restored-track mini-player in a real Scaffold at normal and 2x text, requires Home content to remain visible and checks zero playback mutations. It is compilation-only until executed on a device.
+
+Automatic checks run on launcher resume, covering an existing Activity reopened after a long background interval. Existing seven-day successful-check and one-day failure-retry preferences remain unchanged. Manual entry is now directly under You → App health → Check for updates, and remains inside App details too. Manual checks fetch the newest signed stable release without reading or writing those automatic timestamps. Repeated checks cannot overlap in the update model. Download timeouts clear progress and restore an action instead of leaving a permanent busy state. Version code37 permits an in-place upgrade from36; package, signer, installed data and feed trust anchor remain unchanged.
+
+Phone acceptance: reopen with a restored track after process removal and after long backgrounding; verify Home/Search and transport at normal/large text in every theme; manually check repeatedly inside seven days; confirm no automatic repeat before seven days and only the latest approved release afterward; verify timeout/retry and rotation; verify Android permission/install return and retained music. All remain NOT_RUN. The signed stable feed is still disabled pending publication approval; this patch does not make an unapproved development build public.
+
+## Verified result — 4 November 2026
+
+Full Windows builder PASS: 1,817 JVM tests / 226 suites, zero failures/errors/skips; Android instrumentation sources including the new restored-track Scaffold case compile. All 84 current checks PASS_SOURCE_ONLY. Sequential lint PASS: 0 errors / 324 warnings / 17 hints, unchanged ID/severity/message/path inventory from code36. All-ref Gitleaks scanned 3,589 commits with no leaks. Initial test-helper compilation failure and stale version guard were repaired; failed logs retained privately. Final build revision `bc3b579d2cc5ae232ebdf448473e19d14f0a00b4`.
+
+Build **NW-debug-40A67A50656ED77A**; canonical source **40A67A50656ED77ADEF6AC436532EEF94262360E12099342E8510196BC27AAE1**, 968 inputs. APK SHA256 **257D549286D1F38508EF2E9C915B4748B6AF181B2C5A5F5CBBEE5FA591572953**, 26,716,582 bytes. Package `com.nightwave.player`, version name `2.0.0-alpha5s`, code37. Signer **EA737A703B8F116EBC5C8C0A717DDBF3A2A5808ACC9079A8F79CD1B3CD860394**, compared against the actual previous code36 APK. Embedded canonical source independently matches current inputs. Owner-only Drive permissions and full remote byte/hash readback verified.
+
+Original 219-case pack PREPARED_NOT_EXECUTED for this exact APK. New UI regression, actual long-absence/process-death/resume behavior, all-theme/large-font acceptance, manual/weekly timing, live approved-feed download, timeout/rotation/Android permission/install and installed-data acceptance remain NOT_RUN. No new rating, public APK, main merge, stable activation, device action or schedule restart. Private recovery and raw evidence are outside Git; next original source batch remains NW143.
+
+[Draft review #165](https://github.com/Nahian2002/NightWave/pull/165) is stacked on updater #164; both remain unmerged.

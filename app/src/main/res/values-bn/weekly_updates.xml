@@ -11,5 +11,6 @@
     <string name="weekly_retry">আবার চেষ্টা করুন</string>
     <string name="weekly_later">পরে</string>
     <string name="weekly_check">আপডেট খুঁজুন</string>
+    <string name="weekly_manual_notice">এখনই সর্বশেষ অনুমোদিত সংস্করণ খুঁজুন। স্বয়ংক্রিয় প্রস্তাবের মধ্যে সাত দিনের বিরতি থাকে।</string>
     <string name="weekly_downloading">ডাউনলোড হচ্ছে · %1$d%%</string>
 </resources>

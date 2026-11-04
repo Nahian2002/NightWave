@@ -33,3 +33,7 @@ Owner-only replacement Drive permissions and complete streamed byte/hash readbac
 **Activation pending owner approval:** no public APK, main merge, enabled stable release, device installation or repository settings change was performed. The signed feed remains disabled on this review branch. Publishing this tested bootstrap APK and making the feed available on main require the owner's separate approval under the standing no-automatic-publication rule. Source/build verification does not certify phone installation or a 9.5 rating. Initial users need this one bootstrap update manually; future higher approved version codes are offered through the weekly app-opening flow.
 
 [Draft updater PR #164](https://github.com/Nahian2002/NightWave/pull/164) is unmerged; stable activation remains disabled pending owner approval.
+
+## Reopening and manual-check follow-up — 4 November 2026
+
+Owner-requested corrective patch on `fix/nightwave-reopen-weekly-updates`, based on #164: restored mini-player viewport sizing, resume checks, direct manual update access independent of cooldown and recoverable download timeout. Code37 preserves package/signer and existing data boundaries. See `docs/UPDATER_REOPEN_FIX.md`. Original next source batch NW143; automation stays deleted and signed stable feed disabled. Phone/runtime acceptance NOT_RUN.

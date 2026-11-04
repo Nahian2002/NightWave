@@ -1,6 +1,17 @@
 package com.nightwave.player.v2.ui
 
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.onRoot
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -92,6 +103,31 @@ class NightWaveMiniDismissInstrumentedTest {
         compose.onNodeWithContentDescription("Pause playback").assertDoesNotExist()
         compose.onNodeWithContentDescription("Resume playback").assertExists()
         compose.onNodeWithContentDescription("Next track").assertDoesNotExist()
+        compose.runOnIdle { assertEquals(0, actions.mutations) }
+    }
+
+    @Test fun restoredTrackDoesNotConsumeScaffoldViewportAtLargeText() {
+        val actions = Actions()
+        var large by mutableStateOf(false)
+        compose.setContent {
+            val density = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(density.density, if (large) 2f else 1f)) {
+                MaterialTheme {
+                    Scaffold(modifier = Modifier.fillMaxSize(), bottomBar = {
+                        StudioMiniPlayer(StudioPlayerState(connected = false,
+                            title = "Restored track", artist = "Saved artist", videoUrl = first.url,
+                            queue = listOf(first, second), queueIndex = 0), actions, {}, {})
+                    }) { padding -> Text("Home content remains visible", Modifier.padding(padding)) }
+                }
+            }
+        }
+        assertTrue(compose.onNodeWithTag("nightwave-mini-player").fetchSemanticsNode().boundsInRoot.height <
+            compose.onRoot().fetchSemanticsNode().boundsInRoot.height * .5f)
+        compose.onNodeWithText("Home content remains visible").assertIsDisplayed()
+        compose.runOnIdle { large = true }
+        assertTrue(compose.onNodeWithTag("nightwave-mini-player").fetchSemanticsNode().boundsInRoot.height <
+            compose.onRoot().fetchSemanticsNode().boundsInRoot.height * .5f)
+        compose.onNodeWithText("Home content remains visible").assertIsDisplayed()
         compose.runOnIdle { assertEquals(0, actions.mutations) }
     }
 }

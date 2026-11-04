@@ -1,8 +1,12 @@
 # NightWave
 
-**Current review:** [weekly in-app updater](docs/WEEKLY_UPDATER.md), branch `update/nightwave-weekly-updater`. App-opening checks offer only the latest owner-approved version at most once every seven days. Downloads stay in the app and are verified before Android installation confirmation. Manual checks: You → App details → Check for updates. The signed stable feed is **disabled pending public-release/main approval**; no automatic publication or installation.
+## Reopening / manual updater fix — 4 November 2026
 
-**Verification:**1,817 JVM tests/226 suites,84 source checks,full Windows build PASS; lint0 errors/324 warnings/17 hints(two new style suggestions). Build NW-debug-4085DB540B6787AA,code36,same package/signer. Phone installation, actual seven-day lifecycle and prior physical gates NOT_RUN. [Exact evidence](TEST_REPORT.md). Current integrated main remains older; this cumulative review includes the preserved NW142 layout work and is unmerged.
+Current review branch `fix/nightwave-reopen-weekly-updates` is based on updater #164. The restored mini-player wraps its content; automatic checks run on resume, and direct You → App health → Check for updates bypasses the automatic cooldown. Code37, same package/signer; stable feed remains disabled and hourly automation remains deleted. Phone acceptance is NOT_RUN. Original roadmap next batch remains NW143. See `docs/UPDATER_REOPEN_FIX.md`.
+
+**Current review:** [reopening and manual update fix](docs/UPDATER_REOPEN_FIX.md), [draft PR #165](https://github.com/Nahian2002/NightWave/pull/165), branch `fix/nightwave-reopen-weekly-updates`. Restored mini-player wraps content; update checks run on resume. Manual checks are directly in You → App health → Check for updates, and remain in App details. They fetch the latest approved release immediately, independently of the automatic seven-day timer. Signed stable feed remains **disabled pending public-release/main approval**.
+
+**Verification:** 1,817 JVM tests / 226 suites, 84 source checks, full Windows build PASS; sequential lint 0 errors / 324 warnings / 17 hints with unchanged inventory. Build NW-debug-40A67A50656ED77A, code37, same package/signer. Actual phone long-absence, weekly/manual timing and installation cases remain NOT_RUN. [Exact evidence](TEST_REPORT.md). Main remains older; the cumulative review is unmerged.
 
 **Schedule:** the hourly automation remains deleted. The owner's allowance override covered this updater only. [Roadmap](docs/PRODUCT_QUALITY_ROADMAP.md), [backlog](docs/quality/NW126_NW145_BACKLOG.json), [upcoming work](docs/quality/UPCOMING_UPDATES.md). No new9.5 rating is inferred.
 
