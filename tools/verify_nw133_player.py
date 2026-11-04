@@ -8,7 +8,7 @@ NAMES = ("StudioPlayerScreens.kt", "NightWaveArtworkPolicy.kt", "NightWaveNowPla
 
 def verify(src):
     ui, art, policy, seek, geometry = (src[n] for n in NAMES)
-    for marker in ("requestCandidates(url, large)", ".size(requestSize.width, requestSize.height)", "CachePolicy.ENABLED",
+    for marker in ("trackCandidates(url, trackIdentity, large)", ".size(requestSize.width, requestSize.height)", "CachePolicy.ENABLED",
                    "isUnavailableLargeStill(displayUrl", "candidateIndex == attempt", "trackIdentity = artwork.trackId",
                    "large = true", "stateDescription = statusLabel", "playbackStatus(playerHealth)",
                    "NightWaveNowPlayingPresentationPolicy.canSeek(", "NightWaveNowPlayingPresentationPolicy.seekPosition(",
