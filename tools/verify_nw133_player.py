@@ -24,7 +24,8 @@ def verify(src):
     for marker in ("remember(trackIdentity)", "pointerInput(enabled, trackIdentity)", "if (!enabled) disabled()",
                    "commitCallback(trackIdentity, mapped)", "positionDescription?.let"):
         assert marker in seek, marker
-    assert ui.count("playbackStatus(") == 2
+    assert "val statusLabel = strings.playbackStatus(health)" in ui
+    assert "val playerStatus = strings.playbackStatus(playerHealth)" in ui
     for bad in ("Http", ".edit()", "enqueue("):
         assert bad not in art and bad not in policy
 
@@ -35,7 +36,9 @@ if __name__ == "__main__":
         for name, marker in ((NAMES[0], ".size(pixels, pixels)"), (NAMES[0], "candidateIndex == attempt"),
                              (NAMES[0], "actions.seekToForTrack(originatingTrack, it)"), (NAMES[0], "stateDescription = statusLabel"),
                              (NAMES[1], "uri.rawQuery != null"), (NAMES[2], "expected != current"),
-                             (NAMES[3], "pointerInput(enabled, trackIdentity)")):
+                             (NAMES[3], "pointerInput(enabled, trackIdentity)"),
+                             (NAMES[0], "val statusLabel = strings.playbackStatus(health)"),
+                             (NAMES[0], "val playerStatus = strings.playbackStatus(playerHealth)")):
             broken = dict(src); broken[name] = broken[name].replace(marker, "BROKEN_FIXTURE")
             try: verify(broken)
             except AssertionError: continue
