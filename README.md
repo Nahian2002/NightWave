@@ -1,5 +1,9 @@
 # NightWave
 
+## NW145 acceptance preparation and compatibility target — 4 November 2026
+
+NW145 is prepared, not certified; no connected Android device or approved reference profiles. Code39/source974/APK identity unchanged and signer rechecked. See `docs/NW145_ACCEPTANCE_RUNBOOK.md` and `docs/quality/NW145_RELEASE_EVIDENCE.json`. Owner requests roughly ten-year phone coverage: next source batch COMPAT01 evaluates Android6/API23+, currently NOT_IMPLEMENTED; code39 still requires Android8/API26. See `docs/ANDROID_COMPATIBILITY_PLAN.md`. All physical gates NOT_RUN; rating NOT_ASSESSED, release NO_GO. No app changes/new APK, full rebuild/lint repeat, device actions, publication, merge or schedule restart.
+
 ## Current NW144 source result — 4 November 2026
 
 NW144 is locally verified on `update/nightwave-nw144-controls-sharing`, based on NW143 #166. Exact share/export preview and caption round-trip fix; existing external-control boundaries retained. Code39, build NW-debug-AE25B5B1EADF6B31: full builder,1819 JVM/226 suites,86 source checks and lint0 errors/324 warnings/17 hints PASS. See `docs/NW144_CONTROLS_SHARING.md`. Physical cases NOT_RUN. Next NW145 requires device acceptance evidence; no new9.5 rating. Stable feed disabled; hourly automation deleted. Historical notes below retain earlier states.
