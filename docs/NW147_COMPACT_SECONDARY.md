@@ -33,3 +33,7 @@ Build **NW-debug-F7401D763837D925**, revision cdd798b9ba5e26851a7e8f69b30e83fecf
 See [exact source receipt](quality/NW147_SOURCE_EVIDENCE.json). Original 219 pack PREPARED_NOT_EXECUTED. Code42 install/data continuity, matched screenshots, actual settings/disclosure touch/scroll, Sound active/draft state, font/theme/input/accessibility and older-device cases remain NOT_RUN. Phone stays on approved code41; code42 requires separate installation scope. Full NW145 remains PARTIAL; frozen 7.83 review and full-product NOT_ASSESSED unchanged. No public feed/binary, merge, settings or schedule change. Next source batch NW148.
 
 [Draft review #173](https://github.com/Nahian2002/NightWave/pull/173), stacked on #172; unmerged.
+
+## Subsequent approved phone follow-up
+
+Owner approved code42 installation. See [matched bounds and scoped phone results](NW147_SAMSUNG_CODE42_SMOKE.md). Installation/data continuity, default-profile compact layout and manual disclosure/queue return were observed; physical status PARTIAL. Earlier NOT_RUN statements are historical for those exact checks only; other profiles,40 UI cases and full acceptance remain pending. App source/APK and host results unchanged.

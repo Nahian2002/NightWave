@@ -3,7 +3,7 @@
   "batch": "NW147",
   "date": "2026-11-04",
   "implementation_status": "LOCAL_VERIFIED",
-  "device_status": "NOT_RUN",
+  "device_status": "PARTIAL",
   "build": {
     "build_id": "NW-debug-F7401D763837D925",
     "revision": "cdd798b9ba5e26851a7e8f69b30e83fecf045895",
@@ -94,11 +94,11 @@
     "minimum_independent_target_dp": 48
   },
   "remaining_device_cases": [
-    "Explicit code42 installation approval, signer/data preservation and installed identity",
-    "Matched code41/code42 Home/You/queue/Sound screenshots at same profile",
-    "320/360/411dp, short landscape, fonts1/2/3 and all themes rendered/input checks",
-    "Settings independent actions and full text without overlap",
-    "Technical-details expansion/return; active/draft/Apply/Discard/preset/Refresh preserved",
+    "Other themes, fonts1/2/3,320/360/411dp and short landscape rendered/input cases",
+    "New40 UI cases and settings independent-action/touch isolation",
+    "Spoken accessibility, keyboard and hardware input",
+    "Sound Studio hierarchy failure R06 and unexplained transient navigation state; NW149 investigation",
+    "Actual Sound edits/draft conflict/Apply/Discard behavior; no DSP changes performed in smoke",
     "Original NW145 acceptance matrices, older devices, performance, audio, study and soak gates"
   ],
   "rating": {
@@ -107,5 +107,37 @@
     "automatic_increase": false
   },
   "next_source_batch": "NW148",
-  "release_activation": "NOT_APPROVED"
+  "release_activation": "NOT_APPROVED",
+  "phone_evidence": "docs/NW147_SAMSUNG_CODE42_SMOKE.md",
+  "scoped_phone_result": {
+    "authorization": "Install version42 and test",
+    "model": "SM-S928B",
+    "reported_api": 37,
+    "installed_code": 42,
+    "installed_apk_sha256": "234662C9E20922AC0FD4BCED765B1648F2257E9C9DDB21AB2783187D5883C736",
+    "prelaunch_identical_saved_files": 29,
+    "matched_bounds_dp": {
+      "featured_mix": [
+        112,
+        104
+      ],
+      "sound_settings_row": [
+        64,
+        56
+      ],
+      "theme_row": [
+        64,
+        60
+      ],
+      "reduced_motion_row": [
+        64,
+        60
+      ]
+    },
+    "sound_disclosure": "Screenshot-confirmed expand/scroll/collapse; Refresh reachable; no DSP action",
+    "hierarchy_limitation": "Sound tool nonzero on code41 and42; unresolved, no app-crash inference",
+    "queue": "Paused/current label retained, no edits",
+    "final_state": "Home, existing selection paused",
+    "original_matrices": "NOT_PROMOTED"
+  }
 }
