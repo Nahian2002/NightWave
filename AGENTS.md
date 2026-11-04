@@ -66,3 +66,5 @@ The owner explicitly requires no app changes for public-repository preparation. 
 [Draft updater PR #164](https://github.com/Nahian2002/NightWave/pull/164) is unmerged; stable activation remains disabled pending owner approval.
 
 [Draft review #165](https://github.com/Nahian2002/NightWave/pull/165) is stacked on updater #164; both remain unmerged.
+
+[Draft NW143 review #166](https://github.com/Nahian2002/NightWave/pull/166), stacked on #165; unmerged.
