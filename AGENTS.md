@@ -82,3 +82,5 @@ The owner explicitly requires no app changes for public-repository preparation. 
 [Draft NW143 review #166](https://github.com/Nahian2002/NightWave/pull/166), stacked on #165; unmerged.
 
 [Draft NW144 review #167](https://github.com/Nahian2002/NightWave/pull/167), stacked on #166; unmerged.
+
+[Draft COMPAT01 review #169](https://github.com/Nahian2002/NightWave/pull/169), stacked on acceptance preparation #168; unmerged.

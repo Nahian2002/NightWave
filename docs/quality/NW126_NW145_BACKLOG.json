@@ -1838,7 +1838,8 @@
     "implementation_commit": "a2bed05c61356c2bc1217d37bc14504fe16758ff",
     "version_code": 40,
     "details": "docs/COMPAT01_IMPLEMENTATION.md",
-    "runtime_acceptance": "NOT_RUN"
+    "runtime_acceptance": "NOT_RUN",
+    "review": "https://github.com/Nahian2002/NightWave/pull/169"
   },
   "owner_testing_preference": "Finish planned source upgrades first; owner will test afterward."
 }
