@@ -8,7 +8,7 @@ NAMES = ("StudioPlayerScreens.kt", "NightWaveArtworkPolicy.kt", "NightWaveNowPla
 
 def verify(src):
     ui, art, policy, seek = (src[n] for n in NAMES)
-    for marker in ("requestCandidates(url, large)", ".size(pixels, pixels)", "CachePolicy.ENABLED",
+    for marker in ("requestCandidates(url, large)", ".size(requestSize.width, requestSize.height)", "CachePolicy.ENABLED",
                    "isUnavailableLargeStill(displayUrl", "candidateIndex == attempt", "trackIdentity = artwork.trackId",
                    "large = true", "stateDescription = statusLabel", "playbackStatus(playerHealth)",
                    "NightWaveNowPlayingPresentationPolicy.canSeek(", "NightWaveNowPlayingPresentationPolicy.seekPosition(",
@@ -33,7 +33,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(); parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args(); src = {n: (BASE / n).read_text(encoding="utf-8") for n in NAMES}; verify(src)
     if args.self_test:
-        for name, marker in ((NAMES[0], ".size(pixels, pixels)"), (NAMES[0], "candidateIndex == attempt"),
+        for name, marker in ((NAMES[0], ".size(requestSize.width, requestSize.height)"), (NAMES[0], "candidateIndex == attempt"),
                              (NAMES[0], "actions.seekToForTrack(originatingTrack, it)"), (NAMES[0], "stateDescription = statusLabel"),
                              (NAMES[1], "uri.rawQuery != null"), (NAMES[2], "expected != current"),
                              (NAMES[3], "pointerInput(enabled, trackIdentity)"),
