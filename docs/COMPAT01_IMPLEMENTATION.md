@@ -1,0 +1,7 @@
+# COMPAT01 — Android6/API23 compatibility implementation
+
+Owner authorizes remaining source upgrades before later phone testing. Plan committed 4 November 2026 from NW145 preparation #168. Preserve all features, data, URLs/quality, package/signing identity and consent. Keep modern target SDK36 and existing NIO desugaring/dependencies. Private baseline recovery outside Git; no install/reset/phone/settings/merge/publication or automation restart.
+
+Implement guarded installer permission behavior for pre26 Android, then lower minSdk to23 on this review branch and use lint to enumerate other unguarded framework APIs. Fix each reported compatibility error with supported behavior rather than suppressing lint or removing a feature. Update source/signing/identity guards to the new minimum, code40; validate meaningful OS-boundary policy tests and actual callers. Inspect packaged CPU/native requirements and dependency manifest restrictions. Run full source checks, Windows builder, then final sequential lint; preserve exact source/APK/signer, private verified delivery and draft PR.
+
+All Android6/7 and other physical/emulator runtime behavior remains NOT_RUN without actual execution. Host verification can establish a declared API23 candidate, not universal phone compatibility or a9.5 rating. Keep NW145 physical/release gates pending and feed disabled. Do not require owner phone testing between independent source tasks. Recheck account budgets at checkpoints; preserve truthful pending validation if completion no longer fits.
