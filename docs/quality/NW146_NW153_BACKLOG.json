@@ -137,7 +137,16 @@
         "Exercise live public and saved/local queries, versions/cancellation/stale results and exact source identity.",
         "Align offline/import/download/error UI and actionable readiness/retry copy; measure network/receive/write separately without universal Mbps promise.",
         "Complete owned-LRC import/review/editor/follow guidance; preserve every supported source and exclude unauthorized lyrics/audio workflows."
-      ]
+      ],
+      "automation_preparation": "docs/PHONE_AUTOMATION_PLAN.md",
+      "admission_checkpoint": {
+        "date": "2026-11-05",
+        "five_hour_remaining_percent": 21,
+        "weekly_remaining_percent": 60,
+        "full_batch_planning_envelope": 44,
+        "result": "NOT_ADMITTED; plan only, no implementation",
+        "reason": "Full completion envelope and normal30-percent floor not met; recheck before start"
+      }
     },
     {
       "id": "NW151",

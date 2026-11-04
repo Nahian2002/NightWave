@@ -1,3 +1,5 @@
+5 November control/admission checkpoint: NW150 remains PLANNED, no implementation started. Fresh Poco tap blocked byINJECT_EVENTS; use supported read-only/navigation capabilities. Owner requests fewer manual steps; app-owned automation pilot plan in ../PHONE_AUTOMATION_PLAN.md is not implemented/installed. Full batch envelope44 exceeds21% five-hour remaining (weekly60%). Recheck before admitting; no reset/schedule/release action.
+
 5 November final scoped result: code45 onPoco, four-theme representative views21/36 observed, app Reduced on/off checked, originalAMOLED/System and all profile fields restored.15 rendered slots and wider acceptance remain pending. No further owner preference action for this pass. Read ../NW149_POCO_CODE45_SMOKE.md. Source/APK unchanged, next independent sourceNW150; no score/release/automation promotion. Earlier pending states below are historical.
 
 5 November motion follow-up: AMOLED/REDUCED checked and static views normal. Owner app Reduced-off action and originalAMOLED/System readback pending.21/36 representative views observed;15 remain. Approval45 persists; source/APK unchanged; next independent sourceNW150.
