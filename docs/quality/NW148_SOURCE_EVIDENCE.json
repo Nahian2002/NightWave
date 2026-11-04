@@ -1,0 +1,85 @@
+{
+  "schema": 1,
+  "batch": "NW148",
+  "date": "2026-11-04",
+  "implementation_status": "LOCAL_VERIFIED",
+  "device_status": "NOT_RUN",
+  "build": {
+    "build_id": "NW-debug-E01DA68867D33B7B",
+    "revision": "6c58534f0281cfea1e5ab1e18f17ed1bc61dbe99",
+    "source_sha256": "E01DA68867D33B7BFD29D1291579C1F0C7BB8C621F4B85983E244DECAC232219",
+    "source_input_count": 992,
+    "apk_sha256": "04FD53AE47B19B858212D07B80ED10C5FEC3541944D2EBDF4541B170B9BA9A7B",
+    "apk_bytes": 28101622,
+    "package": "com.nightwave.player",
+    "version_code": 43,
+    "version_name": "2.0.0-alpha5s",
+    "min_sdk": 23,
+    "target_sdk": 36,
+    "signer_sha256": "EA737A703B8F116EBC5C8C0A717DDBF3A2A5808ACC9079A8F79CD1B3CD860394",
+    "signer_comparison": "MATCH actual phone-pulled code42"
+  },
+  "validation": {
+    "windows_builder": "PASS",
+    "jvm_tests": 1828,
+    "jvm_suites": 228,
+    "jvm_failures": 0,
+    "jvm_errors": 0,
+    "jvm_skipped": 0,
+    "current_source_checks": 90,
+    "source_status": "PASS_SOURCE_ONLY",
+    "android_test_sources": "COMPILED_NOT_RUN",
+    "new_artwork_android_cases": 4,
+    "lint": {
+      "errors": 0,
+      "warnings": 327,
+      "hints": 17,
+      "inventory_change": "None relative to NW147"
+    },
+    "gitleaks": {
+      "commits_scanned": 3628,
+      "leaks": 0,
+      "scope": "All refs at final implementation before evidence docs"
+    },
+    "private_delivery": "Owner-only metadata and complete remote byte/hash readback PASS",
+    "original219_pack": "PREPARED_NOT_EXECUTED",
+    "native_entries_byte_identical": 8,
+    "non_build_assets_byte_identical": 1,
+    "apk_entry_inventory_change": 0
+  },
+  "source_changes": [
+    "Measured rectangular requests,1280px maximum edge and proportional cap",
+    "Explicit FIT/FILL and INEXACT cache reuse, without custom cache keys or forced source upscaling",
+    "Track/thumbnail/large session plus candidate/dimension/lifecycle completion fences",
+    "Current onResolved callback and isolated keyed image painter",
+    "Sampled real images distinguished from missing large-still placeholders",
+    "Numeric-only debuggable-build receipts, no URL/title/track/account or persistent file"
+  ],
+  "baseline": {
+    "code": 42,
+    "observed_artwork_ui_bounds_pixels": [
+      1057,
+      591
+    ],
+    "old_square_request_derived_from_source": [
+      591,
+      591
+    ],
+    "old_decoded_bitmap": "NOT_MEASURED",
+    "new_device_decode_receipt": "NOT_RUN"
+  },
+  "remaining_device_cases": [
+    "Explicit code43 installation approval, data preservation and installed identity",
+    "Actual viewport/request/decoded/cache-source receipt and matched same-track sharpness",
+    "Same-source cache hit, unavailable original and placeholder fallback",
+    "Rapid track/source/size/removal/reopen races and missing-art accessibility",
+    "All themes/fonts, narrow/landscape, older devices, memory/frame and full NW145 acceptance"
+  ],
+  "rating": {
+    "frozen_review_index": 7.83,
+    "full_product": "NOT_ASSESSED",
+    "automatic_increase": false
+  },
+  "next_source_batch": "NW149",
+  "release_activation": "NOT_APPROVED"
+}

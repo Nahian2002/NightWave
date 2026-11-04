@@ -3,7 +3,7 @@
   "created_date": "2026-11-04",
   "review": "docs/audits/2026-11-04_CODE40_PRODUCT_REVIEW.md",
   "scorecard": "docs/quality/CODE40_REVIEW_SCORECARD.json",
-  "next_source_batch": "NW148",
+  "next_source_batch": "NW149",
   "acceptance_umbrella": "NW145",
   "execution_order": [
     "NW146",
@@ -15,7 +15,7 @@
     "NW152",
     "NW153"
   ],
-  "source_candidate_code": 42,
+  "source_candidate_code": 43,
   "phone_acceptance": "PARTIAL",
   "rating_policy": "No automatic score rise from builds/test counts; full product overall remains unscored until critical evidence exists.",
   "preservation": [
@@ -80,13 +80,16 @@
       "finding_ids": [
         "R02"
       ],
-      "implementation_status": "PLANNED",
+      "implementation_status": "LOCAL_VERIFIED",
       "device_status": "NOT_RUN",
       "acceptance_criteria": [
         "Measure requested/cached/decoded/displayed art sizes; recover sharper legitimate same-source imagery where available.",
         "No audio URL/quality/recording changes, invented album identity or unbounded network/decode work.",
         "Verify stale/deleted/source-change races, missing art fallback and narrow/large player sharpness; keep unavailable quality honest."
-      ]
+      ],
+      "evidence": "docs/quality/NW148_SOURCE_EVIDENCE.json",
+      "source_revision": "6c58534f0281cfea1e5ab1e18f17ed1bc61dbe99",
+      "notes": "Rectangular measured artwork requests and request-session/size/lifecycle fences verified in source/JVM. Four actual Coil/Compose methods compile only; sharpness/device cases NOT_RUN."
     },
     {
       "id": "NW149",
@@ -147,7 +150,8 @@
         "Backport classic text sizing on API23\u201325 without removing the native fallback; validate bounded text/wrapping.",
         "Finish prioritized native/advanced English/Bangla resource coverage while preserving user/provider text and data schemas.",
         "Use approved API23/24/26/modern and hardware/input/TalkBack/font profiles; grade only actually executed cases."
-      ]
+      ],
+      "native_artwork_note": "Review retained classic ThumbnailLoader fixed inSampleSize=2 during native-UI compatibility pass; no new behavior/quality certification from NW148 modern CoverArt work."
     },
     {
       "id": "NW152",
