@@ -26,3 +26,5 @@ Target9.5+ is conditional: measure actual tasks, complete the original full rubr
 ## Current practical priorities
 
 First correct the paused/PLAYING contradiction and update-state messaging. Then reduce secondary panel weight and improve same-source artwork. Follow with all-theme/motion and offline/language/accessibility work. Recovery/release and full measured acceptance finish the sequence. For R06, investigate tool/OS/UI semantics evidence before calling hierarchy dump137 an app defect. Private screenshots and personal content remain outside Git.
+
+[Draft review #171](https://github.com/Nahian2002/NightWave/pull/171), stacked on phone evidence #170; unmerged.

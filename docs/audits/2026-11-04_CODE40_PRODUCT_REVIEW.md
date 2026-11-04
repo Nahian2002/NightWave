@@ -84,3 +84,5 @@ AMOLED is coherent but broad black gaps, many similarly weighted rounded rectang
 ## Upgrade direction
 
 Use the new [NW146–NW153 roadmap](../UPGRADE_ROADMAP_NW146_NW153.md) and [structured backlog](../quality/NW146_NW153_BACKLOG.json). Original audits, source-batch history and NW145 critical gates remain evidence. No score increases automatically when a source batch compiles.
+
+[Draft review #171](https://github.com/Nahian2002/NightWave/pull/171), stacked on phone evidence #170; unmerged.
