@@ -116,6 +116,12 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import coil.imageLoader
+import coil.size.Scale
+import coil.size.Precision
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.key
+import androidx.compose.runtime.rememberUpdatedState
 import coil.request.CachePolicy
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.layout.onSizeChanged
@@ -328,20 +334,30 @@ fun StudioMiniPlayer(
 internal fun CoverArt(
     url: String, modifier: Modifier = Modifier, radius: Int = 24,
     description: String? = "Song artwork", trackIdentity: String = "", large: Boolean = false,
-    onResolved: ((android.graphics.drawable.Drawable) -> Unit)? = null
+    onResolved: ((android.graphics.drawable.Drawable) -> Unit)? = null,
+    imageLoader: coil.ImageLoader? = null, onDecode: ((ArtworkDecodeReport) -> Unit)? = null
 ) {
     val strings = rememberNightWaveStrings()
     val context = LocalContext.current
     val artworkColors = MaterialTheme.colorScheme
-    val candidates = remember(url, large) { NightWaveArtworkPolicy.requestCandidates(url, large) }
+    val candidates = remember(url, trackIdentity, large) {
+        NightWaveArtworkPolicy.trackCandidates(url, trackIdentity, large)
+    }
+    val session = remember(trackIdentity, url, large) { ArtworkRequestSession() }
+    DisposableEffect(session) { onDispose { session.close() } }
+    val resolvedCallback by rememberUpdatedState(onResolved)
+    val decodeCallback by rememberUpdatedState(onDecode)
     var candidateIndex by remember(trackIdentity, url, large) { mutableIntStateOf(0) }
     var failed by remember(trackIdentity, url, large) { mutableStateOf(false) }
-    var imageLoaded by remember(trackIdentity, url, large, candidateIndex) { mutableStateOf(false) }
-    var pixels by remember { mutableIntStateOf(0) }
+    var measured by remember { mutableStateOf(androidx.compose.ui.unit.IntSize.Zero) }
+    val requestSize = NightWaveArtworkRequestPolicy.pixels(measured.width, measured.height)
+    var imageLoaded by remember(session, candidateIndex, requestSize) { mutableStateOf(false) }
     val attempt = candidateIndex
+    val ticket = ArtworkRequestAttempt(session, attempt, requestSize)
+    val currentTicket by rememberUpdatedState(ticket)
     val displayUrl = candidates.getOrNull(attempt)
     val shape = RoundedCornerShape(radius.dp)
-    Box(modifier.onSizeChanged { pixels = NightWaveArtworkPolicy.requestPixels(it.width, it.height) }
+    Box(modifier.onSizeChanged { measured = it }
         .clip(shape).background(artworkColors.surfaceVariant)
         .semantics {
             description?.let { contentDescription = if (failed || displayUrl == null)
@@ -353,29 +369,43 @@ internal fun CoverArt(
                 style = Stroke(width = 2.dp.toPx()))
             drawCircle(artworkColors.onSurface.copy(alpha = .5f), radius = size.minDimension * .09f)
         }
-        if (!failed && displayUrl != null && pixels > 0) {
-            val request = remember(displayUrl, pixels, context) {
-                ImageRequest.Builder(context).data(displayUrl).size(pixels, pixels)
+        if (!failed && displayUrl != null && requestSize.valid) {
+            val request = remember(displayUrl, requestSize, large, context) {
+                ImageRequest.Builder(context).data(displayUrl).size(requestSize.width, requestSize.height)
+                    .scale(if (large) Scale.FIT else Scale.FILL).precision(Precision.INEXACT)
                     .memoryCachePolicy(CachePolicy.ENABLED).diskCachePolicy(CachePolicy.ENABLED)
                     .allowHardware(!large).crossfade(false).build()
             }
             val advance = {
-                if (candidateIndex == attempt) {
+                if (session.accepts(ticket, currentTicket) && candidateIndex == attempt) {
                     if (attempt + 1 < candidates.size) candidateIndex = attempt + 1 else failed = true
                 }
             }
-            AsyncImage(model = request, contentDescription = null,
+            key(ticket) {
+            AsyncImage(model = request, imageLoader = imageLoader ?: context.imageLoader, contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = if (large) ContentScale.Fit else ContentScale.Crop,
                 onError = { advance() },
                 onSuccess = { loaded ->
-                    if (NightWaveArtworkPolicy.isUnavailableLargeStill(displayUrl,
-                            loaded.result.drawable.intrinsicWidth, loaded.result.drawable.intrinsicHeight)) advance()
-                    else if (candidateIndex == attempt) {
-                        imageLoaded = true
-                        onResolved?.invoke(loaded.result.drawable)
+                    if (session.accepts(ticket, currentTicket) && candidateIndex == attempt) {
+                        val drawable = loaded.result.drawable
+                        // A legitimately sampled large original is not a missing-still placeholder.
+                        if (!loaded.result.isSampled && NightWaveArtworkPolicy.isUnavailableLargeStill(displayUrl,
+                                drawable.intrinsicWidth, drawable.intrinsicHeight)) advance()
+                        else {
+                            imageLoaded = true
+                            resolvedCallback?.invoke(drawable)
+                            val bitmap = (drawable as? android.graphics.drawable.BitmapDrawable)?.bitmap
+                            val report = ArtworkDecodeReport(large, attempt, measured.width, measured.height,
+                                requestSize.width, requestSize.height, bitmap?.width ?: drawable.intrinsicWidth,
+                                bitmap?.height ?: drawable.intrinsicHeight, loaded.result.dataSource.name, loaded.result.isSampled)
+                            decodeCallback?.invoke(report)
+                            if ((context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0 && large)
+                                android.util.Log.d("NightWaveArt", report.toString())
+                        }
                     }
                 })
+            }
         }
     }
 }

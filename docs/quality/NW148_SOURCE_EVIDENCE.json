@@ -1,0 +1,143 @@
+{
+  "schema": 1,
+  "batch": "NW148",
+  "date": "2026-11-04",
+  "implementation_status": "LOCAL_VERIFIED",
+  "device_status": "PARTIAL_SCOPED_PASS",
+  "build": {
+    "build_id": "NW-debug-48AEEBA1091506CB",
+    "revision": "17ba9faeda891493494d427dc0e6f53140583651",
+    "source_sha256": "48AEEBA1091506CB8430873814586F9D29795174ACC6FF9D85CBAE67CA1D8BF2",
+    "source_input_count": 993,
+    "apk_sha256": "A066454E4A958214DD6266341ED5E682FA54969DFD421B77D20879833FBB4022",
+    "apk_bytes": 28083179,
+    "package": "com.nightwave.player",
+    "version_code": 44,
+    "version_name": "2.0.0-alpha5s",
+    "min_sdk": 23,
+    "target_sdk": 36,
+    "signer_sha256": "EA737A703B8F116EBC5C8C0A717DDBF3A2A5808ACC9079A8F79CD1B3CD860394",
+    "signer_comparison": "MATCH actual Poco-pulled code35 APK"
+  },
+  "prior_code43_evidence": "docs/quality/NW148_CODE43_SOURCE_EVIDENCE.json",
+  "phone_findings": "docs/NW148_SAMSUNG_CODE43_FINDINGS.md",
+  "repair_details": "docs/NW148_CANONICAL_ARTWORK_REPAIR.md",
+  "validation": {
+    "windows_builder": "PASS",
+    "jvm": {
+      "tests": 1833,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "jvm_suites": 229,
+    "current_source_checks": 90,
+    "source_status": "PASS_SOURCE_ONLY",
+    "android_artwork_methods": 6,
+    "android_test_sources": "COMPILED_NOT_RUN",
+    "lint": {
+      "errors": 0,
+      "warnings": 327,
+      "hints": 17,
+      "inventory_change": "None relative to code43"
+    },
+    "gitleaks": {
+      "commits_scanned": 3634,
+      "leaks": 0,
+      "scope": "All refs at implementation before result documentation"
+    },
+    "private_delivery": "Owner-only metadata and full remote byte/hash readback PASS",
+    "original219_pack": "PREPARED_NOT_EXECUTED",
+    "native_entries_byte_identical": 8,
+    "non_build_assets_byte_identical": 1,
+    "apk_inventory_change": 0
+  },
+  "preservation": [
+    "Exact original queried artwork retained as final fallback",
+    "Existing unbound URL candidate semantics retained",
+    "No audio URL/quality, stored media identity, cache key, data format, theme, account/consent or package/signing changes"
+  ],
+  "poco_baseline": {
+    "reported_model": "M2007J20CI",
+    "reported_android": "12",
+    "reported_api": 31,
+    "display_pixels": [
+      1080,
+      2400
+    ],
+    "density_dpi": 440,
+    "font_scale": 0.81,
+    "installed_code": 35,
+    "installed_apk_sha256": "E99A1884758AFE14C381D2D502440188A75280ABB3F28EE4034BD5B0736A5917",
+    "usb_debugging": "AUTHORIZED",
+    "remote_taps": "BLOCKED_BY_INJECT_EVENTS_PERMISSION",
+    "owner_report": "MIUI security debugging setup asks for SIM; leave disabled, use manual navigation",
+    "code44_install": "OWNER_APPROVED_PASS",
+    "current_state": "Baseline Home with paused selection observed; no library/account/system preference changed",
+    "current_installed_code": 44
+  },
+  "remaining_device_cases": [
+    "Same-source unavailable/placeholder fallback and rapid track/source/size/removal races beyond the compiled synthetic cases",
+    "All themes/fonts, narrow/landscape, older profiles, memory/frame/accessibility and full NW145 acceptance",
+    "Long-absence/soak/audio/network cases; prior Samsung capture root cause remains unknown"
+  ],
+  "rating": {
+    "frozen_review_index": 7.83,
+    "full_product": "NOT_ASSESSED",
+    "automatic_increase": false
+  },
+  "next_source_batch": "NW149",
+  "release_activation": "NOT_APPROVED",
+  "review": "https://github.com/Nahian2002/NightWave/pull/174",
+  "poco_install": {
+    "authorization": "Install version44 and test",
+    "from_code": 35,
+    "to_code": 44,
+    "pre_first_launch_identical_preference_database_files": 15,
+    "installed_sha256": "A066454E4A958214DD6266341ED5E682FA54969DFD421B77D20879833FBB4022",
+    "private_saved_data_backup": "Verified TAR outside Git; no restore performed",
+    "selection_continuity": {
+      "preinstall_selected_url_matches_index": true,
+      "code44_artwork_matches_preinstall_saved_selection": true,
+      "earlier_code35_capture_art_matches_preinstall_selection": false,
+      "conclusion": "Current restored selection matches preinstall saved queue; earlier capture differs. No evidence installation changed persisted selection; intervening cause not established."
+    },
+    "cold_launch_adb_total_ms_single_sample": 3441,
+    "current_pid_fatal_records_observed": 0,
+    "scope": "Installed identity, prelaunch saved-file equality and Home only; actual full-player decode/render/reopen pending manual navigation"
+  },
+  "poco_artwork_reopen": {
+    "status": "PARTIAL_SCOPED_PASS",
+    "bound_source_case": "Exact canonical same-video public sqp/rs thumbnail",
+    "stored_original_pixels": [
+      168,
+      94
+    ],
+    "bound_maxres_pixels": [
+      1280,
+      720
+    ],
+    "settled_viewport_request_decode_pixels": [
+      828,
+      466
+    ],
+    "initial_viewport_pixels": [
+      828,
+      621
+    ],
+    "candidate": 0,
+    "data_sources": [
+      "DISK",
+      "MEMORY_CACHE"
+    ],
+    "settled_decode_receipts": 7,
+    "requested_reopen_cycles": 3,
+    "owner_report": "no stuck",
+    "initial_and_final_settled_screenshots": "Full player controls and artwork rendered normally",
+    "continuous_frames": "NOT_RECORDED; do not infer every transitional frame",
+    "current_pid_fatal_records": 0,
+    "final_state": "Full player open, paused; no system/account/library/sound change",
+    "remaining": "Fallback/missing art, races/removal, all themes/fonts/devices, long absence/soaks, audio routes and original acceptance remain pending"
+  },
+  "phone_evidence": "docs/NW148_POCO_CODE44_SMOKE.md"
+}

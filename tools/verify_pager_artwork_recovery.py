@@ -16,7 +16,7 @@ def verify(src):
         assert marker in recovery, marker
     assert "ContentScale.Inside" not in player
     assert "contentScale = if (large) ContentScale.Fit else ContentScale.Crop" in player
-    assert "requestCandidates(url, large)" in player and "candidateIndex == attempt" in player
+    assert "trackCandidates(url, trackIdentity, large)" in player and "candidateIndex == attempt" in player
     assert "Modifier.fillMaxWidth().aspectRatio(1.6f)" in visual
     assert "if (featured) 88.dp else 64.dp" in visual
 if __name__ == "__main__":
@@ -30,7 +30,7 @@ if __name__ == "__main__":
                              (FILES[0], "nightWaveShelfBoundary()"),
                              (FILES[1], "Offset(available.x, 0f)"), (FILES[1], "Velocity(available.x, 0f)"),
                              (FILES[1], "state.isScrollInProgress, dragging || shelfTouch, state.pageCount"),
-                             (FILES[2], "ContentScale.Fit"), (FILES[3], "Modifier.fillMaxWidth().aspectRatio(1.6f)")):
+                             (FILES[2], "ContentScale.Fit"), (FILES[2], "trackCandidates(url, trackIdentity, large)"), (FILES[3], "Modifier.fillMaxWidth().aspectRatio(1.6f)")):
             broken = dict(src); broken[name] = broken[name].replace(marker, "BROKEN_FIXTURE")
             try: verify(broken)
             except AssertionError: continue

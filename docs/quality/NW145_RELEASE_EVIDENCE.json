@@ -33,7 +33,7 @@
     "In-place installed-data/update continuity"
   ],
   "runbook": "docs/NW145_ACCEPTANCE_RUNBOOK.md",
-  "owner_testing_preference": "Owner separately approved version40,41 and42 in-place installation and non-destructive tests; no subsequent APK, reset/uninstall or account/settings action authorized.",
+  "owner_testing_preference": "Owner separately approved version40,41,42,43 and44 installation/tests,44 on replacement Poco. No subsequent APK/reset/uninstall/account/system-settings action authorized.",
   "first_phone_smoke": {
     "date": "2026-11-04",
     "device_model": "SM-S928B",
@@ -58,10 +58,34 @@
     "original219_cases": "NOT_PROMOTED_FROM_SMOKE"
   },
   "latest_successor_phone_smoke": {
-    "batch": "NW147",
-    "code": 42,
-    "evidence": "docs/NW147_SAMSUNG_CODE42_SMOKE.md",
-    "result": "PARTIAL_SCOPED_PASS_WITH_TOOL_LIMITATIONS",
+    "batch": "NW148",
+    "code": 44,
+    "evidence": "docs/NW148_POCO_CODE44_SMOKE.md",
+    "result": "PARTIAL_SCOPED_PASS",
     "original219_cases": "NOT_PROMOTED_FROM_SMOKE"
+  },
+  "latest_source_candidate": {
+    "batch": "NW148",
+    "code": 44,
+    "status": "LOCAL_VERIFIED",
+    "evidence": "docs/quality/NW148_SOURCE_EVIDENCE.json"
+  },
+  "replacement_phone_baseline": {
+    "reported_model": "M2007J20CI",
+    "reported_android": "12",
+    "reported_api": 31,
+    "display_pixels": [
+      1080,
+      2400
+    ],
+    "density_dpi": 440,
+    "font_scale": 0.81,
+    "installed_code": 35,
+    "installed_apk_sha256": "E99A1884758AFE14C381D2D502440188A75280ABB3F28EE4034BD5B0736A5917",
+    "usb_debugging": "AUTHORIZED",
+    "remote_taps": "BLOCKED_BY_INJECT_EVENTS_PERMISSION",
+    "owner_report": "MIUI security debugging setup asks for SIM; leave disabled, use manual navigation",
+    "code44_install": "NOT_APPROVED_NOT_RUN",
+    "current_state": "Baseline Home with paused selection observed; no library/account/system preference changed"
   }
 }

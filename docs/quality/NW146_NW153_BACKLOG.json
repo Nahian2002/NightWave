@@ -3,7 +3,7 @@
   "created_date": "2026-11-04",
   "review": "docs/audits/2026-11-04_CODE40_PRODUCT_REVIEW.md",
   "scorecard": "docs/quality/CODE40_REVIEW_SCORECARD.json",
-  "next_source_batch": "NW148",
+  "next_source_batch": "NW149",
   "acceptance_umbrella": "NW145",
   "execution_order": [
     "NW146",
@@ -15,7 +15,7 @@
     "NW152",
     "NW153"
   ],
-  "source_candidate_code": 42,
+  "source_candidate_code": 44,
   "phone_acceptance": "PARTIAL",
   "rating_policy": "No automatic score rise from builds/test counts; full product overall remains unscored until critical evidence exists.",
   "preservation": [
@@ -80,13 +80,19 @@
       "finding_ids": [
         "R02"
       ],
-      "implementation_status": "PLANNED",
-      "device_status": "NOT_RUN",
+      "implementation_status": "LOCAL_VERIFIED",
+      "device_status": "PARTIAL_SCOPED_PASS",
       "acceptance_criteria": [
         "Measure requested/cached/decoded/displayed art sizes; recover sharper legitimate same-source imagery where available.",
         "No audio URL/quality/recording changes, invented album identity or unbounded network/decode work.",
         "Verify stale/deleted/source-change races, missing art fallback and narrow/large player sharpness; keep unavailable quality honest."
-      ]
+      ],
+      "evidence": "docs/quality/NW148_SOURCE_EVIDENCE.json",
+      "source_revision": "17ba9faeda891493494d427dc0e6f53140583651",
+      "notes": "Owner-approved preserving Poco35\u219244 install:15 identical prelaunch files and installed identity verified. Queried original168x94, same-video1280x720 source, actual candidate0 decode/request828x466; DISK then repeated MEMORY_CACHE. Initial/final player rendered; owner reported no stuck after requested three reopen cycles. No continuous-frame/full acceptance claim; Samsung root cause unknown.",
+      "host_status": "LOCAL_VERIFIED_CODE44",
+      "phone_evidence": "docs/NW148_POCO_CODE44_SMOKE.md",
+      "repair_evidence": "docs/NW148_CANONICAL_ARTWORK_REPAIR.md"
     },
     {
       "id": "NW149",
@@ -147,7 +153,8 @@
         "Backport classic text sizing on API23\u201325 without removing the native fallback; validate bounded text/wrapping.",
         "Finish prioritized native/advanced English/Bangla resource coverage while preserving user/provider text and data schemas.",
         "Use approved API23/24/26/modern and hardware/input/TalkBack/font profiles; grade only actually executed cases."
-      ]
+      ],
+      "native_artwork_note": "Review retained classic ThumbnailLoader fixed inSampleSize=2 during native-UI compatibility pass; no new behavior/quality certification from NW148 modern CoverArt work."
     },
     {
       "id": "NW152",

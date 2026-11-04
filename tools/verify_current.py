@@ -16,6 +16,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 PYTHON_CHECKS = (
+    ("verify_nw148_artwork.py", "--self-test"),
     ("verify_nw147_compact.py", "--self-test"),
     ("verify_nw146_state_truth.py", "--self-test"),
     ("verify_compat01.py", "--self-test"),

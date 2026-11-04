@@ -55,8 +55,29 @@ internal object NightWaveArtworkPolicy {
             .map { "https://i.ytimg.com/vi/${source.first}/$it" } + original).distinct()
     }
 
-    fun requestPixels(width: Int, height: Int): Int =
-        if (width <= 0 || height <= 0) 0 else minOf(width, height).coerceIn(48, 1280)
+    /** Public thumbnail metadata is eligible only with an independently matching canonical track.
+     * The stored queried address is never modified and remains the final fallback.
+     */
+    fun trackCandidates(original: String, canonicalTrack: String, large: Boolean): List<String> {
+        val unchanged = requestCandidates(original, large)
+        if (!large) return unchanged
+        return runCatching {
+            val uri = URI(original)
+            val query = uri.rawQuery ?: return unchanged
+            val fields = query.split('&').map { it.split('=', limit = 2) }
+            if (fields.size != 2 || fields.any { it.size != 2 ||
+                    !Regex("^[A-Za-z0-9_-]+={0,2}$").matches(it[1]) } ||
+                fields.map { it[0] }.toSet() != setOf("sqp", "rs")) return unchanged
+            // Reuse the strict unsigned-path parser only after validating the exact public keys.
+            // User info, fragments, encoded paths and foreign hosts remain ineligible.
+            if (uri.rawFragment != null) return unchanged
+            val unsigned = original.substringBefore('?')
+            val source = still(unsigned) ?: return unchanged
+            if (canonicalTrack != "https://www.youtube.com/watch?v=${source.first}") return unchanged
+            (listOf("maxresdefault.jpg", "sddefault.jpg", "hqdefault.jpg")
+                .map { "https://i.ytimg.com/vi/${source.first}/$it" } + original).distinct()
+        }.getOrDefault(unchanged)
+    }
 
     /** Some missing large stills return a 120x90 placeholder with HTTP 200. */
     fun isUnavailableLargeStill(url: String, width: Int, height: Int): Boolean {
