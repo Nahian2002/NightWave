@@ -59,11 +59,11 @@ class NW133PlayerPresentationTest {
         assertFalse(NightWaveArtworkPolicy.isUnavailableLargeStill(still("maxresdefault.jpg"), 0, -1))
     }
     @Test fun decodeRequestUsesActualBoundsAndNeverExceedsSourceCap() {
-        assertEquals(96, NightWaveArtworkPolicy.requestPixels(96, 120))
-        assertEquals(48, NightWaveArtworkPolicy.requestPixels(8, 12))
-        assertEquals(1280, NightWaveArtworkPolicy.requestPixels(8000, 4000))
-        assertEquals(0, NightWaveArtworkPolicy.requestPixels(0, 300))
-        assertEquals(0, NightWaveArtworkPolicy.requestPixels(300, -1))
+        assertEquals(NightWaveArtworkRequestPolicy.Pixels(96, 120), NightWaveArtworkRequestPolicy.pixels(96, 120))
+        assertEquals(NightWaveArtworkRequestPolicy.Pixels(8, 12), NightWaveArtworkRequestPolicy.pixels(8, 12))
+        assertEquals(NightWaveArtworkRequestPolicy.Pixels(1280, 640), NightWaveArtworkRequestPolicy.pixels(8000, 4000))
+        assertFalse(NightWaveArtworkRequestPolicy.pixels(0, 300).valid)
+        assertFalse(NightWaveArtworkRequestPolicy.pixels(300, -1).valid)
     }
     @Test fun changingArtworkKeepsIndependentOriginalIdentityAndFallbackPlans() {
         val first = NightWaveArtworkPolicy.requestCandidates(still("default.jpg"), true)

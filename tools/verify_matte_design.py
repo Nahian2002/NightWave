@@ -21,7 +21,7 @@ def verify(src):
         assert forbidden not in components, forbidden
     for marker in ("remember(state.videoUrl, state.thumbnail)", "NightWaveArtworkBackdrop(resolvedArtwork",
                    "artwork.trackId == state.videoUrl && artwork.thumbnail == state.thumbnail",
-                   "onResolved?.invoke(loaded.result.drawable)", "NightWaveMattePlayButton(onClick = actions::playPause",
+                   "rememberUpdatedState(onResolved)", "resolvedCallback?.invoke(drawable)", "NightWaveMattePlayButton(onClick = actions::playPause",
                    "actions.seekToForTrack(originatingTrack, it)"):
         assert marker in player, marker
     for marker in ("showSeekThumb(pressed || dragging, focused, touchExploration)", ".focusable(enabled)",
@@ -46,6 +46,7 @@ if __name__ == "__main__":
     if args.self_test:
         mutations = ((NAMES[0], "interactionSource = source"), (NAMES[0], "BlurredEdgeTreatment.Rectangle"),
                      (NAMES[1], "artwork.trackId == state.videoUrl && artwork.thumbnail == state.thumbnail"),
+                     (NAMES[1], "rememberUpdatedState(onResolved)"), (NAMES[1], "resolvedCallback?.invoke(drawable)"),
                      (NAMES[2], "removeTouchExplorationStateChangeListener(listener)"),
                      (NAMES[2], ".focusable(enabled)"), (NAMES[3], "mixes.drop(1).chunked(2)"),
                      (NAMES[4], '.getString("theme", null)'), (NAMES[5], "Theme_NightWave_Pearl"))

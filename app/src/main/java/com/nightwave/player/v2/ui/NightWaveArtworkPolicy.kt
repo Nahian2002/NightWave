@@ -55,9 +55,6 @@ internal object NightWaveArtworkPolicy {
             .map { "https://i.ytimg.com/vi/${source.first}/$it" } + original).distinct()
     }
 
-    fun requestPixels(width: Int, height: Int): Int =
-        if (width <= 0 || height <= 0) 0 else minOf(width, height).coerceIn(48, 1280)
-
     /** Some missing large stills return a 120x90 placeholder with HTTP 200. */
     fun isUnavailableLargeStill(url: String, width: Int, height: Int): Boolean {
         val name = still(url)?.second ?: return false

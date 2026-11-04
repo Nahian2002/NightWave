@@ -4,10 +4,10 @@ import argparse
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE = ROOT / "app/src/main/java/com/nightwave/player/v2/ui"
-NAMES = ("StudioPlayerScreens.kt", "NightWaveArtworkPolicy.kt", "NightWaveNowPlayingPresentationPolicy.kt", "NightWaveSeekTimeline.kt")
+NAMES = ("StudioPlayerScreens.kt", "NightWaveArtworkPolicy.kt", "NightWaveNowPlayingPresentationPolicy.kt", "NightWaveSeekTimeline.kt", "NightWaveArtworkRequestPolicy.kt")
 
 def verify(src):
-    ui, art, policy, seek = (src[n] for n in NAMES)
+    ui, art, policy, seek, geometry = (src[n] for n in NAMES)
     for marker in ("requestCandidates(url, large)", ".size(requestSize.width, requestSize.height)", "CachePolicy.ENABLED",
                    "isUnavailableLargeStill(displayUrl", "candidateIndex == attempt", "trackIdentity = artwork.trackId",
                    "large = true", "stateDescription = statusLabel", "playbackStatus(playerHealth)",
@@ -17,8 +17,10 @@ def verify(src):
         assert marker in ui, marker
     assert "actions.seekTo(" not in ui
     for marker in ("uri.rawUserInfo != null", "uri.rawQuery != null", "uri.rawFragment != null",
-                   '"maxresdefault.jpg", "sddefault.jpg", "hqdefault.jpg"', "coerceIn(48, 1280)", "width in 1..120"):
+                   '"maxresdefault.jpg", "sddefault.jpg", "hqdefault.jpg"', "width in 1..120"):
         assert marker in art, marker
+    assert "MAX_EDGE = 1280" in geometry
+    assert "MAX_EDGE.toDouble() / maxOf(width, height)" in geometry
     for marker in ("expected != current", "!resolving", "error.isNullOrBlank()", "PlayerProgressRules.requestedPosition"):
         assert marker in policy, marker
     for marker in ("remember(trackIdentity)", "pointerInput(enabled, trackIdentity)", "if (!enabled) disabled()",
@@ -38,7 +40,8 @@ if __name__ == "__main__":
                              (NAMES[1], "uri.rawQuery != null"), (NAMES[2], "expected != current"),
                              (NAMES[3], "pointerInput(enabled, trackIdentity)"),
                              (NAMES[0], "val statusLabel = strings.playbackStatus(health)"),
-                             (NAMES[0], "val playerStatus = strings.playbackStatus(playerHealth)")):
+                             (NAMES[0], "val playerStatus = strings.playbackStatus(playerHealth)"),
+                             (NAMES[4], "MAX_EDGE = 1280"), (NAMES[4], "MAX_EDGE.toDouble() / maxOf(width, height)")):
             broken = dict(src); broken[name] = broken[name].replace(marker, "BROKEN_FIXTURE")
             try: verify(broken)
             except AssertionError: continue
