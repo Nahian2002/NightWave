@@ -3,7 +3,7 @@
   "created_date": "2026-11-04",
   "review": "docs/audits/2026-11-04_CODE40_PRODUCT_REVIEW.md",
   "scorecard": "docs/quality/CODE40_REVIEW_SCORECARD.json",
-  "next_source_batch": "NW149",
+  "next_source_batch": "NW150",
   "acceptance_umbrella": "NW145",
   "execution_order": [
     "NW146",
@@ -15,7 +15,7 @@
     "NW152",
     "NW153"
   ],
-  "source_candidate_code": 44,
+  "source_candidate_code": 45,
   "phone_acceptance": "PARTIAL",
   "rating_policy": "No automatic score rise from builds/test counts; full product overall remains unscored until critical evidence exists.",
   "preservation": [
@@ -106,14 +106,17 @@
         "R03",
         "R06"
       ],
-      "implementation_status": "PLANNED",
-      "device_status": "NOT_RUN",
+      "implementation_status": "LOCAL_VERIFIED",
+      "device_status": "CODE45_NOT_RUN",
       "acceptance_criteria": [
         "Review every theme at Home/Search/Library/You/player/queue/offline/dialog states with measured contrast.",
         "Preserve matte identity, accessible selected/disabled/error states and reduced-motion/focus/keyboard behavior.",
         "Measure transitions/frame pacing before duration changes; investigate Sound Studio dump137 without labeling it an app crash."
       ],
-      "investigation_notes": "Retain Sound hierarchy nonzero on code41/42 and one unexplained You-to-Home state movement during test lookup. Cause unknown; controlled navigation/frame/semantics evidence before diagnosis."
+      "investigation_notes": "Retain Sound hierarchy nonzero on code41/42 and one unexplained You-to-Home state movement during test lookup. Cause unknown; controlled navigation/frame/semantics evidence before diagnosis.",
+      "evidence": "docs/quality/NW149_SOURCE_EVIDENCE.json",
+      "source_revision": "3cc1e8a4c75fc1656ecca09ca4bc61e801919f23",
+      "notes": "Selected inverse action role and lifecycle-aware System motion resolved across main/offline/updater.1841 JVM/91 checks/build/lint unchanged;56 opaque role pairs min5.086631;8 UI cases compile only. Code44 Poco Sound hierarchy succeeded; prior Samsung causes unknown. Code45 install and36 rendered slots pending."
     },
     {
       "id": "NW150",

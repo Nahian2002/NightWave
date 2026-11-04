@@ -1,0 +1,97 @@
+{
+  "schema": 1,
+  "batch": "NW149",
+  "date": "2026-11-04",
+  "implementation_status": "LOCAL_VERIFIED",
+  "device_status": "CODE45_NOT_RUN",
+  "build": {
+    "build_id": "NW-debug-356960B7755F6DC0",
+    "revision": "3cc1e8a4c75fc1656ecca09ca4bc61e801919f23",
+    "source_sha256": "356960B7755F6DC04545E2597BE263AD831AC941F816FBE5F5181500524F40D8",
+    "source_input_count": 998,
+    "apk_sha256": "5F63200CEDBC4ECC755B971101246227DABF0CDB85F5FCEA51251E1979063B51",
+    "apk_bytes": 28362773,
+    "package": "com.nightwave.player",
+    "version_code": 45,
+    "version_name": "2.0.0-alpha5s",
+    "min_sdk": 23,
+    "target_sdk": 36,
+    "signer_sha256": "EA737A703B8F116EBC5C8C0A717DDBF3A2A5808ACC9079A8F79CD1B3CD860394",
+    "signer_comparison": "MATCH freshly pulled Poco code44"
+  },
+  "validation": {
+    "windows_builder": "PASS",
+    "jvm": {
+      "tests": 1841,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "suites": 230,
+    "current_source_checks": 91,
+    "source_status": "PASS_SOURCE_ONLY",
+    "android_methods": 2,
+    "android_parameterized_cases": 8,
+    "android_status": "COMPILED_NOT_RUN",
+    "contrast_pairs": 56,
+    "minimum_opaque_role_ratio": 5.086631,
+    "contrast_scope": "Configured opaque roles, not all screen pixels or disabled-state certification",
+    "lint": {
+      "errors": 0,
+      "warnings": 327,
+      "hints": 17,
+      "inventory_change": "None relative to44"
+    },
+    "gitleaks": {
+      "commits_scanned": 3640,
+      "leaks": 0,
+      "scope": "All refs at final implementation before result docs"
+    },
+    "private_delivery": "Owner-only metadata and complete remote byte/hash readback PASS",
+    "original219_pack": "PREPARED_NOT_EXECUTED",
+    "native_entries_unchanged": 8,
+    "other_assets_unchanged": 1,
+    "apk_inventory_change": 0
+  },
+  "changes": [
+    "Selected-theme inversePrimary for default queue Undo/snackbar actions",
+    "System motion setting read-only observation only while lifecycle STARTED; stop/disposal cleanup and safe unreadable handling",
+    "Single effective motion value for shell navigation/haptics, mini/full player, queue, lyrics and offline shell",
+    "Explicit stored Reduced/System/legacy Full intent at main/offline/updater theme entry points",
+    "No duration, palette identity, pager recovery, feature, source/audio quality, data format, signer or consent change"
+  ],
+  "phone_baseline": {
+    "code": 44,
+    "model": "M2007J20CI",
+    "android": "12",
+    "api": 31,
+    "screen_pixels": [
+      1080,
+      2400
+    ],
+    "density_dpi": 440,
+    "font_scale": 0.81,
+    "theme": "AMOLED",
+    "motion": "SYSTEM",
+    "animator_scale": "1.0",
+    "sound_ui_tree_nodes": 74,
+    "sound_snapshot_seconds": 5.67,
+    "sound_result": "Screenshot and fresh UI hierarchy succeeded; prior Samsung tool failure not reproduced; cause unknown",
+    "scope": "Owner manual read-only navigation; no EQ/account/system setting change",
+    "code45_install": "NOT_APPROVED_NOT_RUN"
+  },
+  "remaining_device_cases": [
+    "Explicit code45 install approval; preserve data and verify actual installed identity",
+    "36 theme/surface review slots: all actual code45 rendered/interaction states NOT_RUN until evidence",
+    "Manual tab/Back/player/queue/offline/dialog traversal with focus/keyboard/selected state and controlled frame evidence",
+    "Runtime System scale change/stop/resume observation, app Reduced and legacy Full; no device-setting write authorized",
+    "Other phones/API/font/language/accessibility/soak/audio and full NW145 gates"
+  ],
+  "rating": {
+    "frozen_review_index": 7.83,
+    "full_product": "NOT_ASSESSED",
+    "automatic_increase": false
+  },
+  "next_source_batch": "NW150",
+  "release_activation": "NOT_APPROVED"
+}
