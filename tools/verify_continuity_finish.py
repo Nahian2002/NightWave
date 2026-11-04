@@ -33,7 +33,7 @@ def verify(src):
         assert marker in art, marker
     for forbidden in (".edit()", "Http", "recordPlay(", "android.content"):
         assert forbidden not in labels and forbidden not in art, forbidden
-    assert '"Check storage without changing your music"' in activity
+    assert 'strings.get(R.string.nw143_storage_summary)' in activity
     assert "modifier.fillMaxWidth().heightIn(min = 64.dp)" in activity
 
 
