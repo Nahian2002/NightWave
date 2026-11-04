@@ -3,7 +3,7 @@
   "batch": "NW148",
   "date": "2026-11-04",
   "implementation_status": "LOCAL_VERIFIED_DEVICE_PENDING",
-  "device_status": "CODE44_NOT_RUN",
+  "device_status": "PARTIAL_INSTALL_HOME",
   "build": {
     "build_id": "NW-debug-48AEEBA1091506CB",
     "revision": "17ba9faeda891493494d427dc0e6f53140583651",
@@ -72,11 +72,11 @@
     "usb_debugging": "AUTHORIZED",
     "remote_taps": "BLOCKED_BY_INJECT_EVENTS_PERMISSION",
     "owner_report": "MIUI security debugging setup asks for SIM; leave disabled, use manual navigation",
-    "code44_install": "NOT_APPROVED_NOT_RUN",
-    "current_state": "Baseline Home with paused selection observed; no library/account/system preference changed"
+    "code44_install": "OWNER_APPROVED_PASS",
+    "current_state": "Baseline Home with paused selection observed; no library/account/system preference changed",
+    "current_installed_code": 44
   },
   "remaining_device_cases": [
-    "Explicit code44 install approval and in-place preservation/signature/hash receipt",
     "Actual larger same-video decode, cache and source-fallback measurements",
     "Manual settled full-player open/Back/reopen captures on Poco; original Samsung capture cause unknown",
     "All themes/fonts, narrow/landscape, offline and stale/removal/resize races",
@@ -89,5 +89,22 @@
   },
   "next_source_batch": "NW149",
   "release_activation": "NOT_APPROVED",
-  "review": "https://github.com/Nahian2002/NightWave/pull/174"
+  "review": "https://github.com/Nahian2002/NightWave/pull/174",
+  "poco_install": {
+    "authorization": "Install version44 and test",
+    "from_code": 35,
+    "to_code": 44,
+    "pre_first_launch_identical_preference_database_files": 15,
+    "installed_sha256": "A066454E4A958214DD6266341ED5E682FA54969DFD421B77D20879833FBB4022",
+    "private_saved_data_backup": "Verified TAR outside Git; no restore performed",
+    "selection_continuity": {
+      "preinstall_selected_url_matches_index": true,
+      "code44_artwork_matches_preinstall_saved_selection": true,
+      "earlier_code35_capture_art_matches_preinstall_selection": false,
+      "conclusion": "Current restored selection matches preinstall saved queue; earlier capture differs. No evidence installation changed persisted selection; intervening cause not established."
+    },
+    "cold_launch_adb_total_ms_single_sample": 3441,
+    "current_pid_fatal_records_observed": 0,
+    "scope": "Installed identity, prelaunch saved-file equality and Home only; actual full-player decode/render/reopen pending manual navigation"
+  }
 }

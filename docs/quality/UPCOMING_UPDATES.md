@@ -1,3 +1,5 @@
+Current phone follow-up: owner-approved Poco35→44 install verified with15 unchanged prelaunch files; Home observed, full-player/manual checks pending. See ../NW148_POCO_CODE44_SMOKE.md. No future installation approval inferred.
+
 # Current checkpoint — NW148 repair code44
 
 NW148 canonical-bound artwork repair is LOCAL_VERIFIED_DEVICE_PENDING:1833 JVM/90 checks/full builder/sequential lint pass; exact receipt in NW148_SOURCE_EVIDENCE.json. Next source batch NW149. Poco Android12 currently35; fresh44 install approval and manual navigation needed because MIUI blocks remote taps. Samsung capture anomaly and full NW145 gates remain open. No rating increase/release/schedule activation. See ../NW148_CANONICAL_ARTWORK_REPAIR.md.

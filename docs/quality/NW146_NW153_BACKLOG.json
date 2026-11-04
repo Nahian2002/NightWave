@@ -81,7 +81,7 @@
         "R02"
       ],
       "implementation_status": "LOCAL_VERIFIED_DEVICE_PENDING",
-      "device_status": "CODE44_NOT_RUN",
+      "device_status": "PARTIAL_INSTALL_HOME",
       "acceptance_criteria": [
         "Measure requested/cached/decoded/displayed art sizes; recover sharper legitimate same-source imagery where available.",
         "No audio URL/quality/recording changes, invented album identity or unbounded network/decode work.",
@@ -89,7 +89,7 @@
       ],
       "evidence": "docs/quality/NW148_SOURCE_EVIDENCE.json",
       "source_revision": "17ba9faeda891493494d427dc0e6f53140583651",
-      "notes": "Canonical-bound public-thumbnail repair verified:1833 JVM/90 checks/build/lint unchanged. Poco Android12 currently35; MIUI blocks remote taps. Code44 installation requires explicit approval, then manual sharpness/reopen checks. Samsung capture anomaly remains unexplained.",
+      "notes": "Source44 verified; owner-approved preserving Poco35 to44 install matches candidate and15 collected prelaunch saved-file hashes. Home observed; saved selection restored correctly. Full-player sharpness/reopen waiting manual taps under MIUI restriction. Samsung capture cause remains unknown.",
       "host_status": "LOCAL_VERIFIED_CODE44",
       "phone_evidence": "docs/NW148_SAMSUNG_CODE43_FINDINGS.md",
       "repair_evidence": "docs/NW148_CANONICAL_ARTWORK_REPAIR.md"
