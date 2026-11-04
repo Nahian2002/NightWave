@@ -134,10 +134,11 @@
     "recording": "Private bounded180s capture; only Home and external notification change, not motion/performance evidence",
     "current_pid_fatal_records": 0,
     "initial_artwork_placeholder": "Resolved in subsequent Home recording/capture; no persistent failure observed",
-    "preferences_at_last_readback": "AMOLED/System and Android animator1.0 unchanged; no restore needed so far",
-    "pending_owner_action": "You \u2192 Theme \u2192 Change \u2192 Aurora, leave visible, reply Aurora. Then remaining theme and app Reduced checks, restore AMOLED/System.",
+    "preferences_at_last_readback": "Initial AMOLED/System snapshot; latest captured/read Midnight/System in theme_followup, restoration pending",
+    "pending_owner_action": "Superseded by theme_followup: select AMOLED/app Reduced on, then restore AMOLED/System",
     "private_recording_copy": "Full remote/local SHA verified; only owned temporary remote MP4 removed after verified copy",
-    "source_apk_changes": "None; host verification not rerun for documentation-only device observations"
+    "source_apk_changes": "None; host verification not rerun for documentation-only device observations",
+    "stage": "INITIAL_AMOLED_SNAPSHOT"
   },
   "theme_followup": {
     "date": "2026-11-05",
