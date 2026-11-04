@@ -1,3 +1,7 @@
+## Current NW144 source result — 4 November 2026
+
+NW144 is locally verified on `update/nightwave-nw144-controls-sharing`, based on NW143 #166. Exact share/export preview and caption round-trip fix; existing external-control boundaries retained. Code39, build NW-debug-AE25B5B1EADF6B31: full builder,1819 JVM/226 suites,86 source checks and lint0 errors/324 warnings/17 hints PASS. See `docs/NW144_CONTROLS_SHARING.md`. Physical cases NOT_RUN. Next NW145 requires device acceptance evidence; no new9.5 rating. Stable feed disabled; hourly automation deleted. Historical notes below retain earlier states.
+
 ## Current NW143 source result — 4 November 2026
 
 NW143 is locally verified on `update/nightwave-nw143-trust`, based on reopen fix #165. First-use/help/failure copy and retained diagnostics; code38, build NW-debug-515F3474BA50AE1F. Full builder,1817 JVM/226 suites,85 source checks and lint0 errors/324 warnings/17 hints pass. Physical and release cases remain NOT_RUN; see `docs/NW143_FIRST_RUN_TRUST.md`. Next independent source batch NW144. Stable feed disabled; hourly automation deleted. Historical notes below are superseded only by these specific results.

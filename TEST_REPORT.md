@@ -1,3 +1,17 @@
+# Current verification — NW144 external controls and sharing
+
+## NW144 verified source result — 4 November 2026
+
+Source changes locally verified: exact public-link preview before sharing/export; separator-containing captions round-trip through the existing strict grammar; stored metadata, original URLs, cap30/first500 and private-audio exclusions remain. Existing import preview/name-conflict handling, retained export snapshot, saveable navigation and authenticated widget/session boundaries reviewed and retained. No playback/session engine or permissions rewrite.
+
+Full Windows builder PASS; 1,819 JVM / 226 suites, zero failures/errors/skips, including two new previously failing round-trip cases. Android test sources compile. All 86 current checks PASS_SOURCE_ONLY, including NW144 caller-negative fixtures. Sequential lint PASS: 0 errors / 324 warnings / 17 hints; unchanged ID/severity/message/path inventory. Gitleaks implementation-stage 3,601 commits, no leaks. Build revision `dc2721b6d87c78c6e74e40c238f7f3474125d2d0`.
+
+Build **NW-debug-AE25B5B1EADF6B31**; canonical source **AE25B5B1EADF6B3107956E5FFB73134B437CF414E7110E93EFA87B142D15D869**, 974 inputs. APK **679208F040B70799EEA6AC9F4FBF19960247BB7073C899BC400965BC44A51423**, 26,749,120 bytes. Package `com.nightwave.player`, version `2.0.0-alpha5s`, code39. Signer **EA737A703B8F116EBC5C8C0A717DDBF3A2A5808ACC9079A8F79CD1B3CD860394**, compared with actual code38 APK. Owner-only Drive metadata and complete remote byte/hash readback verified. Private raw receipts/recovery are outside Git.
+
+Original 219-case pack PREPARED_NOT_EXECUTED for this APK. Actual notification/widget/headset/Bluetooth/car, restart/reconnect, exact external-return/queue continuity, picker/share cancellation/rotation/process-death, large-font/native-speaker and install/data-preservation cases remain NOT_RUN. A transient unconfirmed preview may dismiss on rotation and must be reopened; no automatic sharing/export occurs. No expanded car compatibility, album/artist catalog, remote handoff, social/collaboration/AI service or new rating is claimed. Stable feed disabled; no public binary/main merge/device/account/settings action or automation restart. Next is NW145 physical acceptance and evidence-based re-rating; its dependency gates remain open.
+
+See [source review and physical cases](docs/NW144_CONTROLS_SHARING.md). Earlier results below are historical.
+
 # Current verification — NW143 first-run failures and trust
 
 ## NW143 verified source result — 4 November 2026
