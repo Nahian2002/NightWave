@@ -47,6 +47,7 @@
     "details": "docs/NW145_SAMSUNG_CODE40_SMOKE.md",
     "original219_cases": "NOT_PROMOTED_FROM_SMOKE",
     "private_raw_evidence": "Stored outside Git",
-    "final_state": "Home, selected track paused"
+    "final_state": "Home, selected track paused",
+    "review": "https://github.com/Nahian2002/NightWave/pull/170"
   }
 }

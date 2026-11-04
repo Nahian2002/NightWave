@@ -30,3 +30,5 @@ Final phone state: NightWave Home, selected track paused. No library import/expo
 ## Still pending
 
 NW145 is **PARTIAL**, not certified. Original219 cases and supplemental matrices remain unpromoted by these smoke checks. Android6/7 and other devices/OEMs, all themes/fonts/accessibility, typed search/history, public-source/download throughput, native file/playlist roundtrips, Bluetooth/headset/call/audio focus, automatic7-day/new-release flow, audible quality/timing, long absence/process death, data restoration, eight-listener study and two-hour soaks/performance/battery remain NOT_RUN. No 9.5 rating or public-release GO follows. Release feed activation/public APK/main merge/settings changes remain separately gated. Future non-destructive checks on this approved phone can continue without repeating version40 permission; any other installation remains outside this specific approval.
+
+[Draft phone evidence review #170](https://github.com/Nahian2002/NightWave/pull/170), stacked on COMPAT01 #169; unmerged.
