@@ -1,0 +1,111 @@
+{
+  "schema": 1,
+  "batch": "NW147",
+  "date": "2026-11-04",
+  "implementation_status": "LOCAL_VERIFIED",
+  "device_status": "NOT_RUN",
+  "build": {
+    "build_id": "NW-debug-F7401D763837D925",
+    "revision": "cdd798b9ba5e26851a7e8f69b30e83fecf045895",
+    "source_sha256": "F7401D763837D9250A58DCF4E0C5E1E069B3CD00BD591101BCFD7512577C1452",
+    "source_input_count": 988,
+    "apk_sha256": "234662C9E20922AC0FD4BCED765B1648F2257E9C9DDB21AB2783187D5883C736",
+    "apk_bytes": 28066796,
+    "package": "com.nightwave.player",
+    "version_code": 42,
+    "version_name": "2.0.0-alpha5s",
+    "min_sdk": 23,
+    "target_sdk": 36,
+    "signer_sha256": "EA737A703B8F116EBC5C8C0A717DDBF3A2A5808ACC9079A8F79CD1B3CD860394",
+    "signer_comparison": "MATCH actual phone-pulled code41"
+  },
+  "validation": {
+    "windows_builder": "PASS",
+    "jvm_tests": 1824,
+    "jvm_suites": 227,
+    "jvm_failures": 0,
+    "jvm_errors": 0,
+    "jvm_skipped": 0,
+    "current_source_checks": 89,
+    "source_status": "PASS_SOURCE_ONLY",
+    "android_test_sources": "COMPILED_NOT_RUN",
+    "new_ui_methods": 2,
+    "new_ui_profile_count": 20,
+    "new_ui_cases": "40 prepared; not executed",
+    "lint": {
+      "errors": 0,
+      "warnings": 327,
+      "hints": 17,
+      "inventory_change": "None relative to NW146"
+    },
+    "gitleaks": {
+      "commits_scanned": 3622,
+      "leaks": 0,
+      "scope": "All refs before final evidence docs"
+    },
+    "original219_pack": "PREPARED_NOT_EXECUTED",
+    "private_delivery": "Owner-only metadata and full remote byte/hash readback PASS",
+    "native_entries_byte_identical": 8,
+    "non_build_assets_byte_identical": 1,
+    "apk_inventory_added_or_removed": 0
+  },
+  "layout_budget": {
+    "kind": "Design minimums/insets, not rendered code42 measurements",
+    "settings_row_min_dp": {
+      "before": 64,
+      "after": 56
+    },
+    "settings_vertical_inset_dp": {
+      "before": 8,
+      "after": 6
+    },
+    "featured_mix_art_dp": {
+      "before": 88,
+      "after": 88
+    },
+    "featured_mix_vertical_inset_dp": {
+      "before": 12,
+      "after": 8
+    },
+    "queue_art_dp": {
+      "before": 45,
+      "after": 45
+    },
+    "queue_gap_dp": {
+      "before": 7,
+      "after": 4
+    },
+    "queue_summary_bottom_dp": {
+      "before": 13,
+      "after": 4
+    },
+    "sound_padding_dp": {
+      "before": 15,
+      "after": 12
+    },
+    "sound_list_gap_dp": {
+      "before": 15,
+      "after": 8
+    },
+    "sound_status_gap_dp": {
+      "before": 9,
+      "after": 4
+    },
+    "minimum_independent_target_dp": 48
+  },
+  "remaining_device_cases": [
+    "Explicit code42 installation approval, signer/data preservation and installed identity",
+    "Matched code41/code42 Home/You/queue/Sound screenshots at same profile",
+    "320/360/411dp, short landscape, fonts1/2/3 and all themes rendered/input checks",
+    "Settings independent actions and full text without overlap",
+    "Technical-details expansion/return; active/draft/Apply/Discard/preset/Refresh preserved",
+    "Original NW145 acceptance matrices, older devices, performance, audio, study and soak gates"
+  ],
+  "rating": {
+    "frozen_review_index": 7.83,
+    "full_product": "NOT_ASSESSED",
+    "automatic_increase": false
+  },
+  "next_source_batch": "NW148",
+  "release_activation": "NOT_APPROVED"
+}

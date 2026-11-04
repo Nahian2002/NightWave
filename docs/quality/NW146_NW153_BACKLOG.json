@@ -3,7 +3,7 @@
   "created_date": "2026-11-04",
   "review": "docs/audits/2026-11-04_CODE40_PRODUCT_REVIEW.md",
   "scorecard": "docs/quality/CODE40_REVIEW_SCORECARD.json",
-  "next_source_batch": "NW147",
+  "next_source_batch": "NW148",
   "acceptance_umbrella": "NW145",
   "execution_order": [
     "NW146",
@@ -15,7 +15,7 @@
     "NW152",
     "NW153"
   ],
-  "source_candidate_code": 41,
+  "source_candidate_code": 42,
   "phone_acceptance": "PARTIAL",
   "rating_policy": "No automatic score rise from builds/test counts; full product overall remains unscored until critical evidence exists.",
   "preservation": [
@@ -58,13 +58,16 @@
       "finding_ids": [
         "R03"
       ],
-      "implementation_status": "PLANNED",
+      "implementation_status": "LOCAL_VERIFIED",
       "device_status": "NOT_RUN",
       "acceptance_criteria": [
         "Reduce repeated header/card/copy weight in Home,You,queue and Sound Studio using measured viewport budgets.",
         "Retain every action,48dp independent targets, large-text expansion and accessible disclosure of advanced details.",
         "Capture matched411dp reference and320/360/landscape/large-font comparisons; preserve active/draft sound behavior."
-      ]
+      ],
+      "evidence": "docs/quality/NW147_SOURCE_EVIDENCE.json",
+      "source_revision": "cdd798b9ba5e26851a7e8f69b30e83fecf045895",
+      "notes": "Compact production settings/mix/queue/Sound layouts; all controls/art sizes retained. 40 new UI cases compiled only; rendered/device acceptance NOT_RUN."
     },
     {
       "id": "NW148",
