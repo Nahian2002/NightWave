@@ -1,3 +1,5 @@
+5 November: four themes representative static captures reviewed,21/36 observed,15 pending. Phone latestMIDNIGHT/System; owner manualAMOLED/Reduced-on check and finalAMOLED/System restoration required. Approval45 persists; no reinstall. See ../NW149_POCO_CODE45_SMOKE.md. Source/APK unchanged; next independent sourceNW150, fullacceptance stillPARTIAL.
+
 Poco45 installed under explicit approval:17 unchanged prelaunch files; six AMOLED static surfaces observed,30 rendered slots/other-theme/app Reduced checks pending owner Aurora selection. OriginalAMOLED/System unchanged. Read ../NW149_POCO_CODE45_SMOKE.md. Approval45 persists; next sourceNW150; no automatic score/release/schedule promotion.
 
 Current NW149 code45 source LOCAL_VERIFIED:1841 JVM/91 checks/build/sequential lint0/327/17 unchanged,56 opaque role pairs min5.086631,8 UI cases compiled only. Code45 install/36 rendered slots pending. Next source NW150. See ../NW149_THEME_MOTION.md. No rating/release/automation promotion. Earlier status below is historical.

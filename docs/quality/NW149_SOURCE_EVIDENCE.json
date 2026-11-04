@@ -3,7 +3,7 @@
   "batch": "NW149",
   "date": "2026-11-04",
   "implementation_status": "LOCAL_VERIFIED",
-  "device_status": "PARTIAL_AMOLED_STATIC",
+  "device_status": "PARTIAL_FOUR_THEME_STATIC",
   "build": {
     "build_id": "NW-debug-356960B7755F6DC0",
     "revision": "3cc1e8a4c75fc1656ecca09ca4bc61e801919f23",
@@ -138,5 +138,78 @@
     "pending_owner_action": "You \u2192 Theme \u2192 Change \u2192 Aurora, leave visible, reply Aurora. Then remaining theme and app Reduced checks, restore AMOLED/System.",
     "private_recording_copy": "Full remote/local SHA verified; only owned temporary remote MP4 removed after verified copy",
     "source_apk_changes": "None; host verification not rerun for documentation-only device observations"
+  },
+  "theme_followup": {
+    "date": "2026-11-05",
+    "owner_selected_themes": [
+      "AURORA",
+      "PEARL",
+      "MIDNIGHT"
+    ],
+    "observations": {
+      "AURORA": {
+        "motion": "SYSTEM",
+        "static_surfaces": [
+          "Home",
+          "Search",
+          "Library",
+          "Player",
+          "You"
+        ],
+        "selected_destinations_match": [
+          "home",
+          "search",
+          "library",
+          "you"
+        ],
+        "empty_search": true,
+        "visual_review": "No blank or newly clipped controls seen in sampled viewports",
+        "scope": "Static representative views only; actual gestures/all states still pending"
+      },
+      "PEARL": {
+        "motion": "SYSTEM",
+        "static_surfaces": [
+          "Home",
+          "Search",
+          "Library",
+          "Player",
+          "You"
+        ],
+        "selected_destinations_match": [
+          "home",
+          "search",
+          "library",
+          "you"
+        ],
+        "empty_search": true,
+        "visual_review": "No blank or newly clipped controls seen in sampled viewports",
+        "scope": "Static representative views only; actual gestures/all states still pending"
+      },
+      "MIDNIGHT": {
+        "motion": "SYSTEM",
+        "static_surfaces": [
+          "Home",
+          "Search",
+          "Library",
+          "Player",
+          "You"
+        ],
+        "selected_destinations_match": [
+          "home",
+          "search",
+          "library",
+          "you"
+        ],
+        "empty_search": true,
+        "visual_review": "No blank or newly clipped controls seen in sampled viewports",
+        "scope": "Static representative views only; actual gestures/all states still pending"
+      }
+    },
+    "matrix_observed_static": 21,
+    "matrix_not_run": 15,
+    "latest_captured_preferences": "MIDNIGHT/SYSTEM",
+    "current_pending_action": "Owner selects AMOLED and enables app Reduced Motion, manually taps Home/Search/You, reports on; then restore AMOLED/System",
+    "restore_status": "PENDING; original preferences must be read back after testing",
+    "scope": "No source/APK changes, no timing/FPS/global product rating from static captures"
   }
 }
