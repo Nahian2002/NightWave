@@ -1,3 +1,7 @@
+## Current NW146 source result — 4 November 2026
+
+NW146 is LOCAL_VERIFIED on update/nightwave-nw146-state-truth. Read docs/NW146_STATE_TRUTH.md and docs/quality/NW146_SOURCE_EVIDENCE.json. Queue playback labels and authenticated update-result states corrected; code41, build NW-debug-02427B19DA0B98EB, 1,824 JVM tests/227 suites, 88 current checks, full Windows builder and sequential lint 0 errors/327 warnings/17 hints PASS. One unused historical resource warning retained. Owner-only APK readback and signer match to phone code40 verified. Code41 physical cases NOT_RUN; existing installation approval covers code40 only. No new rating or public activation. Next source batch NW147; NW145 remains PARTIAL. Earlier headers below are historical.
+
 ## Active code40 product review and successor roadmap — 4 November2026
 
 Read `docs/audits/2026-11-04_CODE40_PRODUCT_REVIEW.md`, `docs/UPGRADE_ROADMAP_NW146_NW153.md` and `docs/quality/NW146_NW153_BACKLOG.json` first. Next independent source batch NW146; NW145 acceptance remains PARTIAL. Code40 source/APK unchanged. Review presentation index7.83/10 is provisional, not full functional certification. Preserve original audits/scores and pending physical gates. New observations include paused queue labeled PLAYING, soft enlarged art, heavy secondary panels and unavailable update request. Source work and explicit phone checks stay separate; do not silently remove features or activate releases. Prior headers below are historical.
