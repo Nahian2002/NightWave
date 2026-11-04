@@ -3,7 +3,7 @@
   "batch": "NW149",
   "date": "2026-11-04",
   "implementation_status": "LOCAL_VERIFIED",
-  "device_status": "CODE45_NOT_RUN",
+  "device_status": "PARTIAL_INSTALL_HOME",
   "build": {
     "build_id": "NW-debug-356960B7755F6DC0",
     "revision": "3cc1e8a4c75fc1656ecca09ca4bc61e801919f23",
@@ -78,10 +78,9 @@
     "sound_snapshot_seconds": 5.67,
     "sound_result": "Screenshot and fresh UI hierarchy succeeded; prior Samsung tool failure not reproduced; cause unknown",
     "scope": "Owner manual read-only navigation; no EQ/account/system setting change",
-    "code45_install": "NOT_APPROVED_NOT_RUN"
+    "code45_install": "OWNER_APPROVED_PASS"
   },
   "remaining_device_cases": [
-    "Explicit code45 install approval; preserve data and verify actual installed identity",
     "36 theme/surface review slots: all actual code45 rendered/interaction states NOT_RUN until evidence",
     "Manual tab/Back/player/queue/offline/dialog traversal with focus/keyboard/selected state and controlled frame evidence",
     "Runtime System scale change/stop/resume observation, app Reduced and legacy Full; no device-setting write authorized",
@@ -94,5 +93,21 @@
   },
   "next_source_batch": "NW150",
   "release_activation": "NOT_APPROVED",
-  "review": "https://github.com/Nahian2002/NightWave/pull/175"
+  "review": "https://github.com/Nahian2002/NightWave/pull/175",
+  "phone_install": {
+    "authorization": "Install version45 and test",
+    "approved_scope": "Preserving45 replacement and manual themes/navigation/motion, restore AMOLED/System; no system/EQ/account/library action",
+    "from_code": 44,
+    "to_code": 45,
+    "pre_first_launch_identical_preference_database_files": 17,
+    "backup": "Private TAR verified byte/hash against all17 saved files; no restore",
+    "installed_sha256": "5F63200CEDBC4ECC755B971101246227DABF0CDB85F5FCEA51251E1979063B51",
+    "installed_bytes": 28362773,
+    "cold_launch_adb_total_ms_single_sample": 3449,
+    "current_pid_fatal_records_observed": 0,
+    "initial_theme": "AMOLED",
+    "initial_motion": "SYSTEM",
+    "android_animator_scale_read_only": "1.0",
+    "scope": "Install/Home only so far; manual route capture underway"
+  }
 }

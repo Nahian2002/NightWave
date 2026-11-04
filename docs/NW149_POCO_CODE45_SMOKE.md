@@ -1,0 +1,9 @@
+# NW149 — approved Poco code45 checks
+
+4 November2026. Owner explicitly approved **Install version45 and test**, including preserving data and manual temporary app-theme/Reduced Motion checks with AMOLED/System restored. Targets only USB Poco X3 M2007J20CI,Android12/API31; separate emulator untouched. No later APK/test APK/reset/uninstall/data clear/account/consent/EQ/library/Android system-setting changes authorized.
+
+In-place44→45 PASS. Actual freshly pulled44 matches the verified baseline; code45 signer continuity verified. Installed45 pulled back equals **5F63200CEDBC4ECC755B971101246227DABF0CDB85F5FCEA51251E1979063B51**,28,362,773 bytes. All **17 collected preference/database file hashes identical before/after replacement before first launch**; private TAR readback matched all17 hashes, no restore. Scoped snapshot only, not complete-data/migration certification. Normal runtime can update saved state.
+
+Cold ADB launch3,449ms is one sample, not fully-drawn/p95 or comparable benchmark. Initial Home visibly renders in savedAMOLED/System; Android animator scale1.0 read-only. Current app PID crash observation zero fatal records, not historic/all-process certification. Raw captures/data/URLs/phone serial remain private outside Git.
+
+MIUI still blocks remote taps. Owner manual route requested through nine surfaces while a bounded private540x1200/2Mbps screen recording runs. Capturing itself can affect frame load; not a performance benchmark. Route/render/reduced-motion results pending; no screen-case promotion from installation alone. Initial static Home evidence is separate from all-state acceptance. Source/build/APK unchanged, host checks not repeated for evidence-only work. See [source receipt](quality/NW149_SOURCE_EVIDENCE.json), [approved plan](NW149_POCO_CODE45_TEST_PLAN.md) and [draft175](https://github.com/Nahian2002/NightWave/pull/175). NW145 remains PARTIAL, original219 gates unpromoted and ratings unchanged.
