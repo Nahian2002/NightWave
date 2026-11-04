@@ -1,5 +1,7 @@
 package com.nightwave.player.v2.ui
 
+import androidx.compose.foundation.verticalScroll
+
 import com.nightwave.player.R
 
 import android.app.AlertDialog
