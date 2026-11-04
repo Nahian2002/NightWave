@@ -33,7 +33,7 @@
     "In-place installed-data/update continuity"
   ],
   "runbook": "docs/NW145_ACCEPTANCE_RUNBOOK.md",
-  "owner_testing_preference": "Owner explicitly approved version40 and then version41 in-place installation and non-destructive tests; no other APK, reset/uninstall or account/settings action authorized.",
+  "owner_testing_preference": "Owner separately approved version40,41 and42 in-place installation and non-destructive tests; no subsequent APK, reset/uninstall or account/settings action authorized.",
   "first_phone_smoke": {
     "date": "2026-11-04",
     "device_model": "SM-S928B",
@@ -55,6 +55,13 @@
     "code": 41,
     "evidence": "docs/NW146_SAMSUNG_CODE41_SMOKE.md",
     "result": "PARTIAL_SCOPED_PASS",
+    "original219_cases": "NOT_PROMOTED_FROM_SMOKE"
+  },
+  "latest_successor_phone_smoke": {
+    "batch": "NW147",
+    "code": 42,
+    "evidence": "docs/NW147_SAMSUNG_CODE42_SMOKE.md",
+    "result": "PARTIAL_SCOPED_PASS_WITH_TOOL_LIMITATIONS",
     "original219_cases": "NOT_PROMOTED_FROM_SMOKE"
   }
 }

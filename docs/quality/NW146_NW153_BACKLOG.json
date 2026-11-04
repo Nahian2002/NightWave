@@ -3,7 +3,7 @@
   "created_date": "2026-11-04",
   "review": "docs/audits/2026-11-04_CODE40_PRODUCT_REVIEW.md",
   "scorecard": "docs/quality/CODE40_REVIEW_SCORECARD.json",
-  "next_source_batch": "NW147",
+  "next_source_batch": "NW148",
   "acceptance_umbrella": "NW145",
   "execution_order": [
     "NW146",
@@ -15,7 +15,7 @@
     "NW152",
     "NW153"
   ],
-  "source_candidate_code": 41,
+  "source_candidate_code": 42,
   "phone_acceptance": "PARTIAL",
   "rating_policy": "No automatic score rise from builds/test counts; full product overall remains unscored until critical evidence exists.",
   "preservation": [
@@ -58,13 +58,17 @@
       "finding_ids": [
         "R03"
       ],
-      "implementation_status": "PLANNED",
-      "device_status": "NOT_RUN",
+      "implementation_status": "LOCAL_VERIFIED",
+      "device_status": "PARTIAL",
       "acceptance_criteria": [
         "Reduce repeated header/card/copy weight in Home,You,queue and Sound Studio using measured viewport budgets.",
         "Retain every action,48dp independent targets, large-text expansion and accessible disclosure of advanced details.",
         "Capture matched411dp reference and320/360/landscape/large-font comparisons; preserve active/draft sound behavior."
-      ]
+      ],
+      "evidence": "docs/quality/NW147_SOURCE_EVIDENCE.json",
+      "source_revision": "cdd798b9ba5e26851a7e8f69b30e83fecf045895",
+      "notes": "Owner-approved code42 installed with29 unchanged prelaunch saved-file hashes. Matched mix/settings bounds and disclosure/queue/return observed on AMOLED/font0.8; other profiles and full acceptance pending. No rating rise.",
+      "phone_evidence": "docs/NW147_SAMSUNG_CODE42_SMOKE.md"
     },
     {
       "id": "NW148",
@@ -102,7 +106,8 @@
         "Review every theme at Home/Search/Library/You/player/queue/offline/dialog states with measured contrast.",
         "Preserve matte identity, accessible selected/disabled/error states and reduced-motion/focus/keyboard behavior.",
         "Measure transitions/frame pacing before duration changes; investigate Sound Studio dump137 without labeling it an app crash."
-      ]
+      ],
+      "investigation_notes": "Retain Sound hierarchy nonzero on code41/42 and one unexplained You-to-Home state movement during test lookup. Cause unknown; controlled navigation/frame/semantics evidence before diagnosis."
     },
     {
       "id": "NW150",

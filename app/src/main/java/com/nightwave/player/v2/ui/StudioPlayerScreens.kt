@@ -1516,7 +1516,7 @@ fun StudioQueueSheet(
             LazyColumn(
                 modifier = Modifier.weight(1f, fill = false).fillMaxWidth().testTag("nw142-queue-content"),
                 contentPadding = PaddingValues(bottom = 22.dp),
-                verticalArrangement = Arrangement.spacedBy(7.dp)
+                verticalArrangement = Arrangement.spacedBy(NightWaveSecondaryLayoutPolicy.QUEUE_GAP_DP.dp)
             ) {
                 item(key = "queue-summary") {
             Text(strings.get(R.string.nw141_your_listening_queue_8e0b7), style = MaterialTheme.typography.headlineSmall)
@@ -1549,7 +1549,7 @@ fun StudioQueueSheet(
                 Text(strings.get(R.string.nw141_turn_shuffle_off_to_reorder_remove_or_clear_upco_0495a),
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Spacer(Modifier.height(13.dp))
+            Spacer(Modifier.height(NightWaveSecondaryLayoutPolicy.QUEUE_SUMMARY_BOTTOM_DP.dp))
                 }
                 if (state.queue.isEmpty() || currentIndex == null) {
                     item(key = "queue-empty") {
@@ -1590,7 +1590,7 @@ fun StudioQueueSheet(
                     itemsIndexed(upcoming, key = { _, slot -> "next-${slot.index}" }) { pos, slot ->
                         val index = slot.index
                         val video = slot.value
-                        Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(NightWaveSecondaryLayoutPolicy.QUEUE_GAP_DP.dp)) {
                             if (explicitNext.isNotEmpty() && pos == explicitNext.size) {
                                 Text(if (state.shuffle) strings.get(R.string.nw141_shuffle_pool_order_varies_03f7b)
                                     else strings.get(R.string.nw141_up_next_56746),

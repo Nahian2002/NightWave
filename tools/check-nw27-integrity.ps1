@@ -46,7 +46,7 @@ $checks = @(
     @('app\src\main\AndroidManifest.xml', 'android:usesCleartextTraffic="false"'),
     @('tools\verify-apk-signature.ps1', 'TrustedSignerSHA256'),
     @('app\build.gradle.kts', 'applicationId = "com.nightwave.player"'),
-    @('app\build.gradle.kts', 'versionCode = 41')
+    @('app\build.gradle.kts', 'versionCode = 42')
 )
 $failureCount = 0
 foreach ($entry in $checks) {

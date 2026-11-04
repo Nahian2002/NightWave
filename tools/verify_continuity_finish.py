@@ -34,7 +34,7 @@ def verify(src):
     for forbidden in (".edit()", "Http", "recordPlay(", "android.content"):
         assert forbidden not in labels and forbidden not in art, forbidden
     assert 'strings.get(R.string.nw143_storage_summary)' in activity
-    assert "modifier.fillMaxWidth().heightIn(min = 64.dp)" in activity
+    assert "NightWaveSettingsRow(title, detail, icon, onClick, modifier, trailing)" in activity
 
 
 if __name__ == "__main__":
@@ -50,7 +50,8 @@ if __name__ == "__main__":
                              (FILES[2], "drawRoundRect(colors.primary"),
                              (FILES[3], "columns(maxWidth.value, LocalDensity.current.fontScale)"),
                              (FILES[5], "NightWaveEditorialPresentationPolicy.mixArtwork(mix)"),
-                             (FILES[6], "creators.add(creator)")):
+                             (FILES[6], "creators.add(creator)"),
+                             (FILES[7], "NightWaveSettingsRow(title, detail, icon, onClick, modifier, trailing)")):
             broken = dict(src); assert marker in broken[name]
             broken[name] = broken[name].replace(marker, "BROKEN_FIXTURE")
             try: verify(broken)
