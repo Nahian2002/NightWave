@@ -1,0 +1,6 @@
+<resources>
+    <string name="nw144_review_title">Review playlist links</string>
+    <string name="nw144_review_notice">Only the public links shown below will be shared or exported, up to 30 links from the first 500 tracks. Duplicates, local audio and unsupported links are omitted. No audio, accounts or private backups are included. Continue to choose a destination, or cancel without changing your library.</string>
+    <string name="nw144_cancel">Cancel</string>
+    <string name="nw144_continue">Continue</string>
+</resources>

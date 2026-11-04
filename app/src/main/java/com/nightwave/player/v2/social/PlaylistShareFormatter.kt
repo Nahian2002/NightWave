@@ -10,6 +10,9 @@ object PlaylistShareFormatter {
 
     private fun safeLabel(value: String, limit: Int): String = value
         .filter { it.code >= 32 && it.code != 127 }
+        // The strict existing grammar reserves this delimiter for the creator.
+        // Normalize display hints only; stored metadata and public URLs are untouched.
+        .replace(" — ", " – ")
         .trim().take(limit)
 
     fun format(name: String, tracks: List<VideoPreview>): String? {

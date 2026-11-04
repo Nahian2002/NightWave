@@ -2545,26 +2545,41 @@ class NightWaveStudioActivity : ComponentActivity() {
             showMessage("No eligible public links to export from this playlist.")
             return
         }
+        reviewPlaylistText(prepared) {
         playlistDocumentRetained.pendingExport = prepared
         runCatching { exportPlaylistTextFile.launch(prepared.fileName) }
             .onFailure {
                 playlistDocumentRetained.pendingExport = null
                 showMessage("Could not open the document picker. Your playlists are unchanged.")
             }
+        }
     }
 
     private fun sharePlaylist(name: String, tracks: List<VideoPreview>) {
-        val text = PlaylistShareFormatter.format(name, tracks)
-        if (text == null) {
+        val prepared = PlaylistDocumentPolicy.prepare(name, tracks)
+        if (prepared == null) {
             showMessage("No shareable public links in this playlist.")
             return
         }
+        val text = prepared.bytes.toString(Charsets.UTF_8)
+        reviewPlaylistText(prepared) {
         runCatching {
             startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
                 type = "text/plain"
                 putExtra(Intent.EXTRA_TEXT, text)
             }, "Share NightWave playlist"))
         }.onFailure { showMessage("No sharing app was available.") }
+        }
+    }
+
+    /** Preview exactly the immutable public-only snapshot sent to the chosen destination. */
+    private fun reviewPlaylistText(prepared: PreparedPlaylistDocument, proceed: () -> Unit) {
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.nw144_review_title))
+            .setMessage(getString(R.string.nw144_review_notice) + "\n\n" + prepared.bytes.toString(Charsets.UTF_8))
+            .setNegativeButton(getString(R.string.nw144_cancel), null)
+            .setPositiveButton(getString(R.string.nw144_continue)) { _, _ -> proceed() }
+            .show()
     }
 
 

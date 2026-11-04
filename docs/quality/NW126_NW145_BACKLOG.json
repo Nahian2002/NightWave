@@ -5,7 +5,7 @@
   "audit": "docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md",
   "implementation_base_revision": "61703c98238e762e59c049b6690853431f822884",
   "audit_branch": "audit/nightwave-post-nw125-quality-roadmap",
-  "next_batch": "NW144",
+  "next_batch": "NW145",
   "goal": "9.5+ within the declared NightWave music-player scope, conditional on actual product and acceptance evidence",
   "rating_kind": "Subjective comparative product review, not a measured Spotify score",
   "baseline_weighted_score": 6.655,
@@ -1071,7 +1071,7 @@
         "NW142",
         "NW143"
       ],
-      "implementation_status": "PLANNED",
+      "implementation_status": "LOCAL_VERIFIED",
       "device_status": "NOT_RUN",
       "finding_ids": [
         "Q14",
@@ -1090,10 +1090,16 @@
         "Return from an external provider/share/picker to the intended NightWave route with the same queue and playback state.",
         "Document verified album/artist catalogs, Connect-like handoff and collaborative/social/AI services as separate evaluated scope; add no nonfunctional controls or invented service claims."
       ],
-      "implementation_commit": null,
-      "local_evidence": [],
+      "implementation_commit": "dc2721b6d87c78c6e74e40c238f7f3474125d2d0",
+      "local_evidence": [
+        "docs/NW144_CONTROLS_SHARING.md",
+        "TEST_REPORT.md"
+      ],
       "device_evidence": [],
-      "remaining_blockers": []
+      "remaining_blockers": [
+        "Physical external-control and share/provider/picker return cases NOT_RUN; no expanded car compatibility claim."
+      ],
+      "review": "https://github.com/Nahian2002/NightWave/pull/167"
     },
     {
       "id": "NW145",

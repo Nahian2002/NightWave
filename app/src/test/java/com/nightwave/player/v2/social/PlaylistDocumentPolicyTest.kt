@@ -12,6 +12,27 @@ import org.junit.Test
 
 /** No Android document picker or music library required. */
 class PlaylistDocumentPolicyTest {
+    @Test fun separatorInCreatorAndTitleRoundTripsWithoutChangingSourceOrStoredHints() {
+        val original = VideoPreview("Live — Session", "Singer — Band",
+            "https://www.youtube.com/watch?v=dQw4w9WgXcQ", "", 100L)
+        val prepared = PlaylistDocumentPolicy.prepare("Mix", listOf(original))!!
+        val imported = PlaylistDocumentPolicy.read(ByteArrayInputStream(prepared.bytes))!!.tracks.single()
+        assertEquals(original.url, imported.url)
+        assertEquals("Live – Session", imported.title)
+        assertEquals("Singer – Band", imported.author)
+        assertEquals("Live — Session", original.title)
+        assertEquals("Singer — Band", original.author)
+    }
+
+    @Test fun titleOnlyWithReservedSeparatorAndLongSuffixStillImports() {
+        val original = VideoPreview("Part — " + "x".repeat(80), "",
+            "https://www.youtube.com/watch?v=dQw4w9WgXcQ", "", 100L)
+        val prepared = PlaylistDocumentPolicy.prepare("Mix", listOf(original))!!
+        val imported = PlaylistDocumentPolicy.read(ByteArrayInputStream(prepared.bytes))!!.tracks.single()
+        assertEquals(original.url, imported.url)
+        assertTrue(imported.title.startsWith("Part – "))
+        assertEquals("Shared via NightWave", imported.author)
+    }
     private val song = VideoPreview("ভালোবাসি ঝুম", "শিল্পী",
         "https://www.youtube.com/watch?v=dQw4w9WgXcQ", "", 0L)
 
