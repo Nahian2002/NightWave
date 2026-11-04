@@ -92,11 +92,13 @@ private val banglaTypography = premiumTypography.copy(
 fun NightWaveMaterialTheme(
     choice: ThemeChoice,
     reduceMotion: Boolean = false,
+    followSystemMotion: Boolean = true,
     content: @Composable () -> Unit
 ) {
     val bangla = androidx.core.os.ConfigurationCompat.getLocales(LocalConfiguration.current)[0]?.language == "bn"
     val typography = if (bangla) banglaTypography else premiumTypography
     val palette = NightWaveDesign.palette(choice)
+    val effectiveReduceMotion = rememberNightWaveReducedMotion(reduceMotion, followSystemMotion)
     val context = androidx.compose.ui.platform.LocalContext.current
     androidx.compose.runtime.DisposableEffect(context, choice) {
         context.setTheme(when (choice) {
@@ -154,6 +156,7 @@ fun NightWaveMaterialTheme(
     // Material dialogs/menus use container roles, not the legacy surfaceVariant role.
     // Supplying all seven keeps them inside the selected palette instead of default purple/gray.
     val scheme = baseScheme.copy(
+        inversePrimary = paletteColor(NightWaveThemeMotionPolicy.inverseAction(palette)),
         surfaceDim = paletteColor(if (palette.isDark) palette.background else palette.raised),
         surfaceBright = paletteColor(if (palette.isDark) palette.raised else palette.surface),
         surfaceContainerLowest = paletteColor(if (palette.isDark) palette.background else palette.surface),
@@ -164,7 +167,7 @@ fun NightWaveMaterialTheme(
     )
     CompositionLocalProvider(
         LocalNightWavePalette provides palette,
-        LocalNightWaveReduceMotion provides reduceMotion
+        LocalNightWaveReduceMotion provides effectiveReduceMotion
     ) {
         MaterialTheme(colorScheme = scheme, typography = typography,
             shapes = Shapes(extraSmall = RoundedCornerShape(8.dp), small = RoundedCornerShape(12.dp),

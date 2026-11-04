@@ -78,7 +78,7 @@ Need $chrome 'NightWaveMotionPolicy.tabScale(active, reducedMotion)' 'Navigation
 Need $chrome 'if (reducedMotion) snap()' 'Reduced-motion navigation spring bypass missing'
 Need $motion 'if (reduceMotion) 0 else requested.coerceIn(0, MAX_MS)' 'Reduced-motion duration must be zero'
 Need $motion 'if (reduceMotion) 1f' 'Reduced-motion icon/artwork transforms must be neutral'
-Need $theme 'LocalNightWaveReduceMotion provides reduceMotion' 'App-wide reduced-motion preference not provided'
+Need $theme 'LocalNightWaveReduceMotion provides effectiveReduceMotion' 'App-wide reduced-motion preference not provided'
 Need (Read-Source ($prefix + 'NightWaveAdaptiveChromePolicy.kt')) 'if (reducedMotion) 0 else regularMs.coerceIn(0, 600)' 'Reduced-motion policy must return zero duration'
 Need $activity 'NightWavePremiumNavigation(' 'Root navigation not wired'
 Need $activity 'NightWaveHomeHero(' 'Home header not wired'
