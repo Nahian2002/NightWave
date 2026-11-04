@@ -9,3 +9,5 @@ All features/themes/data/source/quality/signing/consent boundaries remain. Sourc
 Previous roadmap retained byte-for-byte in [historical roadmap](PRODUCT_QUALITY_ROADMAP_PRE_CODE40_REVIEW_20261104.md); the frozen original audit/score remains unchanged. Use the new sequence rather than old interleaved status banners.
 
 NW148 canonical-bound repair is locally verified as code44; Poco installation/sharpness/reopen checks pending approval/manual navigation. See [repair receipt](NW148_CANONICAL_ARTWORK_REPAIR.md). No rating increase.
+
+Poco44 follow-up: approved install plus same-video sharpness/reopen scoped PASS; full acceptance remains PARTIAL. See [phone receipt](NW148_POCO_CODE44_SMOKE.md).

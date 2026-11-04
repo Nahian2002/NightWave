@@ -1,3 +1,5 @@
+Current: NW148 source44 LOCAL_VERIFIED; approved Poco artwork/reopen scoped PASS, device PARTIAL. Actual queried168x94→same-video1280x720 source→828x466 decode, owner no stuck after requested reopen cycles; see ../NW148_POCO_CODE44_SMOKE.md. Next source NW149; no rating/release/automation promotion. Earlier pending statuses below historical.
+
 Current phone follow-up: owner-approved Poco35→44 install verified with15 unchanged prelaunch files; Home observed, full-player/manual checks pending. See ../NW148_POCO_CODE44_SMOKE.md. No future installation approval inferred.
 
 # Current checkpoint — NW148 repair code44

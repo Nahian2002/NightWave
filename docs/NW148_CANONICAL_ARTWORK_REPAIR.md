@@ -1,3 +1,5 @@
+Current status: source LOCAL_VERIFIED; owner-approved Poco44 installation and scoped artwork/reopen PASS, full device acceptance PARTIAL. See [Poco follow-up](NW148_POCO_CODE44_SMOKE.md). Earlier pending-install statements below are historical.
+
 # NW148 canonical-bound artwork repair — version44
 
 4 November 2026. Resumes the committed code43 findings and repair plan in draft174. The source repair is **LOCAL_VERIFIED_DEVICE_PENDING**. Version44 has not been installed or visually accepted. Code43 and its Samsung findings are retained in [historical receipt](quality/NW148_CODE43_SOURCE_EVIDENCE.json) and [phone findings](NW148_SAMSUNG_CODE43_FINDINGS.md).

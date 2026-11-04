@@ -61,13 +61,13 @@
     "batch": "NW148",
     "code": 44,
     "evidence": "docs/NW148_POCO_CODE44_SMOKE.md",
-    "result": "PARTIAL_INSTALL_HOME",
+    "result": "PARTIAL_SCOPED_PASS",
     "original219_cases": "NOT_PROMOTED_FROM_SMOKE"
   },
   "latest_source_candidate": {
     "batch": "NW148",
     "code": 44,
-    "status": "LOCAL_VERIFIED_DEVICE_PENDING",
+    "status": "LOCAL_VERIFIED",
     "evidence": "docs/quality/NW148_SOURCE_EVIDENCE.json"
   },
   "replacement_phone_baseline": {
