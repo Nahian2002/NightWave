@@ -1,0 +1,108 @@
+## NW145 first physical smoke — 4 November 2026
+
+Owner explicitly approved installing code40 over36 and non-destructive tests on connected Samsung SM-S928B (reports Android17/API37). Actual installed hash/signature match and29 pre-launch preference/database hashes unchanged. Scoped navigation, empty-search return, compact/full-player, play/pause UI, Help and10-second background return observed; manual update request unavailable. See `docs/NW145_SAMSUNG_CODE40_SMOKE.md`. NW145 is PARTIAL; original matrices, long-absence/older-device/audio/soak/study/release acceptance remain pending. Raw device content stays private outside Git. Phone left Home/paused. This approval covers version40 only; no reset/uninstall/new APK/account/settings action authorized. Historical no-device/deferred-testing notes below are superseded only by this scoped session.
+
+## Current COMPAT01 source result — 4 November 2026
+
+COMPAT01 locally verified on `update/nightwave-compat01-android6`, based on acceptance preparation #168. Code40 declares API23/Android6+,target36; six initial API errors fixed,1821 JVM/226 suites,87 source checks,full builder and sequential lint0 errors/326 warnings/17 hints. See `docs/COMPAT01_IMPLEMENTATION.md`. Owner defers device checking until source work is finished; do not ask for interim phone tests. Planned source upgrades through COMPAT01 are complete; NW145 physical acceptance remains NOT_RUN, rating NOT_ASSESSED/release NO_GO. No universal device-support claim. Feed disabled; automation deleted. Historical notes below preserve earlier states.
+
+## NW145 acceptance preparation and compatibility target — 4 November 2026
+
+NW145 is prepared, not certified; no connected Android device or approved reference profiles. Code39/source974/APK identity unchanged and signer rechecked. See `docs/NW145_ACCEPTANCE_RUNBOOK.md` and `docs/quality/NW145_RELEASE_EVIDENCE.json`. Owner requests roughly ten-year phone coverage: next source batch COMPAT01 evaluates Android6/API23+, currently NOT_IMPLEMENTED; code39 still requires Android8/API26. See `docs/ANDROID_COMPATIBILITY_PLAN.md`. All physical gates NOT_RUN; rating NOT_ASSESSED, release NO_GO. No app changes/new APK, full rebuild/lint repeat, device actions, publication, merge or schedule restart.
+
+## Current NW144 source result — 4 November 2026
+
+NW144 is locally verified on `update/nightwave-nw144-controls-sharing`, based on NW143 #166. Exact share/export preview and caption round-trip fix; existing external-control boundaries retained. Code39, build NW-debug-AE25B5B1EADF6B31: full builder,1819 JVM/226 suites,86 source checks and lint0 errors/324 warnings/17 hints PASS. See `docs/NW144_CONTROLS_SHARING.md`. Physical cases NOT_RUN. Next NW145 requires device acceptance evidence; no new9.5 rating. Stable feed disabled; hourly automation deleted. Historical notes below retain earlier states.
+
+## Current NW143 source result — 4 November 2026
+
+NW143 is locally verified on `update/nightwave-nw143-trust`, based on reopen fix #165. First-use/help/failure copy and retained diagnostics; code38, build NW-debug-515F3474BA50AE1F. Full builder,1817 JVM/226 suites,85 source checks and lint0 errors/324 warnings/17 hints pass. Physical and release cases remain NOT_RUN; see `docs/NW143_FIRST_RUN_TRUST.md`. Next independent source batch NW144. Stable feed disabled; hourly automation deleted. Historical notes below are superseded only by these specific results.
+
+# Upcoming NightWave updates
+
+Replanned 29 October 2026 from the [latest owner recording review](../audits/2026-10-29_RECORDING_230548_REVIEW.md). The original NW126–NW145 IDs, audit, dependencies and physical cases remain evidence. This execution order adds focused follow-ups before the remaining original batches; it does not repeat a broad redesign.
+
+## Order and target slots
+
+| Order | Batch | Target slot | Reviewable outcome |
+| --- | --- | --- | --- |
+| 1 | FINISH02 | Locally verified, 29 Oct | Clean saved identity in Resume/options/Downloads; clear search and Show all; completed transfer duration/rate. |
+| 2 | ART02 | Locally verified, 30 Oct | Existing saved artwork continuity using known identity and existing cached images, with bounded background work and deletion fences. |
+| 3 | SEARCH02 | Locally verified, 30 Oct | Measured public-search phases, safe bounded result continuity, cancellation/retry and source/version preservation. |
+| 4 | NW137 | Locally verified, 30 Oct | Guided owned-LRC import, explicit binding and readable synchronized lyrics. |
+| 5 | NW138 | Locally verified, 30 Oct | Clear active versus draft sound, accessible advanced controls and reachable Apply. |
+| 6 | NW139 | Locally verified source, 30 Oct | Compact optional recovery and disposable backup/restore plan; live account operations require the owner's explicit scope. |
+| 7 | NW140 | Measurement tools locally verified, 30 Oct | Opt-in Android diagnostics and strict evidence analysis; actual traces/performance and any justified production optimization remain NOT_RUN. |
+| 8 | NW141 | Locally verified source, 30 Oct | Accessibility and Bangla/English primary flows; actual TalkBack/font/contrast acceptance. |
+| 9 | NW142 | Interrupted at weekly reserve; explicit owner resume required | Narrow/large-text/landscape/tablet/input coverage and targeted layout fixes. |
+| 10 | NW143 | After NW142 | Clear first-run/failure/privacy/recovery journeys with retained capabilities. |
+| 11 | NW144 | After NW143 | Existing notification/widget/external controls and share roundtrips. |
+| 12 | NW145 | After blocking evidence closes | Consolidated physical acceptance, task study, two-hour soaks and defensible re-rating. |
+
+The schedule is every hour. These are planned sequential slots, not deadlines or automatic acceptance. One bounded eligible batch runs at a time; a build failure or unfinished batch moves the later slots. Independent source work can continue with recorded device checks pending. Phone/account gates wait for actual evidence and appropriate user authorization. No automatic install, reset, merge, public APK or repository setting change.
+
+## Follow-up schedule — stopped at weekly reserve
+
+The hourly heartbeat `nightwave-sequential-upgrades` was deleted on 30 October 2026 when the weekly reserve reached 10% remaining. It must not restart automatically after reset; a new owner request is required. NW142 implementation is checkpointed locally with incomplete validation. Read [the exact pending work](../NW142_ADAPTIVE_LAYOUTS.md) and TEST_REPORT.md before resuming. NW143 cannot advance past this unfinished batch. Prior schedule/budget rules below remain the policy for a separately authorized restart.
+
+## Five-hour completion-budget check
+
+Before admitting a scheduled batch, read both Codex windows and conservatively estimate the entire remaining update: inspection, implementation, tests and repairs, sequential build/lint, recovery, review and private delivery. Add a reserve of at least 5 percentage points or 25% of estimated work, whichever is larger. Until comparable evidence supports a better estimate, require at least 30% five-hour allowance remaining for a normal full batch, and more for complex or uncertain work. This is a project planning floor, not an OpenAI product limit or a completion guarantee.
+
+Start only when the full completion envelope fits. Insufficient five-hour allowance means skip this run and keep the hourly schedule active for a fresh check after reset; never weaken scope or validation to fit. If either window is unreadable or ordinaryUsageAllowed is false, skip work. Recheck both windows after implementation, before expensive validation/delivery and at least every 10 minutes; re-estimate remaining work and safely checkpoint if it no longer fits. Shared-account changes are observations, not exact per-batch costs. The weekly reserve below still permanently stops the automation at 10% remaining.
+
+## Weekly allowance stop rule
+
+Before each scheduled batch, read the actual Codex weekly usage limit. Stop when **10% or less remains** (90% or more consumed), preserving work and honestly recording unfinished checks. Delete the hourly automation and notify the owner; do not restart automatically after reset. Check again after implementation, before expensive validation/publishing and at least every 10 minutes during long batches. If the weekly limit cannot be read, skip upgrades until it can be verified. These periodic checks are not an instantaneous account-wide cap; other chats share the allowance. This rule controls scheduled work and does not change the app.
+
+## NW141 results
+
+[Accessible bilingual primary flows](../NW141_ACCESSIBILITY_BILINGUAL.md), [device runbook](../NW141_DEVICE_RUNBOOK.md). 442 strings/four quantities, actual resource/caller and Unicode/locale regressions; four new Android methods compile only. Actual TalkBack, Switch Access, all-theme font/contrast, native-speaker review and every prior physical gate remain NOT_RUN. Legacy/native/advanced/provider copy is not claimed fully translated; NW143 reviews the remaining native/failure copy. **NW142 is next**, then NW143–NW145. The owner explicitly authorized this manual run despite the saved scheduled admission estimate; scheduled guards remain unchanged.
+
+## NW140 results
+
+[Measurement readiness and exact artifacts](../NW140_ANDROID_PERFORMANCE.md); [required device slot/protocol](../NW140_DEVICE_RUNBOOK.md). Production player bytes unchanged; no measured speedup. Two new Android diagnostics compile/assemble only, ten supplemental/original/prior physical/performance cases NOT_RUN. NW141 source is next under the independent-work rule.
+
+## NW139 results
+
+[Recovery source and exact build](../NW139_RECOVERY.md); [disposable live procedure](../NW139_RECOVERY_LIVE_PROCEDURE.md). Ten new Android methods compile only; ten supplemental/original/prior phone and account cases remain NOT_RUN. No live app archive operation was performed. NW140 follows this historical stage and its source readiness is locally verified above.
+
+## NW138 results
+
+[Sound Studio results and exact build](../NW138_SOUND_STUDIO.md). Four new Compose methods compile only; eight new physical cases plus original/prior cases remain NOT_RUN. NW139 follows this historical stage and is locally verified above.
+
+## NW137 results
+
+[Guided owned-lyrics results and exact build](../NW137_OWNED_LYRICS.md). Seven new Android methods compile only; eight new physical cases plus original/prior cases remain NOT_RUN. NW138 follows this historical stage and is locally verified above.
+
+## SEARCH02 results
+
+[Responsive public-search results and exact build](SEARCH02_RESPONSIVE_SEARCH.md). Two new screen tests compile only and eight new physical cases remain NOT_RUN. NW137 follows this historical stage and is locally verified above.
+
+## ART02 results
+
+[Cached-artwork results and exact build](ART02_CACHED_ARTWORK.md). Six new Android test methods compile only and eight new physical cases remain NOT_RUN. SEARCH02 follows this historical stage and is locally verified above.
+
+## FINISH02 committed implementation plan
+
+Completed locally: [results and exact build](FINISH02_EVERYDAY_CLARITY.md). Eight physical cases remain NOT_RUN. ART02 follows this historical plan and is locally verified above.
+
+Protected parent: `c932daaa1b3ac2e3da87730b3d726659f1e74171`. Branch: `fix/nightwave-everyday-finish`, stacked on #155. Private checkpoint: `20261029-finish02` outside Git.
+
+1. Reuse conservative known identity for Resume, saved download headings and offline dialogs/accessibility descriptions. Preserve original stored title, IDs, URLs, audio files, queue and cloud schemas; do not infer an artist from an uncorroborated title.
+2. Add a persistent 48dp Clear search action while a query exists and a filtered-empty Show all action. Clear only local query/availability filters and reset paging; preserve songs, sorting, history and selection.
+3. Persist a small numeric completion receipt on successful guarded transfers: network bytes and monotonic elapsed interval. Show duration and average network rate only after existing file verification says Ready. Exclude retained bytes, distinguish transfer from queue/import, omit unknown/legacy/reused receipts. Do not parse human diagnostic text or alter the successful transfer algorithm.
+4. Add meaningful tests for unit conversion, invalid/zero/overflow inputs, resumed-byte semantics and filtered-state recovery, plus caller guards. Run the full builder, current source checks, then lint; verify signer/provenance/recovery and save a cumulative draft PR and owner-only APK.
+5. Keep physical theme/font/input, fresh-versus-reused/resumed transfer, deletion, airplane-mode and previous acceptance cases NOT_RUN until performed. No score increase follows from test counts.
+
+ART02, SEARCH02 and NW137 onward retain separate implementation plans and checks; unfinished artwork/search work is explicit rather than claimed by this first batch.
+
+Cumulative [NW141 draft PR #163](https://github.com/Nahian2002/NightWave/pull/163) is attached for review; unmerged.
+
+## 31 October owner override result
+
+Preserved NW142 source is now cumulatively host-verified with the [weekly updater](../WEEKLY_UPDATER.md) (see TEST_REPORT.md):1817 JVM/226 suites,84 source checks,full Windows builder and serial lint PASS. All physical cases remain NOT_RUN. Updater stable feed disabled pending explicit public-release/main approval. The one-time allowance override does not restart hourly automation. Next independent roadmap source batch NW143.
+
+## Reopening and manual-check follow-up — 4 November 2026
+
+Owner-requested corrective patch on `fix/nightwave-reopen-weekly-updates`, based on #164: restored mini-player viewport sizing, resume checks, direct manual update access independent of cooldown and recoverable download timeout. Code37 preserves package/signer and existing data boundaries. See `docs/UPDATER_REOPEN_FIX.md`. Original next source batch NW143; automation stays deleted and signed stable feed disabled. Phone/runtime acceptance NOT_RUN.

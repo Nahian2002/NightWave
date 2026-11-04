@@ -1,3 +1,7 @@
+## Active code40 product review and successor roadmap — 4 November2026
+
+Read `docs/audits/2026-11-04_CODE40_PRODUCT_REVIEW.md`, `docs/UPGRADE_ROADMAP_NW146_NW153.md` and `docs/quality/NW146_NW153_BACKLOG.json` first. Next independent source batch NW146; NW145 acceptance remains PARTIAL. Code40 source/APK unchanged. Review presentation index7.83/10 is provisional, not full functional certification. Preserve original audits/scores and pending physical gates. New observations include paused queue labeled PLAYING, soft enlarged art, heavy secondary panels and unavailable update request. Source work and explicit phone checks stay separate; do not silently remove features or activate releases. Prior headers below are historical.
+
 ## NW145 first physical smoke — 4 November 2026
 
 Owner explicitly approved installing code40 over36 and non-destructive tests on connected Samsung SM-S928B (reports Android17/API37). Actual installed hash/signature match and29 pre-launch preference/database hashes unchanged. Scoped navigation, empty-search return, compact/full-player, play/pause UI, Help and10-second background return observed; manual update request unavailable. See `docs/NW145_SAMSUNG_CODE40_SMOKE.md`. NW145 is PARTIAL; original matrices, long-absence/older-device/audio/soak/study/release acceptance remain pending. Raw device content stays private outside Git. Phone left Home/paused. This approval covers version40 only; no reset/uninstall/new APK/account/settings action authorized. Historical no-device/deferred-testing notes below are superseded only by this scoped session.
@@ -90,3 +94,5 @@ The owner explicitly requires no app changes for public-repository preparation. 
 [Draft COMPAT01 review #169](https://github.com/Nahian2002/NightWave/pull/169), stacked on acceptance preparation #168; unmerged.
 
 [Draft phone evidence review #170](https://github.com/Nahian2002/NightWave/pull/170), stacked on COMPAT01 #169; unmerged.
+
+[Draft review #171](https://github.com/Nahian2002/NightWave/pull/171), stacked on phone evidence #170; unmerged.
