@@ -1,5 +1,7 @@
 # NightWave
 
+**Current product review:** [detailed code40 review](docs/audits/2026-11-04_CODE40_PRODUCT_REVIEW.md), [next upgrades NW146–NW153](docs/UPGRADE_ROADMAP_NW146_NW153.md). Provisional presentation index7.83/10; full product overall unscored. Next source batch NW146. Older status notes below are historical.
+
 **First device evidence:** owner-approved code40 in-place update and scoped Samsung phone smoke recorded in [review #170](https://github.com/Nahian2002/NightWave/pull/170). Installed APK identity/signature and29 pre-launch data-file hashes verified; basic UI checks observed. NW145 is PARTIAL, not a full219-case pass or9.5 rating. [Exact scope and pending cases](docs/NW145_SAMSUNG_CODE40_SMOKE.md).
 
 ## Current COMPAT01 source result — 4 November 2026

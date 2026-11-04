@@ -1,0 +1,189 @@
+{
+  "schema": 1,
+  "created_date": "2026-11-04",
+  "review": "docs/audits/2026-11-04_CODE40_PRODUCT_REVIEW.md",
+  "scorecard": "docs/quality/CODE40_REVIEW_SCORECARD.json",
+  "next_source_batch": "NW146",
+  "acceptance_umbrella": "NW145",
+  "execution_order": [
+    "NW146",
+    "NW147",
+    "NW148",
+    "NW149",
+    "NW150",
+    "NW151",
+    "NW152",
+    "NW153"
+  ],
+  "source_candidate_code": 40,
+  "phone_acceptance": "PARTIAL",
+  "rating_policy": "No automatic score rise from builds/test counts; full product overall remains unscored until critical evidence exists.",
+  "preservation": [
+    "All features and themes",
+    "Source URLs and quality",
+    "Installed data and storage formats",
+    "Package/signing identity",
+    "Account and consent boundaries"
+  ],
+  "schedule": "No automation active; one bounded source batch per requested run, then validation/review. No overnight or calendar promise.",
+  "batches": [
+    {
+      "id": "NW146",
+      "priority": "P0",
+      "title": "Truthful playback and update states",
+      "depends_on": [],
+      "finding_ids": [
+        "R01",
+        "R04"
+      ],
+      "implementation_status": "PLANNED",
+      "device_status": "NOT_RUN",
+      "acceptance_criteria": [
+        "Current/Playing/Paused/Buffering/Error labels agree across mini/full/queue and accessibility descriptions.",
+        "Model authenticated Disabled/NoCompatible/Available separately from unavailable/offline/error; no unsigned404 treated as trusted disabled metadata.",
+        "Retain manual checks, weekly cooldown, source/signature/data boundaries; no public activation without approval."
+      ]
+    },
+    {
+      "id": "NW147",
+      "priority": "P1",
+      "title": "Compact secondary UI without losing controls",
+      "depends_on": [
+        "NW146"
+      ],
+      "finding_ids": [
+        "R03"
+      ],
+      "implementation_status": "PLANNED",
+      "device_status": "NOT_RUN",
+      "acceptance_criteria": [
+        "Reduce repeated header/card/copy weight in Home,You,queue and Sound Studio using measured viewport budgets.",
+        "Retain every action,48dp independent targets, large-text expansion and accessible disclosure of advanced details.",
+        "Capture matched411dp reference and320/360/landscape/large-font comparisons; preserve active/draft sound behavior."
+      ]
+    },
+    {
+      "id": "NW148",
+      "priority": "P1",
+      "title": "Source-correct artwork quality",
+      "depends_on": [
+        "NW147"
+      ],
+      "finding_ids": [
+        "R02"
+      ],
+      "implementation_status": "PLANNED",
+      "device_status": "NOT_RUN",
+      "acceptance_criteria": [
+        "Measure requested/cached/decoded/displayed art sizes; recover sharper legitimate same-source imagery where available.",
+        "No audio URL/quality/recording changes, invented album identity or unbounded network/decode work.",
+        "Verify stale/deleted/source-change races, missing art fallback and narrow/large player sharpness; keep unavailable quality honest."
+      ]
+    },
+    {
+      "id": "NW149",
+      "priority": "P1",
+      "title": "Four-theme and motion consistency",
+      "depends_on": [
+        "NW147",
+        "NW148"
+      ],
+      "finding_ids": [
+        "R03",
+        "R06"
+      ],
+      "implementation_status": "PLANNED",
+      "device_status": "NOT_RUN",
+      "acceptance_criteria": [
+        "Review every theme at Home/Search/Library/You/player/queue/offline/dialog states with measured contrast.",
+        "Preserve matte identity, accessible selected/disabled/error states and reduced-motion/focus/keyboard behavior.",
+        "Measure transitions/frame pacing before duration changes; investigate Sound Studio dump137 without labeling it an app crash."
+      ]
+    },
+    {
+      "id": "NW150",
+      "priority": "P1",
+      "title": "Search offline and lyrics journey finish",
+      "depends_on": [
+        "NW146",
+        "NW147"
+      ],
+      "finding_ids": [
+        "R03",
+        "R07"
+      ],
+      "implementation_status": "PLANNED",
+      "device_status": "NOT_RUN",
+      "acceptance_criteria": [
+        "Exercise live public and saved/local queries, versions/cancellation/stale results and exact source identity.",
+        "Align offline/import/download/error UI and actionable readiness/retry copy; measure network/receive/write separately without universal Mbps promise.",
+        "Complete owned-LRC import/review/editor/follow guidance; preserve every supported source and exclude unauthorized lyrics/audio workflows."
+      ]
+    },
+    {
+      "id": "NW151",
+      "priority": "P1",
+      "title": "Older Android language and accessibility finish",
+      "depends_on": [
+        "NW147",
+        "NW149"
+      ],
+      "finding_ids": [
+        "R05",
+        "R06"
+      ],
+      "implementation_status": "PLANNED",
+      "device_status": "NOT_RUN",
+      "acceptance_criteria": [
+        "Backport classic text sizing on API23\u201325 without removing the native fallback; validate bounded text/wrapping.",
+        "Finish prioritized native/advanced English/Bangla resource coverage while preserving user/provider text and data schemas.",
+        "Use approved API23/24/26/modern and hardware/input/TalkBack/font profiles; grade only actually executed cases."
+      ]
+    },
+    {
+      "id": "NW152",
+      "priority": "P1",
+      "title": "Recovery sharing and release readiness",
+      "depends_on": [
+        "NW146",
+        "NW150",
+        "NW151"
+      ],
+      "finding_ids": [
+        "R04",
+        "R07"
+      ],
+      "implementation_status": "PLANNED",
+      "device_status": "NOT_RUN",
+      "acceptance_criteria": [
+        "Verify share/file-provider/picker/rotation/cancel/name-conflict and data-preserving receipts with disposable fixtures.",
+        "Exercise recovery/upload/restore/account-switch only under explicitly approved disposable-account scope; preserve existing consent and private reporting.",
+        "Prepare reviewable stable metadata/APK rollback and release artifacts; activation/public binary/main merge remain explicit owner approvals."
+      ]
+    },
+    {
+      "id": "NW153",
+      "priority": "P0",
+      "title": "Final measured acceptance and re-rating",
+      "depends_on": [
+        "NW146",
+        "NW147",
+        "NW148",
+        "NW149",
+        "NW150",
+        "NW151",
+        "NW152"
+      ],
+      "finding_ids": [
+        "R07"
+      ],
+      "implementation_status": "PLANNED",
+      "device_status": "NOT_RUN",
+      "acceptance_criteria": [
+        "Close original219 plus supplemental/new cases with exact source/APK/signer and device artifacts; repair demonstrated critical/high failures.",
+        "Run locked eight-listener tasks and required two-hour/route/offline/performance/battery evidence; retain every failure and limitation.",
+        "Re-rate original full weighted rubric;>=9.5 requires no core area below9 and no unknown critical gate. Keep release GO separate."
+      ]
+    }
+  ]
+}

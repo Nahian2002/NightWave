@@ -1,0 +1,159 @@
+{
+  "schema": 1,
+  "review_date": "2026-11-04",
+  "candidate_code": 40,
+  "source_sha256": "3674B2BE4F6ADE0D25EC676186A941F64809ABE0D911A4BD1E1D32914690E406",
+  "presentation_index": 7.83,
+  "scored_original_rubric_weight": 92,
+  "total_original_rubric_weight": 100,
+  "full_product_rating": null,
+  "score_scope": "Provisional presentation/usability judgment; not the full frozen functional rubric or certification",
+  "areas": [
+    {
+      "area": "Visual identity and coherence",
+      "weight": 8,
+      "presentation_score": 8.3,
+      "coverage": "Observed AMOLED; other palettes source-only",
+      "reason": "Good matte identity; component families still differ"
+    },
+    {
+      "area": "Compactness and useful screen space",
+      "weight": 8,
+      "presentation_score": 7.5,
+      "coverage": "Home/player/queue/You/offline/Sound screenshots",
+      "reason": "Oversized secondary cards, repeated padding and explanatory copy"
+    },
+    {
+      "area": "Typography and visual readability",
+      "weight": 6,
+      "presentation_score": 8.1,
+      "coverage": "Observed font0.8 only",
+      "reason": "Clear hierarchy; long native labels and all-font acceptance remain"
+    },
+    {
+      "area": "Navigation and user control",
+      "weight": 8,
+      "presentation_score": 8.2,
+      "coverage": "Scoped actual tab/Back/background checks",
+      "reason": "More route families and gesture/picker paths need coverage"
+    },
+    {
+      "area": "Home usefulness and discovery",
+      "weight": 8,
+      "presentation_score": 8.0,
+      "coverage": "Actual mature-history Home",
+      "reason": "Useful resume/history; large mix cards and long lower sections"
+    },
+    {
+      "area": "Search presentation",
+      "weight": 10,
+      "presentation_score": 8.0,
+      "coverage": "Empty/saved-result UI observed; live relevance unscored",
+      "reason": "Source/version decisions exist; real query latency/recall not established"
+    },
+    {
+      "area": "Music identity and artwork",
+      "weight": 6,
+      "presentation_score": 6.8,
+      "coverage": "Actual enlarged player art",
+      "reason": "Visible low-resolution softness; source-correct sharper art needed"
+    },
+    {
+      "area": "Now Playing presentation",
+      "weight": 10,
+      "presentation_score": 8.2,
+      "coverage": "Actual mini/full controls and Back",
+      "reason": "Strong controls; secondary content and art quality reduce finish"
+    },
+    {
+      "area": "Library presentation",
+      "weight": 8,
+      "presentation_score": 7.7,
+      "coverage": "Actual empty saved Library; advanced operations source-only",
+      "reason": "Entry paths exist; populated/bulk/conflict states not exercised"
+    },
+    {
+      "area": "Queue presentation",
+      "weight": 5,
+      "presentation_score": 7.4,
+      "coverage": "Actual24-upcoming sheet; no edits",
+      "reason": "PLAYING label conflicts with paused player; bulky row/header spacing"
+    },
+    {
+      "area": "Offline/transfer presentation",
+      "weight": 7,
+      "presentation_score": 7.4,
+      "coverage": "Actual offline screenshot; workers source-only",
+      "reason": "Style/density differs; throughput/integrity operational grade unknown"
+    },
+    {
+      "area": "Lyrics",
+      "weight": 4,
+      "presentation_score": null,
+      "coverage": "Source/import policies and player entry only",
+      "reason": "No real LRC import/sync/editor session; numerical experience score withheld"
+    },
+    {
+      "area": "Sound Studio presentation",
+      "weight": 4,
+      "presentation_score": 7.8,
+      "coverage": "Actual screenshot; hierarchy dump exited137",
+      "reason": "Truthful capabilities; large readback/copy cards; no audible-quality grade"
+    },
+    {
+      "area": "Account and recovery",
+      "weight": 4,
+      "presentation_score": null,
+      "coverage": "You summary observed; backup/restore source-only",
+      "reason": "No live recovery/account-switch experiment; score withheld"
+    },
+    {
+      "area": "Personalization presentation",
+      "weight": 2,
+      "presentation_score": 8.0,
+      "coverage": "AMOLED/profile UI observed; four palettes source reviewed",
+      "reason": "Other themes and preference changes not physically reviewed"
+    },
+    {
+      "area": "Copy and state clarity",
+      "weight": 2,
+      "presentation_score": 7.6,
+      "coverage": "Actual queue/update/help/settings",
+      "reason": "Paused/PLAYING contradiction, generic unavailable-update recovery, lengthy technical copy"
+    }
+  ],
+  "motion": {
+    "specification_score": 8.0,
+    "coverage": "Source policies; settled screenshots only",
+    "frame_pacing_score": null
+  },
+  "themes": {
+    "AMOLED": {
+      "visual_score": 8.2,
+      "coverage": "Observed on connected phone"
+    },
+    "MIDNIGHT": {
+      "visual_score": null,
+      "coverage": "Palette/source only"
+    },
+    "AURORA": {
+      "visual_score": null,
+      "coverage": "Palette/source only"
+    },
+    "PEARL": {
+      "visual_score": null,
+      "coverage": "Palette/source only"
+    }
+  },
+  "critical_unscored": [
+    "Long-term reliability",
+    "Performance/battery distributions",
+    "Accessibility/font/theme matrix",
+    "Audible quality and route handling",
+    "Download/offline integrity",
+    "Live backup/restore/data recovery",
+    "Privacy/security/release approvals"
+  ],
+  "phone_review": "Samsung SM-S928B reports Android17/API37,1440x3120,density560,font0.8,AMOLED",
+  "no_runtime_mutations": "Queue viewed only; Sound Studio opened without selecting preset/Apply; phone returned Home paused. No theme/system/account/library changes."
+}
