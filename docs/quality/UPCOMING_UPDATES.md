@@ -1,3 +1,5 @@
+5 November motion follow-up: AMOLED/REDUCED checked and static views normal. Owner app Reduced-off action and originalAMOLED/System readback pending.21/36 representative views observed;15 remain. Approval45 persists; source/APK unchanged; next independent sourceNW150.
+
 5 November: four themes representative static captures reviewed,21/36 observed,15 pending. Phone latestMIDNIGHT/System; owner manualAMOLED/Reduced-on check and finalAMOLED/System restoration required. Approval45 persists; no reinstall. See ../NW149_POCO_CODE45_SMOKE.md. Source/APK unchanged; next independent sourceNW150, fullacceptance stillPARTIAL.
 
 Poco45 installed under explicit approval:17 unchanged prelaunch files; six AMOLED static surfaces observed,30 rendered slots/other-theme/app Reduced checks pending owner Aurora selection. OriginalAMOLED/System unchanged. Read ../NW149_POCO_CODE45_SMOKE.md. Approval45 persists; next sourceNW150; no automatic score/release/schedule promotion.

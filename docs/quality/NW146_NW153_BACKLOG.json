@@ -107,7 +107,7 @@
         "R06"
       ],
       "implementation_status": "LOCAL_VERIFIED",
-      "device_status": "PARTIAL_FOUR_THEME_STATIC",
+      "device_status": "PARTIAL_THEME_MOTION_RESTORE_PENDING",
       "acceptance_criteria": [
         "Review every theme at Home/Search/Library/You/player/queue/offline/dialog states with measured contrast.",
         "Preserve matte identity, accessible selected/disabled/error states and reduced-motion/focus/keyboard behavior.",

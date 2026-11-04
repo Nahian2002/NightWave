@@ -3,7 +3,7 @@
   "batch": "NW149",
   "date": "2026-11-04",
   "implementation_status": "LOCAL_VERIFIED",
-  "device_status": "PARTIAL_FOUR_THEME_STATIC",
+  "device_status": "PARTIAL_THEME_MOTION_RESTORE_PENDING",
   "build": {
     "build_id": "NW-debug-356960B7755F6DC0",
     "revision": "3cc1e8a4c75fc1656ecca09ca4bc61e801919f23",
@@ -135,7 +135,7 @@
     "current_pid_fatal_records": 0,
     "initial_artwork_placeholder": "Resolved in subsequent Home recording/capture; no persistent failure observed",
     "preferences_at_last_readback": "Initial AMOLED/System snapshot; latest captured/read Midnight/System in theme_followup, restoration pending",
-    "pending_owner_action": "Superseded by theme_followup: select AMOLED/app Reduced on, then restore AMOLED/System",
+    "pending_owner_action": "See motion_followup: restore app Reduced off and verify AMOLED/System",
     "private_recording_copy": "Full remote/local SHA verified; only owned temporary remote MP4 removed after verified copy",
     "source_apk_changes": "None; host verification not rerun for documentation-only device observations",
     "stage": "INITIAL_AMOLED_SNAPSHOT"
@@ -209,8 +209,28 @@
     "matrix_observed_static": 21,
     "matrix_not_run": 15,
     "latest_captured_preferences": "MIDNIGHT/SYSTEM",
-    "current_pending_action": "Owner selects AMOLED and enables app Reduced Motion, manually taps Home/Search/You, reports on; then restore AMOLED/System",
+    "current_pending_action": "Superseded by motion_followup: app Reduced on observed, off/restoration pending",
     "restore_status": "PENDING; original preferences must be read back after testing",
-    "scope": "No source/APK changes, no timing/FPS/global product rating from static captures"
+    "scope": "No source/APK changes, no timing/FPS/global product rating from static captures",
+    "stage": "FOUR_THEME_CAPTURE_SNAPSHOT"
+  },
+  "motion_followup": {
+    "date": "2026-11-05",
+    "theme": "AMOLED",
+    "stored_motion": "REDUCED",
+    "visible_switch": "CHECKED",
+    "owner_report": "done to requested Home/Search/You traversal; no explicit timing/no-stuck report inferred",
+    "static_surfaces": [
+      "Home",
+      "Search",
+      "Library",
+      "Player",
+      "You"
+    ],
+    "selected_navigation_matches": true,
+    "search_empty": true,
+    "motion_scope": "App preference/switch plus static rendering observed; no continuous motion/frame/haptic/system-scale certification",
+    "restore": "PENDING owner switch off, readback AMOLED/System required",
+    "pending_owner_action": "Turn app Reduced Motion off, keep AMOLED; read back original AMOLED/System"
   }
 }
