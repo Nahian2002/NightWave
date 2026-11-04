@@ -26,7 +26,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import java.io.File
 
 internal data class UpdateScreen(val loading: Boolean = true, val update: ApprovedUpdate? = null,
-    val progress: Int? = null, val file: File? = null, val failed: Boolean = false)
+    val progress: Int? = null, val file: File? = null, val failed: Boolean = false,
+    val checkStatus: UpdateCheckStatus? = null)
 
 internal class WeeklyUpdateModel(app: Application) : AndroidViewModel(app) {
     val state = MutableStateFlow(UpdateScreen())
@@ -36,9 +37,14 @@ internal class WeeklyUpdateModel(app: Application) : AndroidViewModel(app) {
         if (state.value.progress != null || checkJob?.isActive == true) return
         state.value = UpdateScreen()
         checkJob = viewModelScope.launch {
-            try { state.value = UpdateScreen(loading = false, update = WeeklyUpdates.latest(getApplication())) }
+            try {
+                val result = WeeklyUpdates.latest(getApplication())
+                state.value = UpdateScreen(loading = false, update = result.update, checkStatus = result.status)
+            }
             catch (e: CancellationException) { throw e }
-            catch (_: Exception) { state.value = UpdateScreen(loading = false, failed = true) }
+            catch (e: UpdateCheckException) { state.value = UpdateScreen(loading = false, failed = true, checkStatus = e.status) }
+            catch (_: java.io.IOException) { state.value = UpdateScreen(loading = false, failed = true, checkStatus = UpdateCheckStatus.UNAVAILABLE) }
+            catch (_: Exception) { state.value = UpdateScreen(loading = false, failed = true, checkStatus = UpdateCheckStatus.INVALID_METADATA) }
         }
     }
     fun download() {
@@ -77,11 +83,15 @@ class WeeklyUpdateActivity : ComponentActivity() {
                                 Text(state.update!!.notes)
                                 Text(getString(R.string.weekly_weekly_notice))
                             }
+                            state.checkStatus == UpdateCheckStatus.DISABLED -> Text(getString(R.string.nw146_updates_disabled))
+                            state.checkStatus == UpdateCheckStatus.OFFLINE -> Text(getString(R.string.nw146_updates_offline))
+                            state.checkStatus == UpdateCheckStatus.UNAVAILABLE -> Text(getString(R.string.nw146_updates_unavailable))
+                            state.checkStatus == UpdateCheckStatus.INVALID_METADATA -> Text(getString(R.string.nw146_updates_unverified))
                             !state.failed -> Text(getString(R.string.weekly_latest))
                         }
                         state.progress?.let { Text(getString(R.string.weekly_downloading, it)); LinearProgressIndicator(progress = { it / 100f }) }
                         if (state.file != null) Text(getString(R.string.weekly_ready))
-                        if (state.failed) Text(getString(R.string.weekly_failed))
+                        if (state.failed && state.update != null) Text(getString(R.string.weekly_failed))
                     } },
                     confirmButton = {
                         when {

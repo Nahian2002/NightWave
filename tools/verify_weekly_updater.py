@@ -10,7 +10,7 @@ FILES={
 REQUIRED={
  'update':['WeeklyUpdatePolicy.due(now, p.getLong("checked", 0))','WeeklyUpdatePolicy.RETRY_MS',
   'WeeklyUpdatePolicy.verify(payload, signature,', 'if (!m.getBoolean("enabled"))',
-  'update.takeIf { it.code > code(c) && (it.minSdk == null || it.minSdk <= Build.VERSION.SDK_INT) }','require(received <= u.bytes)', 'received == u.bytes',
+  'UpdateCheckPolicy.authenticated(true, code(c), update.code, Build.VERSION.SDK_INT, update.minSdk)','require(received <= u.bytes)', 'received == u.bytes',
   'candidate.packageName == c.packageName', 'version(candidate) == u.code',
   'certificates(candidate) == certificates(installed)', 'WeeklyUpdatePolicy.minimumSdkAccepted(Build.VERSION.SDK_INT, archiveMinimum, u.minSdk)',
   'currentCoroutineContext().ensureActive()', 'part.delete(); apk.delete(); throw e',
