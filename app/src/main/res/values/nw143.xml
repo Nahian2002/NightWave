@@ -1,0 +1,5 @@
+<resources>
+    <string name="nw143_first_listen">Search public music online, or open Offline to import audio you own. Imported audio stays on this device. Google sign-in is optional for backup.</string>
+    <string name="nw143_storage_summary">Check the local library copy. Your music stays available.</string>
+    <string name="nw143_storage_check">Check library storage</string>
+</resources>

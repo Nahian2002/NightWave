@@ -1,0 +1,5 @@
+<resources>
+    <string name="nw143_first_listen">অনলাইনে প্রকাশ্য গান খুঁজুন, অথবা আপনার নিজের অডিও আমদানি করতে অফলাইন খুলুন। আমদানি করা অডিও এই ডিভাইসেই থাকে। ব্যাকআপের জন্য Google সাইন-ইন ঐচ্ছিক।</string>
+    <string name="nw143_storage_summary">স্থানীয় লাইব্রেরির কপি যাচাই করুন। আপনার গান ব্যবহার করা যাবে।</string>
+    <string name="nw143_storage_check">লাইব্রেরির স্টোরেজ যাচাই করুন</string>
+</resources>

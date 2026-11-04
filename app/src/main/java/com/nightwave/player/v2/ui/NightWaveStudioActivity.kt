@@ -3681,7 +3681,8 @@ internal fun StudioHome(
                     { onResumeSpotlight(last, recentShelf) }
                 },
                 emptyTitle = entry.primary?.title,
-                emptyDetail = entry.primary?.detail,
+                emptyDetail = if (entry.kind == NightWaveHomePresentationPolicy.Kind.NEW)
+                    strings.get(R.string.nw143_first_listen) else entry.primary?.detail,
                 emptyActionLabel = entry.primary?.actionLabel,
                 onEmptyAction = if (entry.primary != null) openPrimary else null
             )
@@ -5624,7 +5625,7 @@ private fun StudioProfile(
                         style = MaterialTheme.typography.bodySmall, color = muted)
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                StudioProfileRow(strings.get(R.string.nw141_advanced_storage_e966b), "Check storage without changing your music",
+                StudioProfileRow(strings.get(R.string.nw141_advanced_storage_e966b), strings.get(R.string.nw143_storage_summary),
                     Icons.Outlined.Settings, { showAdvanced = !showAdvanced },
                     trailing = { Text(if (showAdvanced) strings.get(R.string.nw141_hide_ac20a) else strings.get(R.string.nw141_details_45989),
                         style = MaterialTheme.typography.labelMedium,
@@ -5640,7 +5641,7 @@ private fun StudioProfile(
                             style = MaterialTheme.typography.bodySmall, color = muted)
                         OutlinedButton(onClick = onCheckStorage,
                             modifier = Modifier.fillMaxWidth()) {
-                            Text("RECHECK NEW STORAGE")
+                            Text(strings.get(R.string.nw143_storage_check))
                         }
                         OutlinedButton(
                             onClick = if (roomPreviewActive) onUseLegacyReads
