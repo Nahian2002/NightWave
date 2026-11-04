@@ -90,7 +90,7 @@ def check(source: dict[str, str]) -> list[str]:
          'android:usesCleartextTraffic="false"' in s("manifest"),
          "Android private storage and network security flags changed")
     need('applicationId = "com.nightwave.player"' in s("gradle") and
-         "minSdk = 26" in s("gradle") and
+         "minSdk = 23" in s("gradle") and
          "targetSdk = 35" in s("gradle"),
          "App package/SDK identity changed unexpectedly")
     need(":app:testDebugUnitTest :app:assembleDebug :app:compileDebugAndroidTestKotlin"

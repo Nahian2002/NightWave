@@ -15,7 +15,7 @@ import java.util.Locale
 
 /** Resource reader captured during composition; safe in callbacks/semantics lambdas. */
 internal class NightWaveStrings(private val resources: Resources) {
-    private val locale: Locale = resources.configuration.locales[0] ?: Locale.ENGLISH
+    private val locale: Locale = androidx.core.os.ConfigurationCompat.getLocales(resources.configuration)[0] ?: Locale.ENGLISH
     fun get(@StringRes id: Int, vararg args: Any): String =
         if (args.isEmpty()) resources.getString(id) else resources.getString(id, *args)
     fun quantity(@PluralsRes id: Int, count: Int): String =

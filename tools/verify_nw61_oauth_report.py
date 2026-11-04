@@ -31,7 +31,7 @@ def verify(script: str, launcher: str, builder: str, syntax: str) -> None:
             "Sort-Object -Property",
             "Test-Path -LiteralPath $signer -PathType Leaf",
             "Test-Path -LiteralPath $aapt -PathType Leaf",
-            "verify --min-sdk-version 26 --print-certs",
+            "verify --print-certs",
             "Signer #1 certificate SHA-1 digest",
             "Signer #1 certificate SHA-256 digest",
             "if ($package -ne 'com.nightwave.player')",

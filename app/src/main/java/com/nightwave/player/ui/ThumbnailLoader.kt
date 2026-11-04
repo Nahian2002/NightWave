@@ -29,7 +29,8 @@ class ThumbnailLoader(context: Context) {
                 connection.readTimeout = 6_000
                 connection.instanceFollowRedirects = true
                 try {
-                    if (connection.responseCode !in 200..299 || connection.contentLengthLong > 3_000_000) null
+                    val declaredBytes = connection.getHeaderField("Content-Length")?.trim()?.toLongOrNull() ?: -1L
+                    if (connection.responseCode !in 200..299 || declaredBytes > 3_000_000) null
                     else connection.inputStream.use { input ->
                         BitmapFactory.decodeStream(input, null, BitmapFactory.Options().apply { inSampleSize = 2 })
                     }

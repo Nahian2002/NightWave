@@ -87,7 +87,7 @@ class WeeklyUpdateActivity : ComponentActivity() {
                         when {
                             state.file != null -> TextButton(onClick = {
                                 try {
-                                    if (!packageManager.canRequestPackageInstalls()) {
+                                    if (android.os.Build.VERSION.SDK_INT >= 26 && !packageManager.canRequestPackageInstalls()) {
                                         startActivity(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:$packageName")))
                                     } else {
                                         val uri = FileProvider.getUriForFile(this, "$packageName.updates", requireNotNull(state.file))

@@ -7,6 +7,19 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class WeeklyUpdatePolicyTest {
+    @Test fun android6FailsClosedWithoutSignedMinimumOrWhenReleaseNeedsNewerOs() {
+        assertFalse(WeeklyUpdatePolicy.minimumSdkAccepted(23, null, null))
+        assertFalse(WeeklyUpdatePolicy.minimumSdkAccepted(23, null, 24))
+        assertFalse(WeeklyUpdatePolicy.minimumSdkAccepted(23, null, 0))
+        assertTrue(WeeklyUpdatePolicy.minimumSdkAccepted(23, null, 23))
+    }
+    @Test fun newerAndroidComparesActualArchiveAndSignedMinimumWithLegacyFeedSupport() {
+        assertTrue(WeeklyUpdatePolicy.minimumSdkAccepted(24, 23, 23))
+        assertTrue(WeeklyUpdatePolicy.minimumSdkAccepted(26, 23, null))
+        assertFalse(WeeklyUpdatePolicy.minimumSdkAccepted(24, 26, 23))
+        assertFalse(WeeklyUpdatePolicy.minimumSdkAccepted(26, 24, 23))
+        assertFalse(WeeklyUpdatePolicy.minimumSdkAccepted(24, null, 23))
+    }
     @Test fun sevenDaysMeansOneLatestOfferRatherThanEveryBuild() {
         val start = 1_000_000L
         assertTrue(WeeklyUpdatePolicy.due(start, 0))

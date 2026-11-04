@@ -27,6 +27,9 @@ if (-not $Disable) {
     if (-not $BuildToolsDir) { throw 'Provide the Android build-tools directory for actual APK/signature verification.' }
     & (Join-Path $PSScriptRoot 'verify-apk-signature.ps1') -ApkPath $ApkPath -BuildToolsDir $BuildToolsDir -VersionName $VersionName -VersionCode $VersionCode -TrustedSignerSHA256 'EA737A703B8F116EBC5C8C0A717DDBF3A2A5808ACC9079A8F79CD1B3CD860394'
     if (-not $?) { throw 'APK identity verification failed.' }
+    $badging = (& (Join-Path $BuildToolsDir 'aapt.exe') dump badging $ApkPath 2>&1 | Out-String)
+    if ($LASTEXITCODE -ne 0 -or $badging -notmatch "(?m)^sdkVersion:'([0-9]+)'\s*$") { throw 'Cannot read actual APK minimum SDK.' }
+    $payload.minSdk = [int]$Matches[1]
     $payload.versionCode=$VersionCode; $payload.versionName=$VersionName; $payload.url=$ReleaseUrl
     $payload.bytes=$apk.Length; $payload.sha256=(Get-FileHash -LiteralPath $ApkPath -Algorithm SHA256).Hash; $payload.notes=$Notes
 }

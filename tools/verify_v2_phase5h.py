@@ -33,7 +33,7 @@ assert "'com.nightwave.player'" in signer
 # Refuse unsigned, wrong-package, wrong-version, or mismatched-signer APKs.
 assert 'aapt.exe' in signer and 'dump badging' in signer
 assert 'apksigner.bat' in signer
-assert 'verify --min-sdk-version 26 --verbose --print-certs' in signer
+assert 'verify --verbose --print-certs' in signer
 assert 'Signer #1 certificate SHA-256 digest:' in signer
 assert 'Unexpected multiple signers' in signer
 assert 'previousSigner -ne $newSigner' in signer

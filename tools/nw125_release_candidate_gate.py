@@ -96,8 +96,8 @@ def inspect(root: Path, names: list[str] | None = None) -> dict:
             (r'applicationId\s*=\s*"com\.nightwave\.player"', "package ID"),
             (r'compileSdk\s*=\s*36\b', "compile SDK 36"),
             (r'targetSdk\s*=\s*36\b', "target SDK 36"),
-            (r'minSdk\s*=\s*26\b', "minimum SDK 26"),
-            (r'versionCode\s*=\s*(?:35|36|37|38|39)\b', "expected development version code"),
+            (r'minSdk\s*=\s*23\b', "minimum SDK 23"),
+            (r'versionCode\s*=\s*(?:35|36|37|38|39|40)\b', "expected development version code"),
         ):
             if re.search(pattern, text) is None:
                 findings.append("Android build identity mismatch: " + label)

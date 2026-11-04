@@ -32,8 +32,8 @@ def inspect(root: Path) -> list[str]:
         (r"\bcompileSdk\s*=\s*36\b", "compile-sdk"),
         (r"\btargetSdk\s*=\s*36\b", "target-sdk"),
         (r'applicationId\s*=\s*"com\.nightwave\.player"', "package"),
-        (r"\bminSdk\s*=\s*26\b", "min-sdk"),
-        (r"\bversionCode\s*=\s*(?:35|36|37|38|39)\b", "version-code"),
+        (r"\bminSdk\s*=\s*23\b", "min-sdk"),
+        (r"\bversionCode\s*=\s*(?:35|36|37|38|39|40)\b", "version-code"),
         (r'\bversionName\s*=\s*"2\.0\.0-alpha5s"', "version-name"),
     ):
         if not re.search(marker, app): errors.append(name)
@@ -116,7 +116,7 @@ def self_test() -> None:
         files = {
             "app/build.gradle.kts": (
                 'compileSdk = 36\ntargetSdk = 36\napplicationId = "com.nightwave.player"\n'
-                'minSdk = 26\nversionCode = 35\nversionName = "2.0.0-alpha5s"'),
+                'minSdk = 23\nversionCode = 35\nversionName = "2.0.0-alpha5s"'),
             "build.gradle.kts": 'id("com.android.application") version "8.10.1"',
             "tools/build-windows.ps1": (
                 "gradle-8.11.1-bin.zip 'platforms;android-36' "

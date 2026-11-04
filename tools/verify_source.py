@@ -31,7 +31,7 @@ assert 'android:usesCleartextTraffic="false"' in manifest
 gradle = (root / "app/build.gradle.kts").read_text(encoding="utf-8")
 assert 'com.github.TeamNewPipe:NewPipeExtractor:v0.26.5' in gradle
 assert 'coreLibraryDesugaring(' in gradle
-assert 'minSdk = 26' in gradle
+assert 'minSdk = 23' in gradle
 workflow = (root / ".github/workflows/current-android.yml").read_text(encoding="utf-8")
 assert 'gradle-version: ' in workflow and '8.11.1' in workflow
 for task in (':app:testDebugUnitTest', ':app:assembleDebug',
