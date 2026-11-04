@@ -1,3 +1,5 @@
+Current: NW148 code44 source repair LOCAL_VERIFIED_DEVICE_PENDING; next source batch NW149. Read NW148_CANONICAL_ARTWORK_REPAIR.md. Earlier repair-budget hold is historical; code44 phone installation and manual acceptance remain pending.
+
 # Upcoming upgrades NW146–NW153 — code40 review
 
 4 November2026. Active successor to the locally verified NW126–NW144/COMPAT01 source work. Those batches are historical implementation milestones, not proof that the app is perfect. [Current review](audits/2026-11-04_CODE40_PRODUCT_REVIEW.md), [scorecard](quality/CODE40_REVIEW_SCORECARD.json), [structured backlog](quality/NW146_NW153_BACKLOG.json).

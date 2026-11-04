@@ -3,7 +3,7 @@
   "created_date": "2026-11-04",
   "review": "docs/audits/2026-11-04_CODE40_PRODUCT_REVIEW.md",
   "scorecard": "docs/quality/CODE40_REVIEW_SCORECARD.json",
-  "next_source_batch": "NW148",
+  "next_source_batch": "NW149",
   "acceptance_umbrella": "NW145",
   "execution_order": [
     "NW146",
@@ -15,7 +15,7 @@
     "NW152",
     "NW153"
   ],
-  "source_candidate_code": 43,
+  "source_candidate_code": 44,
   "phone_acceptance": "PARTIAL",
   "rating_policy": "No automatic score rise from builds/test counts; full product overall remains unscored until critical evidence exists.",
   "preservation": [
@@ -80,18 +80,19 @@
       "finding_ids": [
         "R02"
       ],
-      "implementation_status": "NEEDS_REPAIR",
-      "device_status": "PARTIAL_FINDINGS_OPEN",
+      "implementation_status": "LOCAL_VERIFIED_DEVICE_PENDING",
+      "device_status": "CODE44_NOT_RUN",
       "acceptance_criteria": [
         "Measure requested/cached/decoded/displayed art sizes; recover sharper legitimate same-source imagery where available.",
         "No audio URL/quality/recording changes, invented album identity or unbounded network/decode work.",
         "Verify stale/deleted/source-change races, missing art fallback and narrow/large player sharpness; keep unavailable quality honest."
       ],
       "evidence": "docs/quality/NW148_SOURCE_EVIDENCE.json",
-      "source_revision": "6c58534f0281cfea1e5ab1e18f17ed1bc61dbe99",
-      "notes": "Code43 installed with29 unchanged prelaunch hashes. Actual source is queried168x94 while same-video1280x720 exists; canonical binding repair required. Initial blank captures recovered after relaunch, cause unknown. Repair budget23 including reserve exceeds22 remaining; checkpoint, no new implementation.",
-      "host_status": "LOCAL_VERIFIED_CODE43",
-      "phone_evidence": "docs/NW148_SAMSUNG_CODE43_FINDINGS.md"
+      "source_revision": "17ba9faeda891493494d427dc0e6f53140583651",
+      "notes": "Canonical-bound public-thumbnail repair verified:1833 JVM/90 checks/build/lint unchanged. Poco Android12 currently35; MIUI blocks remote taps. Code44 installation requires explicit approval, then manual sharpness/reopen checks. Samsung capture anomaly remains unexplained.",
+      "host_status": "LOCAL_VERIFIED_CODE44",
+      "phone_evidence": "docs/NW148_SAMSUNG_CODE43_FINDINGS.md",
+      "repair_evidence": "docs/NW148_CANONICAL_ARTWORK_REPAIR.md"
     },
     {
       "id": "NW149",

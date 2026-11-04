@@ -63,5 +63,29 @@
     "evidence": "docs/NW148_SAMSUNG_CODE43_FINDINGS.md",
     "result": "PARTIAL_WITH_OPEN_QUALITY_AND_CAPTURE_FINDINGS",
     "original219_cases": "NOT_PROMOTED_FROM_SMOKE"
+  },
+  "latest_source_candidate": {
+    "batch": "NW148",
+    "code": 44,
+    "status": "LOCAL_VERIFIED_DEVICE_PENDING",
+    "evidence": "docs/quality/NW148_SOURCE_EVIDENCE.json"
+  },
+  "replacement_phone_baseline": {
+    "reported_model": "M2007J20CI",
+    "reported_android": "12",
+    "reported_api": 31,
+    "display_pixels": [
+      1080,
+      2400
+    ],
+    "density_dpi": 440,
+    "font_scale": 0.81,
+    "installed_code": 35,
+    "installed_apk_sha256": "E99A1884758AFE14C381D2D502440188A75280ABB3F28EE4034BD5B0736A5917",
+    "usb_debugging": "AUTHORIZED",
+    "remote_taps": "BLOCKED_BY_INJECT_EVENTS_PERMISSION",
+    "owner_report": "MIUI security debugging setup asks for SIM; leave disabled, use manual navigation",
+    "code44_install": "NOT_APPROVED_NOT_RUN",
+    "current_state": "Baseline Home with paused selection observed; no library/account/system preference changed"
   }
 }
