@@ -1450,6 +1450,8 @@ fun StudioQueueSheet(
     onClearUpcoming: ((QueueEditSnapshot) -> Boolean)? = null
 ) {
     val strings = rememberNightWaveStrings()
+    val currentStatus = strings.playbackStatus(PlaybackHealthPolicy.classify(state.hasTrack,
+        state.connected, state.offline, state.playing, state.buffering, state.resolving, state.error))
     val snackbarHost = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var editingOrder by remember { mutableStateOf(false) }
@@ -1556,7 +1558,7 @@ fun StudioQueueSheet(
                     }
                 } else {
                     item(key = "queue-playing-header") {
-                        Text(strings.get(R.string.nw141_playing_now_65e1d), style = MaterialTheme.typography.labelSmall,
+                        Text(strings.get(R.string.nw146_current_track), style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary)
                     }
                     item(key = "queue-playing-item") {
@@ -1565,7 +1567,7 @@ fun StudioQueueSheet(
                             number = currentIndex + 1, title = playing.title,
                             subtitle = playing.author, artwork = playing.thumbnail,
                             isPlaying = true, canRemove = false, reduceMotion = reduceMotion,
-                            onSelect = { onSelect(currentIndex) }, onRemove = {}
+                            onSelect = { onSelect(currentIndex) }, onRemove = {}, currentStatus = currentStatus
                         )
                     }
                     item(key = "queue-upcoming-header") {
@@ -1653,7 +1655,8 @@ private fun SwipeUpcomingRow(
     onSelect: () -> Unit,
     onRemove: () -> Unit,
     onMoveEarlier: (() -> Unit)? = null,
-    onMoveLater: (() -> Unit)? = null
+    onMoveLater: (() -> Unit)? = null,
+    currentStatus: String? = null
 ) {
     val strings = rememberNightWaveStrings()
     val display = remember(title, subtitle) {
@@ -1709,8 +1712,8 @@ private fun SwipeUpcomingRow(
                 .clickable(role = Role.Button, onClick = onSelect)
                 .semantics {
                     contentDescription = strings.queueAnnouncement(
-                        number, display.title, display.artistOrCreator, isPlaying)
-                    if (isPlaying) stateDescription = strings.get(R.string.nw141_playing_deaf6)
+                        number, display.title, display.artistOrCreator, isPlaying && currentStatus == null)
+                    if (isPlaying) stateDescription = currentStatus ?: strings.get(R.string.nw141_playing_deaf6)
                 }
                 .testTag("nightwave-upcoming-$number")
                 .padding(horizontal = 9.dp, vertical = 5.dp),
@@ -1730,7 +1733,7 @@ private fun SwipeUpcomingRow(
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             if (isPlaying) {
-                Text(strings.get(R.string.nw141_playing_86042), style = MaterialTheme.typography.labelSmall,
+                Text(currentStatus ?: strings.get(R.string.nw141_playing_86042), style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary)
             } else if (canRemove && (onMoveEarlier != null || onMoveLater != null)) {
                 var optionsOpen by remember { mutableStateOf(false) }

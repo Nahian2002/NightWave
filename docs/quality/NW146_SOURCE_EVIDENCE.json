@@ -1,0 +1,79 @@
+{
+  "schema": 1,
+  "batch": "NW146",
+  "date": "2026-11-04",
+  "implementation_status": "LOCAL_VERIFIED",
+  "device_status": "PARTIAL",
+  "build": {
+    "build_id": "NW-debug-02427B19DA0B98EB",
+    "revision": "2dec1675858f0975fd74f56434fc712ae40f8f8d",
+    "source_sha256": "02427B19DA0B98EB7DB65A928422C7C8509E997CCC9B264CF59981E3495BE6FC",
+    "source_input_count": 982,
+    "apk_sha256": "38D00A4111655583BB782480D472C51F9B5453455257DF71504051AF220DF615",
+    "apk_bytes": 29080179,
+    "package": "com.nightwave.player",
+    "version_code": 41,
+    "version_name": "2.0.0-alpha5s",
+    "min_sdk": 23,
+    "target_sdk": 36,
+    "signer_sha256": "EA737A703B8F116EBC5C8C0A717DDBF3A2A5808ACC9079A8F79CD1B3CD860394",
+    "signer_comparison": "MATCH actual phone-pulled code40"
+  },
+  "validation": {
+    "windows_builder": "PASS",
+    "jvm_tests": 1824,
+    "jvm_suites": 227,
+    "jvm_failures": 0,
+    "jvm_errors": 0,
+    "jvm_skipped": 0,
+    "current_source_checks": 88,
+    "source_status": "PASS_SOURCE_ONLY",
+    "android_test_sources": "COMPILED_NOT_RUN",
+    "lint": {
+      "errors": 0,
+      "warnings": 327,
+      "hints": 17,
+      "change": "One unused historical PLAYING NOW resource; no suppression"
+    },
+    "gitleaks": {
+      "commits_scanned": 3617,
+      "leaks": 0,
+      "scope": "All refs before final documentation commit"
+    },
+    "original_219_pack": "PREPARED_NOT_EXECUTED",
+    "private_delivery": "Owner-only metadata and complete remote byte/hash readback PASS"
+  },
+  "remaining_device_cases": [
+    "Queue buffering/resolving/disconnected/error phases and spoken accessibility",
+    "Manual update offline/authenticated disabled/current/available/invalid metadata; real delivery",
+    "Automatic seven-day timing and in-app installation",
+    "Long absence and process death",
+    "All themes and font sizes",
+    "API23/24/26 and other device profiles",
+    "Original NW145 acceptance matrices, performance, audio, study and soak gates"
+  ],
+  "rating": {
+    "provisional_presentation_index": 7.83,
+    "full_product": "NOT_ASSESSED",
+    "automatic_increase": false
+  },
+  "next_source_batch": "NW147",
+  "release_activation": "NOT_APPROVED",
+  "phone_evidence": "docs/NW146_SAMSUNG_CODE41_SMOKE.md",
+  "scoped_phone_result": {
+    "authorization": "Install version41 and test",
+    "model": "SM-S928B",
+    "reported_api": 37,
+    "installed_code": 41,
+    "installed_apk_sha256": "38D00A4111655583BB782480D472C51F9B5453455257DF71504051AF220DF615",
+    "pre_first_launch_identical_saved_file_hashes": 29,
+    "queue_sequence": [
+      "Paused",
+      "Playing",
+      "Paused"
+    ],
+    "update_check": "Specific unavailable message; Retry and return observed; delivery NOT_RUN",
+    "final_state": "Home, existing selection paused",
+    "original_matrices": "NOT_PROMOTED"
+  }
+}

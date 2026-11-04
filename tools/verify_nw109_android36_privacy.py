@@ -33,7 +33,7 @@ def inspect(root: Path) -> list[str]:
         (r"\btargetSdk\s*=\s*36\b", "target-sdk"),
         (r'applicationId\s*=\s*"com\.nightwave\.player"', "package"),
         (r"\bminSdk\s*=\s*23\b", "min-sdk"),
-        (r"\bversionCode\s*=\s*(?:35|36|37|38|39|40)\b", "version-code"),
+        (r"\bversionCode\s*=\s*(?:35|36|37|38|39|40|41)\b", "version-code"),
         (r'\bversionName\s*=\s*"2\.0\.0-alpha5s"', "version-name"),
     ):
         if not re.search(marker, app): errors.append(name)

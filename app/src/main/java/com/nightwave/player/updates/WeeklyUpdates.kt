@@ -33,7 +33,7 @@ internal object WeeklyUpdates {
                 !WeeklyUpdatePolicy.due(now, p.getLong("attempt", 0), WeeklyUpdatePolicy.RETRY_MS)) return@launch
             p.edit().putLong("attempt", now).apply()
             try {
-                val update = withContext(Dispatchers.IO) { latest(activity) }
+                val update = withContext(Dispatchers.IO) { latest(activity) }.update
                 // Failed/invalid feeds never become a successful weekly check.
                 p.edit().putLong("checked", now).apply()
                 if (update != null && activity.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
@@ -44,19 +44,13 @@ internal object WeeklyUpdates {
         }
     }
 
-    suspend fun latest(c: Context): ApprovedUpdate? = withContext(Dispatchers.IO) {
+    suspend fun latest(c: Context): UpdateCheckResult = withContext(Dispatchers.IO) {
+        val network = c.getSystemService(Context.CONNECTIVITY_SERVICE) as? android.net.ConnectivityManager
+        if (network != null && network.activeNetwork == null) throw UpdateCheckException(UpdateCheckStatus.OFFLINE)
         val connection = URL(FEED).openConnection() as HttpURLConnection
         connection.connectTimeout = 15_000; connection.readTimeout = 20_000
         connection.instanceFollowRedirects = false
-        val raw = try {
-            require(connection.responseCode == 200)
-            connection.inputStream.use { input ->
-                val output = java.io.ByteArrayOutputStream(); val buffer = ByteArray(4096)
-                while (true) { currentCoroutineContext().ensureActive(); val n = input.read(buffer); if (n < 0) break
-                    require(output.size() + n <= 24 * 1024); output.write(buffer, 0, n) }
-                output.toByteArray()
-            }
-        } finally { connection.disconnect() }
+        val raw = WeeklyFeedTransport.read(connection)
         val envelope = JSONObject(String(raw, Charsets.UTF_8))
         val payload = Base64.decode(envelope.getString("payload"), Base64.DEFAULT)
         val signature = Base64.decode(envelope.getString("signature"), Base64.DEFAULT)
@@ -66,7 +60,7 @@ internal object WeeklyUpdates {
             Base64.decode(key.getString("modulus"), Base64.DEFAULT), Base64.decode(key.getString("exponent"), Base64.DEFAULT)))
         val m = JSONObject(String(payload, Charsets.UTF_8))
         require(m.getInt("schema") == 1 && m.getString("channel") == "stable")
-        if (!m.getBoolean("enabled")) return@withContext null
+        if (!m.getBoolean("enabled")) return@withContext UpdateCheckResult(UpdateCheckStatus.DISABLED)
         val update = ApprovedUpdate(m.getLong("versionCode"), m.getString("versionName").take(80),
             m.getString("url"), m.getLong("bytes"), m.getString("sha256"), m.optString("notes").take(3000),
             if (m.has("minSdk")) m.getInt("minSdk") else null)
@@ -76,7 +70,8 @@ internal object WeeklyUpdates {
         require(Build.VERSION.SDK_INT >= 24 || update.minSdk != null)
         require(WeeklyUpdatePolicy.allowedApk(update.url) && update.bytes in 1..WeeklyUpdatePolicy.MAX_APK_BYTES)
         require(update.sha.matches(Regex("[A-Fa-f0-9]{64}")))
-        update.takeIf { it.code > code(c) && (it.minSdk == null || it.minSdk <= Build.VERSION.SDK_INT) }
+        val status = UpdateCheckPolicy.authenticated(true, code(c), update.code, Build.VERSION.SDK_INT, update.minSdk)
+        UpdateCheckResult(status, update.takeIf { status == UpdateCheckStatus.AVAILABLE })
     }
 
     @Suppress("DEPRECATION")

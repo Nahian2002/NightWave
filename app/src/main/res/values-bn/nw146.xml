@@ -1,0 +1,7 @@
+<resources>
+    <string name="nw146_current_track">বর্তমান গান</string>
+    <string name="nw146_updates_disabled">প্রকাশক বর্তমানে আপডেটের প্রস্তাব বন্ধ রেখেছেন। ইনস্টল করা অ্যাপ অপরিবর্তিত আছে।</string>
+    <string name="nw146_updates_offline">নেটওয়ার্ক সংযোগ নেই। ইন্টারনেটে সংযোগ করে আবার আপডেট খুঁজুন।</string>
+    <string name="nw146_updates_unavailable">আপডেট পরিষেবায় পৌঁছানো যায়নি অথবা এটি এখনো প্রস্তুত নয়। পরে আবার চেষ্টা করুন। ইনস্টল করা অ্যাপ অপরিবর্তিত আছে।</string>
+    <string name="nw146_updates_unverified">আপডেটের তথ্য যাচাই করা যায়নি। কিছু ডাউনলোড বা ইনস্টল করা হয়নি। পরে আবার চেষ্টা করুন।</string>
+</resources>

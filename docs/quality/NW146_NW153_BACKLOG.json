@@ -3,7 +3,7 @@
   "created_date": "2026-11-04",
   "review": "docs/audits/2026-11-04_CODE40_PRODUCT_REVIEW.md",
   "scorecard": "docs/quality/CODE40_REVIEW_SCORECARD.json",
-  "next_source_batch": "NW146",
+  "next_source_batch": "NW147",
   "acceptance_umbrella": "NW145",
   "execution_order": [
     "NW146",
@@ -15,7 +15,7 @@
     "NW152",
     "NW153"
   ],
-  "source_candidate_code": 40,
+  "source_candidate_code": 41,
   "phone_acceptance": "PARTIAL",
   "rating_policy": "No automatic score rise from builds/test counts; full product overall remains unscored until critical evidence exists.",
   "preservation": [
@@ -36,13 +36,17 @@
         "R01",
         "R04"
       ],
-      "implementation_status": "PLANNED",
-      "device_status": "NOT_RUN",
+      "implementation_status": "LOCAL_VERIFIED",
+      "device_status": "PARTIAL",
       "acceptance_criteria": [
         "Current/Playing/Paused/Buffering/Error labels agree across mini/full/queue and accessibility descriptions.",
         "Model authenticated Disabled/NoCompatible/Available separately from unavailable/offline/error; no unsigned404 treated as trusted disabled metadata.",
         "Retain manual checks, weekly cooldown, source/signature/data boundaries; no public activation without approval."
-      ]
+      ],
+      "evidence": "docs/quality/NW146_SOURCE_EVIDENCE.json",
+      "source_revision": "2dec1675858f0975fd74f56434fc712ae40f8f8d",
+      "notes": "Owner-approved code41 installed with 29 unchanged prelaunch saved-file hashes. Queue Paused/Playing/Paused and unavailable-update Retry/return observed; other phases and full acceptance pending. No rating increase.",
+      "phone_evidence": "docs/NW146_SAMSUNG_CODE41_SMOKE.md"
     },
     {
       "id": "NW147",

@@ -1,0 +1,7 @@
+<resources>
+    <string name="nw146_current_track">Current track</string>
+    <string name="nw146_updates_disabled">Stable update offers are currently disabled by the publisher. Your installed app is unchanged.</string>
+    <string name="nw146_updates_offline">No network connection is available. Connect to the internet, then retry the update check.</string>
+    <string name="nw146_updates_unavailable">The update service could not be reached or is not ready. Try again later. Your installed app is unchanged.</string>
+    <string name="nw146_updates_unverified">Update information could not be verified. Nothing was downloaded or installed. Try again later.</string>
+</resources>
