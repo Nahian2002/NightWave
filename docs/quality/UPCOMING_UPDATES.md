@@ -1,3 +1,5 @@
+5 November final scoped result: code45 onPoco, four-theme representative views21/36 observed, app Reduced on/off checked, originalAMOLED/System and all profile fields restored.15 rendered slots and wider acceptance remain pending. No further owner preference action for this pass. Read ../NW149_POCO_CODE45_SMOKE.md. Source/APK unchanged, next independent sourceNW150; no score/release/automation promotion. Earlier pending states below are historical.
+
 5 November motion follow-up: AMOLED/REDUCED checked and static views normal. Owner app Reduced-off action and originalAMOLED/System readback pending.21/36 representative views observed;15 remain. Approval45 persists; source/APK unchanged; next independent sourceNW150.
 
 5 November: four themes representative static captures reviewed,21/36 observed,15 pending. Phone latestMIDNIGHT/System; owner manualAMOLED/Reduced-on check and finalAMOLED/System restoration required. Approval45 persists; no reinstall. See ../NW149_POCO_CODE45_SMOKE.md. Source/APK unchanged; next independent sourceNW150, fullacceptance stillPARTIAL.

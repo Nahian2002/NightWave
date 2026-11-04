@@ -61,7 +61,7 @@
     "batch": "NW149",
     "code": 45,
     "evidence": "docs/NW149_POCO_CODE45_SMOKE.md",
-    "result": "PARTIAL_THEME_MOTION_RESTORE_PENDING",
+    "result": "PARTIAL_SCOPED_PASS_RESTORED",
     "original219_cases": "NOT_PROMOTED_FROM_SMOKE"
   },
   "latest_source_candidate": {

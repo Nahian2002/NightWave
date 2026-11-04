@@ -13,3 +13,5 @@ NW148 canonical-bound repair is locally verified as code44; Poco installation/sh
 Poco44 follow-up: approved install plus same-video sharpness/reopen scoped PASS; full acceptance remains PARTIAL. See [phone receipt](NW148_POCO_CODE44_SMOKE.md).
 
 NW149 source45 locally verified; code45 installation/theme/motion acceptance pending. See [current receipt](NW149_THEME_MOTION.md). Prior pending44 statements are historical; Poco44 scoped smoke remains valid.
+
+5 November: NW149 scoped Poco45 follow-up complete with originalAMOLED/System/profile restored;21/36 representative viewports observed,15 and wider physical gates pending. Next independent sourceNW150. See [Poco45 result](NW149_POCO_CODE45_SMOKE.md).

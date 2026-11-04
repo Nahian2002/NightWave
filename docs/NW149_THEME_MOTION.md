@@ -1,3 +1,5 @@
+Current5 November device follow-up: approved45 installed; four-theme representative static views and app Reduced on/off observed; originalAMOLED/System/all profile fields restored. Device PARTIAL_SCOPED_PASS_RESTORED,21/36 observed,15 pending. See [Poco45 result](NW149_POCO_CODE45_SMOKE.md). No further preference action needed for this pass; earlier pending statements are historical.
+
 Current device follow-up: owner-approved45 installed,17 prelaunch saved-file hashes unchanged; six AMOLED static viewports observed,30 matrix slots/other-theme/app Reduced checks pending. See [Poco45 evidence](NW149_POCO_CODE45_SMOKE.md). Earlier not-installed statements below are historical.
 
 # NW149 — theme and motion consistency

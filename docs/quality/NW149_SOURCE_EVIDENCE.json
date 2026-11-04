@@ -3,7 +3,7 @@
   "batch": "NW149",
   "date": "2026-11-04",
   "implementation_status": "LOCAL_VERIFIED",
-  "device_status": "PARTIAL_THEME_MOTION_RESTORE_PENDING",
+  "device_status": "PARTIAL_SCOPED_PASS_RESTORED",
   "build": {
     "build_id": "NW-debug-356960B7755F6DC0",
     "revision": "3cc1e8a4c75fc1656ecca09ca4bc61e801919f23",
@@ -81,10 +81,10 @@
     "code45_install": "OWNER_APPROVED_PASS"
   },
   "remaining_device_cases": [
-    "Select Aurora and remaining themes with approved manual taps, then restore AMOLED/System;30 of36 rendered matrix slots remain NOT_RUN",
-    "Manual app Reduced Motion toggle/return, real gesture/keyboard/focus/Back and controlled continuous transition evidence",
-    "Actual unavailable Undo/fallback cases without mutating personal data;8 Android synthetic cases remain COMPILED_NOT_RUN",
-    "Runtime System scale change and older-phone/font/language/accessibility/soak/audio/full NW145 gates; no Android setting write authorized"
+    "15/36 secondary rendered slots remain NOT_RUN: Queue/Dialogs/Sound in AMOLED and Queue/Offline/Dialogs/Sound in each other theme",
+    "Actual Undo, keyboard/focus/gesture/continuous-frame/haptic/error/disabled/all-scroll/locale/font/accessibility acceptance",
+    "Runtime Android system-scale change/older-phone/soak/audio/transfer/full NW145 gates; no Android setting write authorized",
+    "Eight parameterized synthetic Android cases remain COMPILED_NOT_RUN; original219 cases not promoted"
   ],
   "rating": {
     "frozen_review_index": 7.83,
@@ -108,7 +108,7 @@
     "initial_theme": "AMOLED",
     "initial_motion": "SYSTEM",
     "android_animator_scale_read_only": "1.0",
-    "scope": "Preserving install, six static AMOLED surfaces and selected destinations observed. Other themes/app Reduced checks awaiting owner input."
+    "scope": "Approved preserving install, four-theme representative static views, app Reduced on/off and verified original profile restoration"
   },
   "phone_evidence": "docs/NW149_POCO_CODE45_SMOKE.md",
   "phone_observations": {
@@ -135,7 +135,7 @@
     "current_pid_fatal_records": 0,
     "initial_artwork_placeholder": "Resolved in subsequent Home recording/capture; no persistent failure observed",
     "preferences_at_last_readback": "Initial AMOLED/System snapshot; latest captured/read Midnight/System in theme_followup, restoration pending",
-    "pending_owner_action": "See motion_followup: restore app Reduced off and verify AMOLED/System",
+    "pending_owner_action": "None for this scoped phone pass;15 review slots and wider acceptance remain pending",
     "private_recording_copy": "Full remote/local SHA verified; only owned temporary remote MP4 removed after verified copy",
     "source_apk_changes": "None; host verification not rerun for documentation-only device observations",
     "stage": "INITIAL_AMOLED_SNAPSHOT"
@@ -209,8 +209,8 @@
     "matrix_observed_static": 21,
     "matrix_not_run": 15,
     "latest_captured_preferences": "MIDNIGHT/SYSTEM",
-    "current_pending_action": "Superseded by motion_followup: app Reduced on observed, off/restoration pending",
-    "restore_status": "PENDING; original preferences must be read back after testing",
+    "current_pending_action": "None for scoped preference restoration; wider acceptance pending",
+    "restore_status": "VERIFIED original AMOLED/System; see restoration",
     "scope": "No source/APK changes, no timing/FPS/global product rating from static captures",
     "stage": "FOUR_THEME_CAPTURE_SNAPSHOT"
   },
@@ -230,7 +230,33 @@
     "selected_navigation_matches": true,
     "search_empty": true,
     "motion_scope": "App preference/switch plus static rendering observed; no continuous motion/frame/haptic/system-scale certification",
-    "restore": "PENDING owner switch off, readback AMOLED/System required",
-    "pending_owner_action": "Turn app Reduced Motion off, keep AMOLED; read back original AMOLED/System"
+    "restore": "VERIFIED owner switched app Reduced off; original AMOLED/System profile fields match",
+    "pending_owner_action": "None for approved temporary preference checks"
+  },
+  "restoration": {
+    "date": "2026-11-05",
+    "theme": "AMOLED",
+    "motion": "SYSTEM",
+    "system_animator_scale": "1.0",
+    "font_scale": "0.81",
+    "non_test_profile_fields_changed": [],
+    "original_profile_fields_match": true,
+    "visible_checked_controls": [
+      "false",
+      "false",
+      "false",
+      "true",
+      "false",
+      "false",
+      "false",
+      "false",
+      "false",
+      "true",
+      "false"
+    ],
+    "paused_mini_resume_control_visible": true,
+    "current_pid_fatal_records": 0,
+    "scope": "Read-only restoration verification; no profile/system write, reset, account/library/EQ command",
+    "reduced_motion_switch": "UNCHECKED: unique checkable control beside Reduced motion label, confirmed screenshot"
   }
 }

@@ -107,7 +107,7 @@
         "R06"
       ],
       "implementation_status": "LOCAL_VERIFIED",
-      "device_status": "PARTIAL_THEME_MOTION_RESTORE_PENDING",
+      "device_status": "PARTIAL_SCOPED_PASS_RESTORED",
       "acceptance_criteria": [
         "Review every theme at Home/Search/Library/You/player/queue/offline/dialog states with measured contrast.",
         "Preserve matte identity, accessible selected/disabled/error states and reduced-motion/focus/keyboard behavior.",
@@ -116,7 +116,7 @@
       "investigation_notes": "Retain Sound hierarchy nonzero on code41/42 and one unexplained You-to-Home state movement during test lookup. Cause unknown; controlled navigation/frame/semantics evidence before diagnosis.",
       "evidence": "docs/quality/NW149_SOURCE_EVIDENCE.json",
       "source_revision": "3cc1e8a4c75fc1656ecca09ca4bc61e801919f23",
-      "notes": "Source45 verified; approved preserving Poco44\u219245 install17 unchanged prelaunch files. Six static AMOLED surfaces observed, main destination selection agrees, Search empty and paused player renders.30 rendered slots and app Reduced/other-theme/gesture cases pending owner theme selection; original prefs stillAMOLED/System. No9.5/100% claim.",
+      "notes": "Approved Poco45 preserving install17 prelaunch files unchanged. Four-theme main static views21/36 observed; appAMOLED/REDUCED checked and five static views normal, owner reported requested task done. Owner switched off; originalAMOLED/SYSTEM and all profile fields restored, Android animation/font unchanged, paused and current-PID fatal0.15 slots/gestures/full acceptance pending; no9.5/100% certification.",
       "phone_evidence": "docs/NW149_POCO_CODE45_SMOKE.md"
     },
     {
