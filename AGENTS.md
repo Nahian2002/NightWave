@@ -1,3 +1,7 @@
+## Current NW143 source result — 4 November 2026
+
+NW143 is locally verified on `update/nightwave-nw143-trust`, based on reopen fix #165. First-use/help/failure copy and retained diagnostics; code38, build NW-debug-515F3474BA50AE1F. Full builder,1817 JVM/226 suites,85 source checks and lint0 errors/324 warnings/17 hints pass. Physical and release cases remain NOT_RUN; see `docs/NW143_FIRST_RUN_TRUST.md`. Next independent source batch NW144. Stable feed disabled; hourly automation deleted. Historical notes below are superseded only by these specific results.
+
 ## Reopening / manual updater fix — 4 November 2026
 
 Current review branch `fix/nightwave-reopen-weekly-updates` is based on updater #164. The restored mini-player wraps its content; automatic checks run on resume, and direct You → App health → Check for updates bypasses the automatic cooldown. Code37, same package/signer; stable feed remains disabled and hourly automation remains deleted. Phone acceptance is NOT_RUN. Original roadmap next batch remains NW143. See `docs/UPDATER_REOPEN_FIX.md`.

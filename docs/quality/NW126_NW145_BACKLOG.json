@@ -5,7 +5,7 @@
   "audit": "docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md",
   "implementation_base_revision": "61703c98238e762e59c049b6690853431f822884",
   "audit_branch": "audit/nightwave-post-nw125-quality-roadmap",
-  "next_batch": "NW143",
+  "next_batch": "NW144",
   "goal": "9.5+ within the declared NightWave music-player scope, conditional on actual product and acceptance evidence",
   "rating_kind": "Subjective comparative product review, not a measured Spotify score",
   "baseline_weighted_score": 6.655,
@@ -1025,7 +1025,7 @@
         "NW139",
         "NW141"
       ],
-      "implementation_status": "IN_PROGRESS",
+      "implementation_status": "LOCAL_VERIFIED",
       "device_status": "NOT_RUN",
       "finding_ids": [
         "Q11",
@@ -1048,13 +1048,14 @@
         "Help/Advanced retains diagnostics, export and recovery tools while removing storage-migration terminology from everyday preference rows.",
         "Review actual data flows, permissions, support export redaction, dependencies/history and applicable source/provider/release approvals; unresolved issues remain explicit release blockers."
       ],
-      "implementation_commit": null,
+      "implementation_commit": "9438858e68d18dc2b1ea73fe9e57643fffad9d7b",
       "local_evidence": [
-        "docs/NW143_FIRST_RUN_TRUST.md"
+        "docs/NW143_FIRST_RUN_TRUST.md",
+        "TEST_REPORT.md"
       ],
       "device_evidence": [],
       "remaining_blockers": [
-        "Primary failure/native recovery and trust review incomplete; full current checks, Windows builder, sequential lint, identity/delivery and phone acceptance pending."
+        "Physical state/font/theme/native-speaker/device acceptance NOT_RUN; privacy/provider/distribution approvals remain separate unresolved release gates."
       ],
       "carried_forward_from_NW141": [
         "Review inherited native import/recovery/failure copy and retained English diagnostics; preserve raw source/user text and all account/consent boundaries."

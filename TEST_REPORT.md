@@ -1,3 +1,17 @@
+# Current verification — NW143 first-run failures and trust
+
+## NW143 verified source result — 4 November 2026
+
+Source implementation locally verified. Clear first-use Home guidance, bilingual Help and privacy, resource-backed search failure/previous-results steps, error-only scrollable diagnostics, native import/permission/optional-restore copy and storage labels. All original actions, query/source/quality, data formats, themes, account/consent and recovery boundaries remain. Changed app inputs are the UI Activity, two localized resource files and version code38; engines/stores/manifest/dependencies/feed trust anchor unchanged.
+
+Full Windows builder PASS; 1,817 JVM / 226 suites, zero failures/errors/skips; Android test-source compilation PASS. All 85 current checks PASS_SOURCE_ONLY, including new NW143 caller-negative fixtures. Sequential lint PASS: 0 errors / 324 warnings / 17 hints; unchanged ID/severity/message/path inventory. Gitleaks implementation-stage 3,597 commits, no leaks. Initial missing scroll import and two obsolete literal-label guards repaired; failed/interim logs retained privately. Final build revision `9438858e68d18dc2b1ea73fe9e57643fffad9d7b`.
+
+Build **NW-debug-515F3474BA50AE1F**; canonical source **515F3474BA50AE1F2BC903CFE9BDDCB766734E7F21632C93E47647472E7FD82E**, 971 inputs. APK **61E0F43FC9B2CA5130EE9C199E368A1505B415AF1091A4844EE524FA8B033EAC**, 26,730,266 bytes. Package `com.nightwave.player`, version `2.0.0-alpha5s`, code38. Signer **EA737A703B8F116EBC5C8C0A717DDBF3A2A5808ACC9079A8F79CD1B3CD860394**, compared with the actual previous code37 APK. Owner-only Drive permission and complete remote byte/hash readback verified. Raw receipts and recovery remain outside Git.
+
+Original 219-case pack PREPARED_NOT_EXECUTED for this APK. All new state journeys, native-speaker/large-font/all-theme review, physical cold reopening, seven-day/manual updater, live provider/Drive/permission/install/data-preservation and performance cases remain NOT_RUN. Full-app translation, legal/privacy/distribution clearance and a new 9.5/10 score are not claimed. Stable feed remains disabled; no main merge/public binary, device action, account operation, repository setting change or automation restart. Next independent source batch NW144; NW145 still requires actual device evidence.
+
+See [state review and remaining cases](docs/NW143_FIRST_RUN_TRUST.md). Earlier results below are historical.
+
 # Current verification — reopening and on-demand updates
 
 See [fix and remaining phone cases](docs/UPDATER_REOPEN_FIX.md).
