@@ -31,7 +31,7 @@ REQUIRED={
   'R.string.nw150_results_kept', 'R.string.nw150_search_stopped_hint'],
  'v2/ui/StudioPlayerScreens.kt':[
   'FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)',
-  'R.string.nw150_pause_follow else R.string.nw150_resume_follow',
+  'R.string.nw150_pause_follow else R.string.nw141_follow',
   'testTag("lyrics-follow-toggle")', 'LyricsReadingPolicy.toggledFollow(lyricsAutoFollow)',
   'onClick = onEditLyrics', 'if (lyricsDragged) lyricsAutoFollow = false']}
 

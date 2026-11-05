@@ -623,7 +623,7 @@ fun StudioNowPlayingOverlay(
                                             strings.get(if (lyricsAutoFollow) R.string.nw141_follow_state_on else R.string.nw141_follow_state_off)
                                     }
                             ) {
-                                Text(strings.get(if (lyricsAutoFollow) R.string.nw150_pause_follow else R.string.nw150_resume_follow))
+                                Text(strings.get(if (lyricsAutoFollow) R.string.nw150_pause_follow else R.string.nw141_follow))
                             }
                             OutlinedButton(onClick = onEditLyrics,
                                 modifier = Modifier.heightIn(min = 48.dp)) {

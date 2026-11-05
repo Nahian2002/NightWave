@@ -4,7 +4,6 @@
     <string name="nw150_results_kept">Previous results are kept. Retry when you are ready.</string>
     <string name="nw150_search_stopped_hint">Your music is still available. Retry to search online.</string>
     <string name="nw150_pause_follow">Pause scrolling</string>
-    <string name="nw150_resume_follow">Follow lyrics</string>
     <string name="nw150_selected_entry">Selected on-device entry · File availability checked here</string>
     <string name="nw150_entry_missing">This selected entry is no longer in your on-device library. No other recording was substituted.</string>
 </resources>

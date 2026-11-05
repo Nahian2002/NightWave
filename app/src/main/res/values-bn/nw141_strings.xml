@@ -328,7 +328,7 @@
     <string name="nw141_show_collections">%1$sটি সংগ্রহ দেখুন</string>
     <string name="nw141_see_mix">সব %1$sটি গান দেখুন</string>
     <string name="nw141_now_settings">NightWave সেটিংস খুলুন</string>
-    <string name="nw141_follow">অনুসরণ করুন</string>
+    <string name="nw141_follow">গানের কথা অনুসরণ</string>
     <string name="nw141_follow_hint_on">আনা গানের কথা অনুসরণ হচ্ছে। লাইন দেখতে সোয়াইপ করুন।</string>
     <string name="nw141_follow_hint_off">গানের কথা দেখা হচ্ছে। প্লেব্যাকের সঙ্গে মিলতে অনুসরণ করুন চাপুন।</string>
     <string name="nw141_follow_action_on">গানের কথা স্বয়ংক্রিয় স্ক্রল থামান</string>

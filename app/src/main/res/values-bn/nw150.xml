@@ -4,7 +4,6 @@
     <string name="nw150_results_kept">আগের ফলাফল রাখা আছে। প্রস্তুত হলে আবার চেষ্টা করুন।</string>
     <string name="nw150_search_stopped_hint">আপনার গান এখনও উপলভ্য। অনলাইনে খুঁজতে আবার চেষ্টা করুন।</string>
     <string name="nw150_pause_follow">স্ক্রল থামান</string>
-    <string name="nw150_resume_follow">গানের কথা অনুসরণ</string>
     <string name="nw150_selected_entry">নির্বাচিত ডিভাইসের গান · ফাইলের প্রাপ্যতা এখানে যাচাই হয়</string>
     <string name="nw150_entry_missing">নির্বাচিত গানটি আর ডিভাইসের লাইব্রেরিতে নেই। অন্য কোনো রেকর্ডিং দিয়ে বদলানো হয়নি।</string>
 </resources>
