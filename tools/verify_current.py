@@ -16,6 +16,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 PYTHON_CHECKS = (
+    ("verify_nw152_recovery_readiness.py", "--self-test"),
     ("verify_nw151_compat_language.py", "--self-test"),
     ("verify_nw150_journeys.py", "--self-test"),
     ("verify_nw149_theme_motion.py", "--self-test"),

@@ -5,6 +5,7 @@ import com.nightwave.player.library.MusicLibrary
 import com.nightwave.player.library.LegacyLibraryTransaction
 import com.nightwave.player.net.VideoPreview
 import com.nightwave.player.v2.model.NightWaveTheme
+import com.nightwave.player.v2.model.ProfileSettings
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -31,6 +32,23 @@ class LibraryArchiveManager(context: Context) {
     }
 
     fun preview(bytes: ByteArray): LibraryArchive = LibraryBackupCodec.decode(bytes)
+
+    internal fun guestRestoreSnapshot(): GuestRestoreSnapshot = LegacyLibraryTransaction.exclusive {
+        // Compare raw collection values, not encoded archive captions which are trimmed by the codec.
+        // Listening history may advance and is not replaced by guest restore.
+        GuestRestoreSnapshot(libraryPrefs.all.filterKeys {
+            it == "favorites" || it == "playlist_names" || it.startsWith("list_")
+        }, profileStore.load())
+    }
+
+    internal fun restoreGuestIfUnchanged(expected: GuestRestoreSnapshot, archive: LibraryArchive): CloudRestoreApplyResult =
+        LegacyLibraryTransaction.exclusive {
+            runCatching {
+                if (guestRestoreSnapshot() != expected) CloudRestoreApplyResult.STALE_PREVIEW
+                else if (restoreWithConfirmation(archive)) CloudRestoreApplyResult.APPLIED
+                else CloudRestoreApplyResult.FAILED
+            }.getOrDefault(CloudRestoreApplyResult.FAILED)
+        }
 
     /**
      * Apply the explicitly confirmed merge only if the library still exactly
@@ -158,5 +176,7 @@ class LibraryArchiveManager(context: Context) {
 }
 
 enum class CloudMergeApplyResult { APPLIED, NO_CHANGES, STALE_PREVIEW, FAILED }
+
+internal data class GuestRestoreSnapshot(val library: Map<String, *>, val profile: ProfileSettings)
 
 enum class CloudRestoreApplyResult { APPLIED, STALE_PREVIEW, FAILED }
