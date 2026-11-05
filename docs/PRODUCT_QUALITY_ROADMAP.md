@@ -6,6 +6,8 @@
 
 The final version 49 patch passed host validation. The [final review](NW153_FINAL_REVIEW.md) rates design and everyday usability 8.5/10 and records the remaining release gates. Device evidence applies to version 48.
 
+The follow-up version 50 review improves Home artwork, layout and mix presentation. A before-and-after device review will determine the new rating. [NW154 changes and acceptance status](NW154_EVERYDAY_POLISH.md)
+
 ## Historical checkpoints
 
 
