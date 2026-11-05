@@ -1,0 +1,67 @@
+{
+  "schema": 1,
+  "batch": "NW152",
+  "date": "2026-11-06",
+  "implementation_status": "LOCAL_VERIFIED",
+  "device_status": "NOT_RUN",
+  "build": {
+    "build_id": "NW-debug-3F1BE7AB6878160A",
+    "revision": "b1cebf60d9b79f6f537a247a08f46d4c6f40314d",
+    "source_sha256": "3F1BE7AB6878160A042F7297A061EAAF3F7C1BC05F22A987236F61FA7D0B3DB9",
+    "source_input_count": 1022,
+    "apk_sha256": "96EC7D48D908DBCE481649D13A8FC6B1ED8AB4D90CBBD3A561EF48F091650B7E",
+    "apk_bytes": 29370573,
+    "package": "com.nightwave.player",
+    "version_code": 48,
+    "version_name": "2.0.0-alpha5s",
+    "min_sdk": 23,
+    "target_sdk": 36,
+    "signer_sha256": "EA737A703B8F116EBC5C8C0A717DDBF3A2A5808ACC9079A8F79CD1B3CD860394",
+    "signer_comparison": "MATCH verified47; same recorded signer as the actual Samsung46 APK"
+  },
+  "validation": {
+    "windows_builder": "PASS",
+    "jvm": {
+      "tests": 1867,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "suites": 235,
+    "current_source_checks": 94,
+    "source_status": "PASS_SOURCE_ONLY",
+    "android_methods": 4,
+    "android_status": "COMPILED_NOT_RUN",
+    "lint": {
+      "counts": {
+        "Warning": 317,
+        "Hint": 17
+      },
+      "added": [],
+      "removed": []
+    },
+    "gitleaks_implementation": {
+      "commits": 3668,
+      "unreviewed_findings": 0
+    },
+    "private_delivery": "Owner-only permissions plus complete streamed byte/hash readback PASS",
+    "native_entries_unchanged": 8,
+    "other_assets_unchanged": 1,
+    "apk_inventory": {
+      "added": [],
+      "removed": []
+    }
+  },
+  "rehearsal": "docs/quality/NW152_RELEASE_REHEARSAL.json",
+  "physical_cases": {
+    "code48_install": "NOT_APPROVED_NOT_RUN",
+    "share_chooser_document_picker_rotation_cancel_name_conflict": "NOT_RUN",
+    "real_guest_file_provider_restore": "NOT_RUN",
+    "disposable_cloud_account_upload_restore_switch": "NOT_RUN_UNAPPROVED",
+    "rollback_install": "NOT_RUN",
+    "original_219": "NOT_PROMOTED"
+  },
+  "next_batch": "NW153",
+  "rating": "NOT_ASSESSED",
+  "release": "NO_GO; disabled feed unchanged"
+}
