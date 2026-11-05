@@ -149,7 +149,8 @@
       "evidence": "docs/quality/NW150_SOURCE_EVIDENCE.json",
       "source_revision": "1bd431d5a235e055fe076b83a32346e033ecbb1b",
       "notes": "Exact on-device ID destination, neutral cancel/background search with retry/web fallback and wrapping owned-lyrics follow controls. Samsung43 normal-input baseline only;46 not installed. Full NW145 remains PARTIAL; no rating promotion.",
-      "automation_preparation_status": "DEFERRED_NOT_NEEDED_ON_SUPPORTED_CURRENT_SAMSUNG; no helper installed"
+      "automation_preparation_status": "DEFERRED_NOT_NEEDED_ON_SUPPORTED_CURRENT_SAMSUNG; no helper installed",
+      "draft_pr": "https://github.com/Nahian2002/NightWave/pull/176"
     },
     {
       "id": "NW151",

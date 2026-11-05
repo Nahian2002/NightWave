@@ -23,3 +23,5 @@ Offline import, missing/size-changed/unreadable readiness, retry and network/rec
 Connected Samsung SM-S928B reports Android17/API37. Existing installed43 was freshly pulled and matched; normal launch, uniquely observed Home→Search tap and an empty search field succeeded. Launcher hierarchy initially could not get idle state, but the in-app hierarchy succeeded. This is code43 capability evidence only. The earlier MIUI pilot is deferred because supported normal Samsung input works; no helper/test APK or production automation endpoint was installed or added.
 
 Code46 has **not been installed**; saved installation rules require a version-specific approval. [Prepared scoped test plan](NW150_SAMSUNG_CODE46_TEST_PLAN.md). No original219 case, full NW145 gate, older-device/soak/listener study, physical gesture or new rating is promoted. Next independent source batch **NW151 — older Android language/accessibility**. No main merge, release/feed activation, public binary, account/system-setting action or automation restart.
+
+[Draft review #176](https://github.com/Nahian2002/NightWave/pull/176), stacked on NW149 draft175; unmerged.

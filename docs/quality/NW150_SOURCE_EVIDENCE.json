@@ -73,5 +73,6 @@
   },
   "next_batch": "NW151",
   "rating": "NOT_ASSESSED; no automatic9.5/100% claim",
-  "release": "NO_GO; feed remains disabled, draft review only"
+  "release": "NO_GO; feed remains disabled, draft review only",
+  "draft_pr": "https://github.com/Nahian2002/NightWave/pull/176"
 }
