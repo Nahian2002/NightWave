@@ -23,3 +23,5 @@ The design and everyday usability earn **8.5/10** as an editorial assessment. Th
 The [S24 results](NW153_S24_UPDATE_CHECK.md) document the installed version 48 and live feed. The version 49 patch releases a download connection if the HTTP response fails or redirects. The signed live feed currently advertises no APK.
 
 Version 49 is build `NW-debug-B751A234428BB70C` from `4c2f4a83aa5f1a27f46f71904b9e5eb05845c489`. The APK is 28,122,602 bytes with SHA-256 `1D91E9DFCC1E63DCAB387CCA6B9FFD2AFC4D4D2DB5DCA3A392550A5C5B33C8FB`. The signing certificate matches the version 48 APK pulled from the S24. The Windows build, 1,867 JVM tests and 94 current source checks passed. Android instrumentation sources compiled. The phone evidence in this review applies to version 48.
+
+Lint passed with zero errors and the same 317 warnings and 17 hints as version 48. The owner-only Drive copy matched the built APK in size and SHA-256. [Draft PR #180](https://github.com/Nahian2002/NightWave/pull/180)

@@ -4,6 +4,8 @@
 
 [Structured backlog](quality/NW146_NW153_BACKLOG.json) is authoritative.
 
+The final version 49 patch passed host validation. The [final review](NW153_FINAL_REVIEW.md) rates design and everyday usability 8.5/10 and records the remaining release gates. Device evidence applies to version 48.
+
 ## Historical checkpoints
 
 
