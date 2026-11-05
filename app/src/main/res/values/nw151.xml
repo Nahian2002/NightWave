@@ -9,12 +9,12 @@
     <string name="nw151_background">Save in background</string>
     <string name="nw151_queued">View queued downloads</string>
     <string name="nw151_cancel">Cancel download</string>
-    <string name="nw151_cancelling">Cancelling transfer and removing its temporary file...</string>
+    <string name="nw151_cancelling">Cancelling transfer and removing its temporary file…</string>
     <string name="nw151_back">Back to Offline Library</string>
     <string name="nw151_confirm_own">Confirm that you own or may download this audio first.</string>
     <string name="nw151_confirm_save">Confirm that you have permission to save the audio.</string>
     <string name="nw151_queue_failed">Could not queue the background download. Try again.</string>
-    <string name="nw151_connecting">Connecting securely to the audio server...</string>
+    <string name="nw151_connecting">Connecting securely to the audio server…</string>
     <string name="nw151_audio_help">Save a permitted direct MP3, M4A, AAC, FLAC, WAV, OGG, OPUS or WebM audio file for offline listening. A direct HTTPS link is required.</string>
     <string name="nw151_ready">Ready. Downloads remain in NightWave\'s private Offline Library.</string>
     <string name="nw151_boundaries">YouTube watch links, streaming manifests and protected media are not direct audio downloads. NightWave does not convert YouTube videos to MP3. Use Save in background to keep downloading after closing this screen. The foreground download stops when you leave. Original audio format is preserved. Temporary network errors are retried, but unsupported audio is never saved. Audio is deleted if NightWave is uninstalled.</string>

@@ -9,12 +9,12 @@
     <string name="nw151_background">পটভূমিতে সংরক্ষণ</string>
     <string name="nw151_queued">সারিতে থাকা ডাউনলোড দেখুন</string>
     <string name="nw151_cancel">ডাউনলোড বাতিল</string>
-    <string name="nw151_cancelling">স্থানান্তর বাতিল ও অস্থায়ী ফাইল সরানো হচ্ছে...</string>
+    <string name="nw151_cancelling">স্থানান্তর বাতিল ও অস্থায়ী ফাইল সরানো হচ্ছে…</string>
     <string name="nw151_back">অফলাইন লাইব্রেরিতে ফিরুন</string>
     <string name="nw151_confirm_own">আগে নিশ্চিত করুন অডিওটি আপনার নিজের বা ডাউনলোডের অনুমতি আছে।</string>
     <string name="nw151_confirm_save">অডিও সংরক্ষণের অনুমতি আছে তা নিশ্চিত করুন।</string>
     <string name="nw151_queue_failed">পটভূমির ডাউনলোড সারিতে যোগ করা যায়নি। আবার চেষ্টা করুন।</string>
-    <string name="nw151_connecting">অডিও সার্ভারে নিরাপদে সংযোগ হচ্ছে...</string>
+    <string name="nw151_connecting">অডিও সার্ভারে নিরাপদে সংযোগ হচ্ছে…</string>
     <string name="nw151_audio_help">অনুমোদিত সরাসরি MP3, M4A, AAC, FLAC, WAV, OGG, OPUS বা WebM অডিও অফলাইনে শুনতে রাখুন। সরাসরি HTTPS লিংক প্রয়োজন।</string>
     <string name="nw151_ready">প্রস্তুত। ডাউনলোড NightWave-এর নিজস্ব অফলাইন লাইব্রেরিতে থাকবে।</string>
     <string name="nw151_boundaries">YouTube দেখার লিংক, স্ট্রিমিং ম্যানিফেস্ট ও সুরক্ষিত মিডিয়া সরাসরি অডিও ডাউনলোড নয়। NightWave YouTube ভিডিওকে MP3 বানায় না। পর্দা বন্ধের পরও ডাউনলোড চালাতে পটভূমিতে সংরক্ষণ ব্যবহার করুন। এই পর্দা ছাড়লে সামনের ডাউনলোড বন্ধ হয়। অডিওর মূল ফরম্যাট অক্ষুণ্ণ থাকে। সাময়িক নেটওয়ার্ক সমস্যায় আবার চেষ্টা হয়, তবে অসমর্থিত অডিও সংরক্ষিত হয় না। NightWave আনইনস্টল করলে অডিও মুছে যায়।</string>

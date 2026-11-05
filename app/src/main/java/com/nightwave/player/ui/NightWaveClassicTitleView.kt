@@ -11,6 +11,7 @@ import android.widget.TextView
 class NightWaveClassicTitleView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = android.R.attr.textViewStyle
 ) : TextView(context, attrs, defStyleAttr) {
+    private val measuringPaint = TextPaint()
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val width = MeasureSpec.getSize(widthMeasureSpec) - compoundPaddingLeft - compoundPaddingRight
         if (width > 0 && MeasureSpec.getMode(widthMeasureSpec) != MeasureSpec.UNSPECIFIED) {
@@ -18,7 +19,7 @@ class NightWaveClassicTitleView @JvmOverloads constructor(
             val height = if (MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.UNSPECIFIED) Int.MAX_VALUE
                 else MeasureSpec.getSize(heightMeasureSpec) - compoundPaddingTop - compoundPaddingBottom
             val chosen = ClassicTextSizePolicy.choose(16, 23) { sp ->
-                val probe = TextPaint(paint).apply { textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, sp.toFloat(), resources.displayMetrics) }
+                val probe = measuringPaint.apply { set(this@NightWaveClassicTitleView.paint); textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, sp.toFloat(), resources.displayMetrics) }
                 val layout = StaticLayout.Builder.obtain(content, 0, content.length, probe, width)
                     .setMaxLines(1).setIncludePad(includeFontPadding).build()
                 layout.height <= height && layout.getLineEnd(layout.lineCount - 1) == content.length &&
