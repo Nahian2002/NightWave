@@ -121,7 +121,7 @@ class NightWaveHomePresentationPolicyTest {
     @Test fun beyondRecentPurposeRequiresAnActualOutsideTrack() {
         val p = NightWaveHomePresentationPolicy.mix(mix("daily_mix_2", listOf(song(1), song(2))),
             listOf(song(2)), listOf(song(1)), emptyList(), false)
-        assertEquals("Beyond your recent plays", p.purpose)
+        assertEquals("Includes tracks outside your recent history", p.purpose)
         assertTrue(p.reason.contains("1 liked"))
     }
 
