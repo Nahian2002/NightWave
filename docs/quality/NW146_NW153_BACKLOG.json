@@ -3,7 +3,7 @@
   "created_date": "2026-11-04",
   "review": "docs/audits/2026-11-04_CODE40_PRODUCT_REVIEW.md",
   "scorecard": "docs/quality/CODE40_REVIEW_SCORECARD.json",
-  "next_source_batch": "NW150",
+  "next_source_batch": "NW151",
   "acceptance_umbrella": "NW145",
   "execution_order": [
     "NW146",
@@ -15,7 +15,7 @@
     "NW152",
     "NW153"
   ],
-  "source_candidate_code": 45,
+  "source_candidate_code": 46,
   "phone_acceptance": "PARTIAL",
   "rating_policy": "No automatic score rise from builds/test counts; full product overall remains unscored until critical evidence exists.",
   "preservation": [
@@ -131,7 +131,7 @@
         "R03",
         "R07"
       ],
-      "implementation_status": "PLANNED",
+      "implementation_status": "LOCAL_VERIFIED",
       "device_status": "NOT_RUN",
       "acceptance_criteria": [
         "Exercise live public and saved/local queries, versions/cancellation/stale results and exact source identity.",
@@ -141,12 +141,15 @@
       "automation_preparation": "docs/PHONE_AUTOMATION_PLAN.md",
       "admission_checkpoint": {
         "date": "2026-11-05",
-        "five_hour_remaining_percent": 21,
-        "weekly_remaining_percent": 60,
+        "five_hour_remaining_percent": 97,
+        "weekly_remaining_percent": 59,
         "full_batch_planning_envelope": 44,
-        "result": "NOT_ADMITTED; plan only, no implementation",
-        "reason": "Full completion envelope and normal30-percent floor not met; recheck before start"
-      }
+        "result": "ADMITTED; final source locally verified"
+      },
+      "evidence": "docs/quality/NW150_SOURCE_EVIDENCE.json",
+      "source_revision": "1bd431d5a235e055fe076b83a32346e033ecbb1b",
+      "notes": "Exact on-device ID destination, neutral cancel/background search with retry/web fallback and wrapping owned-lyrics follow controls. Samsung43 normal-input baseline only;46 not installed. Full NW145 remains PARTIAL; no rating promotion.",
+      "automation_preparation_status": "DEFERRED_NOT_NEEDED_ON_SUPPORTED_CURRENT_SAMSUNG; no helper installed"
     },
     {
       "id": "NW151",

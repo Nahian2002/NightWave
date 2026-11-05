@@ -1,3 +1,5 @@
+Current5 November: NW150 source46 LOCAL_VERIFIED; next independent sourceNW151. Read NW150_JOURNEY_FINISH.md. Samsung normal-input capability observed on43;46 pending approval/device checks. Wider NW145 PARTIAL; earlier next/status notes below are historical.
+
 Current: NW149 source45 LOCAL_VERIFIED; next source batch NW150. See NW149_THEME_MOTION.md. Code45 phone/render/frame acceptance pending; no source-test rating promotion. Earlier current/status paragraphs below are historical.
 
 Current: NW148 code44 source repair LOCAL_VERIFIED_DEVICE_PENDING; next source batch NW149. Read NW148_CANONICAL_ARTWORK_REPAIR.md. Earlier repair-budget hold is historical; code44 phone installation and manual acceptance remain pending.

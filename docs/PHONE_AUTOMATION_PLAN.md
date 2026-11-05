@@ -1,3 +1,5 @@
+Current5 November2026: Samsung SM-S928B is connected and normal observed Home→Search input succeeds on installed43. The MIUI app-owned pilot below is DEFERRED_NOT_NEEDED_ON_CURRENT_SAMSUNG, not implemented/installed. NW150 source46 is now locally verified; its installation needs separate approval. Prior21-percent admission hold is historical. See NW150_JOURNEY_FINISH.md. No production control endpoint, helper/test APK, security-setting or schedule change.
+
 # NightWave device automation — reduce owner-operated checks
 
 5 November 2026. Owner asks for autonomous phone work because repeated manual navigation is irritating. This is a planning/control-capability checkpoint, **not an implemented automation runner or an NW150 upgrade**. Existing code45/source/APK/signing identity and original AMOLED/System preferences remain unchanged.
