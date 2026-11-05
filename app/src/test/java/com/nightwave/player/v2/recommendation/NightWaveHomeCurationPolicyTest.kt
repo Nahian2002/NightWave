@@ -32,6 +32,17 @@ class NightWaveHomeCurationPolicyTest {
         assertTrue(plan(recent = listOf(song(1), song(2))).nextListens.isEmpty())
     }
 
+    @Test fun mixOpeningOutsideVisibleHistoryLeadsWithoutEditingEitherQueue() {
+        val history = (1..9).map(::song)
+        val repeats = mix("daily_mix_1", song(1), song(2), song(3))
+        val variety = mix("daily_mix_2", song(7), song(8), song(9))
+        val output = plan(recent = history, daily = listOf(repeats, variety))
+        assertEquals(listOf(variety, repeats), output.mixes)
+        assertTrue(output.mixes.first() === variety)
+        assertTrue(output.mixes.last() === repeats)
+        assertEquals(listOf(repeats), plan(recent = listOf(song(1)), daily = listOf(repeats)).mixes)
+    }
+
     @Test fun nextListensExcludeRecentAndKeepOriginalSourceMetadata() {
         val favorites = (1..5).map(::song)
         val playlists = (5..10).map(::song)

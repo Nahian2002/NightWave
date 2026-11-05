@@ -17,7 +17,7 @@ REQUIRED = {
            'if (notice.isNotBlank())', 'onClick = { discover() }', 'if (advanced) SoundStudioApplyBar('],
  'queue': ['NightWaveSecondaryLayoutPolicy.QUEUE_GAP_DP.dp', 'NightWaveSecondaryLayoutPolicy.QUEUE_SUMMARY_BOTTOM_DP.dp',
            'CoverArt(artwork, Modifier.size(45.dp), 10)', 'currentStatus = currentStatus', 'testTag("nw134-clear-upcoming")', 'testTag("nw134-edit-order")'],
- 'home': ['NightWaveSecondaryLayoutPolicy.MIX_VERTICAL_DP.dp', 'NightWaveSecondaryLayoutPolicy.MIX_CAPTION_DP.dp', 'if (featured) 88.dp else 64.dp']}
+ 'home': ['NightWaveSecondaryLayoutPolicy.MIX_VERTICAL_DP.dp', 'NightWaveSecondaryLayoutPolicy.MIX_CAPTION_DP.dp', 'if (featured) 76.dp else 64.dp']}
 
 def verify(src):
  for key, markers in REQUIRED.items():

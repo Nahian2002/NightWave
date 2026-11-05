@@ -31,7 +31,6 @@
     <string name="nw141_change_c0bf7">পরিবর্তন</string>
     <string name="nw141_change_drive_account_2acb6">Drive অ্যাকাউন্ট বদলান</string>
     <string name="nw141_change_the_drive_account_f7d95">Drive অ্যাকাউন্ট বদলাবেন?</string>
-    <string name="nw141_choose_a_mix_to_preview_61187">দেখতে একটি মিক্স বেছে নিন</string>
     <string name="nw141_choose_a_mood_to_explore_c313d">খুঁজতে একটি মুড বেছে নিন</string>
     <string name="nw141_choose_a_track_2457e">একটি গান বেছে নিন</string>
     <string name="nw141_clear_83b12">মুছুন</string>
@@ -379,7 +378,6 @@
     <string name="nw141_home_space">আপনার গান শোনার জায়গা</string>
     <string name="nw141_home_continue">শুনতে থাকুন</string>
     <string name="nw141_home_welcome">স্বাগতম, %1$s · আপনার গান, আপনার ছন্দ</string>
-    <string name="nw141_home_resume">%1$s · চালিয়ে যেতে চাপুন</string>
     <string name="nw141_lyrics_ready">আপনার সময় মেলানো কথা · প্রস্তুত</string>
     <string name="nw141_lyrics_attach">এই ভিডিওতে আপনার LRC যুক্ত করুন</string>
     <string name="nw141_lyrics_import">আপনার LRC গানের কথা আনুন</string>

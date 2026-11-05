@@ -58,9 +58,11 @@ internal object NightWaveArtworkPolicy {
     /** Public thumbnail metadata is eligible only with an independently matching canonical track.
      * The stored queried address is never modified and remains the final fallback.
      */
-    fun trackCandidates(original: String, canonicalTrack: String, large: Boolean): List<String> {
+    fun trackCandidates(
+        original: String, canonicalTrack: String, large: Boolean, sharperTile: Boolean = false
+    ): List<String> {
         val unchanged = requestCandidates(original, large)
-        if (!large) return unchanged
+        if (!large && !sharperTile) return unchanged
         return runCatching {
             val uri = URI(original)
             val query = uri.rawQuery ?: return unchanged
@@ -74,15 +76,17 @@ internal object NightWaveArtworkPolicy {
             val unsigned = original.substringBefore('?')
             val source = still(unsigned) ?: return unchanged
             if (canonicalTrack != "https://www.youtube.com/watch?v=${source.first}") return unchanged
-            (listOf("maxresdefault.jpg", "sddefault.jpg", "hqdefault.jpg")
-                .map { "https://i.ytimg.com/vi/${source.first}/$it" } + original).distinct()
+            val sizes = if (large) listOf("maxresdefault.jpg", "sddefault.jpg", "hqdefault.jpg")
+                // The 4:3 HQ variant can contain black bars baked into the pixels.
+                else listOf("mqdefault.jpg")
+            (sizes.map { "https://i.ytimg.com/vi/${source.first}/$it" } + original).distinct()
         }.getOrDefault(unchanged)
     }
 
-    /** Some missing large stills return a 120x90 placeholder with HTTP 200. */
+    /** A missing higher-resolution still can return a 120x90 placeholder with HTTP 200. */
     fun isUnavailableLargeStill(url: String, width: Int, height: Int): Boolean {
         val name = still(url)?.second ?: return false
-        return name in setOf("maxresdefault.jpg", "sddefault.jpg") &&
+        return name in setOf("maxresdefault.jpg", "sddefault.jpg", "mqdefault.jpg") &&
             width in 1..120 && height in 1..90
     }
 }

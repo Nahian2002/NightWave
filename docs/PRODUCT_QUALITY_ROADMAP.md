@@ -6,6 +6,8 @@
 
 The final version 49 patch passed host validation. The [final review](NW153_FINAL_REVIEW.md) rates design and everyday usability 8.5/10 and records the remaining release gates. Device evidence applies to version 48.
 
+The version 51 S24 review raised the scoped design and usability rating to 8.9/10 after the small-cover fix. Version 51 is available from the signed stable feed. Broader device and release journey acceptance remain open. [NW154 changes and acceptance status](NW154_EVERYDAY_POLISH.md)
+
 ## Historical checkpoints
 
 

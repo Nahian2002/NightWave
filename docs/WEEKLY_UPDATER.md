@@ -1,4 +1,8 @@
-# Weekly approved updater — implementation plan
+# Weekly approved updater
+
+Version 51 is available through the canonical stable feed. In NightWave, open **You → Check for updates** to check immediately. Older compatible builds with the updater can download the APK in NightWave and confirm installation in Android. Builds without the updater need the APK once. [Version 51 release](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v51)
+
+The original implementation plan and earlier paused-feed evidence follow.
 
 Owner authorizes this one update despite the weekly reserve; the deleted hourly schedule stays deleted. Cumulative parent contains checkpointed NW142; preserve it and repair its stale minimum-height source guard before validation. Do not advance the original roadmap merely because this additional feature is added.
 

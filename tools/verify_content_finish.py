@@ -20,8 +20,8 @@ def verify(src):
     for state in ("recentShelfState", "nextShelfState", "moodShelfState"):
         assert f"rememberSnapFlingBehavior({state}, SnapPosition.Start)" in home, state
     assert "itemsIndexed(DiscoveryShortcuts.picks" in home
-    assert "contentScale = if (large) ContentScale.Fit else ContentScale.Crop" in player
-    assert "trackCandidates(url, trackIdentity, large)" in player and "candidateIndex == attempt" in player
+    assert "contentScale = if (crop) ContentScale.Crop else ContentScale.Fit" in player
+    assert "trackCandidates(url, trackIdentity, large, sharperTile)" in player and "candidateIndex == attempt" in player
     assert "CoverArt(video.thumbnail, modifier" in components
     assert "trackIdentity = video.url, large = large" in components
     assert "Text(name, color = colors.onSurface" in components
@@ -39,7 +39,7 @@ if __name__ == "__main__":
                              (FILES[0], "rememberSnapFlingBehavior(recentShelfState, SnapPosition.Start)"),
                              (FILES[0], "rememberSnapFlingBehavior(nextShelfState, SnapPosition.Start)"),
                              (FILES[1], "ContentScale.Fit"), (FILES[1], "candidateIndex == attempt"),
-                             (FILES[1], "trackCandidates(url, trackIdentity, large)"),
+                             (FILES[1], "trackCandidates(url, trackIdentity, large, sharperTile)"),
                              (FILES[2], "Text(name, color = colors.onSurface"),
                              (FILES[2], "trackIdentity = video.url, large = large"),
                              (FILES[3], "Modifier.fillMaxWidth().aspectRatio(1.6f)"),

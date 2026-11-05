@@ -179,7 +179,7 @@ fun StudioMiniPlayer(
     var travel by remember(state.videoUrl) { mutableStateOf(0f) }
     Column(
         modifier = modifier.fillMaxWidth().padding(horizontal = NightWavePremiumDesignTokens.pageGutterDp(
-            androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.toFloat()).dp, vertical = 3.dp)
+            androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.toFloat()).dp, vertical = 2.dp)
             .testTag("nightwave-mini-player")
             .semantics { stateDescription = statusLabel }
             .clip(miniShape)
@@ -337,20 +337,21 @@ internal fun CoverArt(
     url: String, modifier: Modifier = Modifier, radius: Int = 24,
     description: String? = "Song artwork", trackIdentity: String = "", large: Boolean = false,
     onResolved: ((android.graphics.drawable.Drawable) -> Unit)? = null,
-    imageLoader: coil.ImageLoader? = null, onDecode: ((ArtworkDecodeReport) -> Unit)? = null
+    imageLoader: coil.ImageLoader? = null, onDecode: ((ArtworkDecodeReport) -> Unit)? = null,
+    crop: Boolean = !large, sharperTile: Boolean = false
 ) {
     val strings = rememberNightWaveStrings()
     val context = LocalContext.current
     val artworkColors = MaterialTheme.colorScheme
-    val candidates = remember(url, trackIdentity, large) {
-        NightWaveArtworkPolicy.trackCandidates(url, trackIdentity, large)
+    val candidates = remember(url, trackIdentity, large, sharperTile) {
+        NightWaveArtworkPolicy.trackCandidates(url, trackIdentity, large, sharperTile)
     }
-    val session = remember(trackIdentity, url, large) { ArtworkRequestSession() }
+    val session = remember(candidates, trackIdentity, large, crop) { ArtworkRequestSession() }
     DisposableEffect(session) { onDispose { session.close() } }
     val resolvedCallback by rememberUpdatedState(onResolved)
     val decodeCallback by rememberUpdatedState(onDecode)
-    var candidateIndex by remember(trackIdentity, url, large) { mutableIntStateOf(0) }
-    var failed by remember(trackIdentity, url, large) { mutableStateOf(false) }
+    var candidateIndex by remember(session) { mutableIntStateOf(0) }
+    var failed by remember(session) { mutableStateOf(false) }
     var measured by remember { mutableStateOf(androidx.compose.ui.unit.IntSize.Zero) }
     val requestSize = NightWaveArtworkRequestPolicy.pixels(measured.width, measured.height)
     var imageLoaded by remember(session, candidateIndex, requestSize) { mutableStateOf(false) }
@@ -372,9 +373,9 @@ internal fun CoverArt(
             drawCircle(artworkColors.onSurface.copy(alpha = .5f), radius = size.minDimension * .09f)
         }
         if (!failed && displayUrl != null && requestSize.valid) {
-            val request = remember(displayUrl, requestSize, large, context) {
+            val request = remember(displayUrl, requestSize, large, crop, context) {
                 ImageRequest.Builder(context).data(displayUrl).size(requestSize.width, requestSize.height)
-                    .scale(if (large) Scale.FIT else Scale.FILL).precision(Precision.INEXACT)
+                    .scale(if (crop) Scale.FILL else Scale.FIT).precision(Precision.INEXACT)
                     .memoryCachePolicy(CachePolicy.ENABLED).diskCachePolicy(CachePolicy.ENABLED)
                     .allowHardware(!large).crossfade(false).build()
             }
@@ -386,7 +387,7 @@ internal fun CoverArt(
             key(ticket) {
             AsyncImage(model = request, imageLoader = imageLoader ?: context.imageLoader, contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
-                contentScale = if (large) ContentScale.Fit else ContentScale.Crop,
+                contentScale = if (crop) ContentScale.Crop else ContentScale.Fit,
                 onError = { advance() },
                 onSuccess = { loaded ->
                     if (session.accepts(ticket, currentTicket) && candidateIndex == attempt) {

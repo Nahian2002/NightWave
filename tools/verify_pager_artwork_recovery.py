@@ -15,10 +15,10 @@ def verify(src):
                    "state.isScrollInProgress, dragging || shelfTouch, state.pageCount", "delay(100L)", "state.scrollToPage(page)"):
         assert marker in recovery, marker
     assert "ContentScale.Inside" not in player
-    assert "contentScale = if (large) ContentScale.Fit else ContentScale.Crop" in player
-    assert "trackCandidates(url, trackIdentity, large)" in player and "candidateIndex == attempt" in player
+    assert "contentScale = if (crop) ContentScale.Crop else ContentScale.Fit" in player
+    assert "trackCandidates(url, trackIdentity, large, sharperTile)" in player and "candidateIndex == attempt" in player
     assert "Modifier.fillMaxWidth().aspectRatio(1.6f)" in visual
-    assert "if (featured) 88.dp else 64.dp" in visual
+    assert "if (featured) 76.dp else 64.dp" in visual
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(); parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args(); src = {n: (BASE / n).read_text(encoding="utf-8") for n in FILES}; verify(src)
@@ -30,7 +30,7 @@ if __name__ == "__main__":
                              (FILES[0], "nightWaveShelfBoundary()"),
                              (FILES[1], "Offset(available.x, 0f)"), (FILES[1], "Velocity(available.x, 0f)"),
                              (FILES[1], "state.isScrollInProgress, dragging || shelfTouch, state.pageCount"),
-                             (FILES[2], "ContentScale.Fit"), (FILES[2], "trackCandidates(url, trackIdentity, large)"), (FILES[3], "Modifier.fillMaxWidth().aspectRatio(1.6f)")):
+                             (FILES[2], "ContentScale.Fit"), (FILES[2], "trackCandidates(url, trackIdentity, large, sharperTile)"), (FILES[3], "Modifier.fillMaxWidth().aspectRatio(1.6f)")):
             broken = dict(src); broken[name] = broken[name].replace(marker, "BROKEN_FIXTURE")
             try: verify(broken)
             except AssertionError: continue

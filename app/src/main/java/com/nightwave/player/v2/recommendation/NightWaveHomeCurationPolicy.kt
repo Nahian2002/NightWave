@@ -69,8 +69,8 @@ object NightWaveHomeCurationPolicy {
     ): Plan {
         // Exclude 150 DISTINCT recent song identities, not 150 play events.
         // A repeatedly played song must never consume the whole budget.
-        val recentUrls = recentWindow(recent, MAX_RECENT_EXCLUSION)
-            .tracks.mapTo(hashSetOf()) { it.url }
+        val recentTracks = recentWindow(recent, MAX_RECENT_EXCLUSION).tracks
+        val recentUrls = recentTracks.mapTo(hashSetOf()) { it.url }
         val liked = favorites.asSequence().take(300)
             .filter { VideoLink.normalize(it.url) == it.url }.toList()
         val playlists = playlistTracks.asSequence().take(400)
@@ -115,7 +115,14 @@ object NightWaveHomeCurationPolicy {
             signatures.add(ids)
             chosen.add(mix)
         }
-        return Plan(next, chosen)
+        // Rank the cards already selected, keeping each mix's playlist intact.
+        // A distinct opening matters more than songs buried later in the mix.
+        val visibleRecent = recentTracks.take(6).mapTo(hashSetOf()) { it.url }
+        val ordered = chosen.sortedByDescending { mix ->
+            mix.tracks.asSequence().map { it.url }.filter { VideoLink.normalize(it) == it }
+                .distinct().take(4).count { it !in visibleRecent }
+        }
+        return Plan(next, ordered)
     }
 
     fun sourceLabel(track: VideoPreview, favorites: List<VideoPreview>): String =

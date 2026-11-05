@@ -12,7 +12,7 @@ class NightWaveMiniPlayerLayoutPolicyTest {
     @Test fun normalPhonesKeepCurrentPremiumMiniPlayer() {
         for (width in listOf(365f, 390f, 412f)) {
             val r = p.resolve(width, 1f, 3)
-            assertEquals(52, r.rowHeightDp)
+            assertEquals(48, r.rowHeightDp)
             assertEquals(40, r.artworkDp)
             assertTrue(r.showArtwork)
             assertTrue(r.showNext)
@@ -27,7 +27,7 @@ class NightWaveMiniPlayerLayoutPolicyTest {
             assertFalse(r.showArtwork)
             assertFalse(r.showNext)
             assertEquals(5, r.labelGapDp)
-            assertEquals(52, r.rowHeightDp)
+            assertEquals(48, r.rowHeightDp)
         }
         val boundary = p.resolve(280f, 1f, 5)
         assertTrue(boundary.showArtwork)
@@ -86,7 +86,7 @@ class NightWaveMiniPlayerLayoutPolicyTest {
         var checks = 0
         for (size in sizes) for (font in fonts) {
             val v = p.resolve(size, font, 2)
-            assertTrue(v.rowHeightDp >= 52)
+            assertTrue(v.rowHeightDp >= 48)
             assertTrue(v.artworkDp in 32..44)
             assertTrue(v.titleLines in 1..2)
             assertTrue(v.labelGapDp in 5..9)
@@ -95,7 +95,7 @@ class NightWaveMiniPlayerLayoutPolicyTest {
         assertEquals(90, checks)
         assertFalse(p.resolve(Float.NaN, 1f, 2).showArtwork)
         assertFalse(p.resolve(Float.POSITIVE_INFINITY, 1f, 2).showNext)
-        assertEquals(52, p.resolve(390f, Float.NaN, 2).rowHeightDp)
+        assertEquals(48, p.resolve(390f, Float.NaN, 2).rowHeightDp)
     }
 
     @Test fun miniSizingNeverChangesPlaybackSelectionOrSongIdentity() {
