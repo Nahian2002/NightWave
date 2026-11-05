@@ -11,3 +11,5 @@ The S24 Ultra still has version 48. Its baseline Home and Offline screens were c
 Version 50 needs a same-track before-and-after review on the S24 and a smaller device before revising the 8.5/10 design and usability rating. Playback interruptions, transfer recovery, offline playback integrity, actual backup restore and the complete signed update flow remain separate acceptance cases.
 
 Version 50 passed the Windows build, 1,869 JVM tests and 94 source checks. Android instrumentation sources compiled. The signer matched the APK pulled from the S24. The 219-case fixture pack was generated for this build and awaits device execution. Build `NW-debug-F6C17509C71754C2` was made from `4cb918ef13515c702f7cf43400bfe1051db5d782`. Its 28,141,040-byte APK has SHA-256 `FA355DE13761430D2FF24584481CF8912D0D42E0F4D4B9B76171DF0600DC4C7A`.
+
+Lint passed with zero errors, 319 warnings and 17 hints. The two added warnings are for the retained translations of the old resume and mix helper lines. The owner-only Drive copy matched the APK in size and SHA-256. [Draft PR #181](https://github.com/Nahian2002/NightWave/pull/181)
