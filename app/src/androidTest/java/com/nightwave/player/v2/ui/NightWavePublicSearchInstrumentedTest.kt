@@ -25,17 +25,18 @@ class NightWavePublicSearchInstrumentedTest {
     private val second = first.copy(url = "https://www.youtube.com/watch?v=00000000002")
 
     private fun screen() {
+        if (state.query.isNotBlank()) state = state.copy(prefillToken = "nw150-fixture")
         compose.setContent {
             NightWaveMaterialTheme(NightWaveTheme.MIDNIGHT, reduceMotion = true) {
                 StudioSearch(Modifier, state, onPrimarySearch = { _, _ -> },
                     onNativeSearch = { _, _ -> retries++ }, onWebSearch = { web = it },
                     onPlay = { song, queue -> assertEquals(listOf(song), queue); played.add(song) },
                     onSongOptions = {}, playingUrl = "", corpus = LocalMusicCorpusState(0, 0, failed = true),
-                    onRetryCorpus = {}, onOfflineSearch = {}, searchHistory = emptyList(),
+                    onRetryCorpus = {}, onOfflineSearch = { _, _ -> }, searchHistory = emptyList(),
                     canUndoSearchRemoval = false, onRecordSearch = {}, onRemoveSearch = {},
                     onUndoSearchRemoval = {}, onClearSearch = {}, onCancelSearch = {
                         cancellations++
-                        state = state.copy(loading = false, error = "Search cancelled. Retry when you are ready.")
+                        state = state.stop(SearchStopReason.CANCELLED)
                     })
             }
         }
@@ -62,7 +63,7 @@ class NightWavePublicSearchInstrumentedTest {
         compose.onNodeWithTag("nw130-cancel-search").performClick()
         compose.onNodeWithTag("nw129-search-list").performScrollToNode(hasText("Retry search"))
         compose.onNodeWithText("Retry search").performClick()
-        compose.onNodeWithText("YouTube", useUnmergedTree = true).performClick()
+        compose.onNodeWithTag("nw150-search-web").performClick()
         compose.runOnIdle { assertEquals(1, cancellations); assertEquals(1, retries); assertEquals("play date", web) }
     }
 

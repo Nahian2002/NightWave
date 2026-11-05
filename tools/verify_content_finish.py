@@ -13,7 +13,7 @@ def verify(src):
     search = home.split("internal fun StudioSearch(", 1)[1].split("internal fun StudioLibrary(", 1)[0]
     for marker in ('key = { "search-starter:" + it.url }', 'item(key = "search-offline-quick-access")',
                    'if (searchHistory.isNotEmpty())', 'savedMatches.take(savedVisible)',
-                   'offlineMatches.take(offlineVisible)', 'onOfflineSearch("")', 'onPrimarySearch(shortcut.query, SearchMode.SONGS)'):
+                   'offlineMatches.take(offlineVisible)', 'onOfflineSearch("", null)', 'onPrimarySearch(shortcut.query, SearchMode.SONGS)'):
         assert marker in search, marker
     assert search.index('key = { "search-starter:" + it.url }') < search.index('if (searchHistory.isNotEmpty())')
     assert search.index('key = { "search-starter:" + it.url }') < search.index('item(key = "search-offline-quick-access")')

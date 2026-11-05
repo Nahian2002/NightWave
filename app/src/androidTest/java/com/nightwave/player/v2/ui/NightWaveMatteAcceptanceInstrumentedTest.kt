@@ -149,7 +149,7 @@ class NightWaveMatteAcceptanceInstrumentedTest(
                 StudioSearch(Modifier, snapshot, onPrimarySearch = { _, _ -> },
                     onNativeSearch = { query, _ -> action = query }, onWebSearch = {}, onPlay = { _, _ -> },
                     onSongOptions = {}, playingUrl = "", corpus = LocalMusicCorpusState(0L, 0, failed = true),
-                    onRetryCorpus = {}, onOfflineSearch = {}, searchHistory = emptyList(), canUndoSearchRemoval = false,
+                    onRetryCorpus = {}, onOfflineSearch = { _, _ -> }, searchHistory = emptyList(), canUndoSearchRemoval = false,
                     onRecordSearch = {}, onRemoveSearch = {}, onUndoSearchRemoval = {}, onClearSearch = {})
             }
         }
@@ -420,7 +420,7 @@ class NightWaveMatteAcceptanceInstrumentedTest(
             StudioSearch(Modifier, StudioSearchSnapshot(), onPrimarySearch = { _, _ -> },
                 onNativeSearch = { _, _ -> }, onWebSearch = {}, onPlay = { song, _ -> action = song.url },
                 onSongOptions = {}, playingUrl = "", corpus = LocalMusicCorpusState(0L, 0, index),
-                onRetryCorpus = {}, onOfflineSearch = { action = "offline" }, searchHistory = emptyList(),
+                onRetryCorpus = {}, onOfflineSearch = { _, _ -> action = "offline" }, searchHistory = emptyList(),
                 canUndoSearchRemoval = false, onRecordSearch = {}, onRemoveSearch = {},
                 onUndoSearchRemoval = {}, onClearSearch = {})
         }

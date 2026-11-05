@@ -328,7 +328,7 @@
     <string name="nw141_show_collections">Show %1$s collections</string>
     <string name="nw141_see_mix">See all %1$s tracks</string>
     <string name="nw141_now_settings">Open NightWave settings</string>
-    <string name="nw141_follow">Follow</string>
+    <string name="nw141_follow">Follow lyrics</string>
     <string name="nw141_follow_hint_on">Following imported lyrics. Swipe to browse lines.</string>
     <string name="nw141_follow_hint_off">Browsing lyrics. Select Follow to rejoin playback.</string>
     <string name="nw141_follow_action_on">Pause automatic lyric scrolling</string>

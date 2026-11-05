@@ -58,17 +58,17 @@
     "original219_cases": "NOT_PROMOTED_FROM_SMOKE"
   },
   "latest_successor_phone_smoke": {
-    "batch": "NW149",
-    "code": 45,
-    "evidence": "docs/NW149_POCO_CODE45_SMOKE.md",
-    "result": "PARTIAL_SCOPED_PASS_RESTORED",
-    "original219_cases": "NOT_PROMOTED_FROM_SMOKE"
+    "batch": "NW150",
+    "code": 46,
+    "status": "PARTIAL_SCOPED_PASS_PRESERVED",
+    "evidence": "docs/NW150_SAMSUNG_CODE46_SMOKE.md",
+    "limit": "Original219/full NW145 gates not promoted"
   },
   "latest_source_candidate": {
-    "batch": "NW149",
-    "code": 45,
-    "status": "LOCAL_VERIFIED_DEVICE_PENDING",
-    "evidence": "docs/quality/NW149_SOURCE_EVIDENCE.json"
+    "batch": "NW150",
+    "code": 46,
+    "status": "LOCAL_VERIFIED_DEVICE_PARTIAL",
+    "evidence": "docs/quality/NW150_SOURCE_EVIDENCE.json"
   },
   "replacement_phone_baseline": {
     "reported_model": "M2007J20CI",
@@ -87,5 +87,15 @@
     "owner_report": "MIUI security debugging setup asks for SIM; leave disabled, use manual navigation",
     "code44_install": "NOT_APPROVED_NOT_RUN",
     "current_state": "Baseline Home with paused selection observed; no library/account/system preference changed"
+  },
+  "current_phone_baseline": {
+    "reported_model": "SM-S928B",
+    "reported_android": "17",
+    "reported_api": 37,
+    "installed_code": 46,
+    "normal_input": "Home to Search observed",
+    "code46": "PARTIAL_SCOPED_PASS_PRESERVED",
+    "limit": "No original acceptance promotion",
+    "evidence": "docs/NW150_SAMSUNG_CODE46_SMOKE.md"
   }
 }

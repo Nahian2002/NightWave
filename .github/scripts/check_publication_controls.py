@@ -38,7 +38,7 @@ def verify(workflows, pins, ignores, reviews):
                 assert not re.search(r"(?m)^\s+path:\s*(?:\.|\*\*|~/|/home|C:)", block), name + ": broad artifact selection"
     assert upload_count >= 2, "Existing private artifact verification paths unexpectedly disappeared"
     fingerprints = {r["fingerprint"] for r in reviews["matches"]}
-    assert len(fingerprints) == 13
+    assert len(fingerprints) == 14
     assert all(r["disposition"] == "FALSE_POSITIVE" and r["reason"] for r in reviews["matches"])
     assert set(ignores) == fingerprints and len(ignores) == len(fingerprints), "Only the exact reviewed immutable matches may be ignored"
     for row in reviews["matches"]:

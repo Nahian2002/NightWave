@@ -36,6 +36,7 @@ class NightWaveFullLocalSearchInstrumentedTest {
     private val offline = isolated.getSharedPreferences("nightwave_offline_v1", Context.MODE_PRIVATE)
     private var played: VideoPreview? = null
     private var offlineOpened: String? = null
+    private var offlineOpenedId: String? = null
 
     @After fun cleanup() {
         // Delete only this test's unique files; never clear the actual stores.
@@ -73,7 +74,7 @@ class NightWaveFullLocalSearchInstrumentedTest {
                     onPrimarySearch = { _, _ -> }, onNativeSearch = { _, _ -> }, onWebSearch = {},
                     onPlay = { song, queue -> played = song; assertEquals(listOf(song), queue) },
                     onSongOptions = {}, playingUrl = "", corpus = corpus, onRetryCorpus = retry,
-                    onOfflineSearch = { offlineOpened = it }, searchHistory = emptyList(),
+                    onOfflineSearch = { query, id -> offlineOpened = query; offlineOpenedId = id }, searchHistory = emptyList(),
                     canUndoSearchRemoval = false, onRecordSearch = {}, onRemoveSearch = {},
                     onUndoSearchRemoval = {}, onClearSearch = {})
             }
@@ -102,7 +103,25 @@ class NightWaveFullLocalSearchInstrumentedTest {
         seed(); screen(); ready(); type("Offline seeker 4999"); ready()
         compose.onNodeWithTag("nw129-search-list").performScrollToNode(hasText("♫  Offline seeker 4999"))
         compose.onNodeWithText("♫  Offline seeker 4999").performClick()
-        compose.runOnIdle { assertEquals("Offline seeker 4999", offlineOpened) }
+        compose.runOnIdle { assertEquals("Offline seeker 4999", offlineOpened); assertEquals(4999.toString(16).padStart(36, '0') + ".mp3", offlineOpenedId) }
+    }
+
+    @Test fun identicalOfflineTitlesCarryTheExactChosenEntryId() {
+        seed()
+        val entries = JSONArray(offline.getString("items", "[]"))
+        for (i in listOf(4500, 4501)) entries.getJSONObject(i).put("title", "Duplicate recording")
+        assertTrue(offline.edit().putString("items", entries.toString()).commit())
+        screen(); ready(); type("Duplicate recording"); ready()
+        for (i in listOf(4500, 4501)) {
+            val id = i.toString(16).padStart(36, '0') + ".mp3"
+            val row = hasTestTag("nw150-offline-entry-$id")
+            compose.onNodeWithTag("nw129-search-list").performScrollToNode(row)
+            compose.onNode(row).performClick()
+            compose.runOnIdle {
+                assertEquals("Duplicate recording", offlineOpened)
+                assertEquals(id, offlineOpenedId)
+            }
+        }
     }
 
     @Test fun observedEditAndRapidQueryChangeCannotReuseOldQueryOrLibraryRows() {

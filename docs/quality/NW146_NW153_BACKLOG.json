@@ -3,7 +3,7 @@
   "created_date": "2026-11-04",
   "review": "docs/audits/2026-11-04_CODE40_PRODUCT_REVIEW.md",
   "scorecard": "docs/quality/CODE40_REVIEW_SCORECARD.json",
-  "next_source_batch": "NW150",
+  "next_source_batch": "NW151",
   "acceptance_umbrella": "NW145",
   "execution_order": [
     "NW146",
@@ -15,7 +15,7 @@
     "NW152",
     "NW153"
   ],
-  "source_candidate_code": 45,
+  "source_candidate_code": 46,
   "phone_acceptance": "PARTIAL",
   "rating_policy": "No automatic score rise from builds/test counts; full product overall remains unscored until critical evidence exists.",
   "preservation": [
@@ -131,8 +131,8 @@
         "R03",
         "R07"
       ],
-      "implementation_status": "PLANNED",
-      "device_status": "NOT_RUN",
+      "implementation_status": "LOCAL_VERIFIED",
+      "device_status": "PARTIAL_SCOPED_PASS_PRESERVED",
       "acceptance_criteria": [
         "Exercise live public and saved/local queries, versions/cancellation/stale results and exact source identity.",
         "Align offline/import/download/error UI and actionable readiness/retry copy; measure network/receive/write separately without universal Mbps promise.",
@@ -141,12 +141,17 @@
       "automation_preparation": "docs/PHONE_AUTOMATION_PLAN.md",
       "admission_checkpoint": {
         "date": "2026-11-05",
-        "five_hour_remaining_percent": 21,
-        "weekly_remaining_percent": 60,
+        "five_hour_remaining_percent": 97,
+        "weekly_remaining_percent": 59,
         "full_batch_planning_envelope": 44,
-        "result": "NOT_ADMITTED; plan only, no implementation",
-        "reason": "Full completion envelope and normal30-percent floor not met; recheck before start"
-      }
+        "result": "ADMITTED; final source locally verified"
+      },
+      "evidence": "docs/quality/NW150_SOURCE_EVIDENCE.json",
+      "source_revision": "1bd431d5a235e055fe076b83a32346e033ecbb1b",
+      "notes": "Owner-approved Samsung43 to46 scoped pass:29 unchanged prelaunch files; six core preference files/profile/history original after checks. Live cancel/background/retry20/retained-results,saved/local queries and owned-LRC guide observed;three paused reopen cycles. Full NW145 PARTIAL,fixture/LRC/other-device/soak gaps remain;no rating promotion.",
+      "automation_preparation_status": "DEFERRED_NOT_NEEDED_ON_SUPPORTED_CURRENT_SAMSUNG; no helper installed",
+      "draft_pr": "https://github.com/Nahian2002/NightWave/pull/176",
+      "phone_evidence": "docs/NW150_SAMSUNG_CODE46_SMOKE.md"
     },
     {
       "id": "NW151",
@@ -167,7 +172,15 @@
         "Finish prioritized native/advanced English/Bangla resource coverage while preserving user/provider text and data schemas.",
         "Use approved API23/24/26/modern and hardware/input/TalkBack/font profiles; grade only actually executed cases."
       ],
-      "native_artwork_note": "Review retained classic ThumbnailLoader fixed inSampleSize=2 during native-UI compatibility pass; no new behavior/quality certification from NW148 modern CoverArt work."
+      "native_artwork_note": "Review retained classic ThumbnailLoader fixed inSampleSize=2 during native-UI compatibility pass; no new behavior/quality certification from NW148 modern CoverArt work.",
+      "supplemental_review_notes": [
+        {
+          "id": "NW150-PHONE-UX01",
+          "status": "OPEN_REVIEW",
+          "description": "Focused Search field reopened keyboard after background return, reducing results viewport; review submit/resume focus handling without changing user draft or system settings.",
+          "evidence": "docs/NW150_SAMSUNG_CODE46_SMOKE.md"
+        }
+      ]
     },
     {
       "id": "NW152",
