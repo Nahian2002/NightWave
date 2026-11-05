@@ -1,4 +1,8 @@
-## Current NW153 S24 update check
+## Current NW154 version 51 release
+
+The owner authorized future in-place NightWave updates on the connected phone without repeated permission prompts. Verify the exact APK and signer, back up and compare the collected files, and keep the existing device and account boundaries. The owner also authorized the public version 51 release and feed activation. The canonical main feed advertises version 51 via merged PR #182. See docs/NW154_EVERYDAY_POLISH.md for the release identity and physical evidence. Future release scope follows the owner's request.
+
+## Historical NW153 S24 update check
 
 The owner approved merging PR #179 and installing exact version 48 on the S24 Ultra. The signed paused feed is live on main. Version 46 recovered from the prior HTTP 404, and both manual check routes passed on version 48. The verified 46-to-48 install preserved all 33 collected files before first launch. See docs/NW153_S24_UPDATE_CHECK.md. NW153 is partial and the original acceptance and rating gates remain pending. This approval is scoped to PR #179 and the version 48 install and checks.
 
