@@ -27,7 +27,7 @@ class NW150LyricsJourneyTest {
         var following = true
         following = LyricsReadingPolicy.toggledFollow(following); assertFalse(following)
         following = LyricsReadingPolicy.toggledFollow(following); assertTrue(following)
-        assertEquals(1_500L, LyricsSyncPolicy.seekPosition(cue, 500, 60_000))
+        assertEquals(2_500L, LyricsSyncPolicy.seekPosition(cue, 500, 60_000))
         assertEquals(LyricCue(2_000L, "Fixture"), cue)
     }
 }

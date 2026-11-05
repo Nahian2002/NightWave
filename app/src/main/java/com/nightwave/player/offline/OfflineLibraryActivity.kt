@@ -1,5 +1,6 @@
 package com.nightwave.player.offline
 
+import com.nightwave.player.R
 import com.nightwave.player.v2.ui.NightWaveNativeMatte
 import com.nightwave.player.v2.ui.NightWaveNativeMattePolicy
 
