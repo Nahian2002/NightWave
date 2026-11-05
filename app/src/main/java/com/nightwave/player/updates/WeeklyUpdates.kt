@@ -95,10 +95,22 @@ internal object WeeklyUpdates {
                     next.host in setOf("github.com", "release-assets.githubusercontent.com", "objects.githubusercontent.com"))
                 val active = next.openConnection() as HttpURLConnection
                 active.connectTimeout = 15_000; active.readTimeout = 20_000; active.instanceFollowRedirects = false
-                if (active.responseCode in listOf(301, 302, 303, 307, 308)) {
-                    val location = active.getHeaderField("Location"); active.disconnect()
-                    require(hop < 4 && location != null); url = URL(next, location).toString()
-                } else { if (active.responseCode != 200) { active.disconnect(); error("Update unavailable") }; connection = active; break }
+                try {
+                    when (active.responseCode) {
+                        200 -> {
+                            connection = active
+                            break
+                        }
+                        301, 302, 303, 307, 308 -> {
+                            val location = active.getHeaderField("Location")
+                            require(hop < 4 && location != null)
+                            url = URL(next, location).toString()
+                        }
+                        else -> error("Update unavailable")
+                    }
+                } finally {
+                    if (connection !== active) active.disconnect()
+                }
             }
             val active = requireNotNull(connection)
             var received = 0L; val hash = MessageDigest.getInstance("SHA-256")
