@@ -1,6 +1,7 @@
 {
   "schema": 1,
   "batch": "NW152",
+  "draft_pr": "https://github.com/Nahian2002/NightWave/pull/178",
   "date": "2026-11-06",
   "implementation_status": "LOCAL_VERIFIED",
   "device_status": "NOT_RUN",
