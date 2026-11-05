@@ -1,3 +1,5 @@
+Current5 November2026: owner-approved Samsung43→46 installation/scoped checks complete,PARTIAL_SCOPED_PASS_PRESERVED. Read NW150_SAMSUNG_CODE46_SMOKE.md. Normal phone input works; no helper/manual walkthrough needed,MIUI pilot deferred. Original profile/history/core files preserved,Home paused. Approval46 persists for exact candidate/scope; no future/test APK or release/schedule action. Next independent sourceNW151; earlier pending/approval/budget statements below are historical.
+
 Current5 November2026: Samsung SM-S928B is connected and normal observed Home→Search input succeeds on installed43. The MIUI app-owned pilot below is DEFERRED_NOT_NEEDED_ON_CURRENT_SAMSUNG, not implemented/installed. NW150 source46 is now locally verified; its installation needs separate approval. Prior21-percent admission hold is historical. See NW150_JOURNEY_FINISH.md. No production control endpoint, helper/test APK, security-setting or schedule change.
 
 # NightWave device automation — reduce owner-operated checks

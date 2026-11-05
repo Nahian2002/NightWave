@@ -3,7 +3,7 @@
   "batch": "NW150",
   "date": "2026-11-05",
   "implementation_status": "LOCAL_VERIFIED",
-  "device_status": "NOT_RUN",
+  "device_status": "PARTIAL_SCOPED_PASS_PRESERVED",
   "build": {
     "build_id": "NW-debug-D3D3F6A4CD0C40D5",
     "revision": "1bd431d5a235e055fe076b83a32346e033ecbb1b",
@@ -65,15 +65,29 @@
   "automation_pilot": "DEFERRED_NOT_NEEDED_ON_CURRENT_SAMSUNG; no helper or production control endpoint added",
   "physical_cases": {
     "original_219": "NOT_PROMOTED",
-    "code46_install": "APPROVED_NOT_RUN",
-    "source_identity_and_duplicate_entry_ui": "NOT_RUN",
-    "cancel_background_retry_live_network": "NOT_RUN",
-    "offline_missing_file_readiness_and_import": "NOT_RUN",
-    "owned_lrc_follow_large_font": "NOT_RUN"
+    "code46_install": "PASS in-place43 to46;29 unchanged prelaunch saved files",
+    "source_identity_and_duplicate_entry_ui": "PARTIAL existing entry/banner/source labels observed; duplicate/missing fixture device cases NOT_RUN",
+    "cancel_background_retry_live_network": "SCOPED_PASS including20 results and matching refresh/cancel retention",
+    "offline_missing_file_readiness_and_import": "PARTIAL existing local file size/readiness observed;missing/import NOT_RUN",
+    "owned_lrc_follow_large_font": "PARTIAL guide observed;actual LRC follow/editor/import/large-font NOT_RUN"
   },
   "next_batch": "NW151",
   "rating": "NOT_ASSESSED; no automatic9.5/100% claim",
   "release": "NO_GO; feed remains disabled, draft review only",
   "draft_pr": "https://github.com/Nahian2002/NightWave/pull/176",
-  "installation_authorization": "Owner: Install version46 and test; exact candidate/scoped Samsung follow-up"
+  "installation_authorization": "Owner: Install version46 and test; exact candidate/scoped Samsung follow-up",
+  "phone_evidence": "docs/NW150_SAMSUNG_CODE46_SMOKE.md",
+  "phone_preservation": {
+    "prelaunch_unchanged_files": 29,
+    "postcheck_unchanged_core_preferences": 6,
+    "complete_original_profile_fields_match": true,
+    "original_search_history_list_and_bytes_match": true,
+    "theme": "AMOLED",
+    "motion": "SYSTEM",
+    "android_animator_scale": "1",
+    "font_scale": "0.8",
+    "current_pid_fatal_records": 0,
+    "final_screen": "Home paused"
+  },
+  "phone_capture_limit": "Some PNG frames incomplete; later full-player/static video complete, cause unknown. Static VFR frames are not FPS proof."
 }

@@ -1,3 +1,5 @@
+Current: approved installation/scoped checks complete,PARTIAL_SCOPED_PASS_PRESERVED. Read NW150_SAMSUNG_CODE46_SMOKE.md. No further owner input needed for this scope; approval46 persists, no reinstall/re-approval. The preparation/steps below are retained as the committed plan.
+
 # Samsung code46 scoped acceptance plan
 
 Approved5 November2026; **APPROVED_PENDING_INSTALL**. Owner explicitly replied **Install version46 and test**. Approval covers this exact verified46 candidate, in-place replacement, preserved data and the scoped non-destructive checks below; no renewed approval is needed for this candidate/scope. Current physical SM-S928B reports Android17/API37 and installed43. New46 identity, actual43 signer continuity, full host checks and owner-only delivery are recorded in NW150_SOURCE_EVIDENCE.json. Normal Samsung navigation works; no manual screen walk or helper APK is required.

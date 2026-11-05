@@ -1,3 +1,5 @@
+Current5 November follow-up: code46 now installed under explicit approval; Samsung scoped status **PARTIAL_SCOPED_PASS_PRESERVED**. [Actual checks and preserved data](NW150_SAMSUNG_CODE46_SMOKE.md). Prior pending-install statements below are historical; source/APK/host checks remain unchanged. NextNW151, no full acceptance/rating promotion.
+
 # NW150 — Search, offline and lyrics journey finish
 
 5 November 2026. Code46 is **LOCAL_VERIFIED**, device acceptance **NOT_RUN**. This cumulative update retains every existing feature/theme, source URL/quality, data format, package/signer and account/consent boundary. [Committed plan](NW150_JOURNEY_FINISH_PLAN.md), [exact evidence](quality/NW150_SOURCE_EVIDENCE.json).

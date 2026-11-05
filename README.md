@@ -1,6 +1,6 @@
 # NightWave
 
-**Latest cumulative review candidate:** NW150/code46, locally verified; [changes and exact checks](docs/NW150_JOURNEY_FINISH.md). Device acceptance pending version-specific installation approval. All features/themes/data preserved; next NW151. Main remains the older integrated baseline; no public APK or release activation.
+**Latest cumulative review candidate:** NW150/code46, locally verified; [changes and exact checks](docs/NW150_JOURNEY_FINISH.md). Owner-approved Samsung46 scoped checks passed with data preserved; [physical scope and remaining gates](docs/NW150_SAMSUNG_CODE46_SMOKE.md). Full acceptance remains pending. All features/themes/data preserved; next NW151. Main remains the older integrated baseline; no public APK or release activation.
 
 **Current product review:** [detailed code40 review](docs/audits/2026-11-04_CODE40_PRODUCT_REVIEW.md), [next upgrades NW146–NW153](docs/UPGRADE_ROADMAP_NW146_NW153.md). Provisional presentation index7.83/10; full product overall unscored. Next source batch NW151. Older status notes below are historical.
 

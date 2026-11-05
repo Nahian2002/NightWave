@@ -132,7 +132,7 @@
         "R07"
       ],
       "implementation_status": "LOCAL_VERIFIED",
-      "device_status": "NOT_RUN",
+      "device_status": "PARTIAL_SCOPED_PASS_PRESERVED",
       "acceptance_criteria": [
         "Exercise live public and saved/local queries, versions/cancellation/stale results and exact source identity.",
         "Align offline/import/download/error UI and actionable readiness/retry copy; measure network/receive/write separately without universal Mbps promise.",
@@ -148,9 +148,10 @@
       },
       "evidence": "docs/quality/NW150_SOURCE_EVIDENCE.json",
       "source_revision": "1bd431d5a235e055fe076b83a32346e033ecbb1b",
-      "notes": "Exact on-device ID destination, neutral cancel/background search with retry/web fallback and wrapping owned-lyrics follow controls. Samsung43 normal-input baseline only;46 not installed. Full NW145 remains PARTIAL; no rating promotion.",
+      "notes": "Owner-approved Samsung43 to46 scoped pass:29 unchanged prelaunch files; six core preference files/profile/history original after checks. Live cancel/background/retry20/retained-results,saved/local queries and owned-LRC guide observed;three paused reopen cycles. Full NW145 PARTIAL,fixture/LRC/other-device/soak gaps remain;no rating promotion.",
       "automation_preparation_status": "DEFERRED_NOT_NEEDED_ON_SUPPORTED_CURRENT_SAMSUNG; no helper installed",
-      "draft_pr": "https://github.com/Nahian2002/NightWave/pull/176"
+      "draft_pr": "https://github.com/Nahian2002/NightWave/pull/176",
+      "phone_evidence": "docs/NW150_SAMSUNG_CODE46_SMOKE.md"
     },
     {
       "id": "NW151",
@@ -171,7 +172,15 @@
         "Finish prioritized native/advanced English/Bangla resource coverage while preserving user/provider text and data schemas.",
         "Use approved API23/24/26/modern and hardware/input/TalkBack/font profiles; grade only actually executed cases."
       ],
-      "native_artwork_note": "Review retained classic ThumbnailLoader fixed inSampleSize=2 during native-UI compatibility pass; no new behavior/quality certification from NW148 modern CoverArt work."
+      "native_artwork_note": "Review retained classic ThumbnailLoader fixed inSampleSize=2 during native-UI compatibility pass; no new behavior/quality certification from NW148 modern CoverArt work.",
+      "supplemental_review_notes": [
+        {
+          "id": "NW150-PHONE-UX01",
+          "status": "OPEN_REVIEW",
+          "description": "Focused Search field reopened keyboard after background return, reducing results viewport; review submit/resume focus handling without changing user draft or system settings.",
+          "evidence": "docs/NW150_SAMSUNG_CODE46_SMOKE.md"
+        }
+      ]
     },
     {
       "id": "NW152",

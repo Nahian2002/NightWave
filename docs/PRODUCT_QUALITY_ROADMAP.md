@@ -2,9 +2,9 @@
 
 5 November2026. **Next independent source batch: NW151 — older Android language and accessibility.**
 
-**Latest candidate: NW150/code46 LOCAL_VERIFIED; device acceptance NOT_RUN.** Exact on-device entry navigation, neutral cancelled/background search with Retry/YouTube fallback and wrapping owned-LRC follow controls are complete in source. Full Windows builder,1,854 JVM/233 suites,92 source checks and sequential lint0 errors/327 warnings/17 hints passed; warning inventory unchanged. [Result and pending phone cases](NW150_JOURNEY_FINISH.md), [exact identity](quality/NW150_SOURCE_EVIDENCE.json).
+**Latest candidate: NW150/code46 LOCAL_VERIFIED; Samsung device acceptance PARTIAL_SCOPED_PASS_PRESERVED.** Exact on-device entry navigation, neutral cancelled/background search with Retry/YouTube fallback and wrapping owned-LRC follow controls are complete in source. Full Windows builder,1,854 JVM/233 suites,92 source checks and sequential lint0 errors/327 warnings/17 hints passed; warning inventory unchanged. [Result and pending phone cases](NW150_JOURNEY_FINISH.md), [exact identity](quality/NW150_SOURCE_EVIDENCE.json).
 
-Samsung SM-S928B normal navigation is available on installed43. Code46 is not installed; version-specific approval is required. No helper or manual screen walkthrough is needed for normal Samsung navigation. Next sequence is **NW151 → NW152 → NW153**. Use the [structured backlog](quality/NW146_NW153_BACKLOG.json) for eligibility.
+Samsung SM-S928B normal navigation is available on installed46. Owner-approved43→46 is installed; [scoped checks and preserved data](NW150_SAMSUNG_CODE46_SMOKE.md) are recorded. Full acceptance remains pending. No helper or manual screen walkthrough is needed for normal Samsung navigation. Next sequence is **NW151 → NW152 → NW153**. Use the [structured backlog](quality/NW146_NW153_BACKLOG.json) for eligibility.
 
 NW145 remains PARTIAL; original219 cases, older-device coverage, study/soak and full product re-rating remain open. No automatic9.5/100% score, main merge, release/feed activation, public binary or schedule restart. Preserve all features/themes, source URLs/quality, installed data/formats, package/signer and account/consent boundaries.
 
