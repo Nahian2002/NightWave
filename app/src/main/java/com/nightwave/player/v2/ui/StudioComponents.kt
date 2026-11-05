@@ -247,9 +247,11 @@ fun ListeningSpotlight(
 /** Artwork placeholder remains visible if upstream thumbnails cannot load. */
 @Composable
 internal fun TrackArtwork(video: VideoPreview, modifier: Modifier = Modifier, large: Boolean = false,
-    radius: Int = NightWavePremiumDesignTokens.ARTWORK_CORNER_DP) {
+    radius: Int = NightWavePremiumDesignTokens.ARTWORK_CORNER_DP,
+    crop: Boolean = !large, sharperTile: Boolean = false) {
     CoverArt(video.thumbnail, modifier, radius,
-        description = "Artwork for " + video.title, trackIdentity = video.url, large = large)
+        description = "Artwork for " + video.title, trackIdentity = video.url, large = large,
+        crop = crop, sharperTile = sharperTile)
 }
 
 @Composable

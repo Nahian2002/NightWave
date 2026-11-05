@@ -99,7 +99,7 @@ fun NightWaveRecentShelfTile(
         Surface(onClick = onPlay, shape = RoundedCornerShape(NightWavePremiumDesignTokens.CARD_CORNER_DP.dp),
             modifier = Modifier.fillMaxWidth().testTag("nw47-recent-play")) {
             Box {
-                TrackArtwork(song, Modifier.fillMaxWidth().aspectRatio(1.5f), large = true)
+                TrackArtwork(song, Modifier.fillMaxWidth().aspectRatio(16f / 9f), large = true, crop = true)
                 if (isPlaying) Surface(
                     Modifier.align(Alignment.BottomStart).padding(7.dp),
                     color = colors.primary, shape = RoundedCornerShape(7.dp)) {
@@ -179,13 +179,13 @@ fun NightWaveNextListenTile(
         ) {
             Column {
                 Box(
-                    Modifier.fillMaxWidth().aspectRatio(1.5f)
+                    Modifier.fillMaxWidth().aspectRatio(16f / 9f)
                         .clip(RoundedCornerShape(
                             NightWavePremiumDesignTokens.CARD_CORNER_DP.dp))
                         .background(scheme.surfaceVariant),
                     contentAlignment = Alignment.Center
                 ) {
-                    TrackArtwork(song, Modifier.fillMaxSize(), large = true)
+                    TrackArtwork(song, Modifier.fillMaxSize(), large = true, crop = true)
                     if (isPlaying) {
                         Surface(
                             modifier = Modifier.align(Alignment.BottomStart).padding(8.dp),

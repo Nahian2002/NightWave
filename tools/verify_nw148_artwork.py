@@ -6,15 +6,15 @@ BASE=ROOT/'app/src/main/java/com/nightwave/player/v2/ui'
 FILES=('StudioPlayerScreens.kt','NightWaveArtworkRequestPolicy.kt')
 MARKERS={
  FILES[0]: ['NightWaveArtworkRequestPolicy.pixels(measured.width, measured.height)',
-  '.size(requestSize.width, requestSize.height)', '.scale(if (large) Scale.FIT else Scale.FILL)',
-  '.precision(Precision.INEXACT)', 'remember(displayUrl, requestSize, large, context)',
-  'remember(trackIdentity, url, large) { ArtworkRequestSession() }', 'onDispose { session.close() }',
+  '.size(requestSize.width, requestSize.height)', '.scale(if (crop) Scale.FILL else Scale.FIT)',
+  '.precision(Precision.INEXACT)', 'remember(displayUrl, requestSize, large, crop, context)',
+  'remember(candidates, trackIdentity, large, crop) { ArtworkRequestSession() }', 'onDispose { session.close() }',
   'rememberUpdatedState(ticket)', 'rememberUpdatedState(onResolved)', 'rememberUpdatedState(onDecode)',
   'session.accepts(ticket, currentTicket) && candidateIndex == attempt', 'key(ticket)',
   '!loaded.result.isSampled && NightWaveArtworkPolicy.isUnavailableLargeStill(displayUrl',
   '.memoryCachePolicy(CachePolicy.ENABLED).diskCachePolicy(CachePolicy.ENABLED)',
   'imageLoader ?: context.imageLoader', 'ApplicationInfo.FLAG_DEBUGGABLE', 'Log.d("NightWaveArt", report.toString())',
-  'remember(url, trackIdentity, large)', 'NightWaveArtworkPolicy.trackCandidates(url, trackIdentity, large)'],
+  'remember(url, trackIdentity, large, sharperTile)', 'NightWaveArtworkPolicy.trackCandidates(url, trackIdentity, large, sharperTile)'],
  FILES[1]: ['MAX_EDGE = 1280', 'width <= 0 || height <= 0', 'MAX_EDGE.toDouble() / maxOf(width, height)',
   'active && expected.session === this && current.session === this && expected == current',
   'fun close() { active = false }', 'data class ArtworkDecodeReport']}

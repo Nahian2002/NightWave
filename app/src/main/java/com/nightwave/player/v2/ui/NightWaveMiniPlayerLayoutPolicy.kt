@@ -21,6 +21,7 @@ object NightWaveMiniPlayerLayoutPolicy {
         val rowHeight = when {
             scale >= 2.2f -> 124
             scale >= 1.8f -> 104
+            scale < 1.3f -> 48
             else -> NightWaveAdaptiveChromePolicy.miniPlayerHeightDp(scale)
         }
         // Hide the decorative thumbnail in very narrow split-screen windows.

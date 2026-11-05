@@ -3798,7 +3798,7 @@ internal fun StudioHome(
                     }
                 })
             }
-            if (entry.kind == NightWaveHomePresentationPolicy.Kind.HISTORY_ONLY) item(key = "nw131-history-save-hint") {
+            if (showAllRecent && entry.kind == NightWaveHomePresentationPolicy.Kind.HISTORY_ONLY) item(key = "nw131-history-save-hint") {
                 Text(strings.get(R.string.nw141_like_or_add_to_a_playlist_from_track_options_4681b),
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
@@ -3893,7 +3893,7 @@ internal fun StudioHome(
         // Lead with actual music before accounting-style counters.
         if (mixes.isNotEmpty()) {
             item {
-                SectionHeading(strings.get(R.string.nw141_your_mixes_a1ada), strings.get(R.string.nw141_choose_a_mix_to_preview_61187))
+                SectionHeading(strings.get(R.string.nw141_your_mixes_a1ada))
             }
             // Keep every existing mix and preview action. One full-width feature leads
             // into measured paired cells; narrow/large text stacks the same reading order.

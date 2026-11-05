@@ -54,4 +54,14 @@ class NW148CanonicalArtworkTest {
             assertEquals(NightWaveArtworkPolicy.requestCandidates(url, large), candidates(url, large = large))
         }
     }
+
+    @Test fun sharpSmallTileTriesOnlyOneSameTrackUpgradeAndRetainsExactFallback() {
+        fun tile(url: String, identity: String = track) =
+            NightWaveArtworkPolicy.trackCandidates(url, identity, large = false, sharperTile = true)
+        assertEquals(listOf(still, original), tile(original))
+        assertEquals(listOf(original), tile(original, track.replace(id, "00000000002")))
+        val privateQuery = "$still?token=x&signature=y"
+        assertEquals(listOf(privateQuery), tile(privateQuery))
+        assertEquals(listOf("content://local/cover"), tile("content://local/cover"))
+    }
 }

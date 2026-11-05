@@ -54,8 +54,8 @@ object NightWaveHomePresentationPolicy {
             it.lowercase(java.util.Locale.ROOT) !in setOf("unknown", "unknown creator", "unknown artist", "youtube creator", "various artists") }
             .map { it.lowercase(java.util.Locale.ROOT) }.distinct().size
         val title = when (mix.key) {
-            "daily_mix_1" -> when { likedCount > 0 -> "Familiar picks"; recentCount > 0 -> "Daily selection"; else -> "Playlist picks" }
-            "daily_mix_2" -> if (outsideRecent > 0) "Beyond recent plays" else "Another direction"
+            "daily_mix_1" -> when { likedCount > 0 -> "Familiar picks"; recentCount > 0 -> "From recent plays"; else -> "Playlist picks" }
+            "daily_mix_2" -> if (outsideRecent > 0) "Beyond recent plays" else "Recent rotation"
             "daily_mix_3" -> if (knownUploaders >= 2) "Creator blend" else "Another way to listen"
             "memory" -> "From your listening"
             "artists" -> "Familiar creators"
@@ -75,10 +75,11 @@ object NightWaveHomePresentationPolicy {
         }
         val first = tracks.firstOrNull()?.let { MusicIdentity.display(it.title, it.author).title }
         val purpose = when {
-            mix.key == "daily_mix_1" && likedCount > 0 -> "Start with songs you liked"
-            mix.key == "daily_mix_1" -> "A familiar starting point"
-            mix.key == "daily_mix_2" && outsideRecent > 0 -> "Beyond your recent plays"
-            mix.key == "daily_mix_2" -> "A different order to explore"
+            mix.key == "daily_mix_1" && likedCount > 0 -> "Includes songs you liked"
+            mix.key == "daily_mix_1" && recentCount > 0 -> "Picked from your recent plays"
+            mix.key == "daily_mix_1" -> "From your playlists"
+            mix.key == "daily_mix_2" && outsideRecent > 0 -> "Includes tracks outside your recent history"
+            mix.key == "daily_mix_2" -> "Revisit songs you played recently"
             mix.key == "daily_mix_3" && knownUploaders >= 2 -> "Across $knownUploaders creators"
             mix.key == "replay" && tracks.isNotEmpty() && recentCount == tracks.size -> "In the order you listened"
             tracks.isNotEmpty() && recentCount == 0 && tracks.all { it.url in saved } -> "Revisit music you saved"

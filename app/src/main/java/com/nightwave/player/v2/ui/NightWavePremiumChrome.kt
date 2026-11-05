@@ -261,20 +261,24 @@ fun NightWaveHomeHero(
     val fontScale = LocalDensity.current.fontScale
     val identity = lastTrack?.let { NightWaveEditorialPresentationPolicy.identity(it.title, it.author) }
     val clickableHero = if (lastTrack != null && onContinue != null) {
-        modifier.clickable(role = Role.Button, onClick = onContinue)
+        modifier.clickable(role = Role.Button,
+            onClickLabel = strings.get(R.string.nw141_home_continue), onClick = onContinue)
     } else if (onEmptyAction != null) modifier.clickable(role = Role.Button,
         onClickLabel = emptyActionLabel, onClick = onEmptyAction) else modifier
     Row(clickableHero.fillMaxWidth()
-        .heightIn(min = NightWaveAdaptiveChromePolicy.homeHeroHeightDp(fontScale).dp)
+        .heightIn(min = (if (identity != null && fontScale < 1.3f) 80
+            else NightWaveAdaptiveChromePolicy.homeHeroHeightDp(fontScale)).dp)
         .clip(RoundedCornerShape(NightWavePremiumDesignTokens.HERO_CORNER_DP.dp))
         .background(androidx.compose.ui.graphics.Brush.horizontalGradient(
             listOf(colors.surface, colors.primaryContainer)))
         .testTag("nightwave-home-hero")
-        .padding(NightWavePremiumDesignTokens.CARD_PADDING_DP.dp),
+        .padding(horizontal = NightWavePremiumDesignTokens.CARD_PADDING_DP.dp,
+            vertical = (if (identity != null && fontScale < 1.3f) 10
+                else NightWavePremiumDesignTokens.CARD_PADDING_DP).dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         if (lastTrack != null && fontScale < 1.3f) {
-            TrackArtwork(lastTrack, Modifier.size(56.dp))
+            TrackArtwork(lastTrack, Modifier.size(56.dp), sharperTile = true)
         }
         // Opaque surface under all captions: artwork cannot alter contrast.
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -285,7 +289,7 @@ fun NightWaveHomeHero(
                 color = colors.onSurface, maxLines = if (fontScale >= 1.3f) Int.MAX_VALUE else 2, overflow = TextOverflow.Ellipsis)
             Text(if (identity == null)
                 emptyDetail ?: strings.get(R.string.nw141_home_welcome, firstName)
-                else strings.get(R.string.nw141_home_resume, identity.artistOrCreator),
+                else identity.artistOrCreator,
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.onSurfaceVariant)
             if (identity == null && emptyActionLabel != null) Text(emptyActionLabel + " →",

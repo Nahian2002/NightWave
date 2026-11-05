@@ -64,7 +64,7 @@ class NightWaveHomePresentationPolicyTest {
     @Test fun historyOnlyMixNeverClaimsSavedReferences() {
         val a = song(1)
         val presentation = NightWaveHomePresentationPolicy.mix(mix("daily_mix_1", listOf(a)), emptyList(), listOf(a), emptyList(), false)
-        assertEquals("Daily selection", presentation.title)
+        assertEquals("From recent plays", presentation.title)
         assertEquals("RECENT MUSIC", presentation.caption)
         assertFalse(presentation.reason.contains("memory", true))
     }
@@ -73,7 +73,7 @@ class NightWaveHomePresentationPolicyTest {
         val selected = history.last()
         val presentation = NightWaveHomePresentationPolicy.mix(mix("daily_mix_2", listOf(selected)),
             emptyList(), history, emptyList(), false)
-        assertEquals("Another direction", presentation.title)
+        assertEquals("Recent rotation", presentation.title)
         assertEquals("On this device · 1 recent", presentation.reason)
         assertEquals("RECENT MUSIC", presentation.caption)
     }
@@ -81,7 +81,7 @@ class NightWaveHomePresentationPolicyTest {
         val a = song(1, "Unknown artist"); val b = song(2, "Unknown creator")
         fun view(key: String, tracks: List<VideoPreview>, recent: List<VideoPreview> = emptyList()) =
             NightWaveHomePresentationPolicy.mix(mix(key, tracks), tracks, recent, emptyList(), false)
-        assertEquals("Another direction", view("daily_mix_2", listOf(a), listOf(a)).title)
+        assertEquals("Recent rotation", view("daily_mix_2", listOf(a), listOf(a)).title)
         assertEquals("Beyond recent plays", view("daily_mix_2", listOf(a, b), listOf(a)).title)
         assertEquals("Another way to listen", view("daily_mix_3", listOf(a, b)).title)
         assertEquals("Creator blend", view("daily_mix_3", listOf(song(1), song(2))).title)

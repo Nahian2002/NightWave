@@ -3,7 +3,6 @@ package com.nightwave.player.v2.ui
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.selected
 import androidx.compose.foundation.background
@@ -158,7 +157,7 @@ fun NightWaveMixCard(
             Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = NightWaveSecondaryLayoutPolicy.MIX_VERTICAL_DP.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically) {
-                if (first != null) NightWaveMixMosaic(mix, Modifier.size(if (featured) 88.dp else 64.dp))
+                if (first != null) NightWaveMixMosaic(mix, Modifier.size(if (featured) 76.dp else 64.dp))
                 Column(Modifier.weight(1f)) {
                     NightWaveMixCaption(mix, presentation, trackLabel, fontScale, selected)
                 }
@@ -185,8 +184,9 @@ private fun NightWaveMixMosaic(mix: PersonalMix, modifier: Modifier = Modifier) 
         verticalArrangement = Arrangement.spacedBy(2.dp)) {
         tracks.chunked(2).forEach { row ->
             Row(Modifier.fillMaxWidth().weight(1f), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                row.forEach { track -> TrackArtwork(track, Modifier.weight(1f).fillMaxSize(), radius = 4) }
-                if (row.size == 1) Spacer(Modifier.weight(1f))
+                row.forEach { track ->
+                    TrackArtwork(track, Modifier.weight(1f).fillMaxSize(), radius = 4, sharperTile = true)
+                }
             }
         }
     }
