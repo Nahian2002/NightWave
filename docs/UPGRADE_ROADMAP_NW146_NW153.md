@@ -1,3 +1,5 @@
+Current5 November: NW151/code47 source locally verified; physical47 NOT_RUN,approval46 does not cover47. Read NW151_COMPAT_LANGUAGE.md. RemainingNW152 then NW153; feature scope frozen,full acceptance/rating pending. Earlier next/status notes below are historical.
+
 Current5 November2026: owner-approved Samsung43→46 installation/scoped checks complete,PARTIAL_SCOPED_PASS_PRESERVED. Read NW150_SAMSUNG_CODE46_SMOKE.md. Normal phone input works; no helper/manual walkthrough needed,MIUI pilot deferred. Original profile/history/core files preserved,Home paused. Approval46 persists for exact candidate/scope; no future/test APK or release/schedule action. Next independent sourceNW151; earlier pending/approval/budget statements below are historical.
 
 Current5 November: NW150 source46 LOCAL_VERIFIED; next independent sourceNW151. Read NW150_JOURNEY_FINISH.md. Samsung normal-input capability observed on43;46 pending approval/device checks. Wider NW145 PARTIAL; earlier next/status notes below are historical.

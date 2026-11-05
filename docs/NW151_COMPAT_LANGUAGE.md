@@ -1,0 +1,22 @@
+# NW151 — compatibility, language and focus finish
+
+5 November2026. **LOCAL_VERIFIED**, code47, device **NOT_RUN**. [Committed plan](NW151_COMPAT_LANGUAGE_PLAN.md), [exact evidence](quality/NW151_SOURCE_EVIDENCE.json). Cumulative on NW150 draft176; every feature/theme, source URL/audio quality, data format, package/signer and account/consent boundary remains.
+
+The classic brand label used four platform auto-size attributes unavailable on API23–25. Its platform TextView subclass now measures styled text with API23 StaticLayout, choosing the largest fitting16–23sp size and retaining the readable minimum/single-line ellipsis. No AppCompat dependency/theme migration or native fallback removal. SP conversion uses TypedValue.applyDimension, including Android14+ nonlinear scaling; [official guidance](https://developer.android.com/about/versions/14/features#non-linear-font-scaling). Source support is not proof of every old device/font/input configuration.
+
+Classic ThumbnailLoader no longer halves every original image. Measured target/cache buckets and bounds-based power-of-two sampling preserve small originals and bound decoded pixels to1,048,576. Actual input bytes, including unknown Content-Length, are capped at the existing3,000,000-byte limit before decode; zero-length reads have a bounded single-byte fallback. Exact original URL retained; no replacement source/upscaling/audio change. Request identity is assigned before deferred layout work; invalid/recycled/later requests and shutdown prevent stale display. Device sharpness/cache/race/performance cases remain pending.
+
+Nineteen prioritized direct-audio entry/permission/action/recovery messages have paired English/Bangla resources. The ownership checkbox, foreground/background/cancel behavior, format preservation and uninstall warning remain explicit. Action rows wrap with48dp minimums. Provider/user text, transfer metrics, URL drafts and data/consent are unchanged. Remaining native/dynamic copy is retained; this is not a complete-app translation claim.
+
+Search clears input focus/hides the keyboard before explicit submit, mode, retry, refresh and web/shortcut actions, and on lifecycle stop. Draft/results remain; lifecycle observer is removed on disposal, and no Android setting is written. This addresses the NW150 keyboard-return observation in source; actual47 IME/background behavior remains NOT_RUN.
+
+## Verified source and artifact
+
+- Full Windows builder PASS: **1,862 JVM/234 suites**, zero failures/errors/skips; eight new JVM cases. Two new Android fixture methods compile only, covering real native measurement and Search submit focus; no test APK installed.
+- **93 source checks PASS_SOURCE_ONLY**. Sequential lint **0 errors/317 warnings/17 hints**. No new warning inventory entries; 10 entries removed relative to46 (four platform-attribute and six untranslated-copy warnings). No suppression. First build caught a missing Compose import; repaired before the final full run, with failure evidence retained privately.
+- Gitleaks implementation3,663 commits/all refs/full history: no unreviewed findings. Eight native entries/one other asset unchanged from46; APK inventory delta{'added': [], 'removed': []}. Later documentation scan recorded privately.
+- Build `NW-debug-654C088DFF71FF81`, built revision `4522c2f0377339e51ec23729651852645e0e4675`; canonical source `654C088DFF71FF81FB7D510E83591E41CB3F703D59EFD8F66F5FFFB48CA3AA5A`/1016 inputs. APK `A22C3F8641EE4A815A91C3EDC9538DFDABC125E38C3C00574818EE5BC24091D6`/29,146,751 bytes; signer `EA737A703B8F116EBC5C8C0A717DDBF3A2A5808ACC9079A8F79CD1B3CD860394` matches the verified actual installed Samsung46 APK. Owner-only Drive metadata and complete streamed byte/hash readback PASS.
+
+API23/24/26 and modern approved device/font/input/TalkBack/locale profiles, actual thumbnail decode/cache/recycle behavior, native translated action wrapping and submit/background IME acceptance remain **NOT_RUN**. Existing Samsung46 evidence stays separately scoped; no47 installation authorized or performed. No original219/full NW145, full compatibility, translation quality or9.5/100% rating promotion. No reset/account/EQ/system-setting action, public binary/release/feed/main merge or automation activation. **Next independent sourceNW152**; then NW153 final acceptance. Feature scope remains frozen.
+
+[Draft review #177](https://github.com/Nahian2002/NightWave/pull/177), stacked on176; unmerged.

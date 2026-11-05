@@ -1,8 +1,8 @@
 # NightWave
 
-**Latest cumulative review candidate:** NW150/code46, locally verified; [changes and exact checks](docs/NW150_JOURNEY_FINISH.md). Owner-approved Samsung46 scoped checks passed with data preserved; [physical scope and remaining gates](docs/NW150_SAMSUNG_CODE46_SMOKE.md). Full acceptance remains pending. All features/themes/data preserved; next NW151. Main remains the older integrated baseline; no public APK or release activation.
+**Latest cumulative review candidate:** NW151/code47, locally verified; [changes and exact checks](docs/NW151_COMPAT_LANGUAGE.md). Physical47 checks remain pending approval; Samsung46 evidence is separately scoped. Every feature/theme/data boundary preserved. NextNW152 then NW153,feature scope frozen. Main remains older; no public APK/release activation.
 
-**Current product review:** [detailed code40 review](docs/audits/2026-11-04_CODE40_PRODUCT_REVIEW.md), [next upgrades NW146–NW153](docs/UPGRADE_ROADMAP_NW146_NW153.md). Provisional presentation index7.83/10; full product overall unscored. Next source batch NW151. Older status notes below are historical.
+**Current product review:** [detailed code40 review](docs/audits/2026-11-04_CODE40_PRODUCT_REVIEW.md), [next upgrades NW146–NW153](docs/UPGRADE_ROADMAP_NW146_NW153.md). Provisional presentation index7.83/10; full product overall unscored. Next source batch NW152. Older status notes below are historical.
 
 **First device evidence:** owner-approved code40 in-place update and scoped Samsung phone smoke recorded in [review #170](https://github.com/Nahian2002/NightWave/pull/170). Installed APK identity/signature and29 pre-launch data-file hashes verified; basic UI checks observed. NW145 is PARTIAL, not a full219-case pass or9.5 rating. [Exact scope and pending cases](docs/NW145_SAMSUNG_CODE40_SMOKE.md).
 

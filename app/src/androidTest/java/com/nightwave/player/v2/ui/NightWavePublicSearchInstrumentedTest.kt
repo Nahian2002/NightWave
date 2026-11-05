@@ -43,6 +43,14 @@ class NightWavePublicSearchInstrumentedTest {
         compose.waitForIdle()
     }
 
+    @Test fun submitClearsInputFocusWithoutDiscardingTheDraft() {
+        screen()
+        compose.onNodeWithTag("nw129-search-query").performScrollTo().performTextReplacement("focus fixture")
+        compose.onNodeWithText("Find music").performScrollTo().performClick()
+        compose.onNodeWithTag("nw129-search-query").assertIsNotFocused().assertTextContains("focus fixture")
+        compose.runOnIdle { assertEquals(1, retries) }
+    }
+
     @Test fun identicalPlayDateCaptionsExposeSourceEvidenceAndTapExactlyEachChosenUrl() {
         state = StudioSearchSnapshot(query = "play date", videos = listOf(first, second))
         screen()

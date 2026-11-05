@@ -169,6 +169,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import com.nightwave.player.v2.ui.NightWaveMatteTextButton as TextButton
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -3965,7 +3966,19 @@ internal fun StudioSearch(
     var queryFocused by remember { mutableStateOf(false) }
     // Search on the keyboard stays inside NightWave. YouTube stays an
     // explicit alternative when public provider results are unavailable.
+    val searchFocus = LocalFocusManager.current
+    val searchKeyboard = LocalSoftwareKeyboardController.current
+    val searchLifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
+    val dismissSearchInput = { searchFocus.clearFocus(); searchKeyboard?.hide(); Unit }
+    DisposableEffect(searchLifecycle, searchFocus, searchKeyboard) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_STOP) dismissSearchInput()
+        }
+        searchLifecycle.addObserver(observer)
+        onDispose { searchLifecycle.removeObserver(observer) }
+    }
     val submit = {
+        dismissSearchInput()
         val entered = query.trim()
         if (entered.isNotBlank()) {
             onRecordSearch(entered)
@@ -4090,14 +4103,14 @@ internal fun StudioSearch(
                         onClick = {
                             if (mode != SearchMode.SONGS) {
                                 mode = SearchMode.SONGS
-                                onNativeSearch(query.trim(), SearchMode.SONGS)
+                                dismissSearchInput(); onNativeSearch(query.trim(), SearchMode.SONGS)
                             }
                         }, label = { Text(strings.get(R.string.nw141_songs_bc676)) })
                     FilterChip(selected = mode == SearchMode.VIDEOS,
                         onClick = {
                             if (mode != SearchMode.VIDEOS) {
                                 mode = SearchMode.VIDEOS
-                                onNativeSearch(query.trim(), SearchMode.VIDEOS)
+                                dismissSearchInput(); onNativeSearch(query.trim(), SearchMode.VIDEOS)
                             }
                         }, label = { Text(strings.get(R.string.nw141_videos_c9a96)) })
                 }
@@ -4168,7 +4181,7 @@ internal fun StudioSearch(
                     OutlinedButton(onClick = {
                         mode = SearchMode.SONGS
                         onRecordSearch(selectedCreatorGroup.name)
-                        onPrimarySearch(selectedCreatorGroup.name, SearchMode.SONGS)
+                        dismissSearchInput(); onPrimarySearch(selectedCreatorGroup.name, SearchMode.SONGS)
                     }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
                         Text(strings.get(R.string.nw141_search_this_creator_on_youtube_1e72c))
                     }
@@ -4202,7 +4215,7 @@ internal fun StudioSearch(
                     OutlinedButton(
                         onClick = {
                             onRecordSearch(query.trim())
-                            onPrimarySearch(query.trim(), mode)
+                            dismissSearchInput(); onPrimarySearch(query.trim(), mode)
                         },
                         modifier = Modifier.weight(1f).heightIn(min = 48.dp),
                         shape = RoundedCornerShape(16.dp)
@@ -4299,7 +4312,7 @@ internal fun StudioSearch(
                                 mode = SearchMode.SONGS
                                 query = shortcut.query
                                 onRecordSearch(shortcut.query)
-                                onPrimarySearch(shortcut.query, SearchMode.SONGS)
+                                dismissSearchInput(); onPrimarySearch(shortcut.query, SearchMode.SONGS)
                             }, label = { Text(shortcut.title, maxLines = 1) },
                             modifier = Modifier.heightIn(min = 48.dp))
                     }
@@ -4425,7 +4438,7 @@ internal fun StudioSearch(
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                         TextButton(onClick = onCancelSearch, modifier = Modifier.heightIn(min = 48.dp)
                             .testTag("nw130-cancel-search")) { Text(strings.get(R.string.nw141_cancel_search_b5456)) }
-                        TextButton(onClick = { onCancelSearch(); onWebSearch(query.trim()) },
+                        TextButton(onClick = { onCancelSearch(); dismissSearchInput(); onWebSearch(query.trim()) },
                             modifier = Modifier.heightIn(min = 48.dp)) { Text(strings.get(R.string.nw141_open_youtube_search_027b5)) }
                     }
                 }
@@ -4434,8 +4447,8 @@ internal fun StudioSearch(
         if (!searching && responseMatchesQuery && state.stopped != null) {
             item(key = "nw150-stopped-search") {
                 NightWaveSearchStoppedCard(state.stopped, state.videos.isNotEmpty(),
-                    onWeb = { onWebSearch(query.trim()) }) {
-                    onNativeSearch(query.trim(), mode)
+                    onWeb = { dismissSearchInput(); onWebSearch(query.trim()) }) {
+                    dismissSearchInput(); onNativeSearch(query.trim(), mode)
                 }
             }
         }
@@ -4451,7 +4464,7 @@ internal fun StudioSearch(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (!searching) Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    TextButton(onClick = { onNativeSearch(query.trim(), mode) },
+                    TextButton(onClick = { dismissSearchInput(); onNativeSearch(query.trim(), mode) },
                         modifier = Modifier.weight(1f).heightIn(min = 48.dp).testTag("search02-refresh")) { Text(strings.get(R.string.nw141_refresh_results_04cc9)) }
                     if (state.details.isNotBlank() || state.error.isNotBlank()) TextButton(onClick = { showSearchDetails = true },
                         modifier = Modifier.weight(1f).heightIn(min = 48.dp)) { Text(strings.get(R.string.nw141_search_details_98cbc)) }
@@ -4463,7 +4476,7 @@ internal fun StudioSearch(
                         Text(strings.get(R.string.nw143_previous_results),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        TextButton(onClick = { onNativeSearch(query.trim(), mode) },
+                        TextButton(onClick = { dismissSearchInput(); onNativeSearch(query.trim(), mode) },
                             modifier = Modifier.heightIn(min = 48.dp)) { Text(strings.get(R.string.nw141_retry_search_f468e)) }
                     }
                 }
@@ -4532,11 +4545,11 @@ internal fun StudioSearch(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        OutlinedButton(onClick = { onNativeSearch(query.trim(), mode) },
+                        OutlinedButton(onClick = { dismissSearchInput(); onNativeSearch(query.trim(), mode) },
                             enabled = query.isNotBlank()) {
                             Text(strings.get(R.string.nw141_retry_search_f468e))
                         }
-                        OutlinedButton(onClick = { onWebSearch(query.trim()) },
+                        OutlinedButton(onClick = { dismissSearchInput(); onWebSearch(query.trim()) },
                             enabled = query.isNotBlank()) {
                             Text("YouTube")
                         }
