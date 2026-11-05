@@ -75,8 +75,13 @@ class NightWavePurposefulHomeInstrumentedTest {
         compose.onNodeWithTag("nw131-home-list").performScrollToNode(hasTestTag("nw131-mix-daily_mix_1"))
         compose.onNodeWithTag("nw131-mix-daily_mix_1").performClick()
         compose.runOnIdle { assertTrue(played.isEmpty()) }
-        compose.onNodeWithTag("nw131-home-list").performScrollToNode(hasTestTag("nw131-play-mix"))
+        compose.onNodeWithTag("nw155-mix-preview").assertIsDisplayed()
+        compose.onNodeWithTag("nw131-play-mix").assertIsDisplayed()
+        compose.onNodeWithTag("nw155-close-mix").performClick()
+        compose.onNodeWithTag("nw155-mix-preview").assertDoesNotExist()
+        compose.onNodeWithTag("nw131-mix-daily_mix_1").assertIsDisplayed().performClick()
         compose.onNodeWithTag("nw131-play-mix").performClick()
+        compose.onNodeWithTag("nw155-mix-preview").assertDoesNotExist()
         compose.runOnIdle {
             assertTrue(played.isNotEmpty())
             assertTrue(played.size <= 12)

@@ -21,7 +21,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.ExpandMore
-import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -44,6 +43,7 @@ import coil.compose.AsyncImage
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.nightwave.player.R
 import com.nightwave.player.v2.recommendation.PersonalMix
 
 /**
@@ -144,7 +144,7 @@ fun NightWaveMixCard(
     val scheme = MaterialTheme.colorScheme
     val fontScale = LocalDensity.current.fontScale
     val first = mix.tracks.firstOrNull()
-    val trackLabel = if (selected) "Collapse tracks" else "View tracks"
+    val trackLabel = rememberNightWaveStrings().get(R.string.nw155_preview_mix)
     Card(onClick = onClick,
         modifier = modifier.heightIn(min = 48.dp).testTag("nw131-mix-" + mix.key)
             .semantics { this.selected = selected },
@@ -159,7 +159,7 @@ fun NightWaveMixCard(
                 verticalAlignment = Alignment.CenterVertically) {
                 if (first != null) NightWaveMixMosaic(mix, Modifier.size(if (featured) 76.dp else 64.dp))
                 Column(Modifier.weight(1f)) {
-                    NightWaveMixCaption(mix, presentation, trackLabel, fontScale, selected)
+                    NightWaveMixCaption(mix, presentation, trackLabel, fontScale)
                 }
             }
         } else {
@@ -169,7 +169,7 @@ fun NightWaveMixCard(
                 }
                 Column(Modifier.fillMaxWidth().background(if (selected || emphasized) scheme.primaryContainer else scheme.surface)
                     .padding(NightWaveSecondaryLayoutPolicy.MIX_CAPTION_DP.dp)) {
-                    NightWaveMixCaption(mix, presentation, trackLabel, fontScale, selected)
+                    NightWaveMixCaption(mix, presentation, trackLabel, fontScale)
                 }
             }
         }
@@ -180,6 +180,18 @@ fun NightWaveMixCard(
 @Composable
 private fun NightWaveMixMosaic(mix: PersonalMix, modifier: Modifier = Modifier) {
     val tracks = remember(mix.key, mix.tracks) { NightWaveEditorialPresentationPolicy.mixArtwork(mix) }
+    if (tracks.size == 3) {
+        Row(modifier.background(MaterialTheme.colorScheme.surfaceVariant),
+            horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+            TrackArtwork(tracks.first(), Modifier.weight(1f).fillMaxSize(), radius = 4, sharperTile = true)
+            Column(Modifier.weight(1f).fillMaxSize(), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                tracks.drop(1).forEach { track ->
+                    TrackArtwork(track, Modifier.weight(1f).fillMaxWidth(), radius = 4, sharperTile = true)
+                }
+            }
+        }
+        return
+    }
     Column(modifier.background(MaterialTheme.colorScheme.surfaceVariant),
         verticalArrangement = Arrangement.spacedBy(2.dp)) {
         tracks.chunked(2).forEach { row ->
@@ -197,8 +209,7 @@ private fun NightWaveMixCaption(
     mix: PersonalMix,
     presentation: NightWaveHomePresentationPolicy.MixPresentation?,
     trackLabel: String,
-    fontScale: Float,
-    selected: Boolean
+    fontScale: Float
 ) {
     val scheme = MaterialTheme.colorScheme
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -216,7 +227,7 @@ private fun NightWaveMixCaption(
             Text(NightWaveEditorialPresentationPolicy.mixSummary(mix),
                 modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodySmall,
                 color = scheme.onSurfaceVariant)
-            Icon(if (selected) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
+            Icon(Icons.Outlined.ExpandMore,
                 contentDescription = trackLabel, modifier = Modifier.size(20.dp), tint = scheme.onSurfaceVariant)
         }
     }

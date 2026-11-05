@@ -135,7 +135,7 @@ class NightWaveMatteAcceptanceInstrumentedTest(
         compose.onNodeWithTag("nw131-home-list").performScrollToNode(hasTestTag("nw131-mix-daily_mix_1"))
         compose.onNodeWithTag("nw131-mix-daily_mix_1").performClick()
         compose.runOnIdle { assertTrue(played.isEmpty()) }
-        compose.onNodeWithTag("nw131-home-list").performScrollToNode(hasTestTag("nw131-play-mix"))
+        compose.onNodeWithTag("nw155-mix-preview").assertIsDisplayed()
         compose.onNodeWithTag("nw131-play-mix").performClick()
         compose.runOnIdle { assertTrue(played.isNotEmpty()); assertTrue(played.all { candidate -> songs.any { it === candidate } }) }
         capture("home")

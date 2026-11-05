@@ -3728,7 +3728,6 @@ internal fun StudioHome(
         }
     }
     var chosenMixKey by rememberSaveable { mutableStateOf<String?>(null) }
-    var showAllMixTracks by rememberSaveable { mutableStateOf(false) }
     var showAllRecent by rememberSaveable { mutableStateOf(false) }
     var confirmClearHistory by rememberSaveable { mutableStateOf(false) }
     val recentBrowseActions = NightWaveHomeLayoutPolicy.recentBrowseActions(
@@ -3901,10 +3900,7 @@ internal fun StudioHome(
                 item(key = "matte-featured-mix") {
                     NightWaveMixCard(mix = mix, selected = chosenMixKey == mix.key,
                         modifier = Modifier.fillMaxWidth(), featured = true, emphasized = true,
-                        presentation = mixPresentations[mix.key], onClick = {
-                            chosenMixKey = if (chosenMixKey == mix.key) null else mix.key
-                            showAllMixTracks = false
-                        })
+                        presentation = mixPresentations[mix.key], onClick = { chosenMixKey = mix.key })
                 }
             }
             mixes.drop(1).chunked(2).forEachIndexed { row, pair ->
@@ -3914,53 +3910,15 @@ internal fun StudioHome(
                         NightWaveMixCard(mix = mix, selected = chosenMixKey == mix.key,
                             modifier = Modifier.fillMaxWidth().fillMaxHeight(), presentation = mixPresentations[mix.key],
                             featured = NightWaveThemeExpressionPolicy.featuredMixCell(pair.size),
-                            onClick = {
-                                chosenMixKey = if (chosenMixKey == mix.key) null else mix.key
-                                showAllMixTracks = false
-                            })
+                            onClick = { chosenMixKey = mix.key })
                     }
                     if (pair.size == 2) NightWaveBentoPair(first = firstCell, second = {
                         val mix = pair[1]
                         NightWaveMixCard(mix = mix, selected = chosenMixKey == mix.key,
                             modifier = Modifier.fillMaxWidth().fillMaxHeight(), presentation = mixPresentations[mix.key],
                             featured = NightWaveThemeExpressionPolicy.featuredMixCell(pair.size),
-                            onClick = {
-                                chosenMixKey = if (chosenMixKey == mix.key) null else mix.key
-                                showAllMixTracks = false
-                            })
+                            onClick = { chosenMixKey = mix.key })
                     }) else firstCell()
-                }
-            }
-            if (chosenMix != null) {
-                item(key = "mix-explanation") {
-                    NightWaveSectionActions(heading = {
-                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text(mixPresentations[chosenMix.key]?.title ?: chosenMix.title,
-                                style = MaterialTheme.typography.titleSmall)
-                            Text(mixPresentations[chosenMix.key]?.reason.orEmpty(),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                    }, action = {
-                        OutlinedButton(onClick = {
-                            chosenMix.tracks.firstOrNull()?.let { onPlay(it, chosenMix.tracks) }
-                        }, modifier = Modifier.heightIn(min = 48.dp).testTag("nw131-play-mix")) { Text(strings.get(R.string.nw141_play_mix_52c1e)) }
-                    })
-                }
-                items(chosenMix.tracks.take(if (showAllMixTracks) 12 else 3),
-                    key = { "mix:" + it.url }) { song ->
-                    MusicTrackTile(song, isPlaying = playingUrl == song.url,
-                        onOptions = { onSongOptions(song) },
-                        onClick = { onPlay(song, chosenMix.tracks) })
-                }
-                if (chosenMix.tracks.size > 3) {
-                    item(key = "mix-more-tracks") {
-                        OutlinedButton(onClick = { showAllMixTracks = !showAllMixTracks },
-                            modifier = Modifier.fillMaxWidth()) {
-                            Text(if (showAllMixTracks) strings.get(R.string.nw141_show_fewer_tracks_4f897)
-                                else strings.get(R.string.nw141_see_mix, strings.number(chosenMix.tracks.size)))
-                        }
-                    }
                 }
             }
         }
@@ -3981,6 +3939,14 @@ internal fun StudioHome(
         }
 
     }
+    if (chosenMix != null) NightWaveMixPreview(
+        mix = chosenMix,
+        presentation = mixPresentations[chosenMix.key],
+        playingUrl = playingUrl,
+        onDismiss = { chosenMixKey = null },
+        onPlay = { onPlay(it, chosenMix.tracks) },
+        onSongOptions = onSongOptions
+    )
 }
 
 @Composable

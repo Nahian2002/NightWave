@@ -8,6 +8,8 @@ The final version 49 patch passed host validation. The [final review](NW153_FINA
 
 The version 51 S24 review raised the scoped design and usability rating to 8.9/10 after the small-cover fix. Version 51 is available from the signed stable feed. Broader device and release journey acceptance remain open. [NW154 changes and acceptance status](NW154_EVERYDAY_POLISH.md)
 
+The version 52 S24 comparison raises the scoped design and usability rating to 9.1/10. The first tap opens the mix preview and the Home position is preserved on return. [NW155 evidence](NW155_MIX_PREVIEW.md)
+
 ## Historical checkpoints
 
 
