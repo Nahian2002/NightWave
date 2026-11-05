@@ -24,13 +24,13 @@ class NW150SearchStoppedInstrumentedTest(private val theme: NightWaveTheme) {
     @get:Rule val compose = createComposeRule()
 
     private fun check(reason: SearchStopReason, hasResults: Boolean, title: String) {
-        var retries = 0
+        var retries = 0; var webRequests = 0
         compose.setContent {
             NightWaveMaterialTheme(theme, reduceMotion = true) {
                 val density = LocalDensity.current
                 CompositionLocalProvider(LocalDensity provides Density(density.density, 2f)) {
                     Column(Modifier.requiredWidth(320.dp)) {
-                        NightWaveSearchStoppedCard(reason, hasResults) { retries++ }
+                        NightWaveSearchStoppedCard(reason, hasResults, onWeb = { webRequests++ }) { retries++ }
                     }
                 }
             }
@@ -38,7 +38,8 @@ class NW150SearchStoppedInstrumentedTest(private val theme: NightWaveTheme) {
         compose.onNodeWithText(title).assertIsDisplayed()
         compose.onNodeWithText("Online search unavailable").assertDoesNotExist()
         compose.onNodeWithTag("nw150-search-retry").assertIsDisplayed().performClick()
-        compose.runOnIdle { assertEquals(1, retries) }
+        compose.onNodeWithTag("nw150-search-web").assertIsDisplayed().performClick()
+        compose.runOnIdle { assertEquals(1, retries); assertEquals(1, webRequests) }
     }
     @Test fun deliberateCancelOffersRetryWithoutClaimingNetworkFailure() =
         check(SearchStopReason.CANCELLED, false, "Search cancelled")

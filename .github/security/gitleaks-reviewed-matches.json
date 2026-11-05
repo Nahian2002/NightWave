@@ -1,7 +1,7 @@
 {
   "scanner": "gitleaks 8.30.1",
-  "date": "2026-10-28",
-  "scope": "All fetched branch/tag and PR-head histories through current NW132 maintenance; exact immutable commit/path/rule/line exclusions only.",
+  "date": "2026-11-05",
+  "scope": "All fetched histories plus cumulative NW150; exact immutable commit/path/rule/line exclusions only.",
   "matches": [
     {
       "fingerprint": "0b51a5edf1e9a6dbfc064e87e96c30178ca2748f:docs/measurements/nw122/nw122-after-2.json:generic-api-key:9",
@@ -119,6 +119,15 @@
       "commit": "d85be670a4c82a07b9ebfbfe12ea47239776bcb8",
       "disposition": "FALSE_POSITIVE",
       "reason": "Compose item(key=\"nw132-save-hint\") UI identity in NW132; verified against the immutable original line, not a credential."
+    },
+    {
+      "fingerprint": "f8ad47f461bb683a04b59bad18e55057fb1a4b66:app/src/androidTest/java/com/nightwave/player/v2/ui/NightWavePublicSearchInstrumentedTest.kt:generic-api-key:28",
+      "rule": "generic-api-key",
+      "file": "app/src/androidTest/java/com/nightwave/player/v2/ui/NightWavePublicSearchInstrumentedTest.kt",
+      "line": 28,
+      "commit": "f8ad47f461bb683a04b59bad18e55057fb1a4b66",
+      "disposition": "FALSE_POSITIVE",
+      "reason": "Fixed nw150-fixture Compose prefillToken in a disposable UI test. This is a local request marker, not an API credential or authentication token."
     }
   ]
 }

@@ -4433,7 +4433,8 @@ internal fun StudioSearch(
         }
         if (!searching && responseMatchesQuery && state.stopped != null) {
             item(key = "nw150-stopped-search") {
-                NightWaveSearchStoppedCard(state.stopped, state.videos.isNotEmpty()) {
+                NightWaveSearchStoppedCard(state.stopped, state.videos.isNotEmpty(),
+                    onWeb = { onWebSearch(query.trim()) }) {
                     onNativeSearch(query.trim(), mode)
                 }
             }

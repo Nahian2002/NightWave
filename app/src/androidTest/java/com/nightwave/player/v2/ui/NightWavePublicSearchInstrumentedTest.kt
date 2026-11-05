@@ -63,7 +63,7 @@ class NightWavePublicSearchInstrumentedTest {
         compose.onNodeWithTag("nw130-cancel-search").performClick()
         compose.onNodeWithTag("nw129-search-list").performScrollToNode(hasText("Retry search"))
         compose.onNodeWithText("Retry search").performClick()
-        compose.onNodeWithText("YouTube", useUnmergedTree = true).performClick()
+        compose.onNodeWithTag("nw150-search-web").performClick()
         compose.runOnIdle { assertEquals(1, cancellations); assertEquals(1, retries); assertEquals("play date", web) }
     }
 

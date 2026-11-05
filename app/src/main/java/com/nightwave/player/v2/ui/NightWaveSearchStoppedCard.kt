@@ -20,7 +20,7 @@ internal enum class SearchStopReason { CANCELLED, BACKGROUNDED }
 
 /** A deliberate stop is a neutral recoverable state, separate from a provider error. */
 @Composable
-internal fun NightWaveSearchStoppedCard(reason: SearchStopReason, hasResults: Boolean, onRetry: () -> Unit) {
+internal fun NightWaveSearchStoppedCard(reason: SearchStopReason, hasResults: Boolean, onWeb: () -> Unit, onRetry: () -> Unit) {
     val strings = rememberNightWaveStrings()
     Column(Modifier.fillMaxWidth().padding(vertical = 8.dp)
         .testTag("nw150-search-stopped").semantics { liveRegion = LiveRegionMode.Polite },
@@ -32,6 +32,10 @@ internal fun NightWaveSearchStoppedCard(reason: SearchStopReason, hasResults: Bo
         NightWaveMatteOutlinedButton(onClick = onRetry,
             modifier = Modifier.heightIn(min = 48.dp).testTag("nw150-search-retry")) {
             Text(strings.get(R.string.nw141_retry_search_f468e))
+        }
+        NightWaveMatteTextButton(onClick = onWeb,
+            modifier = Modifier.heightIn(min = 48.dp).testTag("nw150-search-web")) {
+            Text(strings.get(R.string.nw141_open_youtube_search_027b5))
         }
     }
 }

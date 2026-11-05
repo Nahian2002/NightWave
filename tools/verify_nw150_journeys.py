@@ -9,7 +9,8 @@ REQUIRED={
   '.putExtra(OfflineLibraryActivity.EXTRA_SEARCH_ENTRY_ID, entryId)',
   'nativeSearchState.stop(SearchStopReason.CANCELLED)',
   'nativeSearchState.stop(SearchStopReason.BACKGROUNDED)',
-  'NightWaveSearchStoppedCard(state.stopped, state.videos.isNotEmpty())',
+  'NightWaveSearchStoppedCard(state.stopped, state.videos.isNotEmpty(),',
+  'onWeb = { onWebSearch(query.trim()) }',
   'onNativeSearch(query.trim(), mode)', 'request != nativeSearchGeneration',
   'SearchResultPresentationPolicy.matches('],
  'offline/OfflineLibraryActivity.kt':[
@@ -26,7 +27,7 @@ REQUIRED={
   'else OfflineTrackSearch.match(query, songs)', 'it.length <= 128'],
  'v2/ui/SearchStoppedState.kt':['if (!loading) this else copy(loading = false, error = "", stopped = reason)'],
  'v2/ui/NightWaveSearchStoppedCard.kt':[
-  'liveRegion = LiveRegionMode.Polite', 'testTag("nw150-search-retry")', 'heightIn(min = 48.dp)',
+  'liveRegion = LiveRegionMode.Polite', 'testTag("nw150-search-retry")', 'testTag("nw150-search-web")', 'heightIn(min = 48.dp)',
   'R.string.nw150_results_kept', 'R.string.nw150_search_stopped_hint'],
  'v2/ui/StudioPlayerScreens.kt':[
   'FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)',
