@@ -3,7 +3,7 @@
   "created_date": "2026-11-04",
   "review": "docs/audits/2026-11-04_CODE40_PRODUCT_REVIEW.md",
   "scorecard": "docs/quality/CODE40_REVIEW_SCORECARD.json",
-  "next_source_batch": "NW152",
+  "next_source_batch": "NW153",
   "acceptance_umbrella": "NW145",
   "execution_order": [
     "NW146",
@@ -15,7 +15,7 @@
     "NW152",
     "NW153"
   ],
-  "source_candidate_code": 47,
+  "source_candidate_code": 48,
   "phone_acceptance": "PARTIAL",
   "rating_policy": "No automatic score rise from builds/test counts; full product overall remains unscored until critical evidence exists.",
   "preservation": [
@@ -200,13 +200,17 @@
         "R04",
         "R07"
       ],
-      "implementation_status": "PLANNED",
+      "implementation_status": "LOCAL_VERIFIED",
       "device_status": "NOT_RUN",
       "acceptance_criteria": [
         "Verify share/file-provider/picker/rotation/cancel/name-conflict and data-preserving receipts with disposable fixtures.",
         "Exercise recovery/upload/restore/account-switch only under explicitly approved disposable-account scope; preserve existing consent and private reporting.",
         "Prepare reviewable stable metadata/APK rollback and release artifacts; activation/public binary/main merge remain explicit owner approvals."
-      ]
+      ],
+      "source_revision": "b1cebf60d9b79f6f537a247a08f46d4c6f40314d",
+      "evidence": "docs/quality/NW152_SOURCE_EVIDENCE.json",
+      "rehearsal": "docs/quality/NW152_RELEASE_REHEARSAL.json",
+      "notes": "Guest snapshot and stale restore guards verified locally. Disposable Android fixtures compiled only; actual picker/cloud/rollback pending; disabled feed unchanged."
     },
     {
       "id": "NW153",
@@ -224,8 +228,10 @@
       "finding_ids": [
         "R07"
       ],
-      "implementation_status": "PLANNED",
-      "device_status": "NOT_RUN",
+      "implementation_status": "IN_PROGRESS",
+      "device_status": "PARTIAL",
+      "device_evidence": "docs/NW153_S24_UPDATE_CHECK.md",
+      "notes": "S24 Ultra in-place version 48 upgrade and both manual update entry points passed. The canonical feed serves the signed paused status. Wider device acceptance and release offer/download/installation remain pending.",
       "acceptance_criteria": [
         "Close original219 plus supplemental/new cases with exact source/APK/signer and device artifacts; repair demonstrated critical/high failures.",
         "Run locked eight-listener tasks and required two-hour/route/offline/performance/battery evidence; retain every failure and limitation.",

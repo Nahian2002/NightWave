@@ -1,3 +1,11 @@
+## Current NW153 S24 update check
+
+The owner approved merging PR #179 and installing exact version 48 on the S24 Ultra. The signed paused feed is live on main. Version 46 recovered from the prior HTTP 404, and both manual check routes passed on version 48. The verified 46-to-48 install preserved all 33 collected files before first launch. See docs/NW153_S24_UPDATE_CHECK.md. NW153 is partial and the original acceptance and rating gates remain pending. This approval is scoped to PR #179 and the version 48 install and checks.
+
+## Historical NW152 source result — 6 November 2026
+
+NW152/code48 LOCAL_VERIFIED, device NOT_RUN. Read docs/NW152_RECOVERY_READINESS.md and docs/quality/NW152_SOURCE_EVIDENCE.json. Guest export retains exact pre-picker bytes and guest restore rejects stale library/profile review; existing format/history/consent/share/provider boundaries preserved. 1867 JVM/235 suites, 94 source checks, full builder, sequential lint0/317/17, no added entries. Four Android methods compiled only. Exact APK/source/signer and owner-only full readback pass. Offline release rehearsal and verified47 baseline retained; signed stable envelope unchanged and disabled. No48/test APK or disposable account approved. Original NW145 PARTIAL, no rating promotion. Only NW153 acceptance and necessary fixes remain; no feature expansion, install/reset/merge/feed/public binary/settings/schedule action. Older notes below are historical.
+
 ## Current NW151 source result —5 November2026
 
 NW151/code47 LOCAL_VERIFIED,device NOT_RUN. Read docs/NW151_COMPAT_LANGUAGE.md and NW151_SOURCE_EVIDENCE.json. API23 classic title sizing, bounded target/source-correct classic thumbnails,19 paired English/Bangla native messages and Search submit/stop focus cleanup. 1862 JVM/234 suites,93 checks,full Windows builder,sequential lint0/317/17,no added warning inventory entries. Two new Android methods compiled only. Source/APK/signer/owner-only full Drive readback verified. No47/test APK install authorized; existing Samsung46 remains separately scoped. Preserve all features/themes/data/source/quality/account boundaries; full NW145 PARTIAL,no automatic9.5/100%. NextNW152 then NW153; feature scope frozen,no merge/feed/public binary/settings/schedule action. Earlier next/pending states below are historical.

@@ -69,6 +69,8 @@ import com.nightwave.player.v2.data.CloudMergeApplyResult
 import com.nightwave.player.v2.cloud.NightWaveCloudAuthorization
 import com.nightwave.player.v2.cloud.NightWaveCloudSchedule
 import com.nightwave.player.v2.data.LibraryArchiveManager
+import com.nightwave.player.v2.data.GuestBackupExportSlot
+import com.nightwave.player.v2.data.GuestBackupDocument
 import com.nightwave.player.diagnostics.NightWaveCrashRecorder
 import com.nightwave.player.diagnostics.NightWaveExitHistory
 import com.nightwave.player.offline.NightWaveOfflineNavigator
@@ -352,6 +354,10 @@ internal class LyricsImportRetainedState : ViewModel() {
 }
 
 /** One user-approved playlist text snapshot survives SAF rotation, not process death. */
+internal class GuestBackupRetainedState : ViewModel() {
+    val export = GuestBackupExportSlot()
+}
+
 internal class PlaylistDocumentRetainedState : ViewModel() {
     var pendingExport: PreparedPlaylistDocument? = null
 }
@@ -694,53 +700,109 @@ class NightWaveStudioActivity : ComponentActivity() {
         }
     }
 
+    private val guestBackupRetained by lazy {
+        ViewModelProvider(this)[GuestBackupRetainedState::class.java]
+    }
+    private var guestDocumentBusy = false
+
+    private fun startGuestExport() {
+        val slot = guestBackupRetained.export
+        if (guestDocumentBusy || slot.hasPending) return
+        guestDocumentBusy = true
+        lifecycleScope.launch {
+            try {
+                val prepared = withContext(Dispatchers.IO) { runCatching { archiveManager.export() } }
+                if (isFinishing || isDestroyed) return@launch
+                prepared.mapCatching { bytes ->
+                    slot.prepare(bytes)
+                    try {
+                        exportFile.launch("nightwave-guest-backup.json")
+                    } catch (error: Exception) {
+                        slot.complete(false)
+                        throw error
+                    }
+                }.onFailure { showMessage(getString(R.string.nw152_export_prepare_failed)) }
+            } finally {
+                guestDocumentBusy = false
+            }
+        }
+    }
+
     private val exportFile = registerForActivityResult(
         ActivityResultContracts.CreateDocument("application/json")
     ) { uri ->
+        val snapshot = guestBackupRetained.export.complete(uri != null)
         if (uri == null) return@registerForActivityResult
-        runCatching {
-            val data = archiveManager.export()
-            requireNotNull(contentResolver.openOutputStream(uri)) { "Can't open destination" }
-                .use { it.write(data) }
-        }.onSuccess { showMessage("Guest backup exported successfully.") }
-            .onFailure { showMessage("Export failed: " + (it.message ?: "unknown error")) }
+        if (snapshot == null) {
+            showMessage(getString(R.string.nw152_export_expired))
+            return@registerForActivityResult
+        }
+        guestDocumentBusy = true
+        lifecycleScope.launch {
+            try {
+                val outcome = withContext(Dispatchers.IO) {
+                    runCatching {
+                        requireNotNull(contentResolver.openOutputStream(uri, "wt")).use { out ->
+                            out.write(snapshot)
+                            out.flush()
+                        }
+                    }
+                }
+                if (!isFinishing && !isDestroyed) showMessage(getString(
+                    if (outcome.isSuccess) R.string.nw152_export_done else R.string.nw152_export_failed))
+            } finally {
+                guestDocumentBusy = false
+            }
+        }
     }
+
     private val importFile = registerForActivityResult(
         ActivityResultContracts.OpenDocument()
     ) { uri ->
-        if (uri == null) return@registerForActivityResult
-        runCatching {
-            requireNotNull(contentResolver.openInputStream(uri)).use { input ->
-                val limit = com.nightwave.player.v2.data.LibraryBackupCodec.MAX_BYTES
-                val buffer = ByteArray(8192)
-                val out = java.io.ByteArrayOutputStream()
-                while (true) {
-                    val count = input.read(buffer)
-                    if (count < 0) break
-                    require(out.size() + count <= limit) { "Backup exceeds the size limit" }
-                    out.write(buffer, 0, count)
+        if (uri == null || guestDocumentBusy) return@registerForActivityResult
+        guestDocumentBusy = true
+        lifecycleScope.launch {
+            try {
+                val reviewed = withContext(Dispatchers.IO) {
+                    runCatching {
+                        val archive = requireNotNull(contentResolver.openInputStream(uri)).use { input ->
+                            archiveManager.preview(GuestBackupDocument.read(input))
+                        }
+                        archive to archiveManager.guestRestoreSnapshot()
+                    }
                 }
-                archiveManager.preview(out.toByteArray())
+                if (isFinishing || isDestroyed) return@launch
+                reviewed.onSuccess { (archive, expected) ->
+                    AlertDialog.Builder(this@NightWaveStudioActivity)
+                        .setTitle(R.string.nw152_restore_title)
+                        .setMessage(getString(R.string.nw152_restore_review, archive.favorites.size, archive.playlists.size))
+                        .setNegativeButton(R.string.nw144_cancel, null)
+                        .setPositiveButton(R.string.nw152_restore_confirm) { _, _ ->
+                            when (archiveManager.restoreGuestIfUnchanged(expected, archive)) {
+                                CloudRestoreApplyResult.APPLIED -> {
+                                    profile = profiles.load()
+                                    refresh()
+                                    showMessage(getString(R.string.nw152_restore_done))
+                                }
+                                CloudRestoreApplyResult.STALE_PREVIEW ->
+                                    showMessage(getString(R.string.nw152_restore_stale))
+                                CloudRestoreApplyResult.FAILED ->
+                                    showMessage(getString(R.string.nw143_import_failed))
+                            }
+                        }.show()
+                }.onFailure { showMessage(getString(R.string.nw152_invalid_backup)) }
+            } finally {
+                guestDocumentBusy = false
             }
-        }.onSuccess { archive ->
-            AlertDialog.Builder(this)
-                .setTitle("Replace your local library?")
-                .setMessage(
-                    "Backup contains " + archive.favorites.size + " liked songs and " +
-                    archive.playlists.size + " playlists. This will replace your current favorites " +
-                    "and playlists. Your local listening history stays on this phone. " +
-                    "Export your existing library first if you want to keep it."
-                )
-                .setNegativeButton("Cancel", null)
-                .setPositiveButton("Replace library") { _, _ ->
-                    if (archiveManager.restoreWithConfirmation(archive)) {
-                        profile = profiles.load()
-                        refresh()
-                        showMessage("Guest library restored.")
-                    } else showMessage(getString(R.string.nw143_import_failed))
-                }.show()
-        }.onFailure { showMessage("Invalid backup: " + (it.message ?: "cannot read file")) }
+        }
     }
+
+    private fun startGuestImport() {
+        if (guestDocumentBusy || guestBackupRetained.export.hasPending) return
+        runCatching { importFile.launch(arrayOf("application/json", "application/octet-stream")) }
+            .onFailure { showMessage(getString(R.string.nw152_invalid_backup)) }
+    }
+
     /** SAF picker is always user-initiated; an absent/cancelled destination is a no-op. */
     private val exportPlaylistTextFile = registerForActivityResult(
         ActivityResultContracts.CreateDocument("text/plain")
@@ -1237,8 +1299,8 @@ class NightWaveStudioActivity : ComponentActivity() {
                     roomPreviewActive = roomPreviewActive,
                     onEnableRoomPreview = { enableVerifiedRoomPreview() },
                     onUseLegacyReads = { disableRoomPreview() },
-                    onExportGuest = { exportFile.launch("nightwave-guest-backup.json") },
-                    onImportGuest = { importFile.launch(arrayOf("application/json", "application/octet-stream")) },
+                    onExportGuest = { startGuestExport() },
+                    onImportGuest = { startGuestImport() },
                     onRecoverLastChange = { confirmLastWriteRecovery() },
                     cloud = cloudInfo,
                     cloudBusy = cloudBusy, cloudPhase = cloudPhase,

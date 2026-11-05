@@ -1,14 +1,11 @@
 # Active NightWave product quality roadmap
 
-5 November2026. **Next independent sourceNW152 — recovery/sharing readiness; then NW153 final acceptance.**
-
-**Latest sourceNW151/code47 LOCAL_VERIFIED; physical47 NOT_RUN.** [Exact result and remaining cases](NW151_COMPAT_LANGUAGE.md). Classic API23 sizing, bounded target-sized native art,19 paired native messages and Search focus cleanup; every feature/theme/source/quality/data/signing/consent boundary retained.
-
-NW146–NW151 source complete. Samsung46 scoped checks remain valid separately. NW145 original219,older-device/font/input/locale/audio/soak/study gates remain pending; no automatic9.5 rating or universal-phone claim. No47/test APK install without approval,no merge/feed/public binary/schedule activation. Feature scope frozen.
+**NW153 final acceptance is in progress.** NW146–NW152 source work is locally verified. The S24 Ultra in-place upgrade to version 48 and both manual update entry points passed scoped device checks. The canonical signed feed now serves the publisher's paused status. Broader physical acceptance and the final rating remain pending. [NW152 recovery result](NW152_RECOVERY_READINESS.md) · [NW153 S24 update-check evidence](NW153_S24_UPDATE_CHECK.md)
 
 [Structured backlog](quality/NW146_NW153_BACKLOG.json) is authoritative.
 
 ## Historical checkpoints
+
 
 
 The dated statuses below are retained for continuity; use the current result and structured backlog above.

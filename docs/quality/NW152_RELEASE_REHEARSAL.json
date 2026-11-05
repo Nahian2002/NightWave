@@ -1,0 +1,68 @@
+{
+  "schema": 1,
+  "date": "2026-11-06",
+  "status": "OFFLINE_REVIEW_ONLY_NO_GO",
+  "stable_feed": {
+    "enabled": false,
+    "byte_identical_to_parent": true,
+    "git_blob_bytes_sha256": "085EB788E48591B4F65746DC8E7BFB2455D49FB292A0C6D13353E9A002270FFA",
+    "signature_regression": "PASS WeeklyFeedSignatureTest"
+  },
+  "candidate": {
+    "build_id": "NW-debug-3F1BE7AB6878160A",
+    "revision": "b1cebf60d9b79f6f537a247a08f46d4c6f40314d",
+    "source_sha256": "3F1BE7AB6878160A042F7297A061EAAF3F7C1BC05F22A987236F61FA7D0B3DB9",
+    "source_input_count": 1022,
+    "apk_sha256": "96EC7D48D908DBCE481649D13A8FC6B1ED8AB4D90CBBD3A561EF48F091650B7E",
+    "apk_bytes": 29370573,
+    "package": "com.nightwave.player",
+    "version_code": 48,
+    "version_name": "2.0.0-alpha5s",
+    "min_sdk": 23,
+    "target_sdk": 36,
+    "signer_sha256": "EA737A703B8F116EBC5C8C0A717DDBF3A2A5808ACC9079A8F79CD1B3CD860394",
+    "signer_comparison": "MATCH verified47; same recorded signer as the actual Samsung46 APK"
+  },
+  "unsigned_metadata_review": {
+    "schema": 1,
+    "channel": "stable",
+    "enabled": false,
+    "versionCode": 48,
+    "versionName": "2.0.0-alpha5s",
+    "minSdk": 23,
+    "url": null,
+    "bytes": 29370573,
+    "sha256": "96EC7D48D908DBCE481649D13A8FC6B1ED8AB4D90CBBD3A561EF48F091650B7E",
+    "notes": "Guest backup snapshot and stale restore review. Physical acceptance pending."
+  },
+  "unsigned_metadata_review_limit": "Review fields only, not a signed envelope or activatable feed. Canonical public release URL and signature absent by design.",
+  "rollback_baseline": {
+    "build_id": "NW-debug-654C088DFF71FF81",
+    "revision": "4522c2f0377339e51ec23729651852645e0e4675",
+    "source_sha256": "654C088DFF71FF81FB7D510E83591E41CB3F703D59EFD8F66F5FFFB48CA3AA5A",
+    "source_input_count": 1016,
+    "apk_sha256": "A22C3F8641EE4A815A91C3EDC9538DFDABC125E38C3C00574818EE5BC24091D6",
+    "apk_bytes": 29146751,
+    "package": "com.nightwave.player",
+    "version_code": 47,
+    "version_name": "2.0.0-alpha5s",
+    "min_sdk": 23,
+    "target_sdk": 36,
+    "signer_sha256": "EA737A703B8F116EBC5C8C0A717DDBF3A2A5808ACC9079A8F79CD1B3CD860394",
+    "signer_comparison": "MATCH verified actual Samsung46 APK"
+  },
+  "rollback_artifact_hash_and_size": "PASS local code47 readback; not a downgrade or tested rollback",
+  "rollback_procedure": [
+    "Do not activate an unaccepted candidate. Keep the previous verified source/APK and installed data.",
+    "If a published update needs reversal, rebuild the approved prior source as a new version code greater than every installed/advertised build; keep the same package and signing certificate.",
+    "Re-run source/build/lint/signing and data-preserving installed checks on disposable profiles. Prepare an exact release URL and signed metadata only after separate approval. Never downgrade, clear data or restore a personal archive automatically."
+  ],
+  "forward_rollback_built_or_installed": false,
+  "public_apk_or_feed_activation": "NOT_APPROVED_NOT_RUN",
+  "blocking_gates": [
+    "Real picker, provider grants, cancellation and rotation on approved profiles",
+    "Disposable Google consent/account-switch/upload/restore proof",
+    "Same-signer data-preserving installation and forward recovery",
+    "NW153 full acceptance; separate publication and feed approvals"
+  ]
+}
