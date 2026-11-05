@@ -228,8 +228,10 @@
       "finding_ids": [
         "R07"
       ],
-      "implementation_status": "PLANNED",
-      "device_status": "NOT_RUN",
+      "implementation_status": "IN_PROGRESS",
+      "device_status": "PARTIAL",
+      "device_evidence": "docs/NW153_S24_UPDATE_CHECK.md",
+      "notes": "S24 Ultra in-place version 48 upgrade and both manual update entry points passed. The canonical feed serves the signed paused status. Wider device acceptance and release offer/download/installation remain pending.",
       "acceptance_criteria": [
         "Close original219 plus supplemental/new cases with exact source/APK/signer and device artifacts; repair demonstrated critical/high failures.",
         "Run locked eight-listener tasks and required two-hour/route/offline/performance/battery evidence; retain every failure and limitation.",

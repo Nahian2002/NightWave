@@ -1,6 +1,6 @@
 # Active NightWave product quality roadmap
 
-6 November2026. **Only NW153 final acceptance remains.** NW146–NW152 source work is locally verified. [NW152 code48 result and pending cases](NW152_RECOVERY_READINESS.md). Source scope is frozen; complete physical evidence and repair demonstrated high/critical failures before re-rating. Samsung46 scoped evidence remains separate;48 NOT_RUN. No automatic9.5, public binary, feed activation or merge.
+**NW153 final acceptance is in progress.** NW146–NW152 source work is locally verified. The S24 Ultra in-place upgrade to version 48 and both manual update entry points passed scoped device checks. The canonical signed feed now serves the publisher's paused status. Broader physical acceptance and the final rating remain pending. [NW152 recovery result](NW152_RECOVERY_READINESS.md) · [NW153 S24 update-check evidence](NW153_S24_UPDATE_CHECK.md)
 
 [Structured backlog](quality/NW146_NW153_BACKLOG.json) is authoritative.
 
