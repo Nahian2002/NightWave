@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,6 +16,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -22,6 +25,11 @@ import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.Icon
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import com.nightwave.player.v2.ui.NightWaveMatteIconButton as IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -31,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,11 +49,83 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.nightwave.player.net.MusicIdentity
 import com.nightwave.player.net.VideoPreview
+import com.nightwave.player.v2.recommendation.PersonalMix
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun NightWaveMixPreview(
+    mix: PersonalMix,
+    presentation: NightWaveHomePresentationPolicy.MixPresentation?,
+    playingUrl: String,
+    onDismiss: () -> Unit,
+    onPlay: (VideoPreview) -> Unit,
+    onSongOptions: (VideoPreview) -> Unit
+) {
+    val strings = rememberNightWaveStrings()
+    var showAll by rememberSaveable(mix.key) { mutableStateOf(false) }
+    val firstTrack = mix.tracks.firstOrNull()
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        containerColor = MaterialTheme.colorScheme.surface
+    ) {
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth().testTag("nw155-mix-preview"),
+            contentPadding = PaddingValues(start = 18.dp, end = 18.dp, bottom = 22.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            item(key = "mix-summary") {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(presentation?.title ?: mix.title, style = MaterialTheme.typography.headlineSmall,
+                        modifier = Modifier.semantics { heading() })
+                    Text(presentation?.reason ?: mix.reason, style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    NightWaveCompactActions {
+                        OutlinedButton(
+                            onClick = {
+                                if (firstTrack != null) {
+                                    onDismiss()
+                                    onPlay(firstTrack)
+                                }
+                            },
+                            enabled = firstTrack != null,
+                            modifier = Modifier.heightIn(min = 48.dp).testTag("nw131-play-mix")
+                        ) { Text(strings.get(R.string.nw141_play_mix_52c1e)) }
+                        TextButton(onClick = onDismiss,
+                            modifier = Modifier.heightIn(min = 48.dp).testTag("nw155-close-mix")) {
+                            Text(strings.get(R.string.nw141_close_7d9eb))
+                        }
+                    }
+                }
+            }
+            items(mix.tracks.take(if (showAll) 12 else 3), key = { "mix:" + it.url }) { song ->
+                MusicTrackTile(song, isPlaying = playingUrl == song.url,
+                    onOptions = {
+                        onDismiss()
+                        onSongOptions(song)
+                    },
+                    onClick = {
+                        onDismiss()
+                        onPlay(song)
+                    })
+            }
+            if (mix.tracks.size > 3) item(key = "mix-more-tracks") {
+                OutlinedButton(onClick = { showAll = !showAll },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                    Text(if (showAll) strings.get(R.string.nw141_show_fewer_tracks_4f897)
+                        else strings.get(R.string.nw141_see_mix, strings.number(mix.tracks.size)))
+                }
+            }
+        }
+    }
+}
 
 /** NW47: tappable destinations, not decorative chips; all touch targets >= 48dp. */
 @Composable
