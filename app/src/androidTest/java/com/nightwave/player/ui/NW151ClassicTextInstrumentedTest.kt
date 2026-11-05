@@ -1,6 +1,7 @@
 package com.nightwave.player.ui
 
 import android.content.res.Configuration
+import android.util.TypedValue
 import android.view.View
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Assert.*
@@ -19,8 +20,9 @@ class NW151ClassicTextInstrumentedTest {
                 val width=(widthDp*context.resources.displayMetrics.density).toInt()
                 view.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),
                     View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED))
-                val sp=view.textSize/context.resources.displayMetrics.scaledDensity
-                assertTrue(sp>=15.9f && sp<=23.1f);assertTrue(view.measuredHeight>0)
+                val minimum=TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP,16f,context.resources.displayMetrics)
+                val maximum=TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP,23f,context.resources.displayMetrics)
+                assertTrue(view.textSize>=minimum-.1f && view.textSize<=maximum+.1f);assertTrue(view.measuredHeight>0)
                 assertEquals(width,view.measuredWidth)
             }
         }

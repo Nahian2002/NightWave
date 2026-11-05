@@ -18,13 +18,13 @@ class NightWaveClassicTitleView @JvmOverloads constructor(
             val height = if (MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.UNSPECIFIED) Int.MAX_VALUE
                 else MeasureSpec.getSize(heightMeasureSpec) - compoundPaddingTop - compoundPaddingBottom
             val chosen = ClassicTextSizePolicy.choose(16, 23) { sp ->
-                val probe = TextPaint(paint).apply { textSize = sp * resources.displayMetrics.scaledDensity }
+                val probe = TextPaint(paint).apply { textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, sp.toFloat(), resources.displayMetrics) }
                 val layout = StaticLayout.Builder.obtain(content, 0, content.length, probe, width)
                     .setMaxLines(1).setIncludePad(includeFontPadding).build()
                 layout.height <= height && layout.getLineEnd(layout.lineCount - 1) == content.length &&
                     layout.getLineWidth(0) <= width
             }
-            val px = chosen * resources.displayMetrics.scaledDensity
+            val px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, chosen.toFloat(), resources.displayMetrics)
             if (kotlin.math.abs(textSize - px) > .1f) super.setTextSize(TypedValue.COMPLEX_UNIT_PX, px)
         }
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)

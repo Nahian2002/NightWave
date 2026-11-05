@@ -4,7 +4,7 @@ import argparse,xml.etree.ElementTree as ET
 ROOT=Path(__file__).resolve().parents[1]
 BASE=ROOT/'app/src/main/java/com/nightwave/player'
 MARKERS={
- 'ui/NightWaveClassicTitleView.kt':['ClassicTextSizePolicy.choose(16, 23)', 'StaticLayout.Builder.obtain', 'resources.displayMetrics.scaledDensity','super.onMeasure(widthMeasureSpec, heightMeasureSpec)'],
+ 'ui/NightWaveClassicTitleView.kt':['ClassicTextSizePolicy.choose(16, 23)', 'StaticLayout.Builder.obtain', 'TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP','super.onMeasure(widthMeasureSpec, heightMeasureSpec)'],
  'ui/ThumbnailLoader.kt':['val request = Any()', 'closed || into.tag !== request','into.tag === request','NativeThumbnailPolicy.read(input)','NativeThumbnailPolicy.sample(bounds.outWidth, bounds.outHeight, target)','val key = "$target:$url"','declaredBytes > 3_000_000'],
  'ui/NativeThumbnailPolicy.kt':['require(output.size().toLong() + n <= MAX_BYTES)','1_048_576L','coerceIn(64, 1024)'],
  'v2/ui/NightWaveStudioActivity.kt':['val dismissSearchInput = { searchFocus.clearFocus(); searchKeyboard?.hide(); Unit }','Lifecycle.Event.ON_STOP) dismissSearchInput()','searchLifecycle.removeObserver(observer)','val submit = {\n        dismissSearchInput()','onWeb = { dismissSearchInput(); onWebSearch(query.trim()) }'],

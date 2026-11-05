@@ -169,6 +169,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import com.nightwave.player.v2.ui.NightWaveMatteTextButton as TextButton
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -4180,7 +4181,7 @@ internal fun StudioSearch(
                     OutlinedButton(onClick = {
                         mode = SearchMode.SONGS
                         onRecordSearch(selectedCreatorGroup.name)
-                        onPrimarySearch(selectedCreatorGroup.name, SearchMode.SONGS)
+                        dismissSearchInput(); onPrimarySearch(selectedCreatorGroup.name, SearchMode.SONGS)
                     }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
                         Text(strings.get(R.string.nw141_search_this_creator_on_youtube_1e72c))
                     }
@@ -4214,7 +4215,7 @@ internal fun StudioSearch(
                     OutlinedButton(
                         onClick = {
                             onRecordSearch(query.trim())
-                            onPrimarySearch(query.trim(), mode)
+                            dismissSearchInput(); onPrimarySearch(query.trim(), mode)
                         },
                         modifier = Modifier.weight(1f).heightIn(min = 48.dp),
                         shape = RoundedCornerShape(16.dp)
@@ -4311,7 +4312,7 @@ internal fun StudioSearch(
                                 mode = SearchMode.SONGS
                                 query = shortcut.query
                                 onRecordSearch(shortcut.query)
-                                onPrimarySearch(shortcut.query, SearchMode.SONGS)
+                                dismissSearchInput(); onPrimarySearch(shortcut.query, SearchMode.SONGS)
                             }, label = { Text(shortcut.title, maxLines = 1) },
                             modifier = Modifier.heightIn(min = 48.dp))
                     }
