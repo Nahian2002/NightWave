@@ -18,10 +18,8 @@
             <LinearLayout android:layout_width="0dp" android:layout_weight="1"
                 android:layout_height="wrap_content" android:orientation="vertical"
                 android:layout_marginStart="12dp">
-                <TextView android:id="@+id/brandText" android:layout_width="match_parent" android:layout_height="wrap_content"
+                <com.nightwave.player.ui.NightWaveClassicTitleView android:id="@+id/brandText" android:layout_width="match_parent" android:layout_height="wrap_content"
                     android:text="NightWave" android:textSize="23sp"
-                    android:autoSizeTextType="uniform" android:autoSizeMinTextSize="16sp"
-                    android:autoSizeMaxTextSize="23sp" android:autoSizeStepGranularity="1sp"
                     android:fontFamily="sans-serif-black" android:letterSpacing="-0.025"
                     android:maxLines="1" android:ellipsize="end"
                     android:textColor="#F9FAFF" />

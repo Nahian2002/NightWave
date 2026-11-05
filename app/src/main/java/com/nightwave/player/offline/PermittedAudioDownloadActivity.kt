@@ -43,24 +43,25 @@ class PermittedAudioDownloadActivity : NightWaveOfflineShellActivity() {
             setBackgroundColor(0xFF101A20.toInt())
         }
         panel.addView(label("NightWave", 13f, 0xFF98E7DC.toInt(), true))
-        panel.addView(label("Download audio", 29f, Color.WHITE, true).apply {
+        panel.addView(label(getString(R.string.nw151_download_title), 29f, Color.WHITE, true).apply {
             setPadding(0, dp(8), 0, dp(8))
         })
         panel.addView(label(
-            "Save a permitted direct MP3, M4A, AAC, FLAC, WAV, OGG, OPUS or WebM " +
-                "audio file for offline listening. A direct HTTPS link is required.",
+            getString(R.string.nw151_audio_help),
             14f, 0xFFA7BBC7.toInt()
         ).apply { setPadding(0, 0, 0, dp(20)) })
 
-        panel.addView(label("Search free music in NightWave →", 15f, 0xFF10171C.toInt(), true).apply {
+        panel.addView(label(getString(R.string.nw151_find_audio), 15f, 0xFF10171C.toInt(), true).apply {
             gravity = Gravity.CENTER
+            minimumHeight = dp(48)
+            setPadding(dp(12), dp(10), dp(12), dp(10))
             background = buttonBackground(0xFF98E5DB.toInt())
             setOnClickListener {
                 startActivity(Intent(this@PermittedAudioDownloadActivity,
                     FreeAudioCatalogActivity::class.java))
             }
-        }, LinearLayout.LayoutParams(-1, dp(49)).apply { bottomMargin = dp(20) })
-        panel.addView(label("DIRECT HTTPS AUDIO FILE URL", 12f, 0xFF9ADBD4.toInt(), true))
+        }, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(20) })
+        panel.addView(label(getString(R.string.nw151_url_label), 12f, 0xFF9ADBD4.toInt(), true))
         urlInput = EditText(this).apply {
             hint = "https://artist.example/music/track.mp3 or /download?id=123"
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
@@ -75,9 +76,9 @@ class PermittedAudioDownloadActivity : NightWaveOfflineShellActivity() {
         }
         panel.addView(urlInput, margins(0, dp(8), 0, dp(19)))
 
-        panel.addView(label("TRACK NAME (OPTIONAL)", 12f, 0xFF9ADBD4.toInt(), true))
+        panel.addView(label(getString(R.string.nw151_name_label), 12f, 0xFF9ADBD4.toInt(), true))
         nameInput = EditText(this).apply {
-            hint = "Track name (extension optional)"
+            hint = getString(R.string.nw151_name_hint)
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
             isSingleLine = true
             textSize = 14f
@@ -89,40 +90,48 @@ class PermittedAudioDownloadActivity : NightWaveOfflineShellActivity() {
         panel.addView(nameInput, margins(0, dp(8), 0, dp(18)))
 
         rights = CheckBox(this).apply {
-            text = "I own this audio or have permission to download and save it."
+            text = getString(R.string.nw151_rights)
             textSize = 13f
             setTextColor(0xFFE2F1F1.toInt())
             buttonTintList = android.content.res.ColorStateList.valueOf(0xFF99E5DB.toInt())
         }
         panel.addView(rights, margins(0, 0, 0, dp(18)))
 
-        action = label("Download to Offline Library", 16f, 0xFF10171C.toInt(), true).apply {
+        action = label(getString(R.string.nw151_download), 16f, 0xFF10171C.toInt(), true).apply {
             gravity = Gravity.CENTER
+            minimumHeight = dp(48)
+            setPadding(dp(12), dp(10), dp(12), dp(10))
             background = buttonBackground(0xFF98E5DB.toInt())
             setOnClickListener { beginDownload() }
         }
-        panel.addView(action, LinearLayout.LayoutParams(-1, dp(55)))
-        queueAction = label("Save in background", 15f, 0xFF98E5DB.toInt(), true).apply {
+        panel.addView(action, LinearLayout.LayoutParams(-1, -2))
+        queueAction = label(getString(R.string.nw151_background), 15f, 0xFF98E5DB.toInt(), true).apply {
             gravity = Gravity.CENTER
+            minimumHeight = dp(48)
+            setPadding(dp(12), dp(10), dp(12), dp(10))
             setOnClickListener { queueBackgroundDownload() }
         }
-        panel.addView(queueAction, LinearLayout.LayoutParams(-1, dp(48)))
-        panel.addView(label("View queued downloads", 14f, 0xFF98E5DB.toInt(), true).apply {
+        panel.addView(queueAction, LinearLayout.LayoutParams(-1, -2))
+        panel.addView(label(getString(R.string.nw151_queued), 14f, 0xFF98E5DB.toInt(), true).apply {
             gravity = Gravity.CENTER
+            minimumHeight = dp(48)
+            setPadding(dp(12), dp(10), dp(12), dp(10))
             setOnClickListener {
                 startActivity(Intent(this@PermittedAudioDownloadActivity,
                     CatalogDownloadsActivity::class.java))
             }
-        }, LinearLayout.LayoutParams(-1, dp(44)))
-        cancelAction = label("Cancel download", 14f, 0xFFE4F1F0.toInt(), true).apply {
+        }, LinearLayout.LayoutParams(-1, -2))
+        cancelAction = label(getString(R.string.nw151_cancel), 14f, 0xFFE4F1F0.toInt(), true).apply {
             gravity = Gravity.CENTER
+            minimumHeight = dp(48)
+            setPadding(dp(12), dp(10), dp(12), dp(10))
             visibility = android.view.View.GONE
             setOnClickListener {
                 transfer?.cancel()
-                message.text = "Cancelling transfer and removing its temporary file..."
+                message.text = getString(R.string.nw151_cancelling)
             }
         }
-        panel.addView(cancelAction, LinearLayout.LayoutParams(-1, dp(51)))
+        panel.addView(cancelAction, LinearLayout.LayoutParams(-1, -2))
 
         progress = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
             isIndeterminate = false
@@ -132,21 +141,17 @@ class PermittedAudioDownloadActivity : NightWaveOfflineShellActivity() {
             progressTintList = android.content.res.ColorStateList.valueOf(0xFF98E5DB.toInt())
         }
         panel.addView(progress, margins(0, dp(15), 0, dp(9)))
-        message = label("Ready. Downloads remain in NightWave's private Offline Library.",
+        message = label(getString(R.string.nw151_ready),
             13f, 0xFFB5C8D4.toInt())
         panel.addView(message, margins(0, dp(10), 0, dp(16)))
         panel.addView(label(
-            "YouTube watch links, streaming manifests and protected media are not direct " +
-                "audio downloads. NightWave does not convert YouTube videos to MP3. " +
-                "Use Save in background to keep downloading after closing this screen. " +
-                "The foreground download stops when you leave. " +
-                "Original audio format is preserved. " +
-                "Temporary network errors are retried, but unsupported audio is never saved. " +
-                "Audio is deleted if NightWave is uninstalled.",
+            getString(R.string.nw151_boundaries),
             12f, 0xFF91A5B5.toInt()
         ))
-        panel.addView(label("Back to Offline Library", 14f, 0xFF98E5DB.toInt(), true).apply {
+        panel.addView(label(getString(R.string.nw151_back), 14f, 0xFF98E5DB.toInt(), true).apply {
             gravity = Gravity.CENTER
+            minimumHeight = dp(48)
+            setPadding(dp(12), dp(10), dp(12), dp(10))
             setPadding(0, dp(22), 0, dp(8))
             setOnClickListener { finish() }
         })
@@ -185,7 +190,7 @@ class PermittedAudioDownloadActivity : NightWaveOfflineShellActivity() {
     private fun queueBackgroundDownload() {
         if (active) return
         if (!rights.isChecked) {
-            message.text = "Confirm that you own or may download this audio first."
+            message.text = getString(R.string.nw151_confirm_own)
             return
         }
         val source = try {
@@ -206,7 +211,7 @@ class PermittedAudioDownloadActivity : NightWaveOfflineShellActivity() {
                                 "completed files appear in Offline Library."
                         }
                         .onFailure {
-                            message.text = "Could not queue the background download. Try again."
+                            message.text = getString(R.string.nw151_queue_failed)
                         }
                 }, androidx.core.content.ContextCompat.getMainExecutor(this))
             }
@@ -219,7 +224,7 @@ class PermittedAudioDownloadActivity : NightWaveOfflineShellActivity() {
     private fun beginDownload() {
         if (active) return
         if (!rights.isChecked) {
-            message.text = "Confirm that you have permission to save the audio."
+            message.text = getString(R.string.nw151_confirm_save)
             return
         }
         val spec = try {
@@ -237,7 +242,7 @@ class PermittedAudioDownloadActivity : NightWaveOfflineShellActivity() {
         progress.visibility = android.view.View.VISIBLE
         progress.isIndeterminate = true
         cancelAction.visibility = android.view.View.VISIBLE
-        message.text = "Connecting securely to the audio server..."
+        message.text = getString(R.string.nw151_connecting)
         val job = PermittedAudioDownloader(this)
         transfer = job
         worker.execute {

@@ -10,7 +10,7 @@ REQUIRED={
   'nativeSearchState.stop(SearchStopReason.CANCELLED)',
   'nativeSearchState.stop(SearchStopReason.BACKGROUNDED)',
   'NightWaveSearchStoppedCard(state.stopped, state.videos.isNotEmpty(),',
-  'onWeb = { onWebSearch(query.trim()) }',
+  'onWeb = { dismissSearchInput(); onWebSearch(query.trim()) }',
   'onNativeSearch(query.trim(), mode)', 'request != nativeSearchGeneration',
   'SearchResultPresentationPolicy.matches('],
  'offline/OfflineLibraryActivity.kt':[
