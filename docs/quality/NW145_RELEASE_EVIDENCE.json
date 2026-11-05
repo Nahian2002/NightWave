@@ -65,10 +65,10 @@
     "limit": "Original219/full NW145 gates not promoted"
   },
   "latest_source_candidate": {
-    "batch": "NW150",
-    "code": 46,
-    "status": "LOCAL_VERIFIED_DEVICE_PARTIAL",
-    "evidence": "docs/quality/NW150_SOURCE_EVIDENCE.json"
+    "batch": "NW151",
+    "code": 47,
+    "status": "LOCAL_VERIFIED_DEVICE_PENDING",
+    "evidence": "docs/quality/NW151_SOURCE_EVIDENCE.json"
   },
   "replacement_phone_baseline": {
     "reported_model": "M2007J20CI",

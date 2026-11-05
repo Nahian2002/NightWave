@@ -1,0 +1,149 @@
+{
+  "schema": 1,
+  "batch": "NW151",
+  "date": "2026-11-05",
+  "implementation_status": "LOCAL_VERIFIED",
+  "device_status": "NOT_RUN",
+  "build": {
+    "build_id": "NW-debug-654C088DFF71FF81",
+    "revision": "4522c2f0377339e51ec23729651852645e0e4675",
+    "source_sha256": "654C088DFF71FF81FB7D510E83591E41CB3F703D59EFD8F66F5FFFB48CA3AA5A",
+    "source_input_count": 1016,
+    "apk_sha256": "A22C3F8641EE4A815A91C3EDC9538DFDABC125E38C3C00574818EE5BC24091D6",
+    "apk_bytes": 29146751,
+    "package": "com.nightwave.player",
+    "version_code": 47,
+    "version_name": "2.0.0-alpha5s",
+    "min_sdk": 23,
+    "target_sdk": 36,
+    "signer_sha256": "EA737A703B8F116EBC5C8C0A717DDBF3A2A5808ACC9079A8F79CD1B3CD860394",
+    "signer_comparison": "MATCH verified actual Samsung46 APK"
+  },
+  "validation": {
+    "windows_builder": "PASS",
+    "jvm": {
+      "tests": 1862,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "suites": 234,
+    "current_source_checks": 93,
+    "source_status": "PASS_SOURCE_ONLY",
+    "new_android_methods": 2,
+    "android_status": "COMPILED_NOT_RUN",
+    "lint": {
+      "counts": {
+        "Warning": 317,
+        "Hint": 17
+      },
+      "added": [],
+      "removed": [
+        [
+          "UnusedAttribute",
+          "Warning",
+          "Attribute `autoSizeMinTextSize` is only used in API level 26 and higher (current min is 23)",
+          [
+            "app/src/main/res/layout/activity_main.xml"
+          ]
+        ],
+        [
+          "UnusedAttribute",
+          "Warning",
+          "Attribute `autoSizeTextType` is only used in API level 26 and higher (current min is 23)",
+          [
+            "app/src/main/res/layout/activity_main.xml"
+          ]
+        ],
+        [
+          "UnusedAttribute",
+          "Warning",
+          "Attribute `autoSizeMaxTextSize` is only used in API level 26 and higher (current min is 23)",
+          [
+            "app/src/main/res/layout/activity_main.xml"
+          ]
+        ],
+        [
+          "UnusedAttribute",
+          "Warning",
+          "Attribute `autoSizeStepGranularity` is only used in API level 26 and higher (current min is 23)",
+          [
+            "app/src/main/res/layout/activity_main.xml"
+          ]
+        ],
+        [
+          "SetTextI18n",
+          "Warning",
+          "String literal in `setText` can not be translated. Use Android resources instead.",
+          [
+            "app/src/main/java/com/nightwave/player/offline/PermittedAudioDownloadActivity.kt"
+          ]
+        ],
+        [
+          "SetTextI18n",
+          "Warning",
+          "String literal in `setText` can not be translated. Use Android resources instead.",
+          [
+            "app/src/main/java/com/nightwave/player/offline/PermittedAudioDownloadActivity.kt"
+          ]
+        ],
+        [
+          "SetTextI18n",
+          "Warning",
+          "String literal in `setText` can not be translated. Use Android resources instead.",
+          [
+            "app/src/main/java/com/nightwave/player/offline/PermittedAudioDownloadActivity.kt"
+          ]
+        ],
+        [
+          "SetTextI18n",
+          "Warning",
+          "String literal in `setText` can not be translated. Use Android resources instead.",
+          [
+            "app/src/main/java/com/nightwave/player/offline/PermittedAudioDownloadActivity.kt"
+          ]
+        ],
+        [
+          "SetTextI18n",
+          "Warning",
+          "String literal in `setText` can not be translated. Use Android resources instead.",
+          [
+            "app/src/main/java/com/nightwave/player/offline/PermittedAudioDownloadActivity.kt"
+          ]
+        ],
+        [
+          "SetTextI18n",
+          "Warning",
+          "String literal in `setText` can not be translated. Use Android resources instead.",
+          [
+            "app/src/main/java/com/nightwave/player/offline/PermittedAudioDownloadActivity.kt"
+          ]
+        ]
+      ]
+    },
+    "gitleaks_implementation": {
+      "commits": 3663,
+      "unreviewed_findings": 0
+    },
+    "private_delivery": "Owner-only permission metadata and full remote byte/hash readback PASS",
+    "native_entries_unchanged": 8,
+    "other_assets_unchanged": 1,
+    "apk_inventory": {
+      "added": [],
+      "removed": []
+    }
+  },
+  "translation_scope": "19 paired direct-audio entry/permission/action/recovery resources; not whole-app translation certification",
+  "physical_cases": {
+    "code47_install": "NOT_APPROVED_NOT_RUN",
+    "API23_24_26_layout": "NOT_RUN",
+    "modern_large_fonts_and_TalkBack": "NOT_RUN",
+    "classic_target_cache_and_recycled_images": "NOT_RUN",
+    "English_Bangla_native_layout": "NOT_RUN",
+    "search_submit_background_IME": "NOT_RUN"
+  },
+  "existing_phone": "Samsung46 scoped results remain valid for their earlier scope; no47 or test APK installed",
+  "next_batch": "NW152",
+  "rating": "NOT_ASSESSED; no automatic9.5/100% promotion",
+  "release": "NO_GO; no feed/public binary/main merge/schedule activation"
+}

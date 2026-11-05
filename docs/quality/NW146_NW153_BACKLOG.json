@@ -3,7 +3,7 @@
   "created_date": "2026-11-04",
   "review": "docs/audits/2026-11-04_CODE40_PRODUCT_REVIEW.md",
   "scorecard": "docs/quality/CODE40_REVIEW_SCORECARD.json",
-  "next_source_batch": "NW151",
+  "next_source_batch": "NW152",
   "acceptance_umbrella": "NW145",
   "execution_order": [
     "NW146",
@@ -15,7 +15,7 @@
     "NW152",
     "NW153"
   ],
-  "source_candidate_code": 46,
+  "source_candidate_code": 47,
   "phone_acceptance": "PARTIAL",
   "rating_policy": "No automatic score rise from builds/test counts; full product overall remains unscored until critical evidence exists.",
   "preservation": [
@@ -165,7 +165,7 @@
         "R05",
         "R06"
       ],
-      "implementation_status": "PLANNED",
+      "implementation_status": "LOCAL_VERIFIED",
       "device_status": "NOT_RUN",
       "acceptance_criteria": [
         "Backport classic text sizing on API23\u201325 without removing the native fallback; validate bounded text/wrapping.",
@@ -176,11 +176,15 @@
       "supplemental_review_notes": [
         {
           "id": "NW150-PHONE-UX01",
-          "status": "OPEN_REVIEW",
+          "status": "IMPLEMENTED_DEVICE_PENDING",
           "description": "Focused Search field reopened keyboard after background return, reducing results viewport; review submit/resume focus handling without changing user draft or system settings.",
           "evidence": "docs/NW150_SAMSUNG_CODE46_SMOKE.md"
         }
-      ]
+      ],
+      "source_revision": "4522c2f0377339e51ec23729651852645e0e4675",
+      "evidence": "docs/quality/NW151_SOURCE_EVIDENCE.json",
+      "notes": "API23 classic label sizing, original-source target thumbnail decode,19 paired native strings and Search focus lifecycle; physical cases pending exact47 approval, no rating promotion.",
+      "native_artwork_status": "LOCAL_VERIFIED_DEVICE_PENDING"
     },
     {
       "id": "NW152",

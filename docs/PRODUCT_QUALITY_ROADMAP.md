@@ -1,14 +1,15 @@
 # Active NightWave product quality roadmap
 
-5 November2026. **Next independent source batch: NW151 — older Android language and accessibility.**
+5 November2026. **Next independent sourceNW152 — recovery/sharing readiness; then NW153 final acceptance.**
 
-**Latest candidate: NW150/code46 LOCAL_VERIFIED; Samsung device acceptance PARTIAL_SCOPED_PASS_PRESERVED.** Exact on-device entry navigation, neutral cancelled/background search with Retry/YouTube fallback and wrapping owned-LRC follow controls are complete in source. Full Windows builder,1,854 JVM/233 suites,92 source checks and sequential lint0 errors/327 warnings/17 hints passed; warning inventory unchanged. [Result and pending phone cases](NW150_JOURNEY_FINISH.md), [exact identity](quality/NW150_SOURCE_EVIDENCE.json).
+**Latest sourceNW151/code47 LOCAL_VERIFIED; physical47 NOT_RUN.** [Exact result and remaining cases](NW151_COMPAT_LANGUAGE.md). Classic API23 sizing, bounded target-sized native art,19 paired native messages and Search focus cleanup; every feature/theme/source/quality/data/signing/consent boundary retained.
 
-Samsung SM-S928B normal navigation is available on installed46. Owner-approved43→46 is installed; [scoped checks and preserved data](NW150_SAMSUNG_CODE46_SMOKE.md) are recorded. Full acceptance remains pending. No helper or manual screen walkthrough is needed for normal Samsung navigation. Next sequence is **NW151 → NW152 → NW153**. Use the [structured backlog](quality/NW146_NW153_BACKLOG.json) for eligibility.
+NW146–NW151 source complete. Samsung46 scoped checks remain valid separately. NW145 original219,older-device/font/input/locale/audio/soak/study gates remain pending; no automatic9.5 rating or universal-phone claim. No47/test APK install without approval,no merge/feed/public binary/schedule activation. Feature scope frozen.
 
-NW145 remains PARTIAL; original219 cases, older-device coverage, study/soak and full product re-rating remain open. No automatic9.5/100% score, main merge, release/feed activation, public binary or schedule restart. Preserve all features/themes, source URLs/quality, installed data/formats, package/signer and account/consent boundaries.
+[Structured backlog](quality/NW146_NW153_BACKLOG.json) is authoritative.
 
 ## Historical checkpoints
+
 
 The dated statuses below are retained for continuity; use the current result and structured backlog above.
 
