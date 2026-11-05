@@ -58,7 +58,10 @@ class NW148CanonicalArtworkTest {
     @Test fun sharpSmallTileTriesOnlyOneSameTrackUpgradeAndRetainsExactFallback() {
         fun tile(url: String, identity: String = track) =
             NightWaveArtworkPolicy.trackCandidates(url, identity, large = false, sharperTile = true)
-        assertEquals(listOf(still, original), tile(original))
+        val wide = "https://i.ytimg.com/vi/$id/mqdefault.jpg"
+        assertEquals(listOf(wide, original), tile(original))
+        assertTrue(NightWaveArtworkPolicy.isUnavailableLargeStill(wide, 120, 90))
+        assertFalse(NightWaveArtworkPolicy.isUnavailableLargeStill(wide, 320, 180))
         assertEquals(listOf(original), tile(original, track.replace(id, "00000000002")))
         val privateQuery = "$still?token=x&signature=y"
         assertEquals(listOf(privateQuery), tile(privateQuery))

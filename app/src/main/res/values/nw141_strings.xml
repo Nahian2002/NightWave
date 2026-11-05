@@ -31,7 +31,6 @@
     <string name="nw141_change_c0bf7">Change</string>
     <string name="nw141_change_drive_account_2acb6">Change Drive account</string>
     <string name="nw141_change_the_drive_account_f7d95">Change the Drive account?</string>
-    <string name="nw141_choose_a_mix_to_preview_61187">Choose a mix to preview</string>
     <string name="nw141_choose_a_mood_to_explore_c313d">Choose a mood to explore</string>
     <string name="nw141_choose_a_track_2457e">Choose a track</string>
     <string name="nw141_clear_83b12">Clear</string>
@@ -379,7 +378,6 @@
     <string name="nw141_home_space">Your listening space</string>
     <string name="nw141_home_continue">Continue listening</string>
     <string name="nw141_home_welcome">Welcome, %1$s · Your music, your pace</string>
-    <string name="nw141_home_resume">%1$s · Tap to continue</string>
     <string name="nw141_lyrics_ready">Your synchronized lyrics · ready</string>
     <string name="nw141_lyrics_attach">Attach your own LRC to this video</string>
     <string name="nw141_lyrics_import">Import your own LRC lyrics</string>
