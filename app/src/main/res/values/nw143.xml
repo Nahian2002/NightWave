@@ -13,7 +13,7 @@
     <string name="nw143_backup_help">Google Drive is optional. Review the backup choices before connecting or restoring. A library backup does not automatically include audio files; keep your own copies of imported music.</string>
     <string name="nw143_recovery_help">If something fails, retry the affected action. App health keeps playback recovery, diagnostics and version details available. Advanced storage tools and the classic interface remain available in You. Uninstalling or clearing app data can remove local music and library data.</string>
     <string name="nw143_report_help">Preview diagnostics before sharing. Remove private titles, paths and account details. Report security or privacy issues privately to jayednahian2002@gmail.com; never post credentials or private recordings in public issues.</string>
-    <string name="nw143_import_failed">Backup could not be imported. Your previous library is retained. Choose a NightWave backup and try again.</string>
+    <string name="nw143_import_failed">The restore could not be confirmed. Check your local library before trying again.</string>
     <string name="nw143_permission_cancelled">Google permission was not completed. Your local library is unchanged. Reconnect when you want to use Drive.</string>
     <string name="nw143_optional_restore_failed">Some optional data could not be restored. Review your library before retrying.</string>
 </resources>

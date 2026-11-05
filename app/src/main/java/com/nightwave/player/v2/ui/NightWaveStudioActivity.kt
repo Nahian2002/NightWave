@@ -787,7 +787,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                                 CloudRestoreApplyResult.STALE_PREVIEW ->
                                     showMessage(getString(R.string.nw152_restore_stale))
                                 CloudRestoreApplyResult.FAILED ->
-                                    showMessage(getString(R.string.nw152_restore_failed))
+                                    showMessage(getString(R.string.nw143_import_failed))
                             }
                         }.show()
                 }.onFailure { showMessage(getString(R.string.nw152_invalid_backup)) }

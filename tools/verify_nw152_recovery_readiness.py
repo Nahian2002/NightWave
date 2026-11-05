@@ -39,7 +39,7 @@ if __name__ == '__main__':
     envelope = json.loads((ROOT/'updates/stable.json').read_text(encoding='utf-8-sig'))
     assert json.loads(base64.b64decode(envelope['payload'], validate=True))['enabled'] is False
     en, bn = [{n.get('name') for n in ET.parse(ROOT/f'app/src/main/res/{folder}/nw152.xml').getroot()} for folder in ('values','values-bn')]
-    assert en == bn and len(en) == 11
+    assert en == bn and len(en) == 10
     if args.self_test:
         for name, markers in MARKERS.items():
             for marker in markers:

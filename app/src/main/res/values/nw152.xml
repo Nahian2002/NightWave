@@ -4,10 +4,9 @@
     <string name="nw152_export_done">Guest backup exported to your chosen document.</string>
     <string name="nw152_export_failed">Could not finish exporting. The destination may be incomplete. Your NightWave library was not edited.</string>
     <string name="nw152_restore_title">Replace your local library?</string>
-    <string name="nw152_restore_review">This backup contains %1$d liked songs and %2$d playlists. It replaces your likes, playlists, display name, avatar and theme. Listening history stays on this phone. Export your current library first if you want to keep it.</string>
+    <string name="nw152_restore_review">Liked songs: %1$d. Playlists: %2$d. It replaces your likes, playlists, display name, avatar and theme. Listening history stays on this phone. Export your current library first if you want to keep it.</string>
     <string name="nw152_restore_confirm">Replace library</string>
     <string name="nw152_restore_done">Guest library restored. Listening history was kept.</string>
     <string name="nw152_restore_stale">Your library or profile changed during review. Nothing was replaced. Select the backup again to review it.</string>
-    <string name="nw152_restore_failed">The restore could not be confirmed. Check your local library before trying again.</string>
     <string name="nw152_invalid_backup">Could not review this guest backup. Choose a valid NightWave backup and try again. Nothing was replaced.</string>
 </resources>
