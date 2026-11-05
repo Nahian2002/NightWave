@@ -39,6 +39,7 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
     override val offlineRoute = NightWaveOfflineRoute.LIBRARY
     companion object {
         const val EXTRA_SEARCH_QUERY = "com.nightwave.player.offline.SEARCH_QUERY"
+        const val EXTRA_SEARCH_ENTRY_ID = "com.nightwave.player.offline.SEARCH_ENTRY_ID"
         const val EXTRA_IMPORT_OWNED = "com.nightwave.player.offline.IMPORT_OWNED"
     }
     private lateinit var library: OfflineAudioLibrary
@@ -64,6 +65,8 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
     private var pendingSearch: Runnable? = null
     private var page = 0
     private var searchText = ""
+    private var selectedEntryId: String? = null
+    private var applyingSearchDestination = false
     private lateinit var searchInput: EditText
     private lateinit var clearSearch: TextView
     private var restoredScroll: Int? = null
@@ -144,6 +147,9 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
         library = OfflineAudioLibrary(this)
         searchText = NightWaveOfflineNavigationPolicy.query(
             savedInstanceState?.getString("nw128-query") ?: intent.getStringExtra(EXTRA_SEARCH_QUERY))
+        selectedEntryId = OfflineSearchDestinationPolicy.entryId(
+            if (savedInstanceState?.containsKey("nw150-entry-id") == true)
+                savedInstanceState.getString("nw150-entry-id") else intent.getStringExtra(EXTRA_SEARCH_ENTRY_ID))
         page = NightWaveOfflineNavigationPolicy.page(savedInstanceState?.getInt("nw128-page") ?: 0)
         sortMode = NightWaveOfflineNavigationPolicy.sort(savedInstanceState?.getInt("nw128-sort") ?: 0)
         restoredScroll = savedInstanceState?.getInt("nw128-scroll")?.let(NightWaveOfflineNavigationPolicy::scroll)
@@ -212,6 +218,7 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
             addTextChangedListener(object : TextWatcher {
                 override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                    if (!applyingSearchDestination) selectedEntryId = null
                     searchText = s?.toString()?.trim().orEmpty()
                     if (::clearSearch.isInitialized) clearSearch.visibility =
                         if (searchText.isBlank()) View.GONE else View.VISIBLE
@@ -505,6 +512,7 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
         if (::importNotice.isInitialized && !importPending)
             outState.putString("nw135-import-notice", importNotice.text.toString())
         outState.putString("nw48-offline-filter", availabilityFilter.name)
+        outState.putString("nw150-entry-id", selectedEntryId)
         outState.putString("nw128-query", NightWaveOfflineNavigationPolicy.query(searchText))
         outState.putInt("nw128-page", page)
         outState.putInt("nw128-sort", sortMode)
@@ -518,7 +526,12 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
             resetOfflineViewport()
             restoredScroll = null
             page = 0
-            searchInput.setText(NightWaveOfflineNavigationPolicy.query(intent.getStringExtra(EXTRA_SEARCH_QUERY)))
+            availabilityFilter = OfflineLibraryViewPolicy.Filter.ALL
+            applyingSearchDestination = true
+            try {
+                selectedEntryId = OfflineSearchDestinationPolicy.entryId(intent.getStringExtra(EXTRA_SEARCH_ENTRY_ID))
+                searchInput.setText(NightWaveOfflineNavigationPolicy.query(intent.getStringExtra(EXTRA_SEARCH_QUERY)))
+            } finally { applyingSearchDestination = false }
         }
     }
 
@@ -590,7 +603,7 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
             if (entry.song.id in audioCheckFailures && entry.health == OfflineFileHealth.AVAILABLE)
                 entry.copy(health = OfflineFileHealth.UNREADABLE) else entry
         })
-        val trulyEmpty = OfflineImportJourneyPolicy.empty(report.indexReadable, report.entries.size)
+        val trulyEmpty = selectedEntryId == null && OfflineImportJourneyPolicy.empty(report.indexReadable, report.entries.size)
         browseControls.forEach { it.visibility = if (trulyEmpty) View.GONE else View.VISIBLE }
         if (!report.indexReadable) {
             storageSummary.text = "Storage totals unavailable · offline index needs attention"
@@ -621,7 +634,7 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
         playableIds = report.entries.asSequence()
             .filter { it.health == OfflineFileHealth.AVAILABLE }
             .map { it.song.id }.toSet()
-        val healthFiltered = OfflineTrackSearch.match(searchText, all)
+        val healthFiltered = OfflineSearchDestinationPolicy.select(searchText, all, selectedEntryId)
             .filter { song ->
                 OfflineLibraryViewPolicy.includes(availabilityFilter,
                     healthById[song.id] ?: OfflineFileHealth.UNREADABLE)
@@ -701,6 +714,10 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
                 bottomMargin = dp(8)
             })
         }
+        if (selectedEntryId != null && visibleSongs.isNotEmpty()) {
+            tracks.addView(label(getString(R.string.nw150_selected_entry), 13f,
+                nativeMattePalette.secondary.toInt()).apply { setPadding(dp(5), dp(8), dp(5), dp(8)) })
+        }
         if (trulyEmpty) {
             tracks.addView(label("Your music, even without a connection", 20f, Color.WHITE, true)
                 .apply { setPadding(dp(5), dp(20), dp(5), dp(8)) })
@@ -711,12 +728,13 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
             tracks.addView(label("Tap Import files above. The system picker lets you choose which files to copy.",
                 14f, 0xFF91E2D7.toInt()).apply { setPadding(dp(5), 0, dp(5), dp(8)) })
         } else if (visibleSongs.isEmpty()) {
-            tracks.addView(label(OfflineLibraryViewPolicy.emptyMessage(
+            tracks.addView(label(if (selectedEntryId != null && all.none { it.id == selectedEntryId }) getString(R.string.nw150_entry_missing)
+                else OfflineLibraryViewPolicy.emptyMessage(
                 availabilityFilter, all.isNotEmpty(), searchText.isNotBlank()),
                 14f, nativeMattePalette.secondary.toInt()).apply {
                 setPadding(dp(5), dp(25), 0, dp(8))
             })
-            if (OfflineLibraryViewPolicy.canShowAll(
+            if (selectedEntryId != null || OfflineLibraryViewPolicy.canShowAll(
                     availabilityFilter, all.isNotEmpty(), searchText.isNotBlank())) {
                 tracks.addView(label("Show all saved songs", 15f,
                     nativeMattePalette.accent.toInt(), true).apply {

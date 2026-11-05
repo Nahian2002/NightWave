@@ -26,6 +26,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.PaddingValues
@@ -411,6 +413,7 @@ internal fun CoverArt(
 }
 
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 fun StudioNowPlayingOverlay(
     expanded: Boolean,
     state: StudioPlayerState,
@@ -596,36 +599,36 @@ fun StudioNowPlayingOverlay(
                                 tint = colors.onBackground)
                         }
                     }
-                    Row(Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween) {
+                    Column(Modifier.fillMaxWidth()) {
                         Text(strings.get(if (lyricsAutoFollow) R.string.nw141_follow_hint_on else R.string.nw141_follow_hint_off),
-                            modifier = Modifier.weight(1f).padding(vertical = 8.dp),
+                            modifier = Modifier.padding(vertical = 8.dp),
                             color = colors.onSurfaceVariant,
                             style = MaterialTheme.typography.labelSmall)
-                        // NW107: TalkBack users can deliberately pause automatic
-                        // scrolling instead of having to swipe to disable it.
-                        // Rejoin uses the existing active-cue LaunchedEffect.
-                        OutlinedButton(
-                            onClick = {
-                                lyricsAutoFollow =
-                                    LyricsReadingPolicy.toggledFollow(lyricsAutoFollow)
-                            },
-                            modifier = Modifier.heightIn(min = 48.dp)
-                                .testTag("lyrics-follow-toggle")
-                                .semantics {
-                                    contentDescription =
-                                        strings.get(if (lyricsAutoFollow) R.string.nw141_follow_action_on else R.string.nw141_follow_action_off)
-                                    stateDescription =
-                                        strings.get(if (lyricsAutoFollow) R.string.nw141_follow_state_on else R.string.nw141_follow_state_off)
-                                }
-                        ) {
-                            Text(strings.get(if (lyricsAutoFollow) R.string.nw141_pause_858e4 else R.string.nw141_follow))
-                        }
-                        Spacer(Modifier.width(7.dp))
-                        OutlinedButton(onClick = onEditLyrics,
-                            modifier = Modifier.heightIn(min = 48.dp)) {
-                            Text(strings.get(R.string.nw141_edit_464c4))
+                        FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            // NW107: TalkBack users can deliberately pause automatic
+                            // scrolling instead of having to swipe to disable it.
+                            // Rejoin uses the existing active-cue LaunchedEffect.
+                            OutlinedButton(
+                                onClick = {
+                                    lyricsAutoFollow =
+                                        LyricsReadingPolicy.toggledFollow(lyricsAutoFollow)
+                                },
+                                modifier = Modifier.heightIn(min = 48.dp)
+                                    .testTag("lyrics-follow-toggle")
+                                    .semantics {
+                                        contentDescription =
+                                            strings.get(if (lyricsAutoFollow) R.string.nw141_follow_action_on else R.string.nw141_follow_action_off)
+                                        stateDescription =
+                                            strings.get(if (lyricsAutoFollow) R.string.nw141_follow_state_on else R.string.nw141_follow_state_off)
+                                    }
+                            ) {
+                                Text(strings.get(if (lyricsAutoFollow) R.string.nw150_pause_follow else R.string.nw150_resume_follow))
+                            }
+                            OutlinedButton(onClick = onEditLyrics,
+                                modifier = Modifier.heightIn(min = 48.dp)) {
+                                Text(strings.get(R.string.nw141_edit_464c4))
+                            }
                         }
                     }
                     LazyColumn(

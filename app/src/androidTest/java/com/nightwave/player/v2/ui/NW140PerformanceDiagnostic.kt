@@ -164,7 +164,7 @@ class NW140PerformanceDiagnostic {
                         onPrimarySearch = { _, _ -> actions.incrementAndGet() },
                         onNativeSearch = { _, _ -> actions.incrementAndGet() }, onWebSearch = { actions.incrementAndGet() },
                         onPlay = { _, _ -> actions.incrementAndGet() }, onSongOptions = { actions.incrementAndGet() },
-                        playingUrl = "", corpus = corpus, onRetryCorpus = retry, onOfflineSearch = { actions.incrementAndGet() },
+                        playingUrl = "", corpus = corpus, onRetryCorpus = retry, onOfflineSearch = { _, _ -> actions.incrementAndGet() },
                         searchHistory = emptyList(), canUndoSearchRemoval = false, onRecordSearch = {},
                         onRemoveSearch = {}, onUndoSearchRemoval = {}, onClearSearch = {})
                 }

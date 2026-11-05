@@ -277,7 +277,8 @@ internal data class StudioSearchSnapshot(
     val phase: PublicSearchPhase = PublicSearchPhase.DIRECT,
     val fromCache: Boolean = false,
     val details: String = "",
-    val prefillToken: String = ""
+    val prefillToken: String = "",
+    val stopped: SearchStopReason? = null
 )
 
 /** One short-lived in-memory LRC preview; the file is never cached to disk. */
@@ -1294,9 +1295,10 @@ class NightWaveStudioActivity : ComponentActivity() {
                         }
                     },
                     onOfflineLibrary = { startActivity(Intent(this, OfflineLibraryActivity::class.java)) },
-                    onOfflineSearch = { search ->
+                    onOfflineSearch = { search, entryId ->
                         startActivity(Intent(this, OfflineLibraryActivity::class.java)
-                            .putExtra(OfflineLibraryActivity.EXTRA_SEARCH_QUERY, search))
+                            .putExtra(OfflineLibraryActivity.EXTRA_SEARCH_QUERY, search)
+                            .putExtra(OfflineLibraryActivity.EXTRA_SEARCH_ENTRY_ID, entryId))
                     },
                     onShareDiagnostics = { showCrashSummaryDialog() },
                     onOpenClassic = {
@@ -2040,8 +2042,7 @@ class NightWaveStudioActivity : ComponentActivity() {
         nativeSearchGeneration++
         nativeSearchJob?.cancel()
         nativeSearchJob = null
-        if (nativeSearchState.loading) nativeSearchState = nativeSearchState.copy(loading = false,
-            error = "Search cancelled. Retry when you are ready.")
+        if (nativeSearchState.loading) nativeSearchState = nativeSearchState.stop(SearchStopReason.CANCELLED)
     }
 
     private fun nativeSearch(query: String, mode: SearchMode) {
@@ -2139,8 +2140,7 @@ class NightWaveStudioActivity : ComponentActivity() {
         nativeSearchJob?.cancel()
         nativeSearchGeneration++
         if (nativeSearchState.loading) {
-            nativeSearchState = nativeSearchState.copy(loading = false,
-                error = "Search was paused. Tap Find music to retry.")
+            nativeSearchState = nativeSearchState.stop(SearchStopReason.BACKGROUNDED)
         }
         if (::playback.isInitialized) playback.pauseUiUpdates()
         super.onStop()
@@ -3210,7 +3210,7 @@ private fun StudioRoot(
     onManageFolders: () -> Unit,
     onMovePlaylist: (String) -> Unit,
     onOfflineLibrary: () -> Unit,
-    onOfflineSearch: (String) -> Unit,
+    onOfflineSearch: (String, String?) -> Unit,
     onShareDiagnostics: () -> Unit,
     onOpenClassic: () -> Unit,
     searchNavigationToken: Int,
@@ -3937,7 +3937,7 @@ internal fun StudioSearch(
     playingUrl: String,
     corpus: LocalMusicCorpusState,
     onRetryCorpus: () -> Unit,
-    onOfflineSearch: (String) -> Unit,
+    onOfflineSearch: (String, String?) -> Unit,
     searchHistory: List<String>,
     canUndoSearchRemoval: Boolean,
     onRecordSearch: (String) -> Unit,
@@ -4115,7 +4115,7 @@ internal fun StudioSearch(
                         offlineSuggestions.forEach { offline ->
                             FilterChip(
                                 selected = false,
-                                onClick = { onOfflineSearch(offline.title) },
+                                onClick = { onOfflineSearch(offline.title, offline.id) },
                                 label = {
                                     Text(offline.title + " · Offline",
                                         maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -4284,7 +4284,7 @@ internal fun StudioSearch(
             }
             item(key = "search-offline-quick-access") {
                 NightWaveSectionActions(heading = { NightWaveMicroLabel(strings.get(R.string.nw141_explore_3b739)) }, action = {
-                    TextButton(onClick = { onOfflineSearch("") }, modifier = Modifier.heightIn(min = 48.dp)) {
+                    TextButton(onClick = { onOfflineSearch("", null) }, modifier = Modifier.heightIn(min = 48.dp)) {
                         Icon(Icons.Outlined.LibraryMusic, contentDescription = null, modifier = Modifier.size(19.dp))
                         Spacer(Modifier.width(8.dp)); Text(strings.get(R.string.nw141_offline_songs_6ff04))
                     }
@@ -4393,8 +4393,9 @@ internal fun StudioSearch(
             }
             items(offlineMatches.take(offlineVisible), key = { "offline-search:" + it.id }) { song ->
                 OutlinedButton(
-                    onClick = { onOfflineSearch(song.title) },
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                    onClick = { onOfflineSearch(song.title, song.id) },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                        .testTag("nw150-offline-entry-${song.id}"),
                     shape = RoundedCornerShape(15.dp)
                 ) {
                     Text("♫  " + song.title, modifier = Modifier.weight(1f),
@@ -4427,6 +4428,13 @@ internal fun StudioSearch(
                         TextButton(onClick = { onCancelSearch(); onWebSearch(query.trim()) },
                             modifier = Modifier.heightIn(min = 48.dp)) { Text(strings.get(R.string.nw141_open_youtube_search_027b5)) }
                     }
+                }
+            }
+        }
+        if (!searching && responseMatchesQuery && state.stopped != null) {
+            item(key = "nw150-stopped-search") {
+                NightWaveSearchStoppedCard(state.stopped, state.videos.isNotEmpty()) {
+                    onNativeSearch(query.trim(), mode)
                 }
             }
         }
