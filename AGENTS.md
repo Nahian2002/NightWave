@@ -1,4 +1,8 @@
-## Current NW154 version 51 release
+## Current NW155 version 52 device review
+
+Version 52 is installed on the S24 Ultra under the owner's standing in-place update authorization. The first-tap mix sheet, Close, Back, See all tracks and song options passed. All 33 backed-up files matched before launch. The guest profile and local library matched again after the tests. The scoped S24 design and usability rating is 9.1/10. See docs/NW155_MIX_PREVIEW.md. The public feed advertises version 51.
+
+## NW154 version 51 public release
 
 The owner authorized future in-place NightWave updates on the connected phone without repeated permission prompts. Verify the exact APK and signer, back up and compare the collected files, and keep the existing device and account boundaries. The owner also authorized the public version 51 release and feed activation. The canonical main feed advertises version 51 via merged PR #182. See docs/NW154_EVERYDAY_POLISH.md for the release identity and physical evidence. Future release scope follows the owner's request.
 
