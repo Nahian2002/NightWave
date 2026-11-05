@@ -184,7 +184,8 @@
       "source_revision": "4522c2f0377339e51ec23729651852645e0e4675",
       "evidence": "docs/quality/NW151_SOURCE_EVIDENCE.json",
       "notes": "API23 classic label sizing, original-source target thumbnail decode,19 paired native strings and Search focus lifecycle; physical cases pending exact47 approval, no rating promotion.",
-      "native_artwork_status": "LOCAL_VERIFIED_DEVICE_PENDING"
+      "native_artwork_status": "LOCAL_VERIFIED_DEVICE_PENDING",
+      "draft_pr": "https://github.com/Nahian2002/NightWave/pull/177"
     },
     {
       "id": "NW152",

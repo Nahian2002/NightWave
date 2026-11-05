@@ -145,5 +145,6 @@
   "existing_phone": "Samsung46 scoped results remain valid for their earlier scope; no47 or test APK installed",
   "next_batch": "NW152",
   "rating": "NOT_ASSESSED; no automatic9.5/100% promotion",
-  "release": "NO_GO; no feed/public binary/main merge/schedule activation"
+  "release": "NO_GO; no feed/public binary/main merge/schedule activation",
+  "draft_pr": "https://github.com/Nahian2002/NightWave/pull/177"
 }
