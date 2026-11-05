@@ -65,7 +65,7 @@
   "automation_pilot": "DEFERRED_NOT_NEEDED_ON_CURRENT_SAMSUNG; no helper or production control endpoint added",
   "physical_cases": {
     "original_219": "NOT_PROMOTED",
-    "code46_install": "NOT_APPROVED_NOT_RUN",
+    "code46_install": "APPROVED_NOT_RUN",
     "source_identity_and_duplicate_entry_ui": "NOT_RUN",
     "cancel_background_retry_live_network": "NOT_RUN",
     "offline_missing_file_readiness_and_import": "NOT_RUN",
@@ -74,5 +74,6 @@
   "next_batch": "NW151",
   "rating": "NOT_ASSESSED; no automatic9.5/100% claim",
   "release": "NO_GO; feed remains disabled, draft review only",
-  "draft_pr": "https://github.com/Nahian2002/NightWave/pull/176"
+  "draft_pr": "https://github.com/Nahian2002/NightWave/pull/176",
+  "installation_authorization": "Owner: Install version46 and test; exact candidate/scoped Samsung follow-up"
 }
