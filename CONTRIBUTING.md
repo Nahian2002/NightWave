@@ -1,6 +1,6 @@
 # Contributing to NightWave
 
-Contributions should preserve user data and keep media and account operations within their existing boundaries. Check the [latest review baseline](https://github.com/Nahian2002/NightWave/pull/183) before branching.
+Contributions should preserve user data and keep media and account operations within their existing boundaries. Check the [latest release and source tag](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55) before branching.
 
 ## Before proposing a change
 

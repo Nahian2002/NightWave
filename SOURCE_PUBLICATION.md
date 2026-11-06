@@ -1,6 +1,6 @@
 # Source publication
 
-The repository is public, and the [version 51 APK and matching source](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v51) are available through GitHub. The report below records the original source-publication operation. Its earlier release and artifact counts describe that point in time.
+The repository is public, and the [version 55 APK and matching source](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55) are available through GitHub. The report below records the original source-publication operation. Its earlier release and artifact counts describe that point in time.
 
 **28 October 2026 â€” final source review complete; visibility operation/readback pending.** This is source-only GitHub publication. No APK, store submission, website, app-feature change, dependency change, installation or account-data operation is included.
 
