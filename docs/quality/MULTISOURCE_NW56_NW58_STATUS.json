@@ -203,6 +203,14 @@
         "live_feed_version": 55,
         "staged_feed_version": 58,
         "evidence": "docs/audits/2026-11-07_NW58_POCO_RELEASE_REVIEW.md"
+      },
+      "typing_preview_followup": {
+        "source_commit": "c59a79e29f7ff02cdd3bee4f0b55b8b70a4a24a8",
+        "build_id": "NW-debug-9B1D398F3A6AB129",
+        "apk_sha256": "859E7365A4144F116627ACE299E61D580639FBB3B9DF64BDAF45903FE4D6A995",
+        "host_checks": "PASS_WINDOWS_1902_JVM_94_SOURCE_LINT",
+        "device_checks": "PREVIEW_RENDERED_FINAL_APK_INSTALLED",
+        "evidence": "docs/audits/2026-11-07_NW58_SEARCH_WHILE_TYPING.md"
       }
     }
   ],

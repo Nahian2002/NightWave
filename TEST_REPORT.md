@@ -2,6 +2,7 @@
 
 | Evidence | Result |
 | --- | --- |
+| Version 58 typing preview | Poco rendered a word suggestion and saved song before submission. Final Windows builder, 1,902 JVM tests, 94 source checks and lint passed. [Evidence](docs/audits/2026-11-07_NW58_SEARCH_WHILE_TYPING.md) |
 | Version 58 Poco and release review | Exact v55 → v58 Poco upgrade preserved 19 files before launch. Launcher and core UI compared against S24. Exact APK in the verified draft. Public source-rights gate returned NO_GO. [Evidence](docs/audits/2026-11-07_NW58_POCO_RELEASE_REVIEW.md) |
 | Version 58 adaptive Search | Exact S24 install, live cold and warm routing, known song match, Windows builder, 1,899 JVM tests, 94 source checks and lint passed. [Search evidence](docs/audits/2026-11-07_NW58_ADAPTIVE_SEARCH.md) |
 | Version 58 S24 Search and design | 1,894 JVM tests, 94 source checks, Windows build and lint passed. Exact in-place S24 install preserved 32 files before launch. Live Search, related songs, four palettes and the Samsung launcher icon checked. Poco pending. [Evidence](docs/audits/2026-11-07_NW58_SEARCH_DESIGN_S24.md) |
