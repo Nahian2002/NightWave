@@ -2,6 +2,7 @@
 
 | Evidence | Result |
 | --- | --- |
+| Version 58 S24 Search and design | 1,894 JVM tests, 94 source checks, Windows build and lint passed. Exact in-place S24 install preserved 32 files before launch. Live Search, related songs, four palettes and the Samsung launcher icon checked. Poco pending. [Evidence](docs/audits/2026-11-07_NW58_SEARCH_DESIGN_S24.md) |
 | Version 58 S24 presentation polish | 8.7/10 scoped score. Player artwork, source filter density, Download help, Sound Studio and AMOLED wording retested. 1,889 JVM tests, 94 source checks and lint passed. [Polish report](docs/audits/2026-11-06_NW58_S24_POLISH.md) |
 | Version 58 final S24 audit | 24 observed areas, 8.4/10 before and 8.5/10 after scoped fixes. Exact same-signer candidate, Windows build, 1,888 JVM tests, 94 source checks and lint passed. [Final audit](docs/audits/2026-11-06_NW58_S24_FINAL_REVIEW.md) |
 | Version 58 Sources and FLAC candidate | Windows build, 1,888 JVM tests, 94 source checks and lint passed. Android tests compiled. S24 same-signer upgrade, manual update status, live results from all four Search sources and 16-bit/44.1 kHz FLAC import/playback passed scoped checks. The revised Sources and Offline presentation also passed on the S24. [NW58 evidence](docs/MULTISOURCE_NW58_IMPLEMENTATION.md) |

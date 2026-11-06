@@ -177,7 +177,16 @@
       "next": null,
       "evidence": "docs/audits/2026-11-06_NW58_S24_POLISH.md",
       "owner_publication_requested": true,
-      "release_state": "DRAFT_ASSET_BYTE_AND_SHA_VERIFIED_BLOCKING_ACCEPTANCE_OPEN"
+      "release_state": "DRAFT_ASSET_BYTE_AND_SHA_VERIFIED_BLOCKING_ACCEPTANCE_OPEN",
+      "search_design_followup": {
+        "source_commit": "347eb0b2db2644652e2d40d65226a2083b60026f",
+        "build_id": "NW-debug-511D7F34157127D7",
+        "apk_sha256": "D1E1DC9140A749A9CB56AE9928FED05177D4418C40F416F180072016DB7247D6",
+        "host_checks": "PASS_WINDOWS_1894_JVM_94_SOURCE_LINT",
+        "device_checks": "PASS_SCOPED_S24_SEARCH_RELATED_PALETTES_LAUNCHER",
+        "next": "POCO_LAUNCHER_TEXT_SCALE_AND_LAYOUT_NOT_RUN",
+        "evidence": "docs/audits/2026-11-07_NW58_SEARCH_DESIGN_S24.md"
+      }
     }
   ],
   "update_instructions": "For each delivered batch record exact source/build/artifact hashes and results, update state from PLANNED only with proof, add implementation evidence document and never mark COMPILED as device EXECUTED. Keep PR links and external provider policy evidence."
