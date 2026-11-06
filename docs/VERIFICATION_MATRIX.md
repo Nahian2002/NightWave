@@ -1,18 +1,8 @@
-# Current verification guide
+# Verification guide
 
-**28 October 2026.** Cumulative scope: NW132 plus maintenance; NW133 next. Exact build/test totals and artifact identities: [TEST_REPORT](../TEST_REPORT.md).
+- **Source checks** exercise structural contracts and negative fixtures.
+- **JVM tests** exercise host behavior. The Windows build also compiles Android test sources and produces the APK.
+- **Lint and signing** check the built source and its install identity.
+- **Phone evidence** covers observed journeys on the named build and device. Broader scenarios remain open until tested.
 
-| Evidence | Meaning | Limit |
-| --- | --- | --- |
-| Current source checks | Required structural and broken-fixture checks execute | Not a compiler or runtime test |
-| JVM tests | Gradle unit tests execute | Synthetic host behavior; not Android UI/storage/audio |
-| Android and test compilation | Production/Compose and instrumentation sources compile; APK assembles | Screen tests are not executed |
-| APK/source/certificate | Built bytes match source inputs and protected candidate certificate | Installed signer requires a phone comparison |
-| Device acceptance | NOT_RUN for current batches | No inferred rendering, picker, account recovery or audible behavior |
-| Hosted CI | Exact final-head annotations in the review | Billing may prevent jobs from starting |
-
-The [original 139 cases](NW90_EXPANDED_139_CASE_MATRIX.csv) are unchanged. [80 additional cases](quality/NW126_NW145_ACCEPTANCE.csv) record partial local evidence and unrun phone work. Prepared 219-case packs are not executed acceptance runs and do not populate the installed app.
-
-Follow the [active backlog](quality/NW126_NW145_BACKLOG.json), [roadmap](PRODUCT_QUALITY_ROADMAP.md), [readiness gates](../RELEASE_READINESS.md) and [build instructions](BUILD_AND_RELEASE.md). App release remains NO-GO; source-only publication is separate.
-
-The [archived verification narrative](VERIFICATION_MATRIX_HISTORY_20261028.md) preserves the original 19 October failed-build evidence. Its old branch, SDK and test counts are historical.
+[Current test report](../TEST_REPORT.md) · [139 original cases](NW90_EXPANDED_139_CASE_MATRIX.csv) · [80 supplemental cases](quality/NW126_NW145_ACCEPTANCE.csv) · [Earlier verification narrative](https://github.com/Nahian2002/NightWave/blob/7667b68535bbdbc09b69350357ba2ca408e0730b/docs/VERIFICATION_MATRIX_HISTORY_20261028.md)

@@ -1,4 +1,6 @@
-# NightWave Privacy Policy — DRAFT / NOT YET PUBLISHED FOR USERS
+# NightWave privacy information · draft
+
+[Version 51 is distributed through GitHub](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v51). The notes below remain a draft and retain the original review requirements.
 
 **Last source/contact review:** 28 October 2026
 **Publication status:** The statements below are a source-informed draft. The maintainer must verify them against the final APK, third-party SDK/network traffic and Google Play Data safety form, confirm monitoring of the contact below and publish a working web URL **before distribution**.

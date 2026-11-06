@@ -1,4 +1,6 @@
-# Active NightWave quality roadmap — NW126–NW145
+# NightWave product quality roadmap
+
+See the [current version 52 roadmap](https://github.com/Nahian2002/NightWave/blob/28d9d9861650363853584c3afa93c4cd30d4b3bf/docs/PRODUCT_QUALITY_ROADMAP.md) for active verification and remaining coverage. The earlier roadmap below records the baseline from the default source branch.
 
 Established **28 October 2026**, after the owner's post-NW125 recording review. **This is the active plan for future upgrade batches.** NW111–NW125 implementation history is retained in [the previous roadmap](NW111_NW125_SPOTIFY_QUALITY_ROADMAP.md); unresolved device/release gates carry forward.
 
