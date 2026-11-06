@@ -16,6 +16,7 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -104,16 +105,21 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import coil.compose.AsyncImage
@@ -494,6 +500,12 @@ fun StudioNowPlayingOverlay(
             val art = playerLayout.artworkDp.dp
             val artHeight = NightWaveArtworkFramePolicy.heightDp(playerLayout.artworkDp,
                 resolvedArtwork?.intrinsicWidth ?: 0, resolvedArtwork?.intrinsicHeight ?: 0, state.offline).dp
+            val artworkBitmap = (resolvedArtwork as? android.graphics.drawable.BitmapDrawable)?.bitmap
+            val artworkTrim = remember(artworkBitmap, state.offline) {
+                artworkBitmap?.takeIf { !state.offline && !it.isRecycled }?.let {
+                    runCatching { NightWaveArtworkFramePolicy.sideTrim(it.width, it.height, it::getPixel) }.getOrNull()
+                }
+            }
             val playerIdentity = remember(state.title, state.artist) {
                 NightWaveEditorialPresentationPolicy.identity(state.title, state.artist)
             }
@@ -803,17 +815,15 @@ fun StudioNowPlayingOverlay(
                 Box(
                     Modifier.size(width = art, height = artHeight)
                         .testTag("nightwave-now-playing-artwork")
-                        .shadow(8.dp,
-                            RoundedCornerShape(playerLayout.artworkCornerDp.dp))
                         .graphicsLayer {
                             scaleX = playingArtworkScale
                             scaleY = playingArtworkScale
                         }
-                        .clip(RoundedCornerShape(playerLayout.artworkCornerDp.dp))
-                        .background(colors.surfaceVariant)
-                        .border(1.dp,
-                            colors.onBackground.copy(alpha = NightWaveMattePolicy.BORDER_ALPHA),
-                            RoundedCornerShape(playerLayout.artworkCornerDp.dp)).then(
+                        .then(if (artworkTrim == null) {
+                            val shape = RoundedCornerShape(playerLayout.artworkCornerDp.dp)
+                            Modifier.shadow(8.dp, shape).clip(shape).background(colors.surfaceVariant)
+                                .border(1.dp, colors.onBackground.copy(alpha = NightWaveMattePolicy.BORDER_ALPHA), shape)
+                        } else Modifier).then(
                         if (canSwipeArtwork) Modifier.pointerInput(
                             state.videoUrl, state.queue.size, state.connected, state.buffering
                         ) {
@@ -844,8 +854,9 @@ fun StudioNowPlayingOverlay(
                         NightWaveArtworkTransitionPolicy.frame(
                             state.videoUrl, state.thumbnail)
                     }
+                    val sourceArtworkModifier = Modifier.fillMaxSize().alpha(if (artworkTrim == null) 1f else 0f)
                     if (reduceMotion) {
-                        CoverArt(state.thumbnail, Modifier.fillMaxSize(),
+                        CoverArt(state.thumbnail, sourceArtworkModifier,
                             playerLayout.artworkCornerDp,
                             "Artwork for " + playerIdentity.title, trackIdentity = state.videoUrl, large = true,
                             onResolved = { resolvedArtwork = it })
@@ -856,13 +867,26 @@ fun StudioNowPlayingOverlay(
                                 durationMillis = NightWaveMotionPolicy.COVER_MS),
                             label = "Player artwork"
                         ) { artwork ->
-                            CoverArt(artwork.thumbnail, Modifier.fillMaxSize(),
+                            CoverArt(artwork.thumbnail, sourceArtworkModifier,
                                 playerLayout.artworkCornerDp,
                                 NightWaveArtworkTransitionPolicy.accessibilityDescription(
                                     artwork, currentArtwork, playerIdentity.title), trackIdentity = artwork.trackId, large = true,
                                 onResolved = if (artwork.trackId == state.videoUrl && artwork.thumbnail == state.thumbnail)
                                     { image -> resolvedArtwork = image } else null)
                         }
+                    }
+                    if (artworkTrim != null && artworkBitmap != null) {
+                        val contentWidth = artworkBitmap.width - artworkTrim.left - artworkTrim.right
+                        val visibleWidth = minOf(art.value, artHeight.value * contentWidth / artworkBitmap.height).dp
+                        val painter = remember(artworkBitmap, artworkTrim) {
+                            BitmapPainter(artworkBitmap.asImageBitmap(), IntOffset(artworkTrim.left, 0),
+                                IntSize(contentWidth, artworkBitmap.height))
+                        }
+                        val shape = RoundedCornerShape(playerLayout.artworkCornerDp.dp)
+                        Image(painter, contentDescription = null,
+                            modifier = Modifier.size(visibleWidth, artHeight)
+                                .shadow(8.dp, shape).clip(shape).testTag("nw58-trimmed-player-art"),
+                            contentScale = ContentScale.Fit)
                     }
                     if (state.buffering) {
                         Box(

@@ -654,9 +654,7 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                                 Text(strings.get(R.string.nw141_local_playback_quality_adb32),
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.SemiBold)
-                                Text(strings.get(R.string.nw141_explanation_d7580987cf),
-                                    style = MaterialTheme.typography.bodySmall, color = muted)
-                                Text(strings.get(R.string.nw141_crossfade_4401d) +
+                                Text(strings.get(R.string.nw141_crossfade_4401d).trimEnd() + " " +
                                     AudioTransitionUiPolicy.dialogDetail(selectedCrossfade),
                                     style = MaterialTheme.typography.titleSmall)
                                 Row(Modifier.fillMaxWidth()
@@ -678,7 +676,7 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                                     Column(Modifier.weight(1f)) {
                                         Text(strings.get(R.string.nw141_offline_volume_balancing_d5e09),
                                             style = MaterialTheme.typography.titleSmall)
-                                        Text(strings.get(R.string.nw141_explanation_f1c85f0e65),
+                                        Text(strings.get(R.string.nw58_volume_balance_summary),
                                             style = MaterialTheme.typography.bodySmall,
                                             color = muted)
                                     }
@@ -687,6 +685,12 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                                         enabled = !transitionBusy && !busy,
                                         onCheckedChange = { setOfflineBalancing(it) }
                                     )
+                                }
+                                NightWaveTechnicalDetails(strings.get(R.string.nw58_local_playback_help)) {
+                                    Text(strings.get(R.string.nw141_explanation_d7580987cf),
+                                        style = MaterialTheme.typography.bodySmall, color = muted)
+                                    Text(strings.get(R.string.nw141_explanation_f1c85f0e65),
+                                        style = MaterialTheme.typography.bodySmall, color = muted)
                                 }
                                 if (transitionNotice.isNotBlank())
                                     Text(transitionNotice,

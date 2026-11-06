@@ -5600,7 +5600,7 @@ private fun StudioProfile(
                 )
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 StudioProfileRow(
-                    strings.get(R.string.nw141_theme_efb52), profile.theme.name.lowercase().replaceFirstChar { it.titlecase() },
+                    strings.get(R.string.nw141_theme_efb52), profile.theme.displayName,
                     Icons.Outlined.AutoAwesome, { showAppearance = !showAppearance },
                     trailing = { Text(if (showAppearance) strings.get(R.string.nw141_hide_ac20a) else strings.get(R.string.nw141_change_c0bf7),
                         style = MaterialTheme.typography.labelMedium,
@@ -5618,8 +5618,7 @@ private fun StudioProfile(
                                     FilterChip(
                                         selected = profile.theme == option,
                                         onClick = { save(profile.copy(theme = option)) },
-                                        label = { Text(option.name.lowercase()
-                                            .replaceFirstChar { it.titlecase() }) },
+                                        label = { Text(option.displayName) },
                                         modifier = Modifier.weight(1f)
                                     )
                                 }

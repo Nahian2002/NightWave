@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -28,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -162,11 +164,14 @@ internal fun NightWaveSourceFilters(selected: UnifiedSearchScope, onSelect: (Uni
             SourceScopeChip(UnifiedSearchScope.SAVED, strings.get(R.string.nw57_saved_links), selected == UnifiedSearchScope.SAVED, onSelect)
         }
         if (showsProviders) {
-            Text(strings.get(R.string.nw58_provider_label), Modifier.semantics { heading() },
-                style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp), maxItemsInEachRow = 3) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically) {
+                Text(strings.get(R.string.nw58_provider_label), Modifier.weight(1f).semantics { heading() },
+                    style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 SourceScopeChip(UnifiedSearchScope.ALL, strings.get(R.string.nw57_all_sources), selected == UnifiedSearchScope.ALL, onSelect)
+            }
+            FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 SourceScopeChip(UnifiedSearchScope.AUDIUS, DiscoverySource.AUDIUS.displayName, selected == UnifiedSearchScope.AUDIUS, onSelect)
                 SourceScopeChip(UnifiedSearchScope.PEERTUBE, DiscoverySource.PEERTUBE.displayName, selected == UnifiedSearchScope.PEERTUBE, onSelect)
                 SourceScopeChip(UnifiedSearchScope.RADIO, strings.get(R.string.multisource_radio), selected == UnifiedSearchScope.RADIO, onSelect)

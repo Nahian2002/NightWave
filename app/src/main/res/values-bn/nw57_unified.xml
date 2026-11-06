@@ -27,4 +27,9 @@
     <string name="nw58_play_track_title">%1$s চালান</string>
     <string name="nw58_equalizer_off">ইকুয়ালাইজার বন্ধ</string>
     <string name="nw58_clear_saved_eq">সংরক্ষিত EQ মুছুন</string>
+    <string name="nw58_download_help">ডাউনলোড সহায়তা</string>
+    <string name="nw58_hide_download_history">লুকানো ট্রান্সফার আবার আড়াল করুন (%1$d)</string>
+    <string name="nw58_show_download_history">লুকানো ট্রান্সফার দেখান (%1$d)</string>
+    <string name="nw58_volume_balance_summary">ডিভাইসে সংরক্ষিত বেশি জোরে বাজা গানের ভলিউম কমায়।</string>
+    <string name="nw58_local_playback_help">ডিভাইসের গান চালানো সম্পর্কে</string>
 </resources>

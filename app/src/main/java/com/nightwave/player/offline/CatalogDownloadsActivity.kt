@@ -5,6 +5,7 @@ import com.nightwave.player.v2.ui.NightWaveNativeMattePolicy
 
 
 import android.app.AlertDialog
+import com.nightwave.player.R
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
@@ -263,12 +264,12 @@ class CatalogDownloadsActivity : NightWaveOfflineShellActivity() {
         root.addView(overview, LinearLayout.LayoutParams(-1, -2).apply {
             bottomMargin = dp(4)
         })
-        root.addView(label(DownloadCenterDashboardPolicy.helpLine(), 12f,
-            0xFF94ADB8.toInt()).apply {
-            maxLines = 3
-            setPadding(0, dp(3), 0, dp(8))
-        })
+        val historyActions = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
         historyToggle = label("", 13f, 0xFF91E2D7.toInt(), true).apply {
+            minimumHeight = dp(48)
             gravity = Gravity.CENTER_VERTICAL
             setOnClickListener {
                 showHiddenJobs = !showHiddenJobs
@@ -277,7 +278,19 @@ class CatalogDownloadsActivity : NightWaveOfflineShellActivity() {
                 refreshJobs()
             }
         }
-        root.addView(historyToggle, LinearLayout.LayoutParams(-1, dp(48)))
+        historyActions.addView(historyToggle, LinearLayout.LayoutParams(0, -2, 1f))
+        historyActions.addView(label(getString(R.string.nw58_download_help), 13f, 0xFF91E2D7.toInt(), true).apply {
+            minimumHeight = dp(48)
+            gravity = Gravity.CENTER_VERTICAL or Gravity.END
+            setPadding(dp(8), 0, dp(4), 0)
+            setOnClickListener {
+                AlertDialog.Builder(this@CatalogDownloadsActivity)
+                    .setTitle(R.string.nw58_download_help)
+                    .setMessage(DownloadCenterDashboardPolicy.helpLine())
+                    .setPositiveButton(R.string.nw141_close_7d9eb, null).show()
+            }
+        }, LinearLayout.LayoutParams(0, -2, 1f))
+        root.addView(historyActions, LinearLayout.LayoutParams(-1, -2))
         filterRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
@@ -334,8 +347,8 @@ class CatalogDownloadsActivity : NightWaveOfflineShellActivity() {
             it.id.toString() in hidden
         }
         historyToggle.text = if (showHiddenJobs)
-            "Hide dismissed jobs · ${hidden.size} hidden  ▴"
-        else "Show dismissed jobs · ${hidden.size} hidden  ▾"
+            getString(R.string.nw58_hide_download_history, hidden.size)
+        else getString(R.string.nw58_show_download_history, hidden.size)
         // NW62: no private library index read or file stat on the UI thread.
         // Worker snapshots are generation-fenced; never mark a pending or
         // failed verification as Ready merely because WorkManager succeeded.
@@ -410,6 +423,7 @@ class CatalogDownloadsActivity : NightWaveOfflineShellActivity() {
         }
         overview.text = DownloadCenterDashboardPolicy.overview(
             active, ready, attention, historyJobs.size, verifyingFiles, fileCheckFailed)
+        overview.visibility = if (overview.text.isBlank()) android.view.View.GONE else android.view.View.VISIBLE
         // WorkManager progress changes update count strings in place without
         // moving the user's current page or rebuilding the filter row.
         DownloadCenterViewPolicy.Filter.entries.forEach { filter ->

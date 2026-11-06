@@ -27,4 +27,9 @@
     <string name="nw58_play_track_title">Play %1$s</string>
     <string name="nw58_equalizer_off">Equalizer off</string>
     <string name="nw58_clear_saved_eq">Clear saved EQ</string>
+    <string name="nw58_download_help">Download help</string>
+    <string name="nw58_hide_download_history">Hide hidden transfers (%1$d)</string>
+    <string name="nw58_show_download_history">Show hidden transfers (%1$d)</string>
+    <string name="nw58_volume_balance_summary">Lowers louder tracks saved on this device.</string>
+    <string name="nw58_local_playback_help">About local playback</string>
 </resources>
