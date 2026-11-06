@@ -1,6 +1,6 @@
 # Contributing to NightWave
 
-Thank you for considering a contribution. NightWave is not yet approved for public distribution; contributions should preserve privacy, data durability and the existing music library.
+Contributions should preserve user data and keep media and account operations within their existing boundaries. Check the [latest review baseline](https://github.com/Nahian2002/NightWave/pull/183) before branching.
 
 ## Before proposing a change
 
@@ -11,7 +11,7 @@ Thank you for considering a contribution. NightWave is not yet approved for publ
 
 ## Changes and tests
 
-1. Branch from the reviewed development baseline identified in the release checklist; the historical default `main` is not necessarily current.
+1. Use the relevant release tag for reproduction or the current review branch for changes.
 2. Keep changes narrowly scoped and update relevant documentation/test cases.
 3. Run `python tools/verify_current.py` for all current structural/negative checks. Publication/release preflight is a separate gate; retain its checks and recorded blockers.
 4. On Windows run `build-windows.cmd` in a clean checkout. A successful source check is **not** a Gradle or Android device test.

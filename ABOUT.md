@@ -1,18 +1,14 @@
 # About NightWave
 
-NightWave is an independent Kotlin/Compose Android music player with an original midnight interface, owned/imported audio, saved public-media references, playlists, Media3 background playback, user-imported synchronized lyrics, Sound Studio and optional Google Drive recovery. It has no Spotify affiliation or licensed subscription catalog.
+NightWave is an independent Android music player. It combines local audio, playlists, saved public music references, Media3 playback, imported LRC lyrics, Sound Studio and optional Google Drive recovery.
 
-| Information | Current value |
+| Item | Current status |
 | --- | --- |
-| Source | [Canonical main](https://github.com/Nahian2002/NightWave/tree/main); [expressive theme review branch](https://github.com/Nahian2002/NightWave/tree/design/nightwave-expressive-themes) |
-| Application | `com.nightwave.player` · `2.0.0-alpha5s` · code 35 |
-| Android | Minimum API 26; compile/target API 36 |
-| Next product batch | NW134, following the active NW126–NW145 roadmap |
+| Public release | [Version 51](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v51) |
+| Public release source | [nightwave-v51](https://github.com/Nahian2002/NightWave/tree/nightwave-v51) |
+| Newest tested review | [Version 52](https://github.com/Nahian2002/NightWave/pull/183) |
+| Android | API 23 (Android 6.0) minimum for versions 51 and 52 |
+| App identity | `com.nightwave.player` |
+| Device review | [9.1/10 for design and usability on the S24 Ultra](https://github.com/Nahian2002/NightWave/blob/28d9d9861650363853584c3afa93c4cd30d4b3bf/docs/NW155_MIX_PREVIEW.md) |
 
-Exact current local build, tests, lint and artifact identities: [TEST_REPORT](TEST_REPORT.md). Physical acceptance and installed-app signer continuity remain separate. The provisional product rating is 6.7/10; 9.5+ requires actual acceptance evidence.
-
-A saved public link is not an offline audio file or proof of music rights. Online features depend on source availability; optional Google features require consent. App release remains NO-GO. Source-only publication is a separate decision described in [SOURCE_PUBLICATION](SOURCE_PUBLICATION.md).
-
-Start with [README](README.md), [repository navigation](docs/REPOSITORY_INDEX.md), [build instructions](docs/BUILD_AND_RELEASE.md) and [the roadmap](docs/PRODUCT_QUALITY_ROADMAP.md). Historical failures remain in Git and dated reports.
-
-Suggested GitHub description: Independent Kotlin/Compose Android music player with local audio, playlists, imported LRC lyrics, Media3 playback and optional Drive recovery. Suggested topics: `android`, `kotlin`, `jetpack-compose`, `media3`, `music-player`, `offline-music`, `lyrics`. This file does not change the remote sidebar, default branch or repository visibility.
+NightWave has no licensed subscription catalog or Spotify affiliation. Public references can depend on third-party availability and permissions. See [source and media information](TERMS_AND_SOURCE_USE.md).

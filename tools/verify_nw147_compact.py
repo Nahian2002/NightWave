@@ -28,8 +28,8 @@ def verify(src):
  assert 'capabilities.centersHz.size' in disclosure and 'Effects depend on Android' in disclosure
  for bad in ('issueCommand(', 'onDiscard', 'status.message', 'Text(tuningStatus'):
   assert bad not in disclosure, bad
- if (ROOT/'app/src/main/res/values/nw147.xml').read_text().count('<string ') != 2: raise AssertionError('English details states')
- if (ROOT/'app/src/main/res/values-bn/nw147.xml').read_text().count('<string ') != 2: raise AssertionError('Bangla details states')
+ if (ROOT/'app/src/main/res/values/nw147.xml').read_text(encoding='utf-8').count('<string ') != 2: raise AssertionError('English details states')
+ if (ROOT/'app/src/main/res/values-bn/nw147.xml').read_text(encoding='utf-8').count('<string ') != 2: raise AssertionError('Bangla details states')
 
 if __name__ == '__main__':
  p=argparse.ArgumentParser();p.add_argument('--self-test',action='store_true');args=p.parse_args()

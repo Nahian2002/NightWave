@@ -1,4 +1,6 @@
-## Current NW152 source result — 6 November 2026
+# NightWave upcoming work
+
+The current candidate is version 52 and the current public release is version 51. Use the [product roadmap](../PRODUCT_QUALITY_ROADMAP.md) for active acceptance work. The dated entries below are historical.
 
 NW152/code48 LOCAL_VERIFIED, device NOT_RUN. Read docs/NW152_RECOVERY_READINESS.md and docs/quality/NW152_SOURCE_EVIDENCE.json. Guest export retains exact pre-picker bytes and guest restore rejects stale library/profile review; existing format/history/consent/share/provider boundaries preserved. 1867 JVM/235 suites, 94 source checks, full builder, sequential lint0/317/17, no added entries. Four Android methods compiled only. Exact APK/source/signer and owner-only full readback pass. Offline release rehearsal and verified47 baseline retained; signed stable envelope unchanged and disabled. No48/test APK or disposable account approved. Original NW145 PARTIAL, no rating promotion. Only NW153 acceptance and necessary fixes remain; no feature expansion, install/reset/merge/feed/public binary/settings/schedule action. Older notes below are historical.
 
