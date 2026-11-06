@@ -1,4 +1,8 @@
-## Current NW155 version 52 device review
+## Current NW156 version 53 You layout
+
+Version 53 was installed in place on the S24 Ultra. All 33 backed-up files matched before launch. The phone disconnected at first launch, so the rendered overview and expanded routes still need the prepared device checks. The Windows build, 1,869 JVM tests, 94 source checks and lint passed. See docs/NW156_YOU_LAYOUT.md and draft PR #186. The public feed still advertises version 51.
+
+## NW155 version 52 device review
 
 Version 52 is installed on the S24 Ultra under the owner's standing in-place update authorization. The first-tap mix sheet, Close, Back, See all tracks and song options passed. All 33 backed-up files matched before launch. The guest profile and local library matched again after the tests. The scoped S24 design and usability rating is 9.1/10. See docs/NW155_MIX_PREVIEW.md. The public feed advertises version 51.
 
