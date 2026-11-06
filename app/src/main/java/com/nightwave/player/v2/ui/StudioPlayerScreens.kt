@@ -102,6 +102,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.semantics
@@ -447,7 +448,10 @@ fun StudioNowPlayingOverlay(
     onLyricsOffsetChange: (Int) -> Unit = {},
     onImportLyrics: () -> Unit = {},
     onEditLyrics: () -> Unit = {},
-    onRemoveLyrics: () -> Unit = {}
+    onRemoveLyrics: () -> Unit = {},
+    relatedSongs: List<VideoPreview> = emptyList(),
+    onPlayRelated: (VideoPreview) -> Unit = {},
+    onFindRelated: (() -> Unit)? = null
 ) {
     val strings = rememberNightWaveStrings()
     // One transition owns backdrop and content from the same requested frame.
@@ -1222,6 +1226,23 @@ fun StudioNowPlayingOverlay(
                         }
                         Icon(Icons.AutoMirrored.Outlined.QueueMusic,
                             contentDescription = strings.get(R.string.nw141_open_queue_976eb), tint = colors.primary)
+                    }
+                }
+                if (relatedSongs.isNotEmpty() || onFindRelated != null) {
+                    Column(
+                        Modifier.fillMaxWidth().padding(top = 20.dp).testTag("nw58-related-songs"),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(strings.get(R.string.nw58_related_songs), Modifier.semantics { heading() },
+                            style = MaterialTheme.typography.titleMedium, color = colors.onSurface)
+                        relatedSongs.forEach { song ->
+                            MusicTrackTile(song, onClick = { onPlayRelated(song) })
+                        }
+                        if (onFindRelated != null) {
+                            OutlinedButton(onClick = onFindRelated, modifier = Modifier.heightIn(min = 48.dp)) {
+                                Text(strings.get(R.string.nw58_find_related))
+                            }
+                        }
                     }
                 }
                 if (lyricsOpen) {

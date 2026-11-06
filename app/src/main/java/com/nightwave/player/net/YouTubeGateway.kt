@@ -9,7 +9,10 @@ import org.schabi.newpipe.extractor.stream.StreamInfo
 import org.schabi.newpipe.extractor.stream.StreamInfoItem
 
 /** Public, extraction-supported videos only. Private/DRM/region-restricted videos are not bypassed. */
-data class VideoPreview(val title: String, val author: String, val url: String, val thumbnail: String, val durationSeconds: Long)
+data class VideoPreview(
+    val title: String, val author: String, val url: String, val thumbnail: String,
+    val durationSeconds: Long, val viewCount: Long? = null
+)
 data class PlayableAudio(val video: VideoPreview, val audioUrl: String, val mimeType: String? = null)
 
 enum class SearchMode { SONGS, VIDEOS }
@@ -62,7 +65,7 @@ class YouTubeGateway {
                 val (videos, report) = data
                 diagnostics.add(report)
                 if (videos.isNotEmpty()) {
-                    val ranked = if (mode == SearchMode.SONGS) sortMusicMatches(videos, text) else videos
+                    val ranked = rankMatches(videos, text, mode)
                     val result = VideoSearchResults(ranked.take(maxResults), false, "YouTube search")
                     request?.checkActive()
                     remember(text, mode, result, request)
@@ -95,8 +98,7 @@ class YouTubeGateway {
         request?.checkActive()
         alternateResult.onSuccess { fallback ->
             if (fallback.videos.isNotEmpty()) {
-                val ranked = if (mode == SearchMode.SONGS) sortMusicMatches(fallback.videos, text)
-                    else fallback.videos
+                val ranked = rankMatches(fallback.videos, text, mode)
                 val result = VideoSearchResults(
                     ranked.take(maxResults), true,
                     "Results via independent community search (" + fallback.server + ")"
@@ -137,7 +139,8 @@ class YouTubeGateway {
                 author = item.uploaderName ?: "YouTube creator",
                 url = url,
                 thumbnail = item.thumbnails.firstOrNull()?.url ?: "",
-                durationSeconds = item.duration
+                durationSeconds = item.duration,
+                viewCount = item.viewCount.takeIf { it >= 0 }
             )
         }.distinctBy { it.url }
         val report = filter + ": raw=" + raw.size + ", streams=" + videos.size +
@@ -147,8 +150,9 @@ class YouTubeGateway {
         return parsed to report
     }
 
-    private fun sortMusicMatches(videos: List<VideoPreview>, query: String): List<VideoPreview> =
-        SearchRelevancePolicy.rankPublic(query, videos)
+    private fun rankMatches(videos: List<VideoPreview>, query: String, mode: SearchMode): List<VideoPreview> =
+        if (mode == SearchMode.SONGS) SearchRelevancePolicy.rankPublic(query, videos)
+        else SearchRelevancePolicy.rankVideos(query, videos)
 
     /**
      * Resolve only a distinct audio-only progressive HTTPS stream.

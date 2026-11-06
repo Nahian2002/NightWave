@@ -220,6 +220,8 @@ import com.nightwave.player.core.VideoLink
 import com.nightwave.player.core.SearchInput
 import com.nightwave.player.core.SearchInputResolver
 import com.nightwave.player.net.VideoPreview
+import com.nightwave.player.v2.model.NightWaveDesign
+import com.nightwave.player.v2.recommendation.RelatedSongsPolicy
 import com.nightwave.player.net.YouTubeGateway
 import com.nightwave.player.net.VideoSearchResults
 import com.nightwave.player.net.SearchMode
@@ -3615,6 +3617,15 @@ private fun StudioRoot(
         }
         }
     }
+    val relatedTrack = remember(playerState.videoUrl, playerState.title, playerState.artist, playerState.offline) {
+        if (playerState.offline || !playerState.hasTrack) null else
+            VideoPreview(playerState.title, playerState.artist, playerState.videoUrl, "", 0L)
+    }
+    val relatedArtist = remember(relatedTrack) { relatedTrack?.let(RelatedSongsPolicy::artist) }
+    val relatedSongs = remember(expanded, relatedTrack, searchState.videos, favorites) {
+        if (expanded && relatedTrack != null)
+            RelatedSongsPolicy.select(relatedTrack, searchState.videos + favorites) else emptyList()
+    }
     StudioNowPlayingOverlay(
         expanded = expanded && playerState.hasTrack,
         state = playerState, actions = playerActions,
@@ -3646,7 +3657,16 @@ private fun StudioRoot(
         onImportLyrics = onImportLyrics,
         onEditLyrics = onEditLyrics,
         onRemoveLyrics = onRemoveLyrics,
-        onDismiss = { expanded = false }
+        onDismiss = { expanded = false },
+        relatedSongs = relatedSongs,
+        onPlayRelated = { song -> onPlay(song, listOf(song)) },
+        onFindRelated = relatedArtist?.let { artist ->
+            {
+                expanded = false
+                onPrepareSearch(artist, SearchMode.SONGS)
+                navigateToTab(StudioTab.SEARCH)
+            }
+        }
     )
     if (showSoundStudio) NightWaveSoundStudioDialog(
         onDismiss = { showSoundStudio = false }
@@ -5619,6 +5639,10 @@ private fun StudioProfile(
                                         selected = profile.theme == option,
                                         onClick = { save(profile.copy(theme = option)) },
                                         label = { Text(option.displayName) },
+                                        leadingIcon = {
+                                            Box(Modifier.size(12.dp).clip(CircleShape)
+                                                .background(paletteColor(NightWaveDesign.palette(option).accent)))
+                                        },
                                         modifier = Modifier.weight(1f)
                                     )
                                 }

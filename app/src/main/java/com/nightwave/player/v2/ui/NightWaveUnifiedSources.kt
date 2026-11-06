@@ -200,7 +200,7 @@ internal fun LazyListScope.unifiedSourceResults(
     item(key = "nw57-provider-actions") {
         val strings = rememberNightWaveStrings()
         var showSourceInfo by rememberSaveable { mutableStateOf(false) }
-        Text(strings.get(R.string.nw58_source_intro), style = MaterialTheme.typography.bodySmall,
+        Text(strings.get(R.string.nw58_source_intro), Modifier.padding(bottom = 8.dp), style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant)
         NightWaveCompactActions {
             Button(onClick = onSubmit, enabled = UnifiedSourceRequest.create(scope, query) != null && !state.pending,
@@ -213,7 +213,7 @@ internal fun LazyListScope.unifiedSourceResults(
             }
         }
         if (showSourceInfo) {
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Column(Modifier.padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 for (message in listOf(R.string.nw57_provider_disclosure, R.string.nw58_openverse_disclosure,
                     R.string.multisource_jamendo)) {
                     Text(strings.get(message), style = MaterialTheme.typography.bodySmall,

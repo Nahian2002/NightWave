@@ -18,7 +18,7 @@
     <string name="nw58_update_release">NightWave v%1$d (%2$s)</string>
     <string name="nw58_sources_tab">Sources</string>
     <string name="nw58_provider_label">Music providers</string>
-    <string name="nw58_source_intro">Discover tracks, videos and radio. Results open on the provider’s site.</string>
+    <string name="nw58_source_intro">Find music, videos and radio. Tap a result to open its source.</string>
     <string name="nw58_about_sources">About sources</string>
     <string name="nw58_hide_source_info">Hide source info</string>
     <string name="nw58_import_formats_summary">Import FLAC lossless, MP3, M4A and more.</string>
@@ -32,4 +32,6 @@
     <string name="nw58_show_download_history">Show hidden transfers (%1$d)</string>
     <string name="nw58_volume_balance_summary">Lowers louder tracks saved on this device.</string>
     <string name="nw58_local_playback_help">About local playback</string>
+    <string name="nw58_related_songs">Related songs</string>
+    <string name="nw58_find_related">Search this artist</string>
 </resources>

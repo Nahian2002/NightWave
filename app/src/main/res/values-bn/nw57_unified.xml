@@ -32,4 +32,6 @@
     <string name="nw58_show_download_history">লুকানো ট্রান্সফার দেখান (%1$d)</string>
     <string name="nw58_volume_balance_summary">ডিভাইসে সংরক্ষিত বেশি জোরে বাজা গানের ভলিউম কমায়।</string>
     <string name="nw58_local_playback_help">ডিভাইসের গান চালানো সম্পর্কে</string>
+    <string name="nw58_related_songs">মিল আছে এমন গান</string>
+    <string name="nw58_find_related">এই শিল্পীর গান খুঁজুন</string>
 </resources>

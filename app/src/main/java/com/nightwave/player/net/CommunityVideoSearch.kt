@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit
 class CommunityVideoSearch(
     private val client: OkHttpClient = OkHttpClient.Builder()
         .followRedirects(false)
-        .callTimeout(6, TimeUnit.SECONDS)
+        .callTimeout(4, TimeUnit.SECONDS)
         .connectTimeout(4, TimeUnit.SECONDS)
         .readTimeout(5, TimeUnit.SECONDS)
         .build(),
@@ -54,8 +54,9 @@ class CommunityVideoSearch(
                         failures.add(base.substringAfter("://") + ": HTTP " + response.code)
                         return@executeHttp null
                     }
-                    val payload = response.body?.string().orEmpty()
-                    if (payload.length > 3_000_000) throw IOException("Search response exceeded limit")
+                    val source = response.body?.source() ?: return@executeHttp null
+                    if (source.request(3_000_001L)) throw IOException("Search response exceeded limit")
+                    val payload = source.buffer.readUtf8()
                     val parsed = InvidiousResults.parse(payload)
                     if (parsed.isNotEmpty()) return@executeHttp Result(parsed, base.substringAfter("://"))
                     failures.add(base.substringAfter("://") + ": empty response")
@@ -93,7 +94,8 @@ object InvidiousResults {
                     author = author,
                     url = canonical,
                     thumbnail = "https://i.ytimg.com/vi/" + id + "/hqdefault.jpg",
-                    durationSeconds = item.optLong("lengthSeconds", 0).coerceAtLeast(0)
+                    durationSeconds = item.optLong("lengthSeconds", 0).coerceAtLeast(0),
+                    viewCount = item.optLong("viewCount", -1).takeIf { it >= 0 }
                 )
             )
             if (results.size == 45) break
