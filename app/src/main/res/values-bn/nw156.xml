@@ -1,0 +1,10 @@
+<resources>
+    <string name="nw156_appearance_summary">থিম, প্রোফাইল আইকন, অ্যানিমেশন ও সাউন্ড</string>
+    <string name="nw156_listening_summary">ইতিহাস, বিশ্লেষণ ও শোনার স্মৃতি</string>
+    <string name="nw156_library_summary">লোকাল ব্যাকআপ, ড্রাইভ ও স্টোরেজ</string>
+    <string name="nw156_support_title">অ্যাপ ও সহায়তা</string>
+    <string name="nw156_support_summary">সহায়তা, ডায়াগনস্টিকস, অ্যাপের তথ্য ও ক্লাসিক</string>
+    <string name="nw156_playback_attention">প্লেব্যাক পরীক্ষা করা প্রয়োজন হতে পারে</string>
+    <string name="nw156_backup_summary">লাইব্রেরি এক্সপোর্ট, পুনরুদ্ধার বা পরিবর্তন বাতিল করুন</string>
+    <string name="nw156_history_summary">এন্ট্রি সরান বা শোনার ইতিহাস মুছুন</string>
+</resources>

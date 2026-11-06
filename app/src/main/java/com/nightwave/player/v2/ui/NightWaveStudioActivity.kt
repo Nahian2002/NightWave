@@ -138,6 +138,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ExpandLess
+import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.GraphicEq
@@ -194,6 +196,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -5395,6 +5398,12 @@ private fun StudioProfile(
     var showListeningMemory by rememberSaveable { mutableStateOf(false) }
     var showPlaybackHealth by rememberSaveable { mutableStateOf(false) }
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
+    var expandedGroup by rememberSaveable { mutableStateOf<String?>(null) }
+    fun toggleGroup(key: String) {
+        expandedGroup = if (expandedGroup == key) null else key
+    }
+    val playbackNeedsAttention = !playbackState.connected || !playbackState.error.isNullOrBlank()
+    val updateContext = androidx.compose.ui.platform.LocalContext.current
 
     val nw83PageGutter = NightWavePremiumDesignTokens.pageGutterDp(
         androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.toFloat()).dp
@@ -5406,19 +5415,8 @@ private fun StudioProfile(
             bottom = NightWavePremiumDesignTokens.PAGE_BOTTOM_DP.dp),
         verticalArrangement = Arrangement.spacedBy(NightWavePremiumDesignTokens.ITEM_SPACING_DP.dp)
     ) {
-        item {
-            NightWaveSectionActions(heading = {
-                Text(strings.get(R.string.nw141_you_08b04), style = MaterialTheme.typography.headlineSmall)
-            }, action = {
-                Surface(shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = .13f)) {
-                    Text(CloudAccessPolicy.compactBadge(cloud.account.isNotBlank(), cloud.accessState,
-                            CloudAccountPresentation.badge(CloudAccountPresentation.stage(cloud))),
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary)
-                }
-            })
+        item(key = "you-heading") {
+            Text(strings.get(R.string.nw141_you_08b04), style = MaterialTheme.typography.headlineSmall)
         }
 
         item {
@@ -5486,43 +5484,23 @@ private fun StudioProfile(
         item(key = "nw47-you-quick-access") {
             Column(Modifier.fillMaxWidth().testTag("nw47-you-quick-access")) {
                 NightWaveActionGroup {
-                NightWaveQuickActionPill(strings.get(R.string.nw141_account_backup_008a1),
-                    Icons.Outlined.Cloud, "nw47-you-account", onOpenAccount)
-                NightWaveQuickActionPill(strings.get(R.string.nw141_offline_music_a8f6a),
-                    Icons.Outlined.LibraryMusic, "nw128-you-offline", onOffline)
-                }
-            }
-        }
-
-        item(key = "nw86-you-drive-status") {
-            // Keep Google connection transparent but not a second oversized
-            // account dashboard. The quick action above and Manage backups
-            // below both retain every existing authorization/recovery control.
-            StudioProfileGroup(strings.get(R.string.nw141_google_drive_optional_f6458)) {
-                StudioProfileRow(
-                    strings.get(R.string.nw141_backup_connection_9a9cd),
-                    if (cloudBusy) strings.cloudBusy(cloudPhase)
-                    else if (cloud.account.isNotBlank() && cloud.accessState != CloudAccessState.CHECKED)
-                        CloudAccessPolicy.label(true, cloud.accessState, cloud.lastAccessCheckMs)
-                    else CloudAccountPresentation.title(CloudAccountPresentation.stage(cloud)),
-                    Icons.Outlined.Cloud, onOpenAccount,
-                    trailing = {
-                        Text(if (cloudBusy) strings.get(R.string.nw141_busy_2b9cf) else strings.get(R.string.nw141_manage_5a234),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary)
+                    NightWaveQuickActionPill(strings.get(R.string.nw141_offline_music_a8f6a),
+                        Icons.Outlined.LibraryMusic, "nw128-you-offline", onOffline)
+                    NightWaveQuickActionPill(strings.get(R.string.weekly_check),
+                        Icons.Outlined.Settings, "nw156-you-update") {
+                        updateContext.startActivity(Intent(updateContext,
+                            com.nightwave.player.updates.WeeklyUpdateActivity::class.java))
                     }
-                )
-                if (cloud.lastResult.isNotBlank() &&
-                    cloud.lastResult != strings.get(R.string.nw141_not_connected_0303e) && cloud.account.isBlank()) {
-                    Text(cloud.lastResult,
-                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 5.dp),
-                        style = MaterialTheme.typography.bodySmall, color = muted)
                 }
             }
         }
 
-        item {
-            StudioProfileGroup(strings.get(R.string.nw141_appearance_playback_b9524)) {
+        item(key = "you-appearance") {
+            StudioProfileGroup(
+                strings.get(R.string.nw141_appearance_playback_b9524),
+                strings.get(R.string.nw156_appearance_summary), Icons.Outlined.AutoAwesome,
+                expandedGroup == "appearance", { toggleGroup("appearance") }, "nw156-you-appearance"
+            ) {
                 StudioProfileRow(
                     strings.get(R.string.nw141_sound_studio_e8e35), strings.get(R.string.nw141_label_5a94f455fc),
                     Icons.Outlined.GraphicEq, onEqualizer,
@@ -5587,8 +5565,12 @@ private fun StudioProfile(
             }
         }
 
-        item {
-            StudioProfileGroup(strings.get(R.string.nw141_your_listening_284d7)) {
+        item(key = "you-listening") {
+            StudioProfileGroup(
+                strings.get(R.string.nw141_your_listening_284d7),
+                strings.get(R.string.nw156_listening_summary), Icons.Outlined.LibraryMusic,
+                expandedGroup == "listening", { toggleGroup("listening") }, "nw156-you-listening"
+            ) {
                 StudioProfileRow(strings.get(R.string.nw141_recent_listening_2c529),
                     strings.get(R.string.nw141_label_efb8415a2c),
                     Icons.Outlined.LibraryMusic, { showSnapshot = !showSnapshot },
@@ -5605,14 +5587,10 @@ private fun StudioProfile(
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 StudioProfileRow(strings.get(R.string.nw141_manage_recently_played_fd987),
-                    "Remove one entry or clear history · Saved music stays",
+                    strings.get(R.string.nw156_history_summary),
                     Icons.Outlined.LibraryMusic, onManageHistory,
                     modifier = Modifier.testTag("nw47-you-history"))
-            }
-        }
-
-        item {
-            StudioProfileGroup(strings.get(R.string.nw141_listening_memory_optional_63462)) {
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 StudioProfileRow(strings.get(R.string.nw141_listening_statistics_7d087),
                     if (memory.enabled) strings.get(R.string.nw141_label_851c63c069)
                     else strings.get(R.string.nw141_label_fea182c3b3),
@@ -5632,9 +5610,34 @@ private fun StudioProfile(
             }
         }
 
-        item {
-            StudioProfileGroup(strings.get(R.string.nw141_library_backup_1e2c2)) {
-                StudioProfileRow(strings.get(R.string.nw141_manage_backups_cd78b), "Export, restore and undo edits",
+        item(key = "you-library") {
+            StudioProfileGroup(
+                strings.get(R.string.nw141_library_backup_1e2c2),
+                strings.get(R.string.nw156_library_summary), Icons.Outlined.Cloud,
+                expandedGroup == "library", { toggleGroup("library") }, "nw156-you-library"
+            ) {
+                StudioProfileRow(
+                    strings.get(R.string.nw141_backup_connection_9a9cd),
+                    if (cloudBusy) strings.cloudBusy(cloudPhase)
+                    else if (cloud.account.isNotBlank() && cloud.accessState != CloudAccessState.CHECKED)
+                        CloudAccessPolicy.label(true, cloud.accessState, cloud.lastAccessCheckMs)
+                    else CloudAccountPresentation.title(CloudAccountPresentation.stage(cloud)),
+                    Icons.Outlined.Cloud, onOpenAccount,
+                    modifier = Modifier.testTag("nw47-you-account"),
+                    trailing = {
+                        Text(if (cloudBusy) strings.get(R.string.nw141_busy_2b9cf) else strings.get(R.string.nw141_manage_5a234),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary)
+                    }
+                )
+                if (cloud.lastResult.isNotBlank() &&
+                    cloud.lastResult != strings.get(R.string.nw141_not_connected_0303e) && cloud.account.isBlank()) {
+                    Text(cloud.lastResult,
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 5.dp),
+                        style = MaterialTheme.typography.bodySmall, color = muted)
+                }
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                StudioProfileRow(strings.get(R.string.nw141_manage_backups_cd78b), strings.get(R.string.nw156_backup_summary),
                     Icons.Outlined.LibraryMusic, { showBackup = !showBackup },
                     trailing = { Text(if (showBackup) strings.get(R.string.nw141_hide_ac20a) else strings.get(R.string.nw141_open_ed077),
                         style = MaterialTheme.typography.labelMedium,
@@ -5661,8 +5664,6 @@ private fun StudioProfile(
                             .format(java.util.Date(cloud.lastSuccessMs)) else "",
                         modifier = Modifier.padding(horizontal = 14.dp),
                         style = MaterialTheme.typography.bodySmall, color = muted)
-                    StudioProfileRow(strings.get(R.string.nw141_label_16b7be951b), strings.get(R.string.nw141_label_d8b404681b),
-                        Icons.Outlined.Settings, onOpenAccount)
                     if (cloud.account.isNotBlank()) {
                         StudioProfileRow(strings.get(R.string.nw141_back_up_now_02a28), "Verified, versioned Google Drive snapshot",
                             Icons.Outlined.LibraryMusic, onCloudBackup)
@@ -5744,12 +5745,18 @@ private fun StudioProfile(
             }
         }
 
-        item {
-            StudioProfileGroup(strings.get(R.string.nw141_app_health_efdab)) {
+        item(key = "you-support") {
+            StudioProfileGroup(
+                strings.get(R.string.nw156_support_title),
+                strings.get(if (playbackState.hasTrack && playbackNeedsAttention)
+                    R.string.nw156_playback_attention else R.string.nw156_support_summary),
+                Icons.Outlined.Settings, expandedGroup == "support",
+                { toggleGroup("support") }, "nw156-you-support"
+            ) {
                 StudioProfileRow(strings.get(R.string.nw143_help_title), strings.get(R.string.nw143_help_summary),
                     Icons.Outlined.Settings, { showTrustHelp = true })
                 StudioProfileRow(strings.get(R.string.nw141_playback_health_1ea6a),
-                    if (!playbackState.error.isNullOrBlank() || !playbackState.connected)
+                    if (playbackNeedsAttention)
                         "Action may be needed · Tap to inspect"
                     else "Current status and recovery controls",
                     Icons.Outlined.Settings,
@@ -5759,24 +5766,14 @@ private fun StudioProfile(
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary)
                     })
-                if (showPlaybackHealth || !playbackState.connected ||
-                    !playbackState.error.isNullOrBlank()) {
+                if (showPlaybackHealth || playbackNeedsAttention) {
                     PlaybackHealthPanel(playbackState, onRecoverPlayback)
                 }
                 StudioProfileRow(strings.get(R.string.nw141_crash_diagnostics_663f1), strings.get(R.string.nw141_preview_before_sharing_any_report_39ca7),
                     Icons.Outlined.Settings, onShareDiagnostics)
                 StudioProfileRow(strings.get(R.string.nw141_app_details_2945d), strings.get(R.string.nw141_version_and_build_id_for_support_74bfa),
                     Icons.Outlined.Settings, { showBuildDetails = true })
-                val updateContext = androidx.compose.ui.platform.LocalContext.current
-                StudioProfileRow(strings.get(R.string.weekly_check), strings.get(R.string.weekly_manual_notice),
-                    Icons.Outlined.Settings, {
-                        updateContext.startActivity(Intent(updateContext,
-                            com.nightwave.player.updates.WeeklyUpdateActivity::class.java))
-                    })
-            }
-        }
-        item {
-            StudioProfileGroup(strings.get(R.string.nw141_interface_c26b3)) {
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 StudioProfileRow(strings.get(R.string.nw141_open_classic_interface_35eb7), "Temporary fallback · Shared library",
                     Icons.AutoMirrored.Outlined.ArrowBack, onOpenClassic)
             }
@@ -5792,18 +5789,34 @@ private fun StudioProfile(
 
 @Composable
 private fun StudioProfileGroup(
-    title: String, content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit
+    title: String, detail: String, icon: androidx.compose.ui.graphics.vector.ImageVector,
+    expanded: Boolean, onToggle: () -> Unit, tag: String,
+    content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit
 ) {
-    // Settings are an editorial list, not a stack of oversized cards.
-    Column(Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 0.dp)) {
-        Text(title,
-            modifier = Modifier.padding(start = 12.dp, top = 4.dp, bottom = NightWaveSecondaryLayoutPolicy.GROUP_CAPTION_BOTTOM_DP.dp),
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.primary)
-        HorizontalDivider(
-            color = MaterialTheme.colorScheme.outline.copy(alpha = .21f),
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 1.dp))
-        content()
+    val strings = rememberNightWaveStrings()
+    val state = strings.get(if (expanded) R.string.nw147_details_expanded else R.string.nw147_details_collapsed)
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    ) {
+        Column {
+            StudioProfileRow(
+                title, detail, icon, onToggle,
+                modifier = Modifier.testTag(tag).semantics { stateDescription = state },
+                trailing = {
+                    Icon(if (expanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
+                        contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            )
+            if (expanded) {
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                Column(Modifier.fillMaxWidth().padding(
+                    bottom = NightWaveSecondaryLayoutPolicy.GROUP_CAPTION_BOTTOM_DP.dp
+                ), content = content)
+            }
+        }
     }
 }
 

@@ -9,7 +9,6 @@
     <string name="nw141_analyzes_imported_music_locally_and_reduces_loud_1d727">আনা গান ডিভাইসেই বিশ্লেষণ করে বেশি জোরের গান কমায়। ভলিউম বাড়ায় না।</string>
     <string name="nw141_android_session_eq_d8caf">ANDROID সেশন EQ</string>
     <string name="nw141_app_details_2945d">অ্যাপের বিস্তারিত</string>
-    <string name="nw141_app_health_efdab">অ্যাপের অবস্থা</string>
     <string name="nw141_appearance_playback_b9524">চেহারা ও প্লেব্যাক</string>
     <string name="nw141_apply_31e39">প্রয়োগ করুন</string>
     <string name="nw141_apply_manual_eq_bab04">ম্যানুয়াল EQ প্রয়োগ করুন</string>
@@ -93,7 +92,6 @@
     <string name="nw141_frequency_response_96d4f">ফ্রিকোয়েন্সি রেসপন্স</string>
     <string name="nw141_from_your_music_1e542">আপনার গান থেকে</string>
     <string name="nw141_from_your_offline_library_4ddd6">আপনার অফলাইন লাইব্রেরি থেকে</string>
-    <string name="nw141_google_drive_optional_f6458">Google Drive · ঐচ্ছিক</string>
     <string name="nw141_guided_tuning_11bad">নির্দেশিত টিউনিং</string>
     <string name="nw141_hide_ac20a">আড়াল করুন</string>
     <string name="nw141_hide_advanced_equalizer_8bf3d">উন্নত ইকুয়ালাইজার আড়াল করুন</string>
@@ -114,7 +112,6 @@
     <string name="nw141_import_your_own_timestamped_lrc_file_for_this_on_af713">ডিভাইসের এই কপির জন্য আপনার সময় দেওয়া .lrc ফাইল আনুন।</string>
     <string name="nw141_imported_lyrics_53d8c">আনা গানের কথা</string>
     <string name="nw141_installed_apk_signing_sha_1_3a846">ইনস্টল করা APK স্বাক্ষরের SHA-1</string>
-    <string name="nw141_interface_c26b3">ইন্টারফেস</string>
     <string name="nw141_less_ae523">কম</string>
     <string name="nw141_library_backup_1e2c2">লাইব্রেরি ও ব্যাকআপ</string>
     <string name="nw141_library_dc20b">লাইব্রেরি</string>
@@ -126,7 +123,6 @@
     <string name="nw141_liked_songs_5daa6">পছন্দের গান</string>
     <string name="nw141_listening_history_efe6b">শোনার ইতিহাস</string>
     <string name="nw141_listening_level_46dec">শোনার স্তর · </string>
-    <string name="nw141_listening_memory_optional_63462">শোনার স্মৃতি · ঐচ্ছিক</string>
     <string name="nw141_listening_statistics_7d087">শোনার পরিসংখ্যান</string>
     <string name="nw141_loading_dc380">লোড হচ্ছে</string>
     <string name="nw141_local_listening_works_without_a_google_account_af362">Google অ্যাকাউন্ট ছাড়াই ডিভাইসে গান শোনা যায়।</string>
@@ -438,8 +434,6 @@
     <string name="nw141_label_c1b676dde5">লাইব্রেরির সর্বশেষ সম্পাদনা ফিরিয়ে আনুন</string>
     <string name="nw141_label_541341cdd1">সর্বশেষ সুরক্ষিত পরিবর্তন ফেরান</string>
     <string name="nw141_label_e790f6f996">GOOGLE DRIVE ব্যাকআপ</string>
-    <string name="nw141_label_16b7be951b">অ্যাকাউন্ট ও ব্যাকআপ খুলুন</string>
-    <string name="nw141_label_d8b404681b">সংযোগ, ব্যাকআপের অবস্থা ও গোপনীয়তা</string>
     <string name="nw141_liked_count">%1$s · আপনার পছন্দ</string>
     <string name="nw141_playlist_count">%1$s · আপনার প্লেলিস্ট</string>
     <string name="nw141_history_count">%1$s · ইতিহাসে %2$sটি এন্ট্রি · শুধু ইতিহাস</string>

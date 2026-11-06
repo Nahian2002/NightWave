@@ -1,0 +1,10 @@
+<resources>
+    <string name="nw156_appearance_summary">Theme, profile icon, motion and sound</string>
+    <string name="nw156_listening_summary">History, insights and listening memory</string>
+    <string name="nw156_library_summary">Local backups, Drive and storage</string>
+    <string name="nw156_support_title">App &amp; support</string>
+    <string name="nw156_support_summary">Help, diagnostics, app details and Classic</string>
+    <string name="nw156_playback_attention">Playback may need attention</string>
+    <string name="nw156_backup_summary">Export, restore or undo a library change</string>
+    <string name="nw156_history_summary">Remove entries or clear listening history</string>
+</resources>
