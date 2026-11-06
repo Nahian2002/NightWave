@@ -52,6 +52,19 @@ class NightWavePublicSearchInstrumentedTest {
         compose.runOnIdle { assertEquals(1, retries) }
     }
 
+    @Test fun localFilterKeepsOneDraftWithoutInvokingPublicSearch() {
+        screen()
+        val field = compose.onNodeWithTag("nw129-search-query")
+        field.performScrollTo().performTextReplacement("shared draft")
+        compose.onNodeWithTag("nw57-scope-LOCAL").performScrollTo().performClick()
+        field.assertTextContains("shared draft")
+        compose.onNodeWithText("Find music").assertDoesNotExist()
+        compose.runOnIdle { assertEquals(0, retries) }
+        compose.onNodeWithTag("nw57-scope-MUSIC").performScrollTo().performClick()
+        field.assertTextContains("shared draft")
+        compose.runOnIdle { assertEquals(0, retries) }
+    }
+
     @Test fun recentCompletionDoesNotSubmitUntilTapped() {
         screen(history = listOf("Blue Hour", "Red Moon"))
         val field = compose.onNodeWithTag("nw129-search-query")

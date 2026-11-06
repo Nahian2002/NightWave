@@ -227,6 +227,7 @@ import com.nightwave.player.net.LocalMusicCorpusState
 import com.nightwave.player.net.LocalMusicQueryRunner
 import com.nightwave.player.net.LocalMusicSearchResult
 import com.nightwave.player.net.SavedTrackSearch
+import com.nightwave.player.net.UnifiedSearchScope
 import com.nightwave.player.net.LocalSearchSuggestions
 import com.nightwave.player.net.PublicMusicResultEvidence
 import com.nightwave.player.net.PublicMusicSearchRunner
@@ -3985,7 +3986,8 @@ internal fun StudioSearch(
     var selectedCreator by rememberSaveable { mutableStateOf<String?>(null) }
     var showAllCreators by rememberSaveable { mutableStateOf(false) }
     var consumedPrefill by rememberSaveable { mutableStateOf("") }
-    var showSources by remember { mutableStateOf(false) }
+    var sourceScope by rememberSaveable { mutableStateOf(UnifiedSearchScope.MUSIC) }
+    val sourceState = rememberUnifiedSourceState(sourceScope, query)
     LaunchedEffect(state.prefillToken) {
         // Only explicit shortcuts/shared text may replace a draft. Provider responses
         // and pager recreation must never resurrect a query the listener cleared.
@@ -3994,6 +3996,7 @@ internal fun StudioSearch(
             mode = state.mode
             consumedPrefill = state.prefillToken
             selectedCreator = null
+            sourceScope = UnifiedSearchScope.MUSIC
         }
     }
     var queryFocused by remember { mutableStateOf(false) }
@@ -4003,7 +4006,6 @@ internal fun StudioSearch(
     val searchKeyboard = LocalSoftwareKeyboardController.current
     val searchLifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
     val dismissSearchInput = { searchFocus.clearFocus(); searchKeyboard?.hide(); Unit }
-    if (showSources) NightWaveSourcesDialog(query) { showSources = false }
     DisposableEffect(searchLifecycle, searchFocus, searchKeyboard) {
         val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
             if (event == androidx.lifecycle.Lifecycle.Event.ON_STOP) dismissSearchInput()
@@ -4014,15 +4016,18 @@ internal fun StudioSearch(
     val submit = {
         dismissSearchInput()
         val entered = query.trim()
-        if (entered.isNotBlank()) {
+        if (entered.isNotBlank() && sourceScope == UnifiedSearchScope.MUSIC) {
             onRecordSearch(entered)
             onNativeSearch(entered, mode)
+        } else if (!sourceState.pending) {
+            sourceState.submit(sourceScope, entered)
         }
     }
     val index = corpus.index
-    val localSearch by produceState<LocalMusicSearchResult?>(null, query, index) {
+    val includeLocal = sourceScope == UnifiedSearchScope.MUSIC || sourceScope.showsLocal
+    val localSearch by produceState<LocalMusicSearchResult?>(null, query, index, includeLocal) {
         value = null
-        if (query.isNotBlank() && index != null) {
+        if (includeLocal && query.isNotBlank() && index != null) {
             value = LocalMusicQueryRunner.run(index, query)
         }
     }
@@ -4061,7 +4066,8 @@ internal fun StudioSearch(
     val nw83PageGutter = NightWavePremiumDesignTokens.pageGutterDp(
         androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.toFloat()).dp
     var showSearchDetails by remember(state.query, state.mode, state.details, state.error) { mutableStateOf(false) }
-    if (showSearchDetails && responseMatchesQuery && (state.details.isNotBlank() || state.error.isNotBlank())) {
+    if (sourceScope == UnifiedSearchScope.MUSIC && showSearchDetails &&
+        responseMatchesQuery && (state.details.isNotBlank() || state.error.isNotBlank())) {
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { showSearchDetails = false },
             title = { Text(strings.get(R.string.nw141_search_details_98cbc)) },
@@ -4087,6 +4093,7 @@ internal fun StudioSearch(
             OutlinedTextField(
                 value = query, onValueChange = {
                     if (it != query && state.loading) onCancelSearch()
+                    if (it != query) sourceState.cancel()
                     query = it.take(160)
                     selectedCreator = null
                 },
@@ -4108,6 +4115,7 @@ internal fun StudioSearch(
                 trailingIcon = {
                     if (query.isNotBlank()) IconButton(onClick = {
                         if (state.loading) onCancelSearch()
+                        sourceState.cancel()
                         query = ""
                     }) {
                         Icon(Icons.Outlined.Close, contentDescription = strings.get(R.string.nw141_clear_search_3b7ea))
@@ -4116,6 +4124,60 @@ internal fun StudioSearch(
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(onSearch = { submit() })
             )
+        }
+        item(key = "nw57-source-filters") {
+            NightWaveSourceFilters(sourceScope) { selected ->
+                if (selected != sourceScope) {
+                    sourceState.cancel()
+                    if (state.loading) onCancelSearch()
+                    showSearchDetails = false
+                    selectedCreator = null
+                    sourceScope = selected
+                }
+            }
+        }
+        if (sourceScope != UnifiedSearchScope.MUSIC) {
+            if (sourceScope == UnifiedSearchScope.SAVED) {
+                unifiedSavedLinks(query, sourceState)
+            }
+            if (sourceScope.providers.isNotEmpty()) unifiedSourceResults(sourceScope, query, sourceState, submit)
+            if (sourceScope.showsLocal) {
+                item(key = "nw57-local-heading") {
+                    SectionHeading(strings.get(R.string.nw57_your_music))
+                    if (corpus.failed) {
+                        Text(strings.get(R.string.nw141_local_music_could_not_be_read_your_music_has_not_e685b))
+                        TextButton(onClick = onRetryCorpus, modifier = Modifier.heightIn(min = 48.dp)) {
+                            Text(strings.get(R.string.nw141_retry_local_music_a4b1b))
+                        }
+                    } else if (localPending || savedMatches.isEmpty() && offlineMatches.isEmpty()) {
+                        val status = when {
+                            localPending -> R.string.nw141_searching_your_music_047f6
+                            query.isBlank() -> R.string.nw57_local_prompt
+                            else -> R.string.nw57_local_empty
+                        }
+                        Text(strings.get(status), style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+                items(savedMatches.take(savedVisible), key = { "nw57-local:${it.url}" }) { song ->
+                    MusicTrackTile(song, isPlaying = playingUrl == song.url,
+                        surface = NightWaveTrackSurface.SEARCH, sourceLabel = index?.origin(song.url)?.label(),
+                        onOptions = { onSongOptions(song) }, onClick = { onPlay(song, listOf(song)) })
+                }
+                items(offlineMatches.take(offlineVisible), key = { "nw57-offline:${it.id}" }) { song ->
+                    OutlinedButton(onClick = { onOfflineSearch(song.title, song.id) },
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                        Text(song.title, Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(strings.get(R.string.nw141_offline_a1794))
+                    }
+                }
+                if (savedMatches.size > savedVisible || offlineMatches.size > offlineVisible) item(key = "nw57-more-local") {
+                    TextButton(onClick = { savedVisible += 24; offlineVisible += 60 },
+                        modifier = Modifier.heightIn(min = 48.dp)) {
+                        Text(strings.get(R.string.nw141_show_more_music_matches_39fe3))
+                    }
+                }
+            }
+            return@LazyColumn
         }
         val historyCompletions = if (queryFocused) SearchHistoryPolicy.completions(searchHistory, query)
             else emptyList()
@@ -4238,14 +4300,6 @@ internal fun StudioSearch(
                         }
                     }
                 }
-            }
-        }
-        item(key = "additional-search-sources") {
-            OutlinedButton(onClick = {
-                dismissSearchInput()
-                showSources = true
-            }, modifier = Modifier.heightIn(min = 48.dp).testTag("multisource-open")) {
-                Text(strings.get(R.string.multisource_title))
             }
         }
         if (selectedCreatorGroup != null && query.isBlank()) {

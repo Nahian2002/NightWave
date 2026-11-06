@@ -1,7 +1,4 @@
 <resources>
-    <string name="multisource_title">সংগীতের উৎস ও রেডিও</string>
-    <string name="multisource_consent">কোথায় খুঁজবেন বেছে নিন। উৎসে খুঁজুন বোতাম চাপলে NightWave শুধু নির্বাচিত উৎসগুলোতে সার্চ পাঠায়।</string>
-    <string name="multisource_query">গান, নির্মাতা বা স্টেশন</string>
     <string name="multisource_radio">লাইভ রেডিও</string>
     <string name="multisource_submit">উৎসে খুঁজুন</string>
     <string name="multisource_loading">এই উৎসে খোঁজা হচ্ছে…</string>
