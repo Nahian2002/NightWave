@@ -4175,7 +4175,10 @@ internal fun StudioSearch(
                         searchInput = TextFieldValue(text, TextRange(text.length))
                         editDraft(text)
                     },
-                    onPlay = { song -> dismissSearchInput(); onPlay(song, listOf(song)) },
+                    onPlay = { track ->
+                        dismissSearchInput()
+                        playSinglePublic(track)
+                    },
                     onOffline = { song -> dismissSearchInput(); onOfflineSearch(song.title, song.id) }
                 )
             }
