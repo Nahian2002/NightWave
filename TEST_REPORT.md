@@ -8,3 +8,11 @@
 | Broader device acceptance | Small screens, accessibility, playback and recovery scenarios remain open. |
 
 The [version 52 device and build report](https://github.com/Nahian2002/NightWave/blob/28d9d9861650363853584c3afa93c4cd30d4b3bf/docs/NW155_MIX_PREVIEW.md) has exact artifacts, version identifiers and coverage. [Public release](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v51) · [Prior test report](https://github.com/Nahian2002/NightWave/blob/28d9d9861650363853584c3afa93c4cd30d4b3bf/TEST_REPORT.md)
+
+## Repository maintenance
+
+[PR #184](https://github.com/Nahian2002/NightWave/pull/184) refreshed the public default branch with documentation only. Four superseded snapshots are linked by commit from the repository guide. The audit reduced missing Markdown relative path targets from 75 to zero. All 59 default-branch source checks passed, and the public APK matched its previously verified hash. The application, build scripts, workflow controls and signed feed on main are byte-identical to the parent.
+
+On this review branch, the standalone compact-layout checker now reads both language files as UTF-8. Its Windows code-page regression and all 94 current source checks passed with Python UTF-8 mode disabled. One unused string key and its paired translations were removed after checking callers. All 1,869 JVM tests and the Windows builder passed. The review rebuild was local. The public download and the earlier S24 evidence refer to their original APKs.
+
+The tracked Python, PowerShell, XML, JSON and YAML files parsed on both branches. Compilation, source tests and lint cover the maintained paths. Separate runtime and historical scenarios still need their own evidence.
