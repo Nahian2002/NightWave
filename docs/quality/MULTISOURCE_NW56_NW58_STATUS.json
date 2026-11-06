@@ -161,10 +161,10 @@
         "NW57"
       ],
       "state": "SCOPED_VERIFIED_FULL_ACCEPTANCE_OPEN",
-      "source_commit": "715425ec76a614f95f36bf43a1580bebd4811b00",
-      "apk_sha256": "20CA62141CF89113095E078ED78B2ED1AC9A329D8DE7EE189B39879BB108EEFF",
-      "host_checks": "PASS_WINDOWS_1888_JVM_94_SOURCE_LINT",
-      "device_checks": "PASS_SCOPED_S24_UPDATE_SOURCES_FLAC_PRESENTATION_AND_FINAL_AUDIT",
+      "source_commit": "d3756d1d87440ac001f1a5fa0e0024f911ad58ed",
+      "apk_sha256": "B51F14725D850F675934722B11EF8AAA9F9BD709B33558BF5045815DF5D1721E",
+      "host_checks": "PASS_WINDOWS_1889_JVM_94_SOURCE_LINT",
+      "device_checks": "PASS_SCOPED_S24_UPDATE_SOURCES_FLAC_AUDIT_AND_FOCUSED_POLISH",
       "release_approved": false,
       "acceptance_prefix": "58-",
       "remaining_blockers": [
@@ -175,7 +175,7 @@
         "Public v58 release and signed feed activation remain staged behind acceptance"
       ],
       "next": null,
-      "evidence": "docs/audits/2026-11-06_NW58_S24_FINAL_REVIEW.md",
+      "evidence": "docs/audits/2026-11-06_NW58_S24_POLISH.md",
       "owner_publication_requested": true,
       "release_state": "DRAFT_ASSET_BYTE_AND_SHA_VERIFIED_BLOCKING_ACCEPTANCE_OPEN"
     }
