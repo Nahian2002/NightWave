@@ -4066,6 +4066,8 @@ internal fun StudioSearch(
         value = null
         if (showTyping) value = LocalMusicQueryRunner.preview(index, query, searchHistory)
     }
+    val currentTyping = typingPreview?.takeIf { showTyping && it.query == query && it.index === index }
+    val hasTypingMatches = currentTyping?.let { it.saved.isNotEmpty() || it.offline.isNotEmpty() } == true
     val localSearch by produceState<LocalMusicSearchResult?>(null, query, index, includeLocal) {
         value = null
         if (includeLocal && query.isNotBlank() && index != null) {
@@ -4165,7 +4167,7 @@ internal fun StudioSearch(
                 keyboardActions = KeyboardActions(onSearch = { submit() })
             )
         }
-        typingPreview?.takeIf { showTyping && it.query == query && it.index === index }?.let { preview ->
+        currentTyping?.let { preview ->
             item(key = "nw58-typing-preview") {
                 NightWaveSearchTyping(
                     preview = preview,
@@ -4207,7 +4209,7 @@ internal fun StudioSearch(
                         TextButton(onClick = onRetryCorpus, modifier = Modifier.heightIn(min = 48.dp)) {
                             Text(strings.get(R.string.nw141_retry_local_music_a4b1b))
                         }
-                    } else if (localPending || savedMatches.isEmpty() && offlineMatches.isEmpty()) {
+                    } else if (localPending || savedMatches.isEmpty() && offlineMatches.isEmpty() && !hasTypingMatches) {
                         val status = when {
                             localPending -> R.string.nw141_searching_your_music_047f6
                             query.isBlank() -> R.string.nw57_local_prompt
@@ -4741,7 +4743,7 @@ internal fun StudioSearch(
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         } else if (query.isNotBlank() && savedMatches.isEmpty() &&
-            offlineMatches.isEmpty() && !searching && !localPending && !corpus.failed) {
+            offlineMatches.isEmpty() && !hasTypingMatches && !searching && !localPending && !corpus.failed) {
             item {
                 Text(strings.get(R.string.nw141_no_saved_matches_yet_search_public_music_or_try_d1b5d),
                     style = MaterialTheme.typography.bodySmall,
