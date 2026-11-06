@@ -16,6 +16,13 @@ class OpenverseDiscoveryTest {
     private fun decode(row: JSONObject) =
         DiscoverySources.decode(DiscoverySource.OPENVERSE, """{"results":[$row]}""").singleOrNull()
 
+    @Test fun extendsOnlyTheOpenverseDeadline() {
+        assertEquals(14_000L, discoveryTimeoutMs(DiscoverySource.OPENVERSE))
+        assertEquals(6_000L, discoveryTimeoutMs(DiscoverySource.AUDIUS))
+        assertEquals(6_000L, discoveryTimeoutMs(DiscoverySource.PEERTUBE))
+        assertEquals(6_000L, discoveryTimeoutMs(DiscoverySource.RADIO))
+    }
+
     @Test fun sendsOneBoundedMusicQueryToOpenverse() {
         val query = "বাংলা & page_size=200"
         val url = DiscoverySources.endpoint(DiscoverySource.OPENVERSE, query)!!
