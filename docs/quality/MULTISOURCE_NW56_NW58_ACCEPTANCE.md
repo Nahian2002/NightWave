@@ -33,7 +33,7 @@ This matrix belongs to the new **post-v55 public release track**, not the older 
 | 56-13 | P1 | Provider failure isolation | Malformed payload, 429, 503, DNS, timeout, zero matches affect only that source. | mocked integration matrix | PASS HOST FIXTURES |
 | 56-14 | P1 | Cancellation | Rapid query replace cancels stale requests; only current generation renders. | delay/fast-query simulator | PASS HOST FIXTURES |
 | 56-15 | P1 | Fast partial UI | One slow source does not block completed permitted sources; bounded concurrency. | timed mocks + Compose | PARTIAL HOST PASS · COMPOSE TIMING NOT RUN |
-| 56-16 | P0 | Local regressions | Existing local imports, local search and original public references remain correct. | old tests + S24 golden corpus | PARTIAL S24 NAVIGATION AND LOCAL QUERY · ACTIVE PLAYBACK AND IMPORT OPEN |
+| 56-16 | P0 | Local regressions | Existing local imports, local search and original public references remain correct. | old tests + S24 golden corpus | PARTIAL LOCAL AND PUBLIC SEARCH PASS · ACTIVE PLAYBACK AND IMPORT OPEN |
 | 56-17 | P1 | Correct provenance | Every card clearly names source, type, actual canonical destination and availability. | screenshot + link click test | PASS SCOPED |
 | 56-18 | P1 | Consent/privacy | Only enabled providers receive query; third-party destinations and retained metadata documented. | traffic logging + settings | PARTIAL HOST ROUTING AND DEVICE UI · WIRE CAPTURE OPEN |
 | 57-01 | P0 | Filter behavior | All supported provider tabs/Local/Radio distinguish source; unsupported sources not deceptively enabled. | Compose/navigation tests | NOT_RUN |

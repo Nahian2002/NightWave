@@ -117,7 +117,7 @@
       "provider_terms_checked": "REVIEWED_FOR_READ_ONLY_DISCOVERY",
       "acceptance_prefix": "56-",
       "remaining_blockers": [
-        "Full existing local import, active playback and original public search device regression",
+        "Full existing local import and active playback device regression",
         "Independent in-app playback permission and route verification",
         "Timed Compose, compact and large-text device coverage",
         "Selected-source wire capture and full accessibility checks"
