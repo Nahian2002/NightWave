@@ -72,7 +72,7 @@ object SearchMusicIntentPolicy {
     /**
      * NW111: Songs-only advisory penalty for incidental *non-music* subjects.
      * Video titles and uploader strings are unverified. This must never hide a
-     * provider result or alter the Videos tab, which preserves provider order.
+     * provider result or affect the Videos ranking policy.
      *
      * If the listener actually asks for this subject, do not demote it.
      * Explicit music labeling merely reduces the penalty; uploader metadata
@@ -80,18 +80,25 @@ object SearchMusicIntentPolicy {
      */
     private val incidentalNonMusicTopics = setOf(
         "cultivation", "farming", "agriculture", "harvesting",
-        "gardening", "recipe", "cooking", "gameplay", "walkthrough", "unboxing"
+        "gardening", "recipe", "cooking", "gameplay", "walkthrough", "unboxing",
+        "speedrunner", "speedrun", "modpack"
     )
+    private val incidentalNonMusicPhrases = listOf("vs real life", "looks like in real life")
     private val explicitMusicCues = listOf(
         "official music video", "music video", "official audio",
         "lyric video", "lyrics", "official song"
     )
 
     fun incidentalNonMusicPenalty(query: String, track: VideoPreview): Int {
-        val asked = SearchTokenMatchingPolicy.tokens(canonical(query)).toSet()
+        val requested = canonical(query)
+        val asked = SearchTokenMatchingPolicy.tokens(requested).toSet()
         val title = canonical(track.title)
         val titleTokens = SearchTokenMatchingPolicy.tokens(title).toSet()
-        if (incidentalNonMusicTopics.none { it in titleTokens && it !in asked }) return 0
+        val incidentalTopic = incidentalNonMusicTopics.any { it in titleTokens && it !in asked }
+        val incidentalPhrase = incidentalNonMusicPhrases.any {
+            hasPhrase(title, it) && !hasPhrase(requested, it)
+        }
+        if (!incidentalTopic && !incidentalPhrase) return 0
         // A music-tagged candidate stays discoverable and is only weakly
         // demoted. An unrelated farming/tutorial result should not appear
         // as the first "Best match" for a song title like Jhum.

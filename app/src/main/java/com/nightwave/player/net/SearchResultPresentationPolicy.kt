@@ -22,7 +22,7 @@ object SearchResultPresentationPolicy {
     )
 
     /**
-     * Group ONLY SONGS mode; Videos retains provider order and doesn't pretend
+     * Group ONLY SONGS mode; Videos keeps its own ranking and doesn't pretend
      * to be music. Every returned result remains visible and keeps its URL.
      * "Best" means metadata-likelihood, not verified recording identity.
      */

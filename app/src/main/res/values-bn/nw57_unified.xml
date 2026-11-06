@@ -34,4 +34,10 @@
     <string name="nw58_local_playback_help">ডিভাইসের গান চালানো সম্পর্কে</string>
     <string name="nw58_related_songs">মিল আছে এমন গান</string>
     <string name="nw58_find_related">এই শিল্পীর গান খুঁজুন</string>
+    <string name="nw58_find_videos">ভিডিও খুঁজুন</string>
+    <string name="nw58_finding_videos">ভিডিও খোঁজা হচ্ছে…</string>
+    <plurals name="nw58_library_matches">
+        <item quantity="one">আপনার গানে %1$sটি মিল</item>
+        <item quantity="other">আপনার গানে %1$sটি মিল</item>
+    </plurals>
 </resources>

@@ -34,4 +34,10 @@
     <string name="nw58_local_playback_help">About local playback</string>
     <string name="nw58_related_songs">Related songs</string>
     <string name="nw58_find_related">Search this artist</string>
+    <string name="nw58_find_videos">Find videos</string>
+    <string name="nw58_finding_videos">Finding videos…</string>
+    <plurals name="nw58_library_matches">
+        <item quantity="one">%1$s match in your music</item>
+        <item quantity="other">%1$s matches in your music</item>
+    </plurals>
 </resources>

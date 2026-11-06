@@ -17,6 +17,20 @@ class RankedVideoAndRelatedSongsTest {
         assertEquals(expected, SearchRelevancePolicy.rankPublic("Night Train", input))
     }
 
+    @Test fun gameplayDoesNotBeatTheSongInSongsMode() {
+        val song = video(1, "Minecraft (Official Audio)", "C418", 40_000)
+        val realLife = video(2, "Minecraft VS Real Life – What Minecraft Looks Like in Real Life!",
+            "Gaming Channel", 800_000)
+        val speedrun = video(3, "Minecraft Speedrunner VS 6 Hunters FINALE", "Creator", 900_000)
+        val groups = SearchResultPresentationPolicy.groupMusic("Minecraft", SearchMode.SONGS,
+            listOf(realLife, speedrun, song))
+
+        assertEquals(listOf(song), groups.bestMatches)
+        assertEquals(setOf(realLife, speedrun), groups.moreResults.toSet())
+        assertEquals(0, SearchMusicIntentPolicy.incidentalNonMusicPenalty(
+            "Minecraft speedrunner", speedrun))
+    }
+
     @Test fun missingViewsKeepProviderTieOrder() {
         val input = listOf(video(2, "Night Train"), video(1, "Night Train"))
         assertEquals(input, SearchRelevancePolicy.rankVideos("Night Train", input))

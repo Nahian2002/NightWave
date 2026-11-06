@@ -4269,8 +4269,13 @@ internal fun StudioSearch(
                         Icon(Icons.Outlined.Search, contentDescription = null,
                             modifier = Modifier.size(19.dp))
                         Spacer(Modifier.width(7.dp))
-                        Text(if (searching) strings.get(R.string.nw141_finding_music_77304) else strings.get(R.string.nw141_find_music_0a757),
-                            maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        val searchLabel = when {
+                            searching && mode == SearchMode.VIDEOS -> R.string.nw58_finding_videos
+                            mode == SearchMode.VIDEOS -> R.string.nw58_find_videos
+                            searching -> R.string.nw141_finding_music_77304
+                            else -> R.string.nw141_find_music_0a757
+                        }
+                        Text(strings.get(searchLabel), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                     OutlinedButton(
                         onClick = {
@@ -4523,7 +4528,7 @@ internal fun StudioSearch(
         if (savedMatches.isNotEmpty()) {
             item {
                 SectionHeading(strings.get(R.string.nw141_from_your_music_1e542),
-                    savedMatches.size.toString() + " matches in your music")
+                    strings.quantity(R.plurals.nw58_library_matches, savedMatches.size))
             }
             items(savedMatches.take(savedVisible), key = { "saved:" + it.url }) { song ->
                 MusicTrackTile(song, isPlaying = playingUrl == song.url,
