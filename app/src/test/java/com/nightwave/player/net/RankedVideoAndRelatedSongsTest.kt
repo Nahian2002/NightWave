@@ -27,11 +27,12 @@ class RankedVideoAndRelatedSongsTest {
         val current = video(1, "Night Train")
         val duplicateUrl = current.copy(url = "https://youtu.be/id000000001")
         val duplicateTitle = video(2, "Night Train (Official Video)")
-        val artistSong = video(3, "Across Town")
+        val artistSong = video(3, "Across Town", "The Band - Topic")
         val repeatedSong = video(4, "Across Town (Official Audio)")
         val sharedTitleWords = video(5, "Night Train Home", "Other")
         val tooLong = video(6, "Night Train Interview").copy(durationSeconds = 3600)
         val unrelated = video(7, "Night Drive", "Other", 1_000_000)
+        assertEquals("The Band", RelatedSongsPolicy.artist(artistSong))
         assertEquals(listOf(artistSong, sharedTitleWords),
             RelatedSongsPolicy.select(current, listOf(duplicateUrl, duplicateTitle, artistSong,
                 repeatedSong, sharedTitleWords, tooLong, unrelated)))

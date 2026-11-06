@@ -3622,9 +3622,11 @@ private fun StudioRoot(
             VideoPreview(playerState.title, playerState.artist, playerState.videoUrl, "", 0L)
     }
     val relatedArtist = remember(relatedTrack) { relatedTrack?.let(RelatedSongsPolicy::artist) }
-    val relatedSongs = remember(expanded, relatedTrack, searchState.videos, favorites) {
-        if (expanded && relatedTrack != null)
-            RelatedSongsPolicy.select(relatedTrack, searchState.videos + favorites) else emptyList()
+    val relatedSongs = remember(expanded, relatedTrack, searchState.mode, searchState.videos, favorites) {
+        if (expanded && relatedTrack != null) {
+            val searchedSongs = searchState.videos.takeIf { searchState.mode == SearchMode.SONGS }.orEmpty()
+            RelatedSongsPolicy.select(relatedTrack, searchedSongs + favorites.take(350))
+        } else emptyList()
     }
     StudioNowPlayingOverlay(
         expanded = expanded && playerState.hasTrack,

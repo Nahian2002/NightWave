@@ -2,6 +2,7 @@ package com.nightwave.player.v2.recommendation
 
 import com.nightwave.player.core.VideoLink
 import com.nightwave.player.net.MusicIdentity
+import com.nightwave.player.net.SearchMusicIntentPolicy
 import com.nightwave.player.net.SearchRelevancePolicy
 import com.nightwave.player.net.VideoPreview
 
@@ -10,13 +11,14 @@ internal object RelatedSongsPolicy {
     private val generic = setOf(
         "youtube", "youtube creator", "unknown creator", "unknown artist", "various artists"
     )
+    private val topicSuffix = Regex("""\s*[-–—]\s*Topic$""", RegexOption.IGNORE_CASE)
     private val filler = setOf("official", "music", "video", "audio", "lyrics", "remix", "cover")
 
     private data class Match(val track: VideoPreview, val url: String, val identity: Pair<String, String>,
         val sameArtist: Boolean, val sharedWords: Int)
 
     fun artist(track: VideoPreview): String? =
-        MusicIdentity.display(track.title, track.author).artistOrCreator.takeIf {
+        MusicIdentity.display(track.title, track.author).artistOrCreator.replace(topicSuffix, "").takeIf {
             val name = SearchRelevancePolicy.normalize(it)
             name.isNotBlank() && name !in generic
         }
@@ -34,7 +36,9 @@ internal object RelatedSongsPolicy {
             val artist = artist(candidate)?.let(SearchRelevancePolicy::normalize).orEmpty()
             val sameArtist = currentArtist != null && artist == currentArtist
             val sharedWords = currentWords.intersect(meaningfulWords(title)).size
-            if (!sameArtist && sharedWords < 2) return@mapNotNull null
+            if ((!sameArtist && sharedWords < 2) ||
+                SearchMusicIntentPolicy.incidentalNonMusicPenalty(currentTitle, candidate) <= -230)
+                return@mapNotNull null
             Match(candidate, url, title to artist, sameArtist, sharedWords)
         }.sortedWith(compareByDescending<Match> { it.sameArtist }
             .thenByDescending { it.sharedWords }

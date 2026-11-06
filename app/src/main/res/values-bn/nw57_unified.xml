@@ -18,7 +18,7 @@
     <string name="nw58_update_release">NightWave v%1$d (%2$s)</string>
     <string name="nw58_sources_tab">উৎস</string>
     <string name="nw58_provider_label">সংগীতের উৎস</string>
-    <string name="nw58_source_intro">গান, ভিডিও ও রেডিও খুঁজুন। ফলাফল উৎসের সাইটে খুলবে।</string>
+    <string name="nw58_source_intro">গান, ভিডিও ও রেডিও খুঁজুন। উৎস খুলতে ফলাফলে ট্যাপ করুন।</string>
     <string name="nw58_about_sources">উৎস সম্পর্কে</string>
     <string name="nw58_hide_source_info">উৎসের তথ্য লুকান</string>
     <string name="nw58_import_formats_summary">লসলেস FLAC, MP3, M4A ও আরও ফরম্যাট আমদানি করুন।</string>
