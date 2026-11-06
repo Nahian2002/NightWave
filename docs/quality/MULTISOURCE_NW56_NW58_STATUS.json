@@ -194,6 +194,15 @@
         "host_checks": "PASS_WINDOWS_1899_JVM_94_SOURCE_LINT",
         "device_checks": "PASS_SCOPED_S24_LIVE_COLD_AND_WARM_SEARCH",
         "evidence": "docs/audits/2026-11-07_NW58_ADAPTIVE_SEARCH.md"
+      },
+      "poco_release_review": {
+        "apk_sha256": "0BF4AED577367FCC104F085D72D5FAFD3AD145D143B4E4EE6A631F6020B9C624",
+        "build_id": "NW-debug-99DE616675BB7939",
+        "device_checks": "PASS_SCOPED_POCO_API31_UI_V55_TO_V58",
+        "release_state": "EXACT_DRAFT_READBACK_PASS_SOURCE_RIGHTS_NO_GO",
+        "live_feed_version": 55,
+        "staged_feed_version": 58,
+        "evidence": "docs/audits/2026-11-07_NW58_POCO_RELEASE_REVIEW.md"
       }
     }
   ],
