@@ -32,10 +32,15 @@ class CommunityVideoSearch(
 
     data class Result(val videos: List<VideoPreview>, val server: String)
 
+    @Volatile private var lastSuccessfulInstance: String? = null
+
     @Throws(IOException::class)
     fun search(query: String): Result {
         val failures = mutableListOf<String>()
-        for (base in instances) {
+        val preferred = lastSuccessfulInstance
+        val ordered = if (preferred == null) instances else listOf(preferred) + (instances - preferred)
+        val requestScope = PublicSearchRequest.current.get()
+        for (base in ordered) {
             PublicSearchRequest.current.get()?.checkActive()
             try {
                 val url = (base + "/api/v1/search").toHttpUrl().newBuilder()
@@ -62,7 +67,11 @@ class CommunityVideoSearch(
                     failures.add(base.substringAfter("://") + ": empty response")
                     null
                 }
-                if (found != null) return found
+                if (found != null) {
+                    if (requestScope == null) lastSuccessfulInstance = base
+                    else requestScope.commitIfActive { lastSuccessfulInstance = base }
+                    return found
+                }
             } catch (e: Exception) {
                 PublicSearchRequest.current.get()?.checkActive()
                 failures.add(base.substringAfter("://") + ": " + e.javaClass.simpleName)

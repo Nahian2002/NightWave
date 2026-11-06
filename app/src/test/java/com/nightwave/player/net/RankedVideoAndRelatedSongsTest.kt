@@ -45,6 +45,21 @@ class RankedVideoAndRelatedSongsTest {
         assertEquals(true, SearchMusicIntentPolicy.canHighlightInSongs("Minecraft", topicTrack))
     }
 
+    @Test fun videosRecoverSingleEditsBelowLiteralMatches() {
+        val literal = video(1, "Nght Train", views = 40)
+        val typo = video(2, "Night Train", views = 100_000)
+        val unrelated = video(3, "Cooking Tutorial", views = 1_000_000)
+        assertEquals(listOf(literal, typo, unrelated),
+            SearchRelevancePolicy.rankVideos("Nght Train", listOf(unrelated, typo, literal)))
+    }
+
+    @Test fun broadSongsOrderPutsCredibleMusicAheadOfPopularGenericVideos() {
+        val gameplay = video(1, "Minecraft but You Can Equip Anything", "Gaming Channel", 5_000_000)
+        val song = video(2, "Lilypad", "Minecraft - Topic", 10_000)
+        assertEquals(listOf(song, gameplay),
+            SearchRelevancePolicy.rankPublic("Minecraft", listOf(gameplay, song)))
+    }
+
     @Test fun missingViewsKeepProviderTieOrder() {
         val input = listOf(video(2, "Night Train"), video(1, "Night Train"))
         assertEquals(input, SearchRelevancePolicy.rankVideos("Night Train", input))

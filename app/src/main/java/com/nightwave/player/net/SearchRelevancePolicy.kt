@@ -151,6 +151,8 @@ object SearchRelevancePolicy {
         if (unhelpful.any { phrase ->
             phrase in original && phrase !in query.text
         }) score -= 110
+        if (terms.size == 1 && score > 120 && !SearchMusicIntentPolicy.canHighlightInSongs(wanted, track))
+            return 120
         return score
     }
 
@@ -164,7 +166,17 @@ object SearchRelevancePolicy {
     fun rankVideos(query: String, results: List<VideoPreview>): List<VideoPreview> {
         val prepared = prepare(query)
         if (!prepared.valid) return results
-        return rankByEvidence(results) { savedScore(prepared, it) }
+        val alternatives = aliases(prepared)
+        return rankByEvidence(results) { track ->
+            val id = prepareSaved(track)
+            val literal = savedScore(prepared, id)
+            if (literal > 0) literal else {
+                val alias = alternatives.maxOfOrNull { savedScore(it, id) } ?: 0
+                if (alias > 0) minOf(40, alias / 2)
+                else if (savedScore(prepared, id, allowTypo = true) > 0) 20
+                else 0
+            }
+        }
     }
 
     private fun rankByEvidence(results: List<VideoPreview>, score: (VideoPreview) -> Int): List<VideoPreview> =
