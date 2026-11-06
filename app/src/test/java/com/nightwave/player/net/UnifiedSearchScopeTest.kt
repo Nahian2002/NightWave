@@ -13,10 +13,11 @@ class UnifiedSearchScopeTest {
         for (scope in listOf(UnifiedSearchScope.MUSIC, UnifiedSearchScope.LOCAL, UnifiedSearchScope.SAVED)) {
             assertNull(UnifiedSourceRequest.create(scope, "piano"))
         }
-        assertEquals(setOf(DiscoverySource.AUDIUS, DiscoverySource.PEERTUBE, DiscoverySource.RADIO),
+        assertEquals(setOf(DiscoverySource.AUDIUS, DiscoverySource.PEERTUBE, DiscoverySource.RADIO, DiscoverySource.OPENVERSE),
             UnifiedSearchScope.ALL.providers)
         assertTrue(UnifiedSearchScope.ALL.showsLocal)
         assertEquals(setOf(DiscoverySource.PEERTUBE), UnifiedSearchScope.PEERTUBE.providers)
+        assertEquals(setOf(DiscoverySource.OPENVERSE), UnifiedSearchScope.OPENVERSE.providers)
         assertNull(UnifiedSourceRequest.create(UnifiedSearchScope.RADIO, "  "))
     }
 

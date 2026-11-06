@@ -158,6 +158,7 @@ internal fun NightWaveSourceFilters(selected: UnifiedSearchScope, onSelect: (Uni
                 UnifiedSearchScope.AUDIUS -> DiscoverySource.AUDIUS.displayName
                 UnifiedSearchScope.PEERTUBE -> DiscoverySource.PEERTUBE.displayName
                 UnifiedSearchScope.RADIO -> strings.get(R.string.multisource_radio)
+                UnifiedSearchScope.OPENVERSE -> DiscoverySource.OPENVERSE.displayName
                 UnifiedSearchScope.SAVED -> strings.get(R.string.nw57_saved_links)
             }
             FilterChip(selected = scope == selected, onClick = { onSelect(scope) },
@@ -199,6 +200,9 @@ internal fun LazyListScope.unifiedSourceResults(
                 DiscoveryOutcome.Problem.TIMEOUT -> R.string.multisource_timeout
                 DiscoveryOutcome.Problem.AUTH, DiscoveryOutcome.Problem.PERMISSION -> R.string.multisource_restricted
                 else -> R.string.multisource_unavailable
+            }
+            if (source == DiscoverySource.OPENVERSE) {
+                Text(strings.get(R.string.nw58_openverse_disclosure), style = MaterialTheme.typography.bodySmall)
             }
             if (message != null) Text(strings.get(message), style = MaterialTheme.typography.bodySmall)
         }
@@ -255,7 +259,7 @@ private fun UnifiedSourceResult(result: DiscoveryItem, state: UnifiedSourceState
         DiscoveryKind.VIDEO -> R.string.multisource_video
         DiscoveryKind.LIVE_RADIO -> R.string.multisource_radio
     }
-    val subtitle = listOfNotNull(source.displayName, strings.get(type), result.creator,
+    val subtitle = listOfNotNull(source.displayName, strings.get(type), result.creator, result.licenseLabel,
         result.durationSeconds?.let { strings.duration(it * 1_000L) }, result.canonicalUrl.host).joinToString(" · ")
     SourceCard(result.title, subtitle) {
         if (result.capabilities.openExternally == DiscoveryPermission.AVAILABLE) {

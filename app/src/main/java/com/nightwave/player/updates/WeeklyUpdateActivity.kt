@@ -82,7 +82,7 @@ class WeeklyUpdateActivity : ComponentActivity() {
                         when {
                             state.loading -> { CircularProgressIndicator(); Text(getString(R.string.weekly_checking)) }
                             state.update != null -> {
-                                Text("NightWave " + state.update!!.name)
+                                Text(getString(R.string.nw58_update_release, state.update!!.code, state.update!!.name))
                                 Text(state.update!!.notes)
                                 Text(getString(R.string.weekly_weekly_notice))
                             }

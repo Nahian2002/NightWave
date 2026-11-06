@@ -14,4 +14,6 @@
     <string name="nw57_remove_link">Remove link</string>
     <string name="nw57_local_prompt">Type a title or creator to find music on this device.</string>
     <string name="nw57_local_empty">No matches in your music.</string>
+    <string name="nw58_openverse_disclosure">Openverse lists license information. Open the recording page to listen where available and confirm reuse rights.</string>
+    <string name="nw58_update_release">NightWave v%1$d (%2$s)</string>
 </resources>

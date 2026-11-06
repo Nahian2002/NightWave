@@ -14,4 +14,6 @@
     <string name="nw57_remove_link">লিংক সরান</string>
     <string name="nw57_local_prompt">এই ডিভাইসে গান খুঁজতে নাম বা নির্মাতার নাম লিখুন।</string>
     <string name="nw57_local_empty">আপনার গানে কোনো মিল নেই।</string>
+    <string name="nw58_openverse_disclosure">Openverse লাইসেন্সের তথ্য দেখায়। শুনতে এবং ব্যবহারের অনুমতি যাচাই করতে রেকর্ডিংয়ের পৃষ্ঠা খুলুন।</string>
+    <string name="nw58_update_release">NightWave v%1$d (%2$s)</string>
 </resources>

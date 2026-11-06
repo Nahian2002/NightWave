@@ -3,11 +3,12 @@ package com.nightwave.player.net
 internal enum class UnifiedSearchScope(val providers: Set<DiscoverySource> = emptySet()) {
     MUSIC,
     LOCAL,
-    ALL(setOf(DiscoverySource.AUDIUS, DiscoverySource.PEERTUBE, DiscoverySource.RADIO)),
+    ALL(setOf(DiscoverySource.AUDIUS, DiscoverySource.PEERTUBE, DiscoverySource.RADIO, DiscoverySource.OPENVERSE)),
     AUDIUS(setOf(DiscoverySource.AUDIUS)),
     PEERTUBE(setOf(DiscoverySource.PEERTUBE)),
     RADIO(setOf(DiscoverySource.RADIO)),
-    SAVED;
+    SAVED,
+    OPENVERSE(setOf(DiscoverySource.OPENVERSE));
 
     val showsLocal: Boolean get() = this == LOCAL || this == ALL
 }
