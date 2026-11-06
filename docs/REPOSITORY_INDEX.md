@@ -2,12 +2,12 @@
 
 | Task | Start here |
 | --- | --- |
-| Install or update NightWave | [Public release](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v51) |
-| Find the matching source | [Version 51 tag](https://github.com/Nahian2002/NightWave/tree/nightwave-v51) |
-| Review the latest changes | [Version 52 review](https://github.com/Nahian2002/NightWave/pull/183) and [device evidence](https://github.com/Nahian2002/NightWave/blob/28d9d9861650363853584c3afa93c4cd30d4b3bf/docs/NW155_MIX_PREVIEW.md) |
+| Install or update NightWave | [Version 55 release](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55) |
+| Find the matching source | [Version 55 tag](https://github.com/Nahian2002/NightWave/tree/nightwave-v55) |
+| Review the latest changes | [Release notes](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55) and [device evidence](../TEST_REPORT.md) |
 | Build or verify on Windows | [Build guide](BUILD_AND_RELEASE.md) and [tool guide](../tools/README.md) |
 | Check test results and coverage | [Test report](../TEST_REPORT.md) and [verification guide](VERIFICATION_MATRIX.md) |
-| Follow product work | [Current roadmap](https://github.com/Nahian2002/NightWave/blob/28d9d9861650363853584c3afa93c4cd30d4b3bf/docs/PRODUCT_QUALITY_ROADMAP.md) |
+| Follow product work | [Current roadmap](https://github.com/Nahian2002/NightWave/blob/af4b67228fbb570b9679f10da82be5da2f8601d3/docs/PRODUCT_QUALITY_ROADMAP.md) |
 | Report a problem | [Contribution guide](../CONTRIBUTING.md) or [private security reporting](../SECURITY.md) |
 
 `app/src/main` contains production source and resources. JVM and device tests live in `app/src/test` and `app/src/androidTest`. `updates/stable.json` is the signed update status on the default branch. Keep Room schemas, migrations, signing checks and acceptance matrices with the app.

@@ -1,5 +1,12 @@
 # NightWave changelog
 
+## Version 55 · GitHub release
+
+- Added a reviewable support email draft under You → App & support.
+- Moved search actions closer to the input and added on-device recent matches.
+- Grouped You settings and gave App details a wider version summary with expandable technical information.
+- Includes the direct mix previews from version 52. [Release notes](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55)
+
 ## Version 52 · review
 
 - Mix previews open directly from Home with the playback action and track list in one sheet.
