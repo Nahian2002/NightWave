@@ -2,6 +2,7 @@
 
 | Evidence | Result |
 | --- | --- |
+| Version 55 review | Windows build, 1,870 JVM tests, 94 source checks and lint passed. Android test compiled. The in-place S24 upgrade, App details, email draft and Search completion passed scoped checks. [Version 55 evidence](docs/NW158_SUPPORT_SEARCH.md) |
 | Version 54 review | Windows build, 1,869 JVM tests, 94 source checks and lint passed. Android test compiled. Exact signed APK and owner-only Drive readback verified. App details and grouped You need a connected phone for the rendered checks. [Version 54 evidence](docs/NW157_APP_DETAILS_PLAN.md) |
 | Version 52 review | Windows build, 1,869 JVM tests, 94 source checks and lint passed. Android instrumentation sources compiled. |
 | S24 Ultra | Version 51 to 52 upgrade preserved 33 verified files before first launch. Mix preview, dismissal, show-all, options and manual update checks passed. |
