@@ -3500,6 +3500,7 @@ private fun StudioRoot(
                         onPlay, onSongOptions,
                         playerState.videoUrl.takeIf { playerState.playing }.orEmpty(),
                         onCancelSearch = onCancelSearch,
+                        searchVisible = tab == StudioTab.SEARCH,
                         corpus = localCorpus,
                         onRetryCorpus = retryLocalCorpus,
                         onOfflineSearch = onOfflineSearch,
@@ -3978,7 +3979,8 @@ internal fun StudioSearch(
     onRemoveSearch: (String) -> Unit,
     onUndoSearchRemoval: () -> Unit,
     onClearSearch: () -> Unit,
-    onCancelSearch: () -> Unit = {}
+    onCancelSearch: () -> Unit = {},
+    searchVisible: Boolean = true
 ) {
     val strings = rememberNightWaveStrings()
     var query by rememberSaveable { mutableStateOf("") }
@@ -3987,7 +3989,7 @@ internal fun StudioSearch(
     var showAllCreators by rememberSaveable { mutableStateOf(false) }
     var consumedPrefill by rememberSaveable { mutableStateOf("") }
     var sourceScope by rememberSaveable { mutableStateOf(UnifiedSearchScope.MUSIC) }
-    val sourceState = rememberUnifiedSourceState(sourceScope, query)
+    val sourceState = rememberUnifiedSourceState(sourceScope, query, searchVisible)
     LaunchedEffect(state.prefillToken) {
         // Only explicit shortcuts/shared text may replace a draft. Provider responses
         // and pager recreation must never resurrect a query the listener cleared.

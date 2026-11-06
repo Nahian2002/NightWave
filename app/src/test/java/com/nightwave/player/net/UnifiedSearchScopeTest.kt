@@ -6,6 +6,7 @@ import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import okhttp3.HttpUrl.Companion.toHttpUrl
 
 class UnifiedSearchScopeTest {
     @Test fun onlyExplicitExternalScopesHaveProviderRequests() {
@@ -45,5 +46,16 @@ class UnifiedSearchScopeTest {
         assertNull(SavedSourceLink.from(DiscoverySource.AUDIUS, "https://audius.co/artist/piano"))
         val link = SavedSourceLink.from(DiscoverySource.RADIO, "https://radio.example.org/")!!
         assertNull(SavedSourceLinksCodec.decode(SavedSourceLinksCodec.encode(listOf(link, link))))
+    }
+
+    @Test fun banglaExactMatchRisesWithoutCollapsingVersionsOrInventingIdentity() {
+        fun item(id: String, title: String) = DiscoveryItem(DiscoveryItemId(DiscoverySource.AUDIUS, id),
+            title, "Creator", "https://audius.co/artist/$id".toHttpUrl(), null, DiscoveryCapabilities())
+        val version = item("live", "আমার গান live")
+        val first = item("studio1", "আমার গান")
+        val second = item("studio2", "আমার গান")
+        val input = listOf(version, first, second)
+        assertEquals(listOf(first, second, version), rankUnifiedSourceResults("আমার গান", input))
+        assertEquals(input, rankUnifiedSourceResults("different", input))
     }
 }

@@ -26,3 +26,16 @@ internal class UnifiedSourceRequest private constructor(
         }
     }
 }
+
+/** Reorder inside one provider only. Same-title recordings and versions retain their exact IDs. */
+internal fun rankUnifiedSourceResults(query: String, items: List<DiscoveryItem>): List<DiscoveryItem> {
+    val wanted = SearchRelevancePolicy.prepare(query)
+    if (!wanted.valid) return items
+    return items.sortedByDescending { item ->
+        val title = SearchRelevancePolicy.normalize(item.title)
+        val creator = SearchRelevancePolicy.normalize(item.creator.orEmpty())
+        val identity = SearchRelevancePolicy.SavedIdentity(
+            title, creator, SearchTokenMatchingPolicy.tokens("$title $creator"))
+        SearchRelevancePolicy.savedScore(wanted, identity)
+    }
+}

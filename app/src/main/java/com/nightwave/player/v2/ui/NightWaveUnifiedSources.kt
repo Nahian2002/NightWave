@@ -48,6 +48,7 @@ import com.nightwave.player.net.SavedSourceLink
 import com.nightwave.player.net.SavedSourceLinks
 import com.nightwave.player.net.UnifiedSearchScope
 import com.nightwave.player.net.UnifiedSourceRequest
+import com.nightwave.player.net.rankUnifiedSourceResults
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -91,7 +92,13 @@ internal class UnifiedSourceState(private val store: SavedSourceLinks, private v
 
     suspend fun collect(submitted: UnifiedSourceRequest) {
         sourceSearch.search(submitted.query, submitted.scope.providers).collect { update ->
-            if (request === submitted) outcomes = outcomes + (update.source to update.outcome)
+            if (request === submitted) {
+                val outcome = update.outcome
+                val ranked = if (outcome is DiscoveryOutcome.Results) {
+                    DiscoveryOutcome.Results(rankUnifiedSourceResults(submitted.query, outcome.items))
+                } else outcome
+                outcomes = outcomes + (update.source to ranked)
+            }
         }
     }
 
@@ -116,15 +123,17 @@ internal class UnifiedSourceState(private val store: SavedSourceLinks, private v
 }
 
 @Composable
-internal fun rememberUnifiedSourceState(scope: UnifiedSearchScope, query: String): UnifiedSourceState {
+internal fun rememberUnifiedSourceState(scope: UnifiedSearchScope, query: String, visible: Boolean): UnifiedSourceState {
     val context = LocalContext.current
     val owner = rememberCoroutineScope()
     val state = remember(context, owner) { UnifiedSourceState(SavedSourceLinks(context), owner) }
     val current = state.request
     LaunchedEffect(state) { state.readLinks() }
-    LaunchedEffect(state, current, scope, query) {
-        if (current != null && current.matches(scope, query)) state.collect(current)
-        else if (current != null) state.cancel()
+    LaunchedEffect(state, current, scope, query, visible) {
+        if (current != null) {
+            if (!current.matches(scope, query) || !visible && state.pending) state.cancel()
+            else if (visible && state.pending) state.collect(current)
+        }
     }
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     DisposableEffect(lifecycle, state) {
