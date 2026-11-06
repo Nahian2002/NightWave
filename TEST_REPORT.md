@@ -2,6 +2,7 @@
 
 | Evidence | Result |
 | --- | --- |
+| Version 57 unified Search candidate | Windows build, 1,883 JVM tests, 94 source checks and lint passed. Same-signer S24 upgrade preserved all 33 backed-up files before launch. Local filter, separate live groups and saved-link relaunch passed scoped device checks. [NW57 evidence](docs/MULTISOURCE_NW57_IMPLEMENTATION.md) |
 | Version 56 multi-source candidate | Windows build, 1,878 JVM tests, 94 source checks and lint passed. Verified v55 to v56 S24 upgrade and scoped live discovery from Audius, PeerTube and Radio Browser. Wider regression and playback acceptance remain open. [NW56 evidence](docs/MULTISOURCE_NW56_IMPLEMENTATION.md) |
 | Version 54 review | Windows build, 1,869 JVM tests, 94 source checks and lint passed. Android test compiled. Exact signed APK and owner-only Drive readback verified. App details and grouped You need a connected phone for the rendered checks. [Version 54 evidence](docs/NW157_APP_DETAILS_PLAN.md) |
 | Version 52 review | Windows build, 1,869 JVM tests, 94 source checks and lint passed. Android instrumentation sources compiled. |

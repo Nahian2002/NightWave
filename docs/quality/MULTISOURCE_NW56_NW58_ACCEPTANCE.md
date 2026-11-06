@@ -1,6 +1,6 @@
 # NightWave multi-source v56–v58 acceptance matrix
 
-Cases start as **NOT_RUN**. Current NW56 results refer to the exact [implementation and device evidence](../MULTISOURCE_NW56_IMPLEMENTATION.md). NW57 and NW58 remain planned.
+Cases start as **NOT_RUN**. Current NW56 results refer to the exact [implementation and device evidence](../MULTISOURCE_NW56_IMPLEMENTATION.md). See [NW57 candidate evidence](../MULTISOURCE_NW57_IMPLEMENTATION.md). NW58 remains planned.
 
 This matrix belongs to the new **post-v55 public release track**, not the older historical internal NW56–NW58 docs. See [master contract](../MULTISOURCE_NW56_NW58_MASTER_PLAN.md), [S24 Ultra runbook](../MULTISOURCE_S24U_DEVICE_QA.md), and [status ledger](MULTISOURCE_NW56_NW58_STATUS.json).
 
@@ -33,25 +33,25 @@ This matrix belongs to the new **post-v55 public release track**, not the older 
 | 56-13 | P1 | Provider failure isolation | Malformed payload, 429, 503, DNS, timeout, zero matches affect only that source. | mocked integration matrix | PASS HOST FIXTURES |
 | 56-14 | P1 | Cancellation | Rapid query replace cancels stale requests; only current generation renders. | delay/fast-query simulator | PASS HOST FIXTURES |
 | 56-15 | P1 | Fast partial UI | One slow source does not block completed permitted sources; bounded concurrency. | timed mocks + Compose | PARTIAL HOST PASS · COMPOSE TIMING NOT RUN |
-| 56-16 | P0 | Local regressions | Existing local imports, local search and original public references remain correct. | old tests + S24 golden corpus | PARTIAL LOCAL AND PUBLIC SEARCH PASS · ACTIVE PLAYBACK AND IMPORT OPEN |
+| 56-16 | P0 | Local regressions | Existing local imports, local search and original public references remain correct. | old tests + S24 golden corpus | PASS SCOPED · LOCAL/PUBLIC SEARCH, OWNED IMPORT, OFFLINE RESUME AND PAUSE |
 | 56-17 | P1 | Correct provenance | Every card clearly names source, type, actual canonical destination and availability. | screenshot + link click test | PASS SCOPED |
 | 56-18 | P1 | Consent/privacy | Only enabled providers receive query; third-party destinations and retained metadata documented. | traffic logging + settings | PARTIAL HOST ROUTING AND DEVICE UI · WIRE CAPTURE OPEN |
-| 57-01 | P0 | Filter behavior | All supported provider tabs/Local/Radio distinguish source; unsupported sources not deceptively enabled. | Compose/navigation tests | NOT_RUN |
-| 57-02 | P1 | Real result identity | Title, artist, artwork and duration only from actual provider or explicitly marked unknown. | response fixture vs UI | NOT_RUN |
-| 57-03 | P0 | No wrong-song plays | Duplicate titles across sources/versions remain distinct, exact selected ID plays. | cross-source same-title cases | NOT_RUN |
-| 57-04 | P1 | Bangla/English search | Mixed scripts and repeated/typo terms never break local search; source changes reset requests correctly. | frozen query corpus | NOT_RUN |
-| 57-05 | P1 | Stable pagination | No item duplication/omission on source page changes, filter switches or rotation. | paging + lifecycle tests | NOT_RUN |
-| 57-06 | P0 | Library migration | v55 backup/import/library IDs survive upgrade; no loss of saved references, profile, playlists, history. | before-after byte+semantic comparison | NOT_RUN |
-| 57-07 | P0 | Queue continuity | Background/resume, repeat, shuffle, Play Next, skip and process restart preserve selected source identity. | JVM + device queue cases | NOT_RUN |
-| 57-08 | P1 | Radio queue semantics | Radio isn't treated as a finite track; stop/Next/notifications truthful and responsive. | instrumented/player session | NOT_RUN |
-| 57-09 | P0 | Offline capability | Only owned or explicitly permitted recordings can download; Jamendo no-offline constraint respected. | negative rights/unit/UI tests | NOT_RUN |
-| 57-10 | P0 | Offline truth | Saved reference is not labeled downloaded; airplane mode plays only available files. | offline S24 test | NOT_RUN |
+| 57-01 | P0 | Filter behavior | All supported provider tabs/Local/Radio distinguish source; unsupported sources not deceptively enabled. | Compose/navigation tests | PASS SCOPED S24 |
+| 57-02 | P1 | Real result identity | Title, artist, artwork and duration only from actual provider or explicitly marked unknown. | response fixture vs UI | PASS SCOPED LIVE DISPLAY |
+| 57-03 | P0 | No wrong-song plays | Duplicate titles across sources/versions remain distinct, exact selected ID plays. | cross-source same-title cases | PARTIAL EXACT LINKS AND HOST IDENTITY · PROVIDER PLAYBACK OPEN |
+| 57-04 | P1 | Bangla/English search | Mixed scripts and repeated/typo terms never break local search; source changes reset requests correctly. | frozen query corpus | PASS HOST BANGLA FIXTURE · DEVICE OPEN |
+| 57-05 | P1 | Stable pagination | No item duplication/omission on source page changes, filter switches or rotation. | paging + lifecycle tests | PARTIAL BOUNDED EXPANSION · PROVIDER PAGING NOT RUN |
+| 57-06 | P0 | Library migration | v55 backup/import/library IDs survive upgrade; no loss of saved references, profile, playlists, history. | before-after byte+semantic comparison | PARTIAL 33 FILES MATCHED · RESTORE NOT RUN |
+| 57-07 | P0 | Queue continuity | Background/resume, repeat, shuffle, Play Next, skip and process restart preserve selected source identity. | JVM + device queue cases | PARTIAL EXISTING OFFLINE RESUME · PROVIDER QUEUE OPEN |
+| 57-08 | P1 | Radio queue semantics | Radio isn't treated as a finite track; stop/Next/notifications truthful and responsive. | instrumented/player session | BLOCKED · RADIO EXTERNAL ONLY |
+| 57-09 | P0 | Offline capability | Only owned or explicitly permitted recordings can download; Jamendo no-offline constraint respected. | negative rights/unit/UI tests | PASS NO NEW THIRD-PARTY DOWNLOAD |
+| 57-10 | P0 | Offline truth | Saved reference is not labeled downloaded; airplane mode plays only available files. | offline S24 test | PASS SCOPED LINK LABEL AND STORAGE · AIRPLANE NOT RUN |
 | 57-11 | P1 | Download robustness | Authorized transfers pause/retry/resume only with server support, file hash/integrity verified. | forced disconnect/range fixtures | NOT_RUN |
 | 57-12 | P1 | Performance | Search and scrolling not worse than measured v55 baselines beyond documented justified variance. | same device benchmark receipts | NOT_RUN |
-| 57-13 | P1 | Accessibility | 48dp targets, TalkBack labels, contrast, large font and reduced motion on primary search/play views. | screen reader/device evidence | NOT_RUN |
-| 57-14 | P1 | Dark/light/theme | New provider UI remains consistent across NightWave themes and mini-player layouts. | 4-theme screenshot matrix | NOT_RUN |
-| 57-15 | P1 | Lifecycle correctness | No stale results after app background/foreground/rotation or killed request. | instrumentation cases | NOT_RUN |
-| 57-16 | P0 | No credential collision | No provider account login hijacks Google Drive guest/account consent or backup scopes. | app-only auth/backup checks | NOT_RUN |
+| 57-13 | P1 | Accessibility | 48dp targets, TalkBack labels, contrast, large font and reduced motion on primary search/play views. | screen reader/device evidence | PARTIAL 48DP CONTROLS · DEVICE ACCESSIBILITY OPEN |
+| 57-14 | P1 | Dark/light/theme | New provider UI remains consistent across NightWave themes and mini-player layouts. | 4-theme screenshot matrix | PARTIAL S24 AMOLED · OTHER THEMES OPEN |
+| 57-15 | P1 | Lifecycle correctness | No stale results after app background/foreground/rotation or killed request. | instrumentation cases | PARTIAL HOST LIFECYCLE GUARDS AND SAVED LINK RELAUNCH |
+| 57-16 | P0 | No credential collision | No provider account login hijacks Google Drive guest/account consent or backup scopes. | app-only auth/backup checks | PASS NO NEW CREDENTIAL OR ACCOUNT SCOPE |
 | 58-01 | P0 | Windows build | Fresh branch builds via build-windows.cmd; resulting APK provenance and SHA captured. | dist/build status and fingerprints | NOT_RUN |
 | 58-02 | P0 | Full host suite | All relevant JVM/source checks and lint pass with exact counts and source hash. | raw reports, no test disable | NOT_RUN |
 | 58-03 | P0 | Android execution | Instrumentation tests actually run on S24, not merely compile; failures and skipped tests reported. | runner output and serial | NOT_RUN |
