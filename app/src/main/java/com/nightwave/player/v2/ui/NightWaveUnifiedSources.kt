@@ -5,6 +5,8 @@ import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -146,6 +148,7 @@ internal fun rememberUnifiedSourceState(scope: UnifiedSearchScope, query: String
     return state
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun NightWaveSourceFilters(selected: UnifiedSearchScope, onSelect: (UnifiedSearchScope) -> Unit) {
     val strings = rememberNightWaveStrings()
@@ -161,7 +164,8 @@ internal fun NightWaveSourceFilters(selected: UnifiedSearchScope, onSelect: (Uni
         if (showsProviders) {
             Text(strings.get(R.string.nw58_provider_label), Modifier.semantics { heading() },
                 style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            NightWaveCompactActions {
+            FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp), maxItemsInEachRow = 3) {
                 SourceScopeChip(UnifiedSearchScope.ALL, strings.get(R.string.nw57_all_sources), selected == UnifiedSearchScope.ALL, onSelect)
                 SourceScopeChip(UnifiedSearchScope.AUDIUS, DiscoverySource.AUDIUS.displayName, selected == UnifiedSearchScope.AUDIUS, onSelect)
                 SourceScopeChip(UnifiedSearchScope.PEERTUBE, DiscoverySource.PEERTUBE.displayName, selected == UnifiedSearchScope.PEERTUBE, onSelect)

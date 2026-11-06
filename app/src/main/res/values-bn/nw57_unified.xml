@@ -1,9 +1,9 @@
 <resources>
-    <string name="nw57_music_public">গান ও পাবলিক ফল</string>
+    <string name="nw57_music_public">গান</string>
     <string name="nw57_your_music">আপনার গান</string>
     <string name="nw57_all_sources">সব উৎস</string>
     <string name="nw57_saved_links">সংরক্ষিত লিংক</string>
-    <string name="nw57_provider_disclosure">উৎসে খুঁজুন চাপলে নির্বাচিত ফিল্টারের উৎসগুলোতে এই সার্চ পাঠানো হবে। গান ও পাবলিক ফল আলাদা থাকে।</string>
+    <string name="nw57_provider_disclosure">উৎসে খুঁজুন চাপলে নির্বাচিত ফিল্টারের উৎসগুলোতে এই সার্চ পাঠানো হবে। গানের মূল সার্চ আলাদা থাকে।</string>
     <string name="nw57_show_all">%2$s থেকে সব %1$sটি দেখুন</string>
     <string name="nw57_show_fewer">%1$s থেকে কম দেখুন</string>
     <string name="nw57_link_error">সংরক্ষিত লিংক পড়া বা হালনাগাদ করা যায়নি। আগের লিংকগুলো রাখা হয়েছে।</string>

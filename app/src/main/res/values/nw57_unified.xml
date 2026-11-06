@@ -1,9 +1,9 @@
 <resources>
-    <string name="nw57_music_public">Music &amp; public</string>
+    <string name="nw57_music_public">Music</string>
     <string name="nw57_your_music">Your music</string>
     <string name="nw57_all_sources">All sources</string>
     <string name="nw57_saved_links">Saved links</string>
-    <string name="nw57_provider_disclosure">Search sources sends this query to the providers in the selected filter. Music &amp; public stays separate.</string>
+    <string name="nw57_provider_disclosure">Search sources sends this query to the providers in the selected filter. The main Music search stays separate.</string>
     <string name="nw57_show_all">Show all %1$s from %2$s</string>
     <string name="nw57_show_fewer">Show fewer from %1$s</string>
     <string name="nw57_link_error">Saved links could not be updated or read. Existing links are kept.</string>
