@@ -25,4 +25,6 @@
     <string name="nw58_licensed_audio">লাইসেন্সপ্রাপ্ত অডিও</string>
     <string name="nw58_audio_link">অডিও লিংক</string>
     <string name="nw58_play_track_title">%1$s চালান</string>
+    <string name="nw58_equalizer_off">ইকুয়ালাইজার বন্ধ</string>
+    <string name="nw58_clear_saved_eq">সংরক্ষিত EQ মুছুন</string>
 </resources>

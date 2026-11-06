@@ -332,6 +332,8 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
     val draftEdited = capabilities.sessionReady &&
         SoundStudioTuningPolicy.hasChanged(draftLevels, capabilities.levelsMb)
     val verifiedActive = liveConfirmed && !loading && capabilities.sessionReady && status.active
+    val equalizerOff = liveConfirmed && !loading && !status.active && status.selected == 0
+    val inactiveChoice = liveConfirmed && !loading && !status.active && status.selected != 0
     val tuningStatus = if (!liveConfirmed) "Refresh to check current EQ" else
         SoundStudioTuningPolicy.statusLabel(verifiedActive, status.selected, draftEdited)
 
@@ -398,7 +400,8 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                                     modifier = Modifier.testTag("nw138-active-state"))
                                 Text(if (liveConfirmed) status.message else strings.get(R.string.nw141_waiting_for_current_playback_status_f73b5),
                                     style = MaterialTheme.typography.bodySmall, color = muted)
-                                Text(tuningStatus, style = MaterialTheme.typography.labelMedium,
+                                if (!liveConfirmed || draftEdited || verifiedActive) Text(tuningStatus,
+                                    style = MaterialTheme.typography.labelMedium,
                                     color = if (draftEdited) primary else muted,
                                     fontWeight = FontWeight.SemiBold)
                             }
@@ -411,11 +414,18 @@ internal fun NightWaveSoundStudioDialog(onDismiss: () -> Unit) {
                                 Text(strings.get(R.string.nw141_device_presets_0530f),
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.SemiBold)
-                                OutlinedButton(modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp), enabled = !busy, onClick = {
-                                    issueCommand(PlaybackService.ACTION_EQ_PRESET_SET) {
-                                        it.putExtra(PlaybackService.EXTRA_EQ_PRESET, 0)
-                                    }
-                                }) { Text(strings.get(R.string.nw141_turn_off_06f0e)) }
+                                OutlinedButton(modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                                    enabled = !busy && !equalizerOff, onClick = {
+                                        issueCommand(PlaybackService.ACTION_EQ_PRESET_SET) {
+                                            it.putExtra(PlaybackService.EXTRA_EQ_PRESET, 0)
+                                        }
+                                    }) {
+                                    Text(strings.get(when {
+                                        equalizerOff -> R.string.nw58_equalizer_off
+                                        inactiveChoice -> R.string.nw58_clear_saved_eq
+                                        else -> R.string.nw141_turn_off_06f0e
+                                    }))
+                                }
                             }
                             Text(strings.get(R.string.nw141_off_and_device_presets_apply_immediately_advance_f57b3),
                                 style = MaterialTheme.typography.bodySmall, color = muted)

@@ -25,4 +25,6 @@
     <string name="nw58_licensed_audio">Licensed audio</string>
     <string name="nw58_audio_link">Audio link</string>
     <string name="nw58_play_track_title">Play %1$s</string>
+    <string name="nw58_equalizer_off">Equalizer off</string>
+    <string name="nw58_clear_saved_eq">Clear saved EQ</string>
 </resources>

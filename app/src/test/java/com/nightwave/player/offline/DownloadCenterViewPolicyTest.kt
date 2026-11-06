@@ -45,9 +45,10 @@ class DownloadCenterViewPolicyTest {
 
     @Test fun emptyScreensTellTheTruth() {
         val p = DownloadCenterViewPolicy
-        assertTrue(p.emptyMessage(DownloadCenterViewPolicy.Filter.ACTIVE).contains("No active"))
-        assertTrue(p.emptyMessage(DownloadCenterViewPolicy.Filter.READY).contains("No verified"))
-        assertTrue(p.emptyMessage(DownloadCenterViewPolicy.Filter.ATTENTION).contains("No failed"))
+        assertTrue(p.emptyMessage(DownloadCenterViewPolicy.Filter.ACTIVE) ==
+            "No active downloads. Start one from Find audio or Audio link.")
+        assertTrue(p.emptyMessage(DownloadCenterViewPolicy.Filter.READY).startsWith("No downloads are ready offline"))
+        assertTrue(p.emptyMessage(DownloadCenterViewPolicy.Filter.ATTENTION).startsWith("No downloads need attention"))
     }
 
     @Test fun downloadedBytesAloneCannotClaimPlayableOfflineAudio() {
