@@ -2,6 +2,8 @@
 
 | Evidence | Result |
 | --- | --- |
+| Version 58 open music candidate | Windows build, 1,888 JVM tests, 94 source checks and lint passed. Android tests compiled. S24 same-signer upgrade, manual update status and live Openverse results passed scoped checks. [NW58 evidence](docs/MULTISOURCE_NW58_IMPLEMENTATION.md) |
+| Public version 55 | Signed stable feed and exact public APK readback verified. [Release](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55) |
 | Version 57 unified Search candidate | Windows build, 1,883 JVM tests, 94 source checks and lint passed. Same-signer S24 upgrade preserved all 33 backed-up files before launch. Local filter, separate live groups and saved-link relaunch passed scoped device checks. [NW57 evidence](docs/MULTISOURCE_NW57_IMPLEMENTATION.md) |
 | Version 56 multi-source candidate | Windows build, 1,878 JVM tests, 94 source checks and lint passed. Verified v55 to v56 S24 upgrade and scoped live discovery from Audius, PeerTube and Radio Browser. Wider regression and playback acceptance remain open. [NW56 evidence](docs/MULTISOURCE_NW56_IMPLEMENTATION.md) |
 | Version 54 review | Windows build, 1,869 JVM tests, 94 source checks and lint passed. Android test compiled. Exact signed APK and owner-only Drive readback verified. App details and grouped You need a connected phone for the rendered checks. [Version 54 evidence](docs/NW157_APP_DETAILS_PLAN.md) |
@@ -10,7 +12,7 @@
 | Public version 51 | Published APK hash and signed update metadata verified. |
 | Broader device acceptance | Small screens, accessibility, playback and recovery scenarios remain open. |
 
-The [version 52 device and build report](https://github.com/Nahian2002/NightWave/blob/28d9d9861650363853584c3afa93c4cd30d4b3bf/docs/NW155_MIX_PREVIEW.md) has exact artifacts, version identifiers and coverage. [Public release](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v51) · [Prior test report](https://github.com/Nahian2002/NightWave/blob/28d9d9861650363853584c3afa93c4cd30d4b3bf/TEST_REPORT.md)
+The [version 52 device and build report](https://github.com/Nahian2002/NightWave/blob/28d9d9861650363853584c3afa93c4cd30d4b3bf/docs/NW155_MIX_PREVIEW.md) has exact artifacts, version identifiers and coverage. [Historical v51 release](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v51) · [Prior test report](https://github.com/Nahian2002/NightWave/blob/28d9d9861650363853584c3afa93c4cd30d4b3bf/TEST_REPORT.md)
 
 ## Repository maintenance
 
