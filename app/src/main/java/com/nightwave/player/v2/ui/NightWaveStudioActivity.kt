@@ -5404,6 +5404,10 @@ private fun StudioProfile(
     }
     val playbackNeedsAttention = !playbackState.connected || !playbackState.error.isNullOrBlank()
     val updateContext = androidx.compose.ui.platform.LocalContext.current
+    val backupStatus = CloudAccessPolicy.compactBadge(
+        cloud.account.isNotBlank(), cloud.accessState,
+        CloudAccountPresentation.badge(CloudAccountPresentation.stage(cloud))
+    )
 
     val nw83PageGutter = NightWavePremiumDesignTokens.pageGutterDp(
         androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.toFloat()).dp
@@ -5613,7 +5617,7 @@ private fun StudioProfile(
         item(key = "you-library") {
             StudioProfileGroup(
                 strings.get(R.string.nw141_library_backup_1e2c2),
-                strings.get(R.string.nw156_library_summary), Icons.Outlined.Cloud,
+                strings.get(R.string.nw156_library_summary, backupStatus), Icons.Outlined.Cloud,
                 expandedGroup == "library", { toggleGroup("library") }, "nw156-you-library"
             ) {
                 StudioProfileRow(
