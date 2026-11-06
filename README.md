@@ -29,6 +29,14 @@ Version 55 requires **Android 6.0 or newer**. Download the APK above for a first
 
 Saved public links are references. Offline files and third-party media require the appropriate rights.
 
+## Upcoming multi-source upgrades (planned)
+
+The owner has scoped the next feature initiative into **three integrated mega-batches**, not ten separate patches: **NW56** (free-provider engine), **NW57** (unified search/library/offline permissions) and **NW58** (reliability and Samsung S24 Ultra release QA). **These features are not yet shipped.**
+
+[Full execution roadmap](docs/MULTISOURCE_NW56_NW58_MASTER_PLAN.md) · [46-case acceptance](docs/quality/MULTISOURCE_NW56_NW58_ACCEPTANCE.md) · [Connected-device test runbook](docs/MULTISOURCE_S24U_DEVICE_QA.md) · [Machine-readable status](docs/quality/MULTISOURCE_NW56_NW58_STATUS.json)
+
+**For maintainers:** Historical NW56–NW58 files are unrelated earlier internal work. The current public v55 source is the `nightwave-v55` tag, which must be verified before implementing against any branch. No provider is claimed fully available without live testing, terms review and real-device acceptance; no paid infrastructure is authorized.
+
 ## Development
 
 Version 55 passed the Windows build, 1,870 automated tests and 94 source checks. The in-place upgrade, support draft, App details and Search completion were checked on an S24 Ultra. Broader device coverage remains open. [Release verification](TEST_REPORT.md)
