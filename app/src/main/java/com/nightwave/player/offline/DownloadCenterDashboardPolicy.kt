@@ -29,7 +29,7 @@ internal object DownloadCenterDashboardPolicy {
     ): String = when {
         checkingFiles -> "Checking saved audio · ${active.coerceAtLeast(0)} active · " +
             "${total.coerceAtLeast(0)} transfer entries"
-        checkFailed -> "Saved audio verification unavailable · Retry by reopening Transfers"
+        checkFailed -> "Couldn’t check saved audio. Reopen Downloads to try again."
         else -> "${active.coerceAtLeast(0)} active · ${ready.coerceAtLeast(0)} ready offline · " +
             "${issues.coerceAtLeast(0)} need attention · ${total.coerceAtLeast(0)} transfers"
     }

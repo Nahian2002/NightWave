@@ -55,9 +55,9 @@ object DownloadCenterViewPolicy {
     }
 
     fun emptyMessage(filter: Filter): String = when (filter) {
-        Filter.ALL -> "No visible download jobs. Saved music is in Offline Library."
-        Filter.ACTIVE -> "No active downloads. Start one from Search or Discover audio."
-        Filter.READY -> "No verified completed downloads in this view. Check Offline Library."
-        Filter.ATTENTION -> "No failed, cancelled or missing-file downloads in this view."
+        Filter.ALL -> "No downloads to show. Find saved music in Offline music."
+        Filter.ACTIVE -> "No active downloads. Start one from Find audio or Audio link."
+        Filter.READY -> "No downloads are ready offline in this view. Check Offline music."
+        Filter.ATTENTION -> "No downloads need attention in this view."
     }
 }

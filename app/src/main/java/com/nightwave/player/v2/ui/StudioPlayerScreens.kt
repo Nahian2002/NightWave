@@ -1554,18 +1554,16 @@ fun StudioQueueSheet(
             ) {
                 item(key = "queue-summary") {
             Text(strings.get(R.string.nw141_your_listening_queue_8e0b7), style = MaterialTheme.typography.headlineSmall)
-            Text(
-                when {
-                    state.offline -> strings.get(R.string.nw141_queue_offline)
-                    state.shuffle && explicitNext.isNotEmpty() ->
-                        strings.get(R.string.nw141_queue_next, strings.quantity(R.plurals.nw141_play_next_count, explicitNext.size))
-                    state.shuffle -> strings.get(R.string.nw141_queue_shuffle)
-                    upcoming.isEmpty() -> strings.get(R.string.nw141_queue_end)
-                    else -> strings.get(R.string.nw141_queue_upcoming, strings.quantity(R.plurals.nw141_upcoming, upcoming.size))
-                },
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            val summary = when {
+                state.offline -> strings.get(R.string.nw141_queue_offline)
+                state.shuffle && explicitNext.isNotEmpty() ->
+                    strings.get(R.string.nw141_queue_next, strings.quantity(R.plurals.nw141_play_next_count, explicitNext.size))
+                state.shuffle -> strings.get(R.string.nw141_queue_shuffle)
+                upcoming.isEmpty() -> null
+                else -> strings.get(R.string.nw141_queue_upcoming, strings.quantity(R.plurals.nw141_upcoming, upcoming.size))
+            }
+            if (summary != null) Text(summary, style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
             if (removable && upcoming.isNotEmpty()) {
                 NightWaveCompactActions {
                     if (onMoveUpcoming != null && upcoming.size > 1) NightWaveMatteTextButton(
@@ -1614,7 +1612,8 @@ fun StudioQueueSheet(
                     }
                     if (upcoming.isEmpty()) {
                         item(key = "queue-no-upcoming") {
-                            Text(strings.get(R.string.nw141_nothing_else_in_your_queue_64883),
+                            Text(strings.get(if (state.offline || state.shuffle)
+                                R.string.nw141_nothing_else_in_your_queue_64883 else R.string.nw141_queue_end),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
@@ -1757,7 +1756,7 @@ private fun SwipeUpcomingRow(
             Text(strings.number(number), modifier = Modifier.widthIn(min = 19.dp),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.labelMedium)
-            CoverArt(artwork, Modifier.size(45.dp), 10)
+            CoverArt(artwork, Modifier.size(45.dp), 10, description = null)
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(display.title, maxLines = titleLines, overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.titleSmall)

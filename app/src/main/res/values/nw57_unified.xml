@@ -24,4 +24,5 @@
     <string name="nw58_import_formats_summary">Import FLAC lossless, MP3, M4A and more.</string>
     <string name="nw58_licensed_audio">Licensed audio</string>
     <string name="nw58_audio_link">Audio link</string>
+    <string name="nw58_play_track_title">Play %1$s</string>
 </resources>

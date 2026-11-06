@@ -28,7 +28,7 @@ class DownloadCenterDashboardPolicyTest {
         assertEquals("Checking saved audio · 2 active · 10 transfer entries",
             policy.overview(2, 0, 0, 10, true, false))
         assertTrue(policy.overview(2, 0, 0, 10, false, true)
-            .contains("verification unavailable"))
+            .contains("Reopen Downloads to try again"))
         assertFalse(policy.overview(2, 0, 0, 10, false, true).contains("0 ready"))
     }
 

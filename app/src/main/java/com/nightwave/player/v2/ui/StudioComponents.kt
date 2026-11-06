@@ -248,9 +248,10 @@ fun ListeningSpotlight(
 @Composable
 internal fun TrackArtwork(video: VideoPreview, modifier: Modifier = Modifier, large: Boolean = false,
     radius: Int = NightWavePremiumDesignTokens.ARTWORK_CORNER_DP,
-    crop: Boolean = !large, sharperTile: Boolean = false) {
+    crop: Boolean = !large, sharperTile: Boolean = false, decorative: Boolean = false) {
     CoverArt(video.thumbnail, modifier, radius,
-        description = "Artwork for " + video.title, trackIdentity = video.url, large = large,
+        description = if (decorative) null else "Artwork for " + video.title,
+        trackIdentity = video.url, large = large,
         crop = crop, sharperTile = sharperTile)
 }
 
@@ -324,7 +325,7 @@ fun MusicTrackTile(
             .graphicsLayer {
                 scaleX = artScale
                 scaleY = artScale
-            })
+            }, decorative = true)
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
             Text(identity.title, style = MaterialTheme.typography.titleMedium,
                 color = if (isPlaying) scheme.primary else scheme.onSurface,

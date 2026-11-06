@@ -24,4 +24,5 @@
     <string name="nw58_import_formats_summary">লসলেস FLAC, MP3, M4A ও আরও ফরম্যাট আমদানি করুন।</string>
     <string name="nw58_licensed_audio">লাইসেন্সপ্রাপ্ত অডিও</string>
     <string name="nw58_audio_link">অডিও লিংক</string>
+    <string name="nw58_play_track_title">%1$s চালান</string>
 </resources>
