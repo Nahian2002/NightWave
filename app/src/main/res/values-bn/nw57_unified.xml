@@ -1,0 +1,17 @@
+<resources>
+    <string name="nw57_music_public">গান ও পাবলিক ফল</string>
+    <string name="nw57_your_music">আপনার গান</string>
+    <string name="nw57_all_sources">সব অনুমোদিত উৎস</string>
+    <string name="nw57_saved_links">সংরক্ষিত লিংক</string>
+    <string name="nw57_provider_disclosure">উৎসে খুঁজুন চাপলে নির্বাচিত ফিল্টারের উৎসগুলোতে এই সার্চ পাঠানো হবে। গান ও পাবলিক ফল আলাদা থাকে।</string>
+    <string name="nw57_show_all">%2$s থেকে সব %1$sটি দেখুন</string>
+    <string name="nw57_show_fewer">%1$s থেকে কম দেখুন</string>
+    <string name="nw57_link_error">সংরক্ষিত লিংক পড়া বা হালনাগাদ করা যায়নি। আগের লিংকগুলো রাখা হয়েছে।</string>
+    <string name="nw57_saved_explanation">সংরক্ষিত লিংক এই ডিভাইসে থাকে। উৎসে খুলতে ইন্টারনেট লাগবে।</string>
+    <string name="nw57_links_loading">সংরক্ষিত লিংক পড়া হচ্ছে…</string>
+    <string name="nw57_no_links">মিলে যাওয়া কোনো লিংক নেই। PeerTube ও লাইভ রেডিও থেকে লিংক সংরক্ষণ করতে পারবেন।</string>
+    <string name="nw57_save_link">লিংক সংরক্ষণ করুন</string>
+    <string name="nw57_remove_link">লিংক সরান</string>
+    <string name="nw57_local_prompt">এই ডিভাইসে গান খুঁজতে নাম বা নির্মাতার নাম লিখুন।</string>
+    <string name="nw57_local_empty">আপনার গানে কোনো মিল নেই।</string>
+</resources>

@@ -1,7 +1,4 @@
 <resources>
-    <string name="multisource_title">Music sources &amp; radio</string>
-    <string name="multisource_consent">Choose where to search. NightWave sends your query only to the sources you select when you tap Search sources.</string>
-    <string name="multisource_query">Track, creator or station</string>
     <string name="multisource_radio">Live radio</string>
     <string name="multisource_submit">Search sources</string>
     <string name="multisource_loading">Searching this source…</string>

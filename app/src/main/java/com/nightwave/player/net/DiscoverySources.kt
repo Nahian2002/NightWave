@@ -132,7 +132,7 @@ internal object DiscoverySources {
 
     private fun JSONObject.duration() = optInt("duration").takeIf { it in 1..86_400 }
 
-    private fun externalUrl(raw: String): HttpUrl? {
+    internal fun externalUrl(raw: String): HttpUrl? {
         if (raw.length > 2_048 || raw.any { it.isISOControl() || it == '\\' }) return null
         val url = raw.toHttpUrlOrNull() ?: return null
         val labels = url.host.split('.')

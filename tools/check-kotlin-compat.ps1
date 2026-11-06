@@ -321,7 +321,8 @@ if ((Test-Path -LiteralPath $studioPath -PathType Leaf) -and
             [System.StringSplitOptions]::None).Length - 1
         # NW82: Best matches, Other versions and More results each call playSinglePublic(song).
         # Every grouped Search tile must remain single-song: do not delete a click path to pass this gate.
-        if ($savedPaths -ne 3 -or -not $singlePublic -or $publicPathCount -ne 3) {
+        # The unified local filter adds a fourth saved-track tap.
+        if ($savedPaths -ne 4 -or -not $singlePublic -or $publicPathCount -ne 3) {
             $issues.Add('NW44: all grouped Search taps must remain single-song.')
         }
     }
@@ -340,7 +341,7 @@ if (-not (Test-Path -LiteralPath $gradlePath)) {
     $gradle = [System.IO.File]::ReadAllText($gradlePath)
     foreach ($marker in @(
         'applicationId = "com.nightwave.player"',
-        'versionCode = 56',
+        'versionCode = 57',
         'versionName = "2.0.0-alpha5s"',
         'id("org.jetbrains.kotlin.plugin.compose")',
         'androidTestImplementation("androidx.compose.ui:ui-test-junit4")'

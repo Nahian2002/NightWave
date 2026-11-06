@@ -1,0 +1,17 @@
+<resources>
+    <string name="nw57_music_public">Music &amp; public</string>
+    <string name="nw57_your_music">Your music</string>
+    <string name="nw57_all_sources">All permitted</string>
+    <string name="nw57_saved_links">Saved links</string>
+    <string name="nw57_provider_disclosure">Search sources sends this query to the providers in the selected filter. Music &amp; public stays separate.</string>
+    <string name="nw57_show_all">Show all %1$s from %2$s</string>
+    <string name="nw57_show_fewer">Show fewer from %1$s</string>
+    <string name="nw57_link_error">Saved links could not be updated or read. Existing links are kept.</string>
+    <string name="nw57_saved_explanation">Saved links stay on this device. They open in the provider and require an internet connection.</string>
+    <string name="nw57_links_loading">Reading saved links…</string>
+    <string name="nw57_no_links">No saved links match. You can save links from PeerTube and Live radio.</string>
+    <string name="nw57_save_link">Save link</string>
+    <string name="nw57_remove_link">Remove link</string>
+    <string name="nw57_local_prompt">Type a title or creator to find music on this device.</string>
+    <string name="nw57_local_empty">No matches in your music.</string>
+</resources>
