@@ -12,6 +12,8 @@ The version 52 S24 comparison raises the scoped design and usability rating to 9
 
 Version 53 organizes the You page into four settings sections and puts Offline music and Check for updates at the top. [NW156 changes and test status](NW156_YOU_LAYOUT.md)
 
+Version 54 gives App details a wider layout, with the version and primary actions above the optional technical receipt. The next acceptance work is a rendered S24 check of the grouped You page and App details, followed by compact-screen and large-text checks. [NW157 validation](NW157_APP_DETAILS_PLAN.md) · [Feature comparison with Spotify](NW157_SPOTIFY_COMPARISON.md)
+
 ## Historical checkpoints
 
 

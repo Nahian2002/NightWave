@@ -35,10 +35,13 @@ class BuildIdentityInstrumentedTest {
         val receipt = identity.supportText("instrumented", 35)
         var copied = ""
         compose.setContent { MaterialTheme {
-            NightWaveBuildDetailsContent(identity, receipt, {}, { copied = it })
+            NightWaveBuildDetailsContent(identity, receipt, "Version instrumented · build 35", {}, { copied = it })
         } }
         compose.onNodeWithTag("nw126-build-id").assertExists()
+        compose.onNodeWithTag("nw126-build-details").assertDoesNotExist()
         compose.onNodeWithText("Copy build details").performClick()
         assertEquals(receipt, copied)
+        compose.onNodeWithText("Technical details").performClick()
+        compose.onNodeWithTag("nw126-build-details").assertExists()
     }
 }
