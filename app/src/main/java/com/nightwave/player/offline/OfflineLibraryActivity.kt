@@ -284,6 +284,10 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
         root.addView(quickActions, LinearLayout.LayoutParams(-1, dp(48)).apply {
             bottomMargin = dp(4)
         })
+        root.addView(label(getString(R.string.nw58_import_formats_summary), 12f,
+            nativeMattePalette.secondary.toInt()).apply {
+            setPadding(dp(5), dp(2), dp(5), dp(8))
+        })
         // Compact by default: otherwise fixed-height secondary controls can
         // push the entire offline song list below a short phone's viewport.
         val extraTools = LinearLayout(this).apply {
@@ -312,10 +316,10 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
         val otherSources = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
         }
-        otherSources.addView(quickAction("Find audio", "Browse licensed audio sources", false) {
+        otherSources.addView(quickAction(getString(R.string.nw58_licensed_audio), "Browse licensed audio sources", false) {
             startActivity(Intent(this@OfflineLibraryActivity, FreeAudioCatalogActivity::class.java))
         }, LinearLayout.LayoutParams(0, dp(48), 1f).apply { rightMargin = dp(5) })
-        otherSources.addView(quickAction("Direct link", "Download your authorized audio URL", false) {
+        otherSources.addView(quickAction(getString(R.string.nw58_audio_link), "Download your authorized audio URL", false) {
             startActivity(Intent(this@OfflineLibraryActivity,
                 PermittedAudioDownloadActivity::class.java))
         }, LinearLayout.LayoutParams(0, dp(48), 1f).apply { leftMargin = dp(5) })

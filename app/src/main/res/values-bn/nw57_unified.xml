@@ -1,7 +1,7 @@
 <resources>
     <string name="nw57_music_public">গান ও পাবলিক ফল</string>
     <string name="nw57_your_music">আপনার গান</string>
-    <string name="nw57_all_sources">সব অনুমোদিত উৎস</string>
+    <string name="nw57_all_sources">সব উৎস</string>
     <string name="nw57_saved_links">সংরক্ষিত লিংক</string>
     <string name="nw57_provider_disclosure">উৎসে খুঁজুন চাপলে নির্বাচিত ফিল্টারের উৎসগুলোতে এই সার্চ পাঠানো হবে। গান ও পাবলিক ফল আলাদা থাকে।</string>
     <string name="nw57_show_all">%2$s থেকে সব %1$sটি দেখুন</string>
@@ -16,4 +16,12 @@
     <string name="nw57_local_empty">আপনার গানে কোনো মিল নেই।</string>
     <string name="nw58_openverse_disclosure">Openverse লাইসেন্সের তথ্য দেখায়। শুনতে এবং ব্যবহারের অনুমতি যাচাই করতে রেকর্ডিংয়ের পৃষ্ঠা খুলুন।</string>
     <string name="nw58_update_release">NightWave v%1$d (%2$s)</string>
+    <string name="nw58_sources_tab">উৎস</string>
+    <string name="nw58_provider_label">সংগীতের উৎস</string>
+    <string name="nw58_source_intro">গান, ভিডিও ও রেডিও খুঁজুন। ফলাফল উৎসের সাইটে খুলবে।</string>
+    <string name="nw58_about_sources">উৎস সম্পর্কে</string>
+    <string name="nw58_hide_source_info">উৎসের তথ্য লুকান</string>
+    <string name="nw58_import_formats_summary">লসলেস FLAC, MP3, M4A ও আরও ফরম্যাট আমদানি করুন।</string>
+    <string name="nw58_licensed_audio">লাইসেন্সপ্রাপ্ত অডিও</string>
+    <string name="nw58_audio_link">অডিও লিংক</string>
 </resources>

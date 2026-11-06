@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -25,6 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -149,23 +149,39 @@ internal fun rememberUnifiedSourceState(scope: UnifiedSearchScope, query: String
 @Composable
 internal fun NightWaveSourceFilters(selected: UnifiedSearchScope, onSelect: (UnifiedSearchScope) -> Unit) {
     val strings = rememberNightWaveStrings()
-    LazyRow(Modifier.fillMaxWidth().testTag("nw57-source-filters"), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        items(UnifiedSearchScope.entries, key = { it.name }) { scope ->
-            val label = when (scope) {
-                UnifiedSearchScope.MUSIC -> strings.get(R.string.nw57_music_public)
-                UnifiedSearchScope.LOCAL -> strings.get(R.string.nw57_your_music)
-                UnifiedSearchScope.ALL -> strings.get(R.string.nw57_all_sources)
-                UnifiedSearchScope.AUDIUS -> DiscoverySource.AUDIUS.displayName
-                UnifiedSearchScope.PEERTUBE -> DiscoverySource.PEERTUBE.displayName
-                UnifiedSearchScope.RADIO -> strings.get(R.string.multisource_radio)
-                UnifiedSearchScope.OPENVERSE -> DiscoverySource.OPENVERSE.displayName
-                UnifiedSearchScope.SAVED -> strings.get(R.string.nw57_saved_links)
+    val showsProviders = selected.providers.isNotEmpty()
+    Column(Modifier.fillMaxWidth().testTag("nw57-source-filters"), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        NightWaveCompactActions {
+            SourceScopeChip(UnifiedSearchScope.MUSIC, strings.get(R.string.nw57_music_public), selected == UnifiedSearchScope.MUSIC, onSelect)
+            SourceScopeChip(UnifiedSearchScope.LOCAL, strings.get(R.string.nw57_your_music), selected == UnifiedSearchScope.LOCAL, onSelect)
+            SourceScopeChip(UnifiedSearchScope.ALL, strings.get(R.string.nw58_sources_tab), showsProviders, onSelect,
+                tag = "nw58-sources-tab")
+            SourceScopeChip(UnifiedSearchScope.SAVED, strings.get(R.string.nw57_saved_links), selected == UnifiedSearchScope.SAVED, onSelect)
+        }
+        if (showsProviders) {
+            Text(strings.get(R.string.nw58_provider_label), Modifier.semantics { heading() },
+                style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            NightWaveCompactActions {
+                SourceScopeChip(UnifiedSearchScope.ALL, strings.get(R.string.nw57_all_sources), selected == UnifiedSearchScope.ALL, onSelect)
+                SourceScopeChip(UnifiedSearchScope.AUDIUS, DiscoverySource.AUDIUS.displayName, selected == UnifiedSearchScope.AUDIUS, onSelect)
+                SourceScopeChip(UnifiedSearchScope.PEERTUBE, DiscoverySource.PEERTUBE.displayName, selected == UnifiedSearchScope.PEERTUBE, onSelect)
+                SourceScopeChip(UnifiedSearchScope.RADIO, strings.get(R.string.multisource_radio), selected == UnifiedSearchScope.RADIO, onSelect)
+                SourceScopeChip(UnifiedSearchScope.OPENVERSE, DiscoverySource.OPENVERSE.displayName, selected == UnifiedSearchScope.OPENVERSE, onSelect)
             }
-            FilterChip(selected = scope == selected, onClick = { onSelect(scope) },
-                modifier = Modifier.heightIn(min = 48.dp).testTag("nw57-scope-${scope.name}"),
-                label = { Text(label) })
         }
     }
+}
+
+@Composable
+private fun SourceScopeChip(
+    scope: UnifiedSearchScope,
+    label: String,
+    selected: Boolean,
+    onSelect: (UnifiedSearchScope) -> Unit,
+    tag: String = "nw57-scope-${scope.name}"
+) {
+    FilterChip(selected = selected, onClick = { onSelect(scope) },
+        modifier = Modifier.heightIn(min = 48.dp).testTag(tag), label = { Text(label) })
 }
 
 internal fun LazyListScope.unifiedSourceResults(
@@ -174,7 +190,8 @@ internal fun LazyListScope.unifiedSourceResults(
     val request = state.request?.takeIf { it.matches(scope, query) }
     item(key = "nw57-provider-actions") {
         val strings = rememberNightWaveStrings()
-        Text(strings.get(R.string.nw57_provider_disclosure), style = MaterialTheme.typography.bodySmall,
+        var showSourceInfo by rememberSaveable { mutableStateOf(false) }
+        Text(strings.get(R.string.nw58_source_intro), style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant)
         NightWaveCompactActions {
             Button(onClick = onSubmit, enabled = UnifiedSourceRequest.create(scope, query) != null && !state.pending,
@@ -182,7 +199,20 @@ internal fun LazyListScope.unifiedSourceResults(
             if (state.pending) NightWaveMatteTextButton(onClick = state::cancel, modifier = Modifier.heightIn(min = 48.dp)) {
                 Text(strings.get(R.string.nw141_cancel_search_b5456))
             }
+            NightWaveMatteTextButton(onClick = { showSourceInfo = !showSourceInfo }, modifier = Modifier.heightIn(min = 48.dp)) {
+                Text(strings.get(if (showSourceInfo) R.string.nw58_hide_source_info else R.string.nw58_about_sources))
+            }
         }
+        if (showSourceInfo) {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                for (message in listOf(R.string.nw57_provider_disclosure, R.string.nw58_openverse_disclosure,
+                    R.string.multisource_jamendo)) {
+                    Text(strings.get(message), style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+        if (state.linkError) Text(strings.get(R.string.nw57_link_error), color = MaterialTheme.colorScheme.error)
     }
     request?.scope?.providers?.forEach { source ->
         val outcome = state.outcomes[source]
@@ -201,9 +231,6 @@ internal fun LazyListScope.unifiedSourceResults(
                 DiscoveryOutcome.Problem.AUTH, DiscoveryOutcome.Problem.PERMISSION -> R.string.multisource_restricted
                 else -> R.string.multisource_unavailable
             }
-            if (source == DiscoverySource.OPENVERSE) {
-                Text(strings.get(R.string.nw58_openverse_disclosure), style = MaterialTheme.typography.bodySmall)
-            }
             if (message != null) Text(strings.get(message), style = MaterialTheme.typography.bodySmall)
         }
         items(if (expanded) results else results.take(PREVIEW_RESULTS), key = { "nw57:${it.id.source}:${it.id.remoteId}" }) { item ->
@@ -216,12 +243,6 @@ internal fun LazyListScope.unifiedSourceResults(
                     else strings.get(R.string.nw57_show_all, strings.number(results.size), source.displayName))
             }
         }
-    }
-    item(key = "nw57-jamendo-status") {
-        val strings = rememberNightWaveStrings()
-        Text(strings.get(R.string.multisource_jamendo), style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant)
-        if (state.linkError) Text(strings.get(R.string.nw57_link_error), color = MaterialTheme.colorScheme.error)
     }
 }
 
@@ -259,9 +280,10 @@ private fun UnifiedSourceResult(result: DiscoveryItem, state: UnifiedSourceState
         DiscoveryKind.VIDEO -> R.string.multisource_video
         DiscoveryKind.LIVE_RADIO -> R.string.multisource_radio
     }
-    val subtitle = listOfNotNull(source.displayName, strings.get(type), result.creator, result.licenseLabel,
-        result.durationSeconds?.let { strings.duration(it * 1_000L) }, result.canonicalUrl.host).joinToString(" · ")
-    SourceCard(result.title, subtitle) {
+    val subtitle = listOfNotNull(result.creator, strings.get(type),
+        result.durationSeconds?.let { strings.duration(it * 1_000L) }).joinToString(" · ")
+    val attribution = listOfNotNull(result.licenseLabel, result.canonicalUrl.host).joinToString(" · ")
+    SourceCard(result.title, subtitle, attribution) {
         if (result.capabilities.openExternally == DiscoveryPermission.AVAILABLE) {
             SourceOpenButton(result.canonicalUrl, source)
         }
@@ -274,11 +296,13 @@ private fun UnifiedSourceResult(result: DiscoveryItem, state: UnifiedSourceState
 }
 
 @Composable
-private fun SourceCard(title: String, detail: String, actions: @Composable () -> Unit) {
+private fun SourceCard(title: String, detail: String, attribution: String? = null, actions: @Composable () -> Unit) {
     Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(title, style = MaterialTheme.typography.titleSmall)
             Text(detail, maxLines = 3, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (attribution != null) Text(attribution, style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
             NightWaveCompactActions(actions)
         }

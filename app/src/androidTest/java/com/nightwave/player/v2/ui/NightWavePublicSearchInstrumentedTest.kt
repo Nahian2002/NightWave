@@ -65,6 +65,21 @@ class NightWavePublicSearchInstrumentedTest {
         compose.runOnIdle { assertEquals(0, retries) }
     }
 
+    @Test fun sourceFiltersAreGroupedAndKeepTheQuery() {
+        screen()
+        val field = compose.onNodeWithTag("nw129-search-query")
+        field.performScrollTo().performTextReplacement("piano")
+        compose.onNodeWithTag("nw57-scope-OPENVERSE").assertDoesNotExist()
+        compose.onNodeWithTag("nw58-sources-tab").performScrollTo().performClick()
+        compose.onNodeWithTag("nw57-scope-ALL").performScrollTo().assertIsSelected()
+        for (provider in listOf("AUDIUS", "PEERTUBE", "RADIO", "OPENVERSE")) {
+            compose.onNodeWithTag("nw57-scope-$provider").performScrollTo().assertIsDisplayed()
+        }
+        compose.onNodeWithTag("nw57-scope-OPENVERSE").performClick().assertIsSelected()
+        field.assertTextContains("piano")
+        compose.runOnIdle { assertEquals(0, retries) }
+    }
+
     @Test fun recentCompletionDoesNotSubmitUntilTapped() {
         screen(history = listOf("Blue Hour", "Red Moon"))
         val field = compose.onNodeWithTag("nw129-search-query")
