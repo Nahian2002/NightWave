@@ -186,6 +186,14 @@
         "device_checks": "PASS_SCOPED_S24_SEARCH_RELATED_PALETTES_LAUNCHER",
         "next": "POCO_LAUNCHER_TEXT_SCALE_AND_LAYOUT_NOT_RUN",
         "evidence": "docs/audits/2026-11-07_NW58_SEARCH_DESIGN_S24.md"
+      },
+      "adaptive_search_followup": {
+        "source_commit": "3b70cde741042a439381f5f69f3fd5944d257a04",
+        "build_id": "NW-debug-99DE616675BB7939",
+        "apk_sha256": "0BF4AED577367FCC104F085D72D5FAFD3AD145D143B4E4EE6A631F6020B9C624",
+        "host_checks": "PASS_WINDOWS_1899_JVM_94_SOURCE_LINT",
+        "device_checks": "PASS_SCOPED_S24_LIVE_COLD_AND_WARM_SEARCH",
+        "evidence": "docs/audits/2026-11-07_NW58_ADAPTIVE_SEARCH.md"
       }
     }
   ],
