@@ -31,6 +31,14 @@ internal object SearchHistoryPolicy {
             .filterNot { key(it) == key(normalized) }).take(MAX_ENTRIES)
     }
 
+    fun completions(current: List<String>, raw: String): List<String> {
+        val prefix = key(normalize(raw) ?: return emptyList())
+        return sanitize(current).filter {
+            val candidate = key(it)
+            candidate != prefix && candidate.startsWith(prefix)
+        }.take(3)
+    }
+
     fun remove(current: List<String>, raw: String): List<String> {
         val normalized = normalize(raw) ?: return sanitize(current)
         return sanitize(current).filterNot { key(it) == key(normalized) }

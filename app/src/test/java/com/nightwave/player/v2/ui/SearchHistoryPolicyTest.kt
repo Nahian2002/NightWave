@@ -37,4 +37,15 @@ class SearchHistoryPolicyTest {
         assertEquals(saved, SearchHistoryPolicy.remove(saved, "Missing"))
         assertTrue(SearchHistoryPolicy.remove(emptyList(), "First").isEmpty())
     }
+
+    @Test fun completionsUseRecentPrefixMatchesWithoutRewritingHistory() {
+        val recent = listOf("Blue Hour", "Blue", "BLUE HOUR", "Blues", "Blue Sky", "Blue Day", "Light Blue")
+        assertEquals(listOf("Blue Hour", "Blues", "Blue Sky"),
+            SearchHistoryPolicy.completions(recent, "  bLuE  "))
+        assertEquals(emptyList<String>(), SearchHistoryPolicy.completions(recent, " "))
+        assertEquals(emptyList<String>(), SearchHistoryPolicy.completions(recent, "bad\u0000query"))
+        assertEquals(listOf("বাংলা গান"),
+            SearchHistoryPolicy.completions(listOf("বাংলা গান"), "বাংলা"))
+        assertEquals("Blue", recent[1])
+    }
 }
