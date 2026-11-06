@@ -1,3 +1,7 @@
+## Current NW158 version 55 support email and Search
+
+Version 55 is installed on the S24 Ultra under the standing in-place authorization. All 33 backed-up files matched before launch. Email support opened a verified draft, which was discarded without sending. Search completion, history restoration, and the redesigned App details were checked on the S24. See docs/NW158_SUPPORT_SEARCH.md for exact artifacts and scope. The public feed still advertises version 51.
+
 ## Current NW157 version 54 App details
 
 Version 54 widens App details and separates the version summary and primary actions from the optional technical receipt. See docs/NW157_APP_DETAILS_PLAN.md for exact build identity, host and private delivery checks, and the pending device run. Version 53 is the last verified S24 install. The public feed still advertises version 51. The feature-by-feature comparison is in docs/NW157_SPOTIFY_COMPARISON.md. No rating promotion without rendered evidence.

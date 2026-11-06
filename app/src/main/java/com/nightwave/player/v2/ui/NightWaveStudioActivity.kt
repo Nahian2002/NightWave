@@ -145,6 +145,7 @@ import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.GraphicEq
 import androidx.compose.material.icons.outlined.Cloud
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.LibraryMusic
@@ -4114,6 +4115,27 @@ internal fun StudioSearch(
                 keyboardActions = KeyboardActions(onSearch = { submit() })
             )
         }
+        val historyCompletions = if (queryFocused) SearchHistoryPolicy.completions(searchHistory, query)
+            else emptyList()
+        if (historyCompletions.isNotEmpty()) {
+            item(key = "search-history-completions") {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(strings.get(R.string.nw158_recent_matches),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    NightWaveCompactActions {
+                        historyCompletions.forEach { previous ->
+                            FilterChip(selected = false, onClick = {
+                                query = previous
+                                selectedCreator = null
+                                submit()
+                            }, modifier = Modifier.heightIn(min = 48.dp),
+                                label = { Text(previous, maxLines = 1, overflow = TextOverflow.Ellipsis) })
+                        }
+                    }
+                }
+            }
+        }
         if (localPending) item(key = "nw129-local-loading") {
             Text(if (index == null) strings.get(R.string.nw141_updating_your_music_37fc6) else strings.get(R.string.nw141_searching_your_music_047f6),
                 modifier = Modifier.testTag("nw129-local-loading"),
@@ -4128,8 +4150,7 @@ internal fun StudioSearch(
         }
         if (query.isNotBlank()) {
             item(key = "search-mode-selector") {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically) {
+                NightWaveCompactActions {
                     FilterChip(selected = mode == SearchMode.SONGS,
                         onClick = {
                             if (mode != SearchMode.SONGS) {
@@ -4144,6 +4165,34 @@ internal fun StudioSearch(
                                 dismissSearchInput(); onNativeSearch(query.trim(), SearchMode.VIDEOS)
                             }
                         }, label = { Text(strings.get(R.string.nw141_videos_c9a96)) })
+                }
+            }
+        }
+        if (query.isNotBlank()) {
+            item(key = "search-submit-actions") {
+                Row(Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(9.dp),
+                    verticalAlignment = Alignment.CenterVertically) {
+                    Button(
+                        onClick = submit,
+                        enabled = !searching,
+                        modifier = Modifier.weight(1.45f).heightIn(min = 48.dp),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Icon(Icons.Outlined.Search, contentDescription = null,
+                            modifier = Modifier.size(19.dp))
+                        Spacer(Modifier.width(7.dp))
+                        Text(if (searching) strings.get(R.string.nw141_finding_music_77304) else strings.get(R.string.nw141_find_music_0a757),
+                            maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                    OutlinedButton(
+                        onClick = {
+                            onRecordSearch(query.trim())
+                            dismissSearchInput(); onPrimarySearch(query.trim(), mode)
+                        },
+                        modifier = Modifier.weight(1f).heightIn(min = 48.dp),
+                        shape = RoundedCornerShape(16.dp)
+                    ) { Text("YouTube", maxLines = 1) }
                 }
             }
         }
@@ -4226,34 +4275,6 @@ internal fun StudioSearch(
                     onClick = { onPlay(song, listOf(song)) })
             }
         } else {
-        if (query.isNotBlank()) {
-            item {
-                Row(Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(9.dp),
-                    verticalAlignment = Alignment.CenterVertically) {
-                    Button(
-                        onClick = submit,
-                        enabled = !searching,
-                        modifier = Modifier.weight(1.45f).heightIn(min = 48.dp),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Icon(Icons.Outlined.Search, contentDescription = null,
-                            modifier = Modifier.size(19.dp))
-                        Spacer(Modifier.width(7.dp))
-                        Text(if (searching) strings.get(R.string.nw141_finding_music_77304) else strings.get(R.string.nw141_find_music_0a757),
-                            maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    }
-                    OutlinedButton(
-                        onClick = {
-                            onRecordSearch(query.trim())
-                            dismissSearchInput(); onPrimarySearch(query.trim(), mode)
-                        },
-                        modifier = Modifier.weight(1f).heightIn(min = 48.dp),
-                        shape = RoundedCornerShape(16.dp)
-                    ) { Text("YouTube", maxLines = 1) }
-                }
-            }
-        }
         if (query.isBlank() && !searching) {
             if (savedTracks.isNotEmpty()) {
                 item {
@@ -5373,6 +5394,7 @@ private fun StudioProfile(
     val strings = rememberNightWaveStrings()
     var name by rememberSaveable(profile.localId) { mutableStateOf(profile.displayName) }
     var showBuildDetails by rememberSaveable { mutableStateOf(false) }
+    var showSupportEmail by rememberSaveable { mutableStateOf(false) }
     var showTrustHelp by rememberSaveable { mutableStateOf(false) }
     if (showTrustHelp) androidx.compose.material3.AlertDialog(
         onDismissRequest = { showTrustHelp = false },
@@ -5388,6 +5410,7 @@ private fun StudioProfile(
         confirmButton = { TextButton(onClick = { showTrustHelp = false }) {
             Text(strings.get(R.string.nw141_done_11a67)) } })
     if (showBuildDetails) NightWaveBuildDetailsDialog { showBuildDetails = false }
+    if (showSupportEmail) NightWaveSupportEmailDialog { showSupportEmail = false }
     var editing by rememberSaveable { mutableStateOf(false) }
     var showAppearance by rememberSaveable { mutableStateOf(false) }
     var showBackup by rememberSaveable { mutableStateOf(false) }
@@ -5757,6 +5780,8 @@ private fun StudioProfile(
                 Icons.Outlined.Settings, expandedGroup == "support",
                 { toggleGroup("support") }, "nw156-you-support"
             ) {
+                StudioProfileRow(strings.get(R.string.nw158_email_support), strings.get(R.string.nw158_email_summary),
+                    Icons.Outlined.Email, { showSupportEmail = true })
                 StudioProfileRow(strings.get(R.string.nw143_help_title), strings.get(R.string.nw143_help_summary),
                     Icons.Outlined.Settings, { showTrustHelp = true })
                 StudioProfileRow(strings.get(R.string.nw141_playback_health_1ea6a),

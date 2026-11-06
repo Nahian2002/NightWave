@@ -1,0 +1,12 @@
+<resources>
+    <string name="nw158_email_support">Email support</string>
+    <string name="nw158_email_summary">Report a problem to the NightWave maintainer</string>
+    <string name="nw158_email_explanation">Review your message in your email app before sending. NightWave adds a blank problem template. You can add details you choose to share.</string>
+    <string name="nw158_email_unavailable">No email app could open this draft. Copy the address to send from another app or webmail.</string>
+    <string name="nw158_email_copied">Support address copied</string>
+    <string name="nw158_copy_address">Copy address</string>
+    <string name="nw158_open_email">Open email draft</string>
+    <string name="nw158_email_subject">NightWave support request</string>
+    <string name="nw158_email_body">What happened?\n\nSteps to reproduce\n\nExpected result\n\nNightWave version (optional)\n</string>
+    <string name="nw158_recent_matches">Matching recent searches</string>
+</resources>

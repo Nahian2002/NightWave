@@ -1,0 +1,12 @@
+<resources>
+    <string name="nw158_email_support">সহায়তায় ইমেইল করুন</string>
+    <string name="nw158_email_summary">NightWave রক্ষণাবেক্ষণকারীকে সমস্যার কথা জানান</string>
+    <string name="nw158_email_explanation">পাঠানোর আগে ইমেইল অ্যাপে বার্তাটি দেখে নিন। NightWave সমস্যাটি জানানোর জন্য একটি খালি ছক দেয়। কী তথ্য শেয়ার করবেন, তা আপনি ঠিক করুন।</string>
+    <string name="nw158_email_unavailable">কোনো ইমেইল অ্যাপ খসড়াটি খুলতে পারেনি। ঠিকানাটি কপি করে অন্য অ্যাপ বা ওয়েবমেইল থেকে পাঠান।</string>
+    <string name="nw158_email_copied">সহায়তার ইমেইল ঠিকানা কপি হয়েছে</string>
+    <string name="nw158_copy_address">ঠিকানা কপি করুন</string>
+    <string name="nw158_open_email">ইমেইল খসড়া খুলুন</string>
+    <string name="nw158_email_subject">NightWave সহায়তার অনুরোধ</string>
+    <string name="nw158_email_body">কী ঘটেছে?\n\nসমস্যাটি আবার দেখার ধাপ\n\nপ্রত্যাশিত ফলাফল\n\nNightWave সংস্করণ (ঐচ্ছিক)\n</string>
+    <string name="nw158_recent_matches">মিলে যাওয়া সাম্প্রতিক সার্চ</string>
+</resources>

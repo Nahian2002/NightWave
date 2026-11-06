@@ -14,6 +14,8 @@ Version 53 organizes the You page into four settings sections and puts Offline m
 
 Version 54 gives App details a wider layout, with the version and primary actions above the optional technical receipt. The next acceptance work is a rendered S24 check of the grouped You page and App details, followed by compact-screen and large-text checks. [NW157 validation](NW157_APP_DETAILS_PLAN.md) · [Feature comparison with Spotify](NW157_SPOTIFY_COMPARISON.md)
 
+Version 55 adds Email support and makes the existing Search actions easier to reach. The grouped You and App details screens were observed on the S24. Compact-screen, large-text and broader Search quality checks remain open. [NW158 build and phone evidence](NW158_SUPPORT_SEARCH.md)
+
 ## Historical checkpoints
 
 

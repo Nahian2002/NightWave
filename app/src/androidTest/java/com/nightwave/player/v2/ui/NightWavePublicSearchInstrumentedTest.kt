@@ -20,19 +20,20 @@ class NightWavePublicSearchInstrumentedTest {
     private val played = mutableListOf<VideoPreview>()
     private var cancellations = 0
     private var retries = 0
+    private var requested = ""
     private var web = ""
     private val first = VideoPreview("Play Date (Official Audio)", "Fixture uploader", "https://www.youtube.com/watch?v=00000000001", "", 215)
     private val second = first.copy(url = "https://www.youtube.com/watch?v=00000000002")
 
-    private fun screen() {
+    private fun screen(history: List<String> = emptyList()) {
         if (state.query.isNotBlank()) state = state.copy(prefillToken = "nw150-fixture")
         compose.setContent {
             NightWaveMaterialTheme(NightWaveTheme.MIDNIGHT, reduceMotion = true) {
                 StudioSearch(Modifier, state, onPrimarySearch = { _, _ -> },
-                    onNativeSearch = { _, _ -> retries++ }, onWebSearch = { web = it },
+                    onNativeSearch = { query, _ -> requested = query; retries++ }, onWebSearch = { web = it },
                     onPlay = { song, queue -> assertEquals(listOf(song), queue); played.add(song) },
                     onSongOptions = {}, playingUrl = "", corpus = LocalMusicCorpusState(0, 0, failed = true),
-                    onRetryCorpus = {}, onOfflineSearch = { _, _ -> }, searchHistory = emptyList(),
+                    onRetryCorpus = {}, onOfflineSearch = { _, _ -> }, searchHistory = history,
                     canUndoSearchRemoval = false, onRecordSearch = {}, onRemoveSearch = {},
                     onUndoSearchRemoval = {}, onClearSearch = {}, onCancelSearch = {
                         cancellations++
@@ -49,6 +50,17 @@ class NightWavePublicSearchInstrumentedTest {
         compose.onNodeWithText("Find music").performScrollTo().performClick()
         compose.onNodeWithTag("nw129-search-query").assertIsNotFocused().assertTextContains("focus fixture")
         compose.runOnIdle { assertEquals(1, retries) }
+    }
+
+    @Test fun recentCompletionDoesNotSubmitUntilTapped() {
+        screen(history = listOf("Blue Hour", "Red Moon"))
+        val field = compose.onNodeWithTag("nw129-search-query")
+        field.performScrollTo().performClick().performTextReplacement("Blu")
+        compose.onNodeWithText("Matching recent searches").assertIsDisplayed()
+        compose.runOnIdle { assertEquals(0, retries) }
+        compose.onNodeWithText("Blue Hour").performClick()
+        field.assertIsNotFocused().assertTextContains("Blue Hour")
+        compose.runOnIdle { assertEquals(1, retries); assertEquals("Blue Hour", requested) }
     }
 
     @Test fun identicalPlayDateCaptionsExposeSourceEvidenceAndTapExactlyEachChosenUrl() {
