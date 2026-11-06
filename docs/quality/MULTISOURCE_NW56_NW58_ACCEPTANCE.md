@@ -61,7 +61,7 @@ This matrix belongs to the new **post-v55 public release track**, not the older 
 | 58-07 | P0 | Graceful outages | Offline, DNS, 429/503, wrong JSON and dead radio do not crash or substitute wrong source. | controlled failure tests | PARTIAL HOST FAILURES AND S24 TIMEOUT RECOVERY |
 | 58-08 | P1 | Soak/perf | Replay/search/pause/resume >30 minutes with recorded crashes, jank and memory vs v55. | Perfetto/logcat/baselines | NOT_RUN |
 | 58-09 | P0 | Privacy & rights | Updated third-party notice, source attribution, no prohibited caching or claim of full popular catalogs. | manual policy review | PARTIAL OPENVERSE DISCLOSURE AND LINK-ONLY RIGHTS BOUNDARY |
-| 58-10 | P0 | Release integrity | Exact version, signer, SHA, published notes and update feed action verified separately; no accidental feed flip. | pre-release audit receipts | PARTIAL LIVE V55 AND VERIFIED V58 DRAFT, OLDER CLIENT DOWNLOAD NOT_RUN |
+| 58-10 | P0 | Release integrity | Exact version, signer, SHA, published notes and update feed action verified separately; no accidental feed flip. | pre-release audit receipts | PARTIAL VERIFIED V58 DRAFT, OWNER REPORTED SECOND-PHONE V55 UPDATE |
 | 58-11 | P0 | Remaining gaps | All FAIL/BLOCKED/NOT_RUN listed honestly; no '100%' for untested results. | status/QA report | PASS EVIDENCE LEDGER, ACCEPTANCE OPEN |
 | 58-12 | P0 | Owner go/no-go | No public APK release/update-channel activation without explicit release approval. | release checklist | OWNER REQUEST RECEIVED, BLOCKING ACCEPTANCE OPEN |
 

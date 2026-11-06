@@ -22,7 +22,7 @@ Saved public links are references. Offline files and third-party media require t
 
 ## Development
 
-**Version 58 is the current review build.** It adds Openverse music discovery and clearer update version labels. The S24 passed scoped update and Search checks. Wider compatibility, playback and recovery testing remain open. [Draft review](https://github.com/Nahian2002/NightWave/pull/195) · [Test evidence](docs/MULTISOURCE_NW58_IMPLEMENTATION.md)
+**Version 58 is the current review build.** It groups Audius, PeerTube, Radio Browser and Openverse under **Search → Sources**, and shows FLAC beside **Offline music → Import files**. The S24 passed scoped update and Search checks. Wider compatibility, playback and recovery testing remain open. [Draft review](https://github.com/Nahian2002/NightWave/pull/195) · [Test evidence](docs/MULTISOURCE_NW58_IMPLEMENTATION.md)
 
 Build a fresh checkout with `build-windows.cmd`. Run `check-device-update.cmd` before installing over an existing build. For the public APK's exact source, use the release tag. The default branch hosts the project entry points and stable update feed.
 

@@ -161,17 +161,17 @@
         "NW57"
       ],
       "state": "SCOPED_VERIFIED_FULL_ACCEPTANCE_OPEN",
-      "source_commit": "73b4542a3290a13469e48989c7ad25eba362798a",
-      "apk_sha256": "5C7C0B5C2EBC0BECE18C8AF730F6EFD9B07B73E126637931B1751178FDB4EAE2",
+      "source_commit": "154d1c9ed2204c2f8916a0b61abb4002f27bf76c",
+      "apk_sha256": "49B1E534FD2A2940AC8163EEC89724F7E664FDCF94D599ED5F6D7E086FFB35BB",
       "host_checks": "PASS_WINDOWS_1888_JVM_94_SOURCE_LINT",
-      "device_checks": "PASS_SCOPED_S24_UPDATE_FOUR_DISCOVERY_SOURCES_AND_LOCAL_FLAC",
+      "device_checks": "PASS_SCOPED_S24_UPDATE_FOUR_DISCOVERY_SOURCES_LOCAL_FLAC_AND_PRESENTATION",
       "release_approved": false,
       "acceptance_prefix": "58-",
       "remaining_blockers": [
         "Unresolved NW56 and NW57 full acceptance",
         "Full S24 journeys, Android instrumentation, restore and soak",
         "Full provider playback and supported Android/device matrix",
-        "End-to-end v55 update offer/download/install on an eligible older device",
+        "Direct older-client offer, download and installer evidence. Owner confirmed a second-phone update to v55.",
         "Public v58 release and signed feed activation remain staged behind acceptance"
       ],
       "next": null,
