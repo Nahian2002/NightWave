@@ -20,11 +20,12 @@ REQUIRED={
   'if (android.os.Build.VERSION.SDK_INT >= 26 && !packageManager.canRequestPackageInstalls())', 'Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES',
   'FileProvider.getUriForFile(this, "$packageName.updates"', 'Intent.FLAG_GRANT_READ_URI_PERMISSION',
   'state.file != null -> TextButton(onClick =', 'onClick = model::download'],
- 'launcher':['com.nightwave.player.updates.WeeklyUpdates.onOpen(this)'],
+ 'launcher':['com.nightwave.player.updates.WeeklyUpdates.onOpen(this)',
+  'NightWaveQuickActionPill(strings.get(R.string.weekly_check)',
+  'com.nightwave.player.updates.WeeklyUpdateActivity::class.java'],
  'entry':['com.nightwave.player.updates.WeeklyUpdateActivity::class.java']}
 def verify(source):
  assert source['launcher'].index('override fun onResume()') < source['launcher'].index('com.nightwave.player.updates.WeeklyUpdates.onOpen(this)')
- assert 'R.string.weekly_manual_notice' in source['launcher']
  assert 'getLong("checked"' not in source['ui'] and 'putLong(' not in source['ui'], 'Manual checks bypass automatic cooldown'
  for name, markers in REQUIRED.items():
   for marker in markers:assert marker in source[name], (name,marker)

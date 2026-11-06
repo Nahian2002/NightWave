@@ -10,6 +10,8 @@ The version 51 S24 review raised the scoped design and usability rating to 8.9/1
 
 The version 52 S24 comparison raises the scoped design and usability rating to 9.1/10. The first tap opens the mix preview and the Home position is preserved on return. [NW155 evidence](NW155_MIX_PREVIEW.md)
 
+Version 53 organizes the You page into four settings sections and puts Offline music and Check for updates at the top. [NW156 changes and test status](NW156_YOU_LAYOUT.md)
+
 ## Historical checkpoints
 
 

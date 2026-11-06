@@ -9,7 +9,6 @@
     <string name="nw141_analyzes_imported_music_locally_and_reduces_loud_1d727">Analyzes imported music locally and reduces loud tracks. No boosts.</string>
     <string name="nw141_android_session_eq_d8caf">ANDROID SESSION EQ</string>
     <string name="nw141_app_details_2945d">App details</string>
-    <string name="nw141_app_health_efdab">App health</string>
     <string name="nw141_appearance_playback_b9524">Appearance &amp; playback</string>
     <string name="nw141_apply_31e39">Apply</string>
     <string name="nw141_apply_manual_eq_bab04">Apply manual EQ</string>
@@ -93,7 +92,6 @@
     <string name="nw141_frequency_response_96d4f">Frequency response</string>
     <string name="nw141_from_your_music_1e542">From your music</string>
     <string name="nw141_from_your_offline_library_4ddd6">FROM YOUR OFFLINE LIBRARY</string>
-    <string name="nw141_google_drive_optional_f6458">Google Drive · optional</string>
     <string name="nw141_guided_tuning_11bad">Guided tuning</string>
     <string name="nw141_hide_ac20a">Hide</string>
     <string name="nw141_hide_advanced_equalizer_8bf3d">Hide advanced equalizer</string>
@@ -114,7 +112,6 @@
     <string name="nw141_import_your_own_timestamped_lrc_file_for_this_on_af713">Import your own timestamped .lrc file for this on-device copy.</string>
     <string name="nw141_imported_lyrics_53d8c">Imported lyrics</string>
     <string name="nw141_installed_apk_signing_sha_1_3a846">Installed APK signing SHA-1</string>
-    <string name="nw141_interface_c26b3">Interface</string>
     <string name="nw141_less_ae523">Less</string>
     <string name="nw141_library_backup_1e2c2">Library &amp; backup</string>
     <string name="nw141_library_dc20b">Library</string>
@@ -126,7 +123,6 @@
     <string name="nw141_liked_songs_5daa6">Liked songs</string>
     <string name="nw141_listening_history_efe6b">Listening history</string>
     <string name="nw141_listening_level_46dec">Listening level · </string>
-    <string name="nw141_listening_memory_optional_63462">Listening memory · optional</string>
     <string name="nw141_listening_statistics_7d087">Listening statistics</string>
     <string name="nw141_loading_dc380">Loading</string>
     <string name="nw141_local_listening_works_without_a_google_account_af362">Local listening works without a Google account.</string>
@@ -438,8 +434,6 @@
     <string name="nw141_label_c1b676dde5">Undo most recent library edit</string>
     <string name="nw141_label_541341cdd1">Restore last protected change</string>
     <string name="nw141_label_e790f6f996">GOOGLE DRIVE BACKUP</string>
-    <string name="nw141_label_16b7be951b">Open account &amp; backup</string>
-    <string name="nw141_label_d8b404681b">Connection, backup status and privacy</string>
     <string name="nw141_liked_count">%1$s · Chosen by you</string>
     <string name="nw141_playlist_count">%1$s · Your playlist</string>
     <string name="nw141_history_count">%1$s · %2$s history entries · History only</string>
