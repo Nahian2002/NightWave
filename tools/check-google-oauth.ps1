@@ -145,7 +145,7 @@ try {
     # impressions that a stale fingerprint belongs to the current APK.
     @(
         'INCONCLUSIVE - no current verified APK Google OAuth report',
-        'Run build-windows.cmd successfully and then check-google-oauth.cmd.',
+        'Run build-windows.cmd successfully and then tools\windows\check-google-oauth.cmd.',
         'No installed NightWave files or personal music were changed.'
     ) | Set-Content -LiteralPath $report -Encoding UTF8
     Write-Host ('Google OAuth report INCONCLUSIVE: ' + $_.Exception.Message) -ForegroundColor Yellow

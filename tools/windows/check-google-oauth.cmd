@@ -1,8 +1,10 @@
 @echo off
-cd /d "%~dp0"
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0tools\check-google-oauth.ps1" -SelfTest
+setlocal EnableExtensions
+for %%I in ("%~dp0..\..") do set "PROJECT_ROOT=%%~fI"
+cd /d "%PROJECT_ROOT%" || exit /b 1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%PROJECT_ROOT%\tools\check-google-oauth.ps1" -SelfTest
 if errorlevel 1 goto :failed
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0tools\check-google-oauth.ps1"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%PROJECT_ROOT%\tools\check-google-oauth.ps1"
 if errorlevel 1 goto :failed
 echo.
 echo Google OAuth report: dist\NightWave-google-oauth-setup.txt

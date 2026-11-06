@@ -1,7 +1,8 @@
 @echo off
 setlocal EnableExtensions
 title NightWave - Private Android Crash Summary
-cd /d "%~dp0"
+for %%I in ("%~dp0..\..") do set "PROJECT_ROOT=%%~fI"
+cd /d "%PROJECT_ROOT%" || exit /b 1
 echo.
 echo NIGHTWAVE CRASH SUMMARY - READ ONLY
 echo.
@@ -11,7 +12,7 @@ echo.
 echo It never saves a raw all-app log and never resets or changes your phone.
 echo Make sure exactly one phone is connected and USB debugging is approved.
 echo.
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0tools\capture-nightwave-crash.ps1"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%PROJECT_ROOT%\tools\capture-nightwave-crash.ps1"
 set "CAPTURE_RESULT=%ERRORLEVEL%"
 echo.
 if "%CAPTURE_RESULT%"=="0" (

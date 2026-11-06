@@ -210,7 +210,7 @@ $relative = @(
     'docs/NW63_DOWNLOAD_HISTORY_NAVIGATION.md',
     'app/src/test/java/com/nightwave/player/offline/DownloadFileVerificationPolicyTest.kt',
     'tools/check-google-oauth.ps1',
-    'check-google-oauth.cmd',
+    'tools/windows/check-google-oauth.cmd',
     'docs/NW53_GOOGLE_RECOVERY_UX.md',
     'docs/NW54_SEARCH_CLARITY.md',
     'docs/NW55_OFFLINE_DOWNLOAD_VISUAL_POLISH.md',

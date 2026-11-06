@@ -6,6 +6,7 @@
 | Find the matching source | [Version 55 tag](https://github.com/Nahian2002/NightWave/tree/nightwave-v55) |
 | Review the latest changes | [Release notes](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55) and [device evidence](../TEST_REPORT.md) |
 | Build or verify on Windows | [Build guide](BUILD_AND_RELEASE.md) and [tool guide](../tools/README.md) |
+| Find Windows troubleshooting and acceptance launchers | [Windows tools](../tools/windows) |
 | Check test results and coverage | [Test report](../TEST_REPORT.md) and [verification guide](VERIFICATION_MATRIX.md) |
 | Follow product work | [Current roadmap](https://github.com/Nahian2002/NightWave/blob/af4b67228fbb570b9679f10da82be5da2f8601d3/docs/PRODUCT_QUALITY_ROADMAP.md) |
 | Report a problem | [Contribution guide](../CONTRIBUTING.md) or [private security reporting](../SECURITY.md) |

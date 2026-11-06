@@ -55,7 +55,7 @@ NightWave remains an original midnight-themed audio product with restrained teal
 
 The owner has explicitly selected **batch development now, consolidated phone testing at the end**. Accordingly, do not request a new APK install, Samsung recording, or manual acceptance after each phase. Keep writing regression tests and run every **available** automated source/JVM/Android check during development; do not claim Gradle builds or phone tests that have not run. The original roadmap wanted full Windows builds at integration checkpoints; if inaccessible, mark these **pending**, not passed. No phase is called completely verified on source checks alone.
 
-**NW90 evidence:** [Integration and runner-blocker report](NW90_FINAL_INTEGRATION_EVIDENCE.md) · [139-case expanded matrix](NW90_EXPANDED_139_CASE_MATRIX.csv) · [Windows acceptance launcher](../run-nw90-final.cmd). All 139 cases are `NOT_RUN` until independently demonstrated. Feature-source implementation does not mean the owner has accepted or the app is publicly publishable.
+**NW90 evidence:** [Integration and runner-blocker report](NW90_FINAL_INTEGRATION_EVIDENCE.md) · [139-case expanded matrix](NW90_EXPANDED_139_CASE_MATRIX.csv) · [Windows acceptance launcher](../tools/windows/run-nw90-final.cmd). All 139 cases are `NOT_RUN` until independently demonstrated. Feature-source implementation does not mean the owner has accepted or the app is publicly publishable.
 
 At NW90, conduct one comprehensive current-source clean Windows build, full JVM/Android testing, APK signing compatibility, device checks (including the 139-case checklist), Drive upload/readback/restore using disposable data, long playback, accessibility and source/legal reviews. Any failed gate must be fixed before release approval.
 

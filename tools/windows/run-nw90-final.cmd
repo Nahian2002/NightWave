@@ -1,6 +1,7 @@
 @echo off
 setlocal
-cd /d "%~dp0"
+for %%I in ("%~dp0..\..") do set "PROJECT_ROOT=%%~fI"
+cd /d "%PROJECT_ROOT%" || exit /b 1
 echo.
 echo =============================================================
 echo  NIGHTWAVE NW90 - CUMULATIVE WINDOWS QA / PRIVATE DEBUG BUILD
@@ -9,7 +10,7 @@ echo This will NOT install, uninstall, clear, or modify your phone.
 echo No public release or YouTube offline authorization is implied.
 echo.
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0tools\nw90-windows-gate.ps1"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%PROJECT_ROOT%\tools\nw90-windows-gate.ps1"
 if errorlevel 1 (
   echo NW90 matrix/source integrity failed. No Gradle build attempted.
   echo Review dist\NightWave-NW90-gate.txt
@@ -19,15 +20,15 @@ if errorlevel 1 (
 
 echo.
 echo Running the existing full Windows debug build and JVM certification...
-call "%~dp0build-windows.cmd"
+call "%PROJECT_ROOT%\build-windows.cmd"
 if errorlevel 1 (
   echo NW90 current-branch Android build DID NOT pass.
-  echo Run send-build-report.cmd and share fresh redacted diagnostic only.
+  echo Run tools\windows\send-build-report.cmd and share fresh redacted diagnostic only.
   pause
   exit /b 2
 )
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0tools\nw90-windows-gate.ps1" -AfterBuild
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%PROJECT_ROOT%\tools\nw90-windows-gate.ps1" -AfterBuild
 if errorlevel 1 (
   echo NW90 post-build integrity FAILED. Do NOT install any APK.
   pause
