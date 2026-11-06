@@ -164,7 +164,7 @@
       "source_commit": "73b4542a3290a13469e48989c7ad25eba362798a",
       "apk_sha256": "5C7C0B5C2EBC0BECE18C8AF730F6EFD9B07B73E126637931B1751178FDB4EAE2",
       "host_checks": "PASS_WINDOWS_1888_JVM_94_SOURCE_LINT",
-      "device_checks": "PASS_SCOPED_S24_UPDATE_OPENVERSE_IN_PLACE",
+      "device_checks": "PASS_SCOPED_S24_UPDATE_FOUR_DISCOVERY_SOURCES_AND_LOCAL_FLAC",
       "release_approved": false,
       "acceptance_prefix": "58-",
       "remaining_blockers": [
@@ -172,10 +172,12 @@
         "Full S24 journeys, Android instrumentation, restore and soak",
         "Full provider playback and supported Android/device matrix",
         "End-to-end v55 update offer/download/install on an eligible older device",
-        "Public v58 release review"
+        "Public v58 release and signed feed activation remain staged behind acceptance"
       ],
       "next": null,
-      "evidence": "docs/MULTISOURCE_NW58_IMPLEMENTATION.md"
+      "evidence": "docs/MULTISOURCE_NW58_IMPLEMENTATION.md",
+      "owner_publication_requested": true,
+      "release_state": "DRAFT_ASSET_BYTE_AND_SHA_VERIFIED_BLOCKING_ACCEPTANCE_OPEN"
     }
   ],
   "update_instructions": "For each delivered batch record exact source/build/artifact hashes and results, update state from PLANNED only with proof, add implementation evidence document and never mark COMPILED as device EXECUTED. Keep PR links and external provider policy evidence."

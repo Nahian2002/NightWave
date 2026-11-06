@@ -13,7 +13,7 @@ The current public release is **version 55** and requires **Android 6.0 or newer
 | Area | Features |
 | --- | --- |
 | Listen | Background audio, queue controls, shuffle, repeat, mini-player and Now Playing |
-| Organize | Import your own audio, build playlists, save tracks and browse listening history |
+| Organize | Import your own audio, including FLAC, build playlists, save tracks and browse listening history |
 | Discover | Browse local mixes and search for public references where sources are available |
 | Customize | Four themes, synchronized lyrics from your own LRC files, and Sound Studio |
 | Back up | Export library metadata locally or use optional Google Drive recovery |

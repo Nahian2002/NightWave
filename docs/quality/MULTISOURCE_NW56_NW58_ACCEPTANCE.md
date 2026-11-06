@@ -56,14 +56,14 @@ This matrix belongs to the new **post-v55 public release track**, not the older 
 | 58-02 | P0 | Full host suite | All relevant JVM/source checks and lint pass with exact counts and source hash. | raw reports, no test disable | PASS 1888 JVM, 94 SOURCE, LINT |
 | 58-03 | P0 | Android execution | Instrumentation tests actually run on S24, not merely compile; failures and skipped tests reported. | runner output and serial | COMPILED, NOT_RUN |
 | 58-04 | P0 | Safe in-place update | Installed vs candidate signer match, backup verified, no data loss after install/restart. | check-device-update + before/after | PASS TWO SAME-SIGNER INSTALLS WITH 34 UNCHANGED FILES EACH |
-| 58-05 | P0 | Core S24 journeys | Home/Search/Library/You/Now Playing/queue/local/offline player work without regression. | scenario recording/screenshots | PARTIAL S24 LIBRARY, SEARCH, PAUSED HOME AND MANUAL UPDATE |
-| 58-06 | P0 | Provider E2E | Search/open/play flow genuinely verified for each enabled provider (or clearly marked blocked). | device result log with IDs | PARTIAL OPENVERSE LIVE S24 RESULTS, PLAYBACK OPEN |
+| 58-05 | P0 | Core S24 journeys | Home/Search/Library/You/Now Playing/queue/local/offline player work without regression. | scenario recording/screenshots | PARTIAL S24 LIBRARY, SEARCH, LOCAL FLAC, PAUSED HOME AND MANUAL UPDATE |
+| 58-06 | P0 | Provider E2E | Search/open/play flow genuinely verified for each enabled provider (or clearly marked blocked). | device result log with IDs | PARTIAL ALL FOUR LIVE S24 DISCOVERY GROUPS, EXTERNAL PLAYBACK OPEN |
 | 58-07 | P0 | Graceful outages | Offline, DNS, 429/503, wrong JSON and dead radio do not crash or substitute wrong source. | controlled failure tests | PARTIAL HOST FAILURES AND S24 TIMEOUT RECOVERY |
 | 58-08 | P1 | Soak/perf | Replay/search/pause/resume >30 minutes with recorded crashes, jank and memory vs v55. | Perfetto/logcat/baselines | NOT_RUN |
 | 58-09 | P0 | Privacy & rights | Updated third-party notice, source attribution, no prohibited caching or claim of full popular catalogs. | manual policy review | PARTIAL OPENVERSE DISCLOSURE AND LINK-ONLY RIGHTS BOUNDARY |
-| 58-10 | P0 | Release integrity | Exact version, signer, SHA, published notes and update feed action verified separately; no accidental feed flip. | pre-release audit receipts | PARTIAL LIVE V55 AND EXACT V58, OLDER CLIENT DOWNLOAD NOT_RUN |
+| 58-10 | P0 | Release integrity | Exact version, signer, SHA, published notes and update feed action verified separately; no accidental feed flip. | pre-release audit receipts | PARTIAL LIVE V55 AND VERIFIED V58 DRAFT, OLDER CLIENT DOWNLOAD NOT_RUN |
 | 58-11 | P0 | Remaining gaps | All FAIL/BLOCKED/NOT_RUN listed honestly; no '100%' for untested results. | status/QA report | PASS EVIDENCE LEDGER, ACCEPTANCE OPEN |
-| 58-12 | P0 | Owner go/no-go | No public APK release/update-channel activation without explicit release approval. | release checklist | NOT_RUN |
+| 58-12 | P0 | Owner go/no-go | No public APK release/update-channel activation without explicit release approval. | release checklist | OWNER REQUEST RECEIVED, BLOCKING ACCEPTANCE OPEN |
 
 ## S24 Ultra scenario seeds
 

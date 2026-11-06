@@ -2,7 +2,7 @@
 
 | Evidence | Result |
 | --- | --- |
-| Version 58 open music candidate | Windows build, 1,888 JVM tests, 94 source checks and lint passed. Android tests compiled. S24 same-signer upgrade, manual update status and live Openverse results passed scoped checks. [NW58 evidence](docs/MULTISOURCE_NW58_IMPLEMENTATION.md) |
+| Version 58 open music candidate | Windows build, 1,888 JVM tests, 94 source checks and lint passed. Android tests compiled. S24 same-signer upgrade, manual update status, live results from all four Search sources and 16-bit/44.1 kHz FLAC import/playback passed scoped checks. [NW58 evidence](docs/MULTISOURCE_NW58_IMPLEMENTATION.md) |
 | Public version 55 | Signed stable feed and exact public APK readback verified. [Release](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55) |
 | Version 57 unified Search candidate | Windows build, 1,883 JVM tests, 94 source checks and lint passed. Same-signer S24 upgrade preserved all 33 backed-up files before launch. Local filter, separate live groups and saved-link relaunch passed scoped device checks. [NW57 evidence](docs/MULTISOURCE_NW57_IMPLEMENTATION.md) |
 | Version 56 multi-source candidate | Windows build, 1,878 JVM tests, 94 source checks and lint passed. Verified v55 to v56 S24 upgrade and scoped live discovery from Audius, PeerTube and Radio Browser. Wider regression and playback acceptance remain open. [NW56 evidence](docs/MULTISOURCE_NW56_IMPLEMENTATION.md) |

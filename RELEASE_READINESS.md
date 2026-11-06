@@ -1,9 +1,10 @@
 # Release and acceptance status
 
-[Version 51](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v51) is the current GitHub release. The app's signed stable feed offers it to compatible older installs. [Version 52](https://github.com/Nahian2002/NightWave/pull/183) is the current S24-tested review build.
+[Version 55](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55) is the current GitHub release and signed stable update. [Version 58](https://github.com/Nahian2002/NightWave/pull/195) is the current S24-tested review build. Its exact APK is staged in a private GitHub draft. Live discovery from Audius, PeerTube, Radio Browser and Openverse and local FLAC import/playback passed on the S24.
 
 | Area | Remaining evidence |
 | --- | --- |
+| Android instrumentation | Execute the applicable suites in an isolated test environment |
 | Devices and accessibility | Smaller screens, older Android, large text and screen-reader journeys |
 | Playback and offline | Longer sessions, route changes, transfer failures and offline playback integrity |
 | Recovery | Disposable backup, restore and account-switch scenarios |

@@ -39,4 +39,13 @@ The Windows preflight wrapper initially treated the successful ADB pull progress
 
 Pending checks include full per-provider end-to-end playback, older Android, accessibility, restore and performance/soak. An eligible older phone is still needed to observe the v55 offer, APK download and Android confirmation end to end. No quality rating change is inferred from host results.
 
+
+## Source and FLAC release follow-up
+
+All four enabled external Search filters returned separate live results in **All permitted** on the S24. A Windows request to each official discovery endpoint also returned results. The phone's Search history matched before and after. These checks cover discovery. They do not certify playback at every external site. Direct Jamendo API access remains disabled. Openverse may link to eligible Jamendo recordings independently. The existing licensed Commons catalog in Offline is a separate route.
+
+NightWave already recognizes FLAC. An original, generated 22-second stereo 16-bit/44.1 kHz file was selected through **Offline music → Import files**. The imported bytes matched the input SHA-256. The Samsung FLAC decoder was observed and Android reported the fixture playing at 12.194 seconds with no media-session error. This verifies normal local FLAC import and playback on the S24. The test file and its imported copy were removed, and the phone returned to Home paused. Higher resolutions, other devices and bit-perfect output were outside the test.
+
+The owner requested publication after testing. GitHub contains a private release draft for the exact build revision and APK in the table. The draft asset was downloaded and matched the full byte count and SHA-256. The stable channel remains on v55 while the older-client updater journey, Android instrumentation execution in an isolated environment, and other blocking acceptance rows remain open. The public tag and stable feed remain separate from the draft.
+
 [Draft PR #195](https://github.com/Nahian2002/NightWave/pull/195)
