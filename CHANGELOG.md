@@ -1,4 +1,16 @@
-# NightWave Changelog
+# NightWave changelog
+
+## Version 52 · review
+
+- Mix previews open directly from Home with the playback action and track list in one sheet.
+- Short mixes use balanced cover tiles. [Device evidence](https://github.com/Nahian2002/NightWave/blob/28d9d9861650363853584c3afa93c4cd30d4b3bf/docs/NW155_MIX_PREVIEW.md)
+
+## Version 51 · public
+
+- Improved Home artwork, compactness, mix presentation and update download handling.
+- Available from the in-app updater and GitHub. [Release notes](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v51)
+
+Earlier entries describe historical builds.
 
 ## 2026-10-28 — NW132 and maintenance
 

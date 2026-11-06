@@ -1,6 +1,6 @@
 # NightWave Security Policy
 
-NightWave is currently a **development project**, not a certified public Android release.
+The [current GitHub release](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v51) receives best-effort maintenance.
 
 ## Responsible disclosure
 
@@ -14,9 +14,9 @@ Maintainers should triage reports privately, reproduce with disposable test data
 
 | Source | Security support |
 | --- | --- |
-| Current private development branch | Best-effort maintenance; no public security SLA |
-| Historical experimental APKs | Not supported for public distribution |
-| Official public release | **None published or certified yet** |
+| Version 51 GitHub release | Best-effort maintenance |
+| Version 52 review build | Development review |
+| Older builds | Reproduce against the current release before filing a report |
 
 Never use a third-party debug APK or a different signing identity to upgrade over an installed app containing private music. Do not uninstall or clear user data to bypass a signer mismatch.
 
