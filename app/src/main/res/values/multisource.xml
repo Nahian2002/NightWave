@@ -1,0 +1,20 @@
+<resources>
+    <string name="multisource_title">Music sources &amp; radio</string>
+    <string name="multisource_consent">Choose where to search. NightWave sends your query only to the sources you select when you tap Search sources.</string>
+    <string name="multisource_query">Track, creator or station</string>
+    <string name="multisource_radio">Live radio</string>
+    <string name="multisource_submit">Search sources</string>
+    <string name="multisource_loading">Searching this source…</string>
+    <string name="multisource_empty">No displayable matches from this source.</string>
+    <string name="multisource_quota">This source is limiting requests. Try again later.</string>
+    <string name="multisource_network">Couldn’t connect to this source.</string>
+    <string name="multisource_timeout">This source took too long to respond.</string>
+    <string name="multisource_restricted">This source refused the request.</string>
+    <string name="multisource_unavailable">This source is unavailable right now.</string>
+    <string name="multisource_jamendo">Jamendo is unavailable pending API eligibility and registration.</string>
+    <string name="multisource_track">Track</string>
+    <string name="multisource_video">Video</string>
+    <string name="multisource_open_provider">Open on provider</string>
+    <string name="multisource_open_station">Open station website</string>
+    <string name="multisource_open_failed">This link couldn’t open. Check that a browser is available.</string>
+</resources>

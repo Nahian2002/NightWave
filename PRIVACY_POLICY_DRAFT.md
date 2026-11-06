@@ -17,6 +17,8 @@ The app does not currently require a dedicated NightWave-operated playback serve
 
 **Public searches and playback.** Requests for online media may be sent to YouTube and third-party public Invidious search providers. These services may receive search terms, video identifiers, IP addresses and request metadata. In-app YouTube web content may operate according to YouTube/Google privacy practices and set first-party website data.
 
+**Music sources and radio.** When you select sources and submit in this separate Search view, Audius, Framasoft's Sepia Search, and Radio Browser receive the query and ordinary connection metadata for the sources selected. Typing, opening the view and changing selections alone do not send a request. This feature holds its query and results in memory and sends no NightWave account, library, Drive or listening history data. Opening a result visits the website shown on the card, which handles its own privacy and playback.
+
 **Google sign-in and Drive.** Connecting a Google account is optional. The code requests `drive.appdata` for NightWave backup and a separately authorized `drive.file` scope for personal file workflows. With explicit action and permissions, library backup metadata or the user's chosen audio may be transferred to the user's Google Drive. Google controls its own service processing and retention. NightWave's code does not intentionally persist OAuth access tokens in its local backup store; this statement still requires runtime verification.
 
 **Diagnostics.** A limited crash summary with error class and filtered NightWave stack locations is stored locally for troubleshooting. Do not send such a report publicly; it may still reveal environment information.

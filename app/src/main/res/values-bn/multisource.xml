@@ -1,0 +1,20 @@
+<resources>
+    <string name="multisource_title">সংগীতের উৎস ও রেডিও</string>
+    <string name="multisource_consent">কোথায় খুঁজবেন বেছে নিন। উৎসে খুঁজুন বোতাম চাপলে NightWave শুধু নির্বাচিত উৎসগুলোতে সার্চ পাঠায়।</string>
+    <string name="multisource_query">গান, নির্মাতা বা স্টেশন</string>
+    <string name="multisource_radio">লাইভ রেডিও</string>
+    <string name="multisource_submit">উৎসে খুঁজুন</string>
+    <string name="multisource_loading">এই উৎসে খোঁজা হচ্ছে…</string>
+    <string name="multisource_empty">এই উৎস থেকে দেখানোর মতো কোনো ফল নেই।</string>
+    <string name="multisource_quota">এই উৎস অনুরোধের সংখ্যা সীমিত করছে। পরে আবার চেষ্টা করুন।</string>
+    <string name="multisource_network">এই উৎসের সঙ্গে সংযোগ করা যায়নি।</string>
+    <string name="multisource_timeout">এই উৎস উত্তর দিতে বেশি সময় নিয়েছে।</string>
+    <string name="multisource_restricted">এই উৎস অনুরোধটি গ্রহণ করেনি।</string>
+    <string name="multisource_unavailable">এই উৎস এখন পাওয়া যাচ্ছে না।</string>
+    <string name="multisource_jamendo">API ব্যবহারের যোগ্যতা ও নিবন্ধন নিশ্চিত হলে Jamendo যোগ করা যাবে।</string>
+    <string name="multisource_track">গান</string>
+    <string name="multisource_video">ভিডিও</string>
+    <string name="multisource_open_provider">উৎসে খুলুন</string>
+    <string name="multisource_open_station">স্টেশনের ওয়েবসাইট খুলুন</string>
+    <string name="multisource_open_failed">লিংকটি খোলা যায়নি। একটি ব্রাউজার আছে কি না দেখুন।</string>
+</resources>

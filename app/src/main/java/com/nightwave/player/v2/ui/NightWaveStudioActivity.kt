@@ -3985,6 +3985,7 @@ internal fun StudioSearch(
     var selectedCreator by rememberSaveable { mutableStateOf<String?>(null) }
     var showAllCreators by rememberSaveable { mutableStateOf(false) }
     var consumedPrefill by rememberSaveable { mutableStateOf("") }
+    var showSources by remember { mutableStateOf(false) }
     LaunchedEffect(state.prefillToken) {
         // Only explicit shortcuts/shared text may replace a draft. Provider responses
         // and pager recreation must never resurrect a query the listener cleared.
@@ -4002,6 +4003,7 @@ internal fun StudioSearch(
     val searchKeyboard = LocalSoftwareKeyboardController.current
     val searchLifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
     val dismissSearchInput = { searchFocus.clearFocus(); searchKeyboard?.hide(); Unit }
+    if (showSources) NightWaveSourcesDialog(query) { showSources = false }
     DisposableEffect(searchLifecycle, searchFocus, searchKeyboard) {
         val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
             if (event == androidx.lifecycle.Lifecycle.Event.ON_STOP) dismissSearchInput()
@@ -4236,6 +4238,14 @@ internal fun StudioSearch(
                         }
                     }
                 }
+            }
+        }
+        item(key = "additional-search-sources") {
+            OutlinedButton(onClick = {
+                dismissSearchInput()
+                showSources = true
+            }, modifier = Modifier.heightIn(min = 48.dp).testTag("multisource-open")) {
+                Text(strings.get(R.string.multisource_title))
             }
         }
         if (selectedCreatorGroup != null && query.isBlank()) {
