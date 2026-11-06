@@ -1,0 +1,173 @@
+{
+  "schema": 1,
+  "plan_id": "nightwave-post-v55-multisource-zero-billing",
+  "plan_created": "2026-11-06",
+  "plan_scope": "documentation only",
+  "feature_status": "NOT_IMPLEMENTED",
+  "baseline": {
+    "release_tag": "nightwave-v55",
+    "release_source_commit": "c569de64cdd618fb6e5593e9b6bc778903a7588e",
+    "release_asset": "NightWave-v55.apk",
+    "release_asset_sha256": "dd0ee037e8949c7325323de3d2ba797f50703937e5b73494f92cd7065befcede",
+    "default_main_at_planning": "8417cf770aee48bad15756ccb3e066f3888b7e22",
+    "source_note": "main and v55 diverged at planning; revalidate then start v56 implementation on verified v55 descendant",
+    "historical_batch_name_collision": [
+      "docs/NW56_THEME_CONTRAST.md",
+      "docs/NW57_HOME_FIRST_FOLD.md",
+      "docs/NW58_PLAYER_OVERLAY.md"
+    ],
+    "baseline_report": "TEST_REPORT.md"
+  },
+  "hard_constraints": {
+    "required_dev_monthly_spend_bdt": 0,
+    "paid_cloud_ci": false,
+    "paid_api": false,
+    "paid_hosting": false,
+    "unrestricted_catalog_claim": false,
+    "no_regression": true,
+    "no_signing_identity_change": true,
+    "no_user_data_reset": true,
+    "no_unapproved_provider_scrape": true,
+    "source_id_preservation": true,
+    "privacy_and_terms_review": true,
+    "public_release_requires_owner_approval": true
+  },
+  "documents": {
+    "master": "docs/MULTISOURCE_NW56_NW58_MASTER_PLAN.md",
+    "acceptance": "docs/quality/MULTISOURCE_NW56_NW58_ACCEPTANCE.md",
+    "device": "docs/MULTISOURCE_S24U_DEVICE_QA.md"
+  },
+  "device": {
+    "owner_device": "Samsung Galaxy S24 Ultra on Windows laptop",
+    "device_connected": "NOT_OBSERVED",
+    "adb_authorized": "NOT_OBSERVED",
+    "in_place_install": "NOT_RUN",
+    "new_apk_tested": "NOT_RUN",
+    "require_signer_and_verified_backup_before_install": true
+  },
+  "providers": [
+    {
+      "id": "local",
+      "intent": "preserve local import/search/playback",
+      "integration": "EXISTING",
+      "offline": "OWNED_ONLY"
+    },
+    {
+      "id": "youtube",
+      "intent": "preserve existing references pending platform policy review",
+      "integration": "EXISTING_REVIEW_REQUIRED",
+      "offline": "NO_EXPANSION"
+    },
+    {
+      "id": "audius",
+      "intent": "free API search/stream where permitted",
+      "integration": "PLANNED_CONDITIONAL",
+      "offline": "REQUIRES_RIGHTS"
+    },
+    {
+      "id": "peertube",
+      "intent": "instance-aware discovery/playback",
+      "integration": "PLANNED_CONDITIONAL",
+      "offline": "REQUIRES_RIGHTS"
+    },
+    {
+      "id": "jamendo",
+      "intent": "noncommercial discovery/playback only if terms compatible",
+      "integration": "PLANNED_CONDITIONAL",
+      "offline": "DISABLED"
+    },
+    {
+      "id": "radio-browser",
+      "intent": "live radio directory/streams",
+      "integration": "PLANNED_CONDITIONAL",
+      "offline": "NO_RECORDING"
+    },
+    {
+      "id": "soundcloud",
+      "intent": "external link only without separate permission",
+      "integration": "NOT_PLANNED_AS_IN_APP_SOURCE",
+      "offline": "DISABLED"
+    },
+    {
+      "id": "spotify",
+      "intent": "external link only",
+      "integration": "NOT_PLANNED_AS_IN_APP_SOURCE",
+      "offline": "DISABLED"
+    }
+  ],
+  "batches": [
+    {
+      "id": "NW56",
+      "name": "Multi-Source Engine",
+      "merged_original": [
+        "NW56",
+        "NW57",
+        "NW58",
+        "NW59",
+        "NW60"
+      ],
+      "depends_on": [],
+      "state": "PLANNED",
+      "source_commit": null,
+      "apk_sha256": null,
+      "host_checks": "NOT_RUN",
+      "device_checks": "NOT_RUN",
+      "provider_terms_checked": "NOT_RUN",
+      "acceptance_prefix": "56-",
+      "remaining_blockers": [
+        "verify current source ancestry",
+        "verify current provider APIs/terms",
+        "verify connected S24"
+      ],
+      "next": "NW57"
+    },
+    {
+      "id": "NW57",
+      "name": "Unified Experience",
+      "merged_original": [
+        "NW61",
+        "NW62",
+        "NW63"
+      ],
+      "depends_on": [
+        "NW56"
+      ],
+      "state": "PLANNED",
+      "source_commit": null,
+      "apk_sha256": null,
+      "host_checks": "NOT_RUN",
+      "device_checks": "NOT_RUN",
+      "acceptance_prefix": "57-",
+      "remaining_blockers": [
+        "NW56 not accepted"
+      ],
+      "next": "NW58"
+    },
+    {
+      "id": "NW58",
+      "name": "Reliability and Public Release QA",
+      "merged_original": [
+        "NW64",
+        "NW65"
+      ],
+      "depends_on": [
+        "NW56",
+        "NW57"
+      ],
+      "state": "PLANNED",
+      "source_commit": null,
+      "apk_sha256": null,
+      "host_checks": "NOT_RUN",
+      "device_checks": "NOT_RUN",
+      "release_approved": false,
+      "acceptance_prefix": "58-",
+      "remaining_blockers": [
+        "NW56 and NW57 not accepted",
+        "full device acceptance pending",
+        "owner release approval pending"
+      ],
+      "next": null
+    }
+  ],
+  "update_instructions": "For each delivered batch record exact source/build/artifact hashes and results, update state from PLANNED only with proof, add implementation evidence document and never mark COMPILED as device EXECUTED. Keep PR links and external provider policy evidence."
+}
