@@ -4048,7 +4048,7 @@ internal fun StudioSearch(
         creatorGroups.firstOrNull { it.name == selectedCreator }
     }
     // Never present results from an older query as results for new typed text.
-    val responseMatchesQuery = SearchResultPresentationPolicy.matches(
+    val responseMatchesQuery = sourceScope == UnifiedSearchScope.MUSIC && SearchResultPresentationPolicy.matches(
         query, mode, state.query, state.mode)
     val searching = responseMatchesQuery && state.loading
     val publicGroups = remember(query, mode, responseMatchesQuery, state.videos) {
@@ -4066,8 +4066,7 @@ internal fun StudioSearch(
     val nw83PageGutter = NightWavePremiumDesignTokens.pageGutterDp(
         androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.toFloat()).dp
     var showSearchDetails by remember(state.query, state.mode, state.details, state.error) { mutableStateOf(false) }
-    if (sourceScope == UnifiedSearchScope.MUSIC && showSearchDetails &&
-        responseMatchesQuery && (state.details.isNotBlank() || state.error.isNotBlank())) {
+    if (showSearchDetails && responseMatchesQuery && (state.details.isNotBlank() || state.error.isNotBlank())) {
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { showSearchDetails = false },
             title = { Text(strings.get(R.string.nw141_search_details_98cbc)) },
