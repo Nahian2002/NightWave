@@ -1,59 +1,29 @@
 # NightWave
 
-An independent Android music player with an original midnight design, local music, playlists, background playback, imported synchronized lyrics, Sound Studio and optional Google Drive backup.
+An independent Android music player for your own audio and saved music references. Built in Kotlin with Jetpack Compose and Media3.
 
-**Repository publication preparation:** [status and remaining gates](SOURCE_PUBLICATION.md) Â· [source/service-use notes](TERMS_AND_SOURCE_USE.md). The app is unchanged by final source-publication preparation. The source is public; no APK is published, and app distribution remains unapproved. See the publication record for verified security settings.
+**[Download for Android](https://github.com/Nahian2002/NightWave/releases/download/nightwave-v51/NightWave-v51.apk)** · [Release notes](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v51) · [Source for this release](https://github.com/Nahian2002/NightWave/tree/nightwave-v51) · [Build guide](docs/BUILD_AND_RELEASE.md)
 
-**Latest maintenance:** [cleanup and focused fixes](docs/REPOSITORY_MAINTENANCE_20261028.md); the product roadmap remains at NW133.
+## Get NightWave
 
-**Current integrated source:** [`main`](https://github.com/Nahian2002/NightWave/tree/main), based on NW126 and the cumulative implementation. **Canonical `main` contains the reviewed cumulative source.**
+The current public release is **version 51** and requires **Android 6.0 or newer**. If your installed copy has the updater, open **You → Check for updates**. Android asks you to confirm the install. For a first install or a build without that button, use the release APK above. Upgrade in place with the matching signer to keep your data.
 
-**28 October 2026 verification:** NW132 clarifies liked, playlist, history and automatic-collection identity, simplifies Library tools and searches all 300 supported songs per playlist. **1,573 JVM tests / 197 suites** and **59 source checks** pass; Android/Compose and instrumentation sources compile. Five new Library screen cases compile only; phone/store/picker acceptance remains pending. See [current verification](TEST_REPORT.md) and [NW132 evidence](docs/NW132_CLEAR_LIBRARY.md).
+## What you can do
 
-**Active next-upgrade plan:** [NW126â€“NW145 product-quality roadmap](docs/PRODUCT_QUALITY_ROADMAP.md), based on the [28 October recording/source audit](docs/audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md). Provisional product rating **6.7/10**; 9.5+ is the target, not an achieved certification. **Next source batch: NW133.** NW126â€“NW132 are locally verified with physical acceptance pending. The audit/plan and gate repair are on [`audit/nightwave-post-nw125-quality-roadmap`](https://github.com/Nahian2002/NightWave/tree/audit/nightwave-post-nw125-quality-roadmap).
-
-**Public release: NO-GO.** Installed-phone signer continuity, Samsung acceptance, production OAuth/Drive restore and source-rights review remain separate gates. A successful build does not authorize distribution or certify phone behavior.
-
-## Start here
-
-- **[NW125 final build and phone-test instructions](docs/NW125_FINAL_CANDIDATE.md)**
-- **[Active NW126â€“NW145 roadmap](docs/PRODUCT_QUALITY_ROADMAP.md)** Â· [structured backlog](docs/quality/NW126_NW145_BACKLOG.json) Â· [80 new acceptance cases](docs/quality/NW126_NW145_ACCEPTANCE.csv)
-- [NW111â€“NW125 implementation history and remaining gates](docs/NW111_NW125_SPOTIFY_QUALITY_ROADMAP.md)
-- [Build and safe update instructions](docs/BUILD_AND_RELEASE.md)
-- [Repository navigation](docs/REPOSITORY_INDEX.md)
-- [Current checks and historical tooling](tools/README.md)
-- [Release readiness](RELEASE_READINESS.md), [security](SECURITY.md), [privacy draft](PRIVACY_POLICY_DRAFT.md)
-
-The cumulative source contains NW122's measured host performance work, NW123's accessibility/large-text improvements, and NW124's user-confirmed playlist text import/export, conservative Commons discovery and sleep-timer improvements. The new audit identifies 32 findings and preserves the original 139-case matrix. The owner's recording supplies useful visual evidence; controlled phone performance, data-preserving upgrade, live restore and playback soak still require the explicit acceptance runs.
-
-## Features
-
-| Area | Development source |
+| Area | Features |
 | --- | --- |
-| Library | Owned/authorized local audio, liked songs, recent history, playlists, folders, sorting and bounded multiselect |
-| Player | Media3 background playback, queue, shuffle/repeat, seeking, mini-player and expanded Now Playing |
-| Lyrics | Explicit local LRC import/review/edit/export, full-screen follow, fine timing and accessible controls |
-| Audio | Sound Studio, session-aware EQ and offline transition controls |
-| Optional Drive | Consented backup, preview/restore and personal audio locker workflows |
-| Discovery | Saved-music search and experimental public-video discovery |
+| Listen | Background audio, queue controls, shuffle, repeat, mini-player and Now Playing |
+| Organize | Import your own audio, build playlists, save tracks and browse listening history |
+| Discover | Browse local mixes and search for public references where sources are available |
+| Customize | Four themes, synchronized lyrics from your own LRC files, and Sound Studio |
+| Back up | Export library metadata locally or use optional Google Drive recovery |
 
-Public video references and playable offline files are separate. Saving a URL does not download audio or grant storage rights. Unsupported or restricted streams can fail. There is no required NightWave server, paid account or subscription.
+Saved public links are references. Offline files and third-party media require the appropriate rights.
 
-## Build on Windows
+## Development
 
-Use a fresh clone or full ZIP of the **current integrated source branch linked above**, then run `build-windows.cmd`. Require a fresh success in `dist/NightWave-build-status.txt`. Before installing, run `check-device-update.cmd` and verify the signer matches the existing app. Preserve playlists, music and settings; never uninstall or clear storage to force an upgrade.
+**Version 52 is the latest device-tested review build.** Its mix previews open in one tap and return to the same Home position when closed. The S24 Ultra review rated design and everyday usability **9.1/10**. Broader compatibility, playback and recovery testing remain open. [Review PR](https://github.com/Nahian2002/NightWave/pull/183) · [Test evidence](https://github.com/Nahian2002/NightWave/blob/28d9d9861650363853584c3afa93c4cd30d4b3bf/docs/NW155_MIX_PREVIEW.md)
 
-Developers can run `python tools/verify_current.py` for structural and Windows preflight checks. The current automated workflow is `.github/workflows/current-android.yml`; `android.yml` is a manually invoked historical diagnostic workflow. Real JVM and Android compilation remain mandatory.
+Build a fresh checkout with `build-windows.cmd`. Run `check-device-update.cmd` before installing over an existing build. For the public APK's exact source, use the release tag. The default branch hosts the project entry points and stable update feed.
 
-| Build identity | Value |
-| --- | --- |
-| Application ID | `com.nightwave.player` |
-| Version | `2.0.0-alpha5s`, code `35` |
-| Android | API 26 minimum, compile/target API 36 |
-| Toolchain | AGP 8.10.1, Gradle 8.11.1, Kotlin 2.0.21, Java 17 target |
-
-## History and license
-
-Previous milestone announcements are preserved in [README history](docs/README_HISTORY_20261027.md); they are not current build instructions. Historical tests, migrations and evidence remain available.
-
-See [LICENSE](LICENSE) and [NOTICE](NOTICE). NightWave is independent of Spotify, Google, YouTube and NewPipe. Public distribution requires separate dependency, privacy and media-rights approval.
+[Repository guide](docs/REPOSITORY_INDEX.md) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [Privacy draft](PRIVACY_POLICY_DRAFT.md) · [License](LICENSE)

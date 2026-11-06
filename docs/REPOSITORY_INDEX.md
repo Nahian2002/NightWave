@@ -1,53 +1,21 @@
-# NightWave — repository navigation
+# Repository guide
 
-**Current implementation baseline:** cumulative NW132 clear Library on [`main`](https://github.com/Nahian2002/NightWave/tree/main). See [NW132 evidence and device protocol](NW132_CLEAR_LIBRARY.md). **Next source batch: NW133.** GitHub default `main` contains current reviewed source; NW126–NW132 physical acceptance remains open.
-
-## Start here
-
-| Purpose | Source |
+| Task | Start here |
 | --- | --- |
-| Source-publication preparation; app unchanged | [Publication status](../SOURCE_PUBLICATION.md), [source-use information](../TERMS_AND_SOURCE_USE.md), [dependency review](publication/DEPENDENCY_REVIEW.md) |
-| Latest cleanup, navigation repair and deleted-file inventory | [Maintenance report](REPOSITORY_MAINTENANCE_20261028.md) |
-| Project overview and limitations | [README](../README.md) |
-| **Final Windows build & phone test** | [NW125 final candidate guide](NW125_FINAL_CANDIDATE.md) |
-| **Active phase plan and true development gates** | [NW126–NW145 roadmap](PRODUCT_QUALITY_ROADMAP.md), [structured backlog](quality/NW126_NW145_BACKLOG.json), [acceptance cases](quality/NW126_NW145_ACCEPTANCE.csv) |
-| Current build identity and acceptance baseline | [NW126 evidence](NW126_BUILD_IDENTITY_BASELINE.md) |
-| Latest compact hierarchy and build evidence | [NW127 evidence](NW127_COMPACT_VISUAL_HIERARCHY.md) |
-| Shared offline shell and latest build evidence | [NW128 evidence](NW128_UNIFIED_OFFLINE_SHELL.md) |
-| Complete local search and latest build evidence | [NW129 evidence](NW129_COMPLETE_LOCAL_SEARCH.md) |
-| Decidable public results and latest evidence | [NW130 evidence](NW130_DECIDABLE_PUBLIC_RESULTS.md) |
-| Purposeful Home and latest evidence | [NW131 evidence](NW131_PURPOSEFUL_HOME.md) |
-| Clear Library identity and latest evidence | [NW132 evidence](NW132_CLEAR_LIBRARY.md) |
-| Detailed current product rating and source/video findings | [28 October audit](audits/2026-10-28_PRODUCT_QUALITY_AUDIT.md) |
-| Windows build, Android signing and release procedure | [Build and release](BUILD_AND_RELEASE.md) |
-| Release risks and blockers | [Release readiness](../RELEASE_READINESS.md) |
-| Exact test status and unrun acceptance cases | [Test report](../TEST_REPORT.md), [Verification matrix](VERIFICATION_MATRIX.md) |
-| Responsible vulnerability reporting | [Security](../SECURITY.md) |
-| Contribution rules | [Contributing](../CONTRIBUTING.md) |
-| Privacy wording still requiring review | [Privacy policy draft](../PRIVACY_POLICY_DRAFT.md) |
-| Repository cleanliness / tracked-file audit | [NW118 hygiene audit](NW118_REPOSITORY_HYGIENE_AUDIT.md) |
-| Windows commands and historical smoke checks | [Tools navigation](../tools/README.md) |
+| Install or update NightWave | [Public release](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v51) |
+| Find the matching source | [Version 51 tag](https://github.com/Nahian2002/NightWave/tree/nightwave-v51) |
+| Review the latest changes | [Version 52 review](https://github.com/Nahian2002/NightWave/pull/183) and [device evidence](https://github.com/Nahian2002/NightWave/blob/28d9d9861650363853584c3afa93c4cd30d4b3bf/docs/NW155_MIX_PREVIEW.md) |
+| Build or verify on Windows | [Build guide](BUILD_AND_RELEASE.md) and [tool guide](../tools/README.md) |
+| Check test results and coverage | [Test report](../TEST_REPORT.md) and [verification guide](VERIFICATION_MATRIX.md) |
+| Follow product work | [Current roadmap](https://github.com/Nahian2002/NightWave/blob/28d9d9861650363853584c3afa93c4cd30d4b3bf/docs/PRODUCT_QUALITY_ROADMAP.md) |
+| Report a problem | [Contribution guide](../CONTRIBUTING.md) or [private security reporting](../SECURITY.md) |
 
-## Source of truth
+`app/src/main` contains production source and resources. JVM and device tests live in `app/src/test` and `app/src/androidTest`. `updates/stable.json` is the signed update status on the default branch. Keep Room schemas, migrations, signing checks and acceptance matrices with the app.
 
-- **Source:** `app/src/main/java/` (production app); `app/src/main/res/` (Android resources); `app/src/main/AndroidManifest.xml` (permissions/components).
-- **JVM tests:** `app/src/test/`; **device tests:** `app/src/androidTest/`. Pure CLI smoke scripts are useful preflights, never substitutes for these suites.
-- **Build rules:** root `build.gradle.kts`, `settings.gradle.kts`, `gradle.properties`, and `app/build.gradle.kts`; **CI:** `.github/workflows/`. Do not delete or alter SDK/signing checks for cosmetic cleanup.
-- **Room schema/migrations and settings:** Treat all as migration evidence; never delete without a verified backwards-compatibility and restore audit.
-- **Current source wave:** NW132 clear Library follows NW131 and completed repository-only publication preparation. NW126–NW132 are locally verified with physical acceptance pending; `main` contains the cumulative source after publication promotion. NW133 is next. Consult the structured backlog and current test report.
+## Historical snapshots
 
-Current automated workflow: `.github/workflows/current-android.yml`; `android.yml` remains a manual historical diagnostic. See [historic check inventory](HISTORICAL_CI_SOURCE_CHECKS_20261027.md).
-
-## Historical material — preserve, don't mistake for current status
-
-- `docs/CURRENT_CUMULATIVE_ROADMAP.md`: historical NW76–NW90 plan. Despite its old filename, it is **not** the current roadmap.
-- `docs/README_LEGACY_PHASE_NOTES.md`: intentionally retained pre-audit phase notes; old branch/ZIP claims are **not** proof of the current APK.
-- `docs/NIGHTWAVE_*.md`, `docs/NW*.md`, and `docs/NIGHTWAVE_V2_*.md`: historic per-phase designs, failure reports, test receipts and implementation notes. Preserve until referential-dependency and audit-retention checks are complete.
-- `tools/verify_*.py`, `tools/nw*.py`, `tools/*Smoke.kt`, and `tools/check-*.ps1`: historical source/regression checks. Some are referenced by CI and Windows launchers; **never batch-delete by age/name**.
-- `run-nw90-final.cmd`, `run-nw91-final.cmd`: preserved historical Windows acceptance entrypoints. For the next release use the current build guide and review these tools' exact SHA compatibility.
-
-## Safe housekeeping conventions
-
-Keep generated Android `build/`, local `.gradle/`, IDE settings, archives, diagnostic logs/dumps, local secrets, APKs and signing keys **outside Git**. `.gitignore` prevents future accidental adds but does not untrack history. Do not store account credentials, OAuth tokens, private playlists or media files in GitHub.
-
-**Build status:** exact current results and hashes are in TEST_REPORT.md; the NW132 baseline has 1,573 executed JVM tests and 59 checks. Screen-test compilation is separate from phone execution. See [current verification](../TEST_REPORT.md). **Release status:** NO-GO pending physical-device validation, installed signer, live restore, source rights and privacy checks. A short recording or passing source checks do not certify the full app.
+- [Earlier README](https://github.com/Nahian2002/NightWave/blob/7667b68535bbdbc09b69350357ba2ca408e0730b/docs/README_HISTORY_20261027.md)
+- [Legacy phase notes](https://github.com/Nahian2002/NightWave/blob/7667b68535bbdbc09b69350357ba2ca408e0730b/docs/README_LEGACY_PHASE_NOTES.md)
+- [Earlier build guide](https://github.com/Nahian2002/NightWave/blob/7667b68535bbdbc09b69350357ba2ca408e0730b/docs/BUILD_AND_RELEASE_HISTORY_20261027.md)
+- [Earlier verification narrative](https://github.com/Nahian2002/NightWave/blob/7667b68535bbdbc09b69350357ba2ca408e0730b/docs/VERIFICATION_MATRIX_HISTORY_20261028.md)
+- [Previous repository index](https://github.com/Nahian2002/NightWave/blob/7667b68535bbdbc09b69350357ba2ca408e0730b/docs/REPOSITORY_INDEX.md)
