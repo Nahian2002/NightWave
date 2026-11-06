@@ -1,3 +1,21 @@
+# Current owner request: NightWave post-v55 multi-source roadmap (2026-11-06)
+
+**PRIORITY OVERRIDE FOR THIS FEATURE TRACK:** The owner has requested **THREE mega-batches only**, `NW56`, `NW57`, `NW58`, implementing zero-billing multi-source discovery, unified playback/library experience, and S24 Ultra/release QA. **These are not the historical NW56–NW58 internal batches.** This roadmap has been **documented only, not coded or tested**.
+
+Before starting *any* new multi-source work read, in order:
+1. [Master execution contract](docs/MULTISOURCE_NW56_NW58_MASTER_PLAN.md) — exact v55 source tag, allowed provider capabilities, zero-cost terms and merged scopes.
+2. [46-case acceptance matrix](docs/quality/MULTISOURCE_NW56_NW58_ACCEPTANCE.md) — blocking evidence requirements.
+3. [Windows + connected S24 Ultra device runbook](docs/MULTISOURCE_S24U_DEVICE_QA.md) — real ADB discovery, safe signing/data preflight, build, instrumentation and regression.
+4. [Machine-readable batch ledger](docs/quality/MULTISOURCE_NW56_NW58_STATUS.json) — batch state, blockers, source proof and next work.
+
+**Critical lineage:** Public release `nightwave-v55` source is commit `c569de64cdd618fb6e5593e9b6bc778903a7588e`. The default `main` history diverges from v55; NEVER implement on `main` merely because it is default, or apply an older historical NW56–58 document. Recheck for a newer authorized release, then base feature implementation on verified v55 or a verified descendant, on a reviewable branch. Do not overwrite/revert the current public release.
+
+**When owner says "start/next" for the multi-source project:** start the first PLANNED eligible mega-batch (`NW56` first), complete the whole batch with host tests and device gates, and record actual evidence. A connected S24 Ultra is a testing opportunity **not** a claim of connected/authorized device or permission to wipe, sign with a different key, alter accounts or install before verified backup. Keep all required infrastructure **৳0/month**. No paid API/CI, no prohibited scraping, no false in-app/offline playback claims, no regression, no public release or update-feed edit without explicit release go-ahead. Block incompatible providers honestly.
+
+The historical product-quality roadmap and NW133 directions below are preserved as evidence for a **different, earlier internal track**; they do not supersede this explicit owner request.
+
+---
+
 # NightWave continuity instructions
 
 Before choosing or implementing an upgrade, read:
