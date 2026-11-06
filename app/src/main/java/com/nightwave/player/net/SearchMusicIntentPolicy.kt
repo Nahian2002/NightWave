@@ -105,6 +105,21 @@ object SearchMusicIntentPolicy {
         return if (explicitMusicCues.any { hasPhrase(title, it) }) -55 else -230
     }
 
+    private val extendedMusicCues = explicitMusicCues + listOf(
+        "song", "soundtrack", "ost", "album", "mix", "instrumental", "concert", "symphony",
+        "compilation", "playlist", "medley", "orchestra"
+    )
+
+    /** Broad matches to long general videos belong in the full list, not the Songs highlights. */
+    fun canHighlightInSongs(query: String, track: VideoPreview): Boolean {
+        if (incidentalNonMusicPenalty(query, track) <= -230) return false
+        if (track.durationSeconds <= 720L) return true
+        val requested = canonical(query)
+        val title = canonical(track.title)
+        return titleCandidates(track).any { it == requested } ||
+            extendedMusicCues.any { hasPhrase(title, it) || hasPhrase(requested, it) }
+    }
+
     fun titleSignal(query: String, track: VideoPreview): Int {
         val wanted = canonical(query)
         if (wanted.isBlank()) return 0

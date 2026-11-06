@@ -22,13 +22,23 @@ class RankedVideoAndRelatedSongsTest {
         val realLife = video(2, "Minecraft VS Real Life – What Minecraft Looks Like in Real Life!",
             "Gaming Channel", 800_000)
         val speedrun = video(3, "Minecraft Speedrunner VS 6 Hunters FINALE", "Creator", 900_000)
+        val longGeneric = video(4, "Minecraft but You Can Equip Anything", "Gaming Channel", 2_000_000)
+            .copy(durationSeconds = 840)
         val groups = SearchResultPresentationPolicy.groupMusic("Minecraft", SearchMode.SONGS,
-            listOf(realLife, speedrun, song))
+            listOf(realLife, speedrun, longGeneric, song))
 
         assertEquals(listOf(song), groups.bestMatches)
-        assertEquals(setOf(realLife, speedrun), groups.moreResults.toSet())
+        assertEquals(setOf(realLife, speedrun, longGeneric), groups.moreResults.toSet())
         assertEquals(0, SearchMusicIntentPolicy.incidentalNonMusicPenalty(
             "Minecraft speedrunner", speedrun))
+    }
+
+    @Test fun exactLongSongsAndSoundtracksRemainEligibleForHighlights() {
+        val exact = video(1, "Echoes", "Pink Floyd").copy(durationSeconds = 1411)
+        val soundtrack = video(2, "Minecraft Original Soundtrack", "C418").copy(durationSeconds = 3000)
+
+        assertEquals(true, SearchMusicIntentPolicy.canHighlightInSongs("Echoes", exact))
+        assertEquals(true, SearchMusicIntentPolicy.canHighlightInSongs("Minecraft", soundtrack))
     }
 
     @Test fun missingViewsKeepProviderTieOrder() {
