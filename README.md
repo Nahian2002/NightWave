@@ -8,7 +8,7 @@ An independent Android music player for your own audio and saved music reference
 
 Version 55 requires **Android 6.0 or newer**. Download the APK above for a first install or to upgrade manually. Install over an existing copy with the matching signing certificate to keep your library and settings. Android asks you to confirm the installation.
 
-**You → Check for updates** uses the signed in-app channel, which currently offers [version 51](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v51).
+**You → Check for updates** uses the signed in-app channel, which currently offers [version 55](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55).
 
 ## What’s new in v55
 
