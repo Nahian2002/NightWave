@@ -113,11 +113,15 @@ object SearchMusicIntentPolicy {
     /** Broad matches to long general videos belong in the full list, not the Songs highlights. */
     fun canHighlightInSongs(query: String, track: VideoPreview): Boolean {
         if (incidentalNonMusicPenalty(query, track) <= -230) return false
-        if (track.durationSeconds <= 720L) return true
         val requested = canonical(query)
         val title = canonical(track.title)
-        return titleCandidates(track).any { it == requested } ||
-            extendedMusicCues.any { hasPhrase(title, it) || hasPhrase(requested, it) }
+        if (titleCandidates(track).any { it == requested } ||
+            extendedMusicCues.any { hasPhrase(title, it) || hasPhrase(requested, it) }) return true
+        if (track.durationSeconds > 720L) return false
+        // For a broad single word, matching a title fragment alone is weak
+        // evidence. A matching artist or a music-tagged channel can corroborate it.
+        val creator = canonical(MusicIdentity.display(track.title, track.author).artistOrCreator)
+        return requested.contains(' ') || creator == requested || canonical(track.author).endsWith(" topic")
     }
 
     fun titleSignal(query: String, track: VideoPreview): Int {
