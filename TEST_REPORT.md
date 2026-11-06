@@ -2,6 +2,7 @@
 
 | Evidence | Result |
 | --- | --- |
+| Version 58 final S24 audit | 24 observed areas, 8.4/10 before and 8.5/10 after scoped fixes. Exact same-signer candidate, Windows build, 1,888 JVM tests, 94 source checks and lint passed. [Final audit](docs/audits/2026-11-06_NW58_S24_FINAL_REVIEW.md) |
 | Version 58 Sources and FLAC candidate | Windows build, 1,888 JVM tests, 94 source checks and lint passed. Android tests compiled. S24 same-signer upgrade, manual update status, live results from all four Search sources and 16-bit/44.1 kHz FLAC import/playback passed scoped checks. The revised Sources and Offline presentation also passed on the S24. [NW58 evidence](docs/MULTISOURCE_NW58_IMPLEMENTATION.md) |
 | Public version 55 | Signed stable feed and exact public APK readback verified. [Release](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55) |
 | Version 57 unified Search candidate | Windows build, 1,883 JVM tests, 94 source checks and lint passed. Same-signer S24 upgrade preserved all 33 backed-up files before launch. Local filter, separate live groups and saved-link relaunch passed scoped device checks. [NW57 evidence](docs/MULTISOURCE_NW57_IMPLEMENTATION.md) |
