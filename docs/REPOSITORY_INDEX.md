@@ -8,6 +8,7 @@
 | Build or verify on Windows | [Build guide](BUILD_AND_RELEASE.md) and [tool guide](../tools/README.md) |
 | Find Windows troubleshooting and acceptance launchers | [Windows tools](../tools/windows) |
 | Check test results and coverage | [Test report](../TEST_REPORT.md) and [verification guide](VERIFICATION_MATRIX.md) |
+| Implement the upcoming zero-billing v56–v58 multi-source track | [Master plan](MULTISOURCE_NW56_NW58_MASTER_PLAN.md) · [acceptance checks](quality/MULTISOURCE_NW56_NW58_ACCEPTANCE.md) · [S24 QA](MULTISOURCE_S24U_DEVICE_QA.md) · [state ledger](quality/MULTISOURCE_NW56_NW58_STATUS.json) |
 | Follow product work | [Current roadmap](https://github.com/Nahian2002/NightWave/blob/af4b67228fbb570b9679f10da82be5da2f8601d3/docs/PRODUCT_QUALITY_ROADMAP.md) |
 | Report a problem | [Contribution guide](../CONTRIBUTING.md) or [private security reporting](../SECURITY.md) |
 
