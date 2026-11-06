@@ -1,0 +1,3 @@
+# NW58 Search, suggestions and visual follow-up
+
+Compare against the verified S24 v58. Retain real public view counts and use them only after relevance. Bound slow fallback attempts and avoid redundant ranking work. Suggest only related tracks already returned or saved, and offer an explicit artist search. Keep the queue, saved files, profile choices, providers and update channel intact. Improve spacing and plain-language labels. Give the existing themes distinct contrast-checked colors and the NightWave waveform adaptive launcher assets. Verify on the S24, then use the Poco for launcher and layout-specific follow-up.
