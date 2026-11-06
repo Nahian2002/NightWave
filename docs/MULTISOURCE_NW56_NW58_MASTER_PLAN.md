@@ -1,6 +1,6 @@
 # NightWave v55 -> v56/v57/v58: zero-billing multi-source execution contract
 
-**Status:** PLANNED / NOT IMPLEMENTED / NOT TESTED. **Owner request:** three high-capacity *mega-batches*, all quality gates retained; absolutely no paid hosting, paid APIs, subscriptions, cloud runners, or unattended purchases.
+**Current status:** See the [batch ledger](quality/MULTISOURCE_NW56_NW58_STATUS.json) and [NW56 evidence](MULTISOURCE_NW56_IMPLEMENTATION.md). The owner requested three batches with all quality gates retained and no paid hosting, paid APIs, subscriptions, cloud runners, or unattended purchases.
 
 > **Important version collision:** Here `NW56`, `NW57` and `NW58` mean the **new public-release version track following [NightWave v55](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55)**. The existing historical files `docs/NW56_THEME_CONTRAST.md`, `NW57_HOME_FIRST_FOLD.md` and `NW58_PLAYER_OVERLAY.md` describe **older internal development batches**, and MUST NOT be treated as these deliverables or overwritten.
 
@@ -99,4 +99,4 @@ Resource budget: no own backend, no GitHub runner billing, no external analytics
 - Report exact changed files, build path/hash, install/app version, tests PASS/FAIL/NOT_RUN, screenshots/logs kept privately, unverified restrictions, and next state.
 - If unexpected missing repo setup/credentials/device authorization, implement every safe independent part and clearly record the blocked checks rather than inventing success.
 
-**Scope freeze:** this roadmap is documentation only; until someone implements/validates the batches, none of NW56–NW58's multi-source features should be advertised as shipped.
+**Release gate:** the batch ledger distinguishes development candidates and device evidence from public release approval.

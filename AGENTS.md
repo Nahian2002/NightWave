@@ -1,3 +1,9 @@
+## Active post-v55 multi-source roadmap
+
+Follow the [master plan](docs/MULTISOURCE_NW56_NW58_MASTER_PLAN.md), [acceptance matrix](docs/quality/MULTISOURCE_NW56_NW58_ACCEPTANCE.md), [S24 runbook](docs/MULTISOURCE_S24U_DEVICE_QA.md) and [status ledger](docs/quality/MULTISOURCE_NW56_NW58_STATUS.json). The active sequence is NW56, NW57, then NW58. These numbers are distinct from the older internal batches with the same names.
+
+The product branch descends from the verified public v55 tag. Keep the default branch and signed feed separate from feature work. See the [NW56 implementation evidence](docs/MULTISOURCE_NW56_IMPLEMENTATION.md) for live provider boundaries, exact build and device results.
+
 ## Current NW157 version 54 App details
 
 Version 54 widens App details and separates the version summary and primary actions from the optional technical receipt. See docs/NW157_APP_DETAILS_PLAN.md for exact build identity, host and private delivery checks, and the pending device run. Version 53 is the last verified S24 install. The public feed still advertises version 51. The feature-by-feature comparison is in docs/NW157_SPOTIFY_COMPARISON.md. No rating promotion without rendered evidence.

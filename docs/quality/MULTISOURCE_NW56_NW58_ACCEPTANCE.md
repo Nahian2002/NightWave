@@ -1,6 +1,6 @@
 # NightWave multi-source v56–v58 acceptance matrix
 
-**Initial state for every case: NOT_RUN.** This is a *future feature plan*, not evidence that any case has passed.
+Cases start as **NOT_RUN**. Current NW56 results refer to the exact [implementation and device evidence](../MULTISOURCE_NW56_IMPLEMENTATION.md). NW57 and NW58 remain planned.
 
 This matrix belongs to the new **post-v55 public release track**, not the older historical internal NW56–NW58 docs. See [master contract](../MULTISOURCE_NW56_NW58_MASTER_PLAN.md), [S24 Ultra runbook](../MULTISOURCE_S24U_DEVICE_QA.md), and [status ledger](MULTISOURCE_NW56_NW58_STATUS.json).
 
@@ -18,24 +18,24 @@ This matrix belongs to the new **post-v55 public release track**, not the older 
 
 | ID | Priority | Area | Pass condition | Required evidence | Status |
 |---|---|---|---|---|---|
-| 56-01 | P0 | Source ancestry | Build code base is a verified v55-tag descendant, not divergent main snapshot. | git rev-parse / merge-base + release hash | NOT_RUN |
-| 56-02 | P0 | Baseline health | Unmodified tag builds locally and documented v55 suites run; failures isolated before feature work. | builder receipts + exact hash | NOT_RUN |
-| 56-03 | P0 | Provider terms | For every source rights, free-tier, permitted playback/offline, attribution, credentials and limits recorded with dated links. | provider contract ledger | NOT_RUN |
-| 56-04 | P0 | No charge | No paid API, paid CI, paid proxy, billable backend, or automatic billing requirement. | gradle+network+account audit | NOT_RUN |
-| 56-05 | P0 | Secrets hygiene | No bearer secret, refresh token or credential embedded in repo/APK/log. | source/config and APK scan | NOT_RUN |
-| 56-06 | P0 | Stable source ID | Two identical titles from different sources never collide; canonical URL preserved. | JVM fixtures | NOT_RUN |
-| 56-07 | P0 | Capability defaults | Unknown/forbidden Offline, Stream or Play never enables action. | permission matrix unit tests | NOT_RUN |
-| 56-08 | P1 | Audius real | Current approved read-only discovery shows genuine tracks, attribution, valid stream if authorized; quotas handled. | live response + S24 playback | NOT_RUN |
-| 56-09 | P1 | PeerTube real | Genuine indexed videos; instance permissions, HTTPS and failure status respected. | two permitted instance fixtures + live | NOT_RUN |
-| 56-10 | P1 | Radio Browser | Searches station directory; live station metadata/streams differentiated from tracks; no recording. | station selection S24 + network | NOT_RUN |
-| 56-11 | P1 | Jamendo conditional | Either licensed noncommercial discovery/streaming verified OR accurately marked BLOCKED; offline not exposed. | terms record + UI screenshot | NOT_RUN |
-| 56-12 | P0 | YouTube isolation | No expanded extraction, prohibited downloads/background, cross-provider API aggregation or mixed unlicensed streams. | source audit + UI navigation | NOT_RUN |
-| 56-13 | P1 | Provider failure isolation | Malformed payload, 429, 503, DNS, timeout, zero matches affect only that source. | mocked integration matrix | NOT_RUN |
-| 56-14 | P1 | Cancellation | Rapid query replace cancels stale requests; only current generation renders. | delay/fast-query simulator | NOT_RUN |
-| 56-15 | P1 | Fast partial UI | One slow source does not block completed permitted sources; bounded concurrency. | timed mocks + Compose | NOT_RUN |
-| 56-16 | P0 | Local regressions | Existing local imports, local search and original public references remain correct. | old tests + S24 golden corpus | NOT_RUN |
-| 56-17 | P1 | Correct provenance | Every card clearly names source, type, actual canonical destination and availability. | screenshot + link click test | NOT_RUN |
-| 56-18 | P1 | Consent/privacy | Only enabled providers receive query; third-party destinations and retained metadata documented. | traffic logging + settings | NOT_RUN |
+| 56-01 | P0 | Source ancestry | Build code base is a verified v55-tag descendant, not divergent main snapshot. | git rev-parse / merge-base + release hash | PASS |
+| 56-02 | P0 | Baseline health | Unmodified tag builds locally and documented v55 suites run; failures isolated before feature work. | builder receipts + exact hash | PASS |
+| 56-03 | P0 | Provider terms | For every source rights, free-tier, permitted playback/offline, attribution, credentials and limits recorded with dated links. | provider contract ledger | PASS FOR READ-ONLY DISCOVERY |
+| 56-04 | P0 | No charge | No paid API, paid CI, paid proxy, billable backend, or automatic billing requirement. | gradle+network+account audit | PASS |
+| 56-05 | P0 | Secrets hygiene | No bearer secret, refresh token or credential embedded in repo/APK/log. | source/config and APK scan | PASS TARGETED SCAN |
+| 56-06 | P0 | Stable source ID | Two identical titles from different sources never collide; canonical URL preserved. | JVM fixtures | PASS |
+| 56-07 | P0 | Capability defaults | Unknown/forbidden Offline, Stream or Play never enables action. | permission matrix unit tests | PASS |
+| 56-08 | P1 | Audius real | Current approved read-only discovery shows genuine tracks, attribution, valid stream if authorized; quotas handled. | live response + S24 playback | DISCOVERY PASS · IN-APP PLAYBACK BLOCKED |
+| 56-09 | P1 | PeerTube real | Genuine indexed videos; instance permissions, HTTPS and failure status respected. | two permitted instance fixtures + live | PASS DISCOVERY AND EXTERNAL HANDOFF |
+| 56-10 | P1 | Radio Browser | Searches station directory; live station metadata/streams differentiated from tracks; no recording. | station selection S24 + network | DISCOVERY PASS · IN-APP RADIO BLOCKED |
+| 56-11 | P1 | Jamendo conditional | Either licensed noncommercial discovery/streaming verified OR accurately marked BLOCKED; offline not exposed. | terms record + UI screenshot | BLOCKED AS DESIGNED |
+| 56-12 | P0 | YouTube isolation | No expanded extraction, prohibited downloads/background, cross-provider API aggregation or mixed unlicensed streams. | source audit + UI navigation | PASS NO EXPANSION |
+| 56-13 | P1 | Provider failure isolation | Malformed payload, 429, 503, DNS, timeout, zero matches affect only that source. | mocked integration matrix | PASS HOST FIXTURES |
+| 56-14 | P1 | Cancellation | Rapid query replace cancels stale requests; only current generation renders. | delay/fast-query simulator | PASS HOST FIXTURES |
+| 56-15 | P1 | Fast partial UI | One slow source does not block completed permitted sources; bounded concurrency. | timed mocks + Compose | PARTIAL HOST PASS · COMPOSE TIMING NOT RUN |
+| 56-16 | P0 | Local regressions | Existing local imports, local search and original public references remain correct. | old tests + S24 golden corpus | PARTIAL S24 NAVIGATION AND LOCAL QUERY · ACTIVE PLAYBACK AND IMPORT OPEN |
+| 56-17 | P1 | Correct provenance | Every card clearly names source, type, actual canonical destination and availability. | screenshot + link click test | PASS SCOPED |
+| 56-18 | P1 | Consent/privacy | Only enabled providers receive query; third-party destinations and retained metadata documented. | traffic logging + settings | PARTIAL HOST ROUTING AND DEVICE UI · WIRE CAPTURE OPEN |
 | 57-01 | P0 | Filter behavior | All supported provider tabs/Local/Radio distinguish source; unsupported sources not deceptively enabled. | Compose/navigation tests | NOT_RUN |
 | 57-02 | P1 | Real result identity | Title, artist, artwork and duration only from actual provider or explicitly marked unknown. | response fixture vs UI | NOT_RUN |
 | 57-03 | P0 | No wrong-song plays | Duplicate titles across sources/versions remain distinct, exact selected ID plays. | cross-source same-title cases | NOT_RUN |

@@ -2,8 +2,8 @@
   "schema": 1,
   "plan_id": "nightwave-post-v55-multisource-zero-billing",
   "plan_created": "2026-11-06",
-  "plan_scope": "documentation only",
-  "feature_status": "NOT_IMPLEMENTED",
+  "plan_scope": "NW56 candidate implemented and verified in scoped host and device checks",
+  "feature_status": "NW56_SCOPED_VERIFIED_FULL_ACCEPTANCE_OPEN",
   "baseline": {
     "release_tag": "nightwave-v55",
     "release_source_commit": "c569de64cdd618fb6e5593e9b6bc778903a7588e",
@@ -39,11 +39,13 @@
   },
   "device": {
     "owner_device": "Samsung Galaxy S24 Ultra on Windows laptop",
-    "device_connected": "NOT_OBSERVED",
-    "adb_authorized": "NOT_OBSERVED",
-    "in_place_install": "NOT_RUN",
-    "new_apk_tested": "NOT_RUN",
-    "require_signer_and_verified_backup_before_install": true
+    "device_connected": "OBSERVED",
+    "adb_authorized": "OBSERVED",
+    "in_place_install": "PASS",
+    "new_apk_tested": "SCOPED_PASS",
+    "require_signer_and_verified_backup_before_install": true,
+    "observed_model": "SM-S928B",
+    "observed_api": 37
   },
   "providers": [
     {
@@ -61,26 +63,26 @@
     {
       "id": "audius",
       "intent": "free API search/stream where permitted",
-      "integration": "PLANNED_CONDITIONAL",
-      "offline": "REQUIRES_RIGHTS"
+      "integration": "LIVE_DISCOVERY_EXTERNAL_ONLY",
+      "offline": "UNAVAILABLE"
     },
     {
       "id": "peertube",
       "intent": "instance-aware discovery/playback",
-      "integration": "PLANNED_CONDITIONAL",
-      "offline": "REQUIRES_RIGHTS"
+      "integration": "LIVE_DISCOVERY_EXTERNAL_ONLY",
+      "offline": "UNAVAILABLE"
     },
     {
       "id": "jamendo",
       "intent": "noncommercial discovery/playback only if terms compatible",
-      "integration": "PLANNED_CONDITIONAL",
+      "integration": "BLOCKED_PENDING_ELIGIBILITY_AND_REGISTRATION",
       "offline": "DISABLED"
     },
     {
       "id": "radio-browser",
       "intent": "live radio directory/streams",
-      "integration": "PLANNED_CONDITIONAL",
-      "offline": "NO_RECORDING"
+      "integration": "LIVE_DISCOVERY_EXTERNAL_ONLY",
+      "offline": "UNAVAILABLE"
     },
     {
       "id": "soundcloud",
@@ -107,19 +109,21 @@
         "NW60"
       ],
       "depends_on": [],
-      "state": "PLANNED",
-      "source_commit": null,
-      "apk_sha256": null,
-      "host_checks": "NOT_RUN",
-      "device_checks": "NOT_RUN",
-      "provider_terms_checked": "NOT_RUN",
+      "state": "SCOPED_VERIFIED_FULL_ACCEPTANCE_OPEN",
+      "source_commit": "bd307a3756ea9d5e4010757943046e56b3d54b15",
+      "apk_sha256": "76D4C7897E9B1F23BBDEC7D126E0D6505EC61E977D37266543E60CD684B4C00F",
+      "host_checks": "PASS_WINDOWS_1878_JVM_94_SOURCE_LINT",
+      "device_checks": "PASS_SCOPED_S24",
+      "provider_terms_checked": "REVIEWED_FOR_READ_ONLY_DISCOVERY",
       "acceptance_prefix": "56-",
       "remaining_blockers": [
-        "verify current source ancestry",
-        "verify current provider APIs/terms",
-        "verify connected S24"
+        "Full existing local import, active playback and original public search device regression",
+        "Independent in-app playback permission and route verification",
+        "Timed Compose, compact and large-text device coverage",
+        "Selected-source wire capture and full accessibility checks"
       ],
-      "next": "NW57"
+      "next": "NW57",
+      "evidence": "docs/MULTISOURCE_NW56_IMPLEMENTATION.md"
     },
     {
       "id": "NW57",
