@@ -36,6 +36,9 @@
     <string name="nw58_find_related">Search this artist</string>
     <string name="nw58_find_videos">Find videos</string>
     <string name="nw58_finding_videos">Finding videos…</string>
+    <string name="nw58_typing_completions">Word suggestions</string>
+    <string name="nw58_typing_matches">Matching songs</string>
+    <string name="nw58_typing_offline_title">%1$s · On device</string>
     <plurals name="nw58_library_matches">
         <item quantity="one">%1$s match in your music</item>
         <item quantity="other">%1$s matches in your music</item>

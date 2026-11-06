@@ -1,9 +1,14 @@
 package com.nightwave.player.offline
 
+import com.nightwave.player.net.SearchTypingQuery
+
 /** Prepared full-corpus metadata only; no file readiness or mutation claim. */
 object OfflineTrackSearch {
     class Prepared internal constructor(private val songs: List<OfflineSong>,
         private val identities: List<OfflineSearchRanking.Prepared>) {
+        internal fun typing(query: SearchTypingQuery, checkpoint: () -> Unit): List<OfflineSong> =
+            query.top(songs, checkpoint, OfflineSong::id) { query.score(identities[it].title) }
+
         fun match(query: String, checkpoint: () -> Unit = {}): List<OfflineSong> {
             val terms = OfflineSearchRanking.terms(query)
             if (terms.isEmpty()) return if (query.isBlank()) songs else emptyList()

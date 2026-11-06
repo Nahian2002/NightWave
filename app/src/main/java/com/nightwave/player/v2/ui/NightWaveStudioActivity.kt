@@ -228,6 +228,9 @@ import com.nightwave.player.net.SearchMode
 import com.nightwave.player.net.LocalMusicCorpusState
 import com.nightwave.player.net.LocalMusicQueryRunner
 import com.nightwave.player.net.LocalMusicSearchResult
+import com.nightwave.player.net.LocalTypingPreview
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import com.nightwave.player.net.SavedTrackSearch
 import com.nightwave.player.net.UnifiedSearchScope
 import com.nightwave.player.net.LocalSearchSuggestions
@@ -4006,6 +4009,7 @@ internal fun StudioSearch(
 ) {
     val strings = rememberNightWaveStrings()
     var query by rememberSaveable { mutableStateOf("") }
+    var searchInput by remember { mutableStateOf(TextFieldValue()) }
     var mode by rememberSaveable { mutableStateOf(SearchMode.SONGS) }
     var selectedCreator by rememberSaveable { mutableStateOf<String?>(null) }
     var showAllCreators by rememberSaveable { mutableStateOf(false) }
@@ -4037,6 +4041,14 @@ internal fun StudioSearch(
         searchLifecycle.addObserver(observer)
         onDispose { searchLifecycle.removeObserver(observer) }
     }
+    val editDraft: (String) -> Unit = {
+        if (it != query && state.loading) onCancelSearch()
+        if (it != query) {
+            sourceState.cancel()
+            query = it
+            selectedCreator = null
+        }
+    }
     val submit = {
         dismissSearchInput()
         val entered = query.trim()
@@ -4049,6 +4061,11 @@ internal fun StudioSearch(
     }
     val index = corpus.index
     val includeLocal = sourceScope == UnifiedSearchScope.MUSIC || sourceScope.showsLocal
+    val showTyping = searchVisible && queryFocused && includeLocal && query.isNotBlank()
+    val typingPreview by produceState<LocalTypingPreview?>(null, showTyping, query, index, searchHistory) {
+        value = null
+        if (showTyping) value = LocalMusicQueryRunner.preview(index, query, searchHistory)
+    }
     val localSearch by produceState<LocalMusicSearchResult?>(null, query, index, includeLocal) {
         value = null
         if (includeLocal && query.isNotBlank() && index != null) {
@@ -4114,11 +4131,11 @@ internal fun StudioSearch(
         }
         item {
             OutlinedTextField(
-                value = query, onValueChange = {
-                    if (it != query && state.loading) onCancelSearch()
-                    if (it != query) sourceState.cancel()
-                    query = it.take(160)
-                    selectedCreator = null
+                value = searchInput.takeIf { it.text == query } ?: TextFieldValue(query, TextRange(query.length)),
+                onValueChange = { input ->
+                    val edited = input.text.take(160)
+                    searchInput = input.copy(text = edited)
+                    editDraft(edited)
                 },
                 modifier = Modifier.fillMaxWidth().testTag("nw129-search-query")
                     .onFocusChanged { queryFocused = it.isFocused }
@@ -4147,6 +4164,21 @@ internal fun StudioSearch(
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(onSearch = { submit() })
             )
+        }
+        typingPreview?.takeIf { showTyping && it.query == query && it.index === index }?.let { preview ->
+            item(key = "nw58-typing-preview") {
+                NightWaveSearchTyping(
+                    preview = preview,
+                    playingUrl = playingUrl,
+                    onCompletion = { completion ->
+                        val text = (completion + " ").take(160)
+                        searchInput = TextFieldValue(text, TextRange(text.length))
+                        editDraft(text)
+                    },
+                    onPlay = { song -> dismissSearchInput(); onPlay(song, listOf(song)) },
+                    onOffline = { song -> dismissSearchInput(); onOfflineSearch(song.title, song.id) }
+                )
+            }
         }
         item(key = "nw57-source-filters") {
             NightWaveSourceFilters(sourceScope) { selected ->

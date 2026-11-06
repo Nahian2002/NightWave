@@ -19,6 +19,13 @@ object SavedTrackSearch {
         /** Full ranked membership for the paged local screen, not a playback queue. */
         fun all(query: String, checkpoint: () -> Unit = {}): Matches = findImpl(query, tracks.size, checkpoint)
 
+        internal fun typing(query: SearchTypingQuery, checkpoint: () -> Unit): List<VideoPreview> =
+            query.top(tracks, checkpoint, VideoPreview::url) { i ->
+                val identity = identities[i]
+                val title = query.score(identity.title)
+                if (title > 0) title else query.score(identity.artist) / 2
+            }
+
         private fun findImpl(query: String, limit: Int, checkpoint: () -> Unit): Matches {
             val prepared = SearchRelevancePolicy.prepare(query)
             if (!prepared.valid || limit <= 0) return Matches(emptyList(), 0)

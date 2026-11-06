@@ -15,6 +15,27 @@ object LocalMusicQueryRunner {
             index.search(query) { task.ensureActive() }
         }
     }
+
+    internal suspend fun preview(index: LocalMusicSearchIndex?, query: String,
+        history: List<String>): LocalTypingPreview? {
+        val typed = SearchTypingQuery.parse(query) ?: return null
+        return withContext(Dispatchers.Default) {
+            val task = currentCoroutineContext()
+            val checkpoint = { task.ensureActive() }
+            val saved = index?.typingSaved(typed, checkpoint).orEmpty()
+            val offline = index?.typingOffline(typed, checkpoint).orEmpty()
+            val candidates = buildList {
+                saved.forEach {
+                    val display = MusicIdentity.display(it.title, it.author)
+                    add(display.title)
+                    add(display.artistOrCreator)
+                }
+                offline.forEach { add(it.title) }
+                addAll(history)
+            }
+            LocalTypingPreview(index, query, typed.completions(candidates), saved, offline)
+        }
+    }
 }
 
 data class LocalMusicCorpusState(val revision: Long, val refresh: Int,

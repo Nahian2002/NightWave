@@ -36,6 +36,9 @@
     <string name="nw58_find_related">এই শিল্পীর গান খুঁজুন</string>
     <string name="nw58_find_videos">ভিডিও খুঁজুন</string>
     <string name="nw58_finding_videos">ভিডিও খোঁজা হচ্ছে…</string>
+    <string name="nw58_typing_completions">শব্দের পরামর্শ</string>
+    <string name="nw58_typing_matches">মিলে যাওয়া গান</string>
+    <string name="nw58_typing_offline_title">%1$s · ডিভাইসে</string>
     <plurals name="nw58_library_matches">
         <item quantity="one">আপনার গানে %1$sটি মিল</item>
         <item quantity="other">আপনার গানে %1$sটি মিল</item>
