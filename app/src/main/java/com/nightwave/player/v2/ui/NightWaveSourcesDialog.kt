@@ -55,12 +55,12 @@ import com.nightwave.player.net.DiscoverySource
 import com.nightwave.player.net.DiscoverySources
 
 private class SourcesRequest(val query: String, val sources: Set<DiscoverySource>)
+private val sourceSearch = DiscoverySearch()
 
 @Composable
 internal fun NightWaveSourcesDialog(initialQuery: String, onDismiss: () -> Unit) {
     val context = LocalContext.current
     val strings = rememberNightWaveStrings()
-    val search = remember { DiscoverySearch() }
     var query by remember { mutableStateOf(initialQuery.take(120)) }
     var selected by remember { mutableStateOf(emptySet<DiscoverySource>()) }
     var request by remember { mutableStateOf<SourcesRequest?>(null) }
@@ -75,17 +75,16 @@ internal fun NightWaveSourcesDialog(initialQuery: String, onDismiss: () -> Unit)
         onDispose { lifecycle.removeObserver(observer) }
     }
     LaunchedEffect(active) {
-        if (active != null) search.search(active.query, active.sources).collect { update ->
+        if (active != null) sourceSearch.search(active.query, active.sources).collect { update ->
             if (request === active) outcomes = outcomes + (update.source to update.outcome)
         }
     }
-    val submitted = DiscoverySources.query(query)
-    val canSearch = submitted != null && selected.isNotEmpty() && !pending
+    val submitted = DiscoverySources.query(query)?.takeIf { selected.isNotEmpty() && !pending }
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         val focus = LocalFocusManager.current
         val keyboard = LocalSoftwareKeyboardController.current
         val submit = {
-            if (canSearch && submitted != null) {
+            if (submitted != null) {
                 focus.clearFocus()
                 keyboard?.hide()
                 request = SourcesRequest(submitted, selected)
@@ -154,7 +153,7 @@ internal fun NightWaveSourcesDialog(initialQuery: String, onDismiss: () -> Unit)
                 }
                 item {
                     NightWaveCompactActions {
-                        Button(onClick = submit, enabled = canSearch, modifier = Modifier.heightIn(min = 48.dp)) {
+                        Button(onClick = submit, enabled = submitted != null, modifier = Modifier.heightIn(min = 48.dp)) {
                             Text(strings.get(R.string.multisource_submit))
                         }
                         if (pending) NightWaveMatteTextButton(onClick = { request = null },
