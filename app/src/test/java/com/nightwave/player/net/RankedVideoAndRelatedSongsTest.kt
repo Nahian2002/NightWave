@@ -46,11 +46,11 @@ class RankedVideoAndRelatedSongsTest {
     }
 
     @Test fun videosRecoverSingleEditsBelowLiteralMatches() {
-        val literal = video(1, "Nght Train", views = 40)
+        val literal = video(1, "Nihgt Train", views = 40)
         val typo = video(2, "Night Train", views = 100_000)
         val unrelated = video(3, "Cooking Tutorial", views = 1_000_000)
         assertEquals(listOf(literal, typo, unrelated),
-            SearchRelevancePolicy.rankVideos("Nght Train", listOf(unrelated, typo, literal)))
+            SearchRelevancePolicy.rankVideos("Nihgt Train", listOf(unrelated, typo, literal)))
     }
 
     @Test fun broadSongsOrderPutsCredibleMusicAheadOfPopularGenericVideos() {
