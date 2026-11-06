@@ -1,0 +1,8 @@
+<resources>
+    <string name="nw157_version">সংস্করণ %1$s · বিল্ড %2$s</string>
+    <string name="nw157_reading">ইনস্টল করা সংস্করণ পড়া হচ্ছে…</string>
+    <string name="nw157_identity_unavailable">বিল্ডের পরিচয় পাওয়া যায়নি। সহায়তার জন্য APK ও বিল্ড রসিদ রাখুন।</string>
+    <string name="nw157_copy_details">বিল্ডের তথ্য কপি করুন</string>
+    <string name="nw157_copied">বিল্ডের তথ্য কপি হয়েছে</string>
+    <string name="nw157_technical_details">প্রযুক্তিগত তথ্য</string>
+</resources>
