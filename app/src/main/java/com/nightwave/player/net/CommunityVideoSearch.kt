@@ -23,10 +23,12 @@ class CommunityVideoSearch(
         .readTimeout(5, TimeUnit.SECONDS)
         .build(),
     private val instances: List<String> = listOf(
+        // Start with the host that answered the cold and warm S24 probes.
+        // A failed or empty response still tries the remaining configured hosts.
+        "https://yt.chocolatemoo53.com",
         "https://inv.nadeko.net",
         "https://invidious.nerdvpn.de",
-        "https://invidious.tiekoetter.com",
-        "https://yt.chocolatemoo53.com"
+        "https://invidious.tiekoetter.com"
     )
 ) {
 
