@@ -1,6 +1,7 @@
 @echo off
 setlocal
-cd /d "%~dp0"
+for %%I in ("%~dp0..\..") do set "PROJECT_ROOT=%%~fI"
+cd /d "%PROJECT_ROOT%" || exit /b 1
 echo.
 echo =============================================================
 echo  NIGHTWAVE NW91 - VERIFIED-BUILD ATTEMPT (PRIVATE DEBUG ONLY)
@@ -9,19 +10,19 @@ echo This does NOT install, uninstall, clear, or alter your phone.
 echo.
 echo NW91 fixes source/JUnit evidence acceptance, not media or app data.
 echo.
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0tools\nw90-windows-gate.ps1"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%PROJECT_ROOT%\tools\nw90-windows-gate.ps1"
 if errorlevel 1 (
   echo NW91 inherited source and matrix preflight FAILED.
   pause
   exit /b 1
 )
-call "%~dp0build-windows.cmd"
+call "%PROJECT_ROOT%\build-windows.cmd"
 if errorlevel 1 (
   echo NW91 Gradle/JUnit/APK did NOT certify. Review current dist reports.
   pause
   exit /b 2
 )
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0tools\nw90-windows-gate.ps1" -AfterBuild
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%PROJECT_ROOT%\tools\nw90-windows-gate.ps1" -AfterBuild
 if errorlevel 1 (
   echo NW91 receipt/source fingerprint check FAILED. Do NOT install.
   pause

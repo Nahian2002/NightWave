@@ -1,13 +1,14 @@
 @echo off
 setlocal
-cd /d "%~dp0"
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0tools\nw77-release-check.ps1" -SelfTest
+for %%I in ("%~dp0..\..") do set "PROJECT_ROOT=%%~fI"
+cd /d "%PROJECT_ROOT%" || exit /b 1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%PROJECT_ROOT%\tools\nw77-release-check.ps1" -SelfTest
 if errorlevel 1 (
   echo NW77 release checker self-test failed. No public build approved.
   pause
   exit /b 1
 )
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0tools\nw77-release-check.ps1" -ProjectRoot "%~dp0"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%PROJECT_ROOT%\tools\nw77-release-check.ps1" -ProjectRoot "%PROJECT_ROOT%"
 set "RC=%ERRORLEVEL%"
 if "%RC%"=="2" (
   echo.

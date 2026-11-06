@@ -11,7 +11,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "tools/check-google-oauth.ps1"
-LAUNCHER = ROOT / "check-google-oauth.cmd"
+LAUNCHER = ROOT / "tools/windows/check-google-oauth.cmd"
 BUILD = ROOT / "tools/build-windows.ps1"
 SYNTAX = ROOT / "tools/check-builder-syntax.ps1"
 
