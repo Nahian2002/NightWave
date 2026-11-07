@@ -5,12 +5,8 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import com.nightwave.player.core.VideoLink
-import com.nightwave.player.core.WebSearchRoute
 
 internal object OfficialYouTube {
-    fun search(activity: Activity, query: String): Boolean =
-        open(activity, WebSearchRoute.searchUrl(query))
-
     fun track(activity: Activity, url: String): Boolean =
         VideoLink.normalize(url)?.let { open(activity, it) } ?: false
 

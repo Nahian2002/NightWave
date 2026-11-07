@@ -43,5 +43,10 @@
         <item quantity="one">%1$s match in your music</item>
         <item quantity="other">%1$s matches in your music</item>
     </plurals>
-    <string name="nw55_2_open_youtube_link">Open video</string>
+    <string name="nw55_3_saved_audio_playing">Playing the copy saved on this device.</string>
+    <string name="nw55_3_reference_only">This is a saved link. No playable copy is available on this device.</string>
+    <string name="nw55_3_offline_sources">Offline sources</string>
+    <string name="nw55_3_track_availability">Track availability</string>
+    <string name="nw55_3_search_scope">Find music searches your library, Audius, PeerTube and Openverse.</string>
+    <string name="nw55_3_find_creator">Find music by this creator</string>
 </resources>

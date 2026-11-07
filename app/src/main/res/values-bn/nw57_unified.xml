@@ -43,5 +43,10 @@
         <item quantity="one">আপনার গানে %1$sটি মিল</item>
         <item quantity="other">আপনার গানে %1$sটি মিল</item>
     </plurals>
-    <string name="nw55_2_open_youtube_link">ভিডিও খুলুন</string>
+    <string name="nw55_3_saved_audio_playing">এই ডিভাইসে সংরক্ষিত অডিও চলছে।</string>
+    <string name="nw55_3_reference_only">এটি একটি সংরক্ষিত লিংক। এই ডিভাইসে চালানোর মতো অডিও নেই।</string>
+    <string name="nw55_3_offline_sources">অফলাইন উৎস</string>
+    <string name="nw55_3_track_availability">গানটি পাওয়া যাবে কি না</string>
+    <string name="nw55_3_search_scope">আপনার লাইব্রেরি, Audius, PeerTube ও Openverse-এ গান খুঁজুন।</string>
+    <string name="nw55_3_find_creator">এই শিল্পীর গান খুঁজুন</string>
 </resources>

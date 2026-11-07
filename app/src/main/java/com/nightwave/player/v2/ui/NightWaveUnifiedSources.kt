@@ -62,7 +62,9 @@ import okhttp3.HttpUrl
 private val sourceSearch = DiscoverySearch()
 private const val PREVIEW_RESULTS = 3
 
-internal class UnifiedSourceState(private val store: SavedSourceLinks, private val owner: CoroutineScope) {
+internal class UnifiedSourceState(
+    private val store: SavedSourceLinks, private val owner: CoroutineScope, private val search: DiscoverySearch
+) {
     var request by mutableStateOf<UnifiedSourceRequest?>(null)
         private set
     var outcomes by mutableStateOf(emptyMap<DiscoverySource, DiscoveryOutcome>())
@@ -95,11 +97,13 @@ internal class UnifiedSourceState(private val store: SavedSourceLinks, private v
     }
 
     suspend fun collect(submitted: UnifiedSourceRequest) {
-        sourceSearch.search(submitted.query, submitted.scope.providers).collect { update ->
+        search.search(submitted.query, submitted.scope.providers).collect { update ->
             if (request === submitted) {
                 val outcome = update.outcome
                 val ranked = if (outcome is DiscoveryOutcome.Results) {
-                    DiscoveryOutcome.Results(rankUnifiedSourceResults(submitted.query, outcome.items))
+                    val matches = rankUnifiedSourceResults(submitted.query, outcome.items,
+                        requireMatch = submitted.scope == UnifiedSearchScope.MUSIC)
+                    if (matches.isEmpty()) DiscoveryOutcome.Empty else DiscoveryOutcome.Results(matches)
                 } else outcome
                 outcomes = outcomes + (update.source to ranked)
             }
@@ -127,10 +131,12 @@ internal class UnifiedSourceState(private val store: SavedSourceLinks, private v
 }
 
 @Composable
-internal fun rememberUnifiedSourceState(scope: UnifiedSearchScope, query: String, visible: Boolean): UnifiedSourceState {
+internal fun rememberUnifiedSourceState(
+    scope: UnifiedSearchScope, query: String, visible: Boolean, search: DiscoverySearch? = null
+): UnifiedSourceState {
     val context = LocalContext.current
     val owner = rememberCoroutineScope()
-    val state = remember(context, owner) { UnifiedSourceState(SavedSourceLinks(context), owner) }
+    val state = remember(context, owner, search) { UnifiedSourceState(SavedSourceLinks(context), owner, search ?: sourceSearch) }
     val current = state.request
     LaunchedEffect(state) { state.readLinks() }
     LaunchedEffect(state, current, scope, query, visible) {
@@ -154,7 +160,7 @@ internal fun rememberUnifiedSourceState(scope: UnifiedSearchScope, query: String
 @Composable
 internal fun NightWaveSourceFilters(selected: UnifiedSearchScope, onSelect: (UnifiedSearchScope) -> Unit) {
     val strings = rememberNightWaveStrings()
-    val showsProviders = selected.providers.isNotEmpty()
+    val showsProviders = selected != UnifiedSearchScope.MUSIC && selected.providers.isNotEmpty()
     Column(Modifier.fillMaxWidth().testTag("nw57-source-filters"), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         NightWaveCompactActions {
             SourceScopeChip(UnifiedSearchScope.MUSIC, strings.get(R.string.nw57_music_public), selected == UnifiedSearchScope.MUSIC, onSelect)
@@ -194,10 +200,11 @@ private fun SourceScopeChip(
 }
 
 internal fun LazyListScope.unifiedSourceResults(
-    scope: UnifiedSearchScope, query: String, state: UnifiedSourceState, onSubmit: () -> Unit
+    scope: UnifiedSearchScope, query: String, state: UnifiedSourceState, onSubmit: () -> Unit,
+    showActions: Boolean = true
 ) {
     val request = state.request?.takeIf { it.matches(scope, query) }
-    item(key = "nw57-provider-actions") {
+    if (showActions) item(key = "nw57-provider-actions") {
         val strings = rememberNightWaveStrings()
         var showSourceInfo by rememberSaveable { mutableStateOf(false) }
         Text(strings.get(R.string.nw58_source_intro), Modifier.padding(bottom = 8.dp), style = MaterialTheme.typography.bodySmall,

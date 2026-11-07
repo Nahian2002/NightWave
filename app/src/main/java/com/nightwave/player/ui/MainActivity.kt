@@ -216,8 +216,7 @@ class MainActivity : Activity() {
         binding.forwardButton.setOnClickListener { seekBy(15_000) }
         binding.openButton.setOnClickListener {
             val url = currentVideoUrl ?: return@setOnClickListener
-            try { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
-            catch (_: Exception) { showStatus("No app can open this video link.", true) }
+            if (!OfficialYouTube.track(this, url)) showStatus("No app can open this video link.", true)
         }
         binding.progress.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(bar: SeekBar?, progress: Int, fromUser: Boolean) = Unit
@@ -321,7 +320,8 @@ class MainActivity : Activity() {
             return
         }
         if (YouTubeReleasePolicy.OFFICIAL_ONLY) {
-            if (!OfficialYouTube.search(this, clean)) showStatus("No app can open YouTube.", true)
+            startActivity(Intent(this, com.nightwave.player.v2.ui.NightWaveStudioActivity::class.java)
+                .setAction(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, clean))
             return
         }
         binding.resultsHeading.text = "Searching YouTube"
@@ -408,7 +408,11 @@ class MainActivity : Activity() {
 
     private fun playUrl(url: String, replaceQueue: Boolean = true) {
         if (YouTubeReleasePolicy.OFFICIAL_ONLY) {
-            if (!OfficialYouTube.track(this, url)) showStatus("No app can open this video link.", true)
+            val saved = com.nightwave.player.offline.SearchTrackOfflineIndex.readySong(this, url)
+            if (saved == null) showStatus(getString(R.string.nw55_3_reference_only), true)
+            else startService(Intent(this, PlaybackService::class.java)
+                .setAction(PlaybackService.ACTION_PLAY_OFFLINE)
+                .putExtra(PlaybackService.EXTRA_OFFLINE_ID, saved.id))
             return
         }
         if (replaceQueue) {

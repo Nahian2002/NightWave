@@ -220,6 +220,7 @@ import com.nightwave.player.library.LegacyLibraryTransaction
 import com.nightwave.player.core.VideoLink
 import com.nightwave.player.core.SearchInput
 import com.nightwave.player.core.SearchInputResolver
+import com.nightwave.player.net.DiscoverySearch
 import com.nightwave.player.net.VideoPreview
 import com.nightwave.player.v2.model.NightWaveDesign
 import com.nightwave.player.v2.recommendation.RelatedSongsPolicy
@@ -257,7 +258,6 @@ import com.nightwave.player.v2.library.SmartLibraryPolicy
 import com.nightwave.player.v2.library.SmartLibraryCollection
 import com.nightwave.player.ui.MainActivity
 import com.nightwave.player.ui.YouTubeSearchBrowser
-import com.nightwave.player.ui.OfficialYouTube
 import com.nightwave.player.v2.data.GuestProfileStore
 import com.nightwave.player.v2.data.ProfileDataStoreMirror
 import com.nightwave.player.v2.data.room.NightWaveDatabase
@@ -1487,7 +1487,7 @@ class NightWaveStudioActivity : ComponentActivity() {
         val clean = query.trim().take(160)
         if (clean.isBlank()) return
         if (YouTubeReleasePolicy.OFFICIAL_ONLY) {
-            if (!OfficialYouTube.search(this, clean)) showMessage("No app can open YouTube.")
+            prepareSearch(clean, SearchMode.SONGS)
             return
         }
         youtubeDialog?.dismiss()
@@ -2156,10 +2156,13 @@ class NightWaveStudioActivity : ComponentActivity() {
             is SearchInput.VideoUrl -> {
                 nativeSearchJob?.cancel()
                 nativeSearchGeneration++
-                nativeSearchState = StudioSearchSnapshot(query = clean, mode = mode,
-                    hint = "Open the video in YouTube or play its saved copy.")
-                playSearchedOfflineFirst(VideoPreview("YouTube video", "YouTube", input.url, "", 0L),
-                    emptyList())
+                val video = VideoPreview("YouTube video", "YouTube", input.url, "", 0L)
+                if (YouTubeReleasePolicy.OFFICIAL_ONLY) {
+                    val started = playSavedFromSearch(video)
+                    nativeSearchState = StudioSearchSnapshot(query = clean, mode = mode,
+                        hint = getString(if (started) R.string.nw55_3_saved_audio_playing
+                            else R.string.nw55_3_reference_only))
+                } else playSearchedOfflineFirst(video, emptyList())
                 return
             }
             SearchInput.BadLink -> {
@@ -2171,10 +2174,7 @@ class NightWaveStudioActivity : ComponentActivity() {
             }
             is SearchInput.Keywords -> Unit
         }
-        if (YouTubeReleasePolicy.OFFICIAL_ONLY) {
-            openOfficialSearch(clean)
-            return
-        }
+        if (YouTubeReleasePolicy.OFFICIAL_ONLY) return
         val request = ++nativeSearchGeneration
         nativeSearchJob?.cancel()
         // A retry for the same query should not erase successful public
@@ -2394,7 +2394,10 @@ class NightWaveStudioActivity : ComponentActivity() {
             showMessage("Saved track could not start.")
         }
         if (YouTubeReleasePolicy.OFFICIAL_ONLY) {
-            if (!OfficialYouTube.track(this, video.url)) showMessage("No app can open this YouTube link.")
+            AlertDialog.Builder(this).setTitle(video.title)
+                .setMessage(R.string.nw55_3_reference_only)
+                .setPositiveButton(R.string.nw55_3_offline_sources) { _, _ -> showOfflineSources(video) }
+                .setNegativeButton(android.R.string.cancel, null).show()
             return
         }
         playback.play(video, collection)
@@ -2536,7 +2539,7 @@ class NightWaveStudioActivity : ComponentActivity() {
         }.getOrDefault(false)
         val playLabel = when {
             offlineReady -> "Play saved offline"
-            YouTubeReleasePolicy.OFFICIAL_ONLY -> "Open in YouTube"
+            YouTubeReleasePolicy.OFFICIAL_ONLY -> getString(R.string.nw55_3_track_availability)
             else -> "Play now"
         }
         AlertDialog.Builder(this).setTitle(video.title)
@@ -4076,7 +4079,8 @@ internal fun StudioSearch(
     onUndoSearchRemoval: () -> Unit,
     onClearSearch: () -> Unit,
     onCancelSearch: () -> Unit = {},
-    searchVisible: Boolean = true
+    searchVisible: Boolean = true,
+    discoverySearch: DiscoverySearch? = null
 ) {
     val strings = rememberNightWaveStrings()
     var query by rememberSaveable { mutableStateOf("") }
@@ -4086,7 +4090,7 @@ internal fun StudioSearch(
     var showAllCreators by rememberSaveable { mutableStateOf(false) }
     var consumedPrefill by rememberSaveable { mutableStateOf("") }
     var sourceScope by rememberSaveable { mutableStateOf(UnifiedSearchScope.MUSIC) }
-    val sourceState = rememberUnifiedSourceState(sourceScope, query, searchVisible)
+    val sourceState = rememberUnifiedSourceState(sourceScope, query, searchVisible, discoverySearch)
     LaunchedEffect(state.prefillToken) {
         // Only explicit shortcuts/shared text may replace a draft. Provider responses
         // and pager recreation must never resurrect a query the listener cleared.
@@ -4119,20 +4123,19 @@ internal fun StudioSearch(
             selectedCreator = null
         }
     }
-    val searchYouTube = { entered: String ->
+    val submitMusic = { entered: String, selectedMode: SearchMode ->
         dismissSearchInput()
         onRecordSearch(entered)
-        onPrimarySearch(entered, mode)
+        if (YouTubeReleasePolicy.OFFICIAL_ONLY &&
+            SearchInputResolver.resolve(entered) is SearchInput.Keywords) {
+            sourceState.submit(UnifiedSearchScope.MUSIC, entered)
+        } else onNativeSearch(entered, selectedMode)
     }
     val submit = {
         dismissSearchInput()
         val entered = query.trim()
         if (entered.isNotBlank() && sourceScope == UnifiedSearchScope.MUSIC) {
-            if (YouTubeReleasePolicy.OFFICIAL_ONLY) searchYouTube(entered)
-            else {
-                onRecordSearch(entered)
-                onNativeSearch(entered, mode)
-            }
+            submitMusic(entered, mode)
         } else if (!sourceState.pending) {
             sourceState.submit(sourceScope, entered)
         }
@@ -4263,24 +4266,6 @@ internal fun StudioSearch(
                 )
             }
         }
-        if (YouTubeReleasePolicy.OFFICIAL_ONLY && query.isNotBlank()) {
-            val input = SearchInputResolver.resolve(query)
-            if (input is SearchInput.Keywords || input is SearchInput.VideoUrl) {
-                item(key = "nw55-2-youtube-action") {
-                    Button(
-                        onClick = { searchYouTube(query.trim()) },
-                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
-                            .testTag("nw55-2-youtube-action"),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Icon(Icons.Outlined.Search, contentDescription = null, modifier = Modifier.size(19.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text(strings.get(if (input is SearchInput.VideoUrl) R.string.nw55_2_open_youtube_link
-                            else R.string.nw141_open_youtube_search_027b5))
-                    }
-                }
-            }
-        }
         item(key = "nw57-source-filters") {
             NightWaveSourceFilters(sourceScope) { selected ->
                 if (selected != sourceScope) {
@@ -4388,7 +4373,22 @@ internal fun StudioSearch(
                 }
             }
         }
-        if (query.isNotBlank() && !YouTubeReleasePolicy.OFFICIAL_ONLY) {
+        if (query.isNotBlank() && YouTubeReleasePolicy.OFFICIAL_ONLY) {
+            item(key = "nw55-3-music-search") {
+                NightWaveCompactActions {
+                    Button(onClick = submit, enabled = !sourceState.pending,
+                        modifier = Modifier.heightIn(min = 48.dp).testTag("nw55-3-music-submit")) {
+                        Text(strings.get(R.string.nw141_find_music_0a757))
+                    }
+                    if (sourceState.pending) TextButton(onClick = sourceState::cancel,
+                        modifier = Modifier.heightIn(min = 48.dp)) {
+                        Text(strings.get(R.string.nw141_cancel_search_b5456))
+                    }
+                }
+                Text(strings.get(R.string.nw55_3_search_scope),
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        } else if (query.isNotBlank()) {
             item(key = "search-submit-actions") {
                 Row(Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(9.dp),
@@ -4485,10 +4485,11 @@ internal fun StudioSearch(
                     }
                     OutlinedButton(onClick = {
                         mode = SearchMode.SONGS
-                        onRecordSearch(selectedCreatorGroup.name)
-                        dismissSearchInput(); onPrimarySearch(selectedCreatorGroup.name, SearchMode.SONGS)
+                        val creator = selectedCreatorGroup.name
+                        editDraft(creator)
+                        submitMusic(creator, SearchMode.SONGS)
                     }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
-                        Text(strings.get(R.string.nw141_search_this_creator_on_youtube_1e72c))
+                        Text(strings.get(R.string.nw55_3_find_creator))
                     }
                 }
             }
@@ -4587,8 +4588,7 @@ internal fun StudioSearch(
                             onClick = {
                                 mode = SearchMode.SONGS
                                 query = shortcut.query
-                                onRecordSearch(shortcut.query)
-                                dismissSearchInput(); onPrimarySearch(shortcut.query, SearchMode.SONGS)
+                                submitMusic(shortcut.query, SearchMode.SONGS)
                             }, label = { Text(shortcut.title, maxLines = 1) },
                             modifier = Modifier.heightIn(min = 48.dp))
                     }
@@ -4697,6 +4697,9 @@ internal fun StudioSearch(
             TextButton(onClick = { offlineVisible += 60 }, modifier = Modifier.heightIn(min = 48.dp)) {
                 Text(strings.get(R.string.nw141_show_more_on_device_matches_88d10))
             }
+        }
+        if (YouTubeReleasePolicy.OFFICIAL_ONLY) {
+            unifiedSourceResults(UnifiedSearchScope.MUSIC, query, sourceState, submit, showActions = false)
         }
         if (searching) {
             item(key = "public-search-loading") {
