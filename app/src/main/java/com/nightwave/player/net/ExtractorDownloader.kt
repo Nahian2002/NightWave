@@ -93,9 +93,14 @@ internal fun allowsNewPipePlayback(url: HttpUrl, method: String): Boolean {
         url.password.isNotEmpty() || url.fragment != null) return false
     if (url.host != "www.youtube.com" && url.host != "youtubei.googleapis.com") return false
     return when (method) {
-        "POST" -> url.encodedPath in playerPaths
-        "GET" -> url.host == "www.youtube.com" &&
-            (url.encodedPath in setOf("/watch", "/iframe_api") || playerScript.matches(url.encodedPath))
+        "POST" -> url.encodedPath in playerPaths ||
+            (url.host == "www.youtube.com" && url.encodedPath == "/youtubei/v1/guide")
+        "GET" -> url.host == "www.youtube.com" && (
+            url.encodedPath in setOf("/watch", "/iframe_api", "/sw.js") ||
+                playerScript.matches(url.encodedPath) ||
+                // NewPipe's cold-start web client fallback carries an empty search term.
+                (url.encodedPath == "/results" && url.encodedQuery == "search_query=&ucbcb=1")
+            )
         else -> false
     }
 }

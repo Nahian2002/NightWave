@@ -30,6 +30,15 @@ class YouTubeReleaseBoundaryTest {
         assertFalse(allowsNewPipePlayback("https://www.youtube.com:8443/youtubei/v1/player".toHttpUrl(), "POST"))
     }
 
+    @Test fun coldPlaybackAllowsOnlyNewPipesClientBootstrapRequests() {
+        assertTrue(allowsNewPipePlayback("https://www.youtube.com/sw.js".toHttpUrl(), "GET"))
+        assertTrue(allowsNewPipePlayback("https://www.youtube.com/results?search_query=&ucbcb=1".toHttpUrl(), "GET"))
+        assertTrue(allowsNewPipePlayback("https://www.youtube.com/youtubei/v1/guide".toHttpUrl(), "POST"))
+        assertFalse(allowsNewPipePlayback("https://www.youtube.com/results?search_query=song&ucbcb=1".toHttpUrl(), "GET"))
+        assertFalse(allowsNewPipePlayback("https://youtubei.googleapis.com/results?search_query=&ucbcb=1".toHttpUrl(), "GET"))
+        assertFalse(allowsNewPipePlayback("https://www.youtube.com/sw.js".toHttpUrl(), "POST"))
+    }
+
     @Test fun mediaEndpointRejectsNonAudioPathsAndOffsiteRedirectDestinations() {
         assertTrue(allowsYouTubeAudio("https://rr1.googlevideo.com/videoplayback?expire=123".toHttpUrl()))
         assertFalse(allowsYouTubeAudio("https://rr1.googlevideo.com/other".toHttpUrl()))
