@@ -2,19 +2,20 @@
 
 An independent Android music player for your own audio and saved music references. Built in Kotlin with Jetpack Compose and Media3.
 
-**[Download NightWave 55.4 for Android](https://github.com/Nahian2002/NightWave/releases/download/nightwave-v55.4/NightWave-v55.4.apk)** · [Release notes](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55.4) · [Matching source](https://github.com/Nahian2002/NightWave/tree/nightwave-v55.4) · [Build guide](docs/BUILD_AND_RELEASE.md)
+**[Download NightWave 55.5 for Android](https://github.com/Nahian2002/NightWave/releases/download/nightwave-v55.5/NightWave-v55.5.apk)** · [Release notes](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55.5) · [Matching source](https://github.com/Nahian2002/NightWave/tree/nightwave-v55.5) · [Build guide](docs/BUILD_AND_RELEASE.md)
 
 ## Get NightWave
 
-NightWave 55.4 (Android build 63) requires **Android 6.0 or newer**. Download the APK above for a first install or to upgrade manually. Install over an existing copy with the matching signing certificate to keep your library and settings. Android asks you to confirm the installation.
+NightWave 55.5 (Android build 64) requires **Android 6.0 or newer**. Download the APK above for a first install or to upgrade manually. Install over an existing copy with the matching signing certificate to keep your library and settings. Android asks you to confirm the installation.
 
-**You → Check for updates** uses the signed in-app channel, which currently offers [NightWave 55.4](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55.4).
+**You → Check for updates** uses the signed in-app channel, which currently offers [NightWave 55.5](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55.5).
 
-## What’s new in 55.4
+## What’s new in 55.5
 
-- **Find music** displays YouTube search results inside NightWave using NewPipe, with an independent community search fallback.
-- The search screen explains where a submitted query goes. Typing suggestions stay on your device.
-- **Search sources** continues to offer Audius, PeerTube, Radio Browser and Openverse. YouTube search results are references. Offline music uses your own audio and supported sources.
+- The empty Sources view shows its provider controls. Your Music keeps the local search prompt.
+- Library copy explains how to keep songs handy with likes and playlists.
+- Offline volume balancing uses a compatible PCM default on Android 6.0.
+- Windows assembly and lint can run in the same Gradle invocation.
 
 ## What you can do
 
@@ -34,11 +35,11 @@ Routine feature development is paused. The release and test evidence below descr
 
 [Multi-source roadmap archive](docs/MULTISOURCE_NW56_NW58_MASTER_PLAN.md) · [Acceptance record](docs/quality/MULTISOURCE_NW56_NW58_ACCEPTANCE.md) · [Device test runbook](docs/MULTISOURCE_S24U_DEVICE_QA.md)
 
-The `nightwave-v55.4` tag identifies the exact released source. The default branch hosts the signed stable update feed.
+The `nightwave-v55.5` tag identifies the exact released source. The default branch hosts the signed stable update feed.
 
 ## Development
 
-55.4 passed 95 source checks, 1,904 JVM tests and Android lint. The exact signed APK passed an in-place upgrade, search and manual update checks on the S24 Ultra. Broader device coverage remains open. [Release verification](TEST_REPORT.md)
+The [maintenance QA report](https://github.com/Nahian2002/NightWave/blob/nightwave-v55.5/docs/NIGHTWAVE_55_4_MAINTENANCE_QA.md) records the fixes and device coverage. [Release verification](TEST_REPORT.md)
 
 Build a fresh checkout with `build-windows.cmd`. Run `check-device-update.cmd` before installing over an existing build. For the public APK's exact source, use the release tag. The default branch hosts the project entry points and stable update feed.
 

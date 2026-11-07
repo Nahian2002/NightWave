@@ -1,5 +1,11 @@
 # NightWave changelog
 
+## 55.5 · Final maintenance release
+
+- Clarified empty Sources and Library guidance.
+- Fixed combined assembly and lint and guarded the Android 6.0 PCM encoding fallback.
+- Published as Android build 64 on the signed update channel. [Release notes](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55.5)
+
 ## 55.4 · GitHub release
 
 - Restored in-app YouTube metadata search through NewPipe, with an independent community fallback.

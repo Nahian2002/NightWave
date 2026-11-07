@@ -1,6 +1,6 @@
 # Contributing to NightWave
 
-Contributions should preserve user data and keep media and account operations within their existing boundaries. Check the [latest release and source tag](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55.4) before branching.
+Contributions should preserve user data and keep media and account operations within their existing boundaries. Check the [latest release and source tag](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55.5) before branching.
 
 ## Before proposing a change
 

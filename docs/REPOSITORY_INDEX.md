@@ -2,9 +2,9 @@
 
 | Task | Start here |
 | --- | --- |
-| Install or update NightWave | [55.4 release](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55.4) |
-| Find the matching source | [55.4 tag](https://github.com/Nahian2002/NightWave/tree/nightwave-v55.4) |
-| Review the latest changes | [Release notes](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55.4) and [device evidence](../TEST_REPORT.md) |
+| Install or update NightWave | [55.5 release](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55.5) |
+| Find the matching source | [55.5 tag](https://github.com/Nahian2002/NightWave/tree/nightwave-v55.5) |
+| Review the latest changes | [Release notes](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55.5) and [device evidence](../TEST_REPORT.md) |
 | Build or verify on Windows | [Build guide](BUILD_AND_RELEASE.md) and [tool guide](../tools/README.md) |
 | Find Windows troubleshooting and acceptance launchers | [Windows tools](../tools/windows) |
 | Check test results and coverage | [Test report](../TEST_REPORT.md) and [verification guide](VERIFICATION_MATRIX.md) |
