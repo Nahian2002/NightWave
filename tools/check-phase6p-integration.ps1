@@ -46,7 +46,7 @@ $a = @{
     windows = (Source 'tools/build-windows.ps1')
 }
 Require-Token $a.gradle 'applicationId = "com.nightwave.player"' 'app identity'
-Require-Token $a.gradle 'versionCode = 59' 'app version code'
+Require-Token $a.gradle 'versionCode = 60' 'app version code'
 Require-Token $a.svc 'playWhenReady = false' 'no-start-autoplay rule'
 Require-Token $a.svc 'PlaybackTransitionPolicy' 'transition fence'
 Require-Token $a.svc 'EXTRA_QUEUE_DISPLAY_ORDER' 'Library queue-order command'
@@ -57,7 +57,7 @@ Require-Token $a.bridge 'fun playLibraryCollection(collection: List<VideoPreview
 Require-Token $a.bridge 'explicitDisplayOrder = false' 'ordinary song playback semantics'
 Require-Token $a.bridge 'explicitDisplayOrder = true' 'Library playback semantics'
 Require-Token $a.bridge '.putExtra(PlaybackService.EXTRA_QUEUE_DISPLAY_ORDER, explicitDisplayOrder)' 'service handoff'
-Require-Token $a.ui 'onLibraryQuickPlay = { collection -> playback.playLibraryCollection(collection) }' 'quick-play navigation'
+Require-Token $a.ui '} else playback.playLibraryCollection(collection)' 'quick-play navigation'
 Require-Token $a.ui 'onQuickPlay = onLibraryQuickPlay' 'Library quick-play callback'
 Require-Token $a.ui 'plan.first?.let { onQuickPlay(plan.songs) }' 'safe queue nonempty check'
 Require-Token $a.ui 'enabled = quickPlayableTracks.isNotEmpty()' 'no empty quick-play button'

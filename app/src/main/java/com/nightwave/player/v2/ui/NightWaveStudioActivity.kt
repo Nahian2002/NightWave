@@ -1,5 +1,6 @@
 package com.nightwave.player.v2.ui
 
+import com.nightwave.player.core.YouTubeReleasePolicy
 import androidx.compose.foundation.verticalScroll
 
 import com.nightwave.player.R
@@ -219,6 +220,7 @@ import com.nightwave.player.library.LegacyLibraryTransaction
 import com.nightwave.player.core.VideoLink
 import com.nightwave.player.core.SearchInput
 import com.nightwave.player.core.SearchInputResolver
+import com.nightwave.player.net.DiscoverySources
 import com.nightwave.player.net.VideoPreview
 import com.nightwave.player.v2.model.NightWaveDesign
 import com.nightwave.player.v2.recommendation.RelatedSongsPolicy
@@ -256,6 +258,7 @@ import com.nightwave.player.v2.library.SmartLibraryPolicy
 import com.nightwave.player.v2.library.SmartLibraryCollection
 import com.nightwave.player.ui.MainActivity
 import com.nightwave.player.ui.YouTubeSearchBrowser
+import com.nightwave.player.ui.OfficialYouTube
 import com.nightwave.player.v2.data.GuestProfileStore
 import com.nightwave.player.v2.data.ProfileDataStoreMirror
 import com.nightwave.player.v2.data.room.NightWaveDatabase
@@ -1348,7 +1351,11 @@ class NightWaveStudioActivity : ComponentActivity() {
                     onWebSearch = { query -> openOfficialSearch(query) },
                     onCancelSearch = { cancelNativeSearch() },
                     onPlay = { video, collection -> playSearchedOfflineFirst(video, collection) },
-                    onLibraryQuickPlay = { collection -> playback.playLibraryCollection(collection) },
+                    onLibraryQuickPlay = { collection ->
+                        if (YouTubeReleasePolicy.OFFICIAL_ONLY) {
+                            collection.firstOrNull()?.let { playSearchedOfflineFirst(it, collection) }
+                        } else playback.playLibraryCollection(collection)
+                    },
                     onLegacyPlayer = { manageLibrary() },
                     onManageFolders = { managePlaylistFolders() },
                     onMovePlaylist = { name -> choosePlaylistFolder(name) },
@@ -1444,7 +1451,8 @@ class NightWaveStudioActivity : ComponentActivity() {
         searchNavigationToken++
         val watchUrl = VideoLink.normalize(shared)
         if (watchUrl != null) {
-            playback.play(VideoPreview("Shared track", "YouTube", watchUrl, "", 0L))
+            playSearchedOfflineFirst(VideoPreview("Shared track", "YouTube", watchUrl, "", 0L),
+                emptyList())
         } else {
             prepareSearch(shared, SearchMode.SONGS)
         }
@@ -1479,6 +1487,10 @@ class NightWaveStudioActivity : ComponentActivity() {
     private fun openOfficialSearch(query: String) {
         val clean = query.trim().take(160)
         if (clean.isBlank()) return
+        if (YouTubeReleasePolicy.OFFICIAL_ONLY) {
+            if (!OfficialYouTube.search(this, clean)) showMessage("No app can open YouTube.")
+            return
+        }
         youtubeDialog?.dismiss()
         youtubeDialog = YouTubeSearchBrowser(this).show(clean) { url ->
             playback.play(VideoPreview("Loading track…", "YouTube", url, "", 0L))
@@ -2146,8 +2158,9 @@ class NightWaveStudioActivity : ComponentActivity() {
                 nativeSearchJob?.cancel()
                 nativeSearchGeneration++
                 nativeSearchState = StudioSearchSnapshot(query = clean, mode = mode,
-                    hint = "Opening this public video in NightWave…")
-                playback.play(VideoPreview("Loading track…", "YouTube", input.url, "", 0L))
+                    hint = "Open the video in YouTube or play its saved copy.")
+                playSearchedOfflineFirst(VideoPreview("YouTube video", "YouTube", input.url, "", 0L),
+                    emptyList())
                 return
             }
             SearchInput.BadLink -> {
@@ -2158,6 +2171,10 @@ class NightWaveStudioActivity : ComponentActivity() {
                 return
             }
             is SearchInput.Keywords -> Unit
+        }
+        if (YouTubeReleasePolicy.OFFICIAL_ONLY) {
+            openOfficialSearch(clean)
+            return
         }
         val request = ++nativeSearchGeneration
         nativeSearchJob?.cancel()
@@ -2375,7 +2392,11 @@ class NightWaveStudioActivity : ComponentActivity() {
                     .putStringArrayListExtra(PlaybackService.EXTRA_OFFLINE_IDS, selection.queueIds))
             }.isSuccess
             if (started) return
-            showMessage("Saved track could not start. Trying online playback.")
+            showMessage("Saved track could not start.")
+        }
+        if (YouTubeReleasePolicy.OFFICIAL_ONLY) {
+            if (!OfficialYouTube.track(this, video.url)) showMessage("No app can open this YouTube link.")
+            return
         }
         playback.play(video, collection)
     }
@@ -2405,6 +2426,10 @@ class NightWaveStudioActivity : ComponentActivity() {
                 }
                 .setNegativeButton("Close", null)
                 .show()
+            return
+        }
+        if (YouTubeReleasePolicy.OFFICIAL_ONLY) {
+            showOfflineSources(video)
             return
         }
         AlertDialog.Builder(this)
@@ -2475,6 +2500,10 @@ class NightWaveStudioActivity : ComponentActivity() {
 
     /** User-intent queue action; never silently mixes online and offline sessions. */
     private fun requestPublicQueueAction(video: VideoPreview, playNext: Boolean) {
+        if (YouTubeReleasePolicy.OFFICIAL_ONLY) {
+            showMessage("Open YouTube to play this track or use a saved copy in Offline.")
+            return
+        }
         val current = playback.state
         if (current.offline) {
             showMessage("Online and offline queues are separate. Switch to online music first.")
@@ -2506,10 +2535,16 @@ class NightWaveStudioActivity : ComponentActivity() {
         val offlineReady = runCatching {
             SearchTrackOfflineIndex.readySong(this, video.url) != null
         }.getOrDefault(false)
+        val playLabel = when {
+            offlineReady -> "Play saved offline"
+            YouTubeReleasePolicy.OFFICIAL_ONLY -> "Open in YouTube"
+            else -> "Play now"
+        }
         AlertDialog.Builder(this).setTitle(video.title)
             .setItems(arrayOf(likeText, "Save to playlist", "Play next",
-                "Add to end of queue", "Play now",
-                if (offlineReady) "Play saved offline" else "Save offline",
+                "Add to end of queue", playLabel,
+                if (offlineReady) "Open saved audio" else if (YouTubeReleasePolicy.OFFICIAL_ONLY)
+                    "Other offline sources" else "Save offline",
                 "Share song link", "Copy song link")) { _, selected ->
                 when (selected) {
                     0 -> { library.toggleFavorite(video); refresh() }
@@ -3491,7 +3526,9 @@ private fun StudioRoot(
                             navigateToTab(StudioTab.SEARCH)
                         },
                         onResumeSpotlight = { song, collection ->
-                            when (SpotlightResumePolicy.choose(
+                            if (YouTubeReleasePolicy.OFFICIAL_ONLY && !playerState.offline) {
+                                onPlay(song, collection)
+                            } else when (SpotlightResumePolicy.choose(
                                 tappedUrl = song.url, currentUrl = playerState.videoUrl,
                                 currentQueueIndex = playerState.queueIndex, offline = playerState.offline,
                                 playing = playerState.playing, buffering = playerState.buffering,
@@ -4089,7 +4126,12 @@ internal fun StudioSearch(
         val entered = query.trim()
         if (entered.isNotBlank() && sourceScope == UnifiedSearchScope.MUSIC) {
             onRecordSearch(entered)
-            onNativeSearch(entered, mode)
+            if (YouTubeReleasePolicy.OFFICIAL_ONLY &&
+                SearchInputResolver.resolve(entered) is SearchInput.Keywords &&
+                DiscoverySources.query(entered) != null) {
+                sourceScope = UnifiedSearchScope.ALL
+                sourceState.submit(UnifiedSearchScope.ALL, entered)
+            } else onNativeSearch(entered, mode)
         } else if (!sourceState.pending) {
             sourceState.submit(sourceScope, entered)
         }
@@ -4307,7 +4349,7 @@ internal fun StudioSearch(
                 TextButton(onClick = onRetryCorpus, modifier = Modifier.heightIn(min = 48.dp)) { Text(strings.get(R.string.nw141_retry_local_music_a4b1b)) }
             }
         }
-        if (query.isNotBlank()) {
+        if (query.isNotBlank() && !YouTubeReleasePolicy.OFFICIAL_ONLY) {
             item(key = "search-mode-selector") {
                 NightWaveCompactActions {
                     FilterChip(selected = mode == SearchMode.SONGS,
@@ -4479,8 +4521,7 @@ internal fun StudioSearch(
                                 query = previous
                                 mode = SearchMode.SONGS
                                 selectedCreator = null
-                                onRecordSearch(previous)
-                                onNativeSearch(previous, SearchMode.SONGS)
+                                submit()
                             },
                             modifier = Modifier.weight(1f).heightIn(min = 48.dp),
                             shape = RoundedCornerShape(13.dp),

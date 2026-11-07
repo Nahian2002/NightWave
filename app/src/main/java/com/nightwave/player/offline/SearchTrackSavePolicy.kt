@@ -1,5 +1,6 @@
 package com.nightwave.player.offline
 
+import com.nightwave.player.core.YouTubeReleasePolicy
 import com.nightwave.player.core.VideoLink
 import java.net.URI
 import java.util.Locale
@@ -13,6 +14,7 @@ object SearchTrackSavePolicy {
     fun canonicalTrack(input: String): String? = VideoLink.normalize(input)
 
     fun safeAudioEndpoint(raw: String): Boolean {
+        if (YouTubeReleasePolicy.OFFICIAL_ONLY) return false
         val uri = runCatching { URI(raw) }.getOrNull() ?: return false
         val host = uri.host?.trimEnd('.')?.lowercase(Locale.ROOT) ?: return false
         return uri.scheme.equals("https", true) &&

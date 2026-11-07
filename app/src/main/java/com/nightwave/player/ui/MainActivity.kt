@@ -1,5 +1,6 @@
 package com.nightwave.player.ui
 
+import com.nightwave.player.core.YouTubeReleasePolicy
 import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
@@ -319,6 +320,10 @@ class MainActivity : Activity() {
             showStatus("Type a song or artist name.", true)
             return
         }
+        if (YouTubeReleasePolicy.OFFICIAL_ONLY) {
+            if (!OfficialYouTube.search(this, clean)) showStatus("No app can open YouTube.", true)
+            return
+        }
         binding.resultsHeading.text = "Searching YouTube"
         showStatus("Choose a video in the YouTube search screen. NightWave will handle playback.")
         websiteDialog?.dismiss()
@@ -350,6 +355,10 @@ class MainActivity : Activity() {
     }
 
     private fun search(query: String) {
+        if (YouTubeReleasePolicy.OFFICIAL_ONLY) {
+            openYouTubeWebsite(query)
+            return
+        }
         val id = ++token
         val selectedMode = searchMode
         page = Page.SEARCH
@@ -398,6 +407,10 @@ class MainActivity : Activity() {
     }
 
     private fun playUrl(url: String, replaceQueue: Boolean = true) {
+        if (YouTubeReleasePolicy.OFFICIAL_ONLY) {
+            if (!OfficialYouTube.track(this, url)) showStatus("No app can open this video link.", true)
+            return
+        }
         if (replaceQueue) {
             val preview = results.firstOrNull { it.url == url }
                 ?: library.recent().firstOrNull { it.url == url }
@@ -1025,6 +1038,10 @@ class MainActivity : Activity() {
                 val url = VideoLink.normalize(input.text.toString())
                 if (url == null) {
                     showStatus("Please enter a valid public YouTube video link.", true)
+                } else if (YouTubeReleasePolicy.OFFICIAL_ONLY) {
+                    val saved = library.recent().firstOrNull { it.url == url }
+                        ?: VideoPreview("YouTube video", "YouTube", url, "", 0L)
+                    showPlaylistPicker(saved)
                 } else {
                     showStatus("Checking song details…")
                     worker.execute {

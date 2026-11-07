@@ -1,5 +1,6 @@
 package com.nightwave.player.offline
 
+import com.nightwave.player.core.YouTubeReleasePolicy
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -42,6 +43,7 @@ class SearchTrackSaveWorker(
             return Result.success(Data.Builder()
                 .putString(SearchTrackSaveQueue.KEY_ID, it.id).build())
         }
+        if (YouTubeReleasePolicy.OFFICIAL_ONLY) return fail(YouTubeReleasePolicy.OFFLINE_UNAVAILABLE)
         return try {
             ensureChannel()
             // Resolve afresh; the transfer validates any retained checkpoint.

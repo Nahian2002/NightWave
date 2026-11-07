@@ -3,7 +3,6 @@ package com.nightwave.player.offline
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SearchTrackSavePolicyTest {
@@ -13,8 +12,8 @@ class SearchTrackSavePolicyTest {
         assertNull(SearchTrackSavePolicy.canonicalTrack("https://youtube.com.evil.test/watch?v=dQw4w9WgXcQ"))
     }
 
-    @Test fun signedAudioEndpointNeverAllowsPrivateOrUntrustedHosts() {
-        assertTrue(SearchTrackSavePolicy.safeAudioEndpoint(
+    @Test fun releaseRejectsEvenSignedYouTubeAudioEndpoints() {
+        assertFalse(SearchTrackSavePolicy.safeAudioEndpoint(
             "https://r2---sn-example.googlevideo.com/videoplayback?expire=12345"))
         assertFalse(SearchTrackSavePolicy.safeAudioEndpoint(
             "http://r2---sn-example.googlevideo.com/videoplayback"))

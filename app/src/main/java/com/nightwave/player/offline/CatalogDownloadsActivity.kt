@@ -1,5 +1,6 @@
 package com.nightwave.player.offline
 
+import com.nightwave.player.core.YouTubeReleasePolicy
 import com.nightwave.player.v2.ui.NightWaveNativeMatte
 import com.nightwave.player.v2.ui.NightWaveNativeMattePolicy
 
@@ -763,7 +764,7 @@ class CatalogDownloadsActivity : NightWaveOfflineShellActivity() {
                     // A historical success record is not an offline file.
                     // Offer recovery of the exact searched recording only
                     // when the local file was later deleted/unavailable.
-                    val restoreUrl = if (isSearch && !actuallySaved &&
+                    val restoreUrl = if (!YouTubeReleasePolicy.OFFICIAL_ONLY && isSearch && !actuallySaved &&
                         !verifyingFiles && !fileCheckFailed)
                         OfflineSaveRetryPolicy.retryUrl(info.tags) else null
                     if (restoreUrl != null) {
@@ -775,7 +776,7 @@ class CatalogDownloadsActivity : NightWaveOfflineShellActivity() {
                     }
                 }
                 else -> {
-                    val retryUrl = if (isSearch)
+                    val retryUrl = if (!YouTubeReleasePolicy.OFFICIAL_ONLY && isSearch)
                         OfflineSaveRetryPolicy.retryUrl(info.tags) else null
                     if (retryUrl != null &&
                         OfflineSaveRetryPolicy.canOfferRetry(
@@ -910,6 +911,10 @@ class CatalogDownloadsActivity : NightWaveOfflineShellActivity() {
 
     private fun confirmSearchRetry(canonicalUrl: String, title: String,
         resumeOf: UUID? = null) {
+        if (YouTubeReleasePolicy.OFFICIAL_ONLY) {
+            overview.text = YouTubeReleasePolicy.OFFLINE_UNAVAILABLE
+            return
+        }
         // WorkInfo exposes only tags (not original worker input). This URL
         // came from one exact validated 11-character video ID. No signed CDN
         // URL, personal data or auth cookie is persisted or retried here.

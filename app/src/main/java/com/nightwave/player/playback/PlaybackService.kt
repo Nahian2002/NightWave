@@ -1,5 +1,6 @@
 package com.nightwave.player.playback
 
+import com.nightwave.player.core.YouTubeReleasePolicy
 import android.media.audiofx.Equalizer
 import android.app.PendingIntent
 import android.content.Intent
@@ -2358,6 +2359,12 @@ class PlaybackService : MediaLibraryService() {
             // Keep pending user intent observable by Media3 Play/Pause.
             // A Pause during extraction must not be reversed at completion.
             playWhenReady = autoPlay
+        }
+        if (YouTubeReleasePolicy.OFFICIAL_ONLY) {
+            generation++
+            exoPlayer?.playWhenReady = false
+            if (autoPlay) savedQueue.recordFailure(entry.url, "Open YouTube to play this track.")
+            return
         }
         if (autoPlay && resumePositionMs == 0L) savedQueue.saveBookmark(entry.url, 0L, 0L)
         val request = ++generation

@@ -1,5 +1,6 @@
 package com.nightwave.player.net
 
+import com.nightwave.player.core.YouTubeReleasePolicy
 import com.nightwave.player.core.VideoLink
 import org.schabi.newpipe.extractor.NewPipe
 import org.schabi.newpipe.extractor.search.SearchInfo
@@ -37,6 +38,7 @@ class YouTubeGateway {
 
     fun search(query: String, mode: SearchMode, forceRefresh: Boolean = false,
         onPhase: (PublicSearchPhase) -> Unit = {}): VideoSearchResults {
+        YouTubeReleasePolicy.requireLegacyAccess()
         val request = PublicSearchRequest.current.get()
         request?.checkActive()
         val text = query.trim().take(160)
@@ -159,6 +161,7 @@ class YouTubeGateway {
      * validates bytes, media tracks and the temporary CDN endpoint.
      */
     fun resolveAudioOnlyForOffline(url: String): PlayableAudio {
+        YouTubeReleasePolicy.requireLegacyAccess()
         val canonical = VideoLink.normalize(url)
             ?: throw IllegalArgumentException("Invalid search track")
         val info = StreamInfo.getInfo(NewPipe.getService("YouTube"), canonical)
@@ -177,6 +180,7 @@ class YouTubeGateway {
     }
 
     fun resolve(url: String): PlayableAudio {
+        YouTubeReleasePolicy.requireLegacyAccess()
         val canonical = VideoLink.normalize(url) ?: throw IllegalArgumentException("Not a supported YouTube video link")
         val info = StreamInfo.getInfo(NewPipe.getService("YouTube"), canonical)
         // Prefer separate audio (least data). Support combined video+audio and live manifests

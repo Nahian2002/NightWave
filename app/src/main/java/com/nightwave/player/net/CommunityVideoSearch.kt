@@ -9,11 +9,7 @@ import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 /**
- * Optional alternate public-video search when direct extractor results fail.
- *
- * Search text is sent to the public Invidious instance that responds.
- * Servers are from https://docs.invidious.io/instances/ (review/update periodically).
- * No Google login, cookies, tokens or stream URLs are sent. This is not a private backend.
+ * Retained search transport for offline fixtures. The app configures no remote instances.
  */
 class CommunityVideoSearch(
     private val client: OkHttpClient = OkHttpClient.Builder()
@@ -22,14 +18,7 @@ class CommunityVideoSearch(
         .connectTimeout(4, TimeUnit.SECONDS)
         .readTimeout(5, TimeUnit.SECONDS)
         .build(),
-    private val instances: List<String> = listOf(
-        // Start with the host that answered the cold and warm S24 probes.
-        // A failed or empty response still tries the remaining configured hosts.
-        "https://yt.chocolatemoo53.com",
-        "https://inv.nadeko.net",
-        "https://invidious.nerdvpn.de",
-        "https://invidious.tiekoetter.com"
-    )
+    private val instances: List<String> = emptyList()
 ) {
 
     data class Result(val videos: List<VideoPreview>, val server: String)

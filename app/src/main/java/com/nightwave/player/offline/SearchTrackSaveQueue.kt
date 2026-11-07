@@ -1,5 +1,6 @@
 package com.nightwave.player.offline
 
+import com.nightwave.player.core.YouTubeReleasePolicy
 import android.content.Context
 import androidx.work.BackoffPolicy
 import androidx.work.Constraints
@@ -25,6 +26,7 @@ object SearchTrackSaveQueue {
     const val KEY_VERIFYING = "nw79_transfer_verifying"
 
     fun enqueue(context: Context, video: VideoPreview): Operation {
+        check(!YouTubeReleasePolicy.OFFICIAL_ONLY) { YouTubeReleasePolicy.OFFLINE_UNAVAILABLE }
         val canonical = SearchTrackSavePolicy.canonicalTrack(video.url)
             ?: throw IllegalArgumentException("Invalid search track URL")
         require(video.title.isNotBlank()) { "Track title is missing" }

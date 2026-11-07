@@ -604,7 +604,7 @@ try {
         '-ApkPath', $apk,
         '-BuildToolsDir', $buildTools,
         '-VersionName', '55.1',
-        '-VersionCode', '59',
+        '-VersionCode', '60',
         '-PreviousApkPath', $previousApk
     )
     if (-not [string]::IsNullOrWhiteSpace($env:NIGHTWAVE_TRUSTED_SIGNER_SHA256)) {
@@ -659,7 +659,7 @@ try {
         'SUCCESS - NightWave Android debug APK locally verified',
         'Package: com.nightwave.player',
         'Version: 55.1',
-        'Version code: 59',
+        'Version code: 60',
         $signerLine,
         $continuityLine,
         "SHA256: $hash",
