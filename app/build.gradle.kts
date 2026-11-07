@@ -110,7 +110,9 @@ android.buildTypes.forEach { type ->
         }
     }
     android.sourceSets.getByName(type.name).assets.srcDir(generated)
-    tasks.matching { it.name == "merge${capitalized}Assets" }.configureEach { dependsOn(provenance) }
+    val assetConsumers = setOf("merge${capitalized}Assets", "generate${capitalized}LintModel",
+        "generate${capitalized}LintReportModel", "lintAnalyze${capitalized}")
+    tasks.matching { it.name in assetConsumers }.configureEach { dependsOn(provenance) }
 }
 
 dependencies {

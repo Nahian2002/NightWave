@@ -4,6 +4,7 @@ import android.media.AudioFormat
 import android.media.MediaCodec
 import android.media.MediaExtractor
 import android.media.MediaFormat
+import android.os.Build
 import android.os.SystemClock
 import android.util.Log
 import java.io.File
@@ -72,7 +73,8 @@ class OfflineLoudnessAnalyzer {
                     MediaCodec.INFO_TRY_AGAIN_LATER -> Unit
                     else -> if (slot >= 0) {
                         val buffer = decoder.getOutputBuffer(slot)
-                        val encoding = if (outputFormat.containsKey(MediaFormat.KEY_PCM_ENCODING))
+                        val encoding = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
+                            outputFormat.containsKey(MediaFormat.KEY_PCM_ENCODING))
                             outputFormat.getInteger(MediaFormat.KEY_PCM_ENCODING)
                             else AudioFormat.ENCODING_PCM_16BIT
                         if (info.size > 0 && buffer != null &&
