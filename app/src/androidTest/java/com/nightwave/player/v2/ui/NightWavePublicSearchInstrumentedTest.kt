@@ -109,6 +109,7 @@ class NightWavePublicSearchInstrumentedTest {
         compose.waitForIdle()
         compose.onNodeWithTag("nw129-search-list").performScrollToNode(hasText("Night Drive"))
         compose.onNodeWithText("Night Drive").assertIsDisplayed()
+        compose.onNodeWithTag("nw129-search-list").performScrollToNode(hasTestTag("nw57-scope-MUSIC"))
         compose.onNodeWithTag("nw57-scope-MUSIC").assertIsSelected()
         compose.runOnIdle { assertEquals("", official); assertEquals("", web); assertEquals(0, retries) }
     }

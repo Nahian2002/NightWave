@@ -143,14 +143,20 @@ class NightWaveMatteAcceptanceInstrumentedTest(
     @Test fun searchInputKeepsTheExactUserSubmittedQueryAndExistingDispatch() {
         var snapshot by mutableStateOf(StudioSearchSnapshot())
         var visible by mutableStateOf(true)
+        val discovery = DiscoverySearch(fetch = { endpoint ->
+            action = endpoint.queryParameter("query") ?: endpoint.queryParameter("search")
+                ?: endpoint.queryParameter("q").orEmpty()
+            DiscoveryResponse(200, if (endpoint.host == "api.openverse.org") """{"results":[]}""" else """{"data":[]}""")
+        })
         fixture {
             val holder = androidx.compose.runtime.saveable.rememberSaveableStateHolder()
             if (visible) holder.SaveableStateProvider("search") {
                 StudioSearch(Modifier, snapshot, onPrimarySearch = { _, _ -> },
-                    onNativeSearch = { query, _ -> action = query }, onWebSearch = {}, onPlay = { _, _ -> },
+                    onNativeSearch = { _, _ -> }, onWebSearch = {}, onPlay = { _, _ -> },
                     onSongOptions = {}, playingUrl = "", corpus = LocalMusicCorpusState(0L, 0, failed = true),
                     onRetryCorpus = {}, onOfflineSearch = { _, _ -> }, searchHistory = emptyList(), canUndoSearchRemoval = false,
-                    onRecordSearch = {}, onRemoveSearch = {}, onUndoSearchRemoval = {}, onClearSearch = {})
+                    onRecordSearch = {}, onRemoveSearch = {}, onUndoSearchRemoval = {}, onClearSearch = {},
+                    discoverySearch = discovery)
             }
         }
         val field = compose.onNodeWithTag("nw129-search-query")
