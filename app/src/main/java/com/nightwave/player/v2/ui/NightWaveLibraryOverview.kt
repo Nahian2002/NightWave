@@ -35,7 +35,7 @@ internal fun NightWaveLibraryStartCard(hasHistory: Boolean, onFindMusic: () -> U
         shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surface) {
         Column(Modifier.padding(horizontal = 14.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text("Keep your favourites", style = MaterialTheme.typography.titleSmall)
-            Text(if (hasHistory) "Like or playlist a song to save it beyond history."
+            Text(if (hasHistory) "Like a song or add it to a playlist to find it again later."
                 else "Find a song to save, or import your own in Offline music.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
