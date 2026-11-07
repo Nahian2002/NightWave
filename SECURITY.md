@@ -1,6 +1,6 @@
 # NightWave Security Policy
 
-The [current GitHub release](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v51) receives best-effort maintenance.
+The [current GitHub release](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55.4) receives best-effort maintenance.
 
 ## Responsible disclosure
 
@@ -14,8 +14,7 @@ Maintainers should triage reports privately, reproduce with disposable test data
 
 | Source | Security support |
 | --- | --- |
-| Version 51 GitHub release | Best-effort maintenance |
-| Version 52 review build | Development review |
+| 55.4 GitHub release | Best-effort maintenance |
 | Older builds | Reproduce against the current release before filing a report |
 
 Never use a third-party debug APK or a different signing identity to upgrade over an installed app containing private music. Do not uninstall or clear user data to bypass a signer mismatch.
@@ -25,7 +24,7 @@ Never use a third-party debug APK or a different signing identity to upgrade ove
 - Local music, playlist metadata, lyrics, and crash summaries can contain sensitive personal information. Share redacted reproduction steps, not real music files, access tokens, account email addresses, or private paths.
 - Google authorization uses narrow Drive scopes; a granted permission and the user's Drive contents must not be treated as public test data.
 - Outdated external streaming endpoints, third-party services, DRM restrictions and licensing are release risks, not bugs that justify bypassing restrictions.
-- The latest audit is [Public Release Readiness](docs/PUBLIC_RELEASE_READINESS_AUDIT_20261025.md).
+- The initial publication audit is [Public Release Readiness](docs/PUBLIC_RELEASE_READINESS_AUDIT_20261025.md).
 
 **Publication contact:** jayednahian2002@gmail.com (also for privacy inquiries). The maintainer must monitor this inbox. GitHub Private Vulnerability Reporting can be enabled for a public repository; verify its actual setting during the separately approved publication step.
 

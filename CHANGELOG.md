@@ -1,5 +1,11 @@
 # NightWave changelog
 
+## 55.4 · GitHub release
+
+- Restored in-app YouTube metadata search through NewPipe, with an independent community fallback.
+- Added a search notice explaining where submitted queries go.
+- Published as Android build 63 on the signed update channel. [Release notes](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55.4)
+
 ## Version 55 · GitHub release
 
 - Added a reviewable support email draft under You → App & support.

@@ -2,14 +2,14 @@
 
 | Task | Start here |
 | --- | --- |
-| Install or update NightWave | [Version 55 release](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55) |
-| Find the matching source | [Version 55 tag](https://github.com/Nahian2002/NightWave/tree/nightwave-v55) |
-| Review the latest changes | [Release notes](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55) and [device evidence](../TEST_REPORT.md) |
+| Install or update NightWave | [55.4 release](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55.4) |
+| Find the matching source | [55.4 tag](https://github.com/Nahian2002/NightWave/tree/nightwave-v55.4) |
+| Review the latest changes | [Release notes](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55.4) and [device evidence](../TEST_REPORT.md) |
 | Build or verify on Windows | [Build guide](BUILD_AND_RELEASE.md) and [tool guide](../tools/README.md) |
 | Find Windows troubleshooting and acceptance launchers | [Windows tools](../tools/windows) |
 | Check test results and coverage | [Test report](../TEST_REPORT.md) and [verification guide](VERIFICATION_MATRIX.md) |
-| Implement the upcoming zero-billing v56–v58 multi-source track | [Master plan](MULTISOURCE_NW56_NW58_MASTER_PLAN.md) · [acceptance checks](quality/MULTISOURCE_NW56_NW58_ACCEPTANCE.md) · [S24 QA](MULTISOURCE_S24U_DEVICE_QA.md) · [state ledger](quality/MULTISOURCE_NW56_NW58_STATUS.json) |
-| Follow product work | [Current roadmap](https://github.com/Nahian2002/NightWave/blob/af4b67228fbb570b9679f10da82be5da2f8601d3/docs/PRODUCT_QUALITY_ROADMAP.md) |
+| Review the multi-source development history | [Master plan](MULTISOURCE_NW56_NW58_MASTER_PLAN.md) · [acceptance checks](quality/MULTISOURCE_NW56_NW58_ACCEPTANCE.md) · [S24 QA](MULTISOURCE_S24U_DEVICE_QA.md) · [state ledger](quality/MULTISOURCE_NW56_NW58_STATUS.json) |
+| Review planned work | [Archived roadmap](https://github.com/Nahian2002/NightWave/blob/af4b67228fbb570b9679f10da82be5da2f8601d3/docs/PRODUCT_QUALITY_ROADMAP.md) |
 | Report a problem | [Contribution guide](../CONTRIBUTING.md) or [private security reporting](../SECURITY.md) |
 
 `app/src/main` contains production source and resources. JVM and device tests live in `app/src/test` and `app/src/androidTest`. `updates/stable.json` is the signed update status on the default branch. Keep Room schemas, migrations, signing checks and acceptance matrices with the app.
