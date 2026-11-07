@@ -2157,7 +2157,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                 nativeSearchJob?.cancel()
                 nativeSearchGeneration++
                 val video = VideoPreview("YouTube video", "YouTube", input.url, "", 0L)
-                if (YouTubeReleasePolicy.OFFICIAL_ONLY) {
+                if (!YouTubeReleasePolicy.ownerPlaybackEnabled) {
                     val started = playSavedFromSearch(video)
                     nativeSearchState = StudioSearchSnapshot(query = clean, mode = mode,
                         hint = getString(if (started) R.string.nw55_3_saved_audio_playing
@@ -2393,7 +2393,7 @@ class NightWaveStudioActivity : ComponentActivity() {
             if (started) return
             showMessage("Saved track could not start.")
         }
-        if (YouTubeReleasePolicy.OFFICIAL_ONLY) {
+        if (!YouTubeReleasePolicy.ownerPlaybackEnabled) {
             AlertDialog.Builder(this).setTitle(video.title)
                 .setMessage(R.string.nw55_3_reference_only)
                 .setPositiveButton(R.string.nw55_3_offline_sources) { _, _ -> showOfflineSources(video) }
@@ -2502,7 +2502,7 @@ class NightWaveStudioActivity : ComponentActivity() {
 
     /** User-intent queue action; never silently mixes online and offline sessions. */
     private fun requestPublicQueueAction(video: VideoPreview, playNext: Boolean) {
-        if (YouTubeReleasePolicy.OFFICIAL_ONLY) {
+        if (!YouTubeReleasePolicy.ownerPlaybackEnabled) {
             showMessage("Open YouTube to play this track or use a saved copy in Offline.")
             return
         }
@@ -2539,7 +2539,7 @@ class NightWaveStudioActivity : ComponentActivity() {
         }.getOrDefault(false)
         val playLabel = when {
             offlineReady -> "Play saved offline"
-            YouTubeReleasePolicy.OFFICIAL_ONLY -> getString(R.string.nw55_3_track_availability)
+            !YouTubeReleasePolicy.ownerPlaybackEnabled -> getString(R.string.nw55_3_track_availability)
             else -> "Play now"
         }
         AlertDialog.Builder(this).setTitle(video.title)
@@ -3528,7 +3528,7 @@ private fun StudioRoot(
                             navigateToTab(StudioTab.SEARCH)
                         },
                         onResumeSpotlight = { song, collection ->
-                            if (YouTubeReleasePolicy.OFFICIAL_ONLY && !playerState.offline) {
+                            if (!YouTubeReleasePolicy.ownerPlaybackEnabled && !playerState.offline) {
                                 onPlay(song, collection)
                             } else when (SpotlightResumePolicy.choose(
                                 tappedUrl = song.url, currentUrl = playerState.videoUrl,

@@ -2,6 +2,7 @@ package com.nightwave.player.net
 
 import com.nightwave.player.core.YouTubeReleasePolicy
 import com.nightwave.player.core.VideoLink
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.schabi.newpipe.extractor.NewPipe
 import org.schabi.newpipe.extractor.search.SearchInfo
 import org.schabi.newpipe.extractor.services.youtube.linkHandler.YoutubeSearchQueryHandlerFactory
@@ -184,30 +185,19 @@ class YouTubeGateway {
     }
 
     fun resolve(url: String): PlayableAudio {
-        YouTubeReleasePolicy.requireLegacyAccess()
+        check(YouTubeReleasePolicy.ownerPlaybackEnabled)
         val canonical = VideoLink.normalize(url) ?: throw IllegalArgumentException("Not a supported YouTube video link")
-        val info = StreamInfo.getInfo(NewPipe.getService("YouTube"), canonical)
-        // Prefer separate audio (least data). Support combined video+audio and live manifests
-        // when no direct audio-only variant is exposed. Never attempt to bypass DRM.
-        val audio = info.audioStreams
-            .filter { it.isUrl && it.deliveryMethod == DeliveryMethod.PROGRESSIVE_HTTP }
-            .maxByOrNull { it.averageBitrate.takeIf { br -> br >= 0 } ?: 0 }
-        val combined = if (audio == null) info.videoStreams
-            .filter { it.isUrl && !it.isVideoOnly() && it.deliveryMethod == DeliveryMethod.PROGRESSIVE_HTTP }
-            .minByOrNull { if (it.height > 0) it.height else Int.MAX_VALUE } else null
-        val playableUrl: String
-        val mimeType: String?
-        when {
-            audio != null -> { playableUrl = audio.content; mimeType = null }
-            combined != null -> { playableUrl = combined.content; mimeType = null }
-            info.hlsUrl?.startsWith("https://") == true -> {
-                playableUrl = info.hlsUrl; mimeType = "application/x-mpegURL"
-            }
-            info.dashMpdUrl?.startsWith("https://") == true -> {
-                playableUrl = info.dashMpdUrl; mimeType = "application/dash+xml"
-            }
-            else -> throw IllegalStateException("No supported public audio stream for this video")
+        val info = ExtractorDownloader.forPlayback {
+            StreamInfo.getInfo(NewPipe.getService("YouTube"), canonical)
         }
+        check(VideoLink.normalize(info.url) == canonical) { "Resolved video differs from the selected video" }
+        val audio = info.audioStreams
+            .filter { stream ->
+                stream.isUrl && stream.deliveryMethod == DeliveryMethod.PROGRESSIVE_HTTP &&
+                    stream.content.toHttpUrlOrNull()?.let(::allowsYouTubeAudio) == true
+            }
+            .maxByOrNull { it.averageBitrate.coerceAtLeast(0) }
+            ?: error("No supported public audio stream for this video")
         return PlayableAudio(
             VideoPreview(
                 title = info.name,
@@ -216,8 +206,7 @@ class YouTubeGateway {
                 thumbnail = info.thumbnails.firstOrNull()?.url ?: "",
                 durationSeconds = info.duration
             ),
-            audioUrl = playableUrl,
-            mimeType = mimeType
+            audioUrl = audio.content
         )
     }
 }

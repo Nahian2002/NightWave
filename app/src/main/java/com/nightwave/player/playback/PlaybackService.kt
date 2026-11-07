@@ -2360,7 +2360,7 @@ class PlaybackService : MediaLibraryService() {
             // A Pause during extraction must not be reversed at completion.
             playWhenReady = autoPlay
         }
-        if (YouTubeReleasePolicy.OFFICIAL_ONLY) {
+        if (!YouTubeReleasePolicy.ownerPlaybackEnabled) {
             generation++
             exoPlayer?.playWhenReady = false
             if (autoPlay) savedQueue.recordFailure(entry.url, "Open YouTube to play this track.")

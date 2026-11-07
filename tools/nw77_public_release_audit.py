@@ -45,23 +45,26 @@ def private_search_enabled(project: Path) -> bool:
                                             path.read_text(encoding="utf-8")))
 
 
-def media_boundary(project: Path, texts: dict) -> bool:
+def offline_boundary(project: Path, texts: dict) -> bool:
     boundary = {name: (project / path).read_text(encoding="utf-8") if (project / path).is_file() else ""
                 for name, path in BOUNDARY_FILES.items()}
     gateway = texts["gateway"] or ""
     guards = (
         re.search(r"(?m)^    const val OFFICIAL_ONLY = true$", boundary["release_policy"]),
         'check(!OFFICIAL_ONLY)' in boundary["release_policy"],
-        re.search(r"fun resolve\(url: String\): PlayableAudio \{\s*YouTubeReleasePolicy.requireLegacyAccess\(\)", gateway),
         re.search(r"fun resolveAudioOnlyForOffline\(url: String\): PlayableAudio \{\s*YouTubeReleasePolicy.requireLegacyAccess\(\)", gateway),
         "if (YouTubeReleasePolicy.OFFICIAL_ONLY) return fail(YouTubeReleasePolicy.OFFLINE_UNAVAILABLE)\n        return try" in (texts["search_worker"] or ""),
         "check(!YouTubeReleasePolicy.OFFICIAL_ONLY) { YouTubeReleasePolicy.OFFLINE_UNAVAILABLE }" in (texts["search_queue"] or ""),
         "fun safeAudioEndpoint(raw: String): Boolean {\n        if (YouTubeReleasePolicy.OFFICIAL_ONLY) return false" in (texts["search_policy"] or ""),
-        "if (YouTubeReleasePolicy.OFFICIAL_ONLY) {\n            generation++" in (texts["playback"] or ""),
         "Intent(Intent.ACTION_VIEW, Uri.parse(url))" in boundary["official"],
         "VideoLink.normalize(url)?.let { open(activity, it) }" in boundary["official"],
     )
     return all(guards)
+
+
+def owner_playback_boundary(texts: dict) -> bool:
+    return ("if (!YouTubeReleasePolicy.ownerPlaybackEnabled) {\n            generation++" in (texts["playback"] or "") and
+            "check(YouTubeReleasePolicy.ownerPlaybackEnabled)" in (texts["gateway"] or ""))
 
 
 def public_search_boundary(project: Path, texts: dict) -> bool:
@@ -79,7 +82,7 @@ def public_search_boundary(project: Path, texts: dict) -> bool:
 def private_search_boundary(project: Path, texts: dict) -> bool:
     transport = (project / BOUNDARY_FILES["transport"]).read_text(encoding="utf-8")
     gateway = texts["gateway"] or ""
-    return (private_search_enabled(project) and media_boundary(project, texts) and
+    return (private_search_enabled(project) and
             "YouTubeReleasePolicy.requireUnofficialSearch()" in gateway and
             "YouTubeReleasePolicy.requireUnofficialSearch()" in transport and
             "PublicSearchRequest.current.get() != null && allowsNewPipeSearch(url)" in transport and
@@ -112,7 +115,14 @@ def audit(project: Path) -> dict:
     catalog = texts["catalog"] or ""
     cloud = texts["cloud"] or ""
 
-    fenced = media_boundary(project, texts)
+    offline_fenced = offline_boundary(project, texts)
+    online_fenced = owner_playback_boundary(texts)
+    owner_preview_supported = "ownerPlaybackEnabled" in gateway
+    if owner_preview_supported:
+        issues.append(_finding(
+            "NW77-OWNER-YOUTUBE-PLAYBACK-PREVIEW", "BLOCKER",
+            "This source supports a debug-only owner preview of separate YouTube audio. Keep preview APKs private.",
+            [BOUNDARY_FILES["release_policy"], SOURCE_FILES["gateway"]]))
     if private_search_enabled(project):
         issues.append(_finding(
             "NW77-PRIVATE-UNOFFICIAL-SEARCH", "BLOCKER",
@@ -122,7 +132,7 @@ def audit(project: Path) -> dict:
         issues.append(_finding(
             "NW77-UNVERIFIED-SEARCH-BOUNDARY", "BLOCKER",
             "The public search boundary could not be verified.", [SOURCE_FILES["gateway"]]))
-    if (not fenced and "NewPipe.getService(\"YouTube\")" in gateway
+    if (not (online_fenced and owner_preview_supported) and "NewPipe.getService(\"YouTube\")" in gateway
             and "fun resolve(url: String)" in gateway
             and "info.audioStreams" in gateway
             and "gateway.resolve(entry.url)" in playback
@@ -132,7 +142,7 @@ def audit(project: Path) -> dict:
             "PlaybackService resolves extracted YouTube audio into the standalone media player. "
             "Needs compliant playback design or provider authorization before public distribution.",
             [SOURCE_FILES["gateway"], SOURCE_FILES["playback"]]))
-    if (not fenced and "resolveAudioOnlyForOffline(canonical)" in worker
+    if (not offline_fenced and "resolveAudioOnlyForOffline(canonical)" in worker
             and "downloadResolvedSearchAudio(" in worker
             and "SearchTrackSaveWorker" in queue):
         issues.append(_finding(
@@ -140,7 +150,7 @@ def audit(project: Path) -> dict:
             "Search-track worker resolves a YouTube audio stream and saves it to a private file. "
             "YouTube API policies prohibit this without prior written approval.",
             [SOURCE_FILES["search_worker"], SOURCE_FILES["search_queue"]]))
-    if (not fenced and "googlevideo.com" in search_policy
+    if (not offline_fenced and "googlevideo.com" in search_policy
             and "safeAudioEndpoint(" in search_policy):
         issues.append(_finding(
             "NW77-YOUTUBE-CDN-AUDIO-ENDPOINT", "BLOCKER",
@@ -178,7 +188,10 @@ def audit(project: Path) -> dict:
         "blocking_findings": blockers,
         "findings": issues,
         "verified_safeguards": {
-            "youtube_media_extraction_remains_blocked": fenced,
+            "youtube_media_extraction_remains_blocked": offline_fenced and
+                "fun resolve(url: String): PlayableAudio {\n        YouTubeReleasePolicy.requireLegacyAccess()" in gateway and
+                "if (YouTubeReleasePolicy.OFFICIAL_ONLY) {\n            generation++" in playback,
+            "youtube_offline_saving_remains_blocked": offline_fenced,
             "direct_audio_excludes_youtube": '"youtube.com"' in direct and
                 '"googlevideo.com"' in direct and "forbiddenHosts" in direct,
             "commons_cc0_or_public_domain_filter": all(x in catalog for x in
@@ -243,16 +256,22 @@ def self_test() -> None:
         assert private_search_boundary(checkout, sources), "Private search exceeds its metadata boundary"
         current = audit(checkout)
         assert current["public_release"] == "NO_GO"
-        assert {issue["code"] for issue in current["findings"]} == {"NW77-PRIVATE-UNOFFICIAL-SEARCH"}
+        assert {issue["code"] for issue in current["findings"]} == {
+            "NW77-PRIVATE-UNOFFICIAL-SEARCH", "NW77-OWNER-YOUTUBE-PLAYBACK-PREVIEW"}
+        assert current["verified_safeguards"]["youtube_offline_saving_remains_blocked"]
+        assert not current["verified_safeguards"]["youtube_media_extraction_remains_blocked"]
+        unguarded = {**sources, "playback": sources["playback"].replace(
+            "if (!YouTubeReleasePolicy.ownerPlaybackEnabled) {", "BROKEN_GUARD", 1)}
+        assert owner_playback_boundary(sources)
+        assert not owner_playback_boundary(unguarded)
         for name, marker in (
             ("gateway", "YouTubeReleasePolicy.requireLegacyAccess()"),
             ("search_worker", "if (YouTubeReleasePolicy.OFFICIAL_ONLY) return fail"),
             ("search_policy", "if (YouTubeReleasePolicy.OFFICIAL_ONLY) return false"),
             ("search_queue", "check(!YouTubeReleasePolicy.OFFICIAL_ONLY)"),
-            ("playback", "if (YouTubeReleasePolicy.OFFICIAL_ONLY) {"),
         ):
             modified = {**sources, name: sources[name].replace(marker, "BROKEN_GUARD", 1)}
-            assert not media_boundary(checkout, modified), name
+            assert not offline_boundary(checkout, modified), name
     print("NW77 public-release audit self-test PASS: detected prohibited paths, manual review, missing files.")
 
 def main() -> int:

@@ -1,6 +1,9 @@
 package com.nightwave.player.playback
 
+import com.nightwave.player.net.allowsYouTubeAudio
+import com.nightwave.player.net.isYouTubeAudioHost
 import okhttp3.OkHttpClient
+import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 /** Playback pool is separate from extractor metadata and authenticated Drive operations. */
@@ -17,6 +20,19 @@ internal object PlaybackMediaNetwork {
     val client: OkHttpClient by lazy {
         OkHttpClient.Builder().connectTimeout(20, TimeUnit.SECONDS)
             .readTimeout(20, TimeUnit.SECONDS)
-            .followRedirects(true).followSslRedirects(true).build()
+            .followRedirects(true).followSslRedirects(true)
+            .addNetworkInterceptor { chain ->
+                val initial = chain.call().request().url
+                val current = chain.request().url
+                val response = chain.proceed(chain.request())
+                val destination = response.header("Location")
+                if (isYouTubeAudioHost(initial) && response.isRedirect && destination != null &&
+                    current.resolve(destination)?.let(::allowsYouTubeAudio) != true) {
+                    response.close()
+                    throw IOException("Unsupported YouTube audio redirect")
+                }
+                response
+            }
+            .build()
     }
 }

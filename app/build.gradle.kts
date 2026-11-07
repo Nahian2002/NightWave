@@ -50,6 +50,8 @@ fun nw126Revision(root: File): String {
     return git("rev-parse", "HEAD")?.takeIf { it.matches(Regex("[0-9a-f]{40}")) } ?: "unavailable"
 }
 
+val ownerPlaybackPreview = providers.gradleProperty("nightwaveOwnerPlaybackPreview").orNull == "true"
+
 android {
     namespace = "com.nightwave.player"
     compileSdk = 36
@@ -61,9 +63,13 @@ android {
         versionCode = 64
         versionName = "55.5"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("boolean", "OWNER_YOUTUBE_PLAYBACK_PREVIEW", "false")
     }
 
     buildTypes {
+        debug {
+            buildConfigField("boolean", "OWNER_YOUTUBE_PLAYBACK_PREVIEW", ownerPlaybackPreview.toString())
+        }
         release {
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
@@ -75,7 +81,7 @@ android {
         isCoreLibraryDesugaringEnabled = true
     }
     kotlinOptions { jvmTarget = "17" }
-    buildFeatures { viewBinding = true; compose = true }
+    buildFeatures { viewBinding = true; compose = true; buildConfig = true }
 }
 
 ksp {
@@ -102,6 +108,7 @@ android.buildTypes.forEach { type ->
               "schema": 1,
               "algorithm": "NightWave-source-v1",
               "variant": "${type.name}",
+              "ownerYouTubePlaybackPreview": ${type.name == "debug" && ownerPlaybackPreview},
               "sourceSha256": "$digest",
               "inputCount": ${inputs.size},
               "revisionContext": "${nw126Revision(root)}"

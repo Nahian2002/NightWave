@@ -11,9 +11,30 @@ class YouTubeReleaseBoundaryTest {
     private val gateway = YouTubeGateway()
     private val reference = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 
-    @Test fun playbackAndSaveCannotResolveExtractedStreams() {
-        assertThrows(IllegalStateException::class.java) { gateway.resolve(reference) }
+    @Test fun savingStaysBlockedAndNormalBuildsRejectPlayback() {
         assertThrows(IllegalStateException::class.java) { gateway.resolveAudioOnlyForOffline(reference) }
+        if (YouTubeReleasePolicy.ownerPlaybackEnabled) {
+            assertThrows(IllegalArgumentException::class.java) { gateway.resolve("https://example.com/watch") }
+        } else {
+            assertThrows(IllegalStateException::class.java) { gateway.resolve(reference) }
+        }
+    }
+
+    @Test fun playbackLookupAllowsOnlyApprovedMethodsAndEndpoints() {
+        assertTrue(allowsNewPipePlayback("https://youtubei.googleapis.com/youtubei/v1/player".toHttpUrl(), "POST"))
+        assertTrue(allowsNewPipePlayback("https://www.youtube.com/youtubei/v1/next".toHttpUrl(), "POST"))
+        assertTrue(allowsNewPipePlayback("https://www.youtube.com/s/player/abc/player_ias.vflset/en_US/base.js".toHttpUrl(), "GET"))
+        assertFalse(allowsNewPipePlayback("https://www.youtube.com/youtubei/v1/search".toHttpUrl(), "POST"))
+        assertFalse(allowsNewPipePlayback("https://www.youtube.com/youtubei/v1/player".toHttpUrl(), "GET"))
+        assertFalse(allowsNewPipePlayback("https://user@www.youtube.com/youtubei/v1/player".toHttpUrl(), "POST"))
+        assertFalse(allowsNewPipePlayback("https://www.youtube.com:8443/youtubei/v1/player".toHttpUrl(), "POST"))
+    }
+
+    @Test fun mediaEndpointRejectsNonAudioPathsAndOffsiteRedirectDestinations() {
+        assertTrue(allowsYouTubeAudio("https://rr1.googlevideo.com/videoplayback?expire=123".toHttpUrl()))
+        assertFalse(allowsYouTubeAudio("https://rr1.googlevideo.com/other".toHttpUrl()))
+        assertFalse(allowsYouTubeAudio("http://rr1.googlevideo.com/videoplayback".toHttpUrl()))
+        assertFalse(allowsYouTubeAudio("https://rr1.googlevideo.com.example.net/videoplayback".toHttpUrl()))
     }
 
     @Test fun privateSearchTransportAllowsMetadataAndRejectsMediaAndOffsiteUrls() {
