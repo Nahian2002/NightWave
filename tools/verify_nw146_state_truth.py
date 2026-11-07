@@ -11,13 +11,14 @@ MARKERS={
  'player':['val currentStatus = strings.playbackStatus(PlaybackHealthPolicy.classify(state.hasTrack,',
            'R.string.nw146_current_track','onRemove = {}, currentStatus = currentStatus',
            'isPlaying && currentStatus == null', 'stateDescription = currentStatus ?:'],
- 'update':['WeeklyFeedTransport.read(connection)','UpdateCheckResult(UpdateCheckStatus.DISABLED)',
+ 'update':['WeeklyFeedTransport.read(connection, authenticatedGithub = token != null)',
+           'UpdateCheckResult(UpdateCheckStatus.DISABLED)',
            'UpdateCheckPolicy.authenticated(true, code(c), update.code, Build.VERSION.SDK_INT, update.minSdk)',
            'network.activeNetwork == null'],
  'ui':['state.checkStatus == UpdateCheckStatus.DISABLED','state.checkStatus == UpdateCheckStatus.OFFLINE',
        'state.checkStatus == UpdateCheckStatus.UNAVAILABLE','state.checkStatus == UpdateCheckStatus.INVALID_METADATA',
        'catch (_: java.io.IOException)', 'if (state.failed && state.update != null)'],
- 'transport':['connection.responseCode != 200','UpdateCheckStatus.UNAVAILABLE','24 * 1024',
+ 'transport':['status != 200','UpdateCheckStatus.UNAVAILABLE','UpdateCheckStatus.PRIVATE_ACCESS','24 * 1024',
               'UpdateCheckStatus.INVALID_METADATA','currentCoroutineContext().ensureActive()', 'connection.disconnect()']}
 def verify(src):
  for key,markers in MARKERS.items():
