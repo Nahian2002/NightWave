@@ -79,6 +79,16 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
     private var artworkRecoveryWanted: List<OfflineSong> = emptyList()
     @Volatile private var artworkRecoveryClosed = false
     private var playableIds: Set<String> = emptySet()
+    private val playbackRows = mutableMapOf<String, (String?) -> Unit>()
+    private var currentOfflineId: String? = null
+    private var currentOfflineStatus: String? = null
+
+    override fun onOfflineTrackChanged(id: String?, status: String?) {
+        currentOfflineId?.takeIf { it != id }?.let { playbackRows[it]?.invoke(null) }
+        currentOfflineId = id
+        currentOfflineStatus = status
+        id?.let { playbackRows[it]?.invoke(status) }
+    }
     // NW90: disk/index verification must never block the Activity's UI thread.
     private var healthCheckPending = false
     private var healthRecheckRequested = false
@@ -608,6 +618,7 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
             if (entry.song.id in audioCheckFailures && entry.health == OfflineFileHealth.AVAILABLE)
                 entry.copy(health = OfflineFileHealth.UNREADABLE) else entry
         })
+        playbackRows.clear()
         val trulyEmpty = selectedEntryId == null && OfflineImportJourneyPolicy.empty(report.indexReadable, report.entries.size)
         browseControls.forEach { it.visibility = if (trulyEmpty) View.GONE else View.VISIBLE }
         if (!report.indexReadable) {
@@ -776,23 +787,45 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
             val row = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
-                setPadding(dp(13), dp(5), dp(5), dp(5))
+                setPadding(dp(10), dp(9), dp(4), dp(9))
+                minimumHeight = dp(NightWaveAdaptiveChromePolicy.nativeRowHeightDp(resources.configuration.fontScale))
                 background = cardBackground(0xFF172432.toInt())
             }
-            val description = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+            val description = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                setOnClickListener {
+                    if (available) launchPlayback(song)
+                    else status(availability + ". File was not removed.")
+                }
+            }
             val identity = identities.display(song)
             description.addView(label(identity.title, 16f, Color.WHITE, true).apply {
-                maxLines = if (resources.configuration.fontScale >= 1.3f) 2 else 1
+                maxLines = 2
                 ellipsize = android.text.TextUtils.TruncateAt.END
             })
-            if (identity.creator != "Saved audio") description.addView(
-                label(identity.creator, 13f, nativeMattePalette.secondary.toInt()))
-            description.addView(label((song.bytes / 1024 / 1024).toString() +
-                " MB · " + availability +
-                (if (importedLyrics) " · LRC lyrics" else ""),
-                12f, if (available) 0xFF94A9BB.toInt() else 0xFFFFC07D.toInt()).apply {
-                maxLines = 2
-            })
+            val subtitle = if (available) listOfNotNull(
+                identity.creator.takeUnless { it == "Saved audio" },
+                android.text.format.Formatter.formatShortFileSize(this, song.bytes.coerceAtLeast(0)),
+                "Audio checked".takeIf { song.id in audioChecked },
+                "LRC".takeIf { importedLyrics }
+            ).joinToString(" · ") else availability
+            val details = label(subtitle, 12f, if (available) 0xFF94A9BB.toInt() else 0xFFFFC07D.toInt()).apply {
+                maxLines = if (available) 1 else 2
+                ellipsize = android.text.TextUtils.TruncateAt.END
+            }
+            description.addView(details)
+            if (available) {
+                playbackRows[song.id] = { playbackStatus ->
+                    row.isSelected = playbackStatus != null
+                    row.background = cardBackground(0xFF172432.toInt()).apply {
+                        if (playbackStatus != null) setStroke(dp(1), nativeMattePalette.accent.toInt())
+                    }
+                    details.text = if (playbackStatus == null) subtitle else "$playbackStatus · $subtitle"
+                    details.setTextColor((if (playbackStatus == null) nativeMattePalette.secondary
+                        else nativeMattePalette.accent).toInt())
+                }
+                if (currentOfflineId == song.id) playbackRows[song.id]?.invoke(currentOfflineStatus)
+            }
             row.addView(description, LinearLayout.LayoutParams(0, -2, 1f))
             val cover = android.widget.ImageView(this).apply {
                 contentDescription = "Play " + identity.title
@@ -813,7 +846,7 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
                     else status(availability + ". File was not removed.")
                 }
             }
-            row.addView(cover, 0, LinearLayout.LayoutParams(dp(56), dp(56)).apply { marginEnd = dp(12) })
+            row.addView(cover, 0, LinearLayout.LayoutParams(dp(52), dp(52)).apply { marginEnd = dp(10) })
             row.addView(label("☁", 20f, 0xFF91E2D7.toInt()).apply {
                 gravity = Gravity.CENTER
                 alpha = if (available) 1f else 0.35f
@@ -852,9 +885,7 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
                     }
                 }
             }, LinearLayout.LayoutParams(dp(48), dp(48)))
-            tracks.addView(row, LinearLayout.LayoutParams(-1,
-                dp(NightWaveAdaptiveChromePolicy.nativeRowHeightDp(
-                    resources.configuration.fontScale))).apply {
+            tracks.addView(row, LinearLayout.LayoutParams(-1, -2).apply {
                 bottomMargin = dp(8)
             })
         }

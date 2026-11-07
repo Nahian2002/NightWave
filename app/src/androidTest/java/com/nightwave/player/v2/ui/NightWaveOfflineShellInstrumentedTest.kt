@@ -88,6 +88,16 @@ class NightWaveOfflineShellInstrumentedTest {
         compose.runOnIdle { assertEquals(2 to true, main); assertEquals(0, actions.commands) }
     }
 
+    @Test fun offlineQueueOpensAndClosesWithoutLeavingTheListOrPlaying() {
+        content(true)
+        compose.onNodeWithText("Selected fixture").performClick()
+        compose.onNodeWithTag("offline-player-queue").performClick()
+        compose.onNodeWithTag("nw142-queue-content").assertExists()
+        compose.onNodeWithText("Close queue", ignoreCase = true).performClick()
+        compose.onNodeWithText("Retained native-content slot").assertExists()
+        compose.runOnIdle { assertNull(main); assertEquals(0, actions.commands) }
+    }
+
     @Test fun recoveryAndBackRemainExplicitSeparateActions() {
         content()
         compose.onNodeWithTag("nw128-back").performClick()

@@ -15,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.nightwave.player.offline.NightWaveOfflineRoute
 import com.nightwave.player.v2.playback.StudioPlayerActions
@@ -31,6 +32,7 @@ fun NightWaveOfflineShell(
 ) {
     var overflow by remember { mutableStateOf(false) }
     var transport by rememberSaveable { mutableStateOf(false) }
+    var queueOpen by rememberSaveable { mutableStateOf(false) }
     var hiddenForTrack by rememberSaveable { mutableStateOf<String?>(null) }
     // A hidden bar belongs only to that track. Restoring it never resumes audio.
     val hidden = hiddenForTrack == state.videoUrl && state.hasTrack
@@ -82,21 +84,38 @@ fun NightWaveOfflineShell(
     if (transport && state.hasTrack) ModalBottomSheet(onDismissRequest = { transport = false }) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(state.title.ifBlank { "Restoring selected track…" }, style = MaterialTheme.typography.titleLarge)
-            Text(state.artist, style = MaterialTheme.typography.bodyMedium)
+            Text("Now playing", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+            Text(state.title.ifBlank { "Restoring selected track…" }, style = MaterialTheme.typography.titleLarge,
+                maxLines = 2, overflow = TextOverflow.Ellipsis)
+            if (state.artist.isNotBlank()) Text(state.artist, style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
             if (!state.connected) Text("Music service disconnected", color = MaterialTheme.colorScheme.error)
             NightWaveActionGroup {
                 TextButton(onClick = actions::previous, enabled = state.connected) { Text("Previous") }
-                TextButton(onClick = actions::playPause, enabled = state.connected) {
+                Button(onClick = actions::playPause, enabled = state.connected) {
                     Text(if (state.canPause) "Pause" else "Play")
                 }
                 TextButton(onClick = actions::next, enabled = state.connected) { Text("Next") }
             }
             if (!state.connected) TextButton(onClick = actions::retry) { Text("Reconnect") }
-            TextButton(onClick = { transport = false; onMain(2, true) },
-                modifier = Modifier.heightIn(min = 48.dp).testTag("nw128-full-player")) {
-                Text("Open full player and queue")
+            HorizontalDivider()
+            NightWaveActionGroup {
+                if (state.offline) TextButton(onClick = { transport = false; queueOpen = true },
+                    modifier = Modifier.heightIn(min = 48.dp).testTag("offline-player-queue")) {
+                    Text("Queue")
+                }
+                TextButton(onClick = { transport = false; onMain(2, true) },
+                    modifier = Modifier.heightIn(min = 48.dp).testTag("nw128-full-player")) {
+                    Text("Open full player")
+                }
             }
         }
     }
+    if (queueOpen && state.offline) StudioQueueSheet(
+        state = state, onDismiss = { queueOpen = false },
+        onSelect = { index -> actions.jumpTo(index); queueOpen = false },
+        onRemoveUpcoming = actions::removeUpcoming, onUndoRemoval = { actions.undoUpcoming(it) },
+        onMoveUpcoming = actions::moveUpcoming, onClearUpcoming = actions::clearUpcoming,
+        reduceMotion = reducedMotion
+    )
 }

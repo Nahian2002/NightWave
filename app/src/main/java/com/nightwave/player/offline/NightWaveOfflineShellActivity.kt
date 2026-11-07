@@ -36,6 +36,7 @@ internal fun createOfflineViewport(context: Context, content: View): ScrollView 
  */
 abstract class NightWaveOfflineShellActivity : ComponentActivity() {
     protected abstract val offlineRoute: NightWaveOfflineRoute
+    protected open fun onOfflineTrackChanged(id: String?, status: String?) = Unit
     private var bridge: StudioPlaybackBridge? = null
     private var nativeRecovery = false
     private var profile by mutableStateOf(ProfileSettings("offline-shell"))
@@ -82,6 +83,7 @@ abstract class NightWaveOfflineShellActivity : ComponentActivity() {
         if (nativeRecovery) {
             viewport = null
             bridge?.pauseUiUpdates()
+            onOfflineTrackChanged(null, null)
             val panel = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
             panel.addView(Button(this).apply {
                 text = getString(R.string.nw128_restore_navigation)
@@ -104,7 +106,19 @@ abstract class NightWaveOfflineShellActivity : ComponentActivity() {
         setContent {
             NightWaveMaterialTheme(profile.theme, profile.motion == MotionPreference.REDUCED,
                 followSystemMotion = profile.motion != MotionPreference.FULL) {
-                NightWaveOfflineShell(offlineRoute, player.state, player,
+                val state = player.state
+                val selectedOfflineId = state.videoUrl.removePrefix("offline:").takeIf { state.offline }
+                val selectedOfflineStatus = when {
+                    selectedOfflineId == null -> null
+                    !state.connected || state.error != null -> "Selected"
+                    state.playing -> "Playing"
+                    state.playRequested || state.buffering -> "Starting"
+                    else -> "Paused"
+                }
+                LaunchedEffect(selectedOfflineId, selectedOfflineStatus) {
+                    onOfflineTrackChanged(selectedOfflineId, selectedOfflineStatus)
+                }
+                NightWaveOfflineShell(offlineRoute, state, player,
                     reducedMotion = LocalNightWaveReduceMotion.current,
                     onBack = { onBackPressedDispatcher.onBackPressed() },
                     onRoute = { NightWaveOfflineNavigator.open(this, it) },
