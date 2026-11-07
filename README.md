@@ -28,15 +28,17 @@ NightWave 55.4 (Android build 63) requires **Android 6.0 or newer**. Download th
 
 Saved public links are references. Offline files and third-party media require the appropriate rights.
 
-## Project roadmap
+## Project status
 
-[Multi-source roadmap](docs/MULTISOURCE_NW56_NW58_MASTER_PLAN.md) · [Acceptance record](docs/quality/MULTISOURCE_NW56_NW58_ACCEPTANCE.md) · [Device test runbook](docs/MULTISOURCE_S24U_DEVICE_QA.md)
+Routine feature development is paused. The release and test evidence below describe the current public build.
+
+[Multi-source roadmap archive](docs/MULTISOURCE_NW56_NW58_MASTER_PLAN.md) · [Acceptance record](docs/quality/MULTISOURCE_NW56_NW58_ACCEPTANCE.md) · [Device test runbook](docs/MULTISOURCE_S24U_DEVICE_QA.md)
 
 The `nightwave-v55.4` tag identifies the exact released source. The default branch hosts the signed stable update feed.
 
 ## Development
 
-Version 55 passed the Windows build, 1,870 automated tests and 94 source checks. The in-place upgrade, support draft, App details and Search completion were checked on an S24 Ultra. Broader device coverage remains open. [Release verification](TEST_REPORT.md)
+55.4 passed 95 source checks, 1,904 JVM tests and Android lint. The exact signed APK passed an in-place upgrade, search and manual update checks on the S24 Ultra. Broader device coverage remains open. [Release verification](TEST_REPORT.md)
 
 Build a fresh checkout with `build-windows.cmd`. Run `check-device-update.cmd` before installing over an existing build. For the public APK's exact source, use the release tag. The default branch hosts the project entry points and stable update feed.
 

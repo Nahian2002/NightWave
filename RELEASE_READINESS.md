@@ -1,6 +1,6 @@
 # Release and acceptance status
 
-[Version 51](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v51) is the current GitHub release. The app's signed stable feed offers it to compatible older installs. [Version 52](https://github.com/Nahian2002/NightWave/pull/183) is the current S24-tested review build.
+[55.4](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55.4) is the current GitHub release and signed in-app update. The exact release passed scoped search and updater checks on the S24 Ultra. See the [test report](TEST_REPORT.md) for the recorded coverage.
 
 | Area | Remaining evidence |
 | --- | --- |
