@@ -25,7 +25,7 @@ class NightWavePublicSearchInstrumentedTest {
     private val first = VideoPreview("Play Date (Official Audio)", "Fixture uploader", "https://www.youtube.com/watch?v=00000000001", "", 215)
     private val second = first.copy(url = "https://www.youtube.com/watch?v=00000000002")
 
-    private fun screen(history: List<String> = emptyList()) {
+    private fun screen(history: List<String> = emptyList(), corpusFailed: Boolean = true) {
         if (state.query.isNotBlank()) state = state.copy(prefillToken = "nw150-fixture")
         compose.setContent {
             NightWaveMaterialTheme(NightWaveTheme.MIDNIGHT, reduceMotion = true) {
@@ -36,7 +36,7 @@ class NightWavePublicSearchInstrumentedTest {
                             videos = listOf(first.copy(title = "Night Drive")))
                     }, onWebSearch = { web = it },
                     onPlay = { song, queue -> assertEquals(listOf(song), queue); played.add(song) },
-                    onSongOptions = {}, playingUrl = "", corpus = LocalMusicCorpusState(0, 0, failed = true),
+                    onSongOptions = {}, playingUrl = "", corpus = LocalMusicCorpusState(0, 0, failed = corpusFailed),
                     onRetryCorpus = {}, onOfflineSearch = { _, _ -> }, searchHistory = history,
                     canUndoSearchRemoval = false, onRecordSearch = {}, onRemoveSearch = {},
                     onUndoSearchRemoval = {}, onClearSearch = {}, onCancelSearch = {
@@ -82,6 +82,17 @@ class NightWavePublicSearchInstrumentedTest {
         compose.onNodeWithTag("nw57-scope-OPENVERSE").performClick().assertIsSelected()
         field.assertTextContains("piano")
         compose.runOnIdle { assertEquals(0, retries) }
+    }
+
+    @Test fun emptySourcesKeepTheLocalPromptInYourMusic() {
+        screen(corpusFailed = false)
+        val localPrompt = "Type a title or creator to find music on this device."
+        compose.onNodeWithTag("nw58-sources-tab").performScrollTo().performClick()
+        compose.onNodeWithTag("nw57-scope-ALL").performScrollTo().assertIsSelected()
+        compose.onNodeWithText(localPrompt).assertDoesNotExist()
+        compose.onNodeWithTag("nw57-scope-LOCAL").performScrollTo().performClick()
+        compose.onNodeWithTag("nw129-search-list").performScrollToNode(hasText(localPrompt))
+        compose.onNodeWithText(localPrompt).assertIsDisplayed()
     }
 
     @Test fun recentCompletionDoesNotSubmitUntilTapped() {

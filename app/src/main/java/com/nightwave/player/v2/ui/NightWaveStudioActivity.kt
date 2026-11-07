@@ -4282,7 +4282,8 @@ internal fun StudioSearch(
                 unifiedSavedLinks(query, sourceState)
             }
             if (sourceScope.providers.isNotEmpty()) unifiedSourceResults(sourceScope, query, sourceState, submit)
-            if (sourceScope.showsLocal) {
+            if (sourceScope.showsLocal &&
+                (sourceScope == UnifiedSearchScope.LOCAL || query.isNotBlank() || corpus.failed)) {
                 item(key = "nw57-local-heading") {
                     SectionHeading(strings.get(R.string.nw57_your_music))
                     if (corpus.failed) {
