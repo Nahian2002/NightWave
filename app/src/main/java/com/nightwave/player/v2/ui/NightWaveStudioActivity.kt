@@ -1494,10 +1494,20 @@ class NightWaveStudioActivity : ComponentActivity() {
      * No email, token, Intent contents or exception message is retained.
      */
     private fun cloudAuthorizationFailed(
-        stage: CloudAuthorizationFailurePolicy.Stage, code: Int?
+        stage: CloudAuthorizationFailurePolicy.Stage, code: Int?,
+        message: String = CloudAuthorizationFailurePolicy.shortMessage(code, stage)
     ) {
-        val message = CloudAuthorizationFailurePolicy.shortMessage(code, stage)
         val current = cloudRequestStart ?: cloudStore.read()
+        if (current.account.isBlank()) {
+            if (cloudStore.statusForGuestConnectionIfCurrent(current, message)) {
+                cloudFailureStore.record(stage, code)
+                showMessage(message)
+            } else {
+                showMessage("Drive access or backup choices changed. Start the action again.")
+            }
+            refreshCloud()
+            return
+        }
         val cancelled = stage != CloudAuthorizationFailurePolicy.Stage.DRIVE_CHECK && code in setOf(16, 12501)
         val receipt = if (cancelled) current.accessRevision else cloudStore.recordAccessIfCurrent(
             current.consentSnapshot(), CloudAccessPolicy.afterFailure(current.accessState, stage, code),
@@ -1650,6 +1660,10 @@ class NightWaveStudioActivity : ComponentActivity() {
                 val code = (verified.exceptionOrNull() as? DriveHttpFailure)?.statusCode
                 val message = if (code != null) DriveHttpFailurePolicy.message(code)
                     else "Google permitted access, but Drive account verification failed. Retry later."
+                if (action == "connect" && verificationState.account.isBlank()) {
+                    cloudAuthorizationFailed(CloudAuthorizationFailurePolicy.Stage.DRIVE_CHECK, code, message)
+                    return@launch
+                }
                 val failureRevision = cloudStore.recordAccessIfCurrent(verificationState.consentSnapshot(),
                     CloudAccessPolicy.afterFailure(verificationState.accessState,
                         CloudAuthorizationFailurePolicy.Stage.DRIVE_CHECK, code),
@@ -1665,13 +1679,16 @@ class NightWaveStudioActivity : ComponentActivity() {
                 showMessage(message)
                 return@launch
             }
-            val current = cloudStore.read()
-            if (!CloudBackupConsentPolicy.same(verificationState.consentSnapshot(), current.consentSnapshot()) ||
-                verificationState.accessRevision != current.accessRevision) {
-                cloudBusy = false
-                refreshCloud()
-                showMessage("Drive access or backup choices changed. Start the action again.")
-                return@launch
+            // Connect has its own atomic check of the starting state, including an empty account.
+            if (action != "connect") {
+                val current = cloudStore.read()
+                if (!CloudBackupConsentPolicy.same(verificationState.consentSnapshot(), current.consentSnapshot()) ||
+                    verificationState.accessRevision != current.accessRevision) {
+                    cloudBusy = false
+                    refreshCloud()
+                    showMessage("Drive access or backup choices changed. Start the action again.")
+                    return@launch
+                }
             }
             finishVerifiedCloudAuthorization(action, token, account, verificationState)
         }
@@ -1686,7 +1703,10 @@ class NightWaveStudioActivity : ComponentActivity() {
                 runCatching { NightWaveCloudSchedule.stop(this) }
                 refreshCloud()
                 showMessage("Drive connected. Choose Back up now or Preview restore.")
-            } else showMessage("Google account could not be saved.")
+            } else {
+                refreshCloud()
+                showMessage("Google account could not be saved. Start the Drive connection again.")
+            }
             return
         }
         val expectedAccount = cloudStore.read().account
@@ -3954,9 +3974,24 @@ internal fun StudioHome(
             }
         }
         item { SectionHeading(strings.get(R.string.nw141_search_by_mood_9a04e), strings.get(R.string.nw141_choose_a_mood_to_explore_c313d)) }
-        // One horizontally scrollable shelf instead of three oversized rows.
-        // Uses existing real mood shortcuts and unchanged search actions.
-        item(key = "discovery-shelf") {
+        if (entry.kind == NightWaveHomePresentationPolicy.Kind.NEW) {
+            // First-time listeners can scan all moods without discovering a horizontal gesture.
+            DiscoveryShortcuts.picks.indices.chunked(2).forEach { pair ->
+                item(key = "first-listen-moods-${pair.first()}") {
+                    val first = pair.first()
+                    val second = pair.last()
+                    val tile: @Composable (Int) -> Unit = { index ->
+                        val shortcut = DiscoveryShortcuts.picks[index]
+                        MoodTile(shortcut.title, shortcut.subtitle, palettes[index % palettes.size],
+                            Modifier.fillMaxWidth().testTag("first-listen-mood-${shortcut.key}")) {
+                            onSearch(shortcut.query)
+                        }
+                    }
+                    if (first == second) tile(first) else NightWaveBentoPair(
+                        first = { tile(first) }, second = { tile(second) })
+                }
+            }
+        } else item(key = "discovery-shelf") {
             LazyRow(Modifier.fillMaxWidth().nightWaveShelfBoundary().testTag("content-mood-shelf"), state = moodShelfState,
                 flingBehavior = rememberSnapFlingBehavior(moodShelfState, SnapPosition.Start),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)) {

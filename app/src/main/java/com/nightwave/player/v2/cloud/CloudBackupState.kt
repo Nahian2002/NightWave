@@ -205,6 +205,16 @@ class CloudBackupState(context: Context) {
             prefs.edit().putString("last_result", message.take(130)).commit()
         }
 
+    /** A failed first connection can explain the error without granting any Drive access. */
+    internal fun statusForGuestConnectionIfCurrent(expected: CloudBackupStatus, message: String): Boolean =
+        synchronized(guard) {
+            val current = readLocked()
+            if (expected.account.isNotBlank() ||
+                expected.consentSnapshot() != current.consentSnapshot() ||
+                expected.accessRevision != current.accessRevision) return@synchronized false
+            prefs.edit().putString("last_result", message.take(130)).commit()
+        }
+
     fun status(message: String): Boolean = synchronized(guard) {
         prefs.edit().putString("last_result", message.take(130)).commit()
     }

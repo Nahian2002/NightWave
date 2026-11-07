@@ -88,6 +88,20 @@ class NightWavePurposefulHomeInstrumentedTest {
             assertTrue(played.all { candidate -> songs.any { it === candidate } })
         }
     }
+    @Test fun firstListenGridOpensEachOriginalSearchWithoutPlaying() {
+        screen()
+        for (shortcut in DiscoveryShortcuts.picks) {
+            val tag = "first-listen-mood-${shortcut.key}"
+            compose.onNodeWithTag("nw131-home-list").performScrollToNode(hasTestTag(tag))
+            compose.onNodeWithTag(tag).assertIsDisplayed().performClick()
+            compose.runOnIdle {
+                assertEquals(shortcut.query, opened)
+                assertTrue(played.isEmpty())
+                assertTrue(resumed.isEmpty())
+            }
+        }
+    }
+
     @Test fun moodShortcutOnlyOpensSearch() {
         screen()
         compose.onNodeWithTag("nw131-home-list").performScrollToNode(hasText("After hours"))
