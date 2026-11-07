@@ -1,6 +1,6 @@
 # Release and acceptance status
 
-[55.4](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55.4) is the current GitHub release and signed in-app update. The exact release passed scoped search and updater checks on the S24 Ultra. See the [test report](TEST_REPORT.md) for the recorded coverage.
+[55.5](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55.5) is the current GitHub release and signed in-app update. The exact release passed scoped search and updater checks on the S24 Ultra. See the [test report](TEST_REPORT.md) for the recorded coverage.
 
 | Area | Remaining evidence |
 | --- | --- |
