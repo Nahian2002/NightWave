@@ -33,8 +33,8 @@ def inspect(root: Path) -> list[str]:
         (r"\btargetSdk\s*=\s*36\b", "target-sdk"),
         (r'applicationId\s*=\s*"com\.nightwave\.player"', "package"),
         (r"\bminSdk\s*=\s*23\b", "min-sdk"),
-        (r"\bversionCode\s*=\s*(?:35|36|37|38|39|40|41|42|43|44|45|46|47|48|49|50|51|52|53|54|55|56|57|58|59|60|61|62|63|64)\b", "version-code"),
-        (r'\bversionName\s*=\s*"(?:2\.0\.0-alpha5s|55\.[12345])"', "version-name"),
+        (r"\bversionCode\s*=\s*(?:35|36|37|38|39|40|41|42|43|44|45|46|47|48|49|50|51|52|53|54|55|56|57|58|59|60|61|62|63|64|65)\b", "version-code"),
+        (r'\bversionName\s*=\s*"(?:2\.0\.0-alpha5s|55\.[123456])"', "version-name"),
     ):
         if not re.search(marker, app): errors.append(name)
     if 'id("com.android.application") version "8.10.1"' not in build:

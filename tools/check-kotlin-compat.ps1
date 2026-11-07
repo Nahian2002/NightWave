@@ -341,8 +341,8 @@ if (-not (Test-Path -LiteralPath $gradlePath)) {
     $gradle = [System.IO.File]::ReadAllText($gradlePath)
     foreach ($marker in @(
         'applicationId = "com.nightwave.player"',
-        'versionCode = 64',
-        'versionName = "55.5"',
+        'versionCode = 65',
+        'versionName = "55.6"',
         'id("org.jetbrains.kotlin.plugin.compose")',
         'androidTestImplementation("androidx.compose.ui:ui-test-junit4")'
     )) {
