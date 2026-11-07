@@ -14,7 +14,7 @@ class NightWaveApp : Application() {
         // extractor fails to initialize on a particular Android device.
         runCatching { NightWaveCrashRecorder.install(this) }
             .onFailure { Log.w("NightWaveStartup", "Crash recorder setup unavailable") }
-        if (YouTubeReleasePolicy.OFFICIAL_ONLY) return
+        if (!YouTubeReleasePolicy.UNOFFICIAL_SEARCH_ENABLED) return
         try {
             NewPipe.init(ExtractorDownloader())
         } catch (error: Exception) {

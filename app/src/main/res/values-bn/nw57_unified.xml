@@ -49,4 +49,5 @@
     <string name="nw55_3_track_availability">গানটি পাওয়া যাবে কি না</string>
     <string name="nw55_3_search_scope">আপনার লাইব্রেরি, Audius, PeerTube ও Openverse-এ গান খুঁজুন।</string>
     <string name="nw55_3_find_creator">এই শিল্পীর গান খুঁজুন</string>
+    <string name="nw_youtube_search_scope">Find music আপনার অনুসন্ধানটি YouTube বা একটি স্বাধীন কমিউনিটি সার্ভারে পাঠায়।</string>
 </resources>

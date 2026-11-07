@@ -27,20 +27,14 @@ class NightWavePublicSearchInstrumentedTest {
 
     private fun screen(history: List<String> = emptyList()) {
         if (state.query.isNotBlank()) state = state.copy(prefillToken = "nw150-fixture")
-        val testDiscovery = DiscoverySearch(fetch = { endpoint ->
-                        val body = when (endpoint.host) {
-                            "api.openverse.org" -> """{"results":[]}"""
-                            "api.audius.co" -> """{"data":[{"id":"fixture","is_unlisted":false,
-                                "permalink":"/fixture/night-drive","title":"Night Drive",
-                                "user":{"name":"Fixture Artist"}}]}"""
-                            else -> """{"data":[]}"""
-                        }
-                        DiscoveryResponse(200, body)
-                    })
         compose.setContent {
             NightWaveMaterialTheme(NightWaveTheme.MIDNIGHT, reduceMotion = true) {
                 StudioSearch(Modifier, state, onPrimarySearch = { query, _ -> official = query },
-                    onNativeSearch = { _, _ -> retries++ }, onWebSearch = { web = it },
+                    onNativeSearch = { query, mode ->
+                        retries++
+                        if (query == "night drive") state = StudioSearchSnapshot(query = query, mode = mode,
+                            videos = listOf(first.copy(title = "Night Drive")))
+                    }, onWebSearch = { web = it },
                     onPlay = { song, queue -> assertEquals(listOf(song), queue); played.add(song) },
                     onSongOptions = {}, playingUrl = "", corpus = LocalMusicCorpusState(0, 0, failed = true),
                     onRetryCorpus = {}, onOfflineSearch = { _, _ -> }, searchHistory = history,
@@ -48,7 +42,7 @@ class NightWavePublicSearchInstrumentedTest {
                     onUndoSearchRemoval = {}, onClearSearch = {}, onCancelSearch = {
                         cancellations++
                         state = state.stop(SearchStopReason.CANCELLED)
-                    }, discoverySearch = testDiscovery)
+                    })
             }
         }
         compose.waitForIdle()
@@ -59,7 +53,7 @@ class NightWavePublicSearchInstrumentedTest {
         compose.onNodeWithTag("nw129-search-query").performScrollTo().performTextReplacement("focus fixture")
         compose.onNodeWithTag("nw129-search-query").performImeAction()
         compose.onNodeWithTag("nw129-search-query").assertIsNotFocused().assertTextContains("focus fixture")
-        compose.runOnIdle { assertEquals("", official); assertEquals(0, retries) }
+        compose.runOnIdle { assertEquals("", official); assertEquals(1, retries) }
     }
 
     @Test fun localFilterKeepsOneDraftWithoutInvokingPublicSearch() {
@@ -98,7 +92,7 @@ class NightWavePublicSearchInstrumentedTest {
         compose.runOnIdle { assertEquals(0, retries) }
         compose.onNodeWithText("Blue Hour").performClick()
         field.assertIsNotFocused().assertTextContains("Blue Hour")
-        compose.runOnIdle { assertEquals("", official); assertEquals(0, retries) }
+        compose.runOnIdle { assertEquals("", official); assertEquals(1, retries) }
     }
 
     @Test fun musicSubmitShowsAProviderMatchWithoutLaunchingAnything() {
@@ -111,7 +105,7 @@ class NightWavePublicSearchInstrumentedTest {
         compose.onNodeWithText("Night Drive").assertIsDisplayed()
         compose.onNodeWithTag("nw129-search-list").performScrollToNode(hasTestTag("nw57-scope-MUSIC"))
         compose.onNodeWithTag("nw57-scope-MUSIC").assertIsSelected()
-        compose.runOnIdle { assertEquals("", official); assertEquals("", web); assertEquals(0, retries) }
+        compose.runOnIdle { assertEquals("", official); assertEquals("", web); assertEquals(1, retries) }
     }
 
     @Test fun identicalPlayDateCaptionsExposeSourceEvidenceAndTapExactlyEachChosenUrl() {
@@ -134,8 +128,8 @@ class NightWavePublicSearchInstrumentedTest {
         compose.onNodeWithTag("nw130-cancel-search").performClick()
         compose.onNodeWithTag("nw129-search-list").performScrollToNode(hasText("Retry search"))
         compose.onNodeWithText("Retry search").performClick()
-        compose.onNodeWithTag("nw150-search-web").performClick()
-        compose.runOnIdle { assertEquals(1, cancellations); assertEquals(1, retries); assertEquals("play date", web) }
+        compose.onNodeWithTag("nw150-search-web").assertDoesNotExist()
+        compose.runOnIdle { assertEquals(1, cancellations); assertEquals(1, retries); assertEquals("", web) }
     }
 
     @Test fun typingDuringSlowRequestCancelsItAndOldRowsCannotBecomeCurrent() {

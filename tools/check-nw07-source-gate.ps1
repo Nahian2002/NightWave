@@ -95,7 +95,7 @@ try {
     Check-Marker $localIndex 'saved.all(query, checkpoint)' 'NW129 suggestions reuse complete ranked membership'
     Check-Marker $localIndex 'LocalSearchSuggestions.fromPrepared(query, matches, preparedCreators,' 'NW129 prepared full creator suggestions'
     Check-Marker $ui 'SearchResultPresentationPolicy.matches(' 'NW06 search filter state'
-    Check-Marker $gateway 'CommunityVideoSearch()' 'NW06 independent search fallback'
+    Check-Marker $gateway 'CommunityVideoSearch(instances = if (YouTubeReleasePolicy.UNOFFICIAL_SEARCH_ENABLED)' 'NW06 private independent search fallback'
 
     Check-Marker $gradle 'minSdk = 23' 'Android minimum SDK'
     Check-Marker $gradle 'applicationId = "com.nightwave.player"' 'Android package identity'

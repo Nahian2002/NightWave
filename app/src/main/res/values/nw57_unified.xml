@@ -49,4 +49,5 @@
     <string name="nw55_3_track_availability">Track availability</string>
     <string name="nw55_3_search_scope">Find music searches your library, Audius, PeerTube and Openverse.</string>
     <string name="nw55_3_find_creator">Find music by this creator</string>
+    <string name="nw_youtube_search_scope">Find music sends your query to YouTube or an independent community search server.</string>
 </resources>

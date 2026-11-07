@@ -2174,7 +2174,7 @@ class NightWaveStudioActivity : ComponentActivity() {
             }
             is SearchInput.Keywords -> Unit
         }
-        if (YouTubeReleasePolicy.OFFICIAL_ONLY) return
+        if (!YouTubeReleasePolicy.UNOFFICIAL_SEARCH_ENABLED) return
         val request = ++nativeSearchGeneration
         nativeSearchJob?.cancel()
         // A retry for the same query should not erase successful public
@@ -2223,7 +2223,7 @@ class NightWaveStudioActivity : ComponentActivity() {
                         videos = carriedVideos, provider = carriedProvider,
                         fromCache = recent != null || previous?.fromCache == true, details = searchDetails,
                         error = if (failure is PublicSearchDeadlineException)
-                            "Search took too long. Retry or open YouTube search."
+                            "Search took too long. Tap Retry to search again."
                         else "Online providers could not be reached. Your local music is still available.")
                 }
             )
@@ -4126,7 +4126,7 @@ internal fun StudioSearch(
     val submitMusic = { entered: String, selectedMode: SearchMode ->
         dismissSearchInput()
         onRecordSearch(entered)
-        if (YouTubeReleasePolicy.OFFICIAL_ONLY &&
+        if (!YouTubeReleasePolicy.UNOFFICIAL_SEARCH_ENABLED &&
             SearchInputResolver.resolve(entered) is SearchInput.Keywords) {
             sourceState.submit(UnifiedSearchScope.MUSIC, entered)
         } else onNativeSearch(entered, selectedMode)
@@ -4376,7 +4376,7 @@ internal fun StudioSearch(
         if (query.isNotBlank() && YouTubeReleasePolicy.OFFICIAL_ONLY) {
             item(key = "nw55-3-music-search") {
                 NightWaveCompactActions {
-                    Button(onClick = submit, enabled = !sourceState.pending,
+                    Button(onClick = submit, enabled = !sourceState.pending && !searching,
                         modifier = Modifier.heightIn(min = 48.dp).testTag("nw55-3-music-submit")) {
                         Text(strings.get(R.string.nw141_find_music_0a757))
                     }
@@ -4385,7 +4385,8 @@ internal fun StudioSearch(
                         Text(strings.get(R.string.nw141_cancel_search_b5456))
                     }
                 }
-                Text(strings.get(R.string.nw55_3_search_scope),
+                Text(strings.get(if (YouTubeReleasePolicy.UNOFFICIAL_SEARCH_ENABLED)
+                    R.string.nw_youtube_search_scope else R.string.nw55_3_search_scope),
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         } else if (query.isNotBlank()) {
@@ -4717,7 +4718,8 @@ internal fun StudioSearch(
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                         TextButton(onClick = onCancelSearch, modifier = Modifier.heightIn(min = 48.dp)
                             .testTag("nw130-cancel-search")) { Text(strings.get(R.string.nw141_cancel_search_b5456)) }
-                        TextButton(onClick = { onCancelSearch(); dismissSearchInput(); onWebSearch(query.trim()) },
+                        if (!YouTubeReleasePolicy.UNOFFICIAL_SEARCH_ENABLED)
+                            TextButton(onClick = { onCancelSearch(); dismissSearchInput(); onWebSearch(query.trim()) },
                             modifier = Modifier.heightIn(min = 48.dp)) { Text(strings.get(R.string.nw141_open_youtube_search_027b5)) }
                     }
                 }
@@ -4726,7 +4728,8 @@ internal fun StudioSearch(
         if (!searching && responseMatchesQuery && state.stopped != null) {
             item(key = "nw150-stopped-search") {
                 NightWaveSearchStoppedCard(state.stopped, state.videos.isNotEmpty(),
-                    onWeb = { dismissSearchInput(); onWebSearch(query.trim()) }) {
+                    onWeb = if (YouTubeReleasePolicy.UNOFFICIAL_SEARCH_ENABLED) null
+                    else ({ dismissSearchInput(); onWebSearch(query.trim()) })) {
                     dismissSearchInput(); onNativeSearch(query.trim(), mode)
                 }
             }
@@ -4828,7 +4831,8 @@ internal fun StudioSearch(
                             enabled = query.isNotBlank()) {
                             Text(strings.get(R.string.nw141_retry_search_f468e))
                         }
-                        OutlinedButton(onClick = { dismissSearchInput(); onWebSearch(query.trim()) },
+                        if (!YouTubeReleasePolicy.UNOFFICIAL_SEARCH_ENABLED)
+                            OutlinedButton(onClick = { dismissSearchInput(); onWebSearch(query.trim()) },
                             enabled = query.isNotBlank()) {
                             Text("YouTube")
                         }

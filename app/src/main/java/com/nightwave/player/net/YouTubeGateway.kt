@@ -27,7 +27,10 @@ data class VideoSearchResults(
 /** Public video search; never hides extraction failures as an ordinary empty result. */
 class YouTubeGateway {
     private val maxResults = 55
-    private val alternate = CommunityVideoSearch()
+    private val alternate = CommunityVideoSearch(instances = if (YouTubeReleasePolicy.UNOFFICIAL_SEARCH_ENABLED)
+        listOf("https://yt.chocolatemoo53.com", "https://invidious.nerdvpn.de",
+            "https://invidious.tiekoetter.com", "https://inv.nadeko.net")
+        else emptyList())
     private val searchRouting = PublicSearchRouting()
     private val memoryCache = PublicSearchResultCache()
     internal fun cachedSearch(query: String, mode: SearchMode): CachedPublicSearch? = memoryCache.get(query, mode)
@@ -38,7 +41,7 @@ class YouTubeGateway {
 
     fun search(query: String, mode: SearchMode, forceRefresh: Boolean = false,
         onPhase: (PublicSearchPhase) -> Unit = {}): VideoSearchResults {
-        YouTubeReleasePolicy.requireLegacyAccess()
+        YouTubeReleasePolicy.requireUnofficialSearch()
         val request = PublicSearchRequest.current.get()
         request?.checkActive()
         val text = query.trim().take(160)
@@ -124,6 +127,7 @@ class YouTubeGateway {
     private fun searchWithFilter(query: String, filter: String): Pair<List<VideoPreview>, String> {
         val service = NewPipe.getService("YouTube")
         val extractor = service.getSearchExtractor(query, listOf(filter), "")
+        extractor.fetchPage()
         val info = SearchInfo.getInfo(extractor)
         val raw = info.relatedItems
         val videos = raw.filterIsInstance<StreamInfoItem>()

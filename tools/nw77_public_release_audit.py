@@ -39,19 +39,21 @@ POLICY_URLS = [
 def _finding(code: str, severity: str, detail: str, files: list[str]) -> dict:
     return {"code": code, "severity": severity, "finding": detail, "files": files}
 
-def release_boundary(project: Path, texts: dict) -> bool:
+def private_search_enabled(project: Path) -> bool:
+    path = project / BOUNDARY_FILES["release_policy"]
+    return path.is_file() and bool(re.search(r"(?m)^    const val UNOFFICIAL_SEARCH_ENABLED = true$",
+                                            path.read_text(encoding="utf-8")))
+
+
+def media_boundary(project: Path, texts: dict) -> bool:
     boundary = {name: (project / path).read_text(encoding="utf-8") if (project / path).is_file() else ""
                 for name, path in BOUNDARY_FILES.items()}
     gateway = texts["gateway"] or ""
     guards = (
         re.search(r"(?m)^    const val OFFICIAL_ONLY = true$", boundary["release_policy"]),
         'check(!OFFICIAL_ONLY)' in boundary["release_policy"],
-        re.search(r"fun search\([^{}]*(?:\{\})?[^{}]*VideoSearchResults \{\s*YouTubeReleasePolicy.requireLegacyAccess\(\)", gateway),
         re.search(r"fun resolve\(url: String\): PlayableAudio \{\s*YouTubeReleasePolicy.requireLegacyAccess\(\)", gateway),
         re.search(r"fun resolveAudioOnlyForOffline\(url: String\): PlayableAudio \{\s*YouTubeReleasePolicy.requireLegacyAccess\(\)", gateway),
-        "override fun execute(request: Request): Response {\n        YouTubeReleasePolicy.requireLegacyAccess()" in boundary["transport"],
-        "private val instances: List<String> = emptyList()" in boundary["community"],
-        "if (YouTubeReleasePolicy.OFFICIAL_ONLY) return\n        try {\n            NewPipe.init" in boundary["startup"],
         "if (YouTubeReleasePolicy.OFFICIAL_ONLY) return fail(YouTubeReleasePolicy.OFFLINE_UNAVAILABLE)\n        return try" in (texts["search_worker"] or ""),
         "check(!YouTubeReleasePolicy.OFFICIAL_ONLY) { YouTubeReleasePolicy.OFFLINE_UNAVAILABLE }" in (texts["search_queue"] or ""),
         "fun safeAudioEndpoint(raw: String): Boolean {\n        if (YouTubeReleasePolicy.OFFICIAL_ONLY) return false" in (texts["search_policy"] or ""),
@@ -60,6 +62,29 @@ def release_boundary(project: Path, texts: dict) -> bool:
         "VideoLink.normalize(url)?.let { open(activity, it) }" in boundary["official"],
     )
     return all(guards)
+
+
+def public_search_boundary(project: Path, texts: dict) -> bool:
+    transport = (project / BOUNDARY_FILES["transport"]).read_text(encoding="utf-8")
+    community = (project / BOUNDARY_FILES["community"]).read_text(encoding="utf-8")
+    startup = (project / BOUNDARY_FILES["startup"]).read_text(encoding="utf-8")
+    gateway = texts["gateway"] or ""
+    return (not private_search_enabled(project) and
+            'onPhase: (PublicSearchPhase) -> Unit = {}): VideoSearchResults {\n        YouTubeReleasePolicy.requireLegacyAccess()' in gateway and
+            'override fun execute(request: Request): Response {\n        YouTubeReleasePolicy.requireLegacyAccess()' in transport and
+            'private val instances: List<String> = emptyList()' in community and
+            'if (YouTubeReleasePolicy.OFFICIAL_ONLY) return\n        try {\n            NewPipe.init' in startup)
+
+
+def private_search_boundary(project: Path, texts: dict) -> bool:
+    transport = (project / BOUNDARY_FILES["transport"]).read_text(encoding="utf-8")
+    gateway = texts["gateway"] or ""
+    return (private_search_enabled(project) and media_boundary(project, texts) and
+            "YouTubeReleasePolicy.requireUnofficialSearch()" in gateway and
+            "YouTubeReleasePolicy.requireUnofficialSearch()" in transport and
+            "PublicSearchRequest.current.get() != null && allowsNewPipeSearch(url)" in transport and
+            ".followRedirects(false)" in transport and ".followSslRedirects(false)" in transport)
+
 
 
 def audit(project: Path) -> dict:
@@ -87,7 +112,16 @@ def audit(project: Path) -> dict:
     catalog = texts["catalog"] or ""
     cloud = texts["cloud"] or ""
 
-    fenced = release_boundary(project, texts)
+    fenced = media_boundary(project, texts)
+    if private_search_enabled(project):
+        issues.append(_finding(
+            "NW77-PRIVATE-UNOFFICIAL-SEARCH", "BLOCKER",
+            "The owner preview enables unofficial YouTube metadata search. Keep the APK private.",
+            [BOUNDARY_FILES["release_policy"], SOURCE_FILES["gateway"]]))
+    elif (project / BOUNDARY_FILES["release_policy"]).is_file() and not public_search_boundary(project, texts):
+        issues.append(_finding(
+            "NW77-UNVERIFIED-SEARCH-BOUNDARY", "BLOCKER",
+            "The public search boundary could not be verified.", [SOURCE_FILES["gateway"]]))
     if (not fenced and "NewPipe.getService(\"YouTube\")" in gateway
             and "fun resolve(url: String)" in gateway
             and "info.audioStreams" in gateway
@@ -144,7 +178,7 @@ def audit(project: Path) -> dict:
         "blocking_findings": blockers,
         "findings": issues,
         "verified_safeguards": {
-            "public_build_enforces_official_youtube_only": fenced,
+            "youtube_media_extraction_remains_blocked": fenced,
             "direct_audio_excludes_youtube": '"youtube.com"' in direct and
                 '"googlevideo.com"' in direct and "forbiddenHosts" in direct,
             "commons_cc0_or_public_domain_filter": all(x in catalog for x in
@@ -206,7 +240,10 @@ def self_test() -> None:
     checkout = Path(__file__).resolve().parents[1]
     if (checkout / BOUNDARY_FILES["release_policy"]).exists():
         sources = {name: (checkout / path).read_text(encoding="utf-8") for name, path in SOURCE_FILES.items()}
-        assert release_boundary(checkout, sources), "Public release has an unverified YouTube boundary"
+        assert private_search_boundary(checkout, sources), "Private search exceeds its metadata boundary"
+        current = audit(checkout)
+        assert current["public_release"] == "NO_GO"
+        assert {issue["code"] for issue in current["findings"]} == {"NW77-PRIVATE-UNOFFICIAL-SEARCH"}
         for name, marker in (
             ("gateway", "YouTubeReleasePolicy.requireLegacyAccess()"),
             ("search_worker", "if (YouTubeReleasePolicy.OFFICIAL_ONLY) return fail"),
@@ -215,7 +252,7 @@ def self_test() -> None:
             ("playback", "if (YouTubeReleasePolicy.OFFICIAL_ONLY) {"),
         ):
             modified = {**sources, name: sources[name].replace(marker, "BROKEN_GUARD", 1)}
-            assert not release_boundary(checkout, modified), name
+            assert not media_boundary(checkout, modified), name
     print("NW77 public-release audit self-test PASS: detected prohibited paths, manual review, missing files.")
 
 def main() -> int:
