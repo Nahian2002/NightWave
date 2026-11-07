@@ -2,26 +2,26 @@
 
 An independent Android music player for your own audio and saved music references. Built in Kotlin with Jetpack Compose and Media3.
 
-**[Download NightWave v55 for Android](https://github.com/Nahian2002/NightWave/releases/download/nightwave-v55/NightWave-v55.apk)** · [Release notes](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55) · [Matching source](https://github.com/Nahian2002/NightWave/tree/nightwave-v55) · [Build guide](docs/BUILD_AND_RELEASE.md)
+**[Download NightWave 55.1 for Android](https://github.com/Nahian2002/NightWave/releases/download/nightwave-v55.1/NightWave-v55.1.apk)** · [Release notes](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55.1) · [Matching source](https://github.com/Nahian2002/NightWave/tree/nightwave-v55.1) · [Build guide](docs/BUILD_AND_RELEASE.md)
 
 ## Get NightWave
 
-Version 55 requires **Android 6.0 or newer**. Download the APK above for a first install or to upgrade manually. Install over an existing copy with the matching signing certificate to keep your library and settings. Android asks you to confirm the installation.
+NightWave 55.1 (Android build 60) requires **Android 6.0 or newer**. Download the APK above for a first install or to upgrade manually. Install over an existing copy with the matching signing certificate to keep your library and settings. Android asks you to confirm the installation.
 
-**You → Check for updates** uses the signed in-app channel, which currently offers [version 55](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55).
+**You → Check for updates** uses the signed in-app channel, which currently offers [NightWave 55.1](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55.1).
 
-## What’s new in v55
+## What’s new in 55.1
 
-- Find music and YouTube are easier to reach in Search. Recent matches use on-device history.
-- The You page groups settings, and App details puts the version and common actions first.
-- **You → App & support → Email support** opens a problem report draft you can review before sending.
-- Mix previews open directly from Home and preserve your place when you close them.
+- A fresh Home shows six mood searches, with shortcuts to Search and Offline music.
+- Search previews saved matches and word suggestions as you type. Sources includes Audius, PeerTube, Radio Browser and Openverse discovery.
+- First-time Google Drive backup works from a fresh profile. Offline music supports importing FLAC files.
+- YouTube searches and track links open in YouTube. Offline audio comes from your existing files or supported sources.
 
 ## What you can do
 
 | Area | Features |
 | --- | --- |
-| Listen | Background audio, queue controls, shuffle, repeat, mini-player and Now Playing |
+| Listen | Background playback for local audio, queue controls, shuffle, repeat, mini-player and Now Playing |
 | Organize | Import your own audio, build playlists, save tracks and browse listening history |
 | Discover | Browse local mixes and search for public references where sources are available |
 | Customize | Four themes, synchronized lyrics from your own LRC files, and Sound Studio |
@@ -29,13 +29,11 @@ Version 55 requires **Android 6.0 or newer**. Download the APK above for a first
 
 Saved public links are references. Offline files and third-party media require the appropriate rights.
 
-## Upcoming multi-source upgrades (planned)
+## Project roadmap
 
-The owner has scoped the next feature initiative into **three integrated mega-batches**, not ten separate patches: **NW56** (free-provider engine), **NW57** (unified search/library/offline permissions) and **NW58** (reliability and Samsung S24 Ultra release QA). **These features are not yet shipped.**
+[Multi-source roadmap](docs/MULTISOURCE_NW56_NW58_MASTER_PLAN.md) · [Acceptance record](docs/quality/MULTISOURCE_NW56_NW58_ACCEPTANCE.md) · [Device test runbook](docs/MULTISOURCE_S24U_DEVICE_QA.md)
 
-[Full execution roadmap](docs/MULTISOURCE_NW56_NW58_MASTER_PLAN.md) · [46-case acceptance](docs/quality/MULTISOURCE_NW56_NW58_ACCEPTANCE.md) · [Connected-device test runbook](docs/MULTISOURCE_S24U_DEVICE_QA.md) · [Machine-readable status](docs/quality/MULTISOURCE_NW56_NW58_STATUS.json)
-
-**For maintainers:** Historical NW56–NW58 files are unrelated earlier internal work. The current public v55 source is the `nightwave-v55` tag, which must be verified before implementing against any branch. No provider is claimed fully available without live testing, terms review and real-device acceptance; no paid infrastructure is authorized.
+The `nightwave-v55.1` tag identifies the exact released source. The default branch hosts the signed stable update feed.
 
 ## Development
 
@@ -43,4 +41,4 @@ Version 55 passed the Windows build, 1,870 automated tests and 94 source checks.
 
 Build a fresh checkout with `build-windows.cmd`. Run `check-device-update.cmd` before installing over an existing build. For the public APK's exact source, use the release tag. The default branch hosts the project entry points and stable update feed.
 
-[Repository guide](docs/REPOSITORY_INDEX.md) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [Privacy draft](PRIVACY_POLICY_DRAFT.md) · [License](LICENSE)
+[Repository guide](docs/REPOSITORY_INDEX.md) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [Android privacy information](PRIVACY.md) · [License](LICENSE)
