@@ -43,4 +43,5 @@
         <item quantity="one">%1$s match in your music</item>
         <item quantity="other">%1$s matches in your music</item>
     </plurals>
+    <string name="nw55_2_open_youtube_link">Open video</string>
 </resources>

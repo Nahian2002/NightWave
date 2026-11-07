@@ -22,6 +22,7 @@ class NightWavePublicSearchInstrumentedTest {
     private var retries = 0
     private var requested = ""
     private var web = ""
+    private var official = ""
     private val first = VideoPreview("Play Date (Official Audio)", "Fixture uploader", "https://www.youtube.com/watch?v=00000000001", "", 215)
     private val second = first.copy(url = "https://www.youtube.com/watch?v=00000000002")
 
@@ -29,7 +30,7 @@ class NightWavePublicSearchInstrumentedTest {
         if (state.query.isNotBlank()) state = state.copy(prefillToken = "nw150-fixture")
         compose.setContent {
             NightWaveMaterialTheme(NightWaveTheme.MIDNIGHT, reduceMotion = true) {
-                StudioSearch(Modifier, state, onPrimarySearch = { _, _ -> },
+                StudioSearch(Modifier, state, onPrimarySearch = { query, _ -> official = query },
                     onNativeSearch = { query, _ -> requested = query; retries++ }, onWebSearch = { web = it },
                     onPlay = { song, queue -> assertEquals(listOf(song), queue); played.add(song) },
                     onSongOptions = {}, playingUrl = "", corpus = LocalMusicCorpusState(0, 0, failed = true),
@@ -47,9 +48,9 @@ class NightWavePublicSearchInstrumentedTest {
     @Test fun submitClearsInputFocusWithoutDiscardingTheDraft() {
         screen()
         compose.onNodeWithTag("nw129-search-query").performScrollTo().performTextReplacement("focus fixture")
-        compose.onNodeWithText("Find music").performScrollTo().performClick()
+        compose.onNodeWithTag("nw129-search-query").performImeAction()
         compose.onNodeWithTag("nw129-search-query").assertIsNotFocused().assertTextContains("focus fixture")
-        compose.runOnIdle { assertEquals(1, retries) }
+        compose.runOnIdle { assertEquals("focus fixture", official); assertEquals(0, retries) }
     }
 
     @Test fun localFilterKeepsOneDraftWithoutInvokingPublicSearch() {
@@ -88,7 +89,19 @@ class NightWavePublicSearchInstrumentedTest {
         compose.runOnIdle { assertEquals(0, retries) }
         compose.onNodeWithText("Blue Hour").performClick()
         field.assertIsNotFocused().assertTextContains("Blue Hour")
-        compose.runOnIdle { assertEquals(1, retries); assertEquals("Blue Hour", requested) }
+        compose.runOnIdle { assertEquals("Blue Hour", official); assertEquals(0, retries) }
+    }
+
+    @Test fun providerAndLocalFiltersKeepTheOfficialSearchAvailable() {
+        screen()
+        val field = compose.onNodeWithTag("nw129-search-query")
+        field.performScrollTo().performTextReplacement("ek paye nupur amar")
+        for (scope in listOf("nw58-sources-tab", "nw57-scope-LOCAL")) {
+            compose.onNodeWithTag(scope).performScrollTo().performClick()
+            compose.onNodeWithTag("nw55-2-youtube-action").performScrollTo().performClick()
+            field.assertTextContains("ek paye nupur amar")
+            compose.runOnIdle { assertEquals("ek paye nupur amar", official); assertEquals(0, retries) }
+        }
     }
 
     @Test fun identicalPlayDateCaptionsExposeSourceEvidenceAndTapExactlyEachChosenUrl() {

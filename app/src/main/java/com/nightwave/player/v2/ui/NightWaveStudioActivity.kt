@@ -4099,8 +4099,7 @@ internal fun StudioSearch(
         }
     }
     var queryFocused by remember { mutableStateOf(false) }
-    // Search on the keyboard stays inside NightWave. YouTube stays an
-    // explicit alternative when public provider results are unavailable.
+    // The keyboard submits the active scope. Local previews never submit a query.
     val searchFocus = LocalFocusManager.current
     val searchKeyboard = LocalSoftwareKeyboardController.current
     val searchLifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
@@ -4120,16 +4119,20 @@ internal fun StudioSearch(
             selectedCreator = null
         }
     }
+    val searchYouTube = { entered: String ->
+        dismissSearchInput()
+        onRecordSearch(entered)
+        onPrimarySearch(entered, mode)
+    }
     val submit = {
         dismissSearchInput()
         val entered = query.trim()
         if (entered.isNotBlank() && sourceScope == UnifiedSearchScope.MUSIC) {
-            onRecordSearch(entered)
-            if (YouTubeReleasePolicy.OFFICIAL_ONLY &&
-                SearchInputResolver.resolve(entered) is SearchInput.Keywords) {
-                // Show the provider scope before a second, explicit Search sources action.
-                sourceScope = UnifiedSearchScope.ALL
-            } else onNativeSearch(entered, mode)
+            if (YouTubeReleasePolicy.OFFICIAL_ONLY) searchYouTube(entered)
+            else {
+                onRecordSearch(entered)
+                onNativeSearch(entered, mode)
+            }
         } else if (!sourceState.pending) {
             sourceState.submit(sourceScope, entered)
         }
@@ -4260,6 +4263,24 @@ internal fun StudioSearch(
                 )
             }
         }
+        if (YouTubeReleasePolicy.OFFICIAL_ONLY && query.isNotBlank()) {
+            val input = SearchInputResolver.resolve(query)
+            if (input is SearchInput.Keywords || input is SearchInput.VideoUrl) {
+                item(key = "nw55-2-youtube-action") {
+                    Button(
+                        onClick = { searchYouTube(query.trim()) },
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                            .testTag("nw55-2-youtube-action"),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Icon(Icons.Outlined.Search, contentDescription = null, modifier = Modifier.size(19.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(strings.get(if (input is SearchInput.VideoUrl) R.string.nw55_2_open_youtube_link
+                            else R.string.nw141_open_youtube_search_027b5))
+                    }
+                }
+            }
+        }
         item(key = "nw57-source-filters") {
             NightWaveSourceFilters(sourceScope) { selected ->
                 if (selected != sourceScope) {
@@ -4367,7 +4388,7 @@ internal fun StudioSearch(
                 }
             }
         }
-        if (query.isNotBlank()) {
+        if (query.isNotBlank() && !YouTubeReleasePolicy.OFFICIAL_ONLY) {
             item(key = "search-submit-actions") {
                 Row(Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(9.dp),
@@ -4819,7 +4840,8 @@ internal fun StudioSearch(
         } else if (query.isNotBlank() && savedMatches.isEmpty() &&
             offlineMatches.isEmpty() && !hasTypingMatches && !searching && !localPending && !corpus.failed) {
             item {
-                Text(strings.get(R.string.nw141_no_saved_matches_yet_search_public_music_or_try_d1b5d),
+                Text(strings.get(if (YouTubeReleasePolicy.OFFICIAL_ONLY) R.string.nw57_local_empty
+                    else R.string.nw141_no_saved_matches_yet_search_public_music_or_try_d1b5d),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }

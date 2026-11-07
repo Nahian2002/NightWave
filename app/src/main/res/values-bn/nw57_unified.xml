@@ -43,4 +43,5 @@
         <item quantity="one">আপনার গানে %1$sটি মিল</item>
         <item quantity="other">আপনার গানে %1$sটি মিল</item>
     </plurals>
+    <string name="nw55_2_open_youtube_link">ভিডিও খুলুন</string>
 </resources>
