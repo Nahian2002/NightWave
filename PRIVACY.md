@@ -1,6 +1,6 @@
 # NightWave Android privacy information
 
-This page describes the NightWave 55.1 APK distributed through GitHub.
+This page describes the NightWave 55.2 APK distributed through GitHub.
 
 ## On your device
 
