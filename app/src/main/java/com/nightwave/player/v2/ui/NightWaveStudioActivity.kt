@@ -220,7 +220,6 @@ import com.nightwave.player.library.LegacyLibraryTransaction
 import com.nightwave.player.core.VideoLink
 import com.nightwave.player.core.SearchInput
 import com.nightwave.player.core.SearchInputResolver
-import com.nightwave.player.net.DiscoverySources
 import com.nightwave.player.net.VideoPreview
 import com.nightwave.player.v2.model.NightWaveDesign
 import com.nightwave.player.v2.recommendation.RelatedSongsPolicy
@@ -4127,10 +4126,9 @@ internal fun StudioSearch(
         if (entered.isNotBlank() && sourceScope == UnifiedSearchScope.MUSIC) {
             onRecordSearch(entered)
             if (YouTubeReleasePolicy.OFFICIAL_ONLY &&
-                SearchInputResolver.resolve(entered) is SearchInput.Keywords &&
-                DiscoverySources.query(entered) != null) {
+                SearchInputResolver.resolve(entered) is SearchInput.Keywords) {
+                // Show the provider scope before a second, explicit Search sources action.
                 sourceScope = UnifiedSearchScope.ALL
-                sourceState.submit(UnifiedSearchScope.ALL, entered)
             } else onNativeSearch(entered, mode)
         } else if (!sourceState.pending) {
             sourceState.submit(sourceScope, entered)
