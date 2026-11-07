@@ -12,4 +12,12 @@
     <string name="weekly_later">Later</string>
     <string name="weekly_check">Check for updates</string>
     <string name="weekly_downloading">Downloading · %1$d%%</string>
+    <string name="weekly_private_add">Set up private updates</string>
+    <string name="weekly_private_manage">Private update access</string>
+    <string name="weekly_private_help">Create a fine-grained GitHub token for Nahian2002/NightWave with Contents set to Read-only. NightWave encrypts it on this phone and sends it only to the GitHub API when checking for or downloading updates.</string>
+    <string name="weekly_private_token">GitHub access token</string>
+    <string name="weekly_private_save">Save and check</string>
+    <string name="weekly_private_remove">Remove saved token</string>
+    <string name="weekly_private_access_failed">GitHub denied update access. Check that the token is active and has read access to NightWave.</string>
+    <string name="weekly_private_store_failed">This phone could not save or remove private update access. Try again.</string>
 </resources>

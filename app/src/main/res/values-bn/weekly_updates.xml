@@ -12,4 +12,12 @@
     <string name="weekly_later">পরে</string>
     <string name="weekly_check">আপডেট খুঁজুন</string>
     <string name="weekly_downloading">ডাউনলোড হচ্ছে · %1$d%%</string>
+    <string name="weekly_private_add">প্রাইভেট আপডেট সেট আপ করুন</string>
+    <string name="weekly_private_manage">প্রাইভেট আপডেটের অ্যাক্সেস</string>
+    <string name="weekly_private_help">Nahian2002/NightWave-এর জন্য Contents-এ Read-only অনুমতি দিয়ে একটি fine-grained GitHub টোকেন তৈরি করুন। NightWave এই ফোনে টোকেনটি এনক্রিপ্ট করে রাখে এবং আপডেট চেক বা ডাউনলোড করার সময় শুধু GitHub API-তে পাঠায়।</string>
+    <string name="weekly_private_token">GitHub অ্যাক্সেস টোকেন</string>
+    <string name="weekly_private_save">সেভ করে চেক করুন</string>
+    <string name="weekly_private_remove">সেভ করা টোকেন সরান</string>
+    <string name="weekly_private_access_failed">GitHub আপডেটের অ্যাক্সেস দেয়নি। টোকেনটি সক্রিয় এবং NightWave পড়ার অনুমতি আছে কি না দেখুন।</string>
+    <string name="weekly_private_store_failed">এই ফোনে প্রাইভেট আপডেটের অ্যাক্সেস সেভ বা সরানো যায়নি। আবার চেষ্টা করুন।</string>
 </resources>

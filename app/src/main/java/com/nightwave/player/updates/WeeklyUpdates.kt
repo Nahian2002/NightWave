@@ -16,7 +16,8 @@ import java.net.URL
 import java.security.MessageDigest
 
 internal data class ApprovedUpdate(val code: Long, val name: String, val url: String,
-    val bytes: Long, val sha: String, val notes: String, val minSdk: Int? = null)
+    val bytes: Long, val sha: String, val notes: String, val minSdk: Int? = null,
+    val githubAssetId: Long? = null)
 
 internal object WeeklyUpdates {
     private const val FEED = "https://raw.githubusercontent.com/Nahian2002/NightWave/main/updates/stable.json"
@@ -47,12 +48,17 @@ internal object WeeklyUpdates {
     suspend fun latest(c: Context): UpdateCheckResult = withContext(Dispatchers.IO) {
         val network = c.getSystemService(Context.CONNECTIVITY_SERVICE) as? android.net.ConnectivityManager
         if (network != null && network.activeNetwork == null) throw UpdateCheckException(UpdateCheckStatus.OFFLINE)
-        val connection = URL(FEED).openConnection() as HttpURLConnection
+        val token = PrivateUpdateCredential.read(c)
+        val feedUrl = if (token == null) FEED else PrivateGithubUpdatePolicy.FEED
+        val connection = URL(feedUrl).openConnection() as HttpURLConnection
         connection.connectTimeout = 15_000; connection.readTimeout = 20_000
         connection.instanceFollowRedirects = false
         connection.useCaches = false
         connection.setRequestProperty("Cache-Control", "no-cache")
-        val raw = WeeklyFeedTransport.read(connection)
+        if (token != null) {
+            authorizeGithub(connection, PrivateGithubUpdatePolicy.FEED, token, "application/vnd.github.raw+json")
+        }
+        val raw = WeeklyFeedTransport.read(connection, authenticatedGithub = token != null)
         val envelope = JSONObject(String(raw, Charsets.UTF_8))
         val payload = Base64.decode(envelope.getString("payload"), Base64.DEFAULT)
         val signature = Base64.decode(envelope.getString("signature"), Base64.DEFAULT)
@@ -65,7 +71,8 @@ internal object WeeklyUpdates {
         if (!m.getBoolean("enabled")) return@withContext UpdateCheckResult(UpdateCheckStatus.DISABLED)
         val update = ApprovedUpdate(m.getLong("versionCode"), m.getString("versionName").take(80),
             m.getString("url"), m.getLong("bytes"), m.getString("sha256"), m.optString("notes").take(3000),
-            if (m.has("minSdk")) m.getInt("minSdk") else null)
+            if (m.has("minSdk")) m.getInt("minSdk") else null,
+            if (token == null) null else m.optLong("githubAssetId", 0L).takeIf { it > 0 })
         require(update.minSdk == null || update.minSdk > 0)
         // API23 cannot expose the archive minimum. Only authenticated publisher
         // metadata, derived from the actual APK, can supply that check there.
@@ -73,6 +80,7 @@ internal object WeeklyUpdates {
         require(WeeklyUpdatePolicy.allowedApk(update.url) && update.bytes in 1..WeeklyUpdatePolicy.MAX_APK_BYTES)
         require(update.sha.matches(Regex("[A-Fa-f0-9]{64}")))
         val status = UpdateCheckPolicy.authenticated(true, code(c), update.code, Build.VERSION.SDK_INT, update.minSdk)
+        if (status == UpdateCheckStatus.AVAILABLE && token != null) require(update.githubAssetId != null)
         UpdateCheckResult(status, update.takeIf { status == UpdateCheckStatus.AVAILABLE })
     }
 
@@ -84,21 +92,41 @@ internal object WeeklyUpdates {
     private fun digest(bytes: ByteArray) = MessageDigest.getInstance("SHA-256").digest(bytes)
         .joinToString("") { "%02x".format(it.toInt() and 255) }
 
+    private fun authorizeGithub(connection: HttpURLConnection, endpoint: String, token: String, accept: String) {
+        check(PrivateGithubUpdatePolicy.canSendCredential(connection.url, endpoint))
+        connection.setRequestProperty("Authorization", "Bearer $token")
+        connection.setRequestProperty("Accept", accept)
+        connection.setRequestProperty("X-GitHub-Api-Version", "2022-11-28")
+    }
+
     suspend fun download(c: Context, u: ApprovedUpdate, progress: (Int) -> Unit): File = withContext(Dispatchers.IO) {
         val folder = File(c.cacheDir, "approved-updates").apply { mkdirs() }
         val part = File(folder, "download.part.apk"); val apk = File(folder, "approved.apk")
         part.delete(); apk.delete()
         try {
-            var url = u.url
+            val privateAsset = u.githubAssetId?.let(PrivateGithubUpdatePolicy::asset)
+            val token = if (privateAsset == null) null else PrivateUpdateCredential.read(c)
+                ?: throw UpdateCheckException(UpdateCheckStatus.PRIVATE_ACCESS)
+            var url = privateAsset ?: u.url
             var connection: HttpURLConnection? = null
             for (hop in 0..4) {
                 val next = URL(url)
-                require(next.protocol == "https" && next.userInfo == null &&
-                    next.host in setOf("github.com", "release-assets.githubusercontent.com", "objects.githubusercontent.com"))
+                if (privateAsset != null) {
+                    require(if (hop == 0) PrivateGithubUpdatePolicy.canSendCredential(next, privateAsset)
+                        else PrivateGithubUpdatePolicy.isAssetRedirect(next))
+                } else {
+                    require(next.protocol == "https" && next.userInfo == null &&
+                        next.host in setOf("github.com", "release-assets.githubusercontent.com", "objects.githubusercontent.com"))
+                }
                 val active = next.openConnection() as HttpURLConnection
                 active.connectTimeout = 15_000; active.readTimeout = 20_000; active.instanceFollowRedirects = false
                 try {
-                    when (active.responseCode) {
+                    if (hop == 0 && privateAsset != null && token != null)
+                        authorizeGithub(active, privateAsset, token, "application/octet-stream")
+                    val status = active.responseCode
+                    if (hop == 0 && privateAsset != null && PrivateGithubUpdatePolicy.needsAccess(status))
+                        throw UpdateCheckException(UpdateCheckStatus.PRIVATE_ACCESS)
+                    when (status) {
                         200 -> {
                             connection = active
                             break

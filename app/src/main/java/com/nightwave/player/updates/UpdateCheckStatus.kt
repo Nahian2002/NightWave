@@ -1,6 +1,6 @@
 package com.nightwave.player.updates
 
-internal enum class UpdateCheckStatus { DISABLED, NO_COMPATIBLE, AVAILABLE, OFFLINE, UNAVAILABLE, INVALID_METADATA }
+internal enum class UpdateCheckStatus { DISABLED, NO_COMPATIBLE, AVAILABLE, OFFLINE, UNAVAILABLE, INVALID_METADATA, PRIVATE_ACCESS }
 internal data class UpdateCheckResult(val status: UpdateCheckStatus, val update: ApprovedUpdate? = null)
 internal class UpdateCheckException(val status: UpdateCheckStatus) : Exception(status.name)
 

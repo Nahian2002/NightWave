@@ -24,6 +24,17 @@ class UpdateStateTruthTest {
             } catch (e: UpdateCheckException) { assertEquals(UpdateCheckStatus.UNAVAILABLE, e.status) }
         } finally { server.shutdown() }
     }
+    @Test fun authenticatedPrivateFeedDistinguishesRevokedAccessFromBadMetadata() = runBlocking {
+        MockWebServer().use { server ->
+            server.enqueue(MockResponse().setResponseCode(404).setBody("{\"enabled\":false}"))
+            try {
+                WeeklyFeedTransport.read(server.url("/feed").toUrl().openConnection() as HttpURLConnection,
+                    authenticatedGithub = true)
+                fail("Private access denial must not become a release status")
+            } catch (e: UpdateCheckException) { assertEquals(UpdateCheckStatus.PRIVATE_ACCESS, e.status) }
+        }
+    }
+
     @Test fun oversized200ResponseIsInvalidRatherThanAnAvailabilityDecision() = runBlocking {
         val server = MockWebServer(); server.start()
         try {

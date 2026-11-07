@@ -14,10 +14,13 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.compose.runtime.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.nightwave.player.v2.ui.NightWaveMaterialTheme
 import com.nightwave.player.v2.data.GuestProfileStore
@@ -28,10 +31,11 @@ import java.io.File
 
 internal data class UpdateScreen(val loading: Boolean = true, val update: ApprovedUpdate? = null,
     val progress: Int? = null, val file: File? = null, val failed: Boolean = false,
-    val checkStatus: UpdateCheckStatus? = null)
+    val checkStatus: UpdateCheckStatus? = null, val credentialError: Boolean = false)
 
 internal class WeeklyUpdateModel(app: Application) : AndroidViewModel(app) {
     val state = MutableStateFlow(UpdateScreen())
+    val privateConfigured = MutableStateFlow(PrivateUpdateCredential.configured(app))
     private var checkJob: Job? = null
     init { check() }
     fun check() {
@@ -48,6 +52,25 @@ internal class WeeklyUpdateModel(app: Application) : AndroidViewModel(app) {
             catch (_: Exception) { state.value = UpdateScreen(loading = false, failed = true, checkStatus = UpdateCheckStatus.INVALID_METADATA) }
         }
     }
+    fun setPrivateAccess(token: String?) {
+        if (state.value.loading || state.value.progress != null || checkJob?.isActive == true) return
+        state.value = UpdateScreen()
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    val context = getApplication<Application>()
+                    if (token == null) PrivateUpdateCredential.remove(context)
+                    else PrivateUpdateCredential.save(context, token)
+                }
+                privateConfigured.value = PrivateUpdateCredential.configured(getApplication())
+                check()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                state.value = UpdateScreen(loading = false, failed = true, credentialError = true)
+            }
+        }
+    }
     fun download() {
         val update = state.value.update ?: return
         if (state.value.progress != null) return
@@ -59,6 +82,9 @@ internal class WeeklyUpdateModel(app: Application) : AndroidViewModel(app) {
             } catch (_: TimeoutCancellationException) {
                 state.value = state.value.copy(progress = null, failed = true)
             } catch (e: CancellationException) { throw e }
+            catch (e: UpdateCheckException) {
+                state.value = UpdateScreen(loading = false, failed = true, checkStatus = e.status)
+            }
             catch (_: Exception) { state.value = state.value.copy(progress = null, failed = true) }
         }
     }
@@ -72,6 +98,8 @@ class WeeklyUpdateActivity : ComponentActivity() {
         val profile = GuestProfileStore(this).load()
         setContent {
             val state by model.state.collectAsState()
+            val privateConfigured by model.privateConfigured.collectAsState()
+            var editingAccess by remember { mutableStateOf(false) }
             NightWaveMaterialTheme(profile.theme,
                 reduceMotion = profile.motion == MotionPreference.REDUCED,
                 followSystemMotion = profile.motion != MotionPreference.FULL) {
@@ -80,6 +108,9 @@ class WeeklyUpdateActivity : ComponentActivity() {
                     text = { Column(Modifier.heightIn(max = 450.dp).verticalScroll(rememberScrollState()),
                         verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         when {
+                            state.credentialError -> Text(getString(R.string.weekly_private_store_failed))
+                            state.checkStatus == UpdateCheckStatus.PRIVATE_ACCESS ->
+                                Text(getString(R.string.weekly_private_access_failed))
                             state.loading -> { CircularProgressIndicator(); Text(getString(R.string.weekly_checking)) }
                             state.update != null -> {
                                 Text(getString(R.string.nw58_update_release, state.update!!.code, state.update!!.name))
@@ -95,6 +126,11 @@ class WeeklyUpdateActivity : ComponentActivity() {
                         state.progress?.let { Text(getString(R.string.weekly_downloading, it)); LinearProgressIndicator(progress = { it / 100f }) }
                         if (state.file != null) Text(getString(R.string.weekly_ready))
                         if (state.failed && state.update != null) Text(getString(R.string.weekly_failed))
+                        TextButton(onClick = { editingAccess = true },
+                            enabled = !state.loading && state.progress == null) {
+                            Text(getString(if (privateConfigured) R.string.weekly_private_manage
+                                else R.string.weekly_private_add))
+                        }
                     } },
                     confirmButton = {
                         when {
@@ -113,6 +149,35 @@ class WeeklyUpdateActivity : ComponentActivity() {
                             state.failed -> TextButton(onClick = model::check) { Text(getString(R.string.weekly_retry)) }
                         }
                     }, dismissButton = { TextButton(onClick = { finish() }) { Text(getString(R.string.weekly_later)) } })
+                if (editingAccess) {
+                    var token by remember { mutableStateOf("") }
+                    val value = token.trim()
+                    AlertDialog(onDismissRequest = { editingAccess = false },
+                        title = { Text(getString(R.string.weekly_private_manage)) },
+                        text = {
+                            Column(Modifier.heightIn(max = 360.dp).verticalScroll(rememberScrollState()),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                Text(getString(R.string.weekly_private_help))
+                                OutlinedTextField(value = token, onValueChange = { if (it.length <= 260) token = it },
+                                    label = { Text(getString(R.string.weekly_private_token)) },
+                                    singleLine = true, visualTransformation = PasswordVisualTransformation(),
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password))
+                                if (privateConfigured) TextButton(onClick = {
+                                    editingAccess = false
+                                    model.setPrivateAccess(null)
+                                }) { Text(getString(R.string.weekly_private_remove)) }
+                            }
+                        },
+                        confirmButton = {
+                            TextButton(enabled = PrivateGithubUpdatePolicy.validToken(value), onClick = {
+                                editingAccess = false
+                                model.setPrivateAccess(value)
+                            }) { Text(getString(R.string.weekly_private_save)) }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { editingAccess = false }) { Text(getString(android.R.string.cancel)) }
+                        })
+                }
             }
         }
     }

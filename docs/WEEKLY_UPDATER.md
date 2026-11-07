@@ -20,9 +20,17 @@ Automatic checks succeed at most once per seven days per device; failed checks r
 
 Release procedure: build/test/sign the complete candidate, publish an explicitly owner-approved APK to the canonical GitHub repository release, then run `tools/sign-weekly-update.ps1` with the offline private XML key, actual APK, increasing version code/name, exact HTTPS release URL and notes. Review the signed output before separately approving the stable feed commit. Never put the private XML key in Git, Drive delivery, issue comments or this public document. Its private recovery location is recorded outside Git. A compromised feed signing key must be rotated through a new trusted app build; do not edit the public key for an existing installed client.
 
-The updater makes only public HTTPS requests; no Google account, Drive token, saved music, title or user ID is sent. Installer permission and the cache-only, nonexported FileProvider are new explicit feature surfaces; original account/library permissions and backup exclusions remain. Feed signature, bounded APK size/hash, package/version/minimum Android and installed-certificate equality are checked before install handoff.
+The public update route uses unauthenticated HTTPS requests. Neither update route sends a Google account, Drive token, saved music or playback history. Installer permission and the cache-only, nonexported FileProvider are new explicit feature surfaces; original account/library permissions and backup exclusions remain. Feed signature, bounded APK size/hash, package/version/minimum Android and installed-certificate equality are checked before install handoff.
 
 Device acceptance remains NOT_RUN: actual seven-day/cold-launch lifecycle, rotation/background/cancellation/retry, network/low-storage failure, tampered and wrong-signer APK, unknown-source permission denial/return, and in-place installed-data preservation. Host tests/builds are not a phone-installation pass. Feed activation needs the owner's public release/merge approval after this review.
+
+## Private repository access
+
+Install the private updater bootstrap APK over the existing app once. From **You → Check for updates → Set up private updates**, enter a fine-grained GitHub personal access token that grants **Contents → Read-only** for **Nahian2002/NightWave**. GitHub may apply an expiration date. You can replace or remove the saved token in the same screen. Removing it from NightWave leaves GitHub's own token revocation controls available in the account settings.
+
+The app encrypts the credential with Android Keystore and stores it in its no-backup area. It sends the credential only to the fixed GitHub API feed and the signed release asset endpoint. The token is omitted from CDN requests, public checks and Google Drive backups. The signed feed still authenticates the APK hash, size, version and minimum SDK, and Android signer continuity is checked before installation.
+
+When publishing an owner-only update, pass the exact GitHub release asset ID as `-GithubAssetId` when signing the feed. Older releases read the same feed envelope but use the original public route. Private updater support becomes available after the one-time manual bootstrap install.
 
 ## Verified delivery — 31 October 2026
 

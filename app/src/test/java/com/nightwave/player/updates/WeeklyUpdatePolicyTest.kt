@@ -43,6 +43,34 @@ class WeeklyUpdatePolicyTest {
             assertFalse(url, WeeklyUpdatePolicy.allowedApk(url))
         }
     }
+    @Test fun privateCredentialsAreOnlyForTheExactGithubFeedOrAssetApi() {
+        val feed = PrivateGithubUpdatePolicy.FEED
+        val asset = PrivateGithubUpdatePolicy.asset(721466240)
+        for (endpoint in listOf(feed, asset)) {
+            assertTrue(PrivateGithubUpdatePolicy.canSendCredential(java.net.URL(endpoint), endpoint))
+            for (host in listOf("release-assets.githubusercontent.com", "api.github.com.example.org")) {
+                val redirect = java.net.URL(endpoint.replace("api.github.com", host))
+                assertFalse(PrivateGithubUpdatePolicy.canSendCredential(redirect, endpoint))
+            }
+        }
+        assertFalse(PrivateGithubUpdatePolicy.canSendCredential(java.net.URL(asset), feed))
+        val cdn = java.net.URL("https://release-assets.githubusercontent.com/object?signature=fixture")
+        assertTrue(PrivateGithubUpdatePolicy.isAssetRedirect(cdn))
+        assertFalse(PrivateGithubUpdatePolicy.isAssetRedirect(java.net.URL(asset)))
+        assertFalse(PrivateGithubUpdatePolicy.isAssetRedirect(java.net.URL("https://release-assets.githubusercontent.com:8443/object")))
+    }
+
+    @Test fun privateAccessRejectsClassicTokensAndHeaderInjection() {
+        val token = "github_pat_" + "X".repeat(30)
+        assertTrue(PrivateGithubUpdatePolicy.validToken(token))
+        assertFalse(PrivateGithubUpdatePolicy.validToken("ghp_" + "X".repeat(30)))
+        assertFalse(PrivateGithubUpdatePolicy.validToken(token + "\r\n"))
+        assertTrue(PrivateGithubUpdatePolicy.needsAccess(401))
+        assertTrue(PrivateGithubUpdatePolicy.needsAccess(403))
+        assertTrue(PrivateGithubUpdatePolicy.needsAccess(404))
+        assertFalse(PrivateGithubUpdatePolicy.needsAccess(429))
+    }
+
     @Test fun signedPayloadRejectsTamperingAndAnotherKey() {
         val pair = KeyPairGenerator.getInstance("RSA").apply { initialize(2048) }.generateKeyPair()
         val public = pair.public as RSAPublicKey

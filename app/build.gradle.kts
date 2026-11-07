@@ -60,8 +60,8 @@ android {
         applicationId = "com.nightwave.player"
         minSdk = 23
         targetSdk = 36
-        versionCode = 65
-        versionName = "55.6"
+        versionCode = 66
+        versionName = "55.7"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("boolean", "OWNER_YOUTUBE_PLAYBACK_PREVIEW", "false")
     }

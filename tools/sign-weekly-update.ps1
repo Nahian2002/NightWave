@@ -9,6 +9,7 @@ param(
     [string]$VersionName = '',
     [string]$ReleaseUrl = '',
     [string]$Notes = '',
+    [long]$GithubAssetId = 0,
     [switch]$Disable
 )
 $ErrorActionPreference = 'Stop'
@@ -31,6 +32,8 @@ if (-not $Disable) {
     if ($LASTEXITCODE -ne 0 -or $badging -notmatch "(?m)^sdkVersion:'([0-9]+)'\s*$") { throw 'Cannot read actual APK minimum SDK.' }
     $payload.minSdk = [int]$Matches[1]
     $payload.versionCode=$VersionCode; $payload.versionName=$VersionName; $payload.url=$ReleaseUrl
+    if ($GithubAssetId -lt 0) { throw 'Invalid GitHub release asset ID.' }
+    if ($GithubAssetId -gt 0) { $payload.githubAssetId = $GithubAssetId }
     $payload.bytes=$apk.Length; $payload.sha256=(Get-FileHash -LiteralPath $ApkPath -Algorithm SHA256).Hash; $payload.notes=$Notes
 }
 $bytes = [Text.Encoding]::UTF8.GetBytes(($payload | ConvertTo-Json -Compress))

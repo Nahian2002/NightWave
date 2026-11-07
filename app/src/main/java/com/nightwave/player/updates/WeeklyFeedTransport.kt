@@ -7,8 +7,11 @@ import kotlinx.coroutines.ensureActive
 
 /** Fetch bytes only. Only the separate signature check can authorize Disabled/Available. */
 internal object WeeklyFeedTransport {
-    suspend fun read(connection: HttpURLConnection): ByteArray = try {
-        if (connection.responseCode != 200) throw UpdateCheckException(UpdateCheckStatus.UNAVAILABLE)
+    suspend fun read(connection: HttpURLConnection, authenticatedGithub: Boolean = false): ByteArray = try {
+        val status = connection.responseCode
+        if (authenticatedGithub && PrivateGithubUpdatePolicy.needsAccess(status))
+            throw UpdateCheckException(UpdateCheckStatus.PRIVATE_ACCESS)
+        if (status != 200) throw UpdateCheckException(UpdateCheckStatus.UNAVAILABLE)
         connection.inputStream.use { input ->
             val output = ByteArrayOutputStream(); val buffer = ByteArray(4096)
             while (true) {
