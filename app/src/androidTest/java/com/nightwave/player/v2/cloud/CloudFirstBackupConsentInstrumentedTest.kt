@@ -30,6 +30,29 @@ class CloudFirstBackupConsentInstrumentedTest {
         finally { prefs.edit().clear().commit() }
     }
 
+    @Test fun firstConnectionAcceptsUnchangedGuestAndStaysOffUntilFirstBackup() = scenario { store ->
+        val guest = store.read()
+        assertEquals("", guest.account)
+        assertTrue(store.connect("temporary@example.com", expected = guest))
+        assertEquals(CloudAccessState.CHECKED, store.read().accessState)
+        assertFalse(store.read().enabled)
+        assertEquals(0L, store.read().lastSuccessMs)
+    }
+
+    @Test fun guestConnectionAndItsFailureRejectChangedChoicesAndNewAccounts() = scenario { store ->
+        val guest = store.read()
+        assertTrue(store.statusForGuestConnectionIfCurrent(guest, "Connection failed"))
+        assertEquals("Connection failed", store.read().lastResult)
+        assertEquals(CloudAccessState.UNKNOWN, store.read().accessState)
+        assertTrue(store.setHistory(true))
+        assertFalse(store.connect("temporary@example.com", expected = guest))
+        assertFalse(store.statusForGuestConnectionIfCurrent(guest, "Old failure"))
+        val revisedGuest = store.read()
+        assertTrue(store.connect("temporary@example.com", expected = revisedGuest))
+        assertFalse(store.connect("other@example.com", expected = revisedGuest))
+        assertFalse(store.statusForGuestConnectionIfCurrent(revisedGuest, "Old failure"))
+    }
+
     @Test fun initialManualBackupRequiresIdenticalConsentAndEnablesVerifiedState() = scenario { store ->
         assertTrue(store.connect("temporary@example.com"))
         val consent = store.read().consentSnapshot()

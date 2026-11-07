@@ -21,8 +21,8 @@
         android:label="NightWave"
         android:theme="@style/Theme.NightWave"
         android:usesCleartextTraffic="false"
-        android:icon="@drawable/ic_nightwave"
-        android:roundIcon="@drawable/ic_nightwave">
+        android:icon="@mipmap/ic_nightwave_launcher"
+        android:roundIcon="@mipmap/ic_nightwave_launcher">
         <meta-data
             android:name="com.google.android.gms.car.application"
             android:resource="@xml/automotive_app_desc" />

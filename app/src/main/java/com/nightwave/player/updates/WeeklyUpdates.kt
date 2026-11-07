@@ -50,6 +50,8 @@ internal object WeeklyUpdates {
         val connection = URL(FEED).openConnection() as HttpURLConnection
         connection.connectTimeout = 15_000; connection.readTimeout = 20_000
         connection.instanceFollowRedirects = false
+        connection.useCaches = false
+        connection.setRequestProperty("Cache-Control", "no-cache")
         val raw = WeeklyFeedTransport.read(connection)
         val envelope = JSONObject(String(raw, Charsets.UTF_8))
         val payload = Base64.decode(envelope.getString("payload"), Base64.DEFAULT)

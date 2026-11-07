@@ -72,7 +72,7 @@ object SearchMusicIntentPolicy {
     /**
      * NW111: Songs-only advisory penalty for incidental *non-music* subjects.
      * Video titles and uploader strings are unverified. This must never hide a
-     * provider result or alter the Videos tab, which preserves provider order.
+     * provider result or affect the Videos ranking policy.
      *
      * If the listener actually asks for this subject, do not demote it.
      * Explicit music labeling merely reduces the penalty; uploader metadata
@@ -80,22 +80,48 @@ object SearchMusicIntentPolicy {
      */
     private val incidentalNonMusicTopics = setOf(
         "cultivation", "farming", "agriculture", "harvesting",
-        "gardening", "recipe", "cooking", "gameplay", "walkthrough", "unboxing"
+        "gardening", "recipe", "cooking", "gameplay", "walkthrough", "unboxing",
+        "speedrunner", "speedrun", "modpack"
     )
+    private val incidentalNonMusicPhrases = listOf("vs real life", "looks like in real life")
     private val explicitMusicCues = listOf(
         "official music video", "music video", "official audio",
         "lyric video", "lyrics", "official song"
     )
 
     fun incidentalNonMusicPenalty(query: String, track: VideoPreview): Int {
-        val asked = SearchTokenMatchingPolicy.tokens(canonical(query)).toSet()
+        val requested = canonical(query)
+        val asked = SearchTokenMatchingPolicy.tokens(requested).toSet()
         val title = canonical(track.title)
         val titleTokens = SearchTokenMatchingPolicy.tokens(title).toSet()
-        if (incidentalNonMusicTopics.none { it in titleTokens && it !in asked }) return 0
+        val incidentalTopic = incidentalNonMusicTopics.any { it in titleTokens && it !in asked }
+        val incidentalPhrase = incidentalNonMusicPhrases.any {
+            hasPhrase(title, it) && !hasPhrase(requested, it)
+        }
+        if (!incidentalTopic && !incidentalPhrase) return 0
         // A music-tagged candidate stays discoverable and is only weakly
         // demoted. An unrelated farming/tutorial result should not appear
         // as the first "Best match" for a song title like Jhum.
         return if (explicitMusicCues.any { hasPhrase(title, it) }) -55 else -230
+    }
+
+    private val extendedMusicCues = explicitMusicCues + listOf(
+        "song", "soundtrack", "ost", "album", "mix", "instrumental", "concert", "symphony",
+        "compilation", "playlist", "medley", "orchestra"
+    )
+
+    /** Broad matches to long general videos belong in the full list, not the Songs highlights. */
+    fun canHighlightInSongs(query: String, track: VideoPreview): Boolean {
+        if (incidentalNonMusicPenalty(query, track) <= -230) return false
+        val requested = canonical(query)
+        val title = canonical(track.title)
+        if (titleCandidates(track).any { it == requested } ||
+            extendedMusicCues.any { hasPhrase(title, it) || hasPhrase(requested, it) }) return true
+        if (track.durationSeconds > 720L) return false
+        // For a broad single word, matching a title fragment alone is weak
+        // evidence. A matching artist or a music-tagged channel can corroborate it.
+        val creator = canonical(MusicIdentity.display(track.title, track.author).artistOrCreator)
+        return requested.contains(' ') || creator == requested || canonical(track.author).endsWith(" topic")
     }
 
     fun titleSignal(query: String, track: VideoPreview): Int {

@@ -33,7 +33,8 @@ def verify(src):
     gateway = src["net/YouTubeGateway.kt"]
     assert gateway.count("request?.checkActive()") >= 5
     assert "onPhase(PublicSearchPhase.COMMUNITY)" in gateway
-    assert "if (mode == SearchMode.SONGS) sortMusicMatches" in gateway
+    assert "if (mode == SearchMode.SONGS) SearchRelevancePolicy.rankPublic(query, videos)" in gateway
+    assert "else SearchRelevancePolicy.rankVideos(query, videos)" in gateway
     row = src["v2/ui/StudioComponents.kt"]
     for marker in ("publicEvidence.sourceAndDuration", "publicEvidence.titleLabels",
                    "publicEvidence.duplicateReference", "publicEvidence?.uploader",

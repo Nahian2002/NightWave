@@ -9,14 +9,17 @@ import org.junit.Test
 import okhttp3.HttpUrl.Companion.toHttpUrl
 
 class UnifiedSearchScopeTest {
-    @Test fun onlyExplicitExternalScopesHaveProviderRequests() {
-        for (scope in listOf(UnifiedSearchScope.MUSIC, UnifiedSearchScope.LOCAL, UnifiedSearchScope.SAVED)) {
+    @Test fun musicAndSourceFiltersHaveSeparateProviderScopes() {
+        for (scope in listOf(UnifiedSearchScope.LOCAL, UnifiedSearchScope.SAVED)) {
             assertNull(UnifiedSourceRequest.create(scope, "piano"))
         }
-        assertEquals(setOf(DiscoverySource.AUDIUS, DiscoverySource.PEERTUBE, DiscoverySource.RADIO),
+        assertEquals(setOf(DiscoverySource.AUDIUS, DiscoverySource.PEERTUBE, DiscoverySource.RADIO, DiscoverySource.OPENVERSE),
             UnifiedSearchScope.ALL.providers)
         assertTrue(UnifiedSearchScope.ALL.showsLocal)
+        assertEquals(setOf(DiscoverySource.AUDIUS, DiscoverySource.PEERTUBE, DiscoverySource.OPENVERSE),
+            UnifiedSourceRequest.create(UnifiedSearchScope.MUSIC, "piano")!!.scope.providers)
         assertEquals(setOf(DiscoverySource.PEERTUBE), UnifiedSearchScope.PEERTUBE.providers)
+        assertEquals(setOf(DiscoverySource.OPENVERSE), UnifiedSearchScope.OPENVERSE.providers)
         assertNull(UnifiedSourceRequest.create(UnifiedSearchScope.RADIO, "  "))
     }
 
@@ -57,5 +60,8 @@ class UnifiedSearchScopeTest {
         val input = listOf(version, first, second)
         assertEquals(listOf(first, second, version), rankUnifiedSourceResults("আমার গান", input))
         assertEquals(input, rankUnifiedSourceResults("different", input))
+        assertTrue(rankUnifiedSourceResults("different", input, requireMatch = true).isEmpty())
+        assertEquals(listOf(first, second, version),
+            rankUnifiedSourceResults("আমার গান", input + item("unrelated", "অন্য গান"), requireMatch = true))
     }
 }

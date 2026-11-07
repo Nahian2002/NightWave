@@ -1,5 +1,6 @@
 package com.nightwave.player
 
+import com.nightwave.player.core.YouTubeReleasePolicy
 import android.app.Application
 import android.util.Log
 import org.schabi.newpipe.extractor.NewPipe
@@ -13,6 +14,7 @@ class NightWaveApp : Application() {
         // extractor fails to initialize on a particular Android device.
         runCatching { NightWaveCrashRecorder.install(this) }
             .onFailure { Log.w("NightWaveStartup", "Crash recorder setup unavailable") }
+        if (YouTubeReleasePolicy.OFFICIAL_ONLY) return
         try {
             NewPipe.init(ExtractorDownloader())
         } catch (error: Exception) {

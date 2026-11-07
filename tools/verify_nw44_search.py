@@ -37,7 +37,7 @@ REQUIRED = {
         "ranked.drop(best.size)",
     ],
     "gateway": [
-        "if (mode == SearchMode.SONGS) sortMusicMatches(videos, text) else videos",
+        "else SearchRelevancePolicy.rankVideos(query, videos)",
         "SearchRelevancePolicy.rankPublic(query, videos)",
     ],
     "ui": [

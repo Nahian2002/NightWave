@@ -1,5 +1,6 @@
 package com.nightwave.player.net
 
+import com.nightwave.player.core.YouTubeReleasePolicy
 import okhttp3.OkHttpClient
 import okhttp3.Request as HttpRequest
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -19,6 +20,7 @@ class ExtractorDownloader : Downloader() {
 
     @Throws(IOException::class)
     override fun execute(request: Request): Response {
+        YouTubeReleasePolicy.requireLegacyAccess()
         val method = request.httpMethod().uppercase(Locale.ROOT)
         val bytes = request.dataToSend()
         val requestBuilder = HttpRequest.Builder().url(request.url())

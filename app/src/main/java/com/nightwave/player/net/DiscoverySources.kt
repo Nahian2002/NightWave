@@ -10,6 +10,7 @@ internal enum class DiscoverySource(val displayName: String, val kind: Discovery
     AUDIUS("Audius", DiscoveryKind.TRACK),
     PEERTUBE("PeerTube", DiscoveryKind.VIDEO),
     RADIO("Radio Browser", DiscoveryKind.LIVE_RADIO),
+    OPENVERSE("Openverse", DiscoveryKind.TRACK),
     JAMENDO("Jamendo", DiscoveryKind.TRACK, available = false)
 }
 
@@ -31,12 +32,17 @@ internal data class DiscoveryItem(
     val creator: String?,
     val canonicalUrl: HttpUrl,
     val durationSeconds: Int?,
-    val capabilities: DiscoveryCapabilities
+    val capabilities: DiscoveryCapabilities,
+    val licenseLabel: String? = null
 )
 
 internal object DiscoverySources {
     private const val MAX_RESULTS = 20
     private val uuid = Regex("[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}")
+    private val openLicenses = mapOf("cc0" to "CC0", "pdm" to "Public Domain Mark",
+        "by" to "CC BY", "by-sa" to "CC BY-SA")
+    private val jamendoTrackId = Regex("[0-9]{1,12}")
+    private val licenseVersions = setOf("1.0", "2.0", "2.5", "3.0", "4.0")
     private val audiusId = Regex("[A-Za-z0-9]{1,32}")
     private val shortUuid = Regex("[A-Za-z0-9]{1,40}")
     private val hostLabel = Regex("[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?")
@@ -56,6 +62,7 @@ internal object DiscoverySources {
             DiscoverySource.AUDIUS -> "https://api.audius.co/v1/tracks/search"
             DiscoverySource.PEERTUBE -> "https://sepiasearch.org/api/v1/search/videos"
             DiscoverySource.RADIO -> "https://de1.api.radio-browser.info/json/stations/search"
+            DiscoverySource.OPENVERSE -> "https://api.openverse.org/v1/audio/"
             DiscoverySource.JAMENDO -> return null
         }
         val builder = base.toHttpUrl().newBuilder()
@@ -67,6 +74,11 @@ internal object DiscoverySources {
             DiscoverySource.RADIO -> builder.addQueryParameter("name", query)
                 .addQueryParameter("limit", MAX_RESULTS.toString()).addQueryParameter("hidebroken", "true")
                 .addQueryParameter("order", "votes").addQueryParameter("reverse", "true")
+            DiscoverySource.OPENVERSE -> builder.addQueryParameter("q", query)
+                .addQueryParameter("category", "music").addQueryParameter("mature", "false")
+                .addQueryParameter("license", openLicenses.keys.joinToString(","))
+                .addQueryParameter("source", "jamendo,wikimedia_audio")
+                .addQueryParameter("page_size", MAX_RESULTS.toString())
             DiscoverySource.JAMENDO -> return null
         }
         return builder.build()
@@ -76,6 +88,7 @@ internal object DiscoverySources {
         val data = when (source) {
             DiscoverySource.RADIO -> JSONArray(payload)
             DiscoverySource.AUDIUS, DiscoverySource.PEERTUBE -> JSONObject(payload).getJSONArray("data")
+            DiscoverySource.OPENVERSE -> JSONObject(payload).getJSONArray("results")
             DiscoverySource.JAMENDO -> return emptyList()
         }
         return (0 until minOf(data.length(), MAX_RESULTS)).mapNotNull { index ->
@@ -84,6 +97,7 @@ internal object DiscoverySources {
                 DiscoverySource.AUDIUS -> audius(row)
                 DiscoverySource.PEERTUBE -> peerTube(row)
                 DiscoverySource.RADIO -> radio(row)
+                DiscoverySource.OPENVERSE -> openverse(row)
                 DiscoverySource.JAMENDO -> null
             }
         }.distinctBy(DiscoveryItem::id)
@@ -118,6 +132,31 @@ internal object DiscoverySources {
         val homepage = externalUrl(row.optString("homepage")) ?: return null
         return item(DiscoverySource.RADIO, id.lowercase(java.util.Locale.ROOT), row.text("name"),
             row.text("countrycode"), homepage, null)
+    }
+
+    private fun openverse(row: JSONObject): DiscoveryItem? {
+        val id = (row.opt("id") as? String)?.takeIf(uuid::matches) ?: return null
+        if (row.optString("category") != "music" || row.opt("mature") != false) return null
+        val license = openLicenses[row.optString("license")] ?: return null
+        val version = row.optString("license_version").takeIf(licenseVersions::contains)
+        val title = row.text("title") ?: return null
+        val url = externalUrl(row.optString("foreign_landing_url")) ?: return null
+        val path = url.pathSegments
+        val supportedPage = when (row.optString("source")) {
+            "jamendo" -> url.host in setOf("jamendo.com", "www.jamendo.com") &&
+                path.size in 2..3 && path.first() == "track" && path[1].matches(jamendoTrackId)
+            "wikimedia_audio" -> url.host == "commons.wikimedia.org" && path.size == 2 &&
+                path.first() == "wiki" && path[1].startsWith("File:") && path[1].length > 5
+            else -> false
+        }
+        if (!supportedPage || url.query != null || url.fragment != null) return null
+        val duration = (row.optLong("duration") / 1_000L).takeIf { it in 1..86_400 }?.toInt()
+        return DiscoveryItem(
+            DiscoveryItemId(DiscoverySource.OPENVERSE, id.lowercase(java.util.Locale.ROOT)),
+            title, row.text("creator"), url, duration,
+            capabilities.copy(playInApp = DiscoveryPermission.UNAVAILABLE),
+            listOfNotNull(license, version).joinToString(" ")
+        )
     }
 
     private fun item(source: DiscoverySource, id: String, title: String?, creator: String?, url: HttpUrl,

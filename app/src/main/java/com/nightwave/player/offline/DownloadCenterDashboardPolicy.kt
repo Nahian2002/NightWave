@@ -29,9 +29,13 @@ internal object DownloadCenterDashboardPolicy {
     ): String = when {
         checkingFiles -> "Checking saved audio · ${active.coerceAtLeast(0)} active · " +
             "${total.coerceAtLeast(0)} transfer entries"
-        checkFailed -> "Saved audio verification unavailable · Retry by reopening Transfers"
-        else -> "${active.coerceAtLeast(0)} active · ${ready.coerceAtLeast(0)} ready offline · " +
-            "${issues.coerceAtLeast(0)} need attention · ${total.coerceAtLeast(0)} transfers"
+        checkFailed -> "Couldn’t check saved audio. Reopen Downloads to try again."
+        else -> buildList {
+            if (active > 0) add("$active active")
+            if (ready > 0) add("$ready ready offline")
+            if (issues > 0) add(if (issues == 1) "1 needs attention" else "$issues need attention")
+            if (total > 0) add(if (total == 1) "1 transfer" else "$total transfers")
+        }.joinToString(" · ")
     }
 
     fun helpLine(): String =

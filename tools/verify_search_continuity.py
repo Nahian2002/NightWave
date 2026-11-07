@@ -14,7 +14,7 @@ REQUIRED={
   'request.commitIfActive { memoryCache.put(query, mode, result) }',
   'request?.beginPhase(PublicSearchPhase.DIRECT)', 'request?.beginPhase(PublicSearchPhase.COMMUNITY)',
   'remember(text, mode, result, request)'],
- 'net/PublicMusicSearchRunner.kt':['directBudgetMillis: Long = 8_000L',
+ 'net/PublicMusicSearchRunner.kt':['directBudgetMillis: Long = 5_000L',
   'minOf(deadline, phaseDeadline)', 'throw PublicSearchPhaseDeadlineException()',
   'diagnostics.httpCompleted(System.nanoTime() - started)',
   'commitIfActive(block: () -> T): T = synchronized(calls) { checkActive(); block() }',

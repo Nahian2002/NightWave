@@ -1,5 +1,6 @@
 package com.nightwave.player.v2.ui
 
+import com.nightwave.player.core.YouTubeReleasePolicy
 import androidx.compose.foundation.verticalScroll
 
 import com.nightwave.player.R
@@ -219,13 +220,19 @@ import com.nightwave.player.library.LegacyLibraryTransaction
 import com.nightwave.player.core.VideoLink
 import com.nightwave.player.core.SearchInput
 import com.nightwave.player.core.SearchInputResolver
+import com.nightwave.player.net.DiscoverySearch
 import com.nightwave.player.net.VideoPreview
+import com.nightwave.player.v2.model.NightWaveDesign
+import com.nightwave.player.v2.recommendation.RelatedSongsPolicy
 import com.nightwave.player.net.YouTubeGateway
 import com.nightwave.player.net.VideoSearchResults
 import com.nightwave.player.net.SearchMode
 import com.nightwave.player.net.LocalMusicCorpusState
 import com.nightwave.player.net.LocalMusicQueryRunner
 import com.nightwave.player.net.LocalMusicSearchResult
+import com.nightwave.player.net.LocalTypingPreview
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import com.nightwave.player.net.SavedTrackSearch
 import com.nightwave.player.net.UnifiedSearchScope
 import com.nightwave.player.net.LocalSearchSuggestions
@@ -1343,7 +1350,11 @@ class NightWaveStudioActivity : ComponentActivity() {
                     onWebSearch = { query -> openOfficialSearch(query) },
                     onCancelSearch = { cancelNativeSearch() },
                     onPlay = { video, collection -> playSearchedOfflineFirst(video, collection) },
-                    onLibraryQuickPlay = { collection -> playback.playLibraryCollection(collection) },
+                    onLibraryQuickPlay = { collection ->
+                        if (YouTubeReleasePolicy.OFFICIAL_ONLY) {
+                            collection.firstOrNull()?.let { playSearchedOfflineFirst(it, collection) }
+                        } else playback.playLibraryCollection(collection)
+                    },
                     onLegacyPlayer = { manageLibrary() },
                     onManageFolders = { managePlaylistFolders() },
                     onMovePlaylist = { name -> choosePlaylistFolder(name) },
@@ -1439,7 +1450,8 @@ class NightWaveStudioActivity : ComponentActivity() {
         searchNavigationToken++
         val watchUrl = VideoLink.normalize(shared)
         if (watchUrl != null) {
-            playback.play(VideoPreview("Shared track", "YouTube", watchUrl, "", 0L))
+            playSearchedOfflineFirst(VideoPreview("Shared track", "YouTube", watchUrl, "", 0L),
+                emptyList())
         } else {
             prepareSearch(shared, SearchMode.SONGS)
         }
@@ -1474,6 +1486,10 @@ class NightWaveStudioActivity : ComponentActivity() {
     private fun openOfficialSearch(query: String) {
         val clean = query.trim().take(160)
         if (clean.isBlank()) return
+        if (YouTubeReleasePolicy.OFFICIAL_ONLY) {
+            prepareSearch(clean, SearchMode.SONGS)
+            return
+        }
         youtubeDialog?.dismiss()
         youtubeDialog = YouTubeSearchBrowser(this).show(clean) { url ->
             playback.play(VideoPreview("Loading track…", "YouTube", url, "", 0L))
@@ -1489,10 +1505,20 @@ class NightWaveStudioActivity : ComponentActivity() {
      * No email, token, Intent contents or exception message is retained.
      */
     private fun cloudAuthorizationFailed(
-        stage: CloudAuthorizationFailurePolicy.Stage, code: Int?
+        stage: CloudAuthorizationFailurePolicy.Stage, code: Int?,
+        message: String = CloudAuthorizationFailurePolicy.shortMessage(code, stage)
     ) {
-        val message = CloudAuthorizationFailurePolicy.shortMessage(code, stage)
         val current = cloudRequestStart ?: cloudStore.read()
+        if (current.account.isBlank()) {
+            if (cloudStore.statusForGuestConnectionIfCurrent(current, message)) {
+                cloudFailureStore.record(stage, code)
+                showMessage(message)
+            } else {
+                showMessage("Drive access or backup choices changed. Start the action again.")
+            }
+            refreshCloud()
+            return
+        }
         val cancelled = stage != CloudAuthorizationFailurePolicy.Stage.DRIVE_CHECK && code in setOf(16, 12501)
         val receipt = if (cancelled) current.accessRevision else cloudStore.recordAccessIfCurrent(
             current.consentSnapshot(), CloudAccessPolicy.afterFailure(current.accessState, stage, code),
@@ -1645,6 +1671,10 @@ class NightWaveStudioActivity : ComponentActivity() {
                 val code = (verified.exceptionOrNull() as? DriveHttpFailure)?.statusCode
                 val message = if (code != null) DriveHttpFailurePolicy.message(code)
                     else "Google permitted access, but Drive account verification failed. Retry later."
+                if (action == "connect" && verificationState.account.isBlank()) {
+                    cloudAuthorizationFailed(CloudAuthorizationFailurePolicy.Stage.DRIVE_CHECK, code, message)
+                    return@launch
+                }
                 val failureRevision = cloudStore.recordAccessIfCurrent(verificationState.consentSnapshot(),
                     CloudAccessPolicy.afterFailure(verificationState.accessState,
                         CloudAuthorizationFailurePolicy.Stage.DRIVE_CHECK, code),
@@ -1660,13 +1690,16 @@ class NightWaveStudioActivity : ComponentActivity() {
                 showMessage(message)
                 return@launch
             }
-            val current = cloudStore.read()
-            if (!CloudBackupConsentPolicy.same(verificationState.consentSnapshot(), current.consentSnapshot()) ||
-                verificationState.accessRevision != current.accessRevision) {
-                cloudBusy = false
-                refreshCloud()
-                showMessage("Drive access or backup choices changed. Start the action again.")
-                return@launch
+            // Connect has its own atomic check of the starting state, including an empty account.
+            if (action != "connect") {
+                val current = cloudStore.read()
+                if (!CloudBackupConsentPolicy.same(verificationState.consentSnapshot(), current.consentSnapshot()) ||
+                    verificationState.accessRevision != current.accessRevision) {
+                    cloudBusy = false
+                    refreshCloud()
+                    showMessage("Drive access or backup choices changed. Start the action again.")
+                    return@launch
+                }
             }
             finishVerifiedCloudAuthorization(action, token, account, verificationState)
         }
@@ -1681,7 +1714,10 @@ class NightWaveStudioActivity : ComponentActivity() {
                 runCatching { NightWaveCloudSchedule.stop(this) }
                 refreshCloud()
                 showMessage("Drive connected. Choose Back up now or Preview restore.")
-            } else showMessage("Google account could not be saved.")
+            } else {
+                refreshCloud()
+                showMessage("Google account could not be saved. Start the Drive connection again.")
+            }
             return
         }
         val expectedAccount = cloudStore.read().account
@@ -2120,9 +2156,13 @@ class NightWaveStudioActivity : ComponentActivity() {
             is SearchInput.VideoUrl -> {
                 nativeSearchJob?.cancel()
                 nativeSearchGeneration++
-                nativeSearchState = StudioSearchSnapshot(query = clean, mode = mode,
-                    hint = "Opening this public video in NightWave…")
-                playback.play(VideoPreview("Loading track…", "YouTube", input.url, "", 0L))
+                val video = VideoPreview("YouTube video", "YouTube", input.url, "", 0L)
+                if (YouTubeReleasePolicy.OFFICIAL_ONLY) {
+                    val started = playSavedFromSearch(video)
+                    nativeSearchState = StudioSearchSnapshot(query = clean, mode = mode,
+                        hint = getString(if (started) R.string.nw55_3_saved_audio_playing
+                            else R.string.nw55_3_reference_only))
+                } else playSearchedOfflineFirst(video, emptyList())
                 return
             }
             SearchInput.BadLink -> {
@@ -2134,6 +2174,7 @@ class NightWaveStudioActivity : ComponentActivity() {
             }
             is SearchInput.Keywords -> Unit
         }
+        if (YouTubeReleasePolicy.OFFICIAL_ONLY) return
         val request = ++nativeSearchGeneration
         nativeSearchJob?.cancel()
         // A retry for the same query should not erase successful public
@@ -2350,7 +2391,14 @@ class NightWaveStudioActivity : ComponentActivity() {
                     .putStringArrayListExtra(PlaybackService.EXTRA_OFFLINE_IDS, selection.queueIds))
             }.isSuccess
             if (started) return
-            showMessage("Saved track could not start. Trying online playback.")
+            showMessage("Saved track could not start.")
+        }
+        if (YouTubeReleasePolicy.OFFICIAL_ONLY) {
+            AlertDialog.Builder(this).setTitle(video.title)
+                .setMessage(R.string.nw55_3_reference_only)
+                .setPositiveButton(R.string.nw55_3_offline_sources) { _, _ -> showOfflineSources(video) }
+                .setNegativeButton(android.R.string.cancel, null).show()
+            return
         }
         playback.play(video, collection)
     }
@@ -2380,6 +2428,10 @@ class NightWaveStudioActivity : ComponentActivity() {
                 }
                 .setNegativeButton("Close", null)
                 .show()
+            return
+        }
+        if (YouTubeReleasePolicy.OFFICIAL_ONLY) {
+            showOfflineSources(video)
             return
         }
         AlertDialog.Builder(this)
@@ -2450,6 +2502,10 @@ class NightWaveStudioActivity : ComponentActivity() {
 
     /** User-intent queue action; never silently mixes online and offline sessions. */
     private fun requestPublicQueueAction(video: VideoPreview, playNext: Boolean) {
+        if (YouTubeReleasePolicy.OFFICIAL_ONLY) {
+            showMessage("Open YouTube to play this track or use a saved copy in Offline.")
+            return
+        }
         val current = playback.state
         if (current.offline) {
             showMessage("Online and offline queues are separate. Switch to online music first.")
@@ -2481,10 +2537,16 @@ class NightWaveStudioActivity : ComponentActivity() {
         val offlineReady = runCatching {
             SearchTrackOfflineIndex.readySong(this, video.url) != null
         }.getOrDefault(false)
+        val playLabel = when {
+            offlineReady -> "Play saved offline"
+            YouTubeReleasePolicy.OFFICIAL_ONLY -> getString(R.string.nw55_3_track_availability)
+            else -> "Play now"
+        }
         AlertDialog.Builder(this).setTitle(video.title)
             .setItems(arrayOf(likeText, "Save to playlist", "Play next",
-                "Add to end of queue", "Play now",
-                if (offlineReady) "Play saved offline" else "Save offline",
+                "Add to end of queue", playLabel,
+                if (offlineReady) "Open saved audio" else if (YouTubeReleasePolicy.OFFICIAL_ONLY)
+                    "Other offline sources" else "Save offline",
                 "Share song link", "Copy song link")) { _, selected ->
                 when (selected) {
                     0 -> { library.toggleFavorite(video); refresh() }
@@ -3466,7 +3528,9 @@ private fun StudioRoot(
                             navigateToTab(StudioTab.SEARCH)
                         },
                         onResumeSpotlight = { song, collection ->
-                            when (SpotlightResumePolicy.choose(
+                            if (YouTubeReleasePolicy.OFFICIAL_ONLY && !playerState.offline) {
+                                onPlay(song, collection)
+                            } else when (SpotlightResumePolicy.choose(
                                 tappedUrl = song.url, currentUrl = playerState.videoUrl,
                                 currentQueueIndex = playerState.queueIndex, offline = playerState.offline,
                                 playing = playerState.playing, buffering = playerState.buffering,
@@ -3615,6 +3679,17 @@ private fun StudioRoot(
         }
         }
     }
+    val relatedTrack = remember(playerState.videoUrl, playerState.title, playerState.artist, playerState.offline) {
+        if (playerState.offline || !playerState.hasTrack) null else
+            VideoPreview(playerState.title, playerState.artist, playerState.videoUrl, "", 0L)
+    }
+    val relatedArtist = remember(relatedTrack) { relatedTrack?.let(RelatedSongsPolicy::artist) }
+    val relatedSongs = remember(expanded, relatedTrack, searchState.mode, searchState.videos, favorites) {
+        if (expanded && relatedTrack != null) {
+            val searchedSongs = searchState.videos.takeIf { searchState.mode == SearchMode.SONGS }.orEmpty()
+            RelatedSongsPolicy.select(relatedTrack, searchedSongs + favorites.take(350))
+        } else emptyList()
+    }
     StudioNowPlayingOverlay(
         expanded = expanded && playerState.hasTrack,
         state = playerState, actions = playerActions,
@@ -3646,7 +3721,16 @@ private fun StudioRoot(
         onImportLyrics = onImportLyrics,
         onEditLyrics = onEditLyrics,
         onRemoveLyrics = onRemoveLyrics,
-        onDismiss = { expanded = false }
+        onDismiss = { expanded = false },
+        relatedSongs = relatedSongs,
+        onPlayRelated = { song -> onPlay(song, listOf(song)) },
+        onFindRelated = relatedArtist?.let { artist ->
+            {
+                expanded = false
+                onPrepareSearch(artist, SearchMode.SONGS)
+                navigateToTab(StudioTab.SEARCH)
+            }
+        }
     )
     if (showSoundStudio) NightWaveSoundStudioDialog(
         onDismiss = { showSoundStudio = false }
@@ -3929,9 +4013,24 @@ internal fun StudioHome(
             }
         }
         item { SectionHeading(strings.get(R.string.nw141_search_by_mood_9a04e), strings.get(R.string.nw141_choose_a_mood_to_explore_c313d)) }
-        // One horizontally scrollable shelf instead of three oversized rows.
-        // Uses existing real mood shortcuts and unchanged search actions.
-        item(key = "discovery-shelf") {
+        if (entry.kind == NightWaveHomePresentationPolicy.Kind.NEW) {
+            // First-time listeners can scan all moods without discovering a horizontal gesture.
+            DiscoveryShortcuts.picks.indices.chunked(2).forEach { pair ->
+                item(key = "first-listen-moods-${pair.first()}") {
+                    val first = pair.first()
+                    val second = pair.last()
+                    val tile: @Composable (Int) -> Unit = { index ->
+                        val shortcut = DiscoveryShortcuts.picks[index]
+                        MoodTile(shortcut.title, shortcut.subtitle, palettes[index % palettes.size],
+                            Modifier.fillMaxWidth().testTag("first-listen-mood-${shortcut.key}")) {
+                            onSearch(shortcut.query)
+                        }
+                    }
+                    if (first == second) tile(first) else NightWaveBentoPair(
+                        first = { tile(first) }, second = { tile(second) })
+                }
+            }
+        } else item(key = "discovery-shelf") {
             LazyRow(Modifier.fillMaxWidth().nightWaveShelfBoundary().testTag("content-mood-shelf"), state = moodShelfState,
                 flingBehavior = rememberSnapFlingBehavior(moodShelfState, SnapPosition.Start),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -3980,16 +4079,18 @@ internal fun StudioSearch(
     onUndoSearchRemoval: () -> Unit,
     onClearSearch: () -> Unit,
     onCancelSearch: () -> Unit = {},
-    searchVisible: Boolean = true
+    searchVisible: Boolean = true,
+    discoverySearch: DiscoverySearch? = null
 ) {
     val strings = rememberNightWaveStrings()
     var query by rememberSaveable { mutableStateOf("") }
+    var searchInput by remember { mutableStateOf(TextFieldValue()) }
     var mode by rememberSaveable { mutableStateOf(SearchMode.SONGS) }
     var selectedCreator by rememberSaveable { mutableStateOf<String?>(null) }
     var showAllCreators by rememberSaveable { mutableStateOf(false) }
     var consumedPrefill by rememberSaveable { mutableStateOf("") }
     var sourceScope by rememberSaveable { mutableStateOf(UnifiedSearchScope.MUSIC) }
-    val sourceState = rememberUnifiedSourceState(sourceScope, query, searchVisible)
+    val sourceState = rememberUnifiedSourceState(sourceScope, query, searchVisible, discoverySearch)
     LaunchedEffect(state.prefillToken) {
         // Only explicit shortcuts/shared text may replace a draft. Provider responses
         // and pager recreation must never resurrect a query the listener cleared.
@@ -4002,8 +4103,7 @@ internal fun StudioSearch(
         }
     }
     var queryFocused by remember { mutableStateOf(false) }
-    // Search on the keyboard stays inside NightWave. YouTube stays an
-    // explicit alternative when public provider results are unavailable.
+    // The keyboard submits the active scope. Local previews never submit a query.
     val searchFocus = LocalFocusManager.current
     val searchKeyboard = LocalSoftwareKeyboardController.current
     val searchLifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
@@ -4015,18 +4115,40 @@ internal fun StudioSearch(
         searchLifecycle.addObserver(observer)
         onDispose { searchLifecycle.removeObserver(observer) }
     }
+    val editDraft: (String) -> Unit = {
+        if (it != query && state.loading) onCancelSearch()
+        if (it != query) {
+            sourceState.cancel()
+            query = it
+            selectedCreator = null
+        }
+    }
+    val submitMusic = { entered: String, selectedMode: SearchMode ->
+        dismissSearchInput()
+        onRecordSearch(entered)
+        if (YouTubeReleasePolicy.OFFICIAL_ONLY &&
+            SearchInputResolver.resolve(entered) is SearchInput.Keywords) {
+            sourceState.submit(UnifiedSearchScope.MUSIC, entered)
+        } else onNativeSearch(entered, selectedMode)
+    }
     val submit = {
         dismissSearchInput()
         val entered = query.trim()
         if (entered.isNotBlank() && sourceScope == UnifiedSearchScope.MUSIC) {
-            onRecordSearch(entered)
-            onNativeSearch(entered, mode)
+            submitMusic(entered, mode)
         } else if (!sourceState.pending) {
             sourceState.submit(sourceScope, entered)
         }
     }
     val index = corpus.index
     val includeLocal = sourceScope == UnifiedSearchScope.MUSIC || sourceScope.showsLocal
+    val showTyping = searchVisible && queryFocused && includeLocal && query.isNotBlank()
+    val typingPreview by produceState<LocalTypingPreview?>(null, showTyping, query, index, searchHistory) {
+        value = null
+        if (showTyping) value = LocalMusicQueryRunner.preview(index, query, searchHistory)
+    }
+    val currentTyping = typingPreview?.takeIf { showTyping && it.query == query && it.index === index }
+    val hasTypingMatches = currentTyping?.let { it.saved.isNotEmpty() || it.offline.isNotEmpty() } == true
     val localSearch by produceState<LocalMusicSearchResult?>(null, query, index, includeLocal) {
         value = null
         if (includeLocal && query.isNotBlank() && index != null) {
@@ -4092,11 +4214,11 @@ internal fun StudioSearch(
         }
         item {
             OutlinedTextField(
-                value = query, onValueChange = {
-                    if (it != query && state.loading) onCancelSearch()
-                    if (it != query) sourceState.cancel()
-                    query = it.take(160)
-                    selectedCreator = null
+                value = searchInput.takeIf { it.text == query } ?: TextFieldValue(query, TextRange(query.length)),
+                onValueChange = { input ->
+                    val edited = input.text.take(160)
+                    searchInput = input.copy(text = edited)
+                    editDraft(edited)
                 },
                 modifier = Modifier.fillMaxWidth().testTag("nw129-search-query")
                     .onFocusChanged { queryFocused = it.isFocused }
@@ -4126,6 +4248,24 @@ internal fun StudioSearch(
                 keyboardActions = KeyboardActions(onSearch = { submit() })
             )
         }
+        currentTyping?.let { preview ->
+            item(key = "nw58-typing-preview") {
+                NightWaveSearchTyping(
+                    preview = preview,
+                    playingUrl = playingUrl,
+                    onCompletion = { completion ->
+                        val text = (completion + " ").take(160)
+                        searchInput = TextFieldValue(text, TextRange(text.length))
+                        editDraft(text)
+                    },
+                    onPlay = { track ->
+                        dismissSearchInput()
+                        playSinglePublic(track)
+                    },
+                    onOffline = { song -> dismissSearchInput(); onOfflineSearch(song.title, song.id) }
+                )
+            }
+        }
         item(key = "nw57-source-filters") {
             NightWaveSourceFilters(sourceScope) { selected ->
                 if (selected != sourceScope) {
@@ -4150,7 +4290,7 @@ internal fun StudioSearch(
                         TextButton(onClick = onRetryCorpus, modifier = Modifier.heightIn(min = 48.dp)) {
                             Text(strings.get(R.string.nw141_retry_local_music_a4b1b))
                         }
-                    } else if (localPending || savedMatches.isEmpty() && offlineMatches.isEmpty()) {
+                    } else if (localPending || savedMatches.isEmpty() && offlineMatches.isEmpty() && !hasTypingMatches) {
                         val status = when {
                             localPending -> R.string.nw141_searching_your_music_047f6
                             query.isBlank() -> R.string.nw57_local_prompt
@@ -4213,7 +4353,7 @@ internal fun StudioSearch(
                 TextButton(onClick = onRetryCorpus, modifier = Modifier.heightIn(min = 48.dp)) { Text(strings.get(R.string.nw141_retry_local_music_a4b1b)) }
             }
         }
-        if (query.isNotBlank()) {
+        if (query.isNotBlank() && !YouTubeReleasePolicy.OFFICIAL_ONLY) {
             item(key = "search-mode-selector") {
                 NightWaveCompactActions {
                     FilterChip(selected = mode == SearchMode.SONGS,
@@ -4233,7 +4373,22 @@ internal fun StudioSearch(
                 }
             }
         }
-        if (query.isNotBlank()) {
+        if (query.isNotBlank() && YouTubeReleasePolicy.OFFICIAL_ONLY) {
+            item(key = "nw55-3-music-search") {
+                NightWaveCompactActions {
+                    Button(onClick = submit, enabled = !sourceState.pending,
+                        modifier = Modifier.heightIn(min = 48.dp).testTag("nw55-3-music-submit")) {
+                        Text(strings.get(R.string.nw141_find_music_0a757))
+                    }
+                    if (sourceState.pending) TextButton(onClick = sourceState::cancel,
+                        modifier = Modifier.heightIn(min = 48.dp)) {
+                        Text(strings.get(R.string.nw141_cancel_search_b5456))
+                    }
+                }
+                Text(strings.get(R.string.nw55_3_search_scope),
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        } else if (query.isNotBlank()) {
             item(key = "search-submit-actions") {
                 Row(Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(9.dp),
@@ -4247,8 +4402,13 @@ internal fun StudioSearch(
                         Icon(Icons.Outlined.Search, contentDescription = null,
                             modifier = Modifier.size(19.dp))
                         Spacer(Modifier.width(7.dp))
-                        Text(if (searching) strings.get(R.string.nw141_finding_music_77304) else strings.get(R.string.nw141_find_music_0a757),
-                            maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        val searchLabel = when {
+                            searching && mode == SearchMode.VIDEOS -> R.string.nw58_finding_videos
+                            mode == SearchMode.VIDEOS -> R.string.nw58_find_videos
+                            searching -> R.string.nw141_finding_music_77304
+                            else -> R.string.nw141_find_music_0a757
+                        }
+                        Text(strings.get(searchLabel), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                     OutlinedButton(
                         onClick = {
@@ -4325,10 +4485,11 @@ internal fun StudioSearch(
                     }
                     OutlinedButton(onClick = {
                         mode = SearchMode.SONGS
-                        onRecordSearch(selectedCreatorGroup.name)
-                        dismissSearchInput(); onPrimarySearch(selectedCreatorGroup.name, SearchMode.SONGS)
+                        val creator = selectedCreatorGroup.name
+                        editDraft(creator)
+                        submitMusic(creator, SearchMode.SONGS)
                     }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
-                        Text(strings.get(R.string.nw141_search_this_creator_on_youtube_1e72c))
+                        Text(strings.get(R.string.nw55_3_find_creator))
                     }
                 }
             }
@@ -4380,8 +4541,7 @@ internal fun StudioSearch(
                                 query = previous
                                 mode = SearchMode.SONGS
                                 selectedCreator = null
-                                onRecordSearch(previous)
-                                onNativeSearch(previous, SearchMode.SONGS)
+                                submit()
                             },
                             modifier = Modifier.weight(1f).heightIn(min = 48.dp),
                             shape = RoundedCornerShape(13.dp),
@@ -4428,8 +4588,7 @@ internal fun StudioSearch(
                             onClick = {
                                 mode = SearchMode.SONGS
                                 query = shortcut.query
-                                onRecordSearch(shortcut.query)
-                                dismissSearchInput(); onPrimarySearch(shortcut.query, SearchMode.SONGS)
+                                submitMusic(shortcut.query, SearchMode.SONGS)
                             }, label = { Text(shortcut.title, maxLines = 1) },
                             modifier = Modifier.heightIn(min = 48.dp))
                     }
@@ -4501,7 +4660,7 @@ internal fun StudioSearch(
         if (savedMatches.isNotEmpty()) {
             item {
                 SectionHeading(strings.get(R.string.nw141_from_your_music_1e542),
-                    savedMatches.size.toString() + " matches in your music")
+                    strings.quantity(R.plurals.nw58_library_matches, savedMatches.size))
             }
             items(savedMatches.take(savedVisible), key = { "saved:" + it.url }) { song ->
                 MusicTrackTile(song, isPlaying = playingUrl == song.url,
@@ -4538,6 +4697,9 @@ internal fun StudioSearch(
             TextButton(onClick = { offlineVisible += 60 }, modifier = Modifier.heightIn(min = 48.dp)) {
                 Text(strings.get(R.string.nw141_show_more_on_device_matches_88d10))
             }
+        }
+        if (YouTubeReleasePolicy.OFFICIAL_ONLY) {
+            unifiedSourceResults(UnifiedSearchScope.MUSIC, query, sourceState, submit, showActions = false)
         }
         if (searching) {
             item(key = "public-search-loading") {
@@ -4679,9 +4841,10 @@ internal fun StudioSearch(
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         } else if (query.isNotBlank() && savedMatches.isEmpty() &&
-            offlineMatches.isEmpty() && !searching && !localPending && !corpus.failed) {
+            offlineMatches.isEmpty() && !hasTypingMatches && !searching && !localPending && !corpus.failed) {
             item {
-                Text(strings.get(R.string.nw141_no_saved_matches_yet_search_public_music_or_try_d1b5d),
+                Text(strings.get(if (YouTubeReleasePolicy.OFFICIAL_ONLY) R.string.nw57_local_empty
+                    else R.string.nw141_no_saved_matches_yet_search_public_music_or_try_d1b5d),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
@@ -5600,7 +5763,7 @@ private fun StudioProfile(
                 )
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 StudioProfileRow(
-                    strings.get(R.string.nw141_theme_efb52), profile.theme.name.lowercase().replaceFirstChar { it.titlecase() },
+                    strings.get(R.string.nw141_theme_efb52), profile.theme.displayName,
                     Icons.Outlined.AutoAwesome, { showAppearance = !showAppearance },
                     trailing = { Text(if (showAppearance) strings.get(R.string.nw141_hide_ac20a) else strings.get(R.string.nw141_change_c0bf7),
                         style = MaterialTheme.typography.labelMedium,
@@ -5618,8 +5781,11 @@ private fun StudioProfile(
                                     FilterChip(
                                         selected = profile.theme == option,
                                         onClick = { save(profile.copy(theme = option)) },
-                                        label = { Text(option.name.lowercase()
-                                            .replaceFirstChar { it.titlecase() }) },
+                                        label = { Text(option.displayName) },
+                                        leadingIcon = {
+                                            Box(Modifier.size(12.dp).clip(CircleShape)
+                                                .background(paletteColor(NightWaveDesign.palette(option).accent)))
+                                        },
                                         modifier = Modifier.weight(1f)
                                     )
                                 }

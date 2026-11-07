@@ -16,6 +16,7 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -101,19 +102,25 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import coil.compose.AsyncImage
@@ -441,7 +448,10 @@ fun StudioNowPlayingOverlay(
     onLyricsOffsetChange: (Int) -> Unit = {},
     onImportLyrics: () -> Unit = {},
     onEditLyrics: () -> Unit = {},
-    onRemoveLyrics: () -> Unit = {}
+    onRemoveLyrics: () -> Unit = {},
+    relatedSongs: List<VideoPreview> = emptyList(),
+    onPlayRelated: (VideoPreview) -> Unit = {},
+    onFindRelated: (() -> Unit)? = null
 ) {
     val strings = rememberNightWaveStrings()
     // One transition owns backdrop and content from the same requested frame.
@@ -494,6 +504,12 @@ fun StudioNowPlayingOverlay(
             val art = playerLayout.artworkDp.dp
             val artHeight = NightWaveArtworkFramePolicy.heightDp(playerLayout.artworkDp,
                 resolvedArtwork?.intrinsicWidth ?: 0, resolvedArtwork?.intrinsicHeight ?: 0, state.offline).dp
+            val artworkBitmap = (resolvedArtwork as? android.graphics.drawable.BitmapDrawable)?.bitmap
+            val artworkTrim = remember(artworkBitmap, state.offline) {
+                artworkBitmap?.takeIf { !state.offline && !it.isRecycled }?.let {
+                    runCatching { NightWaveArtworkFramePolicy.sideTrim(it.width, it.height, it::getPixel) }.getOrNull()
+                }
+            }
             val playerIdentity = remember(state.title, state.artist) {
                 NightWaveEditorialPresentationPolicy.identity(state.title, state.artist)
             }
@@ -803,17 +819,15 @@ fun StudioNowPlayingOverlay(
                 Box(
                     Modifier.size(width = art, height = artHeight)
                         .testTag("nightwave-now-playing-artwork")
-                        .shadow(8.dp,
-                            RoundedCornerShape(playerLayout.artworkCornerDp.dp))
                         .graphicsLayer {
                             scaleX = playingArtworkScale
                             scaleY = playingArtworkScale
                         }
-                        .clip(RoundedCornerShape(playerLayout.artworkCornerDp.dp))
-                        .background(colors.surfaceVariant)
-                        .border(1.dp,
-                            colors.onBackground.copy(alpha = NightWaveMattePolicy.BORDER_ALPHA),
-                            RoundedCornerShape(playerLayout.artworkCornerDp.dp)).then(
+                        .then(if (artworkTrim == null) {
+                            val shape = RoundedCornerShape(playerLayout.artworkCornerDp.dp)
+                            Modifier.shadow(8.dp, shape).clip(shape).background(colors.surfaceVariant)
+                                .border(1.dp, colors.onBackground.copy(alpha = NightWaveMattePolicy.BORDER_ALPHA), shape)
+                        } else Modifier).then(
                         if (canSwipeArtwork) Modifier.pointerInput(
                             state.videoUrl, state.queue.size, state.connected, state.buffering
                         ) {
@@ -844,8 +858,9 @@ fun StudioNowPlayingOverlay(
                         NightWaveArtworkTransitionPolicy.frame(
                             state.videoUrl, state.thumbnail)
                     }
+                    val sourceArtworkModifier = Modifier.fillMaxSize().alpha(if (artworkTrim == null) 1f else 0f)
                     if (reduceMotion) {
-                        CoverArt(state.thumbnail, Modifier.fillMaxSize(),
+                        CoverArt(state.thumbnail, sourceArtworkModifier,
                             playerLayout.artworkCornerDp,
                             "Artwork for " + playerIdentity.title, trackIdentity = state.videoUrl, large = true,
                             onResolved = { resolvedArtwork = it })
@@ -856,13 +871,26 @@ fun StudioNowPlayingOverlay(
                                 durationMillis = NightWaveMotionPolicy.COVER_MS),
                             label = "Player artwork"
                         ) { artwork ->
-                            CoverArt(artwork.thumbnail, Modifier.fillMaxSize(),
+                            CoverArt(artwork.thumbnail, sourceArtworkModifier,
                                 playerLayout.artworkCornerDp,
                                 NightWaveArtworkTransitionPolicy.accessibilityDescription(
                                     artwork, currentArtwork, playerIdentity.title), trackIdentity = artwork.trackId, large = true,
                                 onResolved = if (artwork.trackId == state.videoUrl && artwork.thumbnail == state.thumbnail)
                                     { image -> resolvedArtwork = image } else null)
                         }
+                    }
+                    if (artworkTrim != null && artworkBitmap != null) {
+                        val contentWidth = artworkBitmap.width - artworkTrim.left - artworkTrim.right
+                        val visibleWidth = minOf(art.value, artHeight.value * contentWidth / artworkBitmap.height).dp
+                        val painter = remember(artworkBitmap, artworkTrim) {
+                            BitmapPainter(artworkBitmap.asImageBitmap(), IntOffset(artworkTrim.left, 0),
+                                IntSize(contentWidth, artworkBitmap.height))
+                        }
+                        val shape = RoundedCornerShape(playerLayout.artworkCornerDp.dp)
+                        Image(painter, contentDescription = null,
+                            modifier = Modifier.size(visibleWidth, artHeight)
+                                .shadow(8.dp, shape).clip(shape).testTag("nw58-trimmed-player-art"),
+                            contentScale = ContentScale.Fit)
                     }
                     if (state.buffering) {
                         Box(
@@ -1198,6 +1226,23 @@ fun StudioNowPlayingOverlay(
                         }
                         Icon(Icons.AutoMirrored.Outlined.QueueMusic,
                             contentDescription = strings.get(R.string.nw141_open_queue_976eb), tint = colors.primary)
+                    }
+                }
+                if (relatedSongs.isNotEmpty() || onFindRelated != null) {
+                    Column(
+                        Modifier.fillMaxWidth().padding(top = 20.dp).testTag("nw58-related-songs"),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(strings.get(R.string.nw58_related_songs), Modifier.semantics { heading() },
+                            style = MaterialTheme.typography.titleMedium, color = colors.onSurface)
+                        relatedSongs.forEach { song ->
+                            MusicTrackTile(song, onClick = { onPlayRelated(song) })
+                        }
+                        if (onFindRelated != null) {
+                            OutlinedButton(onClick = onFindRelated, modifier = Modifier.heightIn(min = 48.dp)) {
+                                Text(strings.get(R.string.nw58_find_related))
+                            }
+                        }
                     }
                 }
                 if (lyricsOpen) {
@@ -1554,18 +1599,16 @@ fun StudioQueueSheet(
             ) {
                 item(key = "queue-summary") {
             Text(strings.get(R.string.nw141_your_listening_queue_8e0b7), style = MaterialTheme.typography.headlineSmall)
-            Text(
-                when {
-                    state.offline -> strings.get(R.string.nw141_queue_offline)
-                    state.shuffle && explicitNext.isNotEmpty() ->
-                        strings.get(R.string.nw141_queue_next, strings.quantity(R.plurals.nw141_play_next_count, explicitNext.size))
-                    state.shuffle -> strings.get(R.string.nw141_queue_shuffle)
-                    upcoming.isEmpty() -> strings.get(R.string.nw141_queue_end)
-                    else -> strings.get(R.string.nw141_queue_upcoming, strings.quantity(R.plurals.nw141_upcoming, upcoming.size))
-                },
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            val summary = when {
+                state.offline -> strings.get(R.string.nw141_queue_offline)
+                state.shuffle && explicitNext.isNotEmpty() ->
+                    strings.get(R.string.nw141_queue_next, strings.quantity(R.plurals.nw141_play_next_count, explicitNext.size))
+                state.shuffle -> strings.get(R.string.nw141_queue_shuffle)
+                upcoming.isEmpty() -> null
+                else -> strings.get(R.string.nw141_queue_upcoming, strings.quantity(R.plurals.nw141_upcoming, upcoming.size))
+            }
+            if (summary != null) Text(summary, style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
             if (removable && upcoming.isNotEmpty()) {
                 NightWaveCompactActions {
                     if (onMoveUpcoming != null && upcoming.size > 1) NightWaveMatteTextButton(
@@ -1614,7 +1657,8 @@ fun StudioQueueSheet(
                     }
                     if (upcoming.isEmpty()) {
                         item(key = "queue-no-upcoming") {
-                            Text(strings.get(R.string.nw141_nothing_else_in_your_queue_64883),
+                            Text(strings.get(if (state.offline || state.shuffle)
+                                R.string.nw141_nothing_else_in_your_queue_64883 else R.string.nw141_queue_end),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
@@ -1757,7 +1801,7 @@ private fun SwipeUpcomingRow(
             Text(strings.number(number), modifier = Modifier.widthIn(min = 19.dp),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.labelMedium)
-            CoverArt(artwork, Modifier.size(45.dp), 10)
+            CoverArt(artwork, Modifier.size(45.dp), 10, description = null)
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(display.title, maxLines = titleLines, overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.titleSmall)

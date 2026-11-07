@@ -160,19 +160,58 @@
         "NW56",
         "NW57"
       ],
-      "state": "PLANNED",
-      "source_commit": null,
-      "apk_sha256": null,
-      "host_checks": "NOT_RUN",
-      "device_checks": "NOT_RUN",
+      "state": "SCOPED_VERIFIED_FULL_ACCEPTANCE_OPEN",
+      "source_commit": "d3756d1d87440ac001f1a5fa0e0024f911ad58ed",
+      "apk_sha256": "B51F14725D850F675934722B11EF8AAA9F9BD709B33558BF5045815DF5D1721E",
+      "host_checks": "PASS_WINDOWS_1889_JVM_94_SOURCE_LINT",
+      "device_checks": "PASS_SCOPED_S24_UPDATE_SOURCES_FLAC_AUDIT_AND_FOCUSED_POLISH",
       "release_approved": false,
       "acceptance_prefix": "58-",
       "remaining_blockers": [
-        "NW56 and NW57 not accepted",
-        "full device acceptance pending",
-        "owner release approval pending"
+        "Unresolved NW56 and NW57 full acceptance",
+        "Full S24 journeys, Android instrumentation, restore and soak",
+        "Full provider playback and supported Android/device matrix",
+        "Direct older-client offer, download and installer evidence. Owner confirmed a second-phone update to v55.",
+        "Public v58 release and signed feed activation remain staged behind acceptance"
       ],
-      "next": null
+      "next": null,
+      "evidence": "docs/audits/2026-11-06_NW58_S24_POLISH.md",
+      "owner_publication_requested": true,
+      "release_state": "DRAFT_ASSET_BYTE_AND_SHA_VERIFIED_BLOCKING_ACCEPTANCE_OPEN",
+      "search_design_followup": {
+        "source_commit": "347eb0b2db2644652e2d40d65226a2083b60026f",
+        "build_id": "NW-debug-511D7F34157127D7",
+        "apk_sha256": "D1E1DC9140A749A9CB56AE9928FED05177D4418C40F416F180072016DB7247D6",
+        "host_checks": "PASS_WINDOWS_1894_JVM_94_SOURCE_LINT",
+        "device_checks": "PASS_SCOPED_S24_SEARCH_RELATED_PALETTES_LAUNCHER",
+        "next": "POCO_LAUNCHER_TEXT_SCALE_AND_LAYOUT_NOT_RUN",
+        "evidence": "docs/audits/2026-11-07_NW58_SEARCH_DESIGN_S24.md"
+      },
+      "adaptive_search_followup": {
+        "source_commit": "3b70cde741042a439381f5f69f3fd5944d257a04",
+        "build_id": "NW-debug-99DE616675BB7939",
+        "apk_sha256": "0BF4AED577367FCC104F085D72D5FAFD3AD145D143B4E4EE6A631F6020B9C624",
+        "host_checks": "PASS_WINDOWS_1899_JVM_94_SOURCE_LINT",
+        "device_checks": "PASS_SCOPED_S24_LIVE_COLD_AND_WARM_SEARCH",
+        "evidence": "docs/audits/2026-11-07_NW58_ADAPTIVE_SEARCH.md"
+      },
+      "poco_release_review": {
+        "apk_sha256": "0BF4AED577367FCC104F085D72D5FAFD3AD145D143B4E4EE6A631F6020B9C624",
+        "build_id": "NW-debug-99DE616675BB7939",
+        "device_checks": "PASS_SCOPED_POCO_API31_UI_V55_TO_V58",
+        "release_state": "EXACT_DRAFT_READBACK_PASS_SOURCE_RIGHTS_NO_GO",
+        "live_feed_version": 55,
+        "staged_feed_version": 58,
+        "evidence": "docs/audits/2026-11-07_NW58_POCO_RELEASE_REVIEW.md"
+      },
+      "typing_preview_followup": {
+        "source_commit": "c59a79e29f7ff02cdd3bee4f0b55b8b70a4a24a8",
+        "build_id": "NW-debug-9B1D398F3A6AB129",
+        "apk_sha256": "859E7365A4144F116627ACE299E61D580639FBB3B9DF64BDAF45903FE4D6A995",
+        "host_checks": "PASS_WINDOWS_1902_JVM_94_SOURCE_LINT",
+        "device_checks": "PREVIEW_RENDERED_FINAL_APK_INSTALLED",
+        "evidence": "docs/audits/2026-11-07_NW58_SEARCH_WHILE_TYPING.md"
+      }
     }
   ],
   "update_instructions": "For each delivered batch record exact source/build/artifact hashes and results, update state from PLANNED only with proof, add implementation evidence document and never mark COMPILED as device EXECUTED. Keep PR links and external provider policy evidence."

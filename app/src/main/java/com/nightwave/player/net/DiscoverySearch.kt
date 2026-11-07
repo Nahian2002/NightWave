@@ -31,7 +31,7 @@ internal data class DiscoveryResponse(val code: Int, val payload: String?, val r
 
 internal class DiscoverySearch(
     private val fetch: suspend (HttpUrl) -> DiscoveryResponse = DiscoveryHttp::fetch,
-    private val timeoutMs: Long = 6_000,
+    private val timeoutMs: Long? = null,
     private val nowNanos: () -> Long = System::nanoTime
 ) {
     private val quotaUntil = mutableMapOf<DiscoverySource, Long>()
@@ -41,7 +41,7 @@ internal class DiscoverySearch(
         val query = DiscoverySources.query(rawQuery) ?: return@channelFlow
         sources.forEach { source ->
             launch {
-                val outcome = withTimeoutOrNull(timeoutMs) { searchOne(query, source) }
+                val outcome = withTimeoutOrNull(timeoutMs ?: discoveryTimeoutMs(source)) { searchOne(query, source) }
                     ?: DiscoveryOutcome.Problem.TIMEOUT
                 send(DiscoveryUpdate(source, outcome))
             }
@@ -84,6 +84,9 @@ internal class DiscoverySearch(
     }
 }
 
+internal fun discoveryTimeoutMs(source: DiscoverySource): Long =
+    if (source == DiscoverySource.OPENVERSE) 14_000L else 6_000L
+
 internal object DiscoveryHttp {
     private const val MAX_BODY_BYTES = 768L * 1024
     private val client = OkHttpClient.Builder()
@@ -95,9 +98,15 @@ internal object DiscoveryHttp {
         .readTimeout(5, TimeUnit.SECONDS)
         .build()
 
+    private val openverseClient = client.newBuilder()
+        .callTimeout(discoveryTimeoutMs(DiscoverySource.OPENVERSE), TimeUnit.MILLISECONDS)
+        .readTimeout(12, TimeUnit.SECONDS)
+        .build()
+
     suspend fun fetch(url: HttpUrl): DiscoveryResponse = suspendCancellableCoroutine { continuation ->
         require(url.isHttps)
-        val call = client.newCall(Request.Builder().url(url)
+        val transport = if (url.host == "api.openverse.org") openverseClient else client
+        val call = transport.newCall(Request.Builder().url(url)
             .header("Accept", "application/json")
             .header("User-Agent", "NightWave/2.0 (Android; source discovery)")
             .build())

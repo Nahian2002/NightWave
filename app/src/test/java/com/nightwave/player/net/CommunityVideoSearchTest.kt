@@ -42,6 +42,33 @@ class CommunityVideoSearchTest {
         }
     }
 
+    @Test fun nextQueryUsesLastWorkingHostAndFallsBackWhenItStopsWorking() {
+        MockWebServer().use { first ->
+            MockWebServer().use { second ->
+                first.start()
+                second.start()
+                first.enqueue(MockResponse().setResponseCode(403))
+                second.enqueue(MockResponse().setBody(json))
+                second.enqueue(MockResponse().setBody(json))
+                second.enqueue(MockResponse().setResponseCode(503))
+                first.enqueue(MockResponse().setBody(json))
+                val engine = CommunityVideoSearch(instances = listOf(
+                    first.url("/").toString().trimEnd('/'),
+                    second.url("/").toString().trimEnd('/')
+                ))
+                engine.search("first query")
+                engine.search("second query")
+                assertEquals(1, first.requestCount)
+                assertEquals(2, second.requestCount)
+                engine.search("third query")
+                assertEquals(2, first.requestCount)
+                assertEquals(3, second.requestCount)
+                assertEquals("first query", first.takeRequest().requestUrl?.queryParameter("q"))
+                assertEquals("third query", first.takeRequest().requestUrl?.queryParameter("q"))
+            }
+        }
+    }
+
     @Test fun failsOverAfterMalformedJsonChallenge() {
         val blocked = MockWebServer()
         val available = MockWebServer()

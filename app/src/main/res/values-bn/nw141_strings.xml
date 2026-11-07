@@ -128,7 +128,7 @@
     <string name="nw141_local_listening_works_without_a_google_account_af362">Google অ্যাকাউন্ট ছাড়াই ডিভাইসে গান শোনা যায়।</string>
     <string name="nw141_local_music_could_not_be_read_your_music_has_not_e685b">ডিভাইসের গান পড়া যায়নি। আপনার গান অপরিবর্তিত আছে; অনলাইনে খোঁজা যাবে।</string>
     <string name="nw141_local_playback_quality_adb32">ডিভাইসের প্লেব্যাক মান</string>
-    <string name="nw141_local_profile_your_music_stays_on_this_device_10d47">ডিভাইসের প্রোফাইল · আপনার গান এই ডিভাইসেই থাকে</string>
+    <string name="nw141_local_profile_your_music_stays_on_this_device_10d47">ডিভাইসে থাকা প্রোফাইল · ব্যাকআপ ঐচ্ছিক</string>
     <string name="nw141_lyric_timing_4b33a">কথার সময় · </string>
     <string name="nw141_lyrics_e73a4">গানের কথা</string>
     <string name="nw141_manage_5a234">পরিচালনা</string>
@@ -151,7 +151,7 @@
     <string name="nw141_next_track_f930a">পরের গান</string>
     <string name="nw141_nightwave_audio_3fff8">NIGHTWAVE অডিও</string>
     <string name="nw141_nightwave_lyrics_a3ea8">NIGHTWAVE গানের কথা</string>
-    <string name="nw141_nightwave_your_music_stays_on_this_device_unless_2e81a">NightWave · আপনি রপ্তানি না করলে আপনার গান এই ডিভাইসেই থাকে।</string>
+    <string name="nw141_nightwave_your_music_stays_on_this_device_unless_2e81a">NightWave · কী ব্যাকআপ বা এক্সপোর্ট করবেন, তা আপনি বেছে নিন।</string>
     <string name="nw141_no_backup_activity_recorded_c39fa">ব্যাকআপের কোনো কাজ রেকর্ড হয়নি।</string>
     <string name="nw141_no_matching_tracks_fa0ef">মিলে যাওয়া গান নেই</string>
     <string name="nw141_no_playlists_match_these_filters_ba568">এই ফিল্টারে কোনো প্লেলিস্ট মেলে না।</string>

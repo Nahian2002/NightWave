@@ -20,6 +20,18 @@ class NightWaveArtworkFramePolicyTest {
     @Test fun extremePanoramasNeverCollapseTheArtworkArea() {
         assertTrue(policy.heightDp(320f, Int.MAX_VALUE, 1, false) >= 320f / 1.9f - .01f)
     }
+    @Test fun matchingSolidSidebarsTrimWithoutCroppingEdgeDetail() {
+        val edge = 0xff114158.toInt()
+        val art = 0xfffcd092.toInt()
+        val trim = policy.sideTrim(1600, 900) { x, _ ->
+            if (x < 350 || x >= 1250) edge else art
+        }
+        assertEquals(NightWaveArtworkFramePolicy.SideTrim(350, 350), trim)
+        assertNull(policy.sideTrim(1600, 900) { x, y -> if (y < 450 && x < 350) edge else art })
+        assertNull(policy.sideTrim(1600, 900) { _, _ -> edge })
+        assertNull(policy.sideTrim(1600, 900) { x, _ -> if (x < 350 || x >= 1340) edge else art })
+        assertNull(policy.sideTrim(900, 900) { _, _ -> edge })
+    }
     @Test fun malformedMeasurementInputsCannotProduceInvalidLayout() {
         for (width in listOf(Float.NaN, Float.POSITIVE_INFINITY, -1f, 0f))
             assertEquals(0f, policy.heightDp(width, -1, 0, false), 0f)

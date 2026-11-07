@@ -23,13 +23,15 @@ class DownloadCenterDashboardPolicyTest {
     }
 
     @Test fun transferOverviewSeparatesVerifiedAudioAndCurrentWork() {
-        assertEquals("2 active · 4 ready offline · 1 need attention · 10 transfers",
+        assertEquals("2 active · 4 ready offline · 1 needs attention · 10 transfers",
             policy.overview(2, 4, 1, 10, false, false))
         assertEquals("Checking saved audio · 2 active · 10 transfer entries",
             policy.overview(2, 0, 0, 10, true, false))
         assertTrue(policy.overview(2, 0, 0, 10, false, true)
-            .contains("verification unavailable"))
+            .contains("Reopen Downloads to try again"))
         assertFalse(policy.overview(2, 0, 0, 10, false, true).contains("0 ready"))
+        assertEquals("", policy.overview(0, 0, 0, 0, false, false))
+        assertEquals("1 ready offline · 1 transfer", policy.overview(0, 1, 0, 1, false, false))
     }
 
     @Test fun sourceTruthDistinguishesSupportedResumeAndSafeRestart() {

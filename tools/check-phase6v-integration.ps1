@@ -66,8 +66,8 @@ $files = @(
 foreach ($relative in $files) { [void](Source $relative) }
 
 Require $gradle 'applicationId = "com.nightwave.player"' 'fixed package name'
-Require $gradle 'versionCode = 57' 'expected version code'
-Require $gradle 'versionName = "2.0.0-alpha5s"' 'expected version name'
+Require $gradle 'versionCode = 62' 'expected version code'
+Require $gradle 'versionName = "55.3"' 'expected version name'
 Require $gradle 'testImplementation("junit:junit:4.13.2")' 'JVM test dependency'
 Require $gradle 'testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")' 'HTTP test dependency'
 Require $manifest 'android:allowBackup="false"' 'no unrestricted Android backup'

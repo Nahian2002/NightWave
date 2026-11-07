@@ -128,7 +128,7 @@
     <string name="nw141_local_listening_works_without_a_google_account_af362">Local listening works without a Google account.</string>
     <string name="nw141_local_music_could_not_be_read_your_music_has_not_e685b">Local music could not be read. Your music has not been changed; public search is still available.</string>
     <string name="nw141_local_playback_quality_adb32">Local playback quality</string>
-    <string name="nw141_local_profile_your_music_stays_on_this_device_10d47">Local profile · Your music stays on this device</string>
+    <string name="nw141_local_profile_your_music_stays_on_this_device_10d47">On-device profile · Backup is optional</string>
     <string name="nw141_lyric_timing_4b33a">Lyric timing · </string>
     <string name="nw141_lyrics_e73a4">Lyrics</string>
     <string name="nw141_manage_5a234">Manage</string>
@@ -151,7 +151,7 @@
     <string name="nw141_next_track_f930a">Next track</string>
     <string name="nw141_nightwave_audio_3fff8">NIGHTWAVE AUDIO</string>
     <string name="nw141_nightwave_lyrics_a3ea8">NIGHTWAVE LYRICS</string>
-    <string name="nw141_nightwave_your_music_stays_on_this_device_unless_2e81a">NightWave · Your music stays on this device unless you choose to export it.</string>
+    <string name="nw141_nightwave_your_music_stays_on_this_device_unless_2e81a">NightWave · You choose what to back up or export.</string>
     <string name="nw141_no_backup_activity_recorded_c39fa">No backup activity recorded.</string>
     <string name="nw141_no_matching_tracks_fa0ef">No matching tracks</string>
     <string name="nw141_no_playlists_match_these_filters_ba568">No playlists match these filters.</string>

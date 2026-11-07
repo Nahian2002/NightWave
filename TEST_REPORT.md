@@ -2,6 +2,14 @@
 
 | Evidence | Result |
 | --- | --- |
+| Version 58 typing preview | Poco rendered a word suggestion and saved song before submission. Final Windows builder, 1,902 JVM tests, 94 source checks and lint passed. [Evidence](docs/audits/2026-11-07_NW58_SEARCH_WHILE_TYPING.md) |
+| Version 58 Poco and release review | Exact v55 → v58 Poco upgrade preserved 19 files before launch. Launcher and core UI compared against S24. Exact APK in the verified draft. Public source-rights gate returned NO_GO. [Evidence](docs/audits/2026-11-07_NW58_POCO_RELEASE_REVIEW.md) |
+| Version 58 adaptive Search | Exact S24 install, live cold and warm routing, known song match, Windows builder, 1,899 JVM tests, 94 source checks and lint passed. [Search evidence](docs/audits/2026-11-07_NW58_ADAPTIVE_SEARCH.md) |
+| Version 58 S24 Search and design | 1,894 JVM tests, 94 source checks, Windows build and lint passed. Exact in-place S24 install preserved 32 files before launch. Live Search, related songs, four palettes and the Samsung launcher icon checked. Poco pending. [Evidence](docs/audits/2026-11-07_NW58_SEARCH_DESIGN_S24.md) |
+| Version 58 S24 presentation polish | 8.7/10 scoped score. Player artwork, source filter density, Download help, Sound Studio and AMOLED wording retested. 1,889 JVM tests, 94 source checks and lint passed. [Polish report](docs/audits/2026-11-06_NW58_S24_POLISH.md) |
+| Version 58 final S24 audit | 24 observed areas, 8.4/10 before and 8.5/10 after scoped fixes. Exact same-signer candidate, Windows build, 1,888 JVM tests, 94 source checks and lint passed. [Final audit](docs/audits/2026-11-06_NW58_S24_FINAL_REVIEW.md) |
+| Version 58 Sources and FLAC candidate | Windows build, 1,888 JVM tests, 94 source checks and lint passed. Android tests compiled. S24 same-signer upgrade, manual update status, live results from all four Search sources and 16-bit/44.1 kHz FLAC import/playback passed scoped checks. The revised Sources and Offline presentation also passed on the S24. [NW58 evidence](docs/MULTISOURCE_NW58_IMPLEMENTATION.md) |
+| Public version 55 | Signed stable feed and exact public APK readback verified. [Release](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55) |
 | Version 57 unified Search candidate | Windows build, 1,883 JVM tests, 94 source checks and lint passed. Same-signer S24 upgrade preserved all 33 backed-up files before launch. Local filter, separate live groups and saved-link relaunch passed scoped device checks. [NW57 evidence](docs/MULTISOURCE_NW57_IMPLEMENTATION.md) |
 | Version 56 multi-source candidate | Windows build, 1,878 JVM tests, 94 source checks and lint passed. Verified v55 to v56 S24 upgrade and scoped live discovery from Audius, PeerTube and Radio Browser. Wider regression and playback acceptance remain open. [NW56 evidence](docs/MULTISOURCE_NW56_IMPLEMENTATION.md) |
 | Version 54 review | Windows build, 1,869 JVM tests, 94 source checks and lint passed. Android test compiled. Exact signed APK and owner-only Drive readback verified. App details and grouped You need a connected phone for the rendered checks. [Version 54 evidence](docs/NW157_APP_DETAILS_PLAN.md) |
@@ -10,7 +18,7 @@
 | Public version 51 | Published APK hash and signed update metadata verified. |
 | Broader device acceptance | Small screens, accessibility, playback and recovery scenarios remain open. |
 
-The [version 52 device and build report](https://github.com/Nahian2002/NightWave/blob/28d9d9861650363853584c3afa93c4cd30d4b3bf/docs/NW155_MIX_PREVIEW.md) has exact artifacts, version identifiers and coverage. [Public release](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v51) · [Prior test report](https://github.com/Nahian2002/NightWave/blob/28d9d9861650363853584c3afa93c4cd30d4b3bf/TEST_REPORT.md)
+The [version 52 device and build report](https://github.com/Nahian2002/NightWave/blob/28d9d9861650363853584c3afa93c4cd30d4b3bf/docs/NW155_MIX_PREVIEW.md) has exact artifacts, version identifiers and coverage. [Historical v51 release](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v51) · [Prior test report](https://github.com/Nahian2002/NightWave/blob/28d9d9861650363853584c3afa93c4cd30d4b3bf/TEST_REPORT.md)
 
 ## Repository maintenance
 

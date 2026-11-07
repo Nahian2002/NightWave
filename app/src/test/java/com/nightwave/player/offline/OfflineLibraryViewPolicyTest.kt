@@ -32,6 +32,8 @@ class OfflineLibraryViewPolicyTest {
         assertTrue(p.summary(4, 20, 18, 2).contains("2 need attention"))
         assertTrue(p.summary(-2, 0, 0, 0).contains("0 of 0"))
         assertTrue(!p.summary(4, 20, 18, 2).contains("indexed"))
+        assertTrue(p.summary(1, 1, 1, 0) == "1 of 1 track · 1 local file available")
+        assertTrue(p.summary(1, 2, 1, 1).endsWith("1 local file available · 1 needs attention"))
     }
 
     @Test fun emptyMessagesDistinguishLostFilesFromNoSavedSongs() {

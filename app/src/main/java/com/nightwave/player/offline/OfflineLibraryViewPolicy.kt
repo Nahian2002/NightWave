@@ -34,8 +34,14 @@ object OfflineLibraryViewPolicy {
         val totalCount = total.coerceAtLeast(0)
         val playableCount = playable.coerceAtLeast(0)
         val issueCount = issues.coerceAtLeast(0)
-        return "$count of $totalCount tracks · $playableCount local files available" +
-            if (issueCount > 0) " · $issueCount need attention" else ""
+        val tracks = if (totalCount == 1) "track" else "tracks"
+        val files = if (playableCount == 1) "local file" else "local files"
+        val attention = when (issueCount) {
+            0 -> ""
+            1 -> " · 1 needs attention"
+            else -> " · $issueCount need attention"
+        }
+        return "$count of $totalCount $tracks · $playableCount $files available$attention"
     }
 
     fun emptyMessage(

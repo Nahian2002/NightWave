@@ -20,17 +20,27 @@ class NightWavePublicSearchInstrumentedTest {
     private val played = mutableListOf<VideoPreview>()
     private var cancellations = 0
     private var retries = 0
-    private var requested = ""
     private var web = ""
+    private var official = ""
     private val first = VideoPreview("Play Date (Official Audio)", "Fixture uploader", "https://www.youtube.com/watch?v=00000000001", "", 215)
     private val second = first.copy(url = "https://www.youtube.com/watch?v=00000000002")
 
     private fun screen(history: List<String> = emptyList()) {
         if (state.query.isNotBlank()) state = state.copy(prefillToken = "nw150-fixture")
+        val testDiscovery = DiscoverySearch(fetch = { endpoint ->
+                        val body = when (endpoint.host) {
+                            "api.openverse.org" -> """{"results":[]}"""
+                            "api.audius.co" -> """{"data":[{"id":"fixture","is_unlisted":false,
+                                "permalink":"/fixture/night-drive","title":"Night Drive",
+                                "user":{"name":"Fixture Artist"}}]}"""
+                            else -> """{"data":[]}"""
+                        }
+                        DiscoveryResponse(200, body)
+                    })
         compose.setContent {
             NightWaveMaterialTheme(NightWaveTheme.MIDNIGHT, reduceMotion = true) {
-                StudioSearch(Modifier, state, onPrimarySearch = { _, _ -> },
-                    onNativeSearch = { query, _ -> requested = query; retries++ }, onWebSearch = { web = it },
+                StudioSearch(Modifier, state, onPrimarySearch = { query, _ -> official = query },
+                    onNativeSearch = { _, _ -> retries++ }, onWebSearch = { web = it },
                     onPlay = { song, queue -> assertEquals(listOf(song), queue); played.add(song) },
                     onSongOptions = {}, playingUrl = "", corpus = LocalMusicCorpusState(0, 0, failed = true),
                     onRetryCorpus = {}, onOfflineSearch = { _, _ -> }, searchHistory = history,
@@ -38,7 +48,7 @@ class NightWavePublicSearchInstrumentedTest {
                     onUndoSearchRemoval = {}, onClearSearch = {}, onCancelSearch = {
                         cancellations++
                         state = state.stop(SearchStopReason.CANCELLED)
-                    })
+                    }, discoverySearch = testDiscovery)
             }
         }
         compose.waitForIdle()
@@ -47,9 +57,9 @@ class NightWavePublicSearchInstrumentedTest {
     @Test fun submitClearsInputFocusWithoutDiscardingTheDraft() {
         screen()
         compose.onNodeWithTag("nw129-search-query").performScrollTo().performTextReplacement("focus fixture")
-        compose.onNodeWithText("Find music").performScrollTo().performClick()
+        compose.onNodeWithTag("nw129-search-query").performImeAction()
         compose.onNodeWithTag("nw129-search-query").assertIsNotFocused().assertTextContains("focus fixture")
-        compose.runOnIdle { assertEquals(1, retries) }
+        compose.runOnIdle { assertEquals("", official); assertEquals(0, retries) }
     }
 
     @Test fun localFilterKeepsOneDraftWithoutInvokingPublicSearch() {
@@ -65,6 +75,21 @@ class NightWavePublicSearchInstrumentedTest {
         compose.runOnIdle { assertEquals(0, retries) }
     }
 
+    @Test fun sourceFiltersAreGroupedAndKeepTheQuery() {
+        screen()
+        val field = compose.onNodeWithTag("nw129-search-query")
+        field.performScrollTo().performTextReplacement("piano")
+        compose.onNodeWithTag("nw57-scope-OPENVERSE").assertDoesNotExist()
+        compose.onNodeWithTag("nw58-sources-tab").performScrollTo().performClick()
+        compose.onNodeWithTag("nw57-scope-ALL").performScrollTo().assertIsSelected()
+        for (provider in listOf("AUDIUS", "PEERTUBE", "RADIO", "OPENVERSE")) {
+            compose.onNodeWithTag("nw57-scope-$provider").performScrollTo().assertIsDisplayed()
+        }
+        compose.onNodeWithTag("nw57-scope-OPENVERSE").performClick().assertIsSelected()
+        field.assertTextContains("piano")
+        compose.runOnIdle { assertEquals(0, retries) }
+    }
+
     @Test fun recentCompletionDoesNotSubmitUntilTapped() {
         screen(history = listOf("Blue Hour", "Red Moon"))
         val field = compose.onNodeWithTag("nw129-search-query")
@@ -73,7 +98,20 @@ class NightWavePublicSearchInstrumentedTest {
         compose.runOnIdle { assertEquals(0, retries) }
         compose.onNodeWithText("Blue Hour").performClick()
         field.assertIsNotFocused().assertTextContains("Blue Hour")
-        compose.runOnIdle { assertEquals(1, retries); assertEquals("Blue Hour", requested) }
+        compose.runOnIdle { assertEquals("", official); assertEquals(0, retries) }
+    }
+
+    @Test fun musicSubmitShowsAProviderMatchWithoutLaunchingAnything() {
+        screen()
+        compose.onNodeWithTag("nw129-search-query").performScrollTo().performTextReplacement("night drive")
+        compose.onNodeWithText("Night Drive").assertDoesNotExist()
+        compose.onNodeWithTag("nw55-3-music-submit").performScrollTo().performClick()
+        compose.waitForIdle()
+        compose.onNodeWithTag("nw129-search-list").performScrollToNode(hasText("Night Drive"))
+        compose.onNodeWithText("Night Drive").assertIsDisplayed()
+        compose.onNodeWithTag("nw129-search-list").performScrollToNode(hasTestTag("nw57-scope-MUSIC"))
+        compose.onNodeWithTag("nw57-scope-MUSIC").assertIsSelected()
+        compose.runOnIdle { assertEquals("", official); assertEquals("", web); assertEquals(0, retries) }
     }
 
     @Test fun identicalPlayDateCaptionsExposeSourceEvidenceAndTapExactlyEachChosenUrl() {

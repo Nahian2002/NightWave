@@ -1,7 +1,9 @@
 package com.nightwave.player.v2.model
 
 /** Backup-safe profile settings; no account tokens, emails or signed audio URLs. */
-enum class NightWaveTheme { MIDNIGHT, AURORA, PEARL, AMOLED }
+enum class NightWaveTheme(val displayName: String) {
+    MIDNIGHT("Midnight"), AURORA("Aurora"), PEARL("Pearl"), AMOLED("AMOLED")
+}
 enum class MotionPreference { SYSTEM, FULL, REDUCED }
 enum class AudioQualityPreference { AUTO, DATA_SAVER, BALANCED, HIGH }
 enum class ListeningPrivacy { DEVICE_ONLY, INCLUDE_IN_BACKUP }

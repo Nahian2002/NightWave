@@ -84,26 +84,23 @@ object SearchRelevancePolicy {
         return if (strengths.any { it == 1 }) minOf(base, 70) else base
     }
 
-    /**
-     * Rank optional quick *music* results only. VIDEO mode deliberately uses
-     * original provider order; nothing is removed or marked as verified music.
-     */
-    fun publicScore(query: Query, track: VideoPreview): Int {
-        if (!query.valid) return 0
-        val exact = publicScoreLiteral(query, track)
-        // Aliases are scoring-only: use the unmodified title and URL, and
-        // keep an exact typed match above an otherwise equal transliteration.
-        val alternatives = SearchMultilingualAliasPolicy.alternatives(query.text)
-        if (alternatives.isEmpty()) return exact
-        val alias = alternatives.maxOf { variant ->
-            publicScoreLiteral(prepare(variant), track) - 36
+    fun publicScore(query: Query, track: VideoPreview): Int =
+        if (query.valid) scorePublic(query, aliases(query), track) else 0
+
+    private fun aliases(query: Query): List<Query> =
+        SearchMultilingualAliasPolicy.alternatives(query.text).map(::prepare)
+
+    private fun scorePublic(query: Query, alternatives: List<Query>, track: VideoPreview): Int {
+        val id = identity(track)
+        val exact = publicScoreLiteral(query, track, id)
+        // Aliases are scoring-only and cannot replace exact source identity.
+        return alternatives.fold(exact) { score, alternative ->
+            maxOf(score, publicScoreLiteral(alternative, track, id) - 36)
         }
-        return maxOf(exact, alias)
     }
 
-    private fun publicScoreLiteral(query: Query, track: VideoPreview): Int {
+    private fun publicScoreLiteral(query: Query, track: VideoPreview, id: Identity): Int {
         if (!query.valid) return 0
-        val id = identity(track)
         // Canonicalize only for scoring, never for the actual song metadata.
         // A user searching "Alone 2" can reach "Alone, Pt. II" without
         // treating unrelated Home Alone 2 clips as the best music match.
@@ -154,15 +151,38 @@ object SearchRelevancePolicy {
         if (unhelpful.any { phrase ->
             phrase in original && phrase !in query.text
         }) score -= 110
+        if (terms.size == 1 && score > 120 && !SearchMusicIntentPolicy.canHighlightInSongs(wanted, track))
+            return 120
         return score
     }
 
     fun rankPublic(query: String, results: List<VideoPreview>): List<VideoPreview> {
         val prepared = prepare(query)
         if (!prepared.valid) return results
-        // A comparator runs many times per item. Score once before sorting.
-        return results.mapIndexed { index, track -> Triple(track, publicScore(prepared, track), index) }
-            .sortedWith(compareByDescending<Triple<VideoPreview, Int, Int>> { it.second }
-                .thenBy { it.third }).map { it.first }
+        val alternatives = aliases(prepared)
+        return rankByEvidence(results) { scorePublic(prepared, alternatives, it) }
     }
+
+    fun rankVideos(query: String, results: List<VideoPreview>): List<VideoPreview> {
+        val prepared = prepare(query)
+        if (!prepared.valid) return results
+        val alternatives = aliases(prepared)
+        return rankByEvidence(results) { track ->
+            val id = prepareSaved(track)
+            val literal = savedScore(prepared, id)
+            if (literal > 0) literal else {
+                val alias = alternatives.maxOfOrNull { savedScore(it, id) } ?: 0
+                if (alias > 0) minOf(40, alias / 2)
+                else if (savedScore(prepared, id, allowTypo = true) > 0) 20
+                else 0
+            }
+        }
+    }
+
+    private fun rankByEvidence(results: List<VideoPreview>, score: (VideoPreview) -> Int): List<VideoPreview> =
+        results.map { track -> track to score(track) }
+            .sortedWith(compareByDescending<Pair<VideoPreview, Int>> { it.second }
+                .thenByDescending { (track, relevance) ->
+                    if (relevance > 0) track.viewCount ?: -1L else -1L
+                }).map { it.first }
 }

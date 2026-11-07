@@ -1,5 +1,6 @@
 package com.nightwave.player.ui
 
+import com.nightwave.player.core.YouTubeReleasePolicy
 import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
@@ -215,8 +216,7 @@ class MainActivity : Activity() {
         binding.forwardButton.setOnClickListener { seekBy(15_000) }
         binding.openButton.setOnClickListener {
             val url = currentVideoUrl ?: return@setOnClickListener
-            try { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
-            catch (_: Exception) { showStatus("No app can open this video link.", true) }
+            if (!OfficialYouTube.track(this, url)) showStatus("No app can open this video link.", true)
         }
         binding.progress.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(bar: SeekBar?, progress: Int, fromUser: Boolean) = Unit
@@ -319,6 +319,11 @@ class MainActivity : Activity() {
             showStatus("Type a song or artist name.", true)
             return
         }
+        if (YouTubeReleasePolicy.OFFICIAL_ONLY) {
+            startActivity(Intent(this, com.nightwave.player.v2.ui.NightWaveStudioActivity::class.java)
+                .setAction(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, clean))
+            return
+        }
         binding.resultsHeading.text = "Searching YouTube"
         showStatus("Choose a video in the YouTube search screen. NightWave will handle playback.")
         websiteDialog?.dismiss()
@@ -350,6 +355,10 @@ class MainActivity : Activity() {
     }
 
     private fun search(query: String) {
+        if (YouTubeReleasePolicy.OFFICIAL_ONLY) {
+            openYouTubeWebsite(query)
+            return
+        }
         val id = ++token
         val selectedMode = searchMode
         page = Page.SEARCH
@@ -398,6 +407,14 @@ class MainActivity : Activity() {
     }
 
     private fun playUrl(url: String, replaceQueue: Boolean = true) {
+        if (YouTubeReleasePolicy.OFFICIAL_ONLY) {
+            val saved = com.nightwave.player.offline.SearchTrackOfflineIndex.readySong(this, url)
+            if (saved == null) showStatus(getString(R.string.nw55_3_reference_only), true)
+            else startService(Intent(this, PlaybackService::class.java)
+                .setAction(PlaybackService.ACTION_PLAY_OFFLINE)
+                .putExtra(PlaybackService.EXTRA_OFFLINE_ID, saved.id))
+            return
+        }
         if (replaceQueue) {
             val preview = results.firstOrNull { it.url == url }
                 ?: library.recent().firstOrNull { it.url == url }
@@ -1025,6 +1042,10 @@ class MainActivity : Activity() {
                 val url = VideoLink.normalize(input.text.toString())
                 if (url == null) {
                     showStatus("Please enter a valid public YouTube video link.", true)
+                } else if (YouTubeReleasePolicy.OFFICIAL_ONLY) {
+                    val saved = library.recent().firstOrNull { it.url == url }
+                        ?: VideoPreview("YouTube video", "YouTube", url, "", 0L)
+                    showPlaylistPicker(saved)
                 } else {
                     showStatus("Checking song details…")
                     worker.execute {

@@ -1,9 +1,9 @@
 <resources>
-    <string name="nw57_music_public">গান ও পাবলিক ফল</string>
+    <string name="nw57_music_public">গান</string>
     <string name="nw57_your_music">আপনার গান</string>
-    <string name="nw57_all_sources">সব অনুমোদিত উৎস</string>
+    <string name="nw57_all_sources">সব উৎস</string>
     <string name="nw57_saved_links">সংরক্ষিত লিংক</string>
-    <string name="nw57_provider_disclosure">উৎসে খুঁজুন চাপলে নির্বাচিত ফিল্টারের উৎসগুলোতে এই সার্চ পাঠানো হবে। গান ও পাবলিক ফল আলাদা থাকে।</string>
+    <string name="nw57_provider_disclosure">উৎসে খুঁজুন চাপলে নির্বাচিত ফিল্টারের উৎসগুলোতে এই সার্চ পাঠানো হবে। গানের মূল সার্চ আলাদা থাকে।</string>
     <string name="nw57_show_all">%2$s থেকে সব %1$sটি দেখুন</string>
     <string name="nw57_show_fewer">%1$s থেকে কম দেখুন</string>
     <string name="nw57_link_error">সংরক্ষিত লিংক পড়া বা হালনাগাদ করা যায়নি। আগের লিংকগুলো রাখা হয়েছে।</string>
@@ -14,4 +14,39 @@
     <string name="nw57_remove_link">লিংক সরান</string>
     <string name="nw57_local_prompt">এই ডিভাইসে গান খুঁজতে নাম বা নির্মাতার নাম লিখুন।</string>
     <string name="nw57_local_empty">আপনার গানে কোনো মিল নেই।</string>
+    <string name="nw58_openverse_disclosure">Openverse লাইসেন্সের তথ্য দেখায়। শুনতে এবং ব্যবহারের অনুমতি যাচাই করতে রেকর্ডিংয়ের পৃষ্ঠা খুলুন।</string>
+    <string name="nw58_update_release">NightWave v%1$d (%2$s)</string>
+    <string name="nw58_sources_tab">উৎস</string>
+    <string name="nw58_provider_label">সংগীতের উৎস</string>
+    <string name="nw58_source_intro">গান, ভিডিও ও রেডিও খুঁজুন। উৎস খুলতে ফলাফলে ট্যাপ করুন।</string>
+    <string name="nw58_about_sources">উৎস সম্পর্কে</string>
+    <string name="nw58_hide_source_info">উৎসের তথ্য লুকান</string>
+    <string name="nw58_import_formats_summary">লসলেস FLAC, MP3, M4A ও আরও ফরম্যাট আমদানি করুন।</string>
+    <string name="nw58_licensed_audio">লাইসেন্সপ্রাপ্ত অডিও</string>
+    <string name="nw58_audio_link">অডিও লিংক</string>
+    <string name="nw58_play_track_title">%1$s চালান</string>
+    <string name="nw58_equalizer_off">ইকুয়ালাইজার বন্ধ</string>
+    <string name="nw58_clear_saved_eq">সংরক্ষিত EQ মুছুন</string>
+    <string name="nw58_download_help">ডাউনলোড সহায়তা</string>
+    <string name="nw58_hide_download_history">লুকানো ট্রান্সফার আবার আড়াল করুন (%1$d)</string>
+    <string name="nw58_show_download_history">লুকানো ট্রান্সফার দেখান (%1$d)</string>
+    <string name="nw58_volume_balance_summary">ডিভাইসে সংরক্ষিত বেশি জোরে বাজা গানের ভলিউম কমায়।</string>
+    <string name="nw58_local_playback_help">ডিভাইসের গান চালানো সম্পর্কে</string>
+    <string name="nw58_related_songs">মিল আছে এমন গান</string>
+    <string name="nw58_find_related">এই শিল্পীর গান খুঁজুন</string>
+    <string name="nw58_find_videos">ভিডিও খুঁজুন</string>
+    <string name="nw58_finding_videos">ভিডিও খোঁজা হচ্ছে…</string>
+    <string name="nw58_typing_completions">শব্দের পরামর্শ</string>
+    <string name="nw58_typing_matches">মিলে যাওয়া গান</string>
+    <string name="nw58_typing_offline_title">%1$s · ডিভাইসে</string>
+    <plurals name="nw58_library_matches">
+        <item quantity="one">আপনার গানে %1$sটি মিল</item>
+        <item quantity="other">আপনার গানে %1$sটি মিল</item>
+    </plurals>
+    <string name="nw55_3_saved_audio_playing">এই ডিভাইসে সংরক্ষিত অডিও চলছে।</string>
+    <string name="nw55_3_reference_only">এটি একটি সংরক্ষিত লিংক। এই ডিভাইসে চালানোর মতো অডিও নেই।</string>
+    <string name="nw55_3_offline_sources">অফলাইন উৎস</string>
+    <string name="nw55_3_track_availability">গানটি পাওয়া যাবে কি না</string>
+    <string name="nw55_3_search_scope">আপনার লাইব্রেরি, Audius, PeerTube ও Openverse-এ গান খুঁজুন।</string>
+    <string name="nw55_3_find_creator">এই শিল্পীর গান খুঁজুন</string>
 </resources>

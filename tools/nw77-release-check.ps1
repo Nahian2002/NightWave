@@ -40,6 +40,25 @@ if ([string]::IsNullOrWhiteSpace($ProjectRoot)) {
 $root = (Resolve-Path -LiteralPath $ProjectRoot).Path
 $reportFile = Join-Path (Join-Path $root 'dist') 'NightWave-NW77-public-release-report.txt'
 New-Item -ItemType Directory -Path (Split-Path -Parent $reportFile) -Force | Out-Null
+# The fixed public-build boundary is verified by the canonical audit.
+$policy = Join-Path $root 'app/src/main/java/com/nightwave/player/core/YouTubeReleasePolicy.kt'
+if (Test-Path -LiteralPath $policy -PathType Leaf) {
+    $python = Get-Command python -ErrorAction SilentlyContinue
+    if (-not $python) {
+        'NO-GO - Python 3 is required to verify the current public-build source boundary.' |
+            Set-Content -LiteralPath $reportFile -Encoding UTF8
+        Get-Content -LiteralPath $reportFile | Write-Host
+        exit 1
+    }
+    $audit = Join-Path $PSScriptRoot 'nw77_public_release_audit.py'
+    $json = Join-Path (Split-Path -Parent $reportFile) 'NightWave-NW77-public-release-audit.json'
+    $output = & $python.Source $audit --project-root $root --report $json
+    $exitCode = $LASTEXITCODE
+    $output | Set-Content -LiteralPath $reportFile -Encoding UTF8
+    $output | Write-Host
+    exit $exitCode
+}
+
 $findings = [Collections.Generic.List[string]]::new()
 try {
     $gateway = Get-Source $root 'app/src/main/java/com/nightwave/player/net/YouTubeGateway.kt'

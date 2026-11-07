@@ -49,6 +49,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
@@ -176,11 +177,13 @@ fun NightWaveRecentShelfTile(
     var showActions by remember(song.url) { mutableStateOf(false) }
     val tileWidth = NightWavePremiumDesignTokens.shelfWidthDp(
         LocalConfiguration.current.screenWidthDp.toFloat(), fontScale).dp
+    val playLabel = strings.get(R.string.nw58_play_track_title, identity.title)
     Column(Modifier.width(tileWidth).testTag("nw47-recent-tile")) {
         Surface(onClick = onPlay, shape = RoundedCornerShape(NightWavePremiumDesignTokens.CARD_CORNER_DP.dp),
-            modifier = Modifier.fillMaxWidth().testTag("nw47-recent-play")) {
+            modifier = Modifier.fillMaxWidth().testTag("nw47-recent-play")
+                .semantics { contentDescription = playLabel }) {
             Box {
-                TrackArtwork(song, Modifier.fillMaxWidth().aspectRatio(16f / 9f), large = true, crop = true)
+                TrackArtwork(song, Modifier.fillMaxWidth().aspectRatio(16f / 9f), large = true, crop = true, decorative = true)
                 if (isPlaying) Surface(
                     Modifier.align(Alignment.BottomStart).padding(7.dp),
                     color = colors.primary, shape = RoundedCornerShape(7.dp)) {
@@ -266,7 +269,7 @@ fun NightWaveNextListenTile(
                         .background(scheme.surfaceVariant),
                     contentAlignment = Alignment.Center
                 ) {
-                    TrackArtwork(song, Modifier.fillMaxSize(), large = true, crop = true)
+                    TrackArtwork(song, Modifier.fillMaxSize(), large = true, crop = true, decorative = true)
                     if (isPlaying) {
                         Surface(
                             modifier = Modifier.align(Alignment.BottomStart).padding(8.dp),

@@ -1,9 +1,9 @@
 <resources>
-    <string name="nw57_music_public">Music &amp; public</string>
+    <string name="nw57_music_public">Music</string>
     <string name="nw57_your_music">Your music</string>
-    <string name="nw57_all_sources">All permitted</string>
+    <string name="nw57_all_sources">All sources</string>
     <string name="nw57_saved_links">Saved links</string>
-    <string name="nw57_provider_disclosure">Search sources sends this query to the providers in the selected filter. Music &amp; public stays separate.</string>
+    <string name="nw57_provider_disclosure">Search sources sends this query to the providers in the selected filter. The main Music search stays separate.</string>
     <string name="nw57_show_all">Show all %1$s from %2$s</string>
     <string name="nw57_show_fewer">Show fewer from %1$s</string>
     <string name="nw57_link_error">Saved links could not be updated or read. Existing links are kept.</string>
@@ -14,4 +14,39 @@
     <string name="nw57_remove_link">Remove link</string>
     <string name="nw57_local_prompt">Type a title or creator to find music on this device.</string>
     <string name="nw57_local_empty">No matches in your music.</string>
+    <string name="nw58_openverse_disclosure">Openverse lists license information. Open the recording page to listen where available and confirm reuse rights.</string>
+    <string name="nw58_update_release">NightWave v%1$d (%2$s)</string>
+    <string name="nw58_sources_tab">Sources</string>
+    <string name="nw58_provider_label">Music providers</string>
+    <string name="nw58_source_intro">Find music, videos and radio. Tap a result to open its source.</string>
+    <string name="nw58_about_sources">About sources</string>
+    <string name="nw58_hide_source_info">Hide source info</string>
+    <string name="nw58_import_formats_summary">Import FLAC lossless, MP3, M4A and more.</string>
+    <string name="nw58_licensed_audio">Licensed audio</string>
+    <string name="nw58_audio_link">Audio link</string>
+    <string name="nw58_play_track_title">Play %1$s</string>
+    <string name="nw58_equalizer_off">Equalizer off</string>
+    <string name="nw58_clear_saved_eq">Clear saved EQ</string>
+    <string name="nw58_download_help">Download help</string>
+    <string name="nw58_hide_download_history">Hide hidden transfers (%1$d)</string>
+    <string name="nw58_show_download_history">Show hidden transfers (%1$d)</string>
+    <string name="nw58_volume_balance_summary">Lowers louder tracks saved on this device.</string>
+    <string name="nw58_local_playback_help">About local playback</string>
+    <string name="nw58_related_songs">Related songs</string>
+    <string name="nw58_find_related">Search this artist</string>
+    <string name="nw58_find_videos">Find videos</string>
+    <string name="nw58_finding_videos">Finding videos…</string>
+    <string name="nw58_typing_completions">Word suggestions</string>
+    <string name="nw58_typing_matches">Matching songs</string>
+    <string name="nw58_typing_offline_title">%1$s · On device</string>
+    <plurals name="nw58_library_matches">
+        <item quantity="one">%1$s match in your music</item>
+        <item quantity="other">%1$s matches in your music</item>
+    </plurals>
+    <string name="nw55_3_saved_audio_playing">Playing the copy saved on this device.</string>
+    <string name="nw55_3_reference_only">This is a saved link. No playable copy is available on this device.</string>
+    <string name="nw55_3_offline_sources">Offline sources</string>
+    <string name="nw55_3_track_availability">Track availability</string>
+    <string name="nw55_3_search_scope">Find music searches your library, Audius, PeerTube and Openverse.</string>
+    <string name="nw55_3_find_creator">Find music by this creator</string>
 </resources>

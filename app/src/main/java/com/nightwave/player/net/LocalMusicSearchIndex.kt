@@ -25,6 +25,11 @@ data class LocalMusicSearchResult(
     fun accepts(query: String, index: LocalMusicSearchIndex?): Boolean = this.query == query && this.index === index
 }
 
+internal data class LocalTypingPreview(
+    val index: LocalMusicSearchIndex?, val query: String, val completions: List<String>,
+    val saved: List<VideoPreview>, val offline: List<OfflineSong>
+)
+
 class LocalMusicSearchIndex private constructor(
     private val saved: SavedTrackSearch.Prepared,
     private val audio: OfflineTrackSearch.Prepared,
@@ -43,6 +48,12 @@ class LocalMusicSearchIndex private constructor(
         checkpoint()
         return LocalMusicSearchResult(this, query, matches, offline, suggestions)
     }
+
+    internal fun typingSaved(query: SearchTypingQuery, checkpoint: () -> Unit) =
+        saved.typing(query, checkpoint)
+
+    internal fun typingOffline(query: SearchTypingQuery, checkpoint: () -> Unit) =
+        audio.typing(query, checkpoint)
 
     companion object {
         const val MAX_PUBLIC_REFERENCES = 15_600 // 500 likes + 100 recent + 50 × 300 playlist references.

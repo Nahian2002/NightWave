@@ -21,7 +21,7 @@ class PublicSearchRequest(timeoutMillis: Long = 20_000) {
     private val calls = mutableSetOf<Call>()
     @Volatile private var cancelled = false
 
-    fun beginPhase(phase: PublicSearchPhase, directBudgetMillis: Long = 8_000L) {
+    fun beginPhase(phase: PublicSearchPhase, directBudgetMillis: Long = 5_000L) {
         checkActive()
         phaseDeadline = if (phase == PublicSearchPhase.DIRECT)
             minOf(deadline, System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(directBudgetMillis.coerceIn(1, PublicMusicSearchRunner.TIMEOUT_MS)))

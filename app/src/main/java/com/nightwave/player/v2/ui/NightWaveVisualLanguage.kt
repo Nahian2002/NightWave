@@ -183,10 +183,10 @@ private fun NightWaveMixMosaic(mix: PersonalMix, modifier: Modifier = Modifier) 
     if (tracks.size == 3) {
         Row(modifier.background(MaterialTheme.colorScheme.surfaceVariant),
             horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-            TrackArtwork(tracks.first(), Modifier.weight(1f).fillMaxSize(), radius = 4, sharperTile = true)
+            TrackArtwork(tracks.first(), Modifier.weight(1f).fillMaxSize(), radius = 4, sharperTile = true, decorative = true)
             Column(Modifier.weight(1f).fillMaxSize(), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 tracks.drop(1).forEach { track ->
-                    TrackArtwork(track, Modifier.weight(1f).fillMaxWidth(), radius = 4, sharperTile = true)
+                    TrackArtwork(track, Modifier.weight(1f).fillMaxWidth(), radius = 4, sharperTile = true, decorative = true)
                 }
             }
         }
@@ -197,7 +197,7 @@ private fun NightWaveMixMosaic(mix: PersonalMix, modifier: Modifier = Modifier) 
         tracks.chunked(2).forEach { row ->
             Row(Modifier.fillMaxWidth().weight(1f), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                 row.forEach { track ->
-                    TrackArtwork(track, Modifier.weight(1f).fillMaxSize(), radius = 4, sharperTile = true)
+                    TrackArtwork(track, Modifier.weight(1f).fillMaxSize(), radius = 4, sharperTile = true, decorative = true)
                 }
             }
         }

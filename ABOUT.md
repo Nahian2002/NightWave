@@ -4,11 +4,12 @@ NightWave is an independent Android music player. It combines local audio, playl
 
 | Item | Current status |
 | --- | --- |
-| Public release | [Version 51](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v51) |
-| Public release source | [nightwave-v51](https://github.com/Nahian2002/NightWave/tree/nightwave-v51) |
-| Newest tested review | [Version 52](https://github.com/Nahian2002/NightWave/pull/183) |
-| Android | API 23 (Android 6.0) minimum for versions 51 and 52 |
+| Public release | [Version 55](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55) |
+| Public release source | [nightwave-v55](https://github.com/Nahian2002/NightWave/tree/nightwave-v55) |
+| Signed in-app channel | Version 55 |
+| Current review build | [Version 58](https://github.com/Nahian2002/NightWave/pull/195) |
+| Android | API 23 (Android 6.0) minimum for versions 55 and 58 |
 | App identity | `com.nightwave.player` |
-| Device review | [9.1/10 for design and usability on the S24 Ultra](https://github.com/Nahian2002/NightWave/blob/28d9d9861650363853584c3afa93c4cd30d4b3bf/docs/NW155_MIX_PREVIEW.md) |
+| Device review | [Scoped S24 verification](docs/MULTISOURCE_NW58_IMPLEMENTATION.md) |
 
 NightWave has no licensed subscription catalog or Spotify affiliation. Public references can depend on third-party availability and permissions. See [source and media information](TERMS_AND_SOURCE_USE.md).

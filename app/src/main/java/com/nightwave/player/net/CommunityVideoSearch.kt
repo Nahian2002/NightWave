@@ -9,33 +9,29 @@ import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 /**
- * Optional alternate public-video search when direct extractor results fail.
- *
- * Search text is sent to the public Invidious instance that responds.
- * Servers are from https://docs.invidious.io/instances/ (review/update periodically).
- * No Google login, cookies, tokens or stream URLs are sent. This is not a private backend.
+ * Retained search transport for offline fixtures. The app configures no remote instances.
  */
 class CommunityVideoSearch(
     private val client: OkHttpClient = OkHttpClient.Builder()
         .followRedirects(false)
-        .callTimeout(6, TimeUnit.SECONDS)
+        .callTimeout(4, TimeUnit.SECONDS)
         .connectTimeout(4, TimeUnit.SECONDS)
         .readTimeout(5, TimeUnit.SECONDS)
         .build(),
-    private val instances: List<String> = listOf(
-        "https://inv.nadeko.net",
-        "https://invidious.nerdvpn.de",
-        "https://invidious.tiekoetter.com",
-        "https://yt.chocolatemoo53.com"
-    )
+    private val instances: List<String> = emptyList()
 ) {
 
     data class Result(val videos: List<VideoPreview>, val server: String)
 
+    @Volatile private var lastSuccessfulInstance: String? = null
+
     @Throws(IOException::class)
     fun search(query: String): Result {
         val failures = mutableListOf<String>()
-        for (base in instances) {
+        val preferred = lastSuccessfulInstance
+        val ordered = if (preferred == null) instances else listOf(preferred) + (instances - preferred)
+        val requestScope = PublicSearchRequest.current.get()
+        for (base in ordered) {
             PublicSearchRequest.current.get()?.checkActive()
             try {
                 val url = (base + "/api/v1/search").toHttpUrl().newBuilder()
@@ -54,14 +50,19 @@ class CommunityVideoSearch(
                         failures.add(base.substringAfter("://") + ": HTTP " + response.code)
                         return@executeHttp null
                     }
-                    val payload = response.body?.string().orEmpty()
-                    if (payload.length > 3_000_000) throw IOException("Search response exceeded limit")
+                    val source = response.body?.source() ?: return@executeHttp null
+                    if (source.request(3_000_001L)) throw IOException("Search response exceeded limit")
+                    val payload = source.buffer.readUtf8()
                     val parsed = InvidiousResults.parse(payload)
                     if (parsed.isNotEmpty()) return@executeHttp Result(parsed, base.substringAfter("://"))
                     failures.add(base.substringAfter("://") + ": empty response")
                     null
                 }
-                if (found != null) return found
+                if (found != null) {
+                    if (requestScope == null) lastSuccessfulInstance = base
+                    else requestScope.commitIfActive { lastSuccessfulInstance = base }
+                    return found
+                }
             } catch (e: Exception) {
                 PublicSearchRequest.current.get()?.checkActive()
                 failures.add(base.substringAfter("://") + ": " + e.javaClass.simpleName)
@@ -93,7 +94,8 @@ object InvidiousResults {
                     author = author,
                     url = canonical,
                     thumbnail = "https://i.ytimg.com/vi/" + id + "/hqdefault.jpg",
-                    durationSeconds = item.optLong("lengthSeconds", 0).coerceAtLeast(0)
+                    durationSeconds = item.optLong("lengthSeconds", 0).coerceAtLeast(0),
+                    viewCount = item.optLong("viewCount", -1).takeIf { it >= 0 }
                 )
             )
             if (results.size == 45) break
