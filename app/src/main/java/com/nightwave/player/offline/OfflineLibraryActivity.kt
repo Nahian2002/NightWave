@@ -847,7 +847,7 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
                 }
             }
             row.addView(cover, 0, LinearLayout.LayoutParams(dp(52), dp(52)).apply { marginEnd = dp(10) })
-            row.addView(label("☁", 20f, 0xFF91E2D7.toInt()).apply {
+            row.addView(label("☁\uFE0E", 20f, 0xFF91E2D7.toInt()).apply {
                 gravity = Gravity.CENTER
                 alpha = if (available) 1f else 0.35f
                 contentDescription = "Upload " + identity.title + " to your own Google Drive"
@@ -916,8 +916,7 @@ class OfflineLibraryActivity : NightWaveOfflineShellActivity() {
                     .setAction(PlaybackService.ACTION_SHUFFLE)
                     .putExtra(PlaybackService.EXTRA_SHUFFLE_ENABLED, shuffle))
             }
-            status(if (shuffle) "Shuffling saved songs · " + song.title
-                else "Playing " + song.title + " · Next follows this list")
+            status(if (shuffle) "Shuffle requested for this list" else "Queue follows this list")
         }.onFailure { status("Offline playback could not start. Please retry.") }
     }
 
