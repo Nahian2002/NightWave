@@ -1,12 +1,12 @@
 # Build and update NightWave
 
-Download the [55.5 APK](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55.5). To build its matching source, check out the [55.5 source tag](https://github.com/Nahian2002/NightWave/tree/nightwave-v55.5).
+Download the latest public release from the [NightWave 55.7 release page](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55.7). To build matching source, check out the [55.7 source tag](https://github.com/Nahian2002/NightWave/tree/nightwave-v55.7).
 
 1. Use a fresh writable checkout on Windows and run `build-windows.cmd`.
 2. Check the fresh `dist/NightWave-build-status.txt`, JVM receipt and APK provenance. The builder compiles the app and Android test sources and runs the host tests.
 3. Run `check-device-update.cmd` with the phone connected. Compare the candidate and installed signing certificates. Preserve the existing app and library if the certificates differ.
 4. For source-only checks, run `python tools/verify_current.py`. Run Android lint separately after the builder finishes.
 
-55.5 uses package `com.nightwave.player`, minimum API 23 and target API 36. The signed in-app update channel currently offers 55.5 (Android code 64). The app verifies the channel metadata, APK bytes and signing identity before handing installation to Android.
+55.7 uses package `com.nightwave.player`, minimum API 23 and target API 36 (Android build 66). The signed in-app update feed advertises 55.7, but its existing manifest still points to a previously private-designated APK asset. Public GitHub release availability does not guarantee older updater clients can fetch that asset. The app verifies signed metadata, APK bytes and signing identity before handing installation to Android.
 
 [Test evidence](../TEST_REPORT.md) · [Earlier build instructions](https://github.com/Nahian2002/NightWave/blob/7667b68535bbdbc09b69350357ba2ca408e0730b/docs/BUILD_AND_RELEASE_HISTORY_20261027.md)

@@ -1,5 +1,7 @@
 # Verification status
 
+**Release-channel note (2026-11-10):** NightWave **55.7 (Android build 66)** is public according to the maintainer; its tagged source configuration confirms code 66 and minSdk 23. This documentation change did not independently download or revalidate the 55.7 APK or in-app updater asset. See the [55.7 public release](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55.7) and [matching source](https://github.com/Nahian2002/NightWave/tree/nightwave-v55.7).
+
 | Evidence | Result |
 | --- | --- |
 | 55.5 final maintenance | Exact release checks and remaining device coverage are documented in the [55.5 release notes](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55.5). The source tag includes the [maintenance QA report](https://github.com/Nahian2002/NightWave/blob/nightwave-v55.5/docs/NIGHTWAVE_55_4_MAINTENANCE_QA.md). |
@@ -9,7 +11,7 @@
 | Version 55 S24 Ultra | The in-place upgrade from version 53 preserved all 33 backed-up files before launch. App details, Gmail draft handoff and Search completion passed scoped checks. No test email was sent. [Build and device evidence](https://github.com/Nahian2002/NightWave/blob/af4b67228fbb570b9679f10da82be5da2f8601d3/docs/NW158_SUPPORT_SEARCH.md) |
 | Version 52 review | Windows build, 1,869 JVM tests, 94 source checks and lint passed. Android instrumentation sources compiled. |
 | S24 Ultra | Version 51 to 52 upgrade preserved 33 verified files before first launch. Mix preview, dismissal, show-all, options and manual update checks passed. |
-| In-app update channel | The stable feed offers 55.5, Android code 64, to compatible older builds. |
+| In-app update channel | The signed feed now advertises 55.7, Android code 66. Its existing asset URL originated in an owner-only updater; unauthenticated in-app download behavior was not rechecked here. |
 | Broader device acceptance | Small screens, accessibility, playback and recovery scenarios remain open. |
 
-The [version 52 device and build report](https://github.com/Nahian2002/NightWave/blob/28d9d9861650363853584c3afa93c4cd30d4b3bf/docs/NW155_MIX_PREVIEW.md) has exact artifacts, version identifiers and coverage. [Current public release](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55.5) · [Prior test report](https://github.com/Nahian2002/NightWave/blob/7667b68535bbdbc09b69350357ba2ca408e0730b/TEST_REPORT.md)
+The [version 52 device and build report](https://github.com/Nahian2002/NightWave/blob/28d9d9861650363853584c3afa93c4cd30d4b3bf/docs/NW155_MIX_PREVIEW.md) has exact artifacts, version identifiers and coverage. [Current public release](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55.7) · [Prior test report](https://github.com/Nahian2002/NightWave/blob/7667b68535bbdbc09b69350357ba2ca408e0730b/TEST_REPORT.md)

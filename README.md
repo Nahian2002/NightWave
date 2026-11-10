@@ -2,9 +2,9 @@
 
 **Your music, your way.** NightWave is an independent Android listening app for your own audio library, playlists, and saved music references, built with Kotlin, Jetpack Compose, and Android Media3.
 
-[**Download public APK — NightWave 55.5**](https://github.com/Nahian2002/NightWave/releases/download/nightwave-v55.5/NightWave-v55.5.apk) · [Release notes](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55.5) · [Exact release source](https://github.com/Nahian2002/NightWave/tree/nightwave-v55.5) · [Changelog](CHANGELOG.md)
+[**NightWave 55.7 — latest public release**](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55.7) · [Matching 55.7 source](https://github.com/Nahian2002/NightWave/tree/nightwave-v55.7) · [Previous public 55.5](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55.5) · [Changelog](CHANGELOG.md)
 
-> **Release channels are different.** The documented **public download is 55.5 (build 64)**. The signed update feed on `main` now identifies **55.7 (build 66)**, but that APK is a **restricted, owner-only GitHub asset**—not a public download. The current `main` app source is a separate development line; build and install from the matching release tag if you need 55.5. See [release and update status](#release-and-update-status).
+> **Public release:** NightWave **55.7 (Android build 66)** is publicly available. NightWave 55.5 (build 64) remains an older public release. The current signed update manifest still references an APK path originally designated for a private updater; public GitHub release availability does **not** by itself prove that every older in-app updater can download it without authentication. The `main` Android app source is a separate development configuration; use the matching release tag to reproduce a released version. See [release and update status](#release-and-update-status).
 
 ## Why NightWave?
 
@@ -23,26 +23,31 @@ NightWave keeps your everyday listening essentials together without requiring a 
 
 ## Install on Android
 
-The **public NightWave 55.5 APK** is **Android build 64**, supports **Android 6.0 (API 23) and newer**, and uses package ID `com.nightwave.player`.
+**NightWave 55.7** (Android build **66**) supports **Android 6.0 (API 23) and newer**, with package ID `com.nightwave.player`.
 
-1. Download the [verified public GitHub release APK](https://github.com/Nahian2002/NightWave/releases/download/nightwave-v55.5/NightWave-v55.5.apk). Review its [release notes](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55.5).
-2. Open the APK on your phone and approve Android's installation prompt, including the per-app permission to install from that source if requested.
-3. If updating an existing installation, **verify the signing certificate matches**. A different signature will not be a safe in-place update; never uninstall or clear app data just to force an upgrade.
-4. Open NightWave, import audio you own or are allowed to use, and configure optional services only if you want them.
+1. Open the [public NightWave 55.7 GitHub release](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55.7) and download the Android APK listed in its release assets.
+2. Open the APK on your phone and approve Android's installation prompt, including permission to install from that source if requested.
+3. To update without losing your library, **the installed and new APK signing certificates must match**. Do not uninstall or clear app data to bypass a certificate mismatch.
+4. Launch NightWave, import audio you own or can legally use, and enable optional services only if needed.
 
 ### Release and update status
 
-| Channel | Version | Audience / meaning |
+| Channel | Version | What it means |
 | --- | --- | --- |
-| [**Public GitHub APK**](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55.5) | **55.5 · code 64** | Documented public installation and reproducible release source |
-| Signed [`updates/stable.json`](updates/stable.json) | **55.7 · code 66** | Points to a **private owner-only asset** requiring authorized GitHub access; **not a publicly available APK** |
-| [`main` development source](app/build.gradle.kts) | **2.0.0-alpha5s · code 35** | In-progress source configuration, **not** the public 55.5 release or a safe version-code upgrade over it |
+| [**Latest public GitHub release**](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55.7) | **55.7 · build 66** | Publicly released, with corresponding [tagged source](https://github.com/Nahian2002/NightWave/tree/nightwave-v55.7) |
+| [Previous public release](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55.5) | **55.5 · build 64** | Earlier public APK and [tagged source](https://github.com/Nahian2002/NightWave/tree/nightwave-v55.5) |
+| Signed [`updates/stable.json`](updates/stable.json) | **55.7 · build 66** | Signed feed still references a previously private-designated APK asset; access through older in-app updater versions is **not independently verified** |
+| [`main` development source](app/build.gradle.kts) | **2.0.0-alpha5s · build 35** | Separate development configuration, **not** a safe direct upgrade over 55.7 |
 
-The app's **You → Check for updates** flow uses signed metadata and checks APK integrity/signing before Android installation. The 55.7 restricted flow needs authorized access; older installations may require a one-time manual bootstrap. **Do not assume the private update can be downloaded by everyone.**
+**You → Check for updates** verifies signed metadata, APK integrity and signing identity. A public GitHub release does not automatically change the existing updater's stored URL or authentication behavior. If automatic updating is unavailable, use the public release page and verify signer continuity before installing manually.
 
-For the exact public 55.5 build, use the [`nightwave-v55.5` source tag](https://github.com/Nahian2002/NightWave/tree/nightwave-v55.5), **not an arbitrary checkout of `main`**.
+For exact 55.7 source, use [`nightwave-v55.7`](https://github.com/Nahian2002/NightWave/tree/nightwave-v55.7) rather than assuming `main` builds the released APK.
 
-## What's in public 55.5?
+## Release highlights
+
+**55.7:** The latest public release. See the [official 55.7 release page](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55.7) for the published changes and APK assets; this README does not infer new features from version numbers alone.
+
+**55.5 maintenance improvements:**
 
 - Clearer empty-state controls for **Sources** and search guidance in **Your Music**.
 - Better library guidance for saving songs and organizing playlists.
@@ -79,7 +84,7 @@ python tools/verify_current.py
 
 Use the project's configured Android SDK/JDK and the [full build and release guide](docs/BUILD_AND_RELEASE.md). `build-windows.cmd` writes reports and build output under `dist/`; its success **does not prove** an APK has the same signer as the app already installed on your phone. Run the read-only compatibility preflight before considering an in-place upgrade, and keep user data intact.
 
-**For released 55.5 source:** check out `nightwave-v55.5` before building. **For current development:** `main` is an independent alpha source configuration (currently minimum API 26), so don't label a local `main` build as public 55.5 or install it over a higher-version-code release without an explicit, verified migration and signing plan.
+**For released 55.7 source:** check out `nightwave-v55.7` before building. **For current development:** `main` is an independent alpha source configuration (currently minimum API 26), so don't label a local `main` build as public 55.7 or install it over a higher-version-code release without an explicit, verified migration and signing plan.
 
 [Repository navigation](docs/REPOSITORY_INDEX.md) · [Build tools](tools/README.md) · [Test evidence](TEST_REPORT.md) · [Contributing](CONTRIBUTING.md)
 
