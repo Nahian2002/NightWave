@@ -1,5 +1,11 @@
 # NightWave changelog
 
+## 55.7 · public release
+
+- NightWave 55.7 (Android build 66, minimum API 23) is publicly released. [Release page](https://github.com/Nahian2002/NightWave/releases/tag/nightwave-v55.7) · [matching source](https://github.com/Nahian2002/NightWave/tree/nightwave-v55.7).
+- The signed update manifest advertises 55.7, but still contains a private-designated updater asset path; access via older in-app updaters has not been retested in this documentation update.
+- This note records release availability rather than claiming new feature or device-test results.
+
 ## 55.5 · Final maintenance release
 
 - Clarified empty Sources and Library guidance.
